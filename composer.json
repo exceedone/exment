@@ -1,0 +1,48 @@
+{
+    "name": "exceedone/exment",
+    "description": "Management for Product, Client, Contracts, Subscription, ...",
+    "type": "library",
+    "keywords": ["CMS", "SFA", "Dynamic Table", "Free", "Custom Database", "Custom Table"],
+    "homepage": "https://exment.net",
+    "license": "LGPL-3.0-or-later",
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Exceed One Co.,Ltd.",
+            "homepage": "https://www.exceedone.co.jp/"
+        },
+        {
+            "name": "NTQ Solution",
+            "homepage": "https://jp.ntq-solution.com.vn/"
+        },
+        {
+            "name": "Hiroshi Sato",
+            "homepage": "https://hirossyi.net/"
+        }
+    ],
+    "require": {
+        "php": ">=7.0.0",
+        "encore/laravel-admin": "~1.6.0",
+        "laravel/framework": "~5.5",
+        "laravelcollective/html": "5.5.*",
+        "setasign/fpdi": "^2.0",
+        "setasign/fpdi-tcpdf": "^2.0",
+        "tecnickcom/tcpdf": "^6.2",
+        "webpatser/laravel-uuid": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Exceedone\\Exment\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Exceedone\\Exment\\ExmentServiceProvider"
+            ],
+            "aliases": {
+                "Exment": "Exceedone\\Exment\\Facades\\ExmentFacade"
+            }
+        }
+    }
+}

@@ -1,0 +1,100 @@
+@import "_valiables.scss";
+
+.red{
+    color:red;
+}
+
+.bold{
+    font-weight:bold;
+}
+.smaill{
+    font-size:0.9em;
+}
+
+@for $i from 1 through 10 {
+    .w-#{$i * 10} {
+        width: $i * 10% !important;
+    }
+
+    .mw-#{$i * 10} {
+        max-width: $i * 10% !important;
+    }
+
+    .h-#{$i * 10} {
+        height: $i * 10% !important;
+    }
+
+    .mh-#{$i * 10} {
+        max-height: $i * 10% !important;
+    }
+}
+
+@for $i from 1 through 10 {
+    @media(min-width:$pc-media-width) {
+        .w-#{$i * 10}-pc {
+            width: $i * 10% !important;
+        }
+
+        .h-#{$i * 10}px-pc {
+            height: $i * 10% !important;
+        }
+    }
+}
+
+@for $i from 1 through 100 {
+    .w#{$i * 10}px {
+        width: #{$i * 10}px;
+    }
+
+    .mw#{$i * 10}px {
+        max-width: #{$i * 10}px;
+    }
+
+    .h#{$i * 10}px {
+        height: #{$i * 10}px;
+    }
+
+    .mh#{$i * 10}px {
+        max-height: #{$i * 10}px;
+    }
+}
+
+@for $i from 1 through 100 {
+    @media(min-width:$pc-media-width) {
+        .w#{$i * 10}px-pc {
+            width: #{$i * 10}px;
+        }
+
+        .mw#{$i * 10}px-pc {
+            max-width: #{$i * 10}px;
+        }
+
+        .h#{$i * 10}px-pc {
+            height: #{$i * 10}px;
+        }
+
+        .mh#{$i * 10}px-pc {
+            max-height: #{$i * 10}px;
+        }
+    }
+}
+
+.table-hover > tbody > tr:hover {
+    background-color: #DFDFDF;
+    cursor:pointer;
+}
+.ul-hover > li:hover {
+    background-color: #DFDFDF;
+    cursor: pointer;
+}
+
+// has-many-table
+.has-many-table .input-group{
+    margin-left:auto;
+    margin-right: auto;
+}
+
+.dropdown-menu .dropdown-header{
+    font-size: 10px;
+    padding-left: 10px;
+}

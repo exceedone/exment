@@ -1,0 +1,582 @@
+{
+    "template_name": "for_product_saller",
+    "template_view_name": "製品販売会社用テンプレート",
+    "description": "製品販売会社向けのテンプレートです。契約管理、製品管理を含んでいます。",
+    "tables": [
+        {
+            "table_name": "client",
+            "table_view_name": "顧客",
+            "icon": "fa-user",
+            "color": null,
+            "description": null,
+            "search_enabled": "0",
+            "one_record_flg": "0",
+            "custom_columns": [
+                {
+                    "column_name": "client_code",
+                    "column_view_name": "顧客コード",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "search_enabled": 1,
+                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                    }
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "顧客名",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "use_label_flg": 1,
+                        "search_enabled": 1
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "agency",
+            "table_view_name": "代理店",
+            "icon": "fa-building",
+            "color": null,
+            "description": null,
+            "search_enabled": "0",
+            "one_record_flg": "0",
+            "custom_columns": [
+                {
+                    "column_name": "agency_code",
+                    "column_view_name": "代理店コード",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "search_enabled": 1,
+                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                    }
+                },
+                {
+                    "column_name": "agency_name",
+                    "column_view_name": "代理店名",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "use_label_flg": 1,
+                        "search_enabled": 1
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "product",
+            "table_view_name": "製品",
+            "icon": "fa-shopping-bag",
+            "color": null,
+            "description": null,
+            "search_enabled": "0",
+            "one_record_flg": "0",
+            "custom_columns": [
+                {
+                    "column_name": "product_code",
+                    "column_view_name": "製品コード",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "search_enabled": 1,
+                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                    }
+                },
+                {
+                    "column_name": "product_name",
+                    "column_view_name": "製品名",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "use_label_flg": 1,
+                        "search_enabled": 1
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "product_version",
+            "table_view_name": "製品バージョン",
+            "icon": "fa-shopping-bag",
+            "color": null,
+            "description": null,
+            "search_enabled": "0",
+            "one_record_flg": "0",
+            "custom_columns": [
+                {
+                    "column_name": "product_version_code",
+                    "column_view_name": "製品バージョンコード",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "search_enabled": 1,
+                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                    }
+                },
+                {
+                    "column_name": "product_version_name",
+                    "column_view_name": "製品バージョン名",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "use_label_flg": 1,
+                        "search_enabled": 1
+                    }
+                },
+                {
+                    "column_name": "cost",
+                    "column_view_name": "原価",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": []
+                }
+            ]
+        },
+        {
+            "table_name": "contract",
+            "table_view_name": "契約",
+            "icon": "fa-file-text",
+            "color": null,
+            "description": null,
+            "search_enabled": "0",
+            "one_record_flg": "0",
+            "custom_columns": [
+                {
+                    "column_name": "contract_code",
+                    "column_view_name": "契約コード",
+                    "column_type": "text",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "use_label_flg": 1,
+                        "search_enabled": 1,
+                        "available_characters": ["lower","upper","number","hyphen_underscore"]
+                    }
+                },
+                {
+                    "column_name": "client",
+                    "column_view_name": "顧客",
+                    "column_type": "select_table",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "search_enabled": 1,
+                        "select_target_table_name": "client"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "ステータス",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "select_item": "1,問合\n2,試用\n3,見積\n4,請求\n5,保守\n6,完了",
+                        "search_enabled": 1
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "契約日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "試用開始日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "試用終了日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "mitumorisyo_date",
+                    "column_view_name": "見積書作成日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "seikyusyo_date",
+                    "column_view_name": "請求書作成日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "nyukin_planed_date",
+                    "column_view_name": "入金予定日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "nyukin_date",
+                    "column_view_name": "入金日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "attachment_files",
+                    "column_view_name": "添付資料",
+                    "column_type": "file",
+                    "description": null,
+                    "options": {
+                        "multiple_enabled": 1
+                    }
+                },
+                {
+                    "column_name": "subscription_claim_type",
+                    "column_view_name": "月間契約・年間契約",
+                    "column_type": "select",
+                    "description": null,
+                    "options": {
+                        "select_item": [
+                            "月間",
+                            "年間"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_term",
+                    "column_view_name": "契約期間(月or年)",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "help": "月間契約の場合は契約する月数を、年間契約の場合は契約する年数を入力してください。"
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_start_date",
+                    "column_view_name": "契約開始日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "subscription_agreement_limit_date",
+                    "column_view_name": "契約期限日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "subscription_end_date",
+                    "column_view_name": "終了日",
+                    "column_type": "date",
+                    "description": null,
+                    "options": []
+                }
+            ]
+        },
+        {
+            "table_name": "contract_detail",
+            "table_view_name": "契約明細",
+            "icon": "fa-file-text-o",
+            "color": null,
+            "description": null,
+            "search_enabled": "0",
+            "one_record_flg": "0",
+            "custom_columns": [
+                {
+                    "column_name": "fixed_price",
+                    "column_view_name": "定価",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "required": 1
+                    }
+                },
+                {
+                    "column_name": "comment",
+                    "column_view_name": "コメント",
+                    "column_type": "textarea",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "product_version_id",
+                    "column_view_name": "製品バージョン",
+                    "column_type": "select_table",
+                    "description": null,
+                    "options": {
+                        "required": 1,
+                        "select_target_table_name": "product_version"
+                    }
+                },
+                {
+                    "column_name": "num",
+                    "column_view_name": "数値",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "required": 1
+                    }
+                },
+                {
+                    "column_name": "zeinuki_price",
+                    "column_view_name": "税抜価格",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "required": 1
+                    }
+                },
+                {
+                    "column_name": "tax_rate",
+                    "column_view_name": "税率",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "required": 1
+                    }
+                },
+                {
+                    "column_name": "tax_price",
+                    "column_view_name": "税額",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "required": 1
+                    }
+                },
+                {
+                    "column_name": "zeikomi_price",
+                    "column_view_name": "税込価格",
+                    "column_type": "integer",
+                    "description": null,
+                    "options": {
+                        "required": 1
+                    }
+                }
+            ]
+        }
+    ],
+    "form": [
+        {
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "product_code"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "product_name"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "one_to_many",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "product_version_code"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "product_version_name"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "cost"
+                        }
+                    ],
+                    "form_block_target_table_name": "product_version"
+                }
+            ],
+            "table_name": "product"
+        },
+        {
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "contract_code"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "client"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "status"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "contract_date"
+                        },
+                        {
+                            "form_column_type": "other",
+                            "options": {
+                                "text": "サブスクリプション契約情報"
+                            },
+                            "form_column_target_name": "header"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "subscription_claim_type"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "subscription_agreement_term"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "subscription_agreement_limit_date"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "subscription_end_date"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "子テーブル - 契約明細",
+                    "form_block_type": "one_to_many",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "product_version_id"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "zeinuki_price"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "fixed_price"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "num"
+                        }
+                    ],
+                    "form_block_target_table_name": "contract_detail"
+                }
+            ],
+            "table_name": "contract"
+        }
+    ],
+    "relations": [
+        {
+            "relation_type": "one_to_many",
+            "parent_custom_table_name": "contract",
+            "child_custom_table_name": "contract_detail"
+        },
+        {
+            "relation_type": "one_to_many",
+            "parent_custom_table_name": "product",
+            "child_custom_table_name": "product_version"
+        }
+    ],
+    "menu": [
+        {
+            "order": "1",
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "契約",
+            "parent_name": "saller",
+            "menu_target_name": "contract"
+        },
+        {
+            "order": "1",
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "契約",
+            "parent_name": "manage",
+            "menu_target_name": "contract"
+        },
+        {
+            "order": "4",
+            "menu_type": "table",
+            "menu_name": "client",
+            "title": "顧客",
+            "parent_name": "master",
+            "menu_target_name": "client"
+        },
+        {
+            "order": "5",
+            "menu_type": "table",
+            "menu_name": "product",
+            "title": "製品",
+            "parent_name": "master",
+            "menu_target_name": "product"
+        },
+        {
+            "order": "6",
+            "menu_type": "table",
+            "menu_name": "agency",
+            "title": "代理店",
+            "parent_name": "master",
+            "menu_target_name": "agency"
+        },
+        {
+            "order": "9",
+            "menu_type": "custom",
+            "menu_name": "saller",
+            "title": "営業支援(SFA)",
+            "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "10",
+            "menu_type": "custom",
+            "menu_name": "manage",
+            "title": "顧客管理(CRM)",
+            "parent_name": null,
+            "menu_target_name": null
+        }
+    ],
+    "thumbnail": "thumbnail.png"
+}
