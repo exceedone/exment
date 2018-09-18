@@ -392,6 +392,18 @@ return [
         'available' => 'Available',
         'header_basic_setting' => 'Form Basic Setting',
         'changedata' => 'Data Linkage Setting',
+        'items' => 'Items',
+        'add_all_items' => 'Add All Items',
+        'changedata_target_column' => 'Select Column',
+        'changedata_target_column_when' => 'When select this column,',
+        'changedata_column' => 'Select Link Column',
+        'changedata_column_then' => 'Copy this column',
+
+        'form_column_type_other_options' => [
+            'header' => 'Label',
+            'html' => 'HTML',
+            'explain' => 'Explain',
+        ],
     ],
 
     'custom_view' => [

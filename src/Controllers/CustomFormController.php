@@ -314,7 +314,7 @@ class CustomFormController extends AdminControllerTableBase
             $header_column_name = '[custom_form_columns][NEW__'.make_uuid().']';
             array_push($custom_form_columns, [
                 'id' => null,
-                'column_view_name' => array_get($type, 'column_view_name'), 
+                'column_view_name' => exmtrans("custom_form.form_column_type_other_options.".array_get($type, 'column_name')), 
                 'form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_OTHER, 
                 'form_column_target_id' => $id, 
                 'header_column_name' =>$header_column_name

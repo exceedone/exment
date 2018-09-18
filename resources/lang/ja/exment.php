@@ -392,6 +392,18 @@ return [
         'available' => '使用する',
         'header_basic_setting' => 'ヘッダー基本設定',
         'changedata' => 'データ連動設定',
+        'items' => '項目',
+        'add_all_items' => 'すべて項目に追加',
+        'changedata_target_column' => '列を選択',
+        'changedata_target_column_when' => 'の項目を選択したとき',
+        'changedata_column' => 'リンク列を選択',
+        'changedata_column_then' => 'の値をコピーする',
+
+        'form_column_type_other_options' => [
+            'header' => '見出し',
+            'html' => 'HTML',
+            'explain' => '説明文',
+        ],
     ],
 
     'custom_view' => [
