@@ -175,14 +175,23 @@ class TemplateInstaller
         // Loop by tables
         foreach (array_get($json, "tables") as $table) {
             // Create tables. --------------------------------------------------
-            $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
-            $obj_table->table_name = array_get($table, 'table_name');
-            $obj_table->table_view_name = array_get($table, 'table_view_name');
+            $table_name = array_get($table, 'table_name');
+            $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
+            $obj_table->table_name = $table_name;
             $obj_table->icon = array_get($table, 'icon');
             $obj_table->color = array_get($table, 'color');
             $obj_table->one_record_flg = boolval(array_get($table, 'one_record_flg'));
             $obj_table->search_enabled = boolval(array_get($table, 'search_enabled'));
             $obj_table->system_flg = $system_flg;
+
+            // if contains table view name in config
+            if(array_key_value_exists('table_view_name', $table)){
+                $obj_table->table_view_name = array_get($table, 'table_view_name');
+            }
+            // not exists, get lang using app config
+            else{
+                $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
+            }
             $obj_table->saveOrFail();
 
             // Create database table.
@@ -199,12 +208,13 @@ class TemplateInstaller
             if (array_key_exists('custom_columns', $table)) {
                 $table_columns = [];
                 foreach (array_get($table, 'custom_columns') as $column) {
-                    $obj_column = CustomColumn::firstOrNew(['column_name' => array_get($column, 'column_name')]);
-                    $obj_column->column_name = array_get($column, 'column_name');
-                    $obj_column->column_view_name = array_get($column, 'column_view_name');
+                    $column_name = array_get($column, 'column_name');
+                    $obj_column = CustomColumn::firstOrNew(['column_name' => $column_name]);
+                    $obj_column->column_name = $column_name;
                     $obj_column->column_type = array_get($column, 'column_type');
                     $obj_column->system_flg = $system_flg;
 
+                    ///// set options
                     $options = array_get($column, 'options');
                     if (is_null($options)) {
                         $options = [];
@@ -221,6 +231,16 @@ class TemplateInstaller
                         array_forget($options, 'select_target_table_name');
                     }
                     $obj_column->options = $options;
+
+                    ///// set view name
+                    // if contains column view name in config
+                    if(array_key_value_exists('column_view_name', $column)){
+                        $obj_column->column_view_name = array_get($column, 'column_view_name');
+                    }
+                    // not exists, get lang using app config
+                    else{
+                        $obj_column->column_view_name = exmtrans("custom_column.system_definitions.$column_name");
+                    }
 
                     array_push($table_columns, $obj_column);
                 }
@@ -589,7 +609,7 @@ class TemplateInstaller
                     }
                     // title not exists, translate
                     else{
-                        $title = exmtrans('menu.menu_system_definitions.'.array_get($menu, 'menu_target_name'));
+                        $title = exmtrans('menu.system_definitions.'.array_get($menu, 'menu_target_name'));
                     }
 
                     $obj_menu = Menu::firstOrNew(['menu_name' => array_get($menu, 'menu_name'), 'parent_id' => $parent_id]);

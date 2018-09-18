@@ -142,7 +142,7 @@ class MenuController extends AdminControllerBase
                 $options = [];
                 foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value)
                 {
-                    array_push($options, ['id' => $k, 'text' => exmtrans("menu.menu_system_definitions.".$k ) ]);
+                    array_push($options, ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k ) ]);
                 }
                 return $options;
             case Define::MENU_TYPE_PLUGIN:
@@ -172,7 +172,7 @@ class MenuController extends AdminControllerBase
                 $item = array_get(Define::MENU_SYSTEM_DEFINITION, $value);
                 return [
                     'menu_name' => $value,
-                    'title' => exmtrans("menu.menu_system_definitions.".$value ),
+                    'title' => exmtrans("menu.system_definitions.".$value ),
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'uri'),
                 ];  

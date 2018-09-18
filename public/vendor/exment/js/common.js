@@ -478,7 +478,7 @@ var Exment;
                     else {
                         $eParent.hide();
                         // remove value
-                        $target.val('');
+                        $t.val('');
                     }
                     if (isReadOnly) {
                         $t.prop('readonly', true);

@@ -236,6 +236,13 @@ return [
             'search_enabled' => 'YESにした場合、検索画面から検索可能になります。',
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
         ],
+        
+        'system_definitions' => [
+            'user' => 'ユーザー',
+            'organization' => '組織',
+            'document' => 'ドキュメント',
+            'base_info' => '基本情報',
+        ],
     ],
     
     'custom_column' => [
@@ -333,7 +340,38 @@ return [
              'dynamic' => '列',
              'fixed' => '固定値',
              'symbol' => '記号',
-        ]
+        ],
+        
+        'system_definitions' => [
+            'file' => 'ファイル',
+            'company_name' => '会社名',
+            'company_kana' => '会社カナ',
+            'zip01' => '郵便番号1',
+            'zip02' => '郵便番号2',
+            'tel01' => '電話番号1',
+            'tel02' => '電話番号2',
+            'tel03' => '電話番号3',
+            'fax01' => 'FAX1',
+            'fax02' => 'FAX2',
+            'fax03' => 'FAX3',
+            'pref' => '都道府県',
+            'addr01' => '住所',
+            'addr02' => '住所(ビル以降)',
+            'company_logo' => '会社ロゴ',
+            'company_stamp' => '会社印',
+            'transfer_bank_name' => '代表振込先口座-銀行名',
+            'transfer_bank_office_name' => '代表振込先口座-支店名',
+            'transfer_bank_office_no' => '代表振込先口座-支店番号',
+            'transfer_bank_account_type' => '代表振込先口座-口座種類',
+            'transfer_bank_account_no' => '代表振込先口座-口座番号',
+            'transfer_bank_account_name' => '代表振込先口座-口座名',
+            'user_code' => 'ユーザーコード',
+            'user_name' => 'ユーザー名',
+            'email' => 'メールアドレス',
+            'organization_code' => '組織コード',
+            'organization_name' => '組織名',
+            'parent_organization' => '親組織',
+        ],
     ],
 
     'custom_form' => [
@@ -501,7 +539,7 @@ return [
             'custom' => 'カスタムURL',
         ],
         
-        'menu_system_definitions' => [
+        'system_definitions' => [
             'home' => 'HOME',
             'system' => 'システム設定',
             'plugin' => 'プラグイン',

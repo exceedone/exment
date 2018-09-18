@@ -1,49 +1,23 @@
 # クイックスタート
-※この手順はdev版です。githubに公開、composerにアップロードした後に、再度手順を確立します。
+Exmentを開始するために必要となる手順です。  
+※composerの導入が必要です。
 
-## ファイルコピー
-- フォルダ "packages/exceedone/exment" をプロジェクトのルートに追加します。
-
-- ソースコードを "exment" フォルダに追加します。
-
-## composer変更
-
-- ルートの "composer.json" に、以下の行を追加します。
-
-~~~ json
-"require": {
-    "exceedone/exment": "dev-master"
-}
-
-"autoload": {
-    "psr-4": {
-        "App\\": "app/",
-        "Exceedone\\Exment\\": "packages/exceedone/exment/src/"
-    }
-},
-
-"repositories": [
-{
-    "type": "path",
-    "url": "packages/exceedone/exment",
-    "options": {
-        "symlink": true
-        }
-    }
-]
+## Laravelインストール(プロジェクト作成)
+- コマンドラインで、以下のコマンドを実行します。
 
 ~~~
-
+composer create-project "laravel/laravel=5.5.*" (プロジェクト名)
+cd (プロジェクト名)
+~~~
 
 - ".env" を開き、データベース文字列を、ご自身のもつMySQLの設定値に変更します。  
 ※MySQLは、json型に対応している5.7以上でのみご利用可能です。
-
 
 ## コマンド実行
 - 以下のコマンドを実行します。
 
 ~~~
-composer update exceedone/exment
+composer require exceedone/exment=dev-master
 php artisan vendor:publish --provider="Encore\Admin\AdminServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=public --force

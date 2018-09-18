@@ -111,8 +111,15 @@ class CustomRelationController extends AdminControllerTableBase
             $form->display('parent_custom_table.table_name', exmtrans("custom_relation.parent_custom_table_name"))->default($this->custom_table->table_name);
             $form->display('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table_view_name"))->default($this->custom_table->table_view_name);
 
-            $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function($child_custom_table_id){
-                return CustomTable::all(['id', 'table_view_name'])->pluck('table_view_name', 'id')->toArray();
+            $custom_table_id = $this->custom_table->id;
+            $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function($child_custom_table_id) use($custom_table_id){
+                //TODO:autority
+                return CustomTable
+                    // ignore self table id
+                    ::where('id', '<>', $custom_table_id)
+                    ->get(['id', 'table_view_name'])
+                    ->pluck('table_view_name', 'id')
+                    ->toArray();
             })->rules('required');
 
             $relation_type_options = getTransArray(Define::RELATION_TYPE, "custom_relation.relation_type_options");

@@ -28,6 +28,7 @@ class CreateTableDefine extends Migration
             $table->string('system_name')->nullable();
             $table->text('system_value')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->primary('id');
         });
@@ -41,6 +42,7 @@ class CreateTableDefine extends Migration
             $table->enum('mail_template_type', Define::MAIL_TEMPLATE_TYPE)->default(Define::MAIL_TEMPLATE_TYPE_BODY);
             $table->boolean('system_flg')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('plugins', function (Blueprint $table) {
@@ -55,6 +57,7 @@ class CreateTableDefine extends Migration
             $table->boolean('active_flg')->default(true);
             $table->json('options')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('login_users', function (Blueprint $table) {
@@ -63,6 +66,7 @@ class CreateTableDefine extends Migration
             $table->string('password', 1000);
             $table->string('avatar', 512)->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('authorities', function (Blueprint $table) {
@@ -75,6 +79,7 @@ class CreateTableDefine extends Migration
             $table->boolean('default_flg')->default(false);
             $table->json('permissions')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('dashboards', function (Blueprint $table) {
@@ -87,6 +92,7 @@ class CreateTableDefine extends Migration
             $table->integer('row2');
             
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('dashboard_boxes', function (Blueprint $table) {
@@ -99,6 +105,7 @@ class CreateTableDefine extends Migration
             $table->enum('dashboard_box_type', ['list', 'system']);
             $table->json('options')->nullable();
             $table->timestamps();
+            $table->softDeletes();
             
             $table->foreign('dashboard_id')->references('id')->on('dashboards');
         });
@@ -113,6 +120,7 @@ class CreateTableDefine extends Migration
             $table->integer('notify_action');
             $table->json('action_settings')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('custom_tables', function (Blueprint $table) {
@@ -127,6 +135,7 @@ class CreateTableDefine extends Migration
             $table->boolean('one_record_flg')->default(false);
             $table->boolean('system_flg')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('custom_columns', function (Blueprint $table) {
@@ -143,6 +152,7 @@ class CreateTableDefine extends Migration
             $table->boolean('search_enabled')->virtualAs("json_unquote(json_extract(`options`,'$.search_enabled'))");
 
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
         });
@@ -153,6 +163,7 @@ class CreateTableDefine extends Migration
             $table->integer('child_custom_table_id')->unsigned();
             $table->enum('relation_type', Define::RELATION_TYPE)->default('one_to_many');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('parent_custom_table_id')->references('id')->on('custom_tables');
             $table->foreign('child_custom_table_id')->references('id')->on('custom_tables');
@@ -165,6 +176,7 @@ class CreateTableDefine extends Migration
             //$table->string('form_name')->index();
             $table->string('form_view_name', 256);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
         });
@@ -177,6 +189,7 @@ class CreateTableDefine extends Migration
             $table->integer('form_block_target_table_id')->unsigned()->nullable();
             $table->boolean('available')->default(false);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_form_id')->references('id')->on('custom_forms');
             $table->foreign('form_block_target_table_id')->references('id')->on('custom_tables');
@@ -190,6 +203,7 @@ class CreateTableDefine extends Migration
             $table->json('options')->nullable();
             $table->integer('order')->default(0);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_form_block_id')->references('id')->on('custom_form_blocks');
             //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
@@ -202,6 +216,7 @@ class CreateTableDefine extends Migration
             $table->enum('view_type', ['system', 'user']);
             $table->string('view_view_name', 40);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
         });
@@ -212,6 +227,7 @@ class CreateTableDefine extends Migration
             $table->string('view_column_target');
             $table->integer('order')->unsigned()->default(0);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
             //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
@@ -226,6 +242,7 @@ class CreateTableDefine extends Migration
             $table->integer('view_filter_condition_value_table_id')->unsigned()->nullable();
             $table->integer('view_filter_condition_value_id')->unsigned()->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
             //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
@@ -240,6 +257,7 @@ class CreateTableDefine extends Migration
             $table->string('laravel_admin_escape')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('custom_relation_values', function (Blueprint $table) {

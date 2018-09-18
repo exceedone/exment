@@ -70,7 +70,8 @@ return [
             'site_name_short' => 'An abbreviation for the site name to be displayed when the menu is collapsed.',
             'site_logo' => 'Site logo. Recommended size:200px * 40px',
             'site_logo_mini' => 'Site logo(small size). Recommended size:40px * 40px',
-            'site_skin' => 'Select the site theme color.',
+            'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
+            'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
             'authority_available' => 'If Select YES, management authority using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
@@ -235,6 +236,13 @@ return [
             'search_enabled' => 'If set on, can search from search display.',
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
         ],
+        
+        'system_definitions' => [
+            'user' => 'User',
+            'organization' => 'Organization',
+            'document' => 'Document',
+            'base_info' => 'Base Info',
+        ],
     ],
     
     'custom_column' => [
@@ -332,7 +340,38 @@ return [
              'dynamic' => 'Column',
              'fixed' => 'Fixed Value',
              'symbol' => 'Symbol',
-        ]
+        ],
+        
+        'system_definitions' => [
+            'file' => 'File',
+            'company_name' => 'Company Name',
+            'company_kana' => 'Company Kana',
+            'zip01' => 'Postal Code1',
+            'zip02' => 'Postal Code2',
+            'tel01' => 'Tel1',
+            'tel02' => 'Tel2',
+            'tel03' => 'Tel3',
+            'fax01' => 'FAX1',
+            'fax02' => 'FAX2',
+            'fax03' => 'FAX3',
+            'pref' => 'Prefectures',
+            'addr01' => 'Address',
+            'addr02' => 'Address(After Building)',
+            'company_logo' => 'Company Logo',
+            'company_stamp' => 'Company Stamp',
+            'transfer_bank_name' => 'Bank Account-Bank Name',
+            'transfer_bank_office_name' => 'Bank Account-Office Name',
+            'transfer_bank_office_no' => 'Bank Account-Office No',
+            'transfer_bank_account_type' => 'Bank Account-Account Type',
+            'transfer_bank_account_no' => 'Bank Account-Account No',
+            'transfer_bank_account_name' => 'Bank Account-Account Name',
+            'user_code' => 'User Code',
+            'user_name' => 'User Name',
+            'email' => 'Email',
+            'organization_code' => 'Organization Code',
+            'organization_name' => 'Organization Name',
+            'parent_organization' => 'Parent Organization',
+        ],
     ],
 
     'custom_form' => [
@@ -500,7 +539,7 @@ return [
             'custom' => 'Custom URL',
         ],
         
-        'menu_system_definitions' => [
+        'system_definitions' => [
             'home' => 'HOME',
             'system' => 'System Setting',
             'plugin' => 'Plugin',

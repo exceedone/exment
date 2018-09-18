@@ -4,10 +4,12 @@
 Exmentは、情報資産をWeb上で管理するための、オープンソースソフトウェアです。
 
 ## 機能
+- ダッシュボード
 - 画面上からデータ登録
 - 独自テーブル・独自列作成
 - テンプレートのインポート・エクスポート（独自テーブル・列を、他のExmentで使用することが可能）
 - データのインポート・エクスポート
+- フォーム内での値計算機能(合計額や、税額の計算)
 - 権限管理
 - 組織管理
 - メニュー構成管理
@@ -17,9 +19,14 @@ Exmentは、情報資産をWeb上で管理するための、オープンソー�
 ## 機能(開発予定)
 - プラグイン（独自のページや機能を作成）
 - 資料作成(見積書や請求書を画面から作成)
-- フォーム内での値計算機能(合計額や、税額の計算)
-- ダッシュボード
 - 集計処理
+
+## スクリーンショット
+![Custom Table and Column](https://exment.net/docs/img/common/screenshot_table_and_column.jpg)  
+  
+![Custom Form and view](https://exment.net/docs/img/common/screenshot_form_and_view.jpg)  
+  
+![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)  
 
 
 ## 動作環境
