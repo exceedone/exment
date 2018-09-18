@@ -60,7 +60,7 @@ return [
             "skin-black-light" => "Header:White&nbsp;&nbsp;&nbsp;&nbsp;SideBar:White",
         ],
         
-        'layout_options' => [
+        'site_layout_options' => [
             "layout_default" => "Default",
             "layout_mini" => "Small Icon",
         ],
