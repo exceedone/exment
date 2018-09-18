@@ -1,79 +1,80 @@
-# プラグイン
-## プラグインとは
-Exmentでは、「プラグイン」という機能を備えています。  
-Exmentが標準で備えている機能が、業務に不足している場合に、その拡張機能として、画面上からプログラムをアップロードすることで、機能を追加することができます。  
-プラグインには現在、以下の種類があります。  
+# Plugin
+*As of 2018/09/18, it is beta version.
 
-#### トリガー
-Exmentの画面上で特定の操作を行った場合に実行され、値の更新などの処理を行うことができます。  
-もしくは、一覧画面もしくはフォーム画面にボタンを追加し、クリック時に処理を行うことができます。  
-特定の操作とは、以下の内容があります。  
-- 保存直前：データの保存直前に、処理が起動します。  
-- 保存後：データの保存後に、処理が起動します。  
-- 一覧画面のメニューボタン：データ一覧画面の上部にボタンを追加し、クリック時にイベントを発生させます。  
-- フォームのメニューボタン（新規作成時）：データの新規作成時の上部にボタンを追加し、クリック時にイベントを発生させます。  
-- フォームのメニューボタン（更新時）：データの更新時の上部にボタンを追加し、クリック時にイベントを発生させます。  
+## What is the Plugin?
+Exment has the function of "Plugin".  
+If the functions provided by Exment as standard are short for business, you can add the function by uploading the program from the screen as its extended function.  
+There are currently the following types of Plugins.
 
-#### ページ
-Exmentに新しい画面を作成することができます。  
-既存の機能とは全く異なるページを使用する場合にご利用ください。  
+#### Trigger
+It is executed when a specific operation is performed on the screen of Exment and processing such as updating the value can be performed.  
+Alternatively, you can add buttons to the list screen or form screen and process them when clicking.  
+The specific operation has the following contents.
+- Just before saving: Processing starts immediately before saving data.
+- After saving: Processing starts after data is saved.
+- Menu button on the list screen: Add a button to the top of the data list screen and generate an event when clicking.
+- Form menu button (when newly created): Add a button at the top of data creation, and generate an event when clicking.
+- Form menu button (when updating): Add a button at the top of data update and generate an event when clicked.
 
+#### Page
+You can create a new screen for Exment.  
+Please use it when using a page completely different from the existing function.  
 
-## 管理方法
-### ページ表示
-- 左メニューより、「プラグイン」を選択します。  
-もしくは、以下のURLにアクセスしてください。  
-http(s)://(ExmentのURL)/admin/plugin  
-これにより、プラグイン画面が表示されます。  
-![プラグイン画面](img/plugin/plugin_grid1.png)  
+## Management method
+### Page indication
+- From the left menu, select "Plugin".  
+Or please visit the following URL.  
+http(s)://(URL of Exment)/admin/plugin  
+This will display the plugin screen.  
+![Plugin screen](img/plugin/plugin_grid1.png)
 
-### プラグインアップロード
-「ファイルを選択」をクリックし、作成したプラグインzipファイルを選択します。
-その後、「アップロード」をクリックし、画面からアップロードします。  
-![プラグイン画面](img/plugin/plugin_upload.png)  
-完了すると、ページ下の一覧にプラグインの情報が表示されます。  
+### Plugin Upload
+Click "Select file" and select the plugin zip file you created.  
+Then click "Upload" and upload from the screen.  
+![Plugin screen](img/plugin/plugin_upload.png)  
+When complete, plugin information is displayed in the list at the bottom of the page.
 
-### プラグイン管理
-プラグインの有効・無効、プラグインのトリガーや、ページのURIなどの情報を変更します。  
-該当する行の「編集」リンクをクリックしてください。  
-![プラグイン画面](img/plugin/plugin_edit1.png)  
+### Plugin management
+Change information such as valid / invalid of plugin, trigger of plugin, page URI, etc.  
+Please click "Edit" link of the corresponding line.  
+![Plugin screen](img/plugin/plugin_edit1.png)  
+  
+This will bring up the plugin administration page.  
+![Plugin screen](img/plugin/plugin_edit2.png)  
+  
+### Control item
 
-これにより、プラグイン管理ページが表示されます。  
-![プラグイン画面](img/plugin/plugin_edit2.png)  
+##### Valid flag
+I will switch whether or not to use that plugin on the system.  
+It becomes effective when it is turned ON. When it is OFF, it becomes invalid and it will not be executed on the system.  
 
-### 管理項目
+##### Target table
+Specify a custom table to execute the plugin.  
+The plugin is executed when displaying the page of the set table.
 
-##### 有効フラグ
-そのプラグインを、システムで使用するかどうかを切り替えます。  
-ONにした場合有効になります。OFFの場合無効になり、システムでは実行されません。  
+##### Implementation trigger
+When you perform an operation, set whether or not to execute plugin.  
+The plugin is executed when you perform the operation of the set contents.  
 
-##### 対象テーブル
-プラグインを実行する対象の、カスタムテーブルを指定します。  
-設定したテーブルのページを表示した場合に、プラグインが実行されます。  
+##### Button heading
+When displaying "Menu button of list screen" or "Menu button of form", set the heading to be displayed on the button.
 
-##### 実施トリガー
-どの操作を行った場合に、プラグインを実行するかどうかを設定します。
-設定した内容の操作を行った場合に、プラグインが実行されます。  
+##### Button icon
+When displaying "Menu button of list screen" or "Menu button of form", set the icon to be displayed on the button.
 
-##### ボタンの見出し
-「一覧画面のメニューボタン」もしくは「フォームのメニューボタン」を表示時に、ボタンに表示する見出しを設定します。
+##### Button class
+When displaying "Menu button of list screen" or "Menu button of form", set the class to be added to the HTML of the button.
 
-##### ボタンのアイコン
-「一覧画面のメニューボタン」もしくは「フォームのメニューボタン」を表示時に、ボタンに表示するアイコンを設定します。
-
-##### ボタンのクラス
-「一覧画面のメニューボタン」もしくは「フォームのメニューボタン」を表示時に、ボタンのHTMLに付加するclassを設定します。
-
-##### URL(ページの場合のみ)
-そのページを表示するためのURLを設定します。
-
-
-## プラグイン削除
-プラグインの削除を行いたい場合には、一覧画面より、該当する行の「削除」リンクをクリックしてください。  
-![プラグイン画面](img/plugin/plugin_delete.png)  
-※「削除」を実施すると、プラグインのファイルそのものが削除されます。    
-プラグインを一時的に無効にしたい場合、「有効フラグ」をNOに設定してください。  
+##### URL (for pages only)
+Set the URL for displaying the page.
 
 
-## その他
-プラグインの開発方法については、[プラグイン開発方法](plugin_quickstart.md)をご参照ください。
+## Plugin removed
+If you want to delete the plugin, from the list screen please click the "delete" link on the corresponding line.  
+![Plugin screen](img/plugin/plugin_delete.png)  
+* When you execute "Delete", the plugin file itself is deleted.  
+To temporarily disable the plugin, set "valid flag" to NO.  
+
+
+## Other
+Please refer to [Plugin development method](plugin_quickstart.md) about how to develop plugin.

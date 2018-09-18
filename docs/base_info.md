@@ -1,13 +1,13 @@
-# 基本情報
-このシステムを使用する会社の、基本情報を管理します。
-会社名、住所、ロゴなどを管理します。
+# Basic information
+We manage the basic information of the company using this system.  
+We manage company name, address, logo and so on.  
 
-## 画面表示
-左メニューより、「基本情報」をクリックします。  
-もしくは、以下のURLにアクセスしてください。  
-http(s)://(ExmentのURL)/admin/data/base_info  
-システムで登録している情報が表示されます。  
-![基本情報ー画面](img/base_info/base_info.png)
+## Screen display
+From the left menu, click "Basic information".  
+Or please visit the following URL.  
+http(s)://(URL of Exment)/admin/data/base_info  
+Information registered in the system is displayed.  
+![Basic information screen](img/base_info/base_info.png)  
 
-## 編集
-設定を入力し、保存を行ってください。
+## Editing 
+Please enter the settings and save.

@@ -1,113 +1,113 @@
-# カスタム列管理
-カスタムテーブルが持つ列、「カスタム列」の管理を行います。  
+# Custom column management
+We will manage the columns that custom tables have, "custom columns".
 
-## ページ表示
-- カスタムテーブル画面で、変更を行いたいテーブルにチェックを1つ入れ、「ページ移動」の「列の詳細設定」をクリックします。  
-![カスタム列画面](img/column/column_grid1.png)
+## Display page
+- On the Custom Table screen, put a check in the table you want to change and click "Advanced Column Settings" in "Move Page".  
+![Custom Column Screen](img/column/column_grid1.png)
 
-- これで、チェックしたカスタムテーブルがもつ、列の一覧を表示します。  
-![カスタム列画面](img/column/column_grid2.png)
+- This will display a list of the columns of the custom table you checked.
+![Custom Column Screen](img/column/column_grid2.png)
 
-## 列の新規追加
-- 「カスタム列詳細設定」画面で、ページ右上の「新規」ボタンをクリックします。
+## Add a new column
+- On the "Custom Column Detail Settings" screen, click the "New" button at the top right of the page.
 
-- カスタム列新規追加画面が表示されますので、必要事項を入力します。
-![カスタム列画面](img/column/column_new1.png)
+- Custom column New addition screen will be displayed, enter necessary information.
+![Custom Column Screen](img/column/column_new1.png)
 
-## 保存
-設定を記入したら、「送信」をクリックしてください。
+## Save
+After filling in the settings, please click "Send".
 
-## 編集
-列の編集を行いたい場合、該当する行の「編集」リンクをクリックしてください。  
-![カスタム列画面](img/column/column_edit.png)
+## Edit
+If you want to edit a column, please click the "Edit" link in the corresponding line.
+![Custom Column Screen](img/column/column_edit.png)
 
-## 削除
-列の削除を行いたい場合、該当する行の「削除」リンクをクリックしてください。  
-![カスタム列画面](img/column/column_delete.png)
-**<span style="color: red; ">※ただし、システムでインストールしている列は削除できません。</span>**
-
-
-
-## 記入項目の詳細説明(共通)
-- 列種類：設定する列の種類です。この項目で登録した内容が、データ登録時のフォームに適用されます。
-    - 1行テキスト：1行テキスト(テキストボックス)です。
-    - 複数行テキスト：複数行テキスト(テキストエリア)です。
-    - URL：URLです。
-    - メールアドレス：メールアドレスです。
-    - 整数：整数のみ入力できるフォームです。また、データ登録時のフォームでは、項目の左右に「＋」「－」ボタンが表示され、クリックで値を上下することが出来ます。
-    - 小数：小数のみ入力できるフォームです。
-    - 日付：日付の項目になります。データ登録時のフォームでは、カレンダーから日付を変更することができます。
-    - 時刻：時間の項目になります。データ登録時のフォームでは、時計から時刻を変更することができます。
-    - 日付と時刻：日時の項目になります。データ登録時のフォームでは、カレンダーと時計から日時を変更することができます。
-    - 選択肢：値と見出しが同じ選択肢一覧になります。
-    - 選択肢 (値・見出しを登録)：値と見出しが異なる選択肢一覧になります。
-    - 選択肢 (他のテーブルの値一覧から選択)：選択肢が他のテーブルの項目となる、選択肢を作成します。
-    - YES/NO：「YES」と「NO」を切り替えるスイッチを作成します。データ登録時、YESだと1、NOだと0と登録されます。
-    - 2値の選択：2つの値を切り替えるスイッチを作成します。データ登録時の値も変更できます。
-    - 自動採番：UUIDやランダム文字列などを、データ作成時に値を作成します。
-    - 画像：画像をアップロードする項目です。
-    - ファイル：ファイルをアップロードする項目です。
-    - ユーザー：システムのユーザーを選択する選択肢です。
-    - 組織：システムの組織を選択する選択肢です。
-    - 書類：そのデータに紐付く書類になります。
-
-- 必須：そのフィールドが必須項目であるかどうかを選択します。YESにした場合、データ記入画面で必須項目となり、記入していなかった場合にエラーが表示されます。
-
-- 検索可能：YESにした場合、ページ上部の検索バーで記入した検索ワードの、検索対象となります。各種コードや各種名称など、検索画面で検索させたい列の場合、YESとしてください。  
-**また、データの一覧画面で、一覧画面に列として表示されます。**
-
-- プレースホルダー：フォーム項目にプレースホルダーとして登録する文字列です。
-
-- ヘルプ：フォーム項目の下に、情報として表示する内容です。
-
-- ラベルで使用する：YESとした場合、ページ上部の検索ボックスで、このテーブルを選択肢として表示する場合などに、このテーブル項目の見出し（ラベル）として表示させます。  
-※同一のテーブル内で、「ラベルで使用する」項目を複数個「YES」とした場合、順序が一番はじめの項目がラベルとして表示されます。
+## Delete
+If you want to delete a column, please click the "Delete" link in the corresponding line.
+![Custom Column Screen](img/column/column_delete.png)
+** <span style = "color: red;"> * However, columns installed on the system can not be deleted. </span> **
 
 
-## 記入項目の詳細説明(列種類別)
-- 最大文字数(1行テキスト,複数行テキスト)：フォーム項目で記入できる最大文字数です。オーバーした場合にエラーが発生します。
 
-- 最小値(整数、小数)：フォーム項目で記入できる値の最小値です。その値を下回って送信した場合に、エラーが発生します。未記入の場合、最小値のチェックは行いません。
+## Detailed explanation of entries (common)
+- Column type: The type of column to be set. The contents registered in this item are applied to the form when data is registered.
+    - 1 line text: 1 line text (text box).
+    - Multi-line text: Multi-line text (text area).
+    - URL: URL.
+    - E-mail address: This is your e-mail address.
+    - Integer: This is a form that allows you to enter only integers. Also, in the data registration form, "+" and "-" buttons are displayed on the left and right of the item, and you can raise or lower the value by clicking.
+    - Decimal: This is a form that can input only decimal.
+    - Date: It becomes item of date. In the data registration form, you can change the date from the calendar.
+    - Time: It becomes item of time. In the data registration form, you can change the time from the clock.
+    - Date and time: It becomes item of date and time. In the data registration form, you can change the date and time from the calendar and clock.
+    - Choice: The list of choices is the same as the value and heading.
+    - Option (Create value / heading): It becomes a list of alternatives with different values ​​and headings.
+    - Choice (selected from the list of values ​​of other tables): Creates an option in which the option is an item of another table.
+    - YES/NO: Create a switch to switch between "YES" and "NO". When registering data, 1 is registered as YES, 0 is registered as NO.
+    - 2 value selection: Create a switch to switch between the two values. You can also change the value when registering data.
+    - Automatic numbering: Create values ​​such as UUID and random character string when creating data.
+    - Image: It is an item to upload images.
+    - File: This is the item to upload the file.
+    - User: The choice to select the system user.
+    - Organization: An option to select the organization of the system.
+    - Document: It becomes a document attached to that data.
 
-- 最大値(整数、小数)：フォーム項目で記入できる値の最大値です。その値を上回って送信した場合に、エラーが発生します。未記入の場合、最大値のチェックは行いません。
+- Required: Select whether the field is required. If it is set to YES, it becomes a required item on the data entry screen, and an error is displayed if it is not filled in.
 
-- 選択肢(選択肢, 選択肢 (値・見出しを登録))：フォーム項目で候補として表示する、選択肢を登録します。改行区切りで、複数の候補を登録します。  
-列種類で「選択肢 (値・見出しを登録)」を選択していた場合、カンマを列の区切りとして、1列目が値、2列目が見出しになります。
-![カスタム列画面](img/column/column_select_valtext1.png)
+- Searchable: If set to YES, it will be the search target of the search word entered in the search bar at the top of the page. If the column you want to search on the search screen, such as various codes and various names, please set it to YES.
+** Also displayed as a column on the list screen on the data list screen. **
+
+- Placeholder: A string that you register as a placeholder in a form field.
+
+- Help: Contents displayed as information below the form item.
+
+- Use with labels: When set to YES, when displaying this table as a choice in the search box at the top of the page, it is displayed as the heading (label) of this table item.
+* If "YES" is selected for "Use with label" items in the same table, the first item in the order is displayed as a label.
+
+
+## Detailed explanation of entries (by column type)
+- Maximum number of characters (1 line text, multiline text): The maximum number of characters that can be filled in form fields. An error will occur if it is over.
+
+- Minimum value (integer, decimal): The minimum value that can be entered in the form field. An error will occur if you send below that value. If it is blank, it will not check the minimum value.
+
+- Maximum value (integer, decimal): The maximum value that can be entered in the form field. An error will occur if it is sent over that value. If it is not filled in, it will not check the maximum value.
+
+- Choice (choices, options (value / heading is registered)): Register choices to be displayed as candidates in form items. Register multiple candidates with line breaks delimited.  
+If you have selected "choices (value / headline)" in the column type, the first column becomes the value and the second column becomes the heading with the comma as the column delimiter.  
+![Custom Column Screen](img/column/column_select_valtext1.png)  
 ↓  
-![カスタム列画面](img/column/column_select_valtext2.png)  
-フォームでデータ保存時には、1列目の値がデータベースに保存されます。
+![Custom Column Screen](img/column/column_select_valtext2.png)  
+When saving data in a form, the value in the first column is saved in the database.
 
-- 対象テーブル(選択肢 (他のテーブルの値一覧から選択))：フォーム項目で、選択肢の候補として表示するテーブルを指定します。
+- Target table (choice (selected from the list of values ​​of other tables)): In the form field, specify the table to be displayed as a choice choice.
 
-- 採番種類（自動採番）：データ登録時に、採番を行う種類を選択します。
-    - フォーマット：ユーザーが指定したフォーマットで採番を登録します。
-    - ランダム(ライセンスコード)：5文字×5で25文字のランダム文字列を登録します。
-    - ランダム(UUID)：合計32桁のランダム文字列を登録します。
+- Number assignment (automatic number assignment): When registering data, select the type you want to assign.
+    - Format: Registers the number assignment in the format specified by the user.
+    - Random (license code): Register a random character string of 25 characters with 5 characters × 5.
+    - Random (UUID): Registers a random character string of 32 digits in total.
 
-- 桁数(自動採番)：自動採番時に、データとして登録する桁数になります。不足分は0埋めで登録します。
+- Number of digits (auto numbering): The number of digits to be registered as data during automatic number assignment. Register the shortfall with 0 filling.
 
-- 複数選択を許可する：画像やファイル、選択肢系の項目で、複数の選択肢を行う場合にYESにしてください。
+- Allow Multiple Selection: Set to YES if you make multiple choices for images, files, and choice items.
 
-## 自動採番フォーマットのルール
-列種類を「自動採番」、採番種類（自動採番）を「フォーマット」にした場合、ユーザー独自のルールで、自動採番を登録することが出来ます。  
+## Rules for automatic number assignment format
+If you set the column type to "Automatic numbering" and the numbering type (automatic numbering) to "Format", you can register automatic number assignment with user's own rules.
 
-| 項目 | 説明 |
+| Item | Description |
 | ---- | ---- |
-| ${Y} | データ登録時の年が、4桁で設定されます。(例：2018) |
-| ${Y:(整数)} | データ登録時の年が、指定した整数の桁数で設定されます。(例：${Y:2}と記入した場合、18) |
-| ${M} | データ登録時の月が、2桁で設定されます。(例：08) |
-| ${M:(整数)} | データ登録時の月が、指定した整数の桁数で設定されます。(例：${M:2}と記入した場合、8) |
-| ${D} | データ登録時の日が、2桁で設定されます。(例：09) |
-| ${D:(整数)} | データ登録時の日が、指定した整数の桁数で設定されます。(例：${D:2}と記入した場合、9) |
-| ${ID} | データのIDが設定されます。(例：123) |
-| ${ID:(整数)} | データのIDが、指定した整数の桁数で設定されます。(例：${ID:5}と記入した場合、00123) |
-| ${value:(列名)} | 登録されているデータの列の値が設定されます。(例：ユーザーデータに対し、${value:user_code}と記入した場合、ユーザーコードが設定される) |
+| ${Y} | The year of data registration is set with 4 digits. (Example: 2018) |
+| ${Y:(integer)} | The year when data is registered is set with the specified number of digits of the integer. (Example: if you enter ${Y: 2}, 18) |
+| ${M} | The month of data registration is set with 2 digits. (Example: 08) |
+| ${M:(integer)} | The month of data registration is set with the specified number of digits of the integer. (Example: if you write ${M: 2}, 8) |
+| ${D} | The data registration date is set with 2 digits. (Example: 09) |
+| ${D:(integer)} | The date of data registration is set with the specified number of digits of the integer. (Example: if you write ${D: 2}, 9) |
+| ${ID} | Data ID is set. (Example: 123) |
+| ${ID:(integer)} | The ID of the data is set with the specified integer number of digits. (Example: if you enter ${ID: 5}, 00123) |
+| ${value: (column name)} | The value of the column of registered data is set. (Example: if you write ${value: user_code} for user data, user code will be set)
 
-#### 例
-※実行日が2018/8/9、IDが100、対象のデータのuser_code(ユーザーコード)が"U12345"の場合
-- U-${ID:4} → U0100
-- ${Y}-${M}-${D}-${ID} → 2018-08-09-100
-- ${Y}${M}${D}-${id:5} → 20180809-00100
-- ${Y:2}${M}${D}-${id:4} → 180809-0100
+#### Example
+* If the execution date is 2018/8/9, the ID is 100, and the target user_code (user code) is "U12345"
+- U-${ID:4} -> U-0100
+- ${Y}-${M}-${D}-${ID} -> 2018-08-09-100
+- ${Y}${M}${D}-${id:5} -> 20180809-00100
+- ${Y:2} ${M} ${D} - ${id:4} → 180809-0100
 - ${Y}${M}${D}-${value:user_code} → 20180809-U12345

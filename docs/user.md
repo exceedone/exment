@@ -1,100 +1,97 @@
-# ユーザー・ログインユーザー
-このシステムを使用するユーザー、またはログインユーザーの管理を行います。
+# User/Login User Setting
+We will manage users who use this system or login users.
 
-## 名称定義
-#### ユーザー
-自社や組織に所属する社員や、人物です。  
-このシステムを使用しない方も、ユーザーとして追加することができます。  
-ユーザーコード、Eメールアドレスが必須になります。  
-他のテーブルとの関連付けなどで、ユーザーを紐付けて登録することはできますが、システムにログインすることは出来ません。
+## Name definition
+#### user
+It is an employee or a person belonging to your company or organization.  
+Even those who do not use this system can add as a user.  
+User code and e-mail address are required.  
+You can register users by associating them with other tables, but you can not log in to the system.  
 
-#### ログインユーザー
-ユーザーのうち、このシステムにログインすることができる社員・人物です。  
-パスワードが割り振られ、ログイン画面からログインし、データの登録や参照などを行うことが出来るようになります。  
+#### Login User
+It is an employee / person who can log in to this system among users.  
+Password is allocated, you can log in from the login screen, register and reference data etc.
 
-## ユーザー管理
-全ユーザー情報を管理する方法について記載します。  
+## User management
+I will describe how to manage all user information.
 
-### 一覧画面表示
-左メニューより、「ユーザー」をクリックします。  
-もしくは、以下のURLにアクセスしてください。  
-これにより、ユーザー設定画面が表示されます。
-http(s)://(ExmentのURL)/admin/data/user  
-現在システムで登録されているユーザーの一覧が表示されます。
-![ユーザー画面](img/user/user_grid1.png)
+### List screen display
+From the left menu, click "User".  
+Or please visit the following URL.  
+This displays the user setting screen.  
+http(s)://(URL of Exment)/admin/data/user
+A list of users currently registered in the system is displayed.  
+![User screen](img/user/user_grid1.png)
 
-### ユーザーの新規追加
-- 「ユーザー」画面で、ページ右上の「新規」ボタンをクリックします。
+### Add a new user
+- On the "Users" screen, click the "New" button at the top right of the page.
 
-- 新規追加画面が表示されますので、必要事項を入力します。
-![ユーザー画面](img/user/user_new1.png)
+- New addition screen will be displayed, so enter necessary information.  
+![User screen](img/user/user_new1.png)
 
-### 保存
-設定を記入したら、「送信」をクリックしてください。
+### Save
+After filling in the settings, please click "Send".
 
-### 編集
-ユーザーの編集を行いたい場合、該当する行の「編集」リンクをクリックしてください。  
-![ユーザー画面](img/user/user_edit.png)
+### Edit
+If you want to edit a user, please click the "Edit" link in the corresponding line.  
+![User screen](img/user/user_edit.png)
 
-### 削除
-ユーザーの削除を行いたい場合、該当する行の「削除」リンクをクリックしてください。  
-![ユーザー画面](img/user/user_delete.png)
-
-
-## ログインユーザー管理
-上記画面で作成したユーザーをもとに、ログインユーザーの管理を行います。  
-パスワード情報の追加や、パスワードの再発行、ログイン権限の削除などを行うことができます。  
-
-### 画面表示
-左メニューより、「ログインユーザー」をクリックします。  
-もしくは、以下のURLにアクセスしてください。  
-これにより、ユーザー設定画面が表示されます。
-http(s)://(ExmentのURL)/loginuser  
-現在システムで登録されているユーザーと、そのログイン情報が表示されます。
-![ログインユーザー画面](img/user/loginuser_grid1.png)
-
-### ログイン情報追加
-ログイン情報を追加するユーザーの行の、「編集」リンクをクリックしてください。  
-![ログインユーザー画面](img/user/loginuser_grid2.png)
-
-ログイン情報編集画面が表示されます。  
-![ログインユーザー画面](img/user/loginuser_edit1.png)
-ログイン権限を追加する場合、「ログイン権限付与」チェックボックスをクリックします。  
-
-#### パスワード自動生成
-ログイン権限を追加時、パスワードを自動生成する場合に、チェックを行います。  
-自動生成後、該当するメールアドレスに、パスワードメールが自動送信されます。  
-![ログインユーザー画面](img/user/loginuser_password.png)
-
-#### パスワード入力
-パスワードを自動生成しない場合、チェックを外します。  
-その場合、パスワードを入力する項目が表示されます。  
-ログインユーザーのパスワードを入力してください。  
-![ログインユーザー画面](img/user/loginuser_password2.png)
-
-### 保存
-設定を記入したら、「保存」をクリックしてください。  
-ログインユーザーが追加されます。  
-※「パスワード自動生成」にチェックを入れていた場合、パスワードメールが自動送信されます。  
+### Delete
+If you want to delete a user, please click the "Delete" link on the corresponding line.  
+![User screen](img/user/user_delete.png)
 
 
-## パスワードリセット
-パスワードリセットを行います。
-一覧画面で、列「ログインユーザー設定」が「YES」のユーザーの、「編集」リンクをクリックしてください。  
-![ログインユーザー画面](img/user/loginuser_grid3.png)  
+## Login user management
+We will manage login users based on the user created on the above screen.  
+You can add password information, reissue a password, delete login authority, and so on.
 
-「パスワードをリセットする」チェックボックスを追加します。  
-![ログインユーザー画面](img/user/loginuser_reset.png)  
-その後、「保存」をクリックしてください。  
+### Screen display
+From the left menu, click "Login User".  
+Or please visit the following URL.  
+This displays the user setting screen.  
+http(s)://(URL of Exment)/loginuser  
+The user currently registered in the system and its login information are displayed.  
+![Login user screen](img/user/loginuser_grid1.png)  
+
+### Add login information
+Click the "Edit" link in the user's line to add login information.  
+![Login user screen](img/user/loginuser_grid2.png)  
+  
+The login information edit screen is displayed.  
+![Login user screen](img/user/loginuser_edit1.png)  
+To add login privileges, click the "Login authority" checkbox.  
+
+#### Automatic password generation
+When adding login permission, check if you want to generate passwords automatically.  
+After automatic generation, password mail is automatically sent to the corresponding mail address.  
+![Login user screen](img/user/loginuser_password.png)  
+
+#### password input
+If you do not want to generate a password automatically, uncheck it.
+In that case, the item for entering the password will be displayed.
+Please enter the password of the login user.
+![Login user screen](img/user/loginuser_password2.png)
+
+### Save
+After filling in the settings, please click "Save".  
+The login user is added.  
+*If you have checked "Automatic password generation", password mail will be sent automatically.
 
 
+## Password reset
+Perform password reset.  
+On the list screen, click the "Edit" link of the user whose column "Login user setting" is "YES".  
+![Login user screen](img/user/loginuser_grid3.png)  
+  
+Add a "Reset password" checkbox.  
+![Login user screen](img/user/loginuser_reset.png)  
+Then click "Save".  
 
-## ログインユーザー削除
-ログイン権限の削除を行います。  
-一覧画面で、列「ログインユーザー設定」が「YES」のユーザーの、「編集」リンクをクリックしてください。  
-![ログインユーザー画面](img/user/loginuser_grid3.png)  
+## Remove login user
+Delete the login permission.  
+On the list screen, click the "Edit" link of the user whose column "Login user setting" is "YES".  
+![Login user screen](img/user/loginuser_grid3.png)  
 
-「ログイン権限付与」チェックボックスを解除します。  
-![ログインユーザー画面](img/user/loginuser_remove.png)  
-その後、「保存」をクリックしてください。  
-
+Clear the "Grant login authority" check box.  
+![Login user screen](img/user/loginuser_remove.png)  
+Then click "Save".

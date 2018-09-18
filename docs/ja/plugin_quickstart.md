@@ -1,34 +1,35 @@
-# How to Develop Plugin
-## First
-This section describes how to develop the Exment plugin.  
-Please refer to [Plug-in](plugin.md) for details about plug-in function and management method.  
+# プラグイン開発方法
+## はじめに
+ここでは、Exmentプラグインの開発方法について記載します。  
+プラグインの機能・管理方法についての詳細は、[プラグイン](plugin.md)をご参照ください。  
 
 
-# Create Plugin (trigger)
+## プラグイン(トリガー)作成
 
-### Created config.json
-- Create the following config.json file.
+### config.json作成
+- 以下のconfig.jsonファイルを作成します。  
 
 ~~~ json
 {
     "plugin_name": "PluginDemoTrigger",
     "uuid": "fa7de170-992a-11e8-b568-0800200c9a66",
     "plugin_view_name": "Plugin Trigger",
-    "description": "This is a test to upload the plugin.",
+    "description": "プラグインをアップロードするテストです。",
     "author": "(Your Name)",
     "version": "1.0.0",
     "plugin_type": "trigger"
 }
 ~~~
 
-- Please fill in the plugin_name with an alphanumeric character.
-- uuid is a string of 32 characters plus a hyphen, a total of 36 characters. It is used to make the plugin unique.
-Please make from the following URL etc.
+- plugin_nameは、半角英数で記入してください。
+- uuidは、32文字列+ハイフンの、合計36文字の文字列です。プラグインを一意にするために使用します。  
+以下のURLなどから、作成を行ってください。  
 https://www.famkruithof.net/uuid/uuidgen
-- For row "plugin_type", please enter "trigger".
+- plugin_typeは、triggerと記入してください。  
 
-### PHP file creation
-- Create a PHP file like the following. Please name "Plugin.php".
+
+### PHPファイル作成
+- 以下のようなPHPファイルを作成します。名前は「Plugin.php」としてください。
 
 ~~~ php
 <?php
@@ -47,35 +48,37 @@ class Plugin extends PluginTrigger
     }
 }
 ~~~
-- Namespace should be ** App\Plugins\(plugin name) **.
-- When it matches the trigger condition registered on the plugin management screen, the plugin is called and the execute function in Plugin.php is executed.
+- namespaceは、**App\Plugins\(プラグイン名)**としてください。
 
-- The Plugin class extends class "PluginTrigger".  
-PluginTrigger owns properties such as the caller's custom table $custom_table and table value $custom_value,  
-When the execute function is called, its value is assigned to that property.  
-For details on properties, please refer to [Plugin Reference](plugin_reference.md).
+- プラグイン管理画面で登録した、トリガーの条件に合致した場合に、プラグインが呼び出され、Plugin.php内のexecute関数が実行されます。  
 
-### Compressed to zip
-Compress the above two files to zip with minimum configuration.  
-The zip file name should be "(plugin_name) .zip".  
+- Pluginクラスは、クラスPluginTriggerを継承しています。  
+PluginTriggerは、呼び出し元のカスタムテーブル$custom_table、テーブル値$custom_valueなどのプロパティを所有しており、  
+execute関数が呼び出された時点で、そのプロパティに値が代入されます。  
+プロパティの詳細については、[プラグインリファレンス](plugin_reference.md)をご参照ください。  
+
+### zipに圧縮
+上記2ファイルを最小構成として、zipに圧縮します。  
+zipファイル名は、「(plugin_name).zip」にしてください。  
 - PluginDemoTrigger.zip
-     - config.json
-     - Plugin.php
-     - (Other necessary PHP files, image files etc)
+    - config.json
+    - Plugin.php
+    - (その他、必要なPHPファイル、画像ファイルなど)
 
-### Sample Plugin
-Now Preparing...
 
-## Create plug-in (page)
+### サンプルプラグイン
+準備中...
 
-### Created config.json
-- Create the following config.json file.
+## プラグイン(ページ)作成
+
+### config.json作成
+- 以下のconfig.jsonファイルを作成します。  
 
 ~~~ json
 
 {
     "name": "PluginDemoPage",
-    "explain": "This is a test to upload the plugin.",
+    "explain": "プラグインをアップロードするテストです。",
     "author":  "(Your Name)",
     "version": "1.0.0",
     "type": "page",
@@ -127,21 +130,22 @@ Now Preparing...
 }
 
 ~~~
-- Please fill in the plugin_name with an alphanumeric character.
-- uuid is a string of 32 characters plus a hyphen, a total of 36 characters. It is used to make the plugin unique.  
-Please make from the following URL etc.  
+
+- plugin_nameは、半角英数で記入してください。
+- uuidは、32文字列+ハイフンの、合計36文字の文字列です。プラグインを一意にするために使用します。  
+以下のURLなどから、作成を行ってください。  
 https://www.famkruithof.net/uuid/uuidgen
-- For plugin_type, enter page.
-- For controller, enter the class name of Contoller in the plugin to be executed.
-- route defines the endpoint of the URL to be executed, its HTTP method, methods in Contoller in a list.  
-    - uri: This is uri for page display. The actual URL is "http (s)://(URL of Exment)/admin/plugins/(URL set in the plugin administration screen)/(specified uri)".
-    - method: HTTP method. Please fill in with get, post, put, delete.
-    - function: Method in the Contoller to execute
-    - Example: If the URL set on the plugin management screen is "test", the uri specified by config.json is "show_details / {id}" and the specified method is "get", "http(s)://(URL of Exment)/admin/plugins/test/show_details/{id}(method: GET)". An integer value is substituted for id.
+- plugin_typeは、pageと記入してください。  
+- controllerは、実行するプラグイン内の、Contollerのクラス名を記入してください。  
+- routeは、実行するURLのエンドポイントと、そのHTTPメソッド、Contoller内のメソッドを一覧で定義します。
+    - uri：ページ表示のためのuriです。実際のURLは、「http(s)://(ExmentのURL)/admin/plugins/(プラグイン管理画面で設定したURL)/(指定したuri)」になります。  
+    - method：HTTPメソッドです。get,post,put,deleteで記入してください。
+    - function：実行するContoller内のメソッド
+    - 例：プラグイン管理画面で設定したURLを「test」、config.jsonで指定したuriが「show_details/{id}」、指定したmethodが「get」の場合、「http(s)://(ExmentのURL)/admin/plugins/test/show_details/{id}（メソッド：GET）」。idは整数値が代入される
 
 
-### Creating Contoller
-- Create a Contoller file like the following. The class name should be the name described in controller of config.json.
+### Contoller作成
+- 以下のようなContollerファイルを作成します。クラス名は、config.jsonのcontrollerに記載の名称にしてください。
 
 ~~~ php
 <?php
@@ -192,8 +196,8 @@ class PluginManagementController extends Controller
     {
         return Admin::grid(PluginPage::class, function (Grid $grid) {
 
-            $grid->column('plugin_name', 'Plugin Name')->sortable();
-            $grid->column('plugin_author', 'Author')->sortable();
+            $grid->column('plugin_name', 'プラグイン名')->sortable();
+            $grid->column('plugin_author', '作者')->sortable();
 
             $grid->disableExport();
 
@@ -269,17 +273,14 @@ class PluginManagementController extends Controller
 }
 
 ~~~
-- Namespace should be ** App\Plugins\(plugin name) **.
+- namespaceは、**App\Plugins\(プラグイン名)**としてください。
 
-- The public method name in Contoller is the name described in the function of config.json.
+- Contoller内のpublicメソッド名は、config.jsonのfunctionに記載の名称になります。
 
-### Compressed to zip
-Compress the above two files to zip with minimum configuration.  
-The zip file name should be "(plugin_name) .zip".  
+### zipに圧縮
+上記2ファイルを最小構成として、zipに圧縮します。  
+zipファイル名は、「(plugin_name).zip」にしてください。  
 - PluginDemoPage.zip
-     - config.json
-     - PluginManagementController.php
-     - (Other necessary PHP files, image files etc)
-
-### Sample Plugin
-Now Preparing...
+    - config.json
+    - PluginManagementController.php
+    - (その他、必要なPHPファイル、画像ファイルなど)

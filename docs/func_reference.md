@@ -1,449 +1,449 @@
-# 関数リファレンス
-## はじめに
-ExmentはPHPを使用したオープンソースシステムです。  
-また、フレームワークに[Laravel](https://laravel.com/)、[laravel-admin](http://laravel-admin.org/docs/#/)を使用しています。  
-そのため、これらの使用している関数やモデルはすべて、使用できます。  
+# Function reference
+## Introduction
+Exment is an open source system using PHP.  
+Also, I use [Laravel](https://laravel.com/), [laravel-admin](http://laravel-admin.org/docs/#/) for the framework.  
+Therefore, all of these functions and models can be used.  
 
-ただしExmentでは、主にカスタムテーブルの実現のために、通常のLaravelのEloquentとは異なる、特殊な記法が必要な箇所があります。  
-また、より有効に開発するために、必要な関数処理などを定義しています。  
-このページでは、Exmentで独自に定義している関数を記載します。
-(レイアウトは調整中です)
+However, in Exment, there are parts that require special notation different from ordinary Laravel Eloquent, mainly for realizing custom tables.  
+Also, in order to develop more effectively, necessary function processing etc are defined.  
+On this page, we will describe the functions you have defined yourself with Exment.  
+(The layout is being adjusted)
 
 
 
-## 関数一覧
+## Function list
 
-### ファイル・フォルダ・パス
+### File, folder, path
 
 #### path_join
 ---
-ファイルパスを結合します。
+Combine file paths.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| pass_array | string(可変長引数) | 対象のファイルパス配列 |
+| pass_array | string (variable length argument) | target file path array |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | 結合したファイルパス |
+| string | merged file path |
 
 
 #### getFullpath
 ---
-特定のファイルを対象に、ファイルのフルパスを取得します。
+Get the full path of the file for a specific file.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| filename | string | ファイル名 |
-| disk | string | Laravelのファイル名のディスク名 |
+| filename | string | file name |
+| disk | string | Laravel file name disk name |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | 対象のファイルのファイル名 |
+| string | File name of target file |
 
 
-### 文字列
+### String
 
 #### make_password
 ---
-パスワードを作成します。  
-※作成対象となる文字列：abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!$#%_-
+Create a password.
+* Character string to be created: abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789! $ #% _-
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| length | int | 文字列(既定値：16) |
+| length | int | string (default: 16) |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | パスワード文字列 |
+| string | password string |
 
 
 #### make_randomstr
 ---
-ランダム文字列を作成します。  
-※作成対象となる文字列：abcdefghjkmnpqrstuvwxyz23456789
+Create a random character string.
+* Character string to be created: abcdefghjkmnpqrstuvwxyz23456789
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| length | int | 文字列 |
+| length | int | character string |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | ランダム文字列 |
+| string | random character string |
 
 
 
 #### make_uuid
 ---
-UUIDを作成します。  
-例： "15682b80-97cf-11e8-b287-2b0751d38875"
+Create a UUID.
+Example: "15682b80-97cf-11e8-b287-2b0751d38875"
 
-##### 引数
-なし
+##### Argument
+None
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
 | string | UUID |
 
 
 #### short_uuid
 ---
-20文字の短縮UUIDを作成します。データベースの各テーブル名、カラム名、データの一意キー作成に使用しています。  
-例："39bde6af771372f65cad"
+Create shortened UUID of 20 characters. It is used to create each table name, column name and data unique key of the database.
+Example: "39bde6af771372f65cad"
 
-##### 引数
-なし
+##### Argument
+None
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | 短縮ID |
+| string | abbreviated ID |
 
 
 #### make_licensecode
 ---
-5*5文字の文字列(ハイフン区切り)のライセンスコード系文字列を作成します。
+Create a license code string of 5 * 5 character strings (hyphens separated).
 例："ghkn7-7xwmm-6sedf-8dn37-9wwg9"
 
-##### 引数
-なし
+##### Argument
+None
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | 5*5文字の文字列(ハイフン区切り) |
+| string | 5 * 5 character string (hyphen separated) |
 
 
 #### pascalize
 ---
-文字列をパスカルケースに変換します。
+Converts a string to a Pascal case.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| string | string | 変換対象の文字列 |
+| string | string | string to be converted |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | パスカルケース文字列 |
+| string | Pascal case string |
 
 
 ### Laravel
 
 #### getModelName
 ---
-カスタムテーブルのModelのフルパス文字列を取得します。  
-テーブル間のリレーションや権限情報取得のためのメソッドも、同時に定義します。  
-※カスタムテーブルのModelを取得する場合、必ずこの関数を使用してください。  
+Get the full path string of the model of the custom table.  
+We also define methods for relationships between tables and methods for obtaining authority information.  
+* When acquiring the model of the custom table, be sure to use this function.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | string,CustomTable | カスタムテーブル名、もしくはCustomTableインスタンス |
-| get_name_only | bool | フルパス文字列のみ取得し、他の関数定義などは行いません。(既定値：false) |
+| obj | string, CustomTable | Custom table name or CustomTable instance |
+| get_name_only | bool | Acquires only the full path character string and does not do other function definition etc. (Default value: false) |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | カスタムテーブルのModelのフルパス文字列 |
+| string | Full path string of Model of custom table |
 
 
 #### getDBTableName
 ---
-カスタムテーブルのデータベースのテーブル名を取得します。  
-※カスタムテーブルのDBテーブルは、ランダム文字列を使用して作成しています。  
-そのため、データベースを取得するときは、この関数を使用してください。
+Gets the table name of the custom table database.  
+* Custom table DB table is created using random character string.  
+Therefore, please use this function when acquiring the database.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | string,CustomTable,array | カスタムテーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
+| obj | string, CustomTable, array | Custom table name, CustomTable instance, or CustomTable instance array |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | カスタムテーブルのテーブル名 |
+| string | table name of custom table |
 
 
 #### getColumnName
 ---
-カスタム列の列名を取得します。  
-※この列名は、「検索可能」フィールドに使用します。  
+Gets column name of custom column.  
+* This column name is used for "Searchable" field.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | CustomColumn,array | CustomColumnインスタンス、もしくはCustomColumnインスタンス配列 |
+| obj | CustomColumn, array | CustomColumn instance or CustomColumn instance array |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | カスタム列名 |
+| string | custom column name |
 
 
 #### getColumnNameByTable
 ---
-テーブルも指定して、カスタム列の列名を取得します。  
-※この列名は、「検索可能」フィールドに使用します。  
+We also specify the table and get the column name of the custom column.  
+* This column name is used for "Searchable" field.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| tableObj | string,CustomTable,array | テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
-| column_name | string | 画面上で入力した列名 |
+| tableObj | string, CustomTable, array | table name, CustomTable instance, or CustomTable instance array |
+| column_name | string | Column name entered on screen |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | カスタム列名 |
+| string | custom column name |
 
 
 #### getLabelColumn
 ---
-カスタムテーブルのデータを、検索結果や選択肢の見出しとして使用する場合に、その見出しのカスタム列を取得します。  
+When custom table data is used as a search result or choice heading, we get a custom column for that heading.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| tableObj | string,CustomTable,array | テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
-| column_name | string | 画面上で入力した列名 |
+| tableObj | string, CustomTable, array | table name, CustomTable instance, or CustomTable instance array |
+| column_name | string | Column name entered on screen |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| CustomColumn | カスタム列 |
+| CustomColumn | custom column |
 
 
 #### getRelationName
 ---
-関連テーブルのリレーション名を取得します。  
+Gets the relation name of the related table.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | CustomRelation | CustomRelationのインスタンス |
+| obj | CustomRelation | Instance of CustomRelation |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | リレーション名 |
+| string | relation name |
 
 
 #### getRelationNamebyObjs
 ---
-親テーブル・子テーブルを指定して、関連テーブルのリレーション名を取得します。  
+Specify the parent table and child table to obtain the relation name of the related table.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| parent | string,CustomTable,array | 親テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
-| child | string,CustomTable,array | 子テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
+| parent | string, CustomTable, array | parent table name, CustomTable instance, or CustomTable instance array |
+| child | string, CustomTable, array | child table name, CustomTable instance, or CustomTable instance array |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | リレーション名 |
+| string | relation name |
 
 
 #### getAuthorityName
 ---
-権限名を取得します。  
+Gets the authority name.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | Authority | Authorityのインスタンス |
-| related_type | stirng | 権限種類 |
+| obj | Authority | Instance of Authority |
+| related_type | stirng | permission type |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | 権限名 |
+| string | authority name |
 
 
 
 #### getValue
 ---
-指定した列のカスタムテーブルの値を取得します。  
+Gets the value of the custom table for the specified column.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| custom_value | CustomValue | CustomValueのインスタンス |
-| column | string,CustomColumn,array | カスタムテーブル名、CustomColumnインスタンス、もしくはCustomColumnインスタンス配列 |
-| isonly_label | bool | 画面表示するラベル値のみ取得するかどうか(既定値:false) |
+| custom_value | CustomValue | Instance of CustomValue |
+| column | string, CustomColumn, array | Custom table name, CustomColumn instance, or CustomColumn instance array |
+| isonly_label | bool | Whether to acquire only label values ​​to be displayed (Default value: false) |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| mixed | 指定した列の、カスタムテーブルの値 |
+| mixed | The value of the custom table for the specified column |
 
 
 #### getValueUseTable
 ---
-指定した列のカスタムテーブルの値を取得します。  
-※テーブルと、カスタム値のvalueフィールドの配列を引数に指定します。
+Gets the value of the custom table for the specified column.  
+* Specify a table and an array of custom value value fields as arguments.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| custom_table | string,CustomTable,array | テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
-| value | array | カスタム値のvalue配列 |
-| column | string,CustomColumn,array | カスタムテーブル名、CustomColumnインスタンス、もしくはCustomColumnインスタンス配列 |
-| isonly_label | bool | 画面表示するラベル値のみ取得するかどうか(既定値:false) |
+| custom_table | string, CustomTable, array | table name, CustomTable instance, or CustomTable instance array |
+| value | array | value array of custom values ​​|
+| column | string, CustomColumn, array | Custom table name, CustomColumn instance, or CustomColumn instance array |
+| isonly_label | bool | Whether to acquire only label values ​​to be displayed (Default value: false) |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| mixed | 指定した列の、カスタムテーブルの値 |
+| mixed | The value of the custom table for the specified column |
 
 
 #### getParentValue
 ---
-カスタムデータの親となる値を取得します。  
+Gets the parent value of custom data.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| custom_value | CustomValue | CustomValueのインスタンス |
-| isonly_label | bool | 画面表示するラベル値のみ取得するかどうか(既定値:false) |
+| custom_value | CustomValue | Instance of CustomValue |
+| isonly_label | bool | Whether to acquire only label values ​​to be displayed (Default value: false) |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| mixed | カスタムデータの親となる値 |
+| mixed | parent value of custom data |
 
 
 
 #### getChildrenValues
 ---
-カスタムデータに関連する、子データ一覧を取得します。  
+Get child data list related to custom data.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| custom_value | CustomValue | CustomValueのインスタンス |
-| relation_table | string,CustomTable,array | 取得対象のテーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
+| custom_value | CustomValue | Instance of CustomValue |
+| relation_table | string, CustomTable, array | Name of table to be retrieved, CustomTable instance, or CustomTable instance array |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| collect(CustomValue) | カスタムデータに関連する |
+| collect (CustomValue) | related to custom data |
 
 
 #### getSearchEnabledColumns
 ---
-検索可能な列一覧を取得します。  
+Get searchable column list.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| table_name | string | テーブル名 |
+| table_name | string | table name |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| array | 検索可能なCustomColumn一覧 |
+| array | Searchable CustomColumn list |
 
 
 #### createTable
 ---
-DBにカスタムテーブルを作成します。  
+Create a custom table in the DB.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | string,CustomTable,array | テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
+| obj | string, CustomTable, array | table name, CustomTable instance, or CustomTable instance array |
 
-##### 戻り値
-なし
+##### Return value
+None
 
 
 #### alterColumn
 ---
-DBのテーブルに、検索可能な列を作成します。  
+Create a searchable column in the DB table.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| table_name | string | テーブル名 |
-| column_name | string | 列名 |
+| table_name | string | table name |
+| column_name | string | column name |
 
-##### 戻り値
-なし
+##### Return value
+None
 
 
 ### laravel-admin
 
 #### getOptions
 ---
-laravel-adminの、selectの選択肢を作成します。  
-※選択肢が100件を超える場合、ajaxによる絞り込み形式となるため、結果は選択済の項目のみになります。  
+Create a select alternative of laravel-admin.  
+* If the number of choices exceeds 100, the result is limited to the selected item because it is a narrowed down form by ajax.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| custom_table | string,CustomTable,array | テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
-| selected_value | string | 選択済の値(id) |
+| custom_table | string, CustomTable, array | table name, CustomTable instance, or CustomTable instance array |
+| selected_value | string | Selected value (id) |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| array | 件数が101件以上のとき：選択した値のキーと見出し それ以外のとき：選択したテーブルの、キーの見出しと一覧 |
+| array | When the number of items is more than 101: key and heading of selected value Otherwise: key headings and list of selected table |
 
 
 #### getOptionAjaxUrl
 ---
-laravel-adminの、option作成用のajaxのURLを作成します。  
+Create a URL for ajax for creating option in laravel-admin.
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| table | string,CustomTable,array | テーブル名、CustomTableインスタンス、もしくはCustomTableインスタンス配列 |
+| table | string, CustomTable, array | table name, CustomTable instance, or CustomTable instance array |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| string | option作成用のajaxのURL |
+| string | ajax URL for creating option |
 
 
 #### createSelectOptions
 ---
-カスタム列の列種類が"select"もしくは"select_valtext"のときの、選択肢を作成します。
+Create a choice when the column type of the custom column is "select" or "select_valtext".
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | string,array | 選択肢の文字列もしくは配列 |
-| isValueText | bool | 値・見出しの形式かどうか |
+| obj | string, array | String or array of choices |
+| isValueText | bool | Whether value / heading format |
 
-##### 戻り値
-| 種類 | 説明 |
+##### Return value
+| Type | Description |
 | ---- | ---- |
-| array | 選択肢の配列 |
+| array | Array of choices |
 
 
 #### setSelectOptionItem
 ---
-関数createSelectOptionsで使用する、選択肢の要素の作成します。  
-※引数optionsに追加します。
+Create a choice element to use with the createSelectOptions function.  
+* Add to the argument options.  
 
-##### 引数
-| 名前 | 種類 | 説明 |
+##### Argument
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| item | string | 選択肢の文字列 |
-| options | array | 選択肢の配列(参照渡し) |
-| isValueText | bool | 値・見出しの形式かどうか |
+| item | string | choice character string |
+| options | array | Array of choices (by reference) |
+| isValueText | bool | Whether value / heading format |
 
-##### 戻り値
-なし
+##### Return value
+None

@@ -1,16 +1,16 @@
 * [Home](/)
-* 【システム管理者向け】
-  * [クイックスタート](quickstart.md)
-  * [インストール](install.md)
-  * [基本情報](base_info.md)
-  * [カスタムテーブル](table.md)
-  * [カスタム列](column.md)
-  * [関連テーブル](relation.md)
-  * [ユーザー・ログインユーザー](user.md)
-  * [プラグイン](plugin.md)
-  * [メールテンプレート](mail.md)
-* 【ユーザー向け】
-* 【開発者向け】
-  * [関数リファレンス](func_reference.md)
-  * [プラグイン開発方法](plugin_quickstart.md)
-  * [プラグインリファレンス](plugin_reference.md)
+* 【For System Administrator】
+  * [Quick Start](quickstart.md)
+  * [Install](install.md)
+  * [Base Info](base_info.md)
+  * [Custom Table](table.md)
+  * [Custom Column](column.md)
+  * [Custom Relation Table](relation.md)
+  * [User/Login User Setting](user.md)
+  * [Plugin](plugin.md)
+  * [Mail Template](mail.md)
+* 【For User】
+* 【For Developer】
+  * [Function Reference](func_reference.md)
+  * [How to Develop Plugin](plugin_quickstart.md)
+  * [Plugin Reference](plugin_reference.md)

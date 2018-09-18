@@ -1,20 +1,20 @@
-# Quick start
-This is the procedure required to start Exment.
-* The introduction of composer is necessary.
+# クイックスタート
+Exmentを開始するために必要となる手順です。  
+※composerの導入が必要です。
 
-## Laravel installation (Project creation)
-- At the command line, execute the following command.
+## Laravelインストール(プロジェクト作成)
+- コマンドラインで、以下のコマンドを実行します。
 
 ~~~
-composer create-project "laravel/laravel=5.5.*" (Project Name)
-cd (Project Name)
+composer create-project "laravel/laravel=5.5.*" (プロジェクト名)
+cd (プロジェクト名)
 ~~~
 
-- Open ".env" and change the database string to your own MySQL setting.  
-*MySQL can be used only with json type 5.7 or higher.
+- ".env" を開き、データベース文字列を、ご自身のもつMySQLの設定値に変更します。  
+※MySQLは、json型に対応している5.7以上でのみご利用可能です。
 
-## Command execution
-- Execute the following command.
+## コマンド実行
+- 以下のコマンドを実行します。
 
 ~~~
 composer require exceedone/exment=dev-master
@@ -23,9 +23,9 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=public --force
 ~~~
 
-## Change config
+## config変更
 
-- Open "config \ database.php" and modify the value of the key "mysql" as follows.
+- "config\database.php"を開き、 キー "mysql" の値を以下のように修正します。
 
 ~~~ php
 'mysql' => [
@@ -55,7 +55,8 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~
 
-- Open "config \ admin.php" and modify the key "auth.providers.admin" as follows.
+
+- "config\admin.php"を開き、 キー "auth.providers.admin" を以下のように修正します。
 
 ~~~ php
     'auth' => [
@@ -72,7 +73,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 ~~~
 
 
-- Open "config \ app.php" and add the following line to the key "providers".  
+- "config\app.php"を開き、 キー "providers" に以下の行を追加します。
 
 ~~~ php
 
@@ -96,7 +97,8 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~
 
-- If you want to change the language and timezone, open "config\app.php" and correct the following lines.
+
+- 言語とタイムゾーンを変更したい場合、"config\app.php"を開き、 以下の行を修正します。
 
 ~~~ php
 
@@ -108,11 +110,11 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~
 
-## Command execution
-- Execute the following command.
+
+## コマンド実行
+- 以下のコマンドを実行します。
 
 ~~~
 php artisan admin:install
 php artisan exment:install
 ~~~
-

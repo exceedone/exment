@@ -1,26 +1,25 @@
-# プラグインリファレンス
+# Plugin reference
 
-## クラス一覧
+## List of classes
 
 ### PluginBase
 - namespace Exceedone\Exment
-- プラグイン(トリガー)、プラグイン(ページ)の共通基底クラス。
+- Common base class for plugins (triggers) and plugins (pages).
 
-##### プロパティ
-| 名前 | 種類 | 説明 |
+##### Property
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| plugin | Plugin | プラグインのEloquentインスタンス |
+| plugin | Plugin | Eloquent instance of the plugin |
 
 ### PluginTrigger
 - namespace Exceedone\Exment
 - extends Exceedone\Exment\PluginBase
-- プラグイン(トリガー)の基底クラス。
+- Base class for plugins (triggers).
 
-##### プロパティ
-| 名前 | 種類 | 説明 |
+##### Property
+| Name | Type | Description |
 | ---- | ---- | ---- |
-| custom_table | CustomTable | プラグイン呼び出し対象の、カスタムテーブルのEloquentインスタンス |
-| custom_value | CustomValue | フォーム表示時、プラグイン呼び出し対象の、カスタム値のEloquentインスタンス |
-| custom_form | CustomForm | フォーム表示時、プラグイン呼び出し対象の、カスタムフォームのEloquentインスタンス |
-| isCreate | bool | フォーム表示時、新規作成フォームかどうか |
-
+| custom_table | CustomTable | Eloquent instance of the custom table to be plugged in |
+| custom_value | CustomValue | Eloquent instance with custom value to be plugged in when displaying the form |
+| Custom_form | CustomForm | Eloquent instance of custom form targeted for plugin invocation when displaying the form |
+| isCreate | bool | When form is displayed, whether it is a newly created form |

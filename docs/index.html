@@ -7,20 +7,39 @@
   <meta name="description" content="Description">
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lity/2.3.1/lity.min.css" />
   <link rel="stylesheet" href="./docs.css">
 </head>
 <body>
+  <nav>
+    <a href="#/">EN</a>
+    <a href="#/ja/">日本語</a>
+  </nav>
   <div id="app">Please wait...</div>
   <script>
     window.$docsify = {
       name: 'Exment',
+      //homepage: 'en/README.md',
       homepage: 'README.md',
       repo: 'https://github.com/exceedone/exment.git',
       loadSidebar: true,
       subMaxLevel: 2,
-      search: 'auto'
-    }
+      search: {
+              noData: {
+                  '/ja/': '結果がありませんでした',
+                  '/en/': 'No results!',
+                  '/': 'No results!'
+              },
+              paths: 'auto',
+              placeholder: {
+                  '/ja/': '検索',
+                  '/en/': 'Search',
+                  '/': 'Search'
+              }
+          },
+    };
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lity/2.3.1/lity.min.js"></script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
   <script src="//unpkg.com/docsify/lib/plugins/search.js"></script>
 </body>

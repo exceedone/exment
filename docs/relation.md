@@ -1,36 +1,35 @@
-# 関連テーブル
-テーブルとテーブルは、関連性をもつ場合があります。  
-例：契約とその明細、ユーザーは組織に所属する  
-それらのテーブルの関連性を設定します。
+# Custom Relation Table
+Tables and tables may have relevance.  
+Example: contract and its statement, user belongs to organization  
+Set the relevance of those tables.  
 
-## はじめに
-Exmentでは、テーブルの関連性を、以下の2つのパターンで定義しています。  
-- 1対多：1つの親テーブルのデータに、明細として、子テーブルの複数のデータが紐付く。    
-例：契約とその明細  
-- 多対多：子テーブルは、1つのテーブル(親テーブル)のデータに、明細として、テーブル(子テーブル)の複数のデータが紐付く  
-例：ユーザーは組織に所属する。複数の組織に所属する可能性があるので、多対多で定義  
+## Introduction
+In Exment, the relation of the table is defined by the following two patterns.
+- One to many: Multiple data of the child table are linked as data to the data of one parent table.  
+Example: Contract and its details  
+- Many-to-many: In a child table, data of one table (parent table) is linked to data of a table (child table) as details.  
+Example: A user belongs to an organization. Since there is a possibility of belonging to multiple organizations, many-to-many definition
 
-## ページ表示
-- カスタムテーブル画面で、変更を行いたいテーブルにチェックを1つ入れ、「ページ移動」の「関連テーブル設定」をクリックします。  
-![関連テーブル画面](img/relation/relation_grid1.png)
+## Display page
+- On the custom table screen, put a check in the table you want to change and click "Related table setting" in "Move page".  
+![Related table screen](img/relation/relation_grid1.png)
 
-- これで、チェックしたカスタムテーブルがもつ、関連テーブルの一覧を表示します。  
-![関連テーブル画面](img/relation/relation_grid2.png)
+- This will display the list of related tables that the checked custom table has.  
+![Related table screen](img/relation/relation_grid2.png)
 
+## Add new
+- On the "Related table setting" screen, click the "New" button at the top right of the page.
 
-## 新規追加
-- 「関連テーブル設定」画面で、ページ右上の「新規」ボタンをクリックします。
+- The new addition screen of the related table will be displayed, enter necessary information.  
+![Related table screen](img/relation/relation_new1.png)
 
-- 関連テーブルの新規追加画面が表示されますので、必要事項を入力します。
-![関連テーブル画面](img/relation/relation_new1.png)  
+- Select the child table to associate with and the type of relation, and "send".  
+![Related table screen](img/relation/relation_new2.png)
 
-- 関連付ける子テーブルと、そのリレーションの種類を選択し、「送信」を行ってください。
-![関連テーブル画面](img/relation/relation_new2.png)  
+## Edit
+If you want to edit a column, please click the "Edit" link in the corresponding line.  
+![Related table screen](img/relation/relation_edit.png)
 
-## 編集
-列の編集を行いたい場合、該当する行の「編集」リンクをクリックしてください。  
-![関連テーブル画面](img/relation/relation_edit.png)  
-
-## 削除
-列の削除を行いたい場合、該当する行の「削除」リンクをクリックしてください。  
-![関連テーブル画面](img/relation/relation_delete.png)  
+## Delete
+If you want to delete a column, please click the "Delete" link in the corresponding line.  
+![Related table screen](img/relation/relation_delete.png)

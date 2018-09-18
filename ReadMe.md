@@ -5,8 +5,8 @@
 <p align="center">⛵<code>Exment</code> is Management for Product, Client, Contracts, Subscription, ...</p>
 
 <p align="center">
-<a href="https://exment.net/docs/#/">ドキュメント</a> | 
-Document(Now preparing...) | 
+<a href="https://exment.net/docs/#/ja">ドキュメント</a> | 
+<a href="https://exment.net/docs/#">Document</a> | 
 Demo(Now preparing...)
 </p>
 

@@ -1,27 +1,27 @@
-# インストール
-サーバー設定後、画面上からインストールを行うための手順になります。
+# Install
+After setting up the server, it becomes the procedure for installing from the screen.
 
-## URLアクセス
-Exmentページにアクセスします。  
-http(s)://(あなたのサイトURL)/admin  
-※"/admin"の値を変更したい場合は、"config/admin.php"の"route.prefix"の値を変更してください。
+## URL Access
+Access the Exment page.
+http(s)://(your site URL)/admin  
+* If you want to change the value of "/admin", change the value of "route.prefix" in "config/admin.php".
 
-## インストール画面
-正常にインストールが完了している場合、Exmentインストール画面が表示されます。
+## Installation screen
+If the installation is completed normally, the Exment installation screen will be displayed.  
+  
+![Installation screen](img/install/install1.png)  
+Please enter the information necessary for system setup.  
 
-![インストール画面](img/install/install1.png)
-システムの設定に必要な情報を入力してください。
+## Template setting
+In Exment, templates are prepared in advance.  
+By selecting a template, the table, column, form, menu, permission information set in the selected template will be installed.  
+You can also upload a template exported with another Exment from this screen.  
+For details, please check "template" on the left menu. (The page is currently being created)  
+  
+![Installation screen_template](img/install/install_template.png)  
+  
+A list of pre-installed templates on the system or templates imported in the past is displayed.  
+If you want to install, please select the template you want to add.  
 
-## テンプレート設定
-Exmentでは、あらかじめテンプレートが用意されています。  
-テンプレートを選択することで、選択したテンプレートに設定されている、テーブル、列、フォーム、メニュー、権限の情報がインストールされます。  
-また、別のExmentでエクスポートしたテンプレートを、この画面からアップロードすることも出来ます。  
-詳細は、左メニューの「テンプレート」をご確認ください。（ページは現在作成中）  
-
-![インストール画面_テンプレート](img/install/install_template.png)
-
-システムであらかじめインストールされているテンプレート、もしくは過去にインポートを行ったテンプレートの一覧が表示されています。  
-インストールを行いたい場合、追加したいテンプレートを選択してください。  
-
-## インストール完了
-必要事項を入力後、「送信」ボタンをクリックすることで、設定が保存され、Exmentが使用可能な状態になります。
+## Installation completed
+After entering the necessary information, clicking the "Send" button saves the setting and makes the Exment usable state.
