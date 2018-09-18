@@ -61,7 +61,7 @@
                 <div id="items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" class="col-xs-12 col-md-7 custom_form_column_block"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
 
-                    <h5>項目</h5>
+                    <h5>{{ exmtrans('custom_form.items') }}</h5>
                     <ul class="custom_form_column_items draggables" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
     @include("exment::custom-form.form-item", ['custom_form_column'
@@ -77,7 +77,7 @@
                     <div class="custom_form_column_block_inner">
                         <h5>{{$suggest['label']}}
                             @if($suggest['form_column_type'] == 'column')
-                            <button type="button" class="btn-addallitems btn btn-xs btn-default"><i class="fa fa-arrow-left"></i>すべて項目に追加</button>
+                            <button type="button" class="btn-addallitems btn btn-xs btn-default"><i class="fa fa-arrow-left"></i>&nbsp;{{ exmtrans('custom_form.add_all_items') }}</button>
                             @endif
                         </h5>
                         <ul class="custom_form_column_suggests draggables" data-connecttosortable="items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
@@ -125,28 +125,28 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
-                    <h4 class="modal-title" id="modal-label">データ連動設定</h4>
+                    <h4 class="modal-title" id="modal-label">{{exmtrans('custom_form.changedata')}}</h4>
                 </div>
                 <div class="modal-body" id="modal-body">
                     <div class="col-sm-12">
-                        <select data-add-select2="列を選択" class="form-control select2 changedata_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                        <select data-add-select2="{{exmtrans('custom_form.changedata_target_column')}}" class="form-control select2 changedata_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
                         </select>
                     </div>    
                     <div class="col-sm-12 small" style="margin-bottom:1em;">
-                        の項目を選択したとき
+                        {{exmtrans('custom_form.changedata_target_column_when')}}
                     </div>
                     <div class="col-sm-12">
-                        <select data-add-select2="リンク列を選択" class="form-control select2 changedata_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
+                        <select data-add-select2="{{exmtrans('custom_form.changedata_column')}}" class="form-control select2 changedata_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
                         </select>
                     </div>    
                     <div class="col-sm-12 small" style="margin-bottom:1em;">
-                        の値をコピーする
+                        {{exmtrans('custom_form.changedata_column_then')}}
                     </div>
                 </div>
                 <div class="modal-footer">
                     <div class="col-sm-12">
-                            <button id="changedata-button-reset" type="button" class="btn btn-default">リセット</button>
-                            <button id="changedata-button-setting" type="button" class="btn btn-info">設定</button>
+                            <button id="changedata-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
+                            <button id="changedata-button-setting" type="button" class="btn btn-info">{{trans('admin.setting')}}</button>
 
                             <input type="hidden" class="target_header_column_name" />
                     </div>

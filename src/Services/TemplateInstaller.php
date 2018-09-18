@@ -209,7 +209,7 @@ class TemplateInstaller
                 $table_columns = [];
                 foreach (array_get($table, 'custom_columns') as $column) {
                     $column_name = array_get($column, 'column_name');
-                    $obj_column = CustomColumn::firstOrNew(['column_name' => $column_name]);
+                    $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
                     $obj_column->column_name = $column_name;
                     $obj_column->column_type = array_get($column, 'column_type');
                     $obj_column->system_flg = $system_flg;

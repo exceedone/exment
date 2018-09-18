@@ -28,7 +28,7 @@
                     <div class="form-group">
                         <span class="control-label col-sm-4">{{exmtrans('custom_form.changedata')}}</span>
                         <div class="col-sm-8" style="padding-top:4px;">
-                                <a class="btn btn-sm btn-default changedata-modal" href="javascript:void(0);">設定</a> 
+                                <a class="btn btn-sm btn-default changedata-modal" href="javascript:void(0);">@lang('admin.setting')</a> 
                                 {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][changedata_target_column_id]", array_get($custom_form_column, 'options.changedata_target_column_id'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__changedata_target_column_id_", 'class' => 'changedata_target_column_id']) }}
                                 {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][changedata_column_id]", array_get($custom_form_column, 'options.changedata_column_id'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__changedata_column_id_", 'class' => 'changedata_column_id']) }}
 

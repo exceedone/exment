@@ -135,9 +135,9 @@ class Define
     ];
     
     public const CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE = [
-        1 => ['id' => 1, 'column_name' => 'header', 'column_view_name' => '見出し'],
-        2 => ['id' => 2, 'column_name' => 'explain', 'column_view_name' => '説明文'],
-        3 => ['id' => 3, 'column_name' => 'html', 'column_view_name' => 'HTML'],
+        1 => ['id' => 1, 'column_name' => 'header'],
+        2 => ['id' => 2, 'column_name' => 'explain'],
+        3 => ['id' => 3, 'column_name' => 'html'],
     ];
 
     public const AUTHORITY_TYPE_SYSTEM = 'system';
