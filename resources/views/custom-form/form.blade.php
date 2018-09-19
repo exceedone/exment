@@ -120,7 +120,7 @@
 </form>
 
 {{-- Modal --}}
-<div class="modal fade" id="form-changedata-modal">
+<div class="modal fade" id="form-changedata-modal" data-backdrop="static">
         <div class="modal-dialog" >
             <div class="modal-content">
                 <div class="modal-header">

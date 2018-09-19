@@ -23,8 +23,8 @@ class SearchController extends AdminControllerBase
      */
     public static function renderSearchHeader(){
         // create searching javascript
-        $ajax_url = admin_url("search/header");
-        $list_url = admin_url("search");
+        $ajax_url = admin_base_path("search/header");
+        $list_url = admin_base_path("search");
 
         $script = <<<EOT
     $(function () {
@@ -155,7 +155,7 @@ EOT;
             $content->description(exmtrans('search.description_freeword'));
 
             // create searching javascript
-            $list_url = admin_url("search/list");
+            $list_url = admin_base_path("search/list");
             $script = <<<EOT
     var searchIndex = 0;
     $(function () {
@@ -328,7 +328,7 @@ EOT;
                 , 'tables' => $this->getSearchTargetRelationTable($table)]));
 
             // create searching javascript
-            $list_url = admin_url("search/relation");
+            $list_url = admin_base_path("search/relation");
             $script = <<<EOT
     var searchIndex = 0;
     $(function () {

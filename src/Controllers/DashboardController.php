@@ -114,26 +114,11 @@ class DashboardController extends AdminControllerBase
             var suuids = $('[data-suuid]');
             suuids.each(function(index, element){
                 var suuid = $(element).data('suuid');
-                if(!hasValue(suuid)){
-                    return true;
-                }
-                $.ajax({
-                    url: admin_base_path('dashboardbox/html/' + suuid),
-                    type: "GET",
-                    success: function (data) {
-                        var suuid = data.suuid;
-                        var html = data.html;
-
-                        // get target object
-                        var target = $('[data-suuid="' + suuid + '"]');
-                        target.find('.box-body .box-body-inner').html(html);
-                        target.find('.overlay').remove();
-                    },
-                });
+                loadDashboardBox(suuid);
             });
 
             ///// delete click event
-            $('[data-exment-widget]').off('click').on('click', function(ev){
+            $('[data-exment-widget="delete"]').off('click').on('click', function(ev){
                 // get suuid
                 var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
                 swal({
@@ -167,7 +152,42 @@ class DashboardController extends AdminControllerBase
                       });
                   });
             });
+            
+            ///// reload click event
+            $('[data-exment-widget="reload"]').off('click').on('click', function(ev){
+                // get suuid
+                var target = $(ev.target).closest('[data-suuid]');
+                target.find('.box-body .box-body-inner').html('');
+                target.find('.overlay').show();
+                var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
+                loadDashboardBox(suuid);
+            });
         });
+
+        function loadDashboardBox(suuid){
+            if(!hasValue(suuid)){
+                return true;
+            }
+            var target = $('[data-suuid="' + suuid + '"]');
+            if(target.hasClass('loading')){
+                return true;
+            }
+            target.addClass('loading');
+            $.ajax({
+                url: admin_base_path('dashboardbox/html/' + suuid),
+                type: "GET",
+                success: function (data) {
+                    var suuid = data.suuid;
+                    var html = data.html;
+
+                    // get target object
+                    var target = $('[data-suuid="' + suuid + '"]');
+                    target.find('.box-body .box-body-inner').html(html);
+                    target.find('.overlay').hide();
+                    target.removeClass('loading');
+                },
+            });
+        }
 EOT;
             Admin::script($script);
         });

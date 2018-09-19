@@ -69,7 +69,7 @@
 
 
 {{-- create dialog --}}
-<div id="relation-modal-{{$column}}" class="modal fade" role="dialog" aria-labelledby="gridSystemModalLabel">
+<div id="relation-modal-{{$column}}" class="modal fade" role="dialog" aria-labelledby="gridSystemModalLabel" data-backdrop="static">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">

@@ -6,6 +6,12 @@
 ## What is Exment?
 Exment is open source software for managing information assets on the Web.  
 
+## DemoSite
+<p align="center">
+<a href="https://demo.exment.net/admin">Demo Site</a>
+<br/>※Please Input ID/Password admin/adminadmin
+</p>
+
 ## Function
 - Dashboard
 - Data registration from the screen

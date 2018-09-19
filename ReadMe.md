@@ -5,9 +5,16 @@
 <p align="center">⛵<code>Exment</code> is Management for Product, Client, Contracts, Subscription, ...</p>
 
 <p align="center">
-<a href="https://exment.net/docs/#/ja/">ドキュメント</a> | 
 <a href="https://exment.net/docs/#">Document</a> | 
-Demo(Now preparing...)
+<a href="https://exment.net/docs/#/ja/">ドキュメント</a> | 
+</p>
+
+Demo
+------------
+<p align="center">
+<a href="https://demo.exment.net/admin">Demo Site</a> | 
+<a href="https://demo-jp.exment.net/admin">デモサイト</a>
+<br/>※Please Input ID/Password admin/adminadmin
 </p>
 
 Screenshots

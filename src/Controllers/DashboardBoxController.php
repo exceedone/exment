@@ -139,7 +139,11 @@ class DashboardBoxController extends AdminControllerBase
 
                     // get widget table
                     $widgetTable = getGridTable($datalist, $table, $view);
-                    $html = $widgetTable->render();
+
+                    $html = view('exment::dashboard.list.header', [
+                        'new_url' => admin_base_path("data/{$table->table_name}/create")
+                    ])->render();
+                    $html .= $widgetTable->render();
                     break;
             }
         }
