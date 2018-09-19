@@ -221,7 +221,7 @@ class MenuController extends AdminControllerBase
                 'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_CUSTOM]
             ])])
         ;
-        $form->text('menu_name', exmtrans("menu.menu_name"))->attribute(['readonly' => true]);
+        $form->text('menu_name', exmtrans("menu.menu_name"))->rules('required');
         $form->text('uri', trans('admin.uri'))
             ->attribute(['data-filter' => json_encode([
                 'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_SYSTEM, Define::MENU_TYPE_PLUGIN, Define::MENU_TYPE_TABLE]

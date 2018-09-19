@@ -137,12 +137,7 @@ class CustomValueController extends AdminControllerTableBase
 
         return $this->AdminContent(function (Content $content) {
             PluginInstaller::pluginPreparing($this->plugins, 'loading');
-
-            $content->header($this->custom_table->table_view_name);
-            $content->description($this->custom_table->description);
-
             $content->body($this->form(null));
-
             PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         });
     }
@@ -187,6 +182,8 @@ class CustomValueController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
+        $this->setFormViewInfo(\Request::capture());
+
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
         return Admin::form($this->getModelNameDV(), function (Form $form) use ($id) {
             // create

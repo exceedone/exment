@@ -178,6 +178,7 @@ class TemplateInstaller
             $table_name = array_get($table, 'table_name');
             $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
             $obj_table->table_name = $table_name;
+            $obj_table->description = array_get($table, 'description');
             $obj_table->icon = array_get($table, 'icon');
             $obj_table->color = array_get($table, 'color');
             $obj_table->one_record_flg = boolval(array_get($table, 'one_record_flg'));

@@ -604,13 +604,14 @@ if (!function_exists('getValueUseTable')) {
         // get value as select
         // get value as select_valtext
         if (in_array($column_type, ['select', 'select_valtext'])) {
-            $select_item = array_get($column_array, 'options.select_item');
+            $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
+            $select_item = array_get($column_array, $array_get_key);
             $options = createSelectOptions($select_item, $column_type == 'select_valtext');
             if (!array_key_exists($val, $options)) {
                 return null;
             }
  
-            return $options[$val];
+            return array_get($options, $val);
         }
 
         // get value as select_table

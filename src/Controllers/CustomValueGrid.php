@@ -49,18 +49,8 @@ trait CustomValueGrid
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                // if column is select, get select value for display.
-                if (in_array($column_type, ['select', 'select_valtext'])) {
-                    $grid->column($column_name, $column_view_name)
-                            ->display(function ($value) use ($column, $custom_table) {
-                                if (is_null($value)) {
-                                    return '';
-                                }
-                                return getValueUseTable($custom_table, $value, $column, true);
-                            });
-                }
                 // if column is select_table, get select value for display.
-                elseif (in_array($column_type, ['select_table', 'user', 'organization'])) {
+                if (in_array($column_type, ['select_table', 'user', 'organization'])) {
                     $grid->column($column_name, $column_view_name)
                             ->display(function ($value) use ($column, $custom_table, $column_type) {
                                 if (is_null($value)) {
@@ -82,7 +72,17 @@ trait CustomValueGrid
                                 }
                                 if(!isset($table_id)){return null;}
                                 $label = getLabelColumn($table_id);
-                                return array_get($value, 'value.'.$label->column_name) ?? null;
+
+                                // if not multiple, return 
+                                if(!boolval(array_get($column->options, 'multiple_enabled'))){
+                                    return array_get($value, 'value.'.$label->column_name);
+                                }
+                                // if multiple, split ","
+                                $labels = [];
+                                foreach($value as $v){
+                                    $labels[] = array_get($v, 'value.'.$label->column_name);
+                                }
+                                return implode(",", $labels);
                             });
                 } else {
                     $grid->column($column_name, $column_view_name);

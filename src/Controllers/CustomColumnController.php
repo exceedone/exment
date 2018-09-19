@@ -46,7 +46,7 @@ class CustomColumnController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit($request, $id)
+    public function edit(Request $request, $id)
     {
         $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomColumn::class, $id, 'column')) instanceof RedirectResponse) {
