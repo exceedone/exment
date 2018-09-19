@@ -632,16 +632,27 @@ if (!function_exists('getValueUseTable')) {
             }
 
             // get label column
+            // if label is true, get label column
             if($label === true){
                 $column = getLabelColumn($target_table);
             }
+            // if label is selecting column name, get target label
             else if(is_string($label)){
                 $column = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
             }
             if (is_null($column)) {
                return null; 
             }
-            return array_get($model->value, array_get($column->toArray(), 'column_name'));
+
+            // if $model is array multiple, return 
+            if(!($model instanceof \Illuminate\Database\Eloquent\Collection)){
+                $model = [$model];
+            }
+            $labels = [];
+            foreach($model as $m){
+                $labels[] = array_get($m->value, array_get($column->toArray(), 'column_name'));
+            }
+            return implode(exmtrans('common.separate_word'), $labels);
         }
         else if(in_array($column_type, ['file', 'image'])){
             // Whether multiple file.
