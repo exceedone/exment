@@ -396,16 +396,19 @@ class TemplateInstaller
         if (array_key_value_exists('view', $json)) {
             foreach (array_get($json, "view") as $view) {
                 $table = CustomTable::findByName(array_get($view, 'table_name'));
-                // Create view --------------------------------------------------
-                $obj_view = Customview::firstOrNew([
+                $findArray = [
                     'custom_table_id' => $table->id
-                    ]);
-                $obj_view->view_type = array_get($view, 'view_type') ?? Define::VIEW_COLUMN_TYPE_SYSTEM;
-                $obj_view->view_view_name = array_get($view, 'view_view_name');
+                ];
                 // if set suuid in json, set suuid(for dashbrord list)
                 if(array_key_value_exists('suuid', $view)){
-                    $obj_view->suuid = array_get($view, 'suuid');
+                    $findArray['suuid'] =  array_get($view, 'suuid');
+                }else{
+                    $findArray['suuid'] =  short_uuid();
                 }
+                // Create view --------------------------------------------------
+                $obj_view = Customview::firstOrNew($findArray);
+                $obj_view->view_type = array_get($view, 'view_type') ?? Define::VIEW_COLUMN_TYPE_SYSTEM;
+                $obj_view->view_view_name = array_get($view, 'view_view_name');
                 $obj_view->saveOrFail();
                 
                 // create view columns --------------------------------------------------
@@ -424,7 +427,7 @@ class TemplateInstaller
                                     // get column name
                                     $view_column_target = CustomColumn
                                         ::where('column_name', $view_column_name)
-                                        ->where('custom_table_id', $target_table->id)
+                                        ->where('custom_table_id', $table->id)
                                         ->first()->id ?? null;
                                     break;
                                 // system column

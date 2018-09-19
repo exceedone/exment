@@ -101,10 +101,10 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 ~~~ php
 
     // 'timezone' => 'UTC',
-    'timezone' => 'Asia/Tokyo',
+    'timezone' => 'America/Chicago',
 
     //'locale' => 'en',
-     'locale' => 'ja',
+     'locale' => 'es',
 
 ~~~
 

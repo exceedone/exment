@@ -358,6 +358,79 @@
             "table_name": "organization"
         }
     ],
+	"view": [
+		{
+			"suuid": "3471e23fbff8dc65437b",
+			"view_view_name": "既定のビュー",
+			"custom_view_columns": [
+				{
+					"order": "1",
+					"view_column_target_name": "id",
+					"view_column_target_type": "system"
+				},
+				{
+					"order": "2",
+					"view_column_target_name": "user_code",
+					"view_column_target_type": "column"
+				},
+				{
+					"order": "3",
+					"view_column_target_name": "user_name",
+					"view_column_target_type": "column"
+				},
+				{
+					"order": "4",
+					"view_column_target_name": "email",
+					"view_column_target_type": "column"
+				},
+				{
+					"order": "98",
+					"view_column_target_name": "created_at",
+					"view_column_target_type": "system"
+				},
+				{
+					"order": "99",
+					"view_column_target_name": "updated_at",
+					"view_column_target_type": "system"
+				}
+			],
+			"custom_view_filters": [],
+			"table_name": "user"
+		},
+		{
+			"suuid": "24e34126c023857a092e",
+			"view_view_name": "既定のビュー",
+			"custom_view_columns": [
+				{
+					"order": "1",
+					"view_column_target_name": "id",
+					"view_column_target_type": "system"
+				},
+				{
+					"order": "2",
+					"view_column_target_name": "organization_code",
+					"view_column_target_type": "column"
+				},
+				{
+					"order": "3",
+					"view_column_target_name": "organization_name",
+					"view_column_target_type": "column"
+				},
+				{
+					"order": "98",
+					"view_column_target_name": "created_at",
+					"view_column_target_type": "system"
+				},
+				{
+					"order": "99",
+					"view_column_target_name": "updated_at",
+					"view_column_target_type": "system"
+				}
+			],
+			"custom_view_filters": [],
+			"table_name": "organization"
+		}
+	],
     "dashboard": [
 		{
 			"dashboard_type": "system",
