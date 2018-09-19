@@ -6,6 +6,10 @@ trait UserTrait
 {
     public function login_user()
     {
-        return $this->hasOne(\Exceedone\Exment\Model\LoginUser::class, "base_user_id");
+        return $this->hasOne(LoginUser::class, "base_user_id");
+    }
+
+    public function user_setting(){
+        return $this->hasOne(UserSetting::class, "user_id");
     }
 }

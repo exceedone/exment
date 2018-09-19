@@ -22,13 +22,29 @@ class DashboardController extends AdminControllerBase
 
     public function __construct(Request $request){
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
+    }
+
+    protected function setDashboardInfo(Request $request){
+        // get admin_user
+        $admin_user = Admin::user();
 
         // get dashboard using query
         if(!is_null($request->input('dashboard'))){
+            $suuid = $request->input('dashboard');
             // if query has view id, set form.
-            $this->dashboard = Dashboard::find($request->input('dashboard'));
+            $this->dashboard = Dashboard::findBySuuid($suuid);
+            // set suuid
+            if (!is_null($admin_user)) {
+                $admin_user->setSettingValue(Define::USER_SETTING_DASHBOARD, $suuid);
+            }
         }
-        // if url doesn't contain dashboard query, get dashboard first.
+        // if url doesn't contain dashboard query, get dashboard user setting.
+        if(is_null($this->dashboard) && !is_null($admin_user)){
+            // get suuid
+            $suuid = $admin_user->getSettingValue(Define::USER_SETTING_DASHBOARD);
+            $this->dashboard = Dashboard::findBySuuid($suuid);
+        }
+        // if null, get dashboard first.
         if(is_null($this->dashboard)){
             $this->dashboard = Dashboard::first();
         }
@@ -49,8 +65,9 @@ class DashboardController extends AdminControllerBase
      * @param $id
      * @return Content
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
+        $this->setDashboardInfo($request);
         return $this->AdminContent(function (Content $content) use ($id) {
             $content->body($this->form($id)->edit($id));
         });
@@ -63,13 +80,15 @@ class DashboardController extends AdminControllerBase
      */
     public function create(Request $request)
     {
+        $this->setDashboardInfo($request);
         return $this->AdminContent(function (Content $content) {
             $content->body($this->form());
         });
     }
 
-    public function home()
+    public function home(Request $request)
     {
+        $this->setDashboardInfo($request);
         return $this->AdminContent(function (Content $content) {
 
             // add dashboard header
@@ -178,7 +197,11 @@ EOT;
             for($i = 1; $i <= 4; $i++){
                 $row1[$i] = $i.exmtrans('dashboard.row_optionsX');
             }
-            $form->radio('row1', exmtrans("dashboard.row1"))->options($row1)->help(exmtrans("dashboard.description_row1"))->rules("required");
+            $form->radio('row1', exmtrans("dashboard.row1"))
+                ->options($row1)
+                ->help(exmtrans("dashboard.description_row1"))
+                ->rules("required")
+                ->default(1);
 
             // create row2 select options
             $row2 = [];
@@ -186,7 +209,11 @@ EOT;
             for($i = 1; $i <= 4; $i++){
                 $row2[$i] = $i.exmtrans('dashboard.row_optionsX');
             }
-            $form->radio('row2', exmtrans("dashboard.row2"))->options($row2)->help(exmtrans("dashboard.description_row2"))->rules("required");
+            $form->radio('row2', exmtrans("dashboard.row2"))
+                ->options($row2)
+                ->help(exmtrans("dashboard.description_row2"))
+                ->rules("required")
+                ->default(2);
 
             $form->disableReset();
             $form->disableViewCheck();

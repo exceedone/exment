@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomForm;
@@ -19,15 +20,8 @@ class AdminControllerTableBase extends AdminControllerBase
     //protected $custom_form_columns;
 
     public function __construct(Request $request){
-        
         $this->custom_table = getEndpointTable();
         $this->custom_columns = isset($this->custom_table) ? $this->custom_table->custom_columns : null;
-
-        // set view
-        $this->setView($request);
-
-        // set form
-        $this->setForm($request);
 
         getModelName($this->custom_table);
     }
@@ -35,7 +29,6 @@ class AdminControllerTableBase extends AdminControllerBase
     protected function getModelNameDV(){
         return getModelName($this->custom_table);
     }
-
     /**
      * validate table_name and id
      * ex. check /admin/column/user/1/edit
@@ -72,20 +65,43 @@ class AdminControllerTableBase extends AdminControllerBase
         }
     }
 
+    /**
+     * set view and form info.
+     * use session etc
+     */
+    protected function setFormViewInfo(Request $request){
+        // get admin_user
+        $admin_user = Admin::user();
+        // set view
+        $this->setView($request, $admin_user);
+
+        // set form
+        $this->setForm($request, $admin_user);
+    }
 
     // view --------------------------------------------------
-    protected function setView(Request $request){
-
+    protected function setView(Request $request, $admin_user){
         // get view using query
         if(!is_null($request->input('view'))){
+            $suuid = $request->input('view');
             // if query has view id, set form.
-            $this->custom_view = CustomView::findBySuuid($request->input('view'));
+            $this->custom_view = CustomView::findBySuuid($suuid);
+            
+            // set suuid
+            if (!is_null($admin_user)) {
+                $admin_user->setSettingValue(implode(".", [Define::USER_SETTING_VIEW, $this->custom_table->table_name]), $suuid);
+            }
+        }
+        // if url doesn't contain view query, get view user setting.
+        if(is_null($this->custom_view) && !is_null($admin_user)){
+            // get suuid
+            $suuid = $admin_user->getSettingValue(implode(".", [Define::USER_SETTING_VIEW, $this->custom_table->table_name]));
+            $this->custom_view = CustomView::findBySuuid($suuid);
         }
         // if url doesn't contain view query, get custom view.
         if(is_null($this->custom_view)){
             $this->custom_view = $this->custom_table->custom_views()->first();
         }
-        
         // if form doesn't contain for target table, create view.
         if(is_null($this->custom_view)){
             $this->custom_view = createDefaultView($this->custom_table);
@@ -100,18 +116,29 @@ class AdminControllerTableBase extends AdminControllerBase
     }
 
     // form --------------------------------------------------
-    protected function setForm(Request $request){
-
+    protected function setForm(Request $request, $admin_user){
         // get form using query
         if(!is_null($request->input('form'))){
             // if query has form id, set form.
-            $this->custom_form = CustomForm::findBySuuid($request->input('form'));
+            $suuid = $request->input('form');
+            $this->custom_form = CustomForm::findBySuuid($suuid);
+
+            // set suuid
+            if (!is_null($admin_user)) {
+                $admin_user->setSettingValue(implode(".", [Define::USER_SETTING_FORM, $this->custom_table->table_name]), $suuid);
+            }
         }
-        // if url doesn't contain form query, get custom form.
+        // if url doesn't contain form query, get form user setting.
+        if(is_null($this->custom_form) && !is_null($admin_user)){
+            // get suuid
+            $suuid = $admin_user->getSettingValue(implode(".", [Define::USER_SETTING_FORM, $this->custom_table->table_name]));
+            $this->custom_form = CustomForm::findBySuuid($suuid);
+        }
+
+        // if not exists, get first.
         if(is_null($this->custom_form)){
             $this->custom_form = $this->custom_table->custom_forms()->first();
         }
-
         
         // if form doesn't contain for target table, create form.
         if(is_null($this->custom_form)){

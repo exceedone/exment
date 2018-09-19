@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\UserSetting;
 use Carbon\Carbon;
 
 trait HasPermissions
@@ -596,4 +597,30 @@ trait HasPermissions
         return $permissions;
     }
 
+    /**
+     * get value from user setting table
+     */
+    public function getSettingValue($key){
+        // get settings from settion
+        $settings = Session::get("user_setting.$key");
+        // if empty, get User Setting table
+        if(!isset($settings)){
+            $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
+            $settings = $usersetting->settings ?? [];
+        }
+        return array_get($settings, $key) ?? null;
+    }
+    public function setSettingValue($key, $value){
+        // set User Setting table
+        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
+        $settings = $usersetting->settings;
+        if(!isset($settings)){$settings = [];}
+        // set value 
+        array_set($settings, $key, $value);
+        $usersetting->settings = $settings;
+        $usersetting->saveOrFail();
+
+        // put session
+        Session::put("user_setting.$key", $settings);
+    }
 }

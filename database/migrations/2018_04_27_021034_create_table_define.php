@@ -69,6 +69,14 @@ class CreateTableDefine extends Migration
             $table->softDeletes();
         });
 
+        Schema::create('user_settings', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer('base_user_id')->unsigned()->index();
+            $table->json('settings')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+
         Schema::create('authorities', function (Blueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();

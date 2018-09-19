@@ -281,6 +281,7 @@ class Define
 
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "authority";
+    public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
 
     public const GRID_CHANGE_PAGE_MENULIST = [
@@ -306,6 +307,11 @@ class Define
         'has_authorities',
     ];
  
+    // User Setting --------------------------------------------------
+    public const USER_SETTING_DASHBOARD = 'user_setting_dashboard';
+    public const USER_SETTING_FORM = 'user_setting_form';
+    public const USER_SETTING_VIEW = 'user_setting_view';
+    
     // Template --------------------------------------------------
     public const TEMPLATE_EXPORT_TARGET_TABLE = 'table';
     public const TEMPLATE_EXPORT_TARGET_DASHBOARD = 'dashboard';

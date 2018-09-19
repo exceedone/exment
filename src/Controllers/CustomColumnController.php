@@ -32,8 +32,9 @@ class CustomColumnController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index()
+    public function index(Request $request)
     {
+        $this->setFormViewInfo($request);
         return $this->AdminContent(function (Content $content) {
             $content->body($this->grid());
         });
@@ -45,8 +46,9 @@ class CustomColumnController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit($id)
+    public function edit($request, $id)
     {
+        $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomColumn::class, $id, 'column')) instanceof RedirectResponse) {
             return $response;
         }
@@ -63,6 +65,7 @@ class CustomColumnController extends AdminControllerTableBase
      */
     public function create(Request $request)
     {
+        $this->setFormViewInfo($request);
         return $this->AdminContent(function (Content $content) {
             $content->body($this->form());
         });

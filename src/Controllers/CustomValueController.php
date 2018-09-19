@@ -43,8 +43,9 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index()
-    {
+    public function index(Request $request)
+    {   
+        $this->setFormViewInfo($request);
         $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
         return $this->AdminContent(function (Content $content) use ($listButton) {
             // if table setting is "one_record_flg" (can save only one record)
@@ -78,8 +79,9 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
+        $this->setFormViewInfo($request);
         // if user doesn't have authority for target id data, show deny error.
         if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
             $response = response($this->AdminContent()->withError(trans('admin.deny')));
@@ -97,8 +99,9 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
+        $this->setFormViewInfo($request);
         // if user doesn't have authority for target id data, show deny error.
         if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
             $response = response($this->AdminContent()->withError(trans('admin.deny')));
@@ -125,6 +128,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function create(Request $request)
     {
+        $this->setFormViewInfo($request);
         // if user doesn't have permission creating data, throw admin.dany error.
         if (!Admin::user()->hasPermissionTable($this->custom_table->table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $response = response($this->AdminContent()->withError(trans('admin.deny')));
