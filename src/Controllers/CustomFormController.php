@@ -40,8 +40,9 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index()
+    public function index(Request $request)
     {
+        $this->setFormViewInfo($request);
         return $this->AdminContent(function (Content $content) {
             $content->body($this->grid());
         });
@@ -53,8 +54,9 @@ class CustomFormController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
+        $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomForm::class, $id, 'form')) instanceof RedirectResponse) {
             return $response;
         }

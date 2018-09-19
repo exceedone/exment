@@ -31,8 +31,9 @@ class CustomRelationController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index()
+    public function index(Request $request)
     {
+        $this->setFormViewInfo($request);
         return $this->AdminContent(function (Content $content) {
             $content->body($this->grid());
         });
@@ -44,8 +45,9 @@ class CustomRelationController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
+        $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomRelation::class, $id, 'relation')) instanceof RedirectResponse) {
             return $response;
         }
@@ -62,6 +64,7 @@ class CustomRelationController extends AdminControllerTableBase
      */
     public function create(Request $request)
     {
+        $this->setFormViewInfo($request);
         return $this->AdminContent(function (Content $content) {
             $content->body($this->form());
         });
