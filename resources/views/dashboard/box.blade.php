@@ -10,6 +10,7 @@
         <div class="box-tools pull-right">
                 @if(isset($suuid))
                 <a class="btn btn-box-tool" href="{{admin_base_path('dashboardbox/'.$id.'/edit')}}"><i class="fa fa-cog"></i></a>
+                <button class="btn btn-box-tool" data-exment-widget="reload"><i class="fa fa-refresh"></i></button>
                 <button class="btn btn-box-tool" data-exment-widget="delete"><i class="fa fa-trash"></i></button>
                 @else
                 <div class="btn-group pull-right" style="margin-right: 5px">

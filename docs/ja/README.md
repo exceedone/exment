@@ -6,6 +6,12 @@
 ## Exmentとは
 Exmentは、情報資産をWeb上で管理するための、オープンソースソフトウェアです。
 
+## デモサイト
+<p align="center">
+<a href="https://demo-jp.exment.net/admin">デモサイト</a>
+<br/>※IDとパスワードは「admin/adminadmin」を入力してください
+</p>
+
 ## 機能
 - ダッシュボード
 - 画面上からデータ登録
