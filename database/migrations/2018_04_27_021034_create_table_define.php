@@ -346,6 +346,7 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('dashboard_boxes');
         Schema::dropIfExists('dashboards');
         Schema::dropIfExists('authorities');
+        Schema::dropIfExists('user_settings');
         Schema::dropIfExists('login_users');
         Schema::dropIfExists('plugins');
         Schema::dropIfExists('notifies');
