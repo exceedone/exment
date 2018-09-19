@@ -440,7 +440,7 @@ if (!function_exists('getLabelColumn')) {
         } else {
             $obj = $tableObj;
         }
-        $column = $obj->custom_columns()->where('options->use_label_flg', "1")->first();
+        $column = $obj->custom_columns()->whereIn('options->use_label_flg', [1, "1"])->first();
         if (!isset($column)) {
             $column = $obj->custom_columns()->first();
         }

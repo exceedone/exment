@@ -32,9 +32,9 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "required": 1,
-                        "use_label_flg": 1,
-                        "search_enabled": 1
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1"
                     }
                 },
                 {
@@ -193,8 +193,8 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "required": 1,
-                        "search_enabled": 1,
+                        "required": "1",
+                        "search_enabled": "1",
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -203,9 +203,9 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "required": 1,
-                        "use_label_flg": 1,
-                        "search_enabled": 1
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1"
                     }
                 },
                 {
@@ -213,8 +213,8 @@
                     "column_type": "email",
                     "description": null,
                     "options": {
-                        "required": 1,
-                        "search_enabled": 1
+                        "required": "1",
+                        "search_enabled": "1"
                     }
                 }
             ]
@@ -232,8 +232,8 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "required": 1,
-                        "search_enabled": 1,
+                        "required": "1",
+                        "search_enabled": "1",
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -242,9 +242,9 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "required": 1,
-                        "use_label_flg": 1,
-                        "search_enabled": 1
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1"
                     }
                 },
                 {
