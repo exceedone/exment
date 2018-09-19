@@ -79,7 +79,6 @@ class ExmentServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         
         $this->publishes([__DIR__.'/../resources/views/vendor/admin' => resource_path('views/vendor/admin')]);
