@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Encore\Admin\Grid;
+use Encore\Admin\Grid\Exporters\AbstractExporter;
 
-
-class ExmentExporter extends ExmentAbstractExporter
+class ExmentExporter extends AbstractExporter
 {
     const SCOPE_ALL = 'all';
     const SCOPE_TEMPLATE = 'temp';
@@ -17,27 +18,49 @@ class ExmentExporter extends ExmentAbstractExporter
 
     public static $queryName = '_export_';
 
+    protected $table;
+    protected $search_enabled_columns;
+    protected $get_template;
+
     /**
-     * @param $table
-     * @param $search_enabled_columns
-     * @return mixed|void
+     * Create a new exporter instance.
+     *
+     * @param $grid
      */
-    public function export($table, $search_enabled_columns, $get_template)
+    public function __construct(Grid $grid = null, $table = null, $search_enabled_columns = null, $get_template = null)
     {
-        $filename = $table->table_name.date('YmdHis').'.csv';
+        if ($grid) {
+            $this->setGrid($grid);
+        }
+        if ($table) {
+            $this->table = $table;
+        }
+        if ($search_enabled_columns) {
+            $this->search_enabled_columns = $search_enabled_columns;
+        }
+        if ($get_template) {
+            $this->get_template = $get_template;
+        }
+    }
+
+    /**
+     */
+    public function export()
+    {
+        $filename = $this->table->table_name.date('YmdHis').'.csv';
         $headers = [
             'Content-Encoding'    => 'UTF-8',
             'Content-Type'        => 'text/csv;charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        response()->stream(function () use ($table, $get_template){
+        response()->stream(function (){
             $handle = fopen('php://output', 'w');
 
             $titles = [];
 
-            if(DB::table('exm__'.$table->suuid)->count() > 0){
-                $this->chunk(function ($records) use ($handle, &$titles, $get_template) {
+            if(DB::table('exm__'.$this->table->suuid)->count() > 0){
+                $this->chunk(function ($records) use ($handle, &$titles) {
                     if (empty($titles)) {
 //                        Get header from record
                         $titles = $this->getHeaderRowFromRecords($records);
@@ -46,7 +69,7 @@ class ExmentExporter extends ExmentAbstractExporter
                         fputcsv($handle, $titles);
                     }
 
-                    if(!$get_template){
+                    if(!$this->get_template){
                         foreach ($records as $record) {
                             //Add CSV Data
                             fputcsv($handle, $this->getFormattedRecord($record));
@@ -55,7 +78,7 @@ class ExmentExporter extends ExmentAbstractExporter
                 });
             } else {
 //                if have no data, get only header
-                $titles = $this->getOnlyHeader($table);
+                $titles = $this->getOnlyHeader($this->table);
                 fputcsv($handle, $titles);
             }
 
@@ -150,85 +173,51 @@ class ExmentExporter extends ExmentAbstractExporter
         return $columnName->column_name;
     }
 
-    /**
-     * @param string $scope
-     * @param null $args
-     * @return array
-     */
-    public static function formatExportQuery($scope = '', $args = null)
-    {
-        $query = '';
+    // /**
+    //  * @param string $scope
+    //  * @param null $args
+    //  * @return array
+    //  */
+    // public static function formatExportQuery($scope = '', $args = null)
+    // {
+    //     $query = '';
 
-        if ($scope == static::SCOPE_ALL) {
-            $query = 'all';
-        }
+    //     if ($scope == static::SCOPE_ALL) {
+    //         $query = 'all';
+    //     }
 
-        if ($scope == static::SCOPE_TEMPLATE) {
-            $query = 'temp';
-        }
+    //     if ($scope == static::SCOPE_TEMPLATE) {
+    //         $query = 'temp';
+    //     }
 
-        if ($scope == static::SCOPE_CURRENT_PAGE) {
-            $query = "page:$args";
-        }
+    //     if ($scope == static::SCOPE_CURRENT_PAGE) {
+    //         $query = "page:$args";
+    //     }
 
-        if ($scope == static::SCOPE_SELECTED_ROWS) {
-            $query = "selected:$args";
-        }
+    //     if ($scope == static::SCOPE_SELECTED_ROWS) {
+    //         $query = "selected:$args";
+    //     }
 
-        return [static::$queryName => $query];
-    }
+    //     return [static::$queryName => $query];
+    // }
 
-    /**
-     * @param int $scope
-     * @param null $path
-     * @return $this|array
-     */
-    public function resource($scope = 1, $path = null)
-    {
-        if (!empty($path)) {
-            $this->resourcePath = $path;
+    // /**
+    //  * @param int $scope
+    //  * @param null $path
+    //  * @return $this|array
+    //  */
+    // public function resource($scope = 1, $path = null)
+    // {
+    //     if (!empty($path)) {
+    //         $this->resourcePath = $path;
 
-            return $this;
-        }
+    //         return $this;
+    //     }
 
-        if (!empty($this->resourcePath)) {
-            return $this->resourcePath;
-        }
+    //     if (!empty($this->resourcePath)) {
+    //         return $this->resourcePath;
+    //     }
 
-        return $this->formatExportQuery($scope,$path);
-    }
-
-    /**
-     * @param $driver
-     * @return ExmentAbstractExporter|ExmentExporter
-     */
-    public function resolve($driver)
-    {
-        if ($driver instanceof ExmentAbstractExporter) {
-            return $driver->setGrid($this->grid);
-        }
-
-        return $this->getExporter($driver);
-    }
-
-    /**
-     * @param $driver
-     * @return ExmentExporter
-     */
-    protected function getExporter($driver)
-    {
-        if (!array_key_exists($driver, static::$drivers)) {
-            return $this->getDefaultExporter();
-        }
-
-        return new static::$drivers[$driver]($this->grid);
-    }
-
-    /**
-     * @return ExmentExporter
-     */
-    public function getDefaultExporter()
-    {
-        return new ExmentExporter($this->grid);
-    }
+    //     return $this->formatExportQuery($scope,$path);
+    // }
 }

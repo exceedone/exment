@@ -202,30 +202,31 @@ EOT;
         }
     }
     
-    /**
-     * @param $exporter
-     * @param $grid
-     * @param $search_enabled_columns
-     */
-    public function exporter($exporter, $grid, $search_enabled_columns)
-    {
-        $this->exporter = $exporter;
+    // /**
+    //  * @param $exporter
+    //  * @param $grid
+    //  * @param $search_enabled_columns
+    //  */
+    // public function exporter($exporter, $grid)
+    // {
+    //     $this->exporter = $exporter;
 
-        return $this->setupExporter($grid, $search_enabled_columns);
-    }
+    //     return $this->setupExporter($grid);
+    // }
 
-    /**
-     * @param $grid
-     * @param $search_enabled_columns
-     */
-    protected function setupExporter($grid, $search_enabled_columns)
-    {
-        //$get_temp = strpos($_SERVER["REQUEST_URI"], 'temp') !== false ? true : false;
-        $get_temp = \Illuminate\Support\Facades\Request::query('_export_') == 'temp';
-        if ($scope = Input::get(ExmentExporter::$queryName)) {
-            (new ExmentExporter($grid))->resolve($this->exporter)->withScope($scope)->export($this->custom_table, $search_enabled_columns, $get_temp);
-        }
-    }
+    // /**
+    //  * @param $grid
+    //  * @param $search_enabled_columns
+    //  */
+    // protected function setupExporter($grid)
+    // {
+    //     //$get_temp = strpos($_SERVER["REQUEST_URI"], 'temp') !== false ? true : false;
+    //     $get_temp = \Illuminate\Support\Facades\Request::query('_export_') == 'temp';
+    //     if ($scope = Input::get(ExmentExporter::$queryName)) {
+    //         $grid->exporter();
+    //         (new ExmentExporter($grid))->resolve($this->exporter)->withScope($scope)->export($this->custom_table, $search_enabled_columns, $get_temp);
+    //     }
+    // }
 
     /**
      * @param Request $request
