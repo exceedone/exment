@@ -54,6 +54,7 @@ class AuthorityController extends AdminControllerBase
             $addNewBtn .= '</ul></div>';
             $tools->append($addNewBtn);
         });
+        $grid->disableExport();
         $grid->actions(function ($actions) {
             $actions->disableView();
         });

@@ -170,7 +170,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->manageMenuToolButton($grid, $listButton);
 
         // create exporter
-        $grid->exporter(new ExmentExporter($grid, $this->custom_table, $search_enabled_columns, boolval(\Request::capture()->query('temp'))));
+        $grid->exporter(new ExmentExporter($grid, $this->custom_table, $search_enabled_columns));
         
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $grid;

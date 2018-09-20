@@ -18,16 +18,16 @@ class ExmentExporter extends AbstractExporter
 
     public static $queryName = '_export_';
 
+    protected $scope;
     protected $table;
     protected $search_enabled_columns;
-    protected $get_template;
 
     /**
      * Create a new exporter instance.
      *
      * @param $grid
      */
-    public function __construct(Grid $grid = null, $table = null, $search_enabled_columns = null, $get_template = null)
+    public function __construct(Grid $grid = null, $table = null, $search_enabled_columns = null)
     {
         if ($grid) {
             $this->setGrid($grid);
@@ -37,9 +37,6 @@ class ExmentExporter extends AbstractExporter
         }
         if ($search_enabled_columns) {
             $this->search_enabled_columns = $search_enabled_columns;
-        }
-        if ($get_template) {
-            $this->get_template = $get_template;
         }
     }
 
@@ -69,7 +66,10 @@ class ExmentExporter extends AbstractExporter
                         fputcsv($handle, $titles);
                     }
 
-                    if(!$this->get_template){
+                    // get_template
+                    $get_template = boolval(\Request::capture()->query('temp'));
+                    // is not template, output fields
+                    if(!$get_template){
                         foreach ($records as $record) {
                             //Add CSV Data
                             fputcsv($handle, $this->getFormattedRecord($record));
@@ -172,52 +172,4 @@ class ExmentExporter extends AbstractExporter
             ->first();
         return $columnName->column_name;
     }
-
-    // /**
-    //  * @param string $scope
-    //  * @param null $args
-    //  * @return array
-    //  */
-    // public static function formatExportQuery($scope = '', $args = null)
-    // {
-    //     $query = '';
-
-    //     if ($scope == static::SCOPE_ALL) {
-    //         $query = 'all';
-    //     }
-
-    //     if ($scope == static::SCOPE_TEMPLATE) {
-    //         $query = 'temp';
-    //     }
-
-    //     if ($scope == static::SCOPE_CURRENT_PAGE) {
-    //         $query = "page:$args";
-    //     }
-
-    //     if ($scope == static::SCOPE_SELECTED_ROWS) {
-    //         $query = "selected:$args";
-    //     }
-
-    //     return [static::$queryName => $query];
-    // }
-
-    // /**
-    //  * @param int $scope
-    //  * @param null $path
-    //  * @return $this|array
-    //  */
-    // public function resource($scope = 1, $path = null)
-    // {
-    //     if (!empty($path)) {
-    //         $this->resourcePath = $path;
-
-    //         return $this;
-    //     }
-
-    //     if (!empty($this->resourcePath)) {
-    //         return $this->resourcePath;
-    //     }
-
-    //     return $this->formatExportQuery($scope,$path);
-    // }
 }
