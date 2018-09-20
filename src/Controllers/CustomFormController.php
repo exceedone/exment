@@ -59,7 +59,8 @@ class CustomFormController extends AdminControllerTableBase
             return $response;
         }
         $this->AdminContent($content);
-        return $this->droppableForm($content, $id);
+        $this->droppableForm($content, $id);
+        return $content;
     }
 
     /**
@@ -71,7 +72,8 @@ class CustomFormController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         $this->AdminContent($content);
-        return $this->droppableForm($content);
+        $this->droppableForm($content);
+        return $content;
     }
 
     /**
@@ -81,24 +83,24 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function grid()
     {
-        return Admin::grid(CustomForm::class, function (Grid $grid) {
-            $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
-            $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-            $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
+        $grid = new Grid(new CustomForm);
+        $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
+        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
+        $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
 
-            if (isset($this->custom_table)) {
-                $grid->model()->where('custom_table_id', $this->custom_table->id);
-            }
-            
-            $grid->tools(function (Grid\Tools $tools) {
-                $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
-            });
-            
-            $grid->disableExport();
-            $grid->actions(function ($actions) {
-                $actions->disableView();
-            });
+        if (isset($this->custom_table)) {
+            $grid->model()->where('custom_table_id', $this->custom_table->id);
+        }
+        
+        $grid->tools(function (Grid\Tools $tools) {
+            $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
         });
+        
+        $grid->disableExport();
+        $grid->actions(function ($actions) {
+            $actions->disableView();
+        });
+        return $grid;
     }
 
     

@@ -75,7 +75,7 @@ class AdminControllerBase extends Controller
      */
     public function edit(Request $request, $id, Content $content)
     {
-        return $this->AdminContent($content)->body($this->form()->edit($id));
+        return $this->AdminContent($content)->body($this->form($id)->edit($id));
     }
 
     /**

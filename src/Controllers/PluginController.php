@@ -27,43 +27,60 @@ class PluginController extends AdminControllerBase
     }
 
     /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        $this->AdminContent($content);
+        $content->row(view('exment::plugin.upload'));
+        $content->body($this->grid());
+        return $content;
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid
      */
     protected function grid()
     {
-        return Admin::grid(Plugin::class, function (Grid $grid) {
-
-            $grid->filter(function ($filter) {
-                $filter->disableIdFilter();
-                $filter->like('uuid', exmtrans("plugin.uuid"));
-                $filter->like('plugin_name', exmtrans("plugin.plugin_name"));
-            });
-
-            $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
-            $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
-            $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($plugin_type) {
-                switch ($plugin_type) {
-                    case 'page':
-                        return '画面';
-                    default:
-                        return '機能';
-                }
-            })->sortable();
-            $grid->column('author', exmtrans("plugin.author"));
-            $grid->column('version', exmtrans("plugin.version"));
-            $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-                return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
-            });
-
-            $grid->disableCreateButton();
-            $grid->disableExport();
-            
-            $grid->actions(function ($actions) {
-                $actions->disableView();
-            });
+        $grid = new Grid(new Plugin);
+        $grid->filter(function ($filter) {
+            $filter->disableIdFilter();
+            $filter->like('uuid', exmtrans("plugin.uuid"));
+            $filter->like('plugin_name', exmtrans("plugin.plugin_name"));
         });
+
+        $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
+        $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
+        $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($plugin_type) {
+            switch ($plugin_type) {
+                case 'page':
+                    return '画面';
+                default:
+                    return '機能';
+            }
+        })->sortable();
+        $grid->column('author', exmtrans("plugin.author"));
+        $grid->column('version', exmtrans("plugin.version"));
+        $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
+            return boolval($active_flg) ? exmtrans("common.available_true") : exmtrans("common.available_false");
+        });
+
+        $grid->disableCreateButton();
+        $grid->disableExport();
+        
+        $grid->actions(function ($actions) {
+            $actions->disableView();
+        });
+        return $grid;
     }
 
     //Function use to upload file and update or add new record
@@ -219,36 +236,36 @@ class PluginController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        return Admin::form(Plugin::class, function (Form $form) use ($id) {
-            $form->display('uuid', exmtrans("plugin.uuid"));
-            $form->display('plugin_name', exmtrans("plugin.plugin_name"));
-            $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
-            $form->display('author', exmtrans("plugin.author"));
-            $form->display('version', exmtrans("plugin.version"));
-            $form->switch('active_flg', exmtrans("plugin.active_flg"));
-            $plugin_type = Plugin::getFieldById($id, 'plugin_type');
-            $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-                if ($plugin_type == 'trigger') {
-                    $form->select('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($target_tables) {
-                        $options = CustomTable::all()->pluck('table_view_name', 'id')->toArray();
-                        return $options;
-                    })->help(exmtrans("plugin.help.target_tables"));
-                    $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($event_triggers) {
-                        return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
-                    })->help(exmtrans("plugin.help.event_triggers"));
-                } else {
-                    // Plugin_type = 'page'
-                    $form->text('uri', exmtrans("plugin.options.uri"));
-                }
-                $form->text('label', exmtrans("plugin.options.label"));
-                $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
-                $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
-            });
-
-            // Authority setting --------------------------------------------------
-            $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_PLUGIN);
-
-            $form->disableReset();
+        $form = new Form(new Plugin);
+        $form->display('uuid', exmtrans("plugin.uuid"));
+        $form->display('plugin_name', exmtrans("plugin.plugin_name"));
+        $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
+        $form->display('author', exmtrans("plugin.author"));
+        $form->display('version', exmtrans("plugin.version"));
+        $form->switch('active_flg', exmtrans("plugin.active_flg"));
+        $plugin_type = Plugin::getFieldById($id, 'plugin_type');
+        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
+            if ($plugin_type == 'trigger') {
+                $form->select('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($target_tables) {
+                    $options = CustomTable::all()->pluck('table_view_name', 'id')->toArray();
+                    return $options;
+                })->help(exmtrans("plugin.help.target_tables"));
+                $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($event_triggers) {
+                    return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
+                })->help(exmtrans("plugin.help.event_triggers"));
+            } else {
+                // Plugin_type = 'page'
+                $form->text('uri', exmtrans("plugin.options.uri"));
+            }
+            $form->text('label', exmtrans("plugin.options.label"));
+            $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+            $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
         });
-    }
+
+        // Authority setting --------------------------------------------------
+        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_PLUGIN);
+
+        $form->disableReset();
+        return $form;
+        }
 }

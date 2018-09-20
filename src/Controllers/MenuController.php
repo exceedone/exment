@@ -30,7 +30,7 @@ class MenuController extends AdminControllerBase
      *
      * @return Content
      */
-    public function index(Content $content)
+    public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
         return 
@@ -61,7 +61,7 @@ class MenuController extends AdminControllerBase
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function show($id, Content $content)
+    public function show(Request $request, $id, Content $content)
     {
         return redirect()->route('menu.edit', ['id' => $id]);
     }

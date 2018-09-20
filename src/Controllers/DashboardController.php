@@ -195,53 +195,53 @@ EOT;
      */
     protected function form($id = null)
     {
-        return Admin::form(Dashboard::class, function (Form $form) use($id){
-            $form->hidden('dashboard_type')->default('system');
+        $form = new Form(new Dashboard);
+        $form->hidden('dashboard_type')->default('system');
 
-            if(!isset($id)){
-                $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
-                    ->help(exmtrans('common.help_code'));
-            }else{
-                $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
-            }
+        if(!isset($id)){
+            $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+                ->help(exmtrans('common.help_code'));
+        }else{
+            $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
+        }
 
-            $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->rules("required");
-            
-            // create row1 select options
-            $row1 = [];
-            for($i = 1; $i <= 4; $i++){
-                $row1[$i] = $i.exmtrans('dashboard.row_optionsX');
-            }
-            $form->radio('row1', exmtrans("dashboard.row1"))
-                ->options($row1)
-                ->help(exmtrans("dashboard.description_row1"))
-                ->rules("required")
-                ->default(1);
+        $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->rules("required");
+        
+        // create row1 select options
+        $row1 = [];
+        for($i = 1; $i <= 4; $i++){
+            $row1[$i] = $i.exmtrans('dashboard.row_optionsX');
+        }
+        $form->radio('row1', exmtrans("dashboard.row1"))
+            ->options($row1)
+            ->help(exmtrans("dashboard.description_row1"))
+            ->rules("required")
+            ->default(1);
 
-            // create row2 select options
-            $row2 = [];
-            $row2[0] = exmtrans('dashboard.row_options0');
-            for($i = 1; $i <= 4; $i++){
-                $row2[$i] = $i.exmtrans('dashboard.row_optionsX');
-            }
-            $form->radio('row2', exmtrans("dashboard.row2"))
-                ->options($row2)
-                ->help(exmtrans("dashboard.description_row2"))
-                ->rules("required")
-                ->default(2);
+        // create row2 select options
+        $row2 = [];
+        $row2[0] = exmtrans('dashboard.row_options0');
+        for($i = 1; $i <= 4; $i++){
+            $row2[$i] = $i.exmtrans('dashboard.row_optionsX');
+        }
+        $form->radio('row2', exmtrans("dashboard.row2"))
+            ->options($row2)
+            ->help(exmtrans("dashboard.description_row2"))
+            ->rules("required")
+            ->default(2);
 
-            $form->disableReset();
-            $form->disableViewCheck();
-            
-            $form->tools(function (Form\Tools $tools) use($id, $form) {
-                $tools->disableView();
-                $tools->disableList();
+        $form->disableReset();
+        $form->disableViewCheck();
+        
+        $form->tools(function (Form\Tools $tools) use($id, $form) {
+            $tools->disableView();
+            $tools->disableList();
 
-                // addhome button
-                $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
-            });
+            // addhome button
+            $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
-    }
+        return $form;
+        }
 
     /**
      * set default dashboard
