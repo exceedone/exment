@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;
 

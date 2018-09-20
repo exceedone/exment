@@ -1,7 +1,6 @@
 <?php
 
 namespace Exceedone\Exment\Form\Field;
-use Encore\Admin\Form\Field;
 
 class Number extends \Encore\Admin\Form\Field\Number
 {

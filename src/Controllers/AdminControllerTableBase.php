@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;

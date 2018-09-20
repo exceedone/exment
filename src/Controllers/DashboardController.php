@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
-use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\ModelForm;
@@ -12,7 +11,6 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
-use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 
 class DashboardController extends AdminControllerBase

@@ -4,19 +4,15 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\ModelForm;
 //use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 
 class CustomViewController extends AdminControllerTableBase
 {

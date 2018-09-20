@@ -3,9 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Http\Request;
 
 trait ExmentControllerTrait
 {

@@ -7,7 +7,6 @@
  */
 
 namespace Exceedone\Exment\Plugin;
-use Exceedone\Exment\Model\Plugin;
 
 trait PluginBase {
     protected $plugin;

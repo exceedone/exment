@@ -10,10 +10,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Carbon\Carbon;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Eloquent\Relations\Relation;
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Services\MailSender;
 
 class NotifyCommand extends CommandBase

@@ -5,10 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\LoginUser;
 use Password;
 
 class ForgetPasswordController extends Controller
