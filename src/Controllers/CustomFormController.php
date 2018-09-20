@@ -13,11 +13,9 @@ use Encore\Admin\Widgets\Table;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Form\Widgets\Modal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
@@ -40,12 +38,10 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index(Request $request)
+    public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
+        return parent::index($request, $content);
     }
 
     /**
@@ -54,16 +50,15 @@ class CustomFormController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomForm::class, $id, 'form')) instanceof RedirectResponse) {
             return $response;
         }
-
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $this->droppableForm($content, $id);
-        });
+        $this->AdminContent($content);
+        $this->droppableForm($content, $id);
+        return $content;
     }
 
     /**
@@ -71,11 +66,12 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
-            $this->droppableForm($content);
-        });
+        $this->setFormViewInfo($request);
+        $this->AdminContent($content);
+        $this->droppableForm($content);
+        return $content;
     }
 
     /**
@@ -85,24 +81,24 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function grid()
     {
-        return Admin::grid(CustomForm::class, function (Grid $grid) {
-            $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
-            $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-            $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
+        $grid = new Grid(new CustomForm);
+        $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
+        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
+        $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
 
-            if (isset($this->custom_table)) {
-                $grid->model()->where('custom_table_id', $this->custom_table->id);
-            }
-            
-            $grid->tools(function (Grid\Tools $tools) {
-                $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
-            });
-            
-            $grid->disableExport();
-            $grid->actions(function ($actions) {
-                $actions->disableView();
-            });
+        if (isset($this->custom_table)) {
+            $grid->model()->where('custom_table_id', $this->custom_table->id);
+        }
+        
+        $grid->tools(function (Grid\Tools $tools) {
+            $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
         });
+        
+        $grid->disableExport();
+        $grid->actions(function ($actions) {
+            $actions->disableView();
+        });
+        return $grid;
     }
 
     

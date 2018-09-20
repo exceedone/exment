@@ -23,17 +23,17 @@ class SystemController extends AdminControllerBase
      *
      * @return Content
      */
-    public function index(Request $request)
+    public function index(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
-            $form = $this->getInitializeForm();
-            $form->action('system');
+        $this->AdminContent($content);
+        $form = $this->getInitializeForm();
+        $form->action('system');
 
-            // Authority Setting
-            $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_SYSTEM);
+        // Authority Setting
+        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_SYSTEM);
 
-            $content->row(new Box(trans('admin.edit'), $form));
-        });
+        $content->row(new Box(trans('admin.edit'), $form));
+        return $content;
     }
 
     /**

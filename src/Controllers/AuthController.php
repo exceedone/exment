@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Request as Req;
  */
 class AuthController extends \Encore\Admin\Controllers\AuthController
 {
-    use \Exceedone\Exment\Controllers\AuthTrait;
+    use AuthTrait;
     /**
      * Login page.
      *

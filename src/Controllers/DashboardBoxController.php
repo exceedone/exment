@@ -2,9 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Carbon\Carbon;
 use Encore\Admin\Form;
-use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\ModelForm;
@@ -16,7 +14,6 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Form\Tools\DashboardMenu;
 
 class DashboardBoxController extends AdminControllerBase
 {
@@ -30,34 +27,9 @@ class DashboardBoxController extends AdminControllerBase
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
     }
 
-    public function index()
+    public function index(Request $request, Content $content)
     {
         return redirect(admin_base_path(''));
-    }
-    
-    /**
-     * Edit interface.
-     *
-     * @param $id
-     * @return Content
-     */
-    public function edit($id)
-    {
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
-    }
-
-    /**
-     * Create interface.
-     *
-     * @return Content
-     */
-    public function create(Request $request)
-    {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
     }
     
     /**
@@ -162,75 +134,74 @@ class DashboardBoxController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        return Admin::form(DashboardBox::class, function (Form $form) use($id){
+        $form = new Form(new DashboardBox);
+        // set info with query --------------------------------------------------
+        // get request 
+        $request = Request::capture();
+        // get dashboard, row_no, column_no, ... from query "dashboard_suuid"
+        list($dashboard, $dashboard_box_type, $row_no, $column_no) = $this->getDashboardInfo($id);
+        if(!isset($dashboard)){
+            return redirect(admin_base_path(''));
+        }
 
-            // set info with query --------------------------------------------------
-            // get request 
-            $request = Request::capture();
-            // get dashboard, row_no, column_no, ... from query "dashboard_suuid"
-            list($dashboard, $dashboard_box_type, $row_no, $column_no) = $this->getDashboardInfo($id);
-            if(!isset($dashboard)){
-                return redirect(admin_base_path(''));
+        $form->display('dashboard_view_name', exmtrans('dashboard.dashboard_view_name'))->default($dashboard->dashboard_view_name);
+        $form->hidden('dashboard_id')->default($dashboard->id);
+
+        $form->display('row_no', exmtrans('dashboard.row_no'))->default($row_no);
+        $form->hidden('row_no')->default($row_no);
+
+        $form->display('column_no', exmtrans('dashboard.column_no'))->default($column_no);
+        $form->hidden('column_no')->default($column_no);
+
+        $form->display('dashboard_box_type_display', exmtrans('dashboard.dashboard_box_type'))->default(exmtrans("dashboard.dashboard_box_type_options.$dashboard_box_type"));
+        $form->hidden('dashboard_box_type')->default($dashboard_box_type);
+
+        $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("required");
+        
+        // Option Setting --------------------------------------------------
+        $form->embeds('options', function($form) use($dashboard_box_type){
+            //$dashboard_box_type is list
+            switch($dashboard_box_type){
+                case Define::DASHBOARD_BOX_TYPE_LIST:
+                    $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
+                        ->rules("required")
+                        ->options(CustomTable::get(['id', 'table_view_name'])->pluck('table_view_name', 'id'))
+                        ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
+
+                    $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
+                        ->rules("required")
+                        ->options(function($value){
+                            if(!isset($value)){return [];}
+
+                            return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                        });
+                    break;
+                
+                // $dashboard_box_type is system
+                case Define::DASHBOARD_BOX_TYPE_SYSTEM:
+                    // show system item list
+                    $options = [];
+                    foreach(Define::DASHBOARD_BOX_SYSTEM_PAGES as $page){
+                        $options[array_get($page, 'id')] = exmtrans('dashboard.dashboard_box_system_pages.'.array_get($page, 'name')); 
+                    }
+                    $form->select('target_system_id', exmtrans("dashboard.dashboard_box_options.target_system_id"))
+                        ->rules("required")
+                        ->options($options)
+                        ;
             }
-
-            $form->display('dashboard_view_name', exmtrans('dashboard.dashboard_view_name'))->default($dashboard->dashboard_view_name);
-            $form->hidden('dashboard_id')->default($dashboard->id);
-
-            $form->display('row_no', exmtrans('dashboard.row_no'))->default($row_no);
-            $form->hidden('row_no')->default($row_no);
-
-            $form->display('column_no', exmtrans('dashboard.column_no'))->default($column_no);
-            $form->hidden('column_no')->default($column_no);
-
-            $form->display('dashboard_box_type_display', exmtrans('dashboard.dashboard_box_type'))->default(exmtrans("dashboard.dashboard_box_type_options.$dashboard_box_type"));
-            $form->hidden('dashboard_box_type')->default($dashboard_box_type);
-
-            $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("required");
-            
-            // Option Setting --------------------------------------------------
-            $form->embeds('options', function($form) use($dashboard_box_type){
-                //$dashboard_box_type is list
-                switch($dashboard_box_type){
-                    case Define::DASHBOARD_BOX_TYPE_LIST:
-                        $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
-                            ->rules("required")
-                            ->options(CustomTable::get(['id', 'table_view_name'])->pluck('table_view_name', 'id'))
-                            ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
-
-                        $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
-                            ->rules("required")
-                            ->options(function($value){
-                                if(!isset($value)){return [];}
-
-                                return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
-                            });
-                        break;
-                    
-                    // $dashboard_box_type is system
-                    case Define::DASHBOARD_BOX_TYPE_SYSTEM:
-                        // show system item list
-                        $options = [];
-                        foreach(Define::DASHBOARD_BOX_SYSTEM_PAGES as $page){
-                            $options[array_get($page, 'id')] = exmtrans('dashboard.dashboard_box_system_pages.'.array_get($page, 'name')); 
-                        }
-                        $form->select('target_system_id', exmtrans("dashboard.dashboard_box_options.target_system_id"))
-                            ->rules("required")
-                            ->options($options)
-                            ;
-                }
-            });
-
-            $form->disableReset();            
-            $form->disableViewCheck();
-
-            $form->tools(function (Form\Tools $tools) use($id, $form) {
-                $tools->disableView();
-                $tools->disableList();
-
-                // addhome button
-                $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
-            });
         });
+
+        $form->disableReset();            
+        $form->disableViewCheck();
+
+        $form->tools(function (Form\Tools $tools) use($id, $form) {
+            $tools->disableView();
+            $tools->disableList();
+
+            // addhome button
+            $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
+        });
+        return $form;
     }
 
     /**

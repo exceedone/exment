@@ -23,12 +23,12 @@ class TemplateController extends AdminControllerBase
      *
      * @return Content
      */
-    public function index()
+    public function index(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
-            $this->exportBox($content);
-            $this->importBox($content);
-        });
+        $this->AdminContent($content);
+        $this->exportBox($content);
+        $this->importBox($content);
+        return $content;
     }
 
     /**

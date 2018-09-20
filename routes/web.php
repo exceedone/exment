@@ -45,7 +45,7 @@ Route::group([
     $router->resource('plugin', 'PluginController');
     $router->resource('authority', 'AuthorityController');
     $router->resource('table', 'CustomTableController');
-    $router->resource('loginuser', 'LoginUserController');
+    $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
     $router->resource('mail', 'MailTemplateController');
     $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
     $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');

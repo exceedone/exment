@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
-use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\ModelForm;
@@ -12,7 +11,6 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
-use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 
 class DashboardController extends AdminControllerBase
@@ -54,7 +52,7 @@ class DashboardController extends AdminControllerBase
         }
     }
 
-    public function index()
+    public function index(Request $request, Content $content)
     {
         return redirect(admin_base_path(''));
     }
@@ -65,12 +63,10 @@ class DashboardController extends AdminControllerBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, Content $content)
     {
         $this->setDashboardInfo($request);
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
+        return parent::edit($request, $id, $content);
     }
 
     /**
@@ -78,36 +74,33 @@ class DashboardController extends AdminControllerBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, Content $content)
     {
         $this->setDashboardInfo($request);
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
+        return parent::create($request, $content);
     }
 
-    public function home(Request $request)
+    public function home(Request $request, Content $content)
     {
         $this->setDashboardInfo($request);
-        return $this->AdminContent(function (Content $content) {
+        $this->AdminContent($content);
+        // add dashboard header
+        $content->row((new DashboardMenu($this->dashboard))->render());
 
-            // add dashboard header
-            $content->row((new DashboardMenu($this->dashboard))->render());
+        //set row1
+        $row1_column = intval($this->dashboard->row1);
+        $this->setDashboardBox($content, $row1_column, 1);
 
-            //set row1
-            $row1_column = intval($this->dashboard->row1);
-            $this->setDashboardBox($content, $row1_column, 1);
+        //set row2
+        $row2_column = intval($this->dashboard->row2);
+        if($row2_column > 0){
+            $this->setDashboardBox($content, $row2_column, 2);
+        }
 
-            //set row2
-            $row2_column = intval($this->dashboard->row2);
-            if($row2_column > 0){
-                $this->setDashboardBox($content, $row2_column, 2);
-            }
-
-            // set dashboard box --------------------------------------------------
-            $delete_confirm = trans('admin.delete_confirm');
-            $confirm = trans('admin.confirm');
-            $cancel = trans('admin.cancel');
+        // set dashboard box --------------------------------------------------
+        $delete_confirm = trans('admin.delete_confirm');
+        $confirm = trans('admin.confirm');
+        $cancel = trans('admin.cancel');
         $script = <<<EOT
         $(function () {
             // get suuid inputs
@@ -189,8 +182,8 @@ class DashboardController extends AdminControllerBase
             });
         }
 EOT;
-            Admin::script($script);
-        });
+        Admin::script($script);
+        return $content;
     }
 
     /**
@@ -200,53 +193,53 @@ EOT;
      */
     protected function form($id = null)
     {
-        return Admin::form(Dashboard::class, function (Form $form) use($id){
-            $form->hidden('dashboard_type')->default('system');
+        $form = new Form(new Dashboard);
+        $form->hidden('dashboard_type')->default('system');
 
-            if(!isset($id)){
-                $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
-                    ->help(exmtrans('common.help_code'));
-            }else{
-                $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
-            }
+        if(!isset($id)){
+            $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+                ->help(exmtrans('common.help_code'));
+        }else{
+            $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
+        }
 
-            $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->rules("required");
-            
-            // create row1 select options
-            $row1 = [];
-            for($i = 1; $i <= 4; $i++){
-                $row1[$i] = $i.exmtrans('dashboard.row_optionsX');
-            }
-            $form->radio('row1', exmtrans("dashboard.row1"))
-                ->options($row1)
-                ->help(exmtrans("dashboard.description_row1"))
-                ->rules("required")
-                ->default(1);
+        $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->rules("required");
+        
+        // create row1 select options
+        $row1 = [];
+        for($i = 1; $i <= 4; $i++){
+            $row1[$i] = $i.exmtrans('dashboard.row_optionsX');
+        }
+        $form->radio('row1', exmtrans("dashboard.row1"))
+            ->options($row1)
+            ->help(exmtrans("dashboard.description_row1"))
+            ->rules("required")
+            ->default(1);
 
-            // create row2 select options
-            $row2 = [];
-            $row2[0] = exmtrans('dashboard.row_options0');
-            for($i = 1; $i <= 4; $i++){
-                $row2[$i] = $i.exmtrans('dashboard.row_optionsX');
-            }
-            $form->radio('row2', exmtrans("dashboard.row2"))
-                ->options($row2)
-                ->help(exmtrans("dashboard.description_row2"))
-                ->rules("required")
-                ->default(2);
+        // create row2 select options
+        $row2 = [];
+        $row2[0] = exmtrans('dashboard.row_options0');
+        for($i = 1; $i <= 4; $i++){
+            $row2[$i] = $i.exmtrans('dashboard.row_optionsX');
+        }
+        $form->radio('row2', exmtrans("dashboard.row2"))
+            ->options($row2)
+            ->help(exmtrans("dashboard.description_row2"))
+            ->rules("required")
+            ->default(2);
 
-            $form->disableReset();
-            $form->disableViewCheck();
-            
-            $form->tools(function (Form\Tools $tools) use($id, $form) {
-                $tools->disableView();
-                $tools->disableList();
+        $form->disableReset();
+        $form->disableViewCheck();
+        
+        $form->tools(function (Form\Tools $tools) use($id, $form) {
+            $tools->disableView();
+            $tools->disableList();
 
-                // addhome button
-                $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
-            });
+            // addhome button
+            $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
-    }
+        return $form;
+        }
 
     /**
      * set default dashboard

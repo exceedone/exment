@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\TemplateInstaller;
 use Encore\Admin\Widgets\Form as WidgetForm;
-use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 

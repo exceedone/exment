@@ -5,9 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Validator;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Facades\Admin;
-use Encore\Admin\Layout\Content;
-use Encore\Admin\Layout\Column;
 use Encore\Admin\Controllers\ModelForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -24,31 +21,7 @@ class LoginUserController extends AdminControllerBase
     public function __construct(Request $request){
         $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"));  
     }
-    /**
-     * Index interface.
-     *
-     * @return Content
-     */
-    public function index()
-    {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
-    }
-
-    /**
-     * Edit interface.
-     *
-     * @param $id
-     * @return Content
-     */
-    public function edit($id)
-    {
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
-    }
-
+    
     /**
      * Make a grid builder.
      *
@@ -56,28 +29,29 @@ class LoginUserController extends AdminControllerBase
      */
     protected function grid()
     {
-        return Admin::grid(getModelName(Define::SYSTEM_TABLE_NAME_USER), function (Grid $grid) {
-            $table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER);
-            $grid->column(getColumnNameByTable($table, 'user_code'), exmtrans('user.user_code'));
-            $grid->column(getColumnNameByTable($table, 'user_name'), exmtrans('user.user_name'));
-            $grid->column(getColumnNameByTable($table, 'email'), exmtrans('user.email'));
-            $grid->column('login_user.id', exmtrans('user.login_user'))->display(function ($login_user_id) {
-                return !is_null($login_user_id) ? 'YES' : '';
-            });
+        $classname = getModelName(Define::SYSTEM_TABLE_NAME_USER);
+        $grid = new Grid(new $classname);
+        $table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER);
+        $grid->column(getColumnNameByTable($table, 'user_code'), exmtrans('user.user_code'));
+        $grid->column(getColumnNameByTable($table, 'user_name'), exmtrans('user.user_name'));
+        $grid->column(getColumnNameByTable($table, 'email'), exmtrans('user.email'));
+        $grid->column('login_user.id', exmtrans('user.login_user'))->display(function ($login_user_id) {
+            return !is_null($login_user_id) ? 'YES' : '';
+        });
 
-            $grid->disableCreateButton();
-            $grid->disableExport();
-            $grid->actions(function (Grid\Displayers\Actions $actions) {
+        $grid->disableCreateButton();
+        $grid->disableExport();
+        $grid->actions(function (Grid\Displayers\Actions $actions) {
+            $actions->disableDelete();
+            $actions->disableView();
+        });
+
+        $grid->tools(function (Grid\Tools $tools) {
+            $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
-                $actions->disableView();
-            });
-
-            $grid->tools(function (Grid\Tools $tools) {
-                $tools->batch(function (Grid\Tools\BatchActions $actions) {
-                    $actions->disableDelete();
-                });
             });
         });
+        return $grid;
     }
 
     /**
@@ -87,57 +61,58 @@ class LoginUserController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        return Admin::form(getModelName(Define::SYSTEM_TABLE_NAME_USER), function (Form $form) use ($id) {
-            $form->display('value.user_code', exmtrans('user.user_code'));
-            $form->display('value.user_name', exmtrans('user.user_name'));
-            $form->display('value.email', exmtrans('user.email'));
+        $classname = getModelName(Define::SYSTEM_TABLE_NAME_USER);
+        $form = new Form(new $classname);
+        $form->display('value.user_code', exmtrans('user.user_code'));
+        $form->display('value.user_name', exmtrans('user.user_name'));
+        $form->display('value.email', exmtrans('user.email'));
 
-            $has_loginuser = !is_null(getModelName(Define::SYSTEM_TABLE_NAME_USER)::find($id)->login_user);
+        $has_loginuser = !is_null($classname::find($id)->login_user ?? null);
 
-            $form->header(exmtrans('user.login'))->hr();
-            $form->checkboxone('use_loginuser', exmtrans('user.use_loginuser'))->option(['1' => exmtrans('common.yes') ])
-                        ->help(exmtrans('user.help.use_loginuser'))
-                        ->default($has_loginuser)
-                        ->attribute(['data-filtertrigger' => true]);
+        $form->header(exmtrans('user.login'))->hr();
+        $form->checkboxone('use_loginuser', exmtrans('user.use_loginuser'))->option(['1' => exmtrans('common.yes') ])
+                    ->help(exmtrans('user.help.use_loginuser'))
+                    ->default($has_loginuser)
+                    ->attribute(['data-filtertrigger' => true]);
 
-            if ($has_loginuser) {
-                $form->checkboxone('reset_password', exmtrans('user.reset_password'))->option(['1' => exmtrans('common.yes')])
-                                ->default(!$has_loginuser)
-                                ->help(exmtrans('user.help.reset_password'))
-                                ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
-            } else {
-                $form->hidden('reset_password')->default("1");
-            }
+        if ($has_loginuser) {
+            $form->checkboxone('reset_password', exmtrans('user.reset_password'))->option(['1' => exmtrans('common.yes')])
+                            ->default(!$has_loginuser)
+                            ->help(exmtrans('user.help.reset_password'))
+                            ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
+        } else {
+            $form->hidden('reset_password')->default("1");
+        }
 
-            $form->checkboxone('create_password_auto', exmtrans('user.create_password_auto'))->option(['1' => exmtrans('common.yes')])
-                    ->default(!$has_loginuser)
-                    ->help(exmtrans('user.help.create_password_auto'))
-                    ->default("1")
-                    ->attribute(['data-filter' => json_encode([
-                        ['key' => 'use_loginuser', 'value' => '1']
-                        , ['key' => 'reset_password', 'value' => "1"]
-                        ])]);
+        $form->checkboxone('create_password_auto', exmtrans('user.create_password_auto'))->option(['1' => exmtrans('common.yes')])
+                ->default(!$has_loginuser)
+                ->help(exmtrans('user.help.create_password_auto'))
+                ->default("1")
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'use_loginuser', 'value' => '1']
+                    , ['key' => 'reset_password', 'value' => "1"]
+                    ])]);
 
-            $form->password('password', exmtrans('user.password'))->default('')
-                        ->help(exmtrans('user.help.password'))
-                        ->attribute(['data-filter' => json_encode([
-                            ['key' => 'use_loginuser', 'value' => '1']
-                            , ['key' => 'reset_password', 'value' => "1"]
-                            , ['key' => 'create_password_auto', 'nullValue' => true]
-                            ])]);
-            $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
+        $form->password('password', exmtrans('user.password'))->default('')
+                    ->help(exmtrans('user.help.password'))
                     ->attribute(['data-filter' => json_encode([
                         ['key' => 'use_loginuser', 'value' => '1']
                         , ['key' => 'reset_password', 'value' => "1"]
                         , ['key' => 'create_password_auto', 'nullValue' => true]
                         ])]);
+        $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'use_loginuser', 'value' => '1']
+                    , ['key' => 'reset_password', 'value' => "1"]
+                    , ['key' => 'create_password_auto', 'nullValue' => true]
+                    ])]);
 
-            $form->disableReset();
-            $form->tools(function (Form\Tools $tools){
-                $tools->disableView();
-                $tools->disableDelete();
-            });
+        $form->disableReset();
+        $form->tools(function (Form\Tools $tools){
+            $tools->disableView();
+            $tools->disableDelete();
         });
+        return $form;
     }
 
     /**

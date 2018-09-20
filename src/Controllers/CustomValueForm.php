@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Services\PluginInstaller;
 use Illuminate\Support\Facades\Input;

@@ -6,6 +6,8 @@ use Encore\Admin\Form;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomTable;
+use Encore\Admin\Layout\Content;
+use Illuminate\Http\Request;
 
 class AdminControllerBase extends Controller
 {
@@ -35,5 +37,55 @@ class AdminControllerBase extends Controller
         $id = $request->input('q');
         $options = CustomTable::find($id)->custom_columns()->get(['id', DB::raw('column_view_name as text')]);
         return $options;
+    }
+    
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->grid());
+    }
+
+    /**
+     * Show interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function show(Request $request, $id, Content $content)
+    {
+        if(method_exists($this, 'detail')){
+            $render = $this->detail($id);
+        }else{
+            $render = $this->detail($id);
+        }
+        return $this->AdminContent($content)->body($render);
+    }
+
+    /**
+     * Edit interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function edit(Request $request, $id, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->form($id)->edit($id));
+    }
+
+    /**
+     * Create interface.
+     *
+     * @param Content $content
+     * @return Content
+     */
+    public function create(Request $request, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->form());
     }
 }

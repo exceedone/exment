@@ -30,13 +30,14 @@ class MenuController extends AdminControllerBase
      *
      * @return Content
      */
-    public function index(Content $content)
+    public function index(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
+        $this->AdminContent($content);
+        return 
             $content->row(function (Row $row) {
-                $row->column(5, $this->treeView()->render());
+            $row->column(5, $this->treeView()->render());
 
-                $row->column(7, function (Column $column) {
+            $row->column(7, function (Column $column) {
                     $form = new \Encore\Admin\Widgets\Form();
                     $form->action(admin_base_path('auth/menu'));
 
@@ -49,7 +50,6 @@ class MenuController extends AdminControllerBase
                     $form->hidden('_token')->default(csrf_token());
 
                     $column->append((new Box(trans('admin.new'), $form))->style('success'));
-                });
             });
         });
     }
@@ -61,7 +61,7 @@ class MenuController extends AdminControllerBase
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function show($id)
+    public function show(Request $request, $id, Content $content)
     {
         return redirect()->route('menu.edit', ['id' => $id]);
     }
@@ -106,20 +106,6 @@ class MenuController extends AdminControllerBase
 
                 return $payload;
             });
-        });
-    }
-
-    /**
-     * Edit interface.
-     *
-     * @param string $id
-     *
-     * @return Content
-     */
-    public function edit($id)
-    {
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->row($this->form()->edit($id));
         });
     }
 
