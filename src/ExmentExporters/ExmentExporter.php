@@ -56,10 +56,11 @@ class ExmentExporter extends AbstractExporter
 
             $titles = [];
 
-            if(DB::table('exm__'.$this->table->suuid)->count() > 0){
+            // if has column data, output header band body
+            if(getModelName($this->table)::count() > 0){
                 $this->chunk(function ($records) use ($handle, &$titles) {
                     if (empty($titles)) {
-//                        Get header from record
+//                      Get header from record
                         $titles = $this->getHeaderRowFromRecords($records);
 
 //                        Add CSV headers
