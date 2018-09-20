@@ -30,34 +30,9 @@ class DashboardBoxController extends AdminControllerBase
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
     }
 
-    public function index()
+    public function index(Request $request, Content $content)
     {
         return redirect(admin_base_path(''));
-    }
-    
-    /**
-     * Edit interface.
-     *
-     * @param $id
-     * @return Content
-     */
-    public function edit($id)
-    {
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
-    }
-
-    /**
-     * Create interface.
-     *
-     * @return Content
-     */
-    public function create(Request $request)
-    {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
     }
     
     /**

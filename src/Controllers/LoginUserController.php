@@ -24,31 +24,7 @@ class LoginUserController extends AdminControllerBase
     public function __construct(Request $request){
         $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"));  
     }
-    /**
-     * Index interface.
-     *
-     * @return Content
-     */
-    public function index()
-    {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
-    }
-
-    /**
-     * Edit interface.
-     *
-     * @param $id
-     * @return Content
-     */
-    public function edit($id)
-    {
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
-    }
-
+    
     /**
      * Make a grid builder.
      *

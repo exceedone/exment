@@ -34,11 +34,10 @@ class CustomViewController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index()
+    public function index(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
+        $this->setFormViewInfo($request);
+        return parent::index($request, $content);
     }
 
     /**
@@ -47,15 +46,13 @@ class CustomViewController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit($id)
+    public function edit(Request $request, $id, Content $content)
     {
+        $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomView::class, $id, 'view')) instanceof RedirectResponse) {
             return $response;
         }
-
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
+        return parent::edit($request, $id, $content);
     }
 
     /**
@@ -63,11 +60,10 @@ class CustomViewController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
+        $this->setFormViewInfo($request);
+        return parent::create($request, $content);
     }
 
     /**

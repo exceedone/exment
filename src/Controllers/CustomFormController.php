@@ -40,12 +40,10 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index(Request $request)
+    public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
+        return parent::index($request, $content);
     }
 
     /**
@@ -54,16 +52,14 @@ class CustomFormController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomForm::class, $id, 'form')) instanceof RedirectResponse) {
             return $response;
         }
-
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $this->droppableForm($content, $id);
-        });
+        $this->AdminContent($content);
+        return $this->droppableForm($content, $id);
     }
 
     /**
@@ -71,11 +67,11 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, Content $content)
     {
-        return $this->AdminContent(function (Content $content) {
-            $this->droppableForm($content);
-        });
+        $this->setFormViewInfo($request);
+        $this->AdminContent($content);
+        return $this->droppableForm($content);
     }
 
     /**

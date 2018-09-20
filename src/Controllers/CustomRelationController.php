@@ -31,12 +31,10 @@ class CustomRelationController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index(Request $request)
+    public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
+        return parent::index($request, $content);
     }
 
     /**
@@ -45,16 +43,13 @@ class CustomRelationController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
         if (($response = $this->validateTableAndId(CustomRelation::class, $id, 'relation')) instanceof RedirectResponse) {
             return $response;
         }
-
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
+        return parent::edit($request, $id, $content);
     }
 
     /**
@@ -62,12 +57,10 @@ class CustomRelationController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, $content)
     {
         $this->setFormViewInfo($request);
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
+        return parent::create($request, $content);
     }
 
     /**

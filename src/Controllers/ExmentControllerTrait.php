@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Http\Request;
 
 trait ExmentControllerTrait
 {
@@ -23,18 +24,14 @@ trait ExmentControllerTrait
         }
     }
 
-    protected function AdminContent($callback = null){
-        return Admin::content(function (Content $content) use ($callback){
-            if(isset($this->header)){
-                $content->header($this->header);
-            }
-            if (isset($this->description)) {
-                $content->description($this->description);
-            }
-
-            if ($callback) {
-                $callback($content);
-            }
-        });
+    protected function AdminContent($content){
+        if(isset($this->header)){
+            $content->header($this->header);
+        }
+        if (isset($this->description)) {
+            $content->description($this->description);
+        }
+        return $content;
     }
+    
 }

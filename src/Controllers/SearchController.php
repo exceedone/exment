@@ -136,7 +136,7 @@ EOT;
     /**
      * Show search result page.
      */
-    public function index(Request $request){
+    public function index(Request $request, Content $content){
         if($request->has('table_name') && $request->has('value_id')){
             return $this->getRelationSearch($request);
         }else{
@@ -149,8 +149,8 @@ EOT;
      * @param Request $request
      * @return Content
      */
-    protected function getFreeWord(Request $request){
-        return $this->AdminContent(function (Content $content) use($request) {
+    protected function getFreeWord(Request $request, Content $content){
+            $this->AdminContent($content);
             $content->header(exmtrans('search.header_freeword'));
             $content->description(exmtrans('search.description_freeword'));
 
@@ -199,7 +199,7 @@ EOT;
             $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
             $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $this->getSearchTargetTable()]));
-        });
+            return $content;
     }
 
     /**
@@ -311,8 +311,9 @@ EOT;
      * @param Request $request
      * @return Content
      */
-    protected function getRelationSearch(Request $request){
-        return $this->AdminContent(function (Content $content) use($request) {
+    protected function getRelationSearch(Request $request, Content $content){
+        $this->AdminContent($content);
+
             $content->header(exmtrans('search.header_relation'));
             $content->description(exmtrans('search.description_relation'));
 
@@ -372,8 +373,7 @@ EOT;
             // add header and description        
             $title = sprintf(exmtrans("search.result_label"), $value);
             $this->setPageInfo($title);
-
-        });
+            return $content;
     }
 
     /**

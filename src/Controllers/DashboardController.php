@@ -54,7 +54,7 @@ class DashboardController extends AdminControllerBase
         }
     }
 
-    public function index()
+    public function index(Request $request, Content $content)
     {
         return redirect(admin_base_path(''));
     }
@@ -65,12 +65,10 @@ class DashboardController extends AdminControllerBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, Content $content)
     {
         $this->setDashboardInfo($request);
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
+        return parent::edit($request, $id, $content);
     }
 
     /**
@@ -78,36 +76,33 @@ class DashboardController extends AdminControllerBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, Content $content)
     {
         $this->setDashboardInfo($request);
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
+        return parent::create($request, $content);
     }
 
-    public function home(Request $request)
+    public function home(Request $request, Content $content)
     {
         $this->setDashboardInfo($request);
-        return $this->AdminContent(function (Content $content) {
+        $this->AdminContent($content);
+        // add dashboard header
+        $content->row((new DashboardMenu($this->dashboard))->render());
 
-            // add dashboard header
-            $content->row((new DashboardMenu($this->dashboard))->render());
+        //set row1
+        $row1_column = intval($this->dashboard->row1);
+        $this->setDashboardBox($content, $row1_column, 1);
 
-            //set row1
-            $row1_column = intval($this->dashboard->row1);
-            $this->setDashboardBox($content, $row1_column, 1);
+        //set row2
+        $row2_column = intval($this->dashboard->row2);
+        if($row2_column > 0){
+            $this->setDashboardBox($content, $row2_column, 2);
+        }
 
-            //set row2
-            $row2_column = intval($this->dashboard->row2);
-            if($row2_column > 0){
-                $this->setDashboardBox($content, $row2_column, 2);
-            }
-
-            // set dashboard box --------------------------------------------------
-            $delete_confirm = trans('admin.delete_confirm');
-            $confirm = trans('admin.confirm');
-            $cancel = trans('admin.cancel');
+        // set dashboard box --------------------------------------------------
+        $delete_confirm = trans('admin.delete_confirm');
+        $confirm = trans('admin.confirm');
+        $cancel = trans('admin.cancel');
         $script = <<<EOT
         $(function () {
             // get suuid inputs
@@ -189,8 +184,8 @@ class DashboardController extends AdminControllerBase
             });
         }
 EOT;
-            Admin::script($script);
-        });
+        Admin::script($script);
+        return $content;
     }
 
     /**

@@ -43,34 +43,35 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function index(Request $request)
-    {   
+    public function index(Request $request, Content $content)
+    {
         $this->setFormViewInfo($request);
         $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
-        return $this->AdminContent(function (Content $content) use ($listButton) {
-            // if table setting is "one_record_flg" (can save only one record)
-            if (boolval($this->custom_table->one_record_flg)) {
-                // get record list
-                $record = $this->getModelNameDV()::first();
-                // has record, execute
-                if (isset($record)) {
-                    $id = $record->id;
-                    $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
-                    $form = $this->form($id)->edit($id);
-                    $form->setAction(admin_base_path("data/{$this->custom_table->table_name}/$id"));
-                    $content->body($form);
-                }
-                // no record
-                else {
-                    $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
-                    $form = $this->form(null);
-                    $form->setAction(admin_base_path("data/{$this->custom_table->table_name}"));
-                    $content->body($form);
-                }
-            } else {
-                $content->body($this->grid($listButton));
+        $this->AdminContent($content);
+
+        // if table setting is "one_record_flg" (can save only one record)
+        if (boolval($this->custom_table->one_record_flg)) {
+            // get record list
+            $record = $this->getModelNameDV()::first();
+            // has record, execute
+            if (isset($record)) {
+                $id = $record->id;
+                $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+                $form = $this->form($id)->edit($id);
+                $form->setAction(admin_base_path("data/{$this->custom_table->table_name}/$id"));
+                $content->body($form);
             }
-        });
+            // no record
+            else {
+                $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+                $form = $this->form(null);
+                $form->setAction(admin_base_path("data/{$this->custom_table->table_name}"));
+                $content->body($form);
+            }
+        } else {
+            $content->body($this->grid($listButton));
+        }
+        return $content;
     }
 
     /**
@@ -79,7 +80,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function show(Request $request, $id)
+    public function show(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
         // if user doesn't have authority for target id data, show deny error.
@@ -87,10 +88,9 @@ class CustomValueController extends AdminControllerTableBase
             $response = response($this->AdminContent()->withError(trans('admin.deny')));
             Pjax::respond($response);
         }
-        
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->createShowForm($id));
-        });
+        $this->AdminContent($content);
+        $content->body($this->createShowForm($id));
+        return $content;
     }
 
     /**
@@ -99,7 +99,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id)
+    public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
         // if user doesn't have authority for target id data, show deny error.
@@ -114,11 +114,11 @@ class CustomValueController extends AdminControllerTableBase
             return $redirect;
         }
 
-        return $this->AdminContent(function (Content $content) use ($id) {
-            PluginInstaller::pluginPreparing($this->plugins, 'loading');
-            $content->body($this->form($id)->edit($id));
-            PluginInstaller::pluginPreparing($this->plugins, 'loaded');
-        });
+        $this->AdminContent($content);
+        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        $content->body($this->form($id)->edit($id));
+        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        return $content;
     }
 
     /**
@@ -126,7 +126,7 @@ class CustomValueController extends AdminControllerTableBase
      *
      * @return Content
      */
-    public function create(Request $request)
+    public function create(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
         // if user doesn't have permission creating data, throw admin.dany error.
@@ -135,11 +135,11 @@ class CustomValueController extends AdminControllerTableBase
             Pjax::respond($response);
         }
 
-        return $this->AdminContent(function (Content $content) {
-            PluginInstaller::pluginPreparing($this->plugins, 'loading');
-            $content->body($this->form(null));
-            PluginInstaller::pluginPreparing($this->plugins, 'loaded');
-        });
+        $this->AdminContent($content);
+        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        $content->body($this->form(null));
+        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        return $content;
     }
 
     /**
@@ -217,7 +217,7 @@ class CustomValueController extends AdminControllerTableBase
                     $target_table = $custom_form_block->target_table;
                     // get label hasmany
                     $block_label = $custom_form_block->form_block_view_name;
-                    if(!isset($block_label)){
+                    if (!isset($block_label)) {
                         $block_label = exmtrans('custom_form.table_one_to_many_label') . $target_table->table_view_name;
                     }
                     $form->hasManyTable(
@@ -228,13 +228,13 @@ class CustomValueController extends AdminControllerTableBase
                                 $this->setCustomFormColumns($form, $custom_form_block);
                             });
                         }
-                    )->setTableWidth(12,0);
+                    )->setTableWidth(12, 0);
                 // when many to many
                 } else {
                     $target_table = $custom_form_block->target_table;
                     // get label hasmany
                     $block_label = $custom_form_block->form_block_view_name;
-                    if(!isset($block_label)){
+                    if (!isset($block_label)) {
                         $block_label = exmtrans('custom_form.table_many_to_many_label') . $target_table->table_view_name;
                     }
 
@@ -245,7 +245,7 @@ class CustomValueController extends AdminControllerTableBase
                     $field->options(function ($select) use ($target_table) {
                         return getOptions($target_table, $select);
                     });
-                    if(getModelName($target_table)::count() > 100){
+                    if (getModelName($target_table)::count() > 100) {
                         $field->ajax(getOptionAjaxUrl($target_table));
                     }
                     $form->pushField($field);
@@ -253,11 +253,11 @@ class CustomValueController extends AdminControllerTableBase
             }
 
             $calc_formula_array = [];
-            $changedata_array = [];   
+            $changedata_array = [];
             $this->setCustomForEvents($calc_formula_array, $changedata_array);
 
             // add calc_formula_array and changedata_array info
-            if(count($calc_formula_array) > 0){
+            if (count($calc_formula_array) > 0) {
                 $json = json_encode($calc_formula_array);
                 $script = <<<EOT
                 var json = $json;
@@ -265,7 +265,7 @@ class CustomValueController extends AdminControllerTableBase
 EOT;
                 Admin::script($script);
             }
-            if(count($changedata_array) > 0){
+            if (count($changedata_array) > 0) {
                 $json = json_encode($changedata_array);
                 $script = <<<EOT
                 var json = $json;

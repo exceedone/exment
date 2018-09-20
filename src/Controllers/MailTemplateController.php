@@ -20,43 +20,6 @@ class MailTemplateController extends AdminControllerBase
     }
 
     /**
-     * Index interface.
-     *
-     * @return Content
-     */
-    public function index()
-    {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->grid());
-        });
-    }
-
-    /**
-     * Edit interface.
-     *
-     * @param $id
-     * @return Content
-     */
-    public function edit($id)
-    {
-        return $this->AdminContent(function (Content $content) use ($id) {
-            $content->body($this->form($id)->edit($id));
-        });
-    }
-
-    /**
-     * Create interface.
-     *
-     * @return Content
-     */
-    public function create(Request $request)
-    {
-        return $this->AdminContent(function (Content $content) {
-            $content->body($this->form());
-        });
-    }
-
-    /**
      * Make a grid builder.
      *
      * @return Grid
