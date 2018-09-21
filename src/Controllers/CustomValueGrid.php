@@ -9,10 +9,11 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\ExmentExporters\ExmentExporter;
-use Exceedone\Exment\ExmentImporters\ExmentImporter;
+use Exceedone\Exment\Services\ExmentExporter;
+use Exceedone\Exment\Services\ExmentImporter;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Request as Req;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 trait CustomValueGrid
 {
@@ -196,123 +197,32 @@ EOT;
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-                    $actions->prepend('<a href="'.admin_base_path('data/'.$table_name.'/'.$actions->getKey().'/edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
+                    $actions->prepend('<a href="'.admin_base_path(url_join('data', $table_name, $actions->getKey(), 'edit')).'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
             });
         }
     }
     
-    // /**
-    //  * @param $exporter
-    //  * @param $grid
-    //  * @param $search_enabled_columns
-    //  */
-    // public function exporter($exporter, $grid)
-    // {
-    //     $this->exporter = $exporter;
-
-    //     return $this->setupExporter($grid);
-    // }
-
-    // /**
-    //  * @param $grid
-    //  * @param $search_enabled_columns
-    //  */
-    // protected function setupExporter($grid)
-    // {
-    //     //$get_temp = strpos($_SERVER["REQUEST_URI"], 'temp') !== false ? true : false;
-    //     $get_temp = \Illuminate\Support\Facades\Request::query('_export_') == 'temp';
-    //     if ($scope = Input::get(ExmentExporter::$queryName)) {
-    //         $grid->exporter();
-    //         (new ExmentExporter($grid))->resolve($this->exporter)->withScope($scope)->export($this->custom_table, $search_enabled_columns, $get_temp);
-    //     }
-    // }
-
     /**
      * @param Request $request
      */
     public function import(Request $request)
     {
-        $result = (new ExmentImporter())->import($request);
+        $result = (new ExmentImporter(CustomTable::find($request->custom_table_id)))->import($request);
 
-        if ($result) {
-            admin_toastr(exmtrans('common.message.import_success'));
-            return back();
-        }
-        admin_toastr(exmtrans('common.message.import_error'), 'error');
+        return ModalForm::getAjaxResponse($result);
+        // if ($result) {
+        //     admin_toastr(exmtrans('common.message.import_success'));
+        //     return back();
+        // }
+        // admin_toastr(exmtrans('common.message.import_error'), 'error');
     }
 
 
-    public function ImportSettingModal($table_name)
+    public function ImportSettingModal()
     {
-        $exmenImporter = new ExmentImporter();
-        $selectCustomColumn = $exmenImporter->getCustomColumn($this->custom_table->id);
-
-        // create form fields
-        $form = new \Encore\Admin\Widgets\Form();
-        $form->action(admin_base_path('data/'.$this->custom_table->table_name.'/import'))
-            ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
-            ->rules('mimes:csv')->setWidth(8, 3)->addElementClass('exment_import_file')
-            ;
-        $form->disablePjax();
-            
-        $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
-            ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options"))
-            ->setWidth(8, 3)
-            ->addElementClass('select_primary_key')
-            ->help(exmtrans('custom_value.import.help.primary_key'));
-
-
-        $form->select('select_action', exmtrans('custom_value.import.error_flow'))
-            ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_ERROR, "custom_value.import.error_options"))
-            ->setWidth(8, 3)
-            ->addElementClass('select_action')
-            ->help(exmtrans('custom_value.import.help.error_flow'));
-    
-        $form->hidden('custom_table_name')->default($table_name);
-        $form->hidden('custom_table_suuid')->default($this->custom_table->suuid);
-        $form->hidden('custom_table_id')->default($this->custom_table->id);
-
-        $modal = view('exment::custom-value.import-modal', ['form' => $form]);
-
-        // Add script
-//         $script = <<<EOT
-//         $(document).ready(function(){
-//                             $("#data_import_modal [submit]").click(function () {
-//                                 var file_name = $('.file-caption-name').attr("title");
-//                                 var primary_key = $('#import-form').find('span[id^="select2-select_primary_key"]').attr( "title" );
-//                                 var primary_key_placeholder = $('#import-form').find('span[id^="select2-select_primary_key"]').find('span[class^="select2-selection__placeholder"]').text();
-//                                 var action = $('#import-form').find('span[id^="select2-select_action"]').attr( "title" );
-//                                 var action_placeholder = $('#import-form').find('span[id^="select2-select_action"]').find('span[class^="select2-selection__placeholder"]').text();
-//                                 if(file_name === undefined || file_name === "" ){
-//                                     $('.file-caption-name').parent().css( "border-color", "red" );
-//                                 }
-//                                 else {
-//                                     $('.file-caption-name').parent().css( "border-color", "#d2d6de" );
-//                                 }
-//                                 if( primary_key === undefined || (primary_key.indexOf(primary_key_placeholder) === -1 && primary_key_placeholder !== "")){
-//                                     $('#import-form').find('span[id^="select2-select_primary_key"]').parent().css( "border-color", "red" );
-//                                 }
-//                                 else {
-//                                     $('#import-form').find('span[id^="select2-select_primary_key"]').parent().css( "border-color", "#d2d6de" );
-//                                 }
-//                                 if(action === undefined || (action.indexOf(action_placeholder) === -1 && action_placeholder !== "")){
-//                                     $('#import-form').find('span[id^="select2-select_action"]').parent().css( "border-color", "red" );
-//                                 }
-//                                 else {
-//                                     $('#import-form').find('span[id^="select2-select_action"]').parent().css( "border-color", "#d2d6de" );
-//                                 }
-//                                 if(file_name === undefined || primary_key === undefined || (primary_key.indexOf(primary_key_placeholder) === -1 && primary_key_placeholder !== "")
-//                                 || action === undefined || (action.indexOf(action_placeholder) === -1 && action_placeholder !== "" || file_name === "")){
-//                                     toastr.error("Please fill all red input");
-//                                     return false;
-//                                 }
-//                                 $('.modal-backdrop').remove();
-//                             });
-//                         });
-        // EOT;
-//             Admin::script($script);
-    
+        $exmenImporter = new ExmentImporter($this->custom_table);
+        return $exmenImporter->importModal();
         return $modal;
     }
 }

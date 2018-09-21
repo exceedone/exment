@@ -6,6 +6,7 @@ namespace Exceedone\Exment\Model;
 class Dashboard extends ModelBase
 {
     use AutoSUuid;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];
     

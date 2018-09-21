@@ -9,6 +9,8 @@ class CustomTable extends ModelBase
 {
     use CustomTableExt; // CustomTableExt:Dynamic Creation trait it defines relationship.
     use AutoSUuid;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    
     protected $casts = ['authority' => 'json'];
 
     protected $guarded = ['id', 'suuid', 'system_flg'];

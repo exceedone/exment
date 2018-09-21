@@ -601,6 +601,7 @@ trait HasPermissions
      * get value from user setting table
      */
     public function getSettingValue($key){
+        if(is_null($this->base_user)){return null;}
         // get settings from settion
         $settings = Session::get("user_setting.$key");
         // if empty, get User Setting table
@@ -611,6 +612,7 @@ trait HasPermissions
         return array_get($settings, $key) ?? null;
     }
     public function setSettingValue($key, $value){
+        if(is_null($this->base_user)){return null;}
         // set User Setting table
         $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
         $settings = $usersetting->settings;

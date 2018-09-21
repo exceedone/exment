@@ -6,7 +6,8 @@ namespace Exceedone\Exment\Model;
 class CustomColumn extends ModelBase
 {
     use AutoSUuid;
-    
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+
     protected $casts = ['options' => 'json'];
 
     protected $guarded = ['id', 'suuid'];

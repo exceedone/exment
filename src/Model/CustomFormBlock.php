@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Model;
 
 class CustomFormBlock extends ModelBase
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    
     public function custom_form(){
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }

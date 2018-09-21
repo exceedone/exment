@@ -31,7 +31,9 @@ if (!function_exists('exmtrans')) {
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)
     {
-        return is_null($obj) || strlen($obj) == 0;
+        if(is_null($obj)){return true;}
+        if(is_string($obj) && strlen($obj) == 0){return true;}
+        return false;
     }
 }
 

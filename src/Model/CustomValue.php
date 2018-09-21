@@ -2,9 +2,11 @@
 
 namespace Exceedone\Exment\Model;
 use Encore\Admin\Facades\Admin;
+
 class CustomValue extends ModelBase
 {        
     use AutoSUuid;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $casts = ['value' => 'json'];
 
     // user value_authoritable. it's all authority data. only filter  morph_type

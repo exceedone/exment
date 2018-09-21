@@ -14,7 +14,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
-use Exceedone\Exment\ExmentExporters\ExmentExporter;
+use Exceedone\Exment\Services\ExmentExporter;
 
 class CustomValueController extends AdminControllerTableBase
 {
