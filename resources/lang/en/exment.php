@@ -635,7 +635,7 @@ return [
             'import_error_format' => 'Line %d : %s',
             'help' => [
                 'custom_table_file' => 'Select the CSV file that you output the template.',
-                'primary_key' => 'Select the field to narrow down the update data. If this field value matches existing data, it will be imported as update data. If matching data does not exist, it will be imported as new data.',
+                'primary_key' => 'Select the field to narrow down the update data.<br />If this field value matches existing data, it will be imported as update data.<br />If matching data does not exist, it will be imported as new data.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',
                 'import_error_message' => 'If incomplete files are incomplete, line numbers and error messages are displayed in this item.',
             ],
