@@ -6,6 +6,8 @@ use DB;
 
 class Plugin extends ModelBase
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    
     protected $casts = ['options' => 'json'];
 
     public static function getFieldById($plugin_id, $field_name)

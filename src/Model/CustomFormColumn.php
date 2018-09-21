@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class CustomFormColumn extends ModelBase
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    
     protected $casts = ['options' => 'json'];
 
     public function custom_form_block()

@@ -5,81 +5,104 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Support\Facades\DB;
+use Encore\Admin\Facades\Admin;
 use Validator;
 use Carbon\Carbon;
 
 class ExmentImporter
 {
-    protected $tabel;
+    protected $custom_table;
+    public function __construct($custom_table){
+        $this->custom_table = $custom_table;
+    }
+
     /**
      * @param $request
-     * @return mixed|void
+     * @return mixed|void error message or success message etc...
      */
     public function import($request)
     {
-        $this->custom_table = CustomTable::find($request->custom_table_id);
-        $validFileFormat = false;
-
-        if($request->hasfile('custom_table_file')){
-            $validFileFormat = $this->validateFormatFile($request);
+        // validate request
+        $validateRequest = $this->validateRequest($request);
+        if($validateRequest !== true){
+            return [
+                'result' => false,
+                //'toastr' => exmtrans('common.message.import_error'),
+                'errors' => $validateRequest,
+            ];
         }
 
-        if($validFileFormat === false || $request->select_primary_key === null){
-            return false;
+        // get file
+        $path = $request->file('custom_table_file')->getRealPath();
+        $dataCsv = array_map('str_getcsv', file($path));
+        //Remove empty data csv
+        $data = array_filter($dataCsv, function($value) { return count(array_filter($value)) > 0 ; });
+        list($data_import, $error_data) = $this->checkingData($request->select_action, $data);
+        
+        // if has error data, return error data
+        if(count($error_data) > 0){
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
+            ];
         }
-        else {
-            $path = $request->file('custom_table_file')->getRealPath();
-            $dataCsv = array_map('str_getcsv', file($path));
-            //Remove empty data csv
-            $data = array_filter($dataCsv, function($value) { return count(array_filter($value)) > 0 ; });
-            $data_import = $this->checkingData($request->select_action, $data);
-            if(count($data_import) <= 0){
-                return false;
+
+        // loop error data
+        foreach ($data_import as $index => $row)
+        {
+            $validate_data = $this->validateData($request,$row);
+            if ($validate_data) {
+                $data_custom = $this->dataProcessing($row);
+                $this->dataImportFlow($request->custom_table_name, $data_custom, $request->select_primary_key);
             }
-            foreach ($data_import as $index => $row)
-            {
-                $validate_data = $this->validateData($request,$row);
-                if ($validate_data) {
-                    $data_custom = $this->dataProcessing($row);
-                    $this->dataImportFlow($request->custom_table_name, $data_custom, $request->select_primary_key);
-
-                }
-            }
         }
-        return $validFileFormat;
+
+        // if success, return result and toastor messsage
+        return [
+            'result' => true,
+            'toastr' => exmtrans('common.message.import_success')
+        ];
     }
 
     /**
      * @param $request
      * @return bool
      */
-    public function validateFormatFile($request){
+    public function validateRequest($request){
+        //validate
+        $rules = [
+            'custom_table_file' => 'required|file',
+            'select_primary_key' => 'required',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        if ($validator->fails()) {
+            return $validator->errors()->messages();
+        }
+
+        // file validation.
+        // (↑"$rules" always error by mimes because uploaded by ajax??) 
         $file = $request->file('custom_table_file');
         $validator = Validator::make(
             [
                 'file'      => $file,
-                'extension' => strtolower($file->getClientOriginalExtension()),
+                'custom_table_file' => strtolower($file->getClientOriginalExtension()),
             ],
             [
                 'file'          => 'required',
-                'extension'      => 'required|in:csv',
+                'custom_table_file'      => 'required|in:csv',
+            ],
+            [
+                'custom_table_file' => \Lang::get('validation.mimes')
             ]
         );
-        $validFileFormat = $validator->passes();
-        // validate header file
-        // if ($validFileFormat) {
-        //     $path = $request->file('custom_table_file')->getRealPath();
-        //     $data = array_map('str_getcsv', file($path));
-        //     $header = $this->getHeader($request->custom_table_suuid);
-        //     $result=array_diff($header,$data[0]);
-        //     if ($result) {
-        //         $validFileFormat =  false;
-        //     } else {
-        //         $validFileFormat = true;
-        //     }
+        if ($validator->fails()) {
+            // return errors as custom_table_file.
+            return $validator->errors()->messages();
+        }
 
-        // }
-        return $validFileFormat;
+        return true;
     }
 
     /**
@@ -158,18 +181,16 @@ class ExmentImporter
             } else {
                 $data_custom = array_combine($headers, $value);
 
-                if($this->checkingDataItem($data_custom)){
+                $check = $this->checkingDataItem($key, $data_custom);
+                if($check === true){
                     array_push($success_data, $data_custom);
                 }
                 else {
-                    array_push($error_data, $data_custom);
+                    $error_data = array_merge($error_data, $check);
                 }
             }
         }
-        if(count($error_data) > 0 && $action === 'stop'){
-            return $success_data = array();
-        }
-        return $success_data;
+        return [$success_data, $error_data];
     }
 
     /**
@@ -177,32 +198,23 @@ class ExmentImporter
      * @param $data
      * @return array
      */
-    public function checkingDataItem($data_custom){
-        // check id
-        if(!is_nullorempty(array_get($data_custom, 'id'))){
-            $match = preg_match('/[0-9]/', $data_custom['id']);
-            if(!$match){
-                return false;
+    public function checkingDataItem($line_no, $data_custom){
+        // create validate rule
+        $rules = [
+            'id' => 'nullable|regex:/^[0-9]+$/',
+            'suuid' => 'nullable|regex:/^[a-z0-9]{20}$/',
+            'created_at' => 'nullable|date',
+            'updated_at' => 'nullable|date',
+            'deleted_at' => 'nullable|date',
+        ];
+        $validator = Validator::make($data_custom, $rules);
+        if ($validator->fails()) {
+            // create error message
+            $errors = [];
+            foreach($validator->errors()->messages() as $message){
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), $line_no, implode(',', $message));
             }
-        }
-
-        // check suuid
-        if(!is_nullorempty(array_get($data_custom, 'suuid'))){
-            $match = preg_match('/[a-z0-9]{20}/', $data_custom['suuid']);
-            if(!$match){
-                return false;
-            }
-        }
-
-        // check date
-        foreach(['created_at', 'updated_at', 'deleted_at'] as $dkey){
-            if (!is_nullorempty(array_get($data_custom, $dkey))) {
-                try{
-                    Carbon::parse(array_get($data_custom, $dkey));
-                }catch(Exception $ex){
-                    return false;
-                }
-            }
+            return $errors;
         }
         return true;
     }
@@ -272,6 +284,14 @@ class ExmentImporter
                 // set as date
                 $model->{$dkey} = Carbon::parse($dvalue);
             }
+            // if id or suuid
+            elseif(in_array($dkey, ['id', 'suuid'])){
+                // if null, contiune
+                if(is_nullorempty($dvalue)){
+                    continue;
+                }
+                $model->{$dkey} = $dvalue;
+            }
             // else, set 
             else{
                 $model->{$dkey} = $dvalue;
@@ -283,25 +303,37 @@ class ExmentImporter
 
     public function importModal(){
         $table_name = $this->custom_table->table_name;
+        $import_path = admin_base_path('data/'.$table_name.'/import');
         // create form fields
-        $form = new \Encore\Admin\Widgets\Form();
+        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
+        $form->disableReset();
+
         $form->action(admin_base_path('data/'.$table_name.'/import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
-            ->rules('mimes:csv')->setWidth(8, 3)->addElementClass('exment_import_file')
-            ;
-        $form->disablePjax();
+            ->rules('mimes:csv')->setWidth(8, 3)->addElementClass('custom_table_file')
+            ->options(['showPreview' => false])
+            ->help(exmtrans('custom_value.import.help.custom_table_file'));
             
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
             ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options"))
+            ->default('id')
             ->setWidth(8, 3)
             ->addElementClass('select_primary_key')
             ->help(exmtrans('custom_value.import.help.primary_key'));
 
-        $form->select('select_action', exmtrans('custom_value.import.error_flow'))
+            $form->select('select_action', exmtrans('custom_value.import.error_flow'))
             ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_ERROR, "custom_value.import.error_options"))
+            ->default('stop')
             ->setWidth(8, 3)
             ->addElementClass('select_action')
             ->help(exmtrans('custom_value.import.help.error_flow'));
+    
+            $form->textarea('import_error_message', exmtrans('custom_value.import.import_error_message'))
+            ->attribute(['readonly' => true])
+            ->setWidth(8, 3)
+            ->rows(4)
+            ->addElementClass('import_error_message')
+            ->help(exmtrans('custom_value.import.help.import_error_message'));
     
         $form->hidden('custom_table_name')->default($table_name);
         $form->hidden('custom_table_suuid')->default($this->custom_table->suuid);
@@ -309,44 +341,6 @@ class ExmentImporter
 
         $modal = view('exment::custom-value.import-modal', ['form' => $form]);
 
-        // Add script
-//         $script = <<<EOT
-//         $(document).ready(function(){
-//                             $("#data_import_modal [submit]").click(function () {
-//                                 var file_name = $('.file-caption-name').attr("title");
-//                                 var primary_key = $('#import-form').find('span[id^="select2-select_primary_key"]').attr( "title" );
-//                                 var primary_key_placeholder = $('#import-form').find('span[id^="select2-select_primary_key"]').find('span[class^="select2-selection__placeholder"]').text();
-//                                 var action = $('#import-form').find('span[id^="select2-select_action"]').attr( "title" );
-//                                 var action_placeholder = $('#import-form').find('span[id^="select2-select_action"]').find('span[class^="select2-selection__placeholder"]').text();
-//                                 if(file_name === undefined || file_name === "" ){
-//                                     $('.file-caption-name').parent().css( "border-color", "red" );
-//                                 }
-//                                 else {
-//                                     $('.file-caption-name').parent().css( "border-color", "#d2d6de" );
-//                                 }
-//                                 if( primary_key === undefined || (primary_key.indexOf(primary_key_placeholder) === -1 && primary_key_placeholder !== "")){
-//                                     $('#import-form').find('span[id^="select2-select_primary_key"]').parent().css( "border-color", "red" );
-//                                 }
-//                                 else {
-//                                     $('#import-form').find('span[id^="select2-select_primary_key"]').parent().css( "border-color", "#d2d6de" );
-//                                 }
-//                                 if(action === undefined || (action.indexOf(action_placeholder) === -1 && action_placeholder !== "")){
-//                                     $('#import-form').find('span[id^="select2-select_action"]').parent().css( "border-color", "red" );
-//                                 }
-//                                 else {
-//                                     $('#import-form').find('span[id^="select2-select_action"]').parent().css( "border-color", "#d2d6de" );
-//                                 }
-//                                 if(file_name === undefined || primary_key === undefined || (primary_key.indexOf(primary_key_placeholder) === -1 && primary_key_placeholder !== "")
-//                                 || action === undefined || (action.indexOf(action_placeholder) === -1 && action_placeholder !== "" || file_name === "")){
-//                                     toastr.error("Please fill all red input");
-//                                     return false;
-//                                 }
-//                                 $('.modal-backdrop').remove();
-//                             });
-//                         });
-        // EOT;
-//             Admin::script($script);
-    
         return $modal;
     }
 }

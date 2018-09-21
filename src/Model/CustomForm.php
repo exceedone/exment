@@ -6,6 +6,7 @@ namespace Exceedone\Exment\Model;
 class CustomForm extends ModelBase
 {
     use AutoSUuid;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     public function custom_table(){
         return $this->belongsTo(CustomTable::class, 'custom_table_id');

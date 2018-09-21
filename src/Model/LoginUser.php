@@ -10,6 +10,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 {
     use AdminBuilder;
     use HasPermissions;
+    use \Illuminate\Database\Eloquent\SoftDeletes;
     
     //protected $guarded = ['id', 'base_user_id'];
     protected $guarded = ['id'];

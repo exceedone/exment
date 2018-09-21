@@ -13,6 +13,7 @@ use Exceedone\Exment\Services\ExmentExporter;
 use Exceedone\Exment\Services\ExmentImporter;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Request as Req;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 
 trait CustomValueGrid
 {
@@ -196,7 +197,7 @@ EOT;
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-                    $actions->prepend('<a href="'.admin_base_path('data/'.$table_name.'/'.$actions->getKey().'/edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
+                    $actions->prepend('<a href="'.admin_base_path(url_join('data', $table_name, $actions->getKey(), 'edit')).'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
             });
         }
@@ -207,19 +208,20 @@ EOT;
      */
     public function import(Request $request)
     {
-        $result = (new ExmentImporter())->import($request);
+        $result = (new ExmentImporter(CustomTable::find($request->custom_table_id)))->import($request);
 
-        if ($result) {
-            admin_toastr(exmtrans('common.message.import_success'));
-            return back();
-        }
-        admin_toastr(exmtrans('common.message.import_error'), 'error');
+        return ModalForm::getAjaxResponse($result);
+        // if ($result) {
+        //     admin_toastr(exmtrans('common.message.import_success'));
+        //     return back();
+        // }
+        // admin_toastr(exmtrans('common.message.import_error'), 'error');
     }
 
 
-    public function ImportSettingModal($table_name)
+    public function ImportSettingModal()
     {
-        $exmenImporter = new ExmentImporter();
+        $exmenImporter = new ExmentImporter($this->custom_table);
         return $exmenImporter->importModal();
         return $modal;
     }

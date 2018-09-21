@@ -8,6 +8,8 @@ use DB;
 
 class System extends ModelBase
 {
+    use \Illuminate\Database\Eloquent\SoftDeletes;
+    
     protected $casts = ['authority' => 'json'];
 
     public static function __callStatic($name, $argments)
