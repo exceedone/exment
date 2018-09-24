@@ -84,7 +84,7 @@ class CustomRelationTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/admin/table')
                 ->assertSee('NTQ Contract');
-            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Contract Relation"}).closest("tr").find("ins.iCheck-helper").click();');
+            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Contract"}).closest("tr").find("ins.iCheck-helper").click();');
             $browser->press('Change Page')
                 ->clickLink('Relation Setting')
                 ->pause(5000)
@@ -107,11 +107,10 @@ class CustomRelationTest extends DuskTestCase
                 ->assertSeeIn('.box-title', 'Create')
                 ->assertSee('NTQ Contract ')
                 ->assertSee('Child Table')
-                ->assertSee('Relation Type')
-
-                ;
+                ->assertSee('Relation Type');
         });
     }
+
     // AutoTest_Relation_05
     public function testAddRelationOneToManySuccess()
     {
@@ -121,7 +120,6 @@ class CustomRelationTest extends DuskTestCase
             $browser->script('$(".child_custom_table_id").val($("option").filter(function() {
   return $(this).text() === "NTQ Contract Relation";
 }).first().attr("value")).trigger("change.select2")');
-//                ->select('child_custom_table_id', 7)
             $browser->select('relation_type', 'one_to_many')
                 ->press('Submit')
                 ->waitForText('Save succeeded !')
@@ -137,7 +135,7 @@ class CustomRelationTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/admin/relation/ntq_contract')
                 ->assertSee('NTQ Contract Relation');
-                $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Contract Relation"}).closest("tr").click();');
+            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Contract Relation"}).closest("tr").click();');
             $browser->pause(5000)
                 ->assertSee('NTQ Contract')
                 ->assertSee('NTQ Contract Relation')
@@ -152,12 +150,12 @@ class CustomRelationTest extends DuskTestCase
             $browser->visit('/admin/relation/ntq_contract/create')
                 ->pause(5000);
             $browser->script('$(".child_custom_table_id").val($("option").filter(function() {
-  return $(this).text() === "Document";
+  return $(this).text() === "User";
 }).first().attr("value")).trigger("change.select2")');
             $browser->select('relation_type', 'many_to_many')
                 ->press('Submit')
                 ->waitForText('Save succeeded !')
-                ->assertSeeIn('.table-hover tr:last-child td:nth-child(5)', 'Document')
+                ->assertSeeIn('.table-hover tr:last-child td:nth-child(5)', 'User')
                 ->assertSeeIn('.table-hover tr:last-child td:nth-child(6)', 'Many to Many')
                 ->assertPathIs('/admin/relation/ntq_contract');
         });
@@ -169,10 +167,10 @@ class CustomRelationTest extends DuskTestCase
         $this->browse(function (Browser $browser) {
             $browser->visit('/admin/relation/ntq_contract')
                 ->assertSee('NTQ Contract Relation');
-            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "Document"}).closest("tr").click();');
+            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "User"}).closest("tr").click();');
             $browser->pause(5000)
                 ->assertSee('NTQ Contract')
-                ->assertSee('Document')
+                ->assertSee('User')
                 ->assertSelected('relation_type', 'many_to_many');
         });
     }
@@ -203,8 +201,9 @@ class CustomRelationTest extends DuskTestCase
             $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Contract Relation"}).closest("tr").find("a.grid-row-delete").click();');
             $browser->pause(5000)
                 ->press('Confirm')
-                ->press('OK')
                 ->waitForText('Delete succeeded !')
+                ->press('OK')
+                ->pause(2000)
                 ->assertDontSee('NTQ Contract Relation')
                 ->assertPathIs('/admin/relation/ntq_contract');
         });
