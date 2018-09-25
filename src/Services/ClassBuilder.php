@@ -251,10 +251,11 @@ class ClassBuilder {
                 ;
             // Ad Authority. for system, table --------------------------------------------------
             authorityLoop(Define::AUTHORITY_TYPE_TABLE, function($authority, $related_type) use($builder){
+				$target_model = getModelName($related_type, true);
                 $builder->addMethod(
                     "public",
                     getAuthorityName($authority, $related_type)."()",
-                        "return \$this->morphToMany(CustomTable::class, 'morph', 'system_authoritable', 'morph_id', 'related_id')
+                        "return \$this->morphToMany('$target_model', 'morph', 'system_authoritable', 'morph_id', 'related_id')
                         ->withPivot('related_id', 'related_type', 'authority_id')
                         ->wherePivot('related_type', '".$related_type."')
                         ->wherePivot('authority_id', {$authority->id});"

@@ -4,9 +4,11 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
 
 class Morph
 {
@@ -34,6 +36,12 @@ class Morph
                 $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
             }
             Relation::morphMap($morphMaps);
+        }
+
+        // Define Modelname user and org.
+        $tables = [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION];
+        foreach($tables as $table){
+            getModelName($table);
         }
     }
 }
