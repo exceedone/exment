@@ -55,6 +55,7 @@ trait AuthorityForm
                     ->options(function($options) use($related_type, $related_types){
                         return getOptions($related_type, $options);
                     })
+                    ->ajax(getOptionAjaxUrl($related_type))
                     ->pivot(['authority_id' => $authority->id, 'related_type' => $related_type])
                     //->help($authority->description)
                     ;

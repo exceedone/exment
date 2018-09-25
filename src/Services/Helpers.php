@@ -300,24 +300,32 @@ if (!function_exists('getModelName')) {
     function getModelName($obj, $get_name_only = false)
     {
         if (is_numeric($obj)) {
-            $table = CustomTable::find($obj);
+            // Get suuid.
+            // using DB query builder (because this function may be called createCustomTableExt. this function is trait CustomTable
+            //$table = CustomTable::find($obj);
+            $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
         }
         else if (is_string($obj)) {
-            $table = CustomTable::findByName($obj);
+            // get by table_name
+            // $table = CustomTable::findByName($obj);
+            $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
         } else if($obj instanceof CustomValue) {
             $table = $obj->getCustomTable();
+            $suuid = $table->suuid;
         } else {
             $table = $obj;
+            $suuid = $table->suuid;
         }
 
-        createTable($table);
-
         $namespace = "App\\CustomModel";
-        $className = "Class_{$table->suuid}";
+        $className = "Class_{$suuid}";
         $fillpath = "{$namespace}\\{$className}";
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
+            // get table. this block isn't called by createCustomTableExt
+            $table = CustomTable::findBySuuid($suuid);
+            createTable($table);    
             ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
         }
 
@@ -1075,6 +1083,17 @@ if (!function_exists('getOptionAjaxUrl')) {
      */
     function getOptionAjaxUrl($table)
     {
+        if (is_numeric($table)) {
+            $table = CustomTable::find($table);
+        }
+        else if (is_string($table)) {
+            $table = CustomTable::findByName($table);
+        } else if($table instanceof CustomValue) {
+            $table = $table->getCustomTable();
+        } else {
+            $table = $table;
+        }
+
         // get count table.
         $count = getModelName($table)::count();
         // when count > 0, create option only value.

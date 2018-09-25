@@ -61,7 +61,7 @@ class AdminControllerBase extends Controller
         if(method_exists($this, 'detail')){
             $render = $this->detail($id);
         }else{
-            $render = $this->detail($id);
+            $render = $this->edit($id);
         }
         return $this->AdminContent($content)->body($render);
     }
