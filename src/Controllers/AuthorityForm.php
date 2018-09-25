@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
@@ -43,22 +44,36 @@ trait AuthorityForm
 
         // Add Authority --------------------------------------------------
         authorityLoop($authority_type, function($authority, $related_type) use($form){
-            switch($related_type){
+            switch ($related_type) {
                 case Define::SYSTEM_TABLE_NAME_USER:
                 $related_types = ['column_name' => 'user_name', 'view_name' => exmtrans('user.default_table_name'), 'suffix' => 'userable'];
                 break;
                 default:
                 $related_types = ['column_name' => 'organization_name', 'view_name' => exmtrans('organization.default_table_name'), 'suffix' => 'organizationable'];
-                break;                
+                break;
             }
-            $form->pivotMultiSelect(getAuthorityName($authority, $related_type), "{$authority->authority_view_name}(".array_get($related_types, 'view_name').")")
-                    ->options(function($options) use($related_type, $related_types){
-                        return getOptions($related_type, $options);
-                    })
-                    ->ajax(getOptionAjaxUrl($related_type))
-                    ->pivot(['authority_id' => $authority->id, 'related_type' => $related_type])
-                    //->help($authority->description)
-                    ;
+
+            // declare pivotMultiSelect info
+            $authority_name = getAuthorityName($authority, $related_type);
+            $authority_view_name = "{$authority->authority_view_name}(".array_get($related_types, 'view_name').")";
+            $pivots = ['authority_id' => $authority->id, 'related_type' => $related_type];
+            
+            if (isGetOptions($related_type)) {
+            $form->pivotMultiSelect($authority_name, $authority_view_name)
+                ->options(function ($options) use ($related_type, $related_types) {
+                    return getOptions($related_type, $options);
+                })
+                ->pivot($pivots)
+                ;
+            }else{
+                $form->pivotMultiSelect($authority_name, $authority_view_name)
+                ->options(function ($options) use ($related_type, $related_types) {
+                    return getOptions($related_type, $options);
+                })
+                ->ajax(getOptionAjaxUrl($related_type))
+                ->pivot($pivots)
+                ;
+            }
         });
     }
 }

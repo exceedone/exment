@@ -1039,6 +1039,23 @@ if (!function_exists('getTransArrayValue')) {
 
 
 // laravel-admin --------------------------------------------------
+if (!function_exists('isGetOptions')) {
+    /**
+     * get options for select, multipleselect.
+     * But if options count > 100, use ajax, so only one record.
+     *
+     * @param array|CustomTable $table
+     * @param $selected_value
+     */
+    function isGetOptions($table)
+    {
+        // get count table.
+        $count = getModelName($table)::count();
+        // when count > 0, create option only value.
+        return $count <= 100;
+    }
+}
+
 if (!function_exists('getOptions')) {
     /**
      * get options for select, multipleselect.
