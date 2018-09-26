@@ -452,6 +452,23 @@ trait CustomValueForm
                         case 'file':
                             $show->field(getColumnName($column), $column->column_view_name)->link();
                             break;
+                        case 'yesno':
+                            $show->field(getColumnName($column), $column->column_view_name)->as(function($val){
+                                return boolval($val) ? 'YES' : 'NO';
+                            });
+                            break;
+                        case 'boolean':
+                            $show->field(getColumnName($column), $column->column_view_name)->as(function($val) use($options){
+                                // check matched true and false value
+                                if(array_get($options, 'true_value') == $val){
+                                    return array_get($options, 'true_label');
+                                }
+                                elseif(array_get($options, 'false_value') == $val){
+                                    return array_get($options, 'false_label');
+                                }
+                                return null;
+                            });
+                            break;
                         default:
                             $show->field(getColumnName($column), $column->column_view_name);
                             break;

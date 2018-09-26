@@ -149,6 +149,9 @@ if (!function_exists('array_keys_exists')) {
         if (is_null($keys)) {
             return false;
         }
+        if(!is_array($keys)){
+            $keys = [$keys];
+        }
         foreach ($keys as $key) {
             if (array_key_exists($key, $array)) {
                 return true;
@@ -514,16 +517,36 @@ if (!function_exists('getValue')) {
      */
     function getValue($custom_value, $column = null, $isonly_label = false)
     {
-        if(is_null($custom_value)){return null;}
-        $custom_table = $custom_value->getCustomTable();
+        if(is_null($custom_value)){return $isonly_label ? '' : null;}
+
+        $isCollection = $custom_value instanceof \Illuminate\Database\Eloquent\Collection;
+        // if multible data, set collection, so set as array
+        if(!$isCollection){
+            $custom_value = [$custom_value];
+        }
+
+        $custom_table = $custom_value[0]->getCustomTable();
 
         // get value
-        $value = $custom_value->value;
-        if (is_null($value)) {
-            return null;
+        $values = [];
+        foreach($custom_value as $v){
+            $value = $v->value;
+            if (is_null($value)) {
+                continue;
+            }
+            
+            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label);    
         }
-        
-        return getValueUseTable($custom_table, $value, $column, $isonly_label);
+
+        // if is collection
+        if($isCollection){
+            // if isonly label, return comma string
+            if ($isonly_label) {
+                return implode(exmtrans('common.separate_word'), $values);
+            }
+            return collect($values);
+        }
+        return $values[0];
     }
 }
 
@@ -538,7 +561,7 @@ if (!function_exists('getValueUseTable')) {
     function getValueUseTable($custom_table, $value, $column = null, $label = false)
     {
         if (is_null($value)) {
-            return null;
+            return $nullvalue;
         }
 
         if(is_null($column)){
@@ -579,7 +602,7 @@ if (!function_exists('getValueUseTable')) {
             $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
             $select_item = array_get($column_array, $array_get_key);
             $options = createSelectOptions($select_item, $column_type == 'select_valtext');
-            if (!array_key_exists($val, $options)) {
+            if (!array_keys_exists($val, $options)) {
                 return null;
             }
  
@@ -587,7 +610,7 @@ if (!function_exists('getValueUseTable')) {
         }
 
         // get value as select_table
-        else if (in_array($column_type, ['select_table', 'user', 'organization'])) {
+        elseif (in_array($column_type, ['select_table', 'user', 'organization'])) {
             // get target table
             $target_table_key = null;
             if ($column_type == 'select_table') {
@@ -628,7 +651,7 @@ if (!function_exists('getValueUseTable')) {
             }
             return implode(exmtrans('common.separate_word'), $labels);
         }
-        else if(in_array($column_type, ['file', 'image'])){
+        elseif(in_array($column_type, ['file', 'image'])){
             // Whether multiple file.
             $multiple_enabled = boolval(array_get($column_array, 'options.multiple_enabled'));
 
@@ -639,6 +662,29 @@ if (!function_exists('getValueUseTable')) {
                 $file = File::getFile($val);
                 return $file;
             }
+        }
+        // yesno
+        elseif(in_array($column_type, ['yesno'])){
+            if($label !== true){
+                return $val;
+            }
+            // convert label
+            return boolval($val) ? 'YES' : 'NO';
+        }
+        // boolean
+        elseif(in_array($column_type, ['yesno'])){
+            if($label !== true){
+                return $val;
+            }
+            // convert label
+            // check matched true and false value
+            if(array_get($column_array, 'options.true_value') == $val){
+                return array_get($column_array, 'options.true_label');
+            }
+            elseif(array_get($column_array, 'options.false_value') == $val){
+                return array_get($column_array, 'options.false_label');
+            }
+            return null;
         }
         else{
             // add comma
