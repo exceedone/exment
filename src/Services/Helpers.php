@@ -392,7 +392,7 @@ if (!function_exists('getColumnName')) {
      * @param CustomColumn|array $obj
      * @return string
      */
-    function getColumnName($obj)
+    function getColumnName($obj, $label = false)
     {
         if ($obj instanceof CustomColumn) {
             $obj = $obj->toArray();
@@ -400,7 +400,7 @@ if (!function_exists('getColumnName')) {
         if ($obj instanceof stdClass) {
             $obj = (array)$obj;
         }
-        return 'column_'.array_get($obj, 'suuid');
+        return 'column_'.array_get($obj, 'suuid').($label ? '_label' : '');
     }
 }
 
@@ -605,8 +605,33 @@ if (!function_exists('getValueUseTable')) {
             if (!array_keys_exists($val, $options)) {
                 return null;
             }
- 
-            return array_get($options, $val);
+
+            // if $val is array
+            $multiple = true;
+            if(!is_array($val)){
+                $val = [$val];
+                $multiple = false;
+            }
+            // switch column_type and get return value
+            $returns = [];
+            switch($column_type){
+                case 'select':
+                    $returns = $val;
+                    break;
+                case 'select_valtext':
+                    // loop keyvalue
+                    foreach($val as $v){
+                        // set whether $label
+                        $returns[] = $label ? array_get($options, $v) : $v;
+                    }
+                    break;
+            }
+            if($multiple){
+                return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
+            }else{
+                return $returns[0];
+            }
+            
         }
 
         // get value as select_table

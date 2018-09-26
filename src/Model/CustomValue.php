@@ -47,8 +47,8 @@ class CustomValue extends ModelBase
         return $query->get();
     }
 
-    public function getValue($key = null){
-        return getValue($this, $key);
+    public function getValue($key = null, $label = false){
+        return getValue($this, $key, $label);
     }
 
     public function setValue($key, $val){

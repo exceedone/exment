@@ -185,6 +185,12 @@ class ClassBuilder {
                     "get".pascalize(getColumnName($column))."Attribute()",
                          "return \$this->getValue('{$column->column_name}');"
                 );
+				// add method for grid page
+				$builder->addMethod(
+                    "public",
+                    "get".pascalize(getColumnName($column))."LabelAttribute()",
+                         "return \$this->getValue('{$column->column_name}', true);"
+                );
 
                 $builder->addMethod(
                     "public",
@@ -192,8 +198,10 @@ class ClassBuilder {
                          "\$this->setValue('{$column->column_name}', \$val);"
                 );
             }
-            // create field
-            $column_props = $columns->map(function($value, $key){return "'".getColumnName($value)."'";})->toArray();
+
+			// create field
+			$column_props = $columns->map(function($value, $key){return "'".getColumnName($value)."'";})->toArray();
+			$column_props = array_merge($columns->map(function($value, $key){return "'".getColumnName($value, true)."'";})->toArray(), $column_props);
             $builder->addProperty("protected", 'appends', "[".implode(",", $column_props)."]");
 
             // Create Relationship --------------------------------------------------

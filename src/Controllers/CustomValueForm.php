@@ -430,49 +430,7 @@ trait CustomValueForm
                 foreach ($custom_form_block->custom_form_columns as $form_column) {
                     $column = $form_column->custom_column;
                     $options = $column->options;
-
-                    switch ($column->column_type) {
-                        case 'select':
-                        case 'select_valtext':
-                            $show->field(getColumnName($column), $column->column_view_name)->as(function($val){
-                                return $val;
-                            });
-                            break;
-                        case 'select_table':
-                        case 'user':
-                        case 'organization':
-                            $show->field(getColumnName($column), $column->column_view_name)->as(function($val){
-                                // return $val->getValue()
-                                // return null;
-                                return getValue($val, null, true);
-                            });
-                            break;
-                        case 'image':
-                            $show->field(getColumnName($column), $column->column_view_name)->image();
-                        case 'file':
-                            $show->field(getColumnName($column), $column->column_view_name)->link();
-                            break;
-                        case 'yesno':
-                            $show->field(getColumnName($column), $column->column_view_name)->as(function($val){
-                                return boolval($val) ? 'YES' : 'NO';
-                            });
-                            break;
-                        case 'boolean':
-                            $show->field(getColumnName($column), $column->column_view_name)->as(function($val) use($options){
-                                // check matched true and false value
-                                if(array_get($options, 'true_value') == $val){
-                                    return array_get($options, 'true_label');
-                                }
-                                elseif(array_get($options, 'false_value') == $val){
-                                    return array_get($options, 'false_label');
-                                }
-                                return null;
-                            });
-                            break;
-                        default:
-                            $show->field(getColumnName($column), $column->column_view_name);
-                            break;
-                    }
+                    $show->field(getColumnName($column, true), $column->column_view_name);
                 }
             }
 
