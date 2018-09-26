@@ -55,8 +55,8 @@ class CustomColumnController extends AdminControllerTableBase
         if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
             return;
         }
-        if (($response = $this->validateTableAndId(CustomColumn::class, $id, 'column')) instanceof RedirectResponse) {
-            return $response;
+        if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
+            return;
         }
         return parent::edit($request, $id, $content);
     }

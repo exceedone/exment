@@ -62,8 +62,8 @@ class CustomFormController extends AdminControllerTableBase
         if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
             return;
         }
-        if (($response = $this->validateTableAndId(CustomForm::class, $id, 'form')) instanceof RedirectResponse) {
-            return $response;
+        if (!$this->validateTableAndId(CustomForm::class, $id, 'form')) {
+            return;
         }
         $this->AdminContent($content);
         $this->droppableForm($content, $id);

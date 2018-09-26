@@ -50,8 +50,8 @@ class CustomViewController extends AdminControllerTableBase
         if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
             return;
         }
-        if (($response = $this->validateTableAndId(CustomView::class, $id, 'view')) instanceof RedirectResponse) {
-            return $response;
+        if ($this->validateTableAndId(CustomView::class, $id, 'view')) {
+            return;
         }
         return parent::edit($request, $id, $content);
     }

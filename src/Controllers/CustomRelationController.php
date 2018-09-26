@@ -54,8 +54,8 @@ class CustomRelationController extends AdminControllerTableBase
         if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
             return;
         }
-        if (($response = $this->validateTableAndId(CustomRelation::class, $id, 'relation')) instanceof RedirectResponse) {
-            return $response;
+        if ($this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
+            return;
         }
         return parent::edit($request, $id, $content);
     }
