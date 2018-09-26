@@ -156,8 +156,8 @@ class CreateTableDefine extends Migration
             $table->string('description', 1000)->nullable();
             $table->boolean('system_flg')->default(false);
             $table->json('options')->nullable();
-            $table->boolean('required')->virtualAs("json_unquote(json_extract(`options`,'$.required'))");
-            $table->boolean('search_enabled')->virtualAs("json_unquote(json_extract(`options`,'$.search_enabled'))");
+            // $table->boolean('required')->virtualAs("json_unquote(json_extract(`options`,'$.required'))");
+            // $table->boolean('search_enabled')->virtualAs("json_unquote(json_extract(`options`,'$.search_enabled'))");
 
             $table->timestamps();
             $table->softDeletes();
