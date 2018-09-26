@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
+use Encore\Admin\Facades\Admin;
 
 class DashboardMenu
 {
@@ -31,10 +32,12 @@ class DashboardMenu
 
         // setting menu list
         $settings = [];
-        //TODO:authority check
-        $settings[] = ['url' => admin_base_path(url_join('dashboard', $this->current_dashboard->id, 'edit')), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
-        $settings[] = ['url' => admin_base_path(url_join('dashboard', 'create')), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
-
+        //authority check
+        //TODO:now system admin. change if user dashboard
+        if (Admin::user()->hasPermission(Define::AUTHORITY_VALUE_SYSTEM)) {
+            $settings[] = ['url' => admin_base_path(url_join('dashboard', $this->current_dashboard->id, 'edit')), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
+            $settings[] = ['url' => admin_base_path(url_join('dashboard', 'create')), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
+        }
         return view('exment::dashboard.header', [
             'current_dashboard' => $this->current_dashboard,
             'systemdashboards' => $systemdashboards, 

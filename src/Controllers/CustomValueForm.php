@@ -425,9 +425,6 @@ trait CustomValueForm
                     continue;
                 }
                 foreach ($custom_form_block->custom_form_columns as $form_column) {
-                    // switch ($form_column->form_column_type) {
-
-                    // }
                     $column = $form_column->custom_column;
                     $options = $column->options;
 
@@ -460,10 +457,12 @@ trait CustomValueForm
             }
 
             // if user only view permission, disable delete and view
-            $show->panel()->tools(function ($tools) {
-                $tools->disableEdit();
-                $tools->disableDelete();
-            });
+            if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
+                $show->panel()->tools(function ($tools) {
+                    $tools->disableEdit();
+                    $tools->disableDelete();
+                });
+            }
         });
     }
 

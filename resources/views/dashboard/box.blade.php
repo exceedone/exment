@@ -9,11 +9,17 @@
         </h3>
         <div class="box-tools pull-right">
                 @if(isset($suuid))
-                <a class="btn btn-box-tool" href="{{admin_base_path('dashboardbox/'.$id.'/edit')}}"><i class="fa fa-cog"></i></a>
-                <button class="btn btn-box-tool" data-exment-widget="reload"><i class="fa fa-refresh"></i></button>
-                <button class="btn btn-box-tool" data-exment-widget="delete"><i class="fa fa-trash"></i></button>
+                @foreach($icons as $icon)
+                @if(isset($icon['href']))
+                <a class="btn btn-box-tool" href="{{$icon['href']}}"><i class="fa {{$icon['icon']}}"></i></a>
+                @else
+                <button class="btn btn-box-tool" data-exment-widget="{{$icon['widget']}}"><i class="fa {{$icon['icon']}}"></i></button>
+                @endif
+                @endforeach
+                
                 @else
                 <div class="btn-group pull-right" style="margin-right: 5px">
+                    @if(count($dashboardboxes_newbuttons) > 0)
                         <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="fa fa-save"></i>&nbsp;{{trans('admin.new')}}
                             <span class="caret"></span>
@@ -23,6 +29,7 @@
                             <li><a href="{{$button['url']}}"><i class="fa {{array_get($button, 'icon')}}"></i>&nbsp;{{array_get($button, 'view_name')}}</a></li>
                             @endforeach
                         </ul>
+                    @endif
                 </div>
                 @endif
         </div><!-- /.box-tools -->

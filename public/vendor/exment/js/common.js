@@ -44,10 +44,10 @@ var Exment;
                 //その要素の先祖要素で一番近いtrの
                 //data-href属性の値に書かれているURLに遷移する
                 var linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                if (!linkElem) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-view');
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
                 }
-                if (!linkElem) {
+                if (!hasValue(linkElem)) {
                     return;
                 }
                 linkElem.closest('a').click();
