@@ -52,6 +52,13 @@ class SystemController extends AdminControllerBase
             // Set Authority
             authorityLoop(Define::AUTHORITY_TYPE_SYSTEM, function ($authority, $related_type) use ($request) {
                 $values = $request->input(getAuthorityName($authority, $related_type));
+                // array_filter
+                $values = array_filter($values, function($k){
+                    return isset($k);
+                });
+                if (!isset($values)) {
+                    $values = [];
+                }
 
                 // get DB system_authoritable values
                 $dbValues = DB::table('system_authoritable')
@@ -59,31 +66,29 @@ class SystemController extends AdminControllerBase
                     ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
                     ->where('authority_id', $authority->id)
                     ->get(['related_id']);
-                if (isset($values)) {
-                    foreach ($values as $value) {
-                        if (!isset($value)) {
-                            continue;
-                        }
-                        /// not exists db value, insert
-                        if (!$dbValues->first(function ($dbValue, $k) use ($value) {
-                            return $dbValue->related_id == $value;
-                        })) {
-                            DB::table('system_authoritable')->insert(
-                            [
-                                'related_id' => $value,
-                                'related_type' => $related_type,
-                                'morph_id' => null,
-                                'morph_type' => Define::AUTHORITY_TYPE_SYSTEM,
-                                'authority_id' => $authority->id,
-                            ]
-                        );
-                        }
+                foreach ($values as $value) {
+                    if (!isset($value)) {
+                        continue;
+                    }
+                    /// not exists db value, insert
+                    if (!$dbValues->first(function ($dbValue, $k) use ($value) {
+                        return $dbValue->related_id == $value;
+                    })) {
+                        DB::table('system_authoritable')->insert(
+                        [
+                            'related_id' => $value,
+                            'related_type' => $related_type,
+                            'morph_id' => null,
+                            'morph_type' => Define::AUTHORITY_TYPE_SYSTEM,
+                            'authority_id' => $authority->id,
+                        ]
+                    );
                     }
                 }
 
                 ///// Delete if not exists value
                 foreach($dbValues as $dbValue){
-                    if (is_null($values) && !collect($values)->first(function ($value, $k) use($dbValue) {
+                    if (!collect($values)->first(function ($value, $k) use($dbValue) {
                         return $dbValue->related_id == $value;
                     })) {
                         DB::table('system_authoritable')

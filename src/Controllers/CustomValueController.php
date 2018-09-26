@@ -83,6 +83,10 @@ class CustomValueController extends AdminControllerTableBase
     public function show(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         // if user doesn't have authority for target id data, show deny error.
         if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
             $response = response($this->AdminContent()->withError(trans('admin.deny')));
@@ -102,6 +106,11 @@ class CustomValueController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
+        
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         // if user doesn't have authority for target id data, show deny error.
         if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
             $response = response($this->AdminContent()->withError(trans('admin.deny')));
@@ -129,6 +138,10 @@ class CustomValueController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         // if user doesn't have permission creating data, throw admin.dany error.
         if (!Admin::user()->hasPermissionTable($this->custom_table->table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $response = response($this->AdminContent()->withError(trans('admin.deny')));

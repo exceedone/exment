@@ -156,6 +156,7 @@ class Define
     public const AUTHORITY_VALUE_SYSTEM = 'system';
     public const AUTHORITY_VALUE_CUSTOM_TABLE = 'custom_table';
     public const AUTHORITY_VALUE_CUSTOM_FORM = 'custom_form';
+    public const AUTHORITY_VALUE_CUSTOM_VIEW = 'custom_view';
     public const AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL = 'custom_value_edit_all';
     public const AUTHORITY_VALUE_CUSTOM_VALUE_EDIT = 'custom_value_edit';
     public const AUTHORITY_VALUE_CUSTOM_VALUE_VIEW = 'custom_value_view';
@@ -285,11 +286,11 @@ class Define
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
 
     public const GRID_CHANGE_PAGE_MENULIST = [
-        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => ['custom_table'], 'exmtrans' => 'change_page_menu.custom_table'],
-        ['url' => 'column', 'icon' => 'fa-list', 'authorities' => ['custom_table'], 'exmtrans' => 'change_page_menu.custom_column'],
-        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'authorities' => ['custom_form'], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'authorities' => ['custom_view'], 'exmtrans' => 'change_page_menu.custom_view'],
-        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => ['custom_table'], 'exmtrans' => 'change_page_menu.custom_relation'],
+        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
+        ['url' => 'column', 'icon' => 'fa-list', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
+        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
+        ['url' => 'view', 'icon' => 'fa-th-list', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
+        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
         ['url' => 'data', 'icon' => 'fa-database', 'authorities' => self::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 

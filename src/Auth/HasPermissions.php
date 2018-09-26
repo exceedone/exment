@@ -10,6 +10,7 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\UserSetting;
 use Carbon\Carbon;
@@ -134,7 +135,7 @@ trait HasPermissions
             if ($key == Define::AUTHORITY_TYPE_SYSTEM) {
                 array_push($permissions, new Permission([
                     'authority_type' =>$key,
-                    'table_name' =>null,
+                    'table_name' => null,
                     'authorities' =>$authority,
                 ]));
                 continue;
@@ -149,6 +150,25 @@ trait HasPermissions
         }
 
         return collect($permissions);
+    }
+
+    /**
+     * Get all has permission tables of user.
+     *
+     * @return mixed
+     */
+    public function allHasPermissionTables($authority_key) : Collection
+    {
+        $results = [];
+        // get tables
+        $custom_tables = CustomTable::all();
+        // loop for table
+        foreach($custom_tables as $custom_table){
+            if($this->hasPermissionTable($custom_table->table_name, $authority_key)){
+                $results[] = $custom_table;
+            }
+        }
+        return collect($results);
     }
 
     /**

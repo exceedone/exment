@@ -5,7 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Controllers\ModelForm;
-//use Encore\Admin\Widgets\Form;
+use Encore\Admin\Facades\Admin;
+use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Authority;
@@ -42,6 +43,18 @@ class CustomTableController extends AdminControllerBase
             }
             $actions->disableView();
         });
+
+        // if not exists, filter model using permission
+        if (!Admin::user()->hasPermission(Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+            // get tables has custom_table permission.
+            $permission_tables = Admin::user()->allHasPermissionTables(Define::AUTHORITY_VALUE_CUSTOM_TABLE);
+            $permission_table_ids = $permission_tables->map(function($permission_table){
+                return array_get($permission_table, 'id');
+            });
+            // filter id;
+            $grid->model()->whereIn('id', $permission_table_ids);
+        }
+
         return $grid;
     }
 
@@ -80,5 +93,20 @@ class CustomTableController extends AdminControllerBase
             }
         });
         return $form;
+    }
+    
+    /**
+     * Edit interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function edit(Request $request, $id, Content $content)
+    {
+        if(!$this->validateTable($id, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
+        return parent::edit($request, $id, $content);
     }
 }

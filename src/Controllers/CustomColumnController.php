@@ -34,6 +34,10 @@ class CustomColumnController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         return parent::index($request, $content);
     }
 
@@ -46,6 +50,11 @@ class CustomColumnController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
+        
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         if (($response = $this->validateTableAndId(CustomColumn::class, $id, 'column')) instanceof RedirectResponse) {
             return $response;
         }
@@ -60,6 +69,10 @@ class CustomColumnController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         return parent::create($request, $content);
     }
 
