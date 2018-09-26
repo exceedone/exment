@@ -553,10 +553,7 @@ trait HasPermissions
             if(is_string($authority_details)){
                 $authority_details = json_decode($authority_details, true);
             }
-            foreach ($authority_details as $kv) {
-                $key = key($kv);
-                $value = $kv[$key];
-                
+            foreach ($authority_details as $key => $value) {                
                 // if permission value is 1, add permission.
                 if (boolval($value) && !array_key_exists($key, $permission_tables)) {
                     $permission_tables[$key] = $value;
@@ -603,14 +600,12 @@ trait HasPermissions
             if(is_string($authority_details)){
                 $authority_details = json_decode($authority_details, true);
             }
-            foreach ($authority_details as $authority_detail) {
-                foreach ($authority_detail as $key => $value) {
+            foreach ($authority_details as $key => $value) {
                     // if permission value is 1, add permission.
                     // $key = key($kv);
                     // $value = $kv[$key];
-                    if (boolval($value) && !array_key_exists($key, $permissions)) {
-                        $permissions[$key] = $value;
-                    }
+                if (boolval($value) && !array_key_exists($key, $permissions)) {
+                    $permissions[$key] = $value;
                 }
             }
         }

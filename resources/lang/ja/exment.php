@@ -494,11 +494,13 @@ return [
             'system' => ['label' => 'システム情報', 'help' => 'システム情報を変更できます。'],
             'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'すべてのデータを追加・変更・削除できます。'],
         ],
         'authority_type_option_table' => [
             'custom_table' => ['label' => 'テーブル', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'ビュー', 'help' => 'ビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'すべてのデータを追加・編集・削除できます。'],
             'custom_value_edit' => ['label' => '担当者データの編集', 'help' => '自分が担当者のデータを追加・編集・削除できます。'],
             'custom_value_view' => ['label' => '担当者データの閲覧', 'help' => '自分が担当者のデータを閲覧できます。'],

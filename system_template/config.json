@@ -476,6 +476,7 @@
                 "system",
                 "custom_table",
                 "custom_form",
+                "custom_view",
                 "custom_value_edit_all"
             ]
         },
@@ -496,6 +497,7 @@
             "permissions": [
                 "custom_table",
                 "custom_form",
+                "custom_view",
                 "custom_value_edit_all",
                 "custom_value_edit",
                 "custom_value_view"
