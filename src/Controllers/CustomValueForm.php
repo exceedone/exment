@@ -348,11 +348,14 @@ trait CustomValueForm
             }
             
             // get target custom_value's value_authoritable
-            if($form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER)->count() == 0 || $form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->count() == 0){
+            if(($form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER)->count() == 0
+                || $form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->count() == 0)
+                && !in_array($custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])
+            ){
                 ///// if all user and org is 0, add userself authority
                 // get authority where custom_value_edit is 1
                 $authority = Authority::where('authority_type', Define::AUTHORITY_TYPE_VALUE)
-                    ->whereRaw("JSON_CONTAINS(permissions, '{\"custom_value_edit\": 1}', '$') ")
+                    ->where("permissions->".Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT, "1")
                     ->first();
 
                 DB::table('value_authoritable')
