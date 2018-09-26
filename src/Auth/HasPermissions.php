@@ -85,13 +85,13 @@ trait HasPermissions
      * whethere has permission selecting table, permission level
      * @param array|string $authority_key * if set array, check whether either items.
      */
-    public function hasPermissionTable($table_name, $authority_key)
+    public function hasPermissionTable($table, $authority_key)
     {
         // if system doesn't use authority, return true
         if (!System::authority_available()) {
             return true;
         }
-
+        $table_name = CustomTable::getEloquent($table)->table_name;
         if (!is_array($authority_key)) {
             $authority_key = [$authority_key];
         }
@@ -265,8 +265,13 @@ trait HasPermissions
             return true;
         }
 
-        $model = getModelName($table_name)::find($id);
+        // if id is null(for create), return true
+        if(!isset($id)){
+            return true;
+        }
+
         // else, get model using value_authoritable.
+        $model = getModelName($table_name)::find($id);
         // if count > 0, return true.
         $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER);
         if (isset($rows) && count($rows) > 0) {
@@ -548,10 +553,7 @@ trait HasPermissions
             if(is_string($authority_details)){
                 $authority_details = json_decode($authority_details, true);
             }
-            foreach ($authority_details as $kv) {
-                $key = key($kv);
-                $value = $kv[$key];
-                
+            foreach ($authority_details as $key => $value) {                
                 // if permission value is 1, add permission.
                 if (boolval($value) && !array_key_exists($key, $permission_tables)) {
                     $permission_tables[$key] = $value;
@@ -598,14 +600,12 @@ trait HasPermissions
             if(is_string($authority_details)){
                 $authority_details = json_decode($authority_details, true);
             }
-            foreach ($authority_details as $authority_detail) {
-                foreach ($authority_detail as $key => $value) {
+            foreach ($authority_details as $key => $value) {
                     // if permission value is 1, add permission.
                     // $key = key($kv);
                     // $value = $kv[$key];
-                    if (boolval($value) && !array_key_exists($key, $permissions)) {
-                        $permissions[$key] = $value;
-                    }
+                if (boolval($value) && !array_key_exists($key, $permissions)) {
+                    $permissions[$key] = $value;
                 }
             }
         }

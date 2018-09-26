@@ -84,7 +84,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)){
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -108,7 +108,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -139,7 +139,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
             return;
         }
         // if user doesn't have permission creating data, throw admin.dany error.
@@ -254,7 +254,7 @@ class CustomValueController extends AdminControllerTableBase
                     $block_label = exmtrans('custom_form.table_many_to_many_label') . $target_table->table_view_name;
                 }
 
-                $field = new Field\MultipleSelect(
+                $field = new Field\Listbox(
                     getRelationNamebyObjs($this->custom_table, $target_table),
                     [$block_label]
                 );
@@ -291,7 +291,10 @@ EOT;
         }
 
         // add authority form --------------------------------------------------
-        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_VALUE);
+        // ignore user and org
+        if (!in_array($this->custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+            $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_VALUE);
+        }
 
         // add form saving and saved event
         $this->manageFormSaving($form);

@@ -494,11 +494,13 @@ return [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
+            'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
         ],
         'authority_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
+            'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
             'custom_value_edit' => ['label' => 'Edit Personnel Data', 'help' => 'Users can add, edit, delete personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],

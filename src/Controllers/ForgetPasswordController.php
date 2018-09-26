@@ -21,14 +21,6 @@ class ForgetPasswordController extends Controller
      */
     public function __construct()
     {
-        // add for exment_admins
-        if (!Config::has('auth.passwords.exment_admins')) {
-            Config::set('auth.passwords.exment_admins', [
-                'provider' => 'exment-auth',
-                'table' => 'password_resets',
-                'expire' => 720,
-            ]);
-        }
         //TODO:only set admin::guest
         //$this->middleware('guest');
     }

@@ -61,6 +61,24 @@ $('body').append($('<input/>', {
 EOT;
         Ad::script($script);
     
+        // add for exment_admins
+        if (!Config::has('auth.passwords.exment_admins')) {
+            Config::set('auth.passwords.exment_admins', [
+                'provider' => 'exment-auth',
+                'table' => 'password_resets',
+                'expire' => 720,
+            ]);
+        }        
+        // add for exment_admins
+        if (!Config::has('auth.providers.exment_admins')) {
+            Config::set('auth.providers.exment_admins', [
+                'exment-auth' => [
+                    'driver' => 'eloquent',
+                    'model' => \Exceedone\Exment\Model\LoginUser::class,
+                ]
+            ]);
+        }
+        
         return $next($request);
     }
 }

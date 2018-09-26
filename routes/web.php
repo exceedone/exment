@@ -86,7 +86,6 @@ Route::group([
     $router->get("data/invoice/{id}/doc", 'CustomValueController@getDocumentForm');
     $router->post("data/invoice/{id}/doc", 'CustomValueController@postDocumentForm');
 
-
     $router->get('files/{uuid}', function($uuid){
         return File::download($uuid);
     });

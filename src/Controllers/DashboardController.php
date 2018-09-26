@@ -256,6 +256,9 @@ EOT;
 
     protected function setDashboardBox($content, $row_column_count, $row_no){
         $content->row(function($row) use($content, $row_column_count, $row_no) {
+                // check authority.
+                //TODO:now system admin. change if user dashboard
+                $has_authority = Admin::user()->hasPermission(Define::AUTHORITY_VALUE_SYSTEM);
             for($i = 1; $i <= $row_column_count; $i++){
                 // get $boxes as $row_no
                 if($row_no == 1){
@@ -266,30 +269,43 @@ EOT;
 
                 // get target column by database
                 $dashboard_column = $boxes->where('column_no', $i)->first();
+                $id = $dashboard_column->id ?? null;
 
                 // new dashboadbox dropdown button list
                 $dashboardboxes_newbuttons = [];
-                foreach(Define::DASHBOARD_BOX_TYPE_OPTIONS as $options){
-                    // create query
-                    $query = http_build_query([
-                        'dashboard_suuid' => $this->dashboard->suuid,
-                        'dashboard_box_type' => array_get($options, 'dashboard_box_type'),
-                        'row_no' => $row_no,
-                        'column_no' => $i,
-                    ]);
-                    $dashboardboxes_newbuttons[] = [
-                        'url' => admin_base_path("dashboardbox/create?{$query}"),
-                        'icon' =>  $options['icon'],
-                        'view_name' => exmtrans("dashboard.dashboard_box_type_options.{$options['dashboard_box_type']}"),
-                    ];
+                if ($has_authority) {
+                    foreach(Define::DASHBOARD_BOX_TYPE_OPTIONS as $options){
+                        // create query
+                        $query = http_build_query([
+                            'dashboard_suuid' => $this->dashboard->suuid,
+                            'dashboard_box_type' => array_get($options, 'dashboard_box_type'),
+                            'row_no' => $row_no,
+                            'column_no' => $i,
+                        ]);
+                        $dashboardboxes_newbuttons[] = [
+                            'url' => admin_base_path("dashboardbox/create?{$query}"),
+                            'icon' =>  $options['icon'],
+                            'view_name' => exmtrans("dashboard.dashboard_box_type_options.{$options['dashboard_box_type']}"),
+                        ];
+                    }
                 }
+
+                // right-top icons
+                $icons = [['widget' => 'reload', 'icon' => 'fa-refresh']];
+                // check authority.
+                if ($has_authority) {
+                    array_prepend($icons, ['link' => admin_base_path('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog']);
+                    array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash']);
+                }   
+                
                 $box = new Box();
                 $row->column(12 / $row_column_count, view('exment::dashboard.box', [
                     'title' => $dashboard_column->dashboard_box_view_name ?? null,
-                    'id' => $dashboard_column->id ?? null,
+                    'id' => $id,
                     'suuid' => $dashboard_column->suuid ?? null,
                     'dashboard_suuid' => $this->dashboard->suuid,
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
+                    'icons' => $icons,
                 ]));
             }
         });

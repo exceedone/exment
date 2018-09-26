@@ -140,6 +140,8 @@ class Define
         3 => ['id' => 3, 'column_name' => 'html'],
     ];
 
+
+    // authority --------------------------------------------------
     public const AUTHORITY_TYPE_SYSTEM = 'system';
     public const AUTHORITY_TYPE_TABLE = 'table';
     public const AUTHORITY_TYPE_VIEW = 'view';
@@ -175,11 +177,13 @@ class Define
             self::AUTHORITY_VALUE_SYSTEM,
             self::AUTHORITY_VALUE_CUSTOM_TABLE,
             self::AUTHORITY_VALUE_CUSTOM_FORM,
+            self::AUTHORITY_VALUE_CUSTOM_VIEW,
             self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL,
         ]
         , self::AUTHORITY_TYPE_TABLE => [
             self::AUTHORITY_VALUE_CUSTOM_TABLE,
             self::AUTHORITY_VALUE_CUSTOM_FORM,
+            self::AUTHORITY_VALUE_CUSTOM_VIEW,
             self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL,
             self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT,
             self::AUTHORITY_VALUE_CUSTOM_VALUE_VIEW,

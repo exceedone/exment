@@ -47,7 +47,7 @@ class SwitchBoolField extends Field
         }
         else{
             foreach ($this->states as $state => $option) {
-                if ($this->value() == $option['value']) {
+                if (boolval($this->value()) == boolval($option['value'])) {
                     $this->value = $state;
                     break;
                 }

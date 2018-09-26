@@ -418,17 +418,6 @@ trait CustomValueForm
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
         return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id) {
-            // // create
-            // if (!isset($id)) {
-            //     $isButtonCreate = true;
-            //     $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
-            // }
-            // // edit
-            // else {
-            //     $isButtonCreate = false;
-            //     $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
-            // }
-
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue
@@ -436,9 +425,6 @@ trait CustomValueForm
                     continue;
                 }
                 foreach ($custom_form_block->custom_form_columns as $form_column) {
-                    // switch ($form_column->form_column_type) {
-
-                    // }
                     $column = $form_column->custom_column;
                     $options = $column->options;
 
@@ -468,6 +454,14 @@ trait CustomValueForm
                             break;
                     }
                 }
+            }
+
+            // if user only view permission, disable delete and view
+            if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
+                $show->panel()->tools(function ($tools) {
+                    $tools->disableEdit();
+                    $tools->disableDelete();
+                });
             }
         });
     }

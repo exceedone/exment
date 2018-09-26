@@ -370,6 +370,18 @@
             ]
         }
     ],
+    "relations": [
+        {
+            "relation_type": "one_to_many",
+            "parent_custom_table_name": "contract",
+            "child_custom_table_name": "contract_detail"
+        },
+        {
+            "relation_type": "one_to_many",
+            "parent_custom_table_name": "product",
+            "child_custom_table_name": "product_version"
+        }
+    ],
     "form": [
         {
             "form_view_name": "フォーム",
@@ -506,18 +518,6 @@
                 }
             ],
             "table_name": "contract"
-        }
-    ],
-    "relations": [
-        {
-            "relation_type": "one_to_many",
-            "parent_custom_table_name": "contract",
-            "child_custom_table_name": "contract_detail"
-        },
-        {
-            "relation_type": "one_to_many",
-            "parent_custom_table_name": "product",
-            "child_custom_table_name": "product_version"
         }
     ],
     "menu": [

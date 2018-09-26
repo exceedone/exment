@@ -258,6 +258,13 @@
             ]
         }
     ],
+    "relations": [
+        {
+            "relation_type": "many_to_many",
+            "parent_custom_table_name": "organization",
+            "child_custom_table_name": "user"
+        }
+    ],
     "form": [
         {
             "form_view_name": "フォーム",
@@ -353,6 +360,14 @@
                         }
                     ],
                     "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "子テーブル - ユーザー",
+                    "form_block_type": "many_to_many",
+                    "available": "1",
+                    "custom_form_columns": [
+                    ],
+                    "form_block_target_table_name": "user"
                 }
             ],
             "table_name": "organization"
@@ -451,13 +466,6 @@
 			]
 		}
 	],
-    "relations": [
-        {
-            "relation_type": "many_to_many",
-            "parent_custom_table_name": "organization",
-            "child_custom_table_name": "user"
-        }
-    ],
     "authorities": [
         {
             "authority_type": "system",
@@ -468,6 +476,7 @@
                 "system",
                 "custom_table",
                 "custom_form",
+                "custom_view",
                 "custom_value_edit_all"
             ]
         },
@@ -488,6 +497,7 @@
             "permissions": [
                 "custom_table",
                 "custom_form",
+                "custom_view",
                 "custom_value_edit_all",
                 "custom_value_edit",
                 "custom_value_view"

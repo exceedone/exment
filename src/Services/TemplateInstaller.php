@@ -276,6 +276,8 @@ class TemplateInstaller
                 $obj_relation->child_custom_table_id = $child_id;
                 $obj_relation->relation_type = array_get($relation, 'relation_type');
                 $obj_relation->saveOrFail();
+
+
             }
         }
 
@@ -513,7 +515,7 @@ class TemplateInstaller
                 if (array_key_exists('permissions', $authority)) {
                     $permissions = [];
                     foreach (array_get($authority, "permissions") as $permission) {
-                        array_push($permissions, [$permission => 1]);
+                        $permissions[$permission] = "1";
                     }
                     $obj_authority->permissions = $permissions;
                 }
