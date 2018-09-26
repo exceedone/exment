@@ -28,6 +28,7 @@ class AdminControllerTableBase extends AdminControllerBase
     protected function getModelNameDV(){
         return getModelName($this->custom_table);
     }
+
     /**
      * validate table_name and id
      * ex. check /admin/column/user/1/edit

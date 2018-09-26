@@ -2,12 +2,14 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
-use Exceedone\Exment\Model\CustomTable;
-use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Encore\Admin\Form;
+use Encore\Admin\Layout\Content;
+use Encore\Admin\Facades\Admin;
+use Encore\Admin\Auth\Permission as Checker;
+use Exceedone\Exment\Model\CustomTable;
 
 class AdminControllerBase extends Controller
 {
@@ -37,6 +39,26 @@ class AdminControllerBase extends Controller
         $id = $request->input('q');
         $options = CustomTable::find($id)->custom_columns()->get(['id', DB::raw('column_view_name as text')]);
         return $options;
+    }
+
+    /**
+     * validation table
+     * @param mixed $table id or customtable
+     */
+    protected function validateTable($table, $authority_name){
+        if(is_numeric($table)){
+            $table = CustomTable::find($table);
+        }elseif($table instanceof CustomTable){
+            // nothing
+        }
+
+        //check permission
+        // if not exists, filter model using permission
+        if (!Admin::user()->hasPermissionTable($table->table_name, $authority_name)) {
+            Checker::error();
+            return false;
+        }
+        return true;
     }
     
     /**

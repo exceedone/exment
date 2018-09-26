@@ -138,7 +138,7 @@ EOT;
      */
     public function index(Request $request, Content $content){
         if($request->has('table_name') && $request->has('value_id')){
-            return $this->getRelationSearch($request);
+            return $this->getRelationSearch($request, $content);
         }else{
             return $this->getFreeWord($request);
         }

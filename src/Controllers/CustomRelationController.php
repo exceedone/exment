@@ -33,6 +33,10 @@ class CustomRelationController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         return parent::index($request, $content);
     }
 
@@ -45,8 +49,13 @@ class CustomRelationController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
-        if (($response = $this->validateTableAndId(CustomRelation::class, $id, 'relation')) instanceof RedirectResponse) {
-            return $response;
+        
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
+        if ($this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
+            return;
         }
         return parent::edit($request, $id, $content);
     }
@@ -59,6 +68,10 @@ class CustomRelationController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         return parent::create($request, $content);
     }
 

@@ -45,8 +45,13 @@ class CustomViewController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
-        if (($response = $this->validateTableAndId(CustomView::class, $id, 'view')) instanceof RedirectResponse) {
-            return $response;
+        
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
+        if ($this->validateTableAndId(CustomView::class, $id, 'view')) {
+            return;
         }
         return parent::edit($request, $id, $content);
     }
@@ -59,6 +64,10 @@ class CustomViewController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+            return;
+        }
         return parent::create($request, $content);
     }
 

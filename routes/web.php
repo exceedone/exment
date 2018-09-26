@@ -42,14 +42,14 @@ Route::group([
     $router->post('template/import', 'TemplateController@import');
     $router->post('template/export', 'TemplateController@export');
 
-    $router->resource('plugin', 'PluginController');
-    $router->resource('authority', 'AuthorityController');
-    $router->resource('table', 'CustomTableController');
+    $router->resource('plugin', 'PluginController', ['except' => ['show']]);
+    $router->resource('authority', 'AuthorityController', ['except' => ['show']]);
+    $router->resource('table', 'CustomTableController', ['except' => ['show']]);
     $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
-    $router->resource('mail', 'MailTemplateController');
+    $router->resource('mail', 'MailTemplateController', ['except' => ['show']]);
     $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
     $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
-    $router->resource('notify', 'NotifyController');
+    $router->resource('notify', 'NotifyController', ['except' => ['show']]);
 
     if(Schema::hasTable(CustomTable::getTableName())){
         foreach (CustomTable::all()->pluck('table_name') as $value)
@@ -58,11 +58,11 @@ Route::group([
             $router->resource("data/{$value}", 'CustomValueController');
             //$router->get("data/{$value}/{id}/document", 'CustomValueController@getDocumentForm');
             //$router->post("data/{$value}/{id}/document", 'CustomValueController@postDocumentForm');
-            $router->resource("column/{$value}", 'CustomColumnController');
-            $router->resource("form/{$value}", 'CustomFormController');
+            $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
+            $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
             $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
-            $router->resource("view/{$value}", 'CustomViewController');
-            $router->resource("relation/{$value}", 'CustomRelationController');
+            $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
+            $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
             $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
             $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
             $router->get("api/{$value}/query", 'ApiController@query');
