@@ -360,15 +360,7 @@ if (!function_exists('getDBTableName')) {
      */
     function getDBTableName($obj)
     {
-        if (is_string($obj)) {
-            $obj = CustomTable::findByName($obj);
-        }
-        if ($obj instanceof CustomTable) {
-            $obj = $obj->toArray();
-        }
-        if ($obj instanceof stdClass) {
-            $obj = (array)$obj;
-        }
+        $obj = CustomTable::getEloquent($obj);
         return 'exm__'.array_get($obj, 'suuid');
     }
 }
@@ -412,20 +404,12 @@ if (!function_exists('getColumnName')) {
 if (!function_exists('getColumnNameByTable')) {
     /**
      * Get column name using table model. This function uses only search-enabled column.
-     * @param string|CustomTable|array $tableObj
+     * @param string|CustomTable|array $obj
      * @return string
      */
-    function getColumnNameByTable($tableObj, $column_name)
+    function getColumnNameByTable($obj, $column_name)
     {
-        if (is_array($tableObj)) {
-            $obj = CustomTable::findByName(array_get($tableObj, 'table_name'));
-        } elseif (is_string($tableObj)) {
-            $obj = CustomTable::findByName($tableObj);
-        } elseif ($tableObj instanceof stdClass) {
-            $obj = CustomTable::findByName($tableObj->table_name);
-        } else {
-            $obj = $tableObj;
-        }
+        $obj = CustomTable::getEloquent($obj);
         $column = $obj->custom_columns()->where('column_name', $column_name)->first();
         return getColumnName($column);
     }
@@ -434,22 +418,12 @@ if (!function_exists('getColumnNameByTable')) {
 if (!function_exists('getLabelColumn')) {
     /**
      * Get label column object for target table.
-     * @param CustomTable|array $tableObj
+     * @param CustomTable|array $obj
      * @return string
      */
-    function getLabelColumn($tableObj, $isonly_label = false)
+    function getLabelColumn($obj, $isonly_label = false)
     {
-        if (is_array($tableObj)) {
-            $obj = CustomTable::findByName(array_get($tableObj, 'table_name'));
-        } elseif (is_numeric($tableObj)) {
-            $obj = CustomTable::find($tableObj);
-        } elseif (is_string($tableObj)) {
-            $obj = CustomTable::findByName($tableObj);
-        } elseif ($tableObj instanceof stdClass) {
-            $obj = CustomTable::findByName($tableObj->table_name);
-        } else {
-            $obj = $tableObj;
-        }
+        $obj = CustomTable::getEloquent($obj);
         $column = $obj->custom_columns()->whereIn('options->use_label_flg', [1, "1"])->first();
         if (!isset($column)) {
             $column = $obj->custom_columns()->first();
@@ -484,20 +458,8 @@ if (!function_exists('getRelationNamebyObjs')) {
      */
     function getRelationNamebyObjs($parent, $child)
     {
-        if (is_string($parent)) {
-            $parent_suuid = CustomTable::findByName($parent)->suuid;
-        } elseif (is_array($parent)) {
-            $parent_suuid = array_get($parent, 'suuid');
-        } else {
-            $parent_suuid = $parent->suuid;
-        }
-        if (is_string($child)) {
-            $child_suuid = CustomTable::findByName($child)->suuid;
-        } elseif (is_array($child)) {
-            $child_suuid = array_get($child, 'suuid');
-        } else {
-            $child_suuid = $child->suuid;
-        }
+        $parent_suuid = CustomTable::getEloquent($parent)->suuid;
+        $child_suuid = CustomTable::getEloquent($child)->suuid;
         return "pivot_{$parent_suuid}_{$child_suuid}";
     }
 }
@@ -626,13 +588,15 @@ if (!function_exists('getValueUseTable')) {
 
         // get value as select_table
         else if (in_array($column_type, ['select_table', 'user', 'organization'])) {
+            // get target table
+            $target_table_key = null;
             if ($column_type == 'select_table') {
-                $target_table = CustomTable::find(array_get($column_array, 'options.select_target_table'))->toArray();
-            }else if($column_type == Define::SYSTEM_TABLE_NAME_USER){
-                $target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->toArray();
-            }else if($column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION){
-                $target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->toArray();
+                $target_table_key = array_get($column_array, 'options.select_target_table');
+            }else if(in_array($column_type, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
+                $target_table_key = $column_type;
             }
+            $target_table = CustomTable::getEloquent($target_table_key);
+
             $model = getModelName(array_get($target_table, 'table_name'))::find($val);
             if (is_null($model)) {
                 return null;
@@ -723,13 +687,7 @@ if (!function_exists('getChildrenValues')) {
         $parent_table = $custom_value->getCustomTable();
 
         // get custom column as array
-        if (is_string($relation_table)) {
-            $child_table = CustomTable::findByName($relation_table);
-        } elseif ($relation_table instanceof CustomTable) {
-            $child_table = $relation_table;
-        } else {
-            $child_table = $relation_table;
-        }
+        $child_table = CustomTable::getEloquent($relation_table);
         $pivot_table_name = getRelationNameByObjs($parent_table, $child_table);
 
         // get relation item list
@@ -1100,6 +1058,7 @@ if (!function_exists('getOptionAjaxUrl')) {
      */
     function getOptionAjaxUrl($table)
     {
+        $table = CustomTable::getEloquent($table);
         if (is_numeric($table)) {
             $table = CustomTable::find($table);
         }
@@ -1194,17 +1153,7 @@ if (!function_exists('getColumnsSelectOptions')) {
         }
 
         // get table columns
-        if (is_numeric($table)) {
-            $table = CustomTable::find($table);
-        }
-        else if (is_string($table)) {
-            $table = CustomTable::findByName($table);
-        } else if($table instanceof CustomValue) {
-            $table = $table->getCustomTable();
-        } else {
-            $table = $table;
-        }
-
+        $table = CustomTable::getEloquent($table);
         $custom_columns = $table->custom_columns;
         foreach($custom_columns as $option){
             // if $search_enabled_only = true and options.search_enabled is false, continue
