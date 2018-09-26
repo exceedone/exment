@@ -87,6 +87,10 @@ class Permission
             case "api":
             case "auth/login":
             case "auth/logout":
+            case "auth/setting":
+            case "dashboard":
+            case "dashboardbox":
+            case "files":
                 return true;
             case "system":
             case "authority":
@@ -130,15 +134,15 @@ class Permission
                     return false;
                 }
                 return array_key_exists('custom_form', $this->authorities);
-            // case "view":
-            //     if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
-            //         return array_keys_exists(['custom_view', 'custom_value_edit_all'], $this->authorities);
-            //     }
-            //     // check endpoint name and checking table_name.
-            //     if(!$this->matchEndPointTable()){
-            //         return false;
-            //     }
-            //    return array_keys_exists(['custom_view', 'custom_value_edit_all', 'custom_value_edit', 'custom_value_view'], $this->authorities);
+            case "view":
+                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                    return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
+                }
+                // check endpoint name and checking table_name.
+                if(!$this->matchEndPointTable()){
+                    return false;
+                }
+               return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
             case "data":
                 if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
                     return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);

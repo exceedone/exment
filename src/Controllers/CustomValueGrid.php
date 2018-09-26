@@ -199,6 +199,12 @@ EOT;
                     $actions->disableEdit();
                     $actions->prepend('<a href="'.admin_base_path(url_join('data', $table_name, $actions->getKey(), 'edit')).'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
+
+                // if user does't edit permission disable edit row.
+                if (!Admin::user()->hasPermissionEditData($actions->getKey(), $table_name)) {
+                    $actions->disableEdit();      
+                    $actions->disableDelete();
+                }
             });
         }
     }

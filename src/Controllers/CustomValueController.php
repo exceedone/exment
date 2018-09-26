@@ -84,7 +84,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)){
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -108,7 +108,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -139,7 +139,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
             return;
         }
         // if user doesn't have permission creating data, throw admin.dany error.

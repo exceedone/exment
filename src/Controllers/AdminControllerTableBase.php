@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomForm;
@@ -61,8 +62,10 @@ class AdminControllerTableBase extends AdminControllerBase
         }
 
         if(!$result){
-            return redirect(admin_url(url_join($endpoint, $this->custom_table->table_name)));
+            Checker::error();
+            return false;
         }
+        return true;
     }
 
     /**

@@ -34,7 +34,7 @@ namespace Exment {
         }
 
         /**
-         * gridの行クリック時にリンクする
+         * if click grid row, move page
          */
         private static tableHoverLink() {
             $('table.table-hover').find('[data-id]').closest('tr').on('click', function (ev: JQueryEventObject) {
@@ -44,8 +44,14 @@ namespace Exment {
                 }
                 //その要素の先祖要素で一番近いtrの
                 //data-href属性の値に書かれているURLに遷移する
-                var url = $(ev.target).closest('tr').find('.fa-edit').closest('a').prop('href');
-                window.location.href = url;
+                var linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                if(!linkElem){
+                    linkElem = $(ev.target).closest('tr').find('.fa-view');
+                }
+                if(!linkElem){
+                    return;
+                }
+                linkElem.closest('a').click();
             });
         }
 

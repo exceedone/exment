@@ -154,6 +154,7 @@ class Define
     ];
 
     public const AUTHORITY_VALUE_SYSTEM = 'system';
+    public const AUTHORITY_VALUE_DASHBOARD = 'dashboard';
     public const AUTHORITY_VALUE_CUSTOM_TABLE = 'custom_table';
     public const AUTHORITY_VALUE_CUSTOM_FORM = 'custom_form';
     public const AUTHORITY_VALUE_CUSTOM_VIEW = 'custom_view';

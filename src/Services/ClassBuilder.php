@@ -223,10 +223,11 @@ class ClassBuilder {
             
             // add authority --------------------------------------------------
             authorityLoop(Define::AUTHORITY_TYPE_VALUE, function($authority, $related_type) use($builder, $obj){
+				$target_model = getModelName($related_type, true);
                 $builder->addMethod(
                     "public",
                     getAuthorityName($authority, $related_type)."()",
-                        "return \$this->morphToMany(".getModelName($obj, true)."::class, 'morph', 'value_authoritable', 'morph_id', 'related_id')
+                        "return \$this->morphToMany('$target_model', 'morph', 'value_authoritable', 'morph_id', 'related_id')
                         ->withPivot('related_id', 'related_type', 'authority_id')
                         ->wherePivot('related_type', '".$related_type."')
                         ->wherePivot('authority_id', {$authority->id});"

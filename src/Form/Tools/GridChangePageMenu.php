@@ -71,9 +71,18 @@ EOT;
             if($this->page_name == array_get($menu, 'url')){
                 continue;
             }
-            // Add menu list using authority
-            if(!Admin::user()->hasPermission(array_get($menu, 'authorities'))){
-                continue;
+            // check menu using authority
+            // if this page_name is table and grid, check authority
+            if($this->page_name == 'table' && !isset($this->custom_table)){
+                // if user dont't has authority system
+                if(!Admin::user()->hasPermission(array_get($menu, 'authorities'))){
+                    continue;
+                }
+            }else{
+                // if user dont't has authority as table
+                if(!Admin::user()->hasPermissionTable($this->custom_table, array_get($menu, 'authorities'))){
+                    continue;
+                }
             }
             $menulist[] = $menu;
         }
