@@ -347,7 +347,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_19
+    // AutoTest_Form_19
     public function testDisplayCreateFormScreen()
     {
         $this->browse(function (Browser $browser) {
@@ -395,7 +395,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_20
+    // AutoTest_Form_20
     public function testEditFormSuccess()
     {
         $this->browse(function (Browser $browser) {
@@ -415,7 +415,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_21
+    // AutoTest_Form_21
     public function testDisplayData()
     {
         $this->browse(function (Browser $browser) {
@@ -426,7 +426,26 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-//    // AutoTest_Relation_22
+<<<<<<< Updated upstream
+    // AutoTest_Form_22
+    public function testCreateRecord1()
+    {
+        $this->browse(function (Browser $browser) {
+            $browser->visit('/admin/data/ntq_form/create')
+                ->type('value[integer]', 100)
+                ->type('value[onelinetext]', "NTQ Test")
+                ->keys('input[name*="value[dateandtime]"]', "2018-09-25", '{ENTER}')
+                ->click('#embed-value input.select2-search__field')
+                ->click('ul.select2-results__options li:first-child');
+            $browser->script('document.querySelector(".value_yesno.la_checkbox").click();');
+            $browser->script('document.querySelector(".value_select2value.la_checkbox").click();');
+            $browser->press('Submit')
+                ->pause(5000)
+                ->assertSee('Showing 1 to 1 of 1 entries');
+        });
+    }
+=======
+//    // AutoTest_Form_22
 //    public function testCreateRecord1()
 //    {
 //        $this->browse(function (Browser $browser) {
@@ -440,8 +459,9 @@ class CustomRelationTest extends DuskTestCase
 //            $browser->script('document.querySelector(".value_select2value.la_checkbox").click();');
 //        });
 //    }
+>>>>>>> Stashed changes
 
-    //    // AutoTest_Relation_23
+    //	AutoTest_Form_23
     public function testCreateRecord2()
     {
         $this->browse(function (Browser $browser) {
@@ -455,7 +475,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_24
+    //	AutoTest_Form_24
     public function testEditFormScreen()
     {
         $this->browse(function (Browser $browser) {
@@ -510,23 +530,26 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    //bug submit fail
-    // AutoTest_Relation_25
-//    public function testCreateRecord()
-//    {
-//        $this->browse(function (Browser $browser) {
-//            $browser->visit('/admin/data/ntq_form/create')
-//                ->type('value[integer]', 100)
-//                ->type('value[onelinetext]', "NTQ Test")
-//                ->keys('input[name*="value[dateandtime]"]', "2018-09-25", '{ENTER}')
-//                ->click('#embed-value input.select2-search__field')
-//                ->click('ul.select2-results__options li:first-child');
-//            $browser->script('document.querySelector(".value_yesno.la_checkbox").click();');
-//            $browser->script('document.querySelector(".value_select2value.la_checkbox").click();');
-//        });
-//    }
+    // AutoTest_Form_25
+    public function testCreateRecord()
+    {
+        $this->browse(function (Browser $browser) {
+            $browser->visit('/admin/data/ntq_form/create')
+                ->type('value[integer]', 100)
+                ->type('value[onelinetext]', "NTQ Test")
+                ->keys('input[name*="value[dateandtime]"]', "2018-09-25", '{ENTER}')
+                ->click('#embed-value input.select2-search__field')
+                ->click('ul.select2-results__options li:first-child');
+            $browser->script('document.querySelector(".value_yesno.la_checkbox").click();');
+            $browser->script('document.querySelector(".value_select2value.la_checkbox").click();');
+            $browser->press('Submit')
+                ->pause(5000)
+                ->waitForText('Save succeeded !')
+                ->assertPathIs('/admin/data/ntq_form');
+        });
+    }
 
-    //  AutoTest_Relation_26
+    //  AutoTest_Form_26
     public function testEditFormRealationSuccess()
     {
         $this->browse(function (Browser $browser) {
@@ -547,7 +570,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_27
+    // AutoTest_Form_27
     public function testColumnRelationTable()
     {
         $this->browse(function (Browser $browser) {
@@ -569,7 +592,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_28
+    // AutoTest_Form_28
     public function testCheckViewOnlyOneLineTextColumn()
     {
         $this->browse(function (Browser $browser) {
@@ -592,7 +615,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_29
+    // AutoTest_Form_29
     public function testUnCheckViewOnlyOneLineTextColumn()
     {
         $this->browse(function (Browser $browser) {
@@ -613,7 +636,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_30
+    // AutoTest_Form_30
     public function testCheckHiddenFieldDateAndTimeColumn()
     {
         $this->browse(function (Browser $browser) {
@@ -634,7 +657,7 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-    // AutoTest_Relation_31
+    // AutoTest_Form_31
     public function testUnCheckHiddenFieldDateAndTimeColumn()
     {
         $this->browse(function (Browser $browser) {
