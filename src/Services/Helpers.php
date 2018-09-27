@@ -1023,7 +1023,7 @@ if (!function_exists('getEndpointTable')) {
             if (mb_substr($url, 0, 1) === "?") {
                 continue;
             }
-            if (in_array($url, ['index', 'create', 'view', 'show', 'edit'])) {
+            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
                 continue;
             }
 

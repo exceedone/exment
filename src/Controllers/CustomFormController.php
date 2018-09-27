@@ -149,8 +149,8 @@ class CustomFormController extends AdminControllerTableBase
             'formroot' => $formroot,
             'endpoint'=> $endpoint,
             'custom_form_blocks' => $custom_form_blocks,
-            'css' => asset('/vendor/exment/css/customform.css'),
-            'js' => asset('/vendor/exment/js/customform.js'),
+            'css' => asset('/vendor/exment/css/customform.css?ver='.$date),
+            'js' => asset('/vendor/exment/js/customform.js?ver='.$date),
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'change_page_menu' => (new Tools\GridChangePageMenu('form', $this->custom_table, false))->render()

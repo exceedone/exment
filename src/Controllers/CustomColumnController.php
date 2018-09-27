@@ -136,7 +136,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form = new Form(new CustomColumn);  
         // set script
         //TODO: call using pjax
-        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js').'"></script>');
+        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$date).'"></script>');
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
