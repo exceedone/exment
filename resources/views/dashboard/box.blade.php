@@ -10,8 +10,8 @@
         <div class="box-tools pull-right">
                 @if(isset($suuid))
                 @foreach($icons as $icon)
-                @if(isset($icon['href']))
-                <a class="btn btn-box-tool" href="{{$icon['href']}}"><i class="fa {{$icon['icon']}}"></i></a>
+                @if(isset($icon['link']))
+                <a class="btn btn-box-tool" href="{{$icon['link']}}"><i class="fa {{$icon['icon']}}"></i></a>
                 @else
                 <button class="btn btn-box-tool" data-exment-widget="{{$icon['widget']}}"><i class="fa {{$icon['icon']}}"></i></button>
                 @endif

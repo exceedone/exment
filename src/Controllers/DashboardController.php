@@ -294,7 +294,7 @@ EOT;
                 $icons = [['widget' => 'reload', 'icon' => 'fa-refresh']];
                 // check authority.
                 if ($has_authority) {
-                    array_prepend($icons, ['link' => admin_base_path('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog']);
+                    $icons = array_prepend($icons, ['link' => admin_base_path('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog']);
                     array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash']);
                 }   
                 
