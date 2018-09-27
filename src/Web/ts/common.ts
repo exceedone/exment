@@ -478,8 +478,9 @@ namespace Exment {
                         // disabled false
                     } else {
                         $eParent.hide();
-                        // remove value
-                        $t.val('');
+                        ///// remove value
+                        // comment out because remove default value
+                        //$t.val('');
                     }
                     if (isReadOnly) {
                         $t.prop('readonly', true);

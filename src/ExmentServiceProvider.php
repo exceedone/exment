@@ -98,20 +98,6 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->registerPolicies();
 
-        // Extend --------------------------------------------------
-        Storage::extend('admin-local', function ($app, $config) {
-            return new Filesystem(new AdminLocal(array_get($config, 'root')));
-        });
-        
-        Auth::provider('exment-auth', function ($app, array $config) {
-            // Return an instance of Illuminate\Contracts\Auth\UserProvider...
-            return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
-        });
-        
-        \Validator::resolver(function ($translator, $data, $rules, $messages) {
-            return new UniqueInTableValidator($translator, $data, $rules, $messages);
-        });
-
         $this->bootSetting();
 
         // $this->bootPlugin();
@@ -193,6 +179,28 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootSetting()
     {
+        
+        // Extend --------------------------------------------------
+        Storage::extend('admin-local', function ($app, $config) {
+            return new Filesystem(new AdminLocal(array_get($config, 'root')));
+        });
+        
+        // add for exment_admins
+        if (!Config::has('auth.passwords.exment_admins')) {
+            Config::set('auth.passwords.exment_admins', [
+                'provider' => 'exment-auth',
+                'table' => 'password_resets',
+                'expire' => 720,
+            ]);
+        }        
+        // add for exment_admins
+        if (!Config::has('auth.providers.exment-auth')) {
+            Config::set('auth.providers.exment-auth', [
+                'driver' => 'eloquent',
+                'model' => \Exceedone\Exment\Model\LoginUser::class,
+            ]);
+        }
+        
         // set config
         if(!Config::has('filesystems.disks.admin')){
             Config::set('filesystems.disks.admin', [
@@ -203,5 +211,15 @@ class ExmentServiceProvider extends ServiceProvider
         }
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
+        
+        Auth::provider('exment-auth', function ($app, array $config) {
+            // Return an instance of Illuminate\Contracts\Auth\UserProvider...
+            return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
+        });
+        
+        \Validator::resolver(function ($translator, $data, $rules, $messages) {
+            return new UniqueInTableValidator($translator, $data, $rules, $messages);
+        });
+
     }
 }

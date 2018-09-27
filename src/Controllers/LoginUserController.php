@@ -87,7 +87,6 @@ class LoginUserController extends AdminControllerBase
         $form->checkboxone('create_password_auto', exmtrans('user.create_password_auto'))->option(['1' => exmtrans('common.yes')])
                 ->default(!$has_loginuser)
                 ->help(exmtrans('user.help.create_password_auto'))
-                ->default("1")
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]

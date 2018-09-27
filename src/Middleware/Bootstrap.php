@@ -46,9 +46,10 @@ class Bootstrap
 
         Ad::js(asset('lib/js/bignumber.min.js'));
 
-        Ad::css(asset('vendor/exment/css/common.css'));
-        Ad::js(asset('vendor/exment/js/common.js'));
-        Ad::js(asset('vendor/exment/js/numberformat.js'));
+        $date = date('YmdHis');
+        Ad::css(asset('vendor/exment/css/common.css?ver='.$date));
+        Ad::js(asset('vendor/exment/js/common.js?ver='.$date));
+        Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$date));
         
         // add admin_base_path
         $prefix = config('admin.route.prefix') ?? '';
@@ -61,24 +62,6 @@ $('body').append($('<input/>', {
 EOT;
         Ad::script($script);
     
-        // add for exment_admins
-        if (!Config::has('auth.passwords.exment_admins')) {
-            Config::set('auth.passwords.exment_admins', [
-                'provider' => 'exment-auth',
-                'table' => 'password_resets',
-                'expire' => 720,
-            ]);
-        }        
-        // add for exment_admins
-        if (!Config::has('auth.providers.exment_admins')) {
-            Config::set('auth.providers.exment_admins', [
-                'exment-auth' => [
-                    'driver' => 'eloquent',
-                    'model' => \Exceedone\Exment\Model\LoginUser::class,
-                ]
-            ]);
-        }
-        
         return $next($request);
     }
 }

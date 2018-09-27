@@ -46,49 +46,11 @@ trait CustomValueGrid
             // if tagret is number, column type is column.
             if (is_numeric($view_column_target)) {
                 $column = $custom_view_column->custom_column;
-                $column_name = getColumnName($column);
+                $column_name = getColumnName($column, true);
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                // if column is select_table, get select value for display.
-                if (in_array($column_type, ['select_table', 'user', 'organization'])) {
-                    $grid->column($column_name, $column_view_name)
-                            ->display(function ($value) use ($column, $custom_table, $column_type) {
-                                if (is_null($value)) {
-                                    return '';
-                                }
-                                // get target column
-                                // switch $column_type
-                                switch($column_type){
-                                    // if user, org
-                                    case Define::SYSTEM_TABLE_NAME_USER:
-                                    case Define::SYSTEM_TABLE_NAME_ORGANIZATION:
-                                        //get table id by finding by name
-                                        $table_id = CustomTable::findByName($column_type)->id ?? null;
-                                        break;
-                                    default:
-                                        //get table id by array_get options.select_target_table
-                                        $table_id = array_get($column, 'options.select_target_table');
-                                        break;
-                                }
-                                if(!isset($table_id)){return null;}
-                                $label = getLabelColumn($table_id);
-
-                                // if not multiple, return 
-                                if(!boolval(array_get($column->options, 'multiple_enabled'))){
-                                    return array_get($value, 'value.'.$label->column_name);
-                                }
-                                // if multiple, split ","
-                                $labels = [];
-                                foreach($value as $v){
-                                    $labels[] = array_get($v, 'value.'.$label->column_name);
-                                }
-                                return implode(",", $labels);
-                            });
-                } else {
-                    $grid->column($column_name, $column_view_name);
-                }
-                
+                $grid->column($column_name, $column_view_name);
             }
             // system column
             else {
