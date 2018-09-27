@@ -557,180 +557,82 @@ class DCustomDataTest extends DuskTestCase
             ;
         });
     }
-	
-	// AutoTest_Data_28
-    public function testFilterAll()
+
+    // AutoTest_Data_40
+    public function testAddRelationOneToManyWithUserTable()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 2 of 2 entries');
+            $browser->visit('/admin/relation/ntq_data/create')
+                ->pause(5000);
+            $browser->script('$(".child_custom_table_id").val($("option").filter(function() {
+  return $(this).text() === "User";
+}).first().attr("value")).trigger("change.select2")');
+            $browser->select('relation_type', 'one_to_many')
+                ->press('Submit')
+                ->waitForText('Save succeeded !')
+                ->assertSeeIn('.table-hover tr:last-child td:nth-child(5)', 'User')
+                ->assertSeeIn('.table-hover tr:last-child td:nth-child(6)', 'One to Many')
+                ->assertPathIs('/admin/relation/ntq_data');
         });
     }
 
-    // AutoTest_Data_29
-    public function testFilterOneLineText()
+    // AutoTest_Data_41
+    public function testAddRelationManyToManyWithOrganizationTable()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="One Line Tex"]', 'NTQ Test Data 1');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
+            $browser->visit('/admin/relation/ntq_data/create')
+                ->pause(5000);
+            $browser->script('$(".child_custom_table_id").val($("option").filter(function() {
+  return $(this).text() === "Organization";
+}).first().attr("value")).trigger("change.select2")');
+            $browser->select('relation_type', 'many_to_many')
+                ->press('Submit')
+                ->waitForText('Save succeeded !')
+                ->assertSeeIn('.table-hover tr:last-child td:nth-child(5)', 'Organization')
+                ->assertSeeIn('.table-hover tr:last-child td:nth-child(6)', 'Many to Many')
+                ->assertPathIs('/admin/relation/ntq_data');
         });
     }
 
-    // AutoTest_Data_30
-    public function testFilterInterger()
+    // AutoTest_Data_42
+    public function testUseRelationInForm()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Interger"]', '100');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
+            $browser->visit('/admin/form/ntq_data') ;
+            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Data"}).closest("tr").click();');
+            $browser->pause(5000);
+            $browser->with('form div:nth-child(3)', function ($block3) {
+                $block3->click('div.box-body div:nth-child(1) .iCheck-helper')
+                    ->press('Add All Items');
+            });
+            $browser->with('form div:nth-child(4)', function ($block4) {
+                $block4->click('div.box-body div:nth-child(1) .iCheck-helper');
+            });
+            $browser->press('Submit')
+                ->waitForText('Save succeeded !')
+                ->assertPathIs('/admin/form/ntq_data');
         });
     }
 
-    // AutoTest_Data_31
-    public function testFilterSelectFromStaticValue()
+    // AutoTest_Data_43
+    public function testDisplayFieldRelation()
     {
         $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Select From Static Value"]', 'Option 2');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
+            $browser->visit('/admin/form/ntq_data')
+                ->waitForText('New')
+                ->clickLink('New')
+                ->pause(5000);
+            $browser->with('form div.box-body  .fields-group)', function ($fields) {
+                $fields->with('div[id*=has-many-table-pivot]',function ($Block_1_N){
+                    $Block_1_N->assertSee('Child Table - User')
+                        ->assertVisible('table');
+                });
+                $fields->with('div.form-group]',function ($Block_N_N){
+                    $Block_N_N->assertSee('Relation Table - Organization')
+                        ->assertMissing('table');
+                });
+            });
         });
     }
 
-    // AutoTest_Data_32
-    public function testFilterURL()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="URL"]', 'https://google.com');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_33
-    public function testFilterEmail()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Email"]', 'admin@admin.com');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_34
-    public function testFilterDecimal()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Decimal"]', '9.9');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_35
-    public function testFilterDate()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Date"]', '2018-09-27');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_36
-    public function testFilterDateAndTime()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Date and Time"]', '2018-09-26 19:00:00');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_37
-    public function testFilterTime()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/ntq_data');
-            $browser->script('$(\'label[title="Filter"]\').click()');
-            $browser->pause(1000)
-                ->assertSee('Search')
-                ->keys('input[placeholder="Time"]', '19:00:00');
-            $browser->script('$(\'.btn-info.submit i.fa.fa-search\').click()');
-            $browser->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_38
-    public function testDeleteUsingColumnAction()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/nhanvien');
-            $browser->script('$(".table-hover td").filter(function(){return $.trim($(this).text()) == "NTQ Test Data 1 Edited"}).closest("tr").find("a.grid-row-delete").click();');
-            $browser->pause(2000)
-                ->press('Confirm')
-                ->pause(2000)
-                ->assertSee('Showing 1 to 1 of 1 entries');
-        });
-    }
-
-    // AutoTest_Data_39
-    public function testDeleteUsingActionDropdown()
-    {
-        $this->browse(function (Browser $browser) {
-            $browser->visit('/admin/data/nhanvien');
-            $browser->script('$(\'span\').parent().parent().find("button.dropdown-toggle:nth-child(2)").click();');
-            $browser->script('$(\'span\').parent().parent().find("button.dropdown-toggle:nth-child(2)").parent().find("ul li a").click();');
-            $browser->pause(2000)
-                ->press('Confirm')
-                ->pause(2000)
-                ->assertSee('Showing 0 to 0 of 0 entries');
-        });
-    }
 }
