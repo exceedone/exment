@@ -13,12 +13,14 @@ use Encore\Admin\Widgets\Table;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
+use Carbon\Carbon;
 
 /**
  * Custom Form Controller
@@ -139,9 +141,7 @@ class CustomFormController extends AdminControllerTableBase
             $custom_form_block['suggests'] = $suggests;
         }
 
-        //
-
-
+        $date = \Carbon\Carbon::now()->format('YmdHis');
         // create endpoint
         $formroot = admin_base_path("form/{$this->custom_table->table_name}");
         $endpoint = $formroot.(isset($id) ? "/{$id}" : "");
@@ -186,7 +186,10 @@ class CustomFormController extends AdminControllerTableBase
                         $column_view_name = $custom_column->column_view_name;
                         break;
                     default:
-                        $column_view_name = Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE[$custom_form_column->form_column_target_id]['column_view_name'];
+                        // get column name
+                        $column_form_column_array = array_get(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE, array_get($custom_form_column, 'form_column_target_id'));
+                        $column_form_column_name = array_get($column_form_column_array, 'column_name');
+                        $column_view_name = exmtrans("custom_form.form_column_type_other_options.$column_form_column_name");
                         break;
                 }
                 // set view_name using custom_column info.
@@ -246,13 +249,17 @@ class CustomFormController extends AdminControllerTableBase
             
             ///// Set changedata selection select list
             $select_table_columns = [];
-            foreach (array_get($custom_form_block, 'custom_form_columns') as $custom_form_column) {
+            // get custom columns
+            $custom_columns = CustomTable::find(array_get($custom_form_block, 'form_block_target_table_id'))
+                ->custom_columns;
+            //foreach (array_get($custom_form_block, 'custom_form_columns') as $custom_form_column) {
+            foreach ($custom_columns as $custom_column) {
                 // only table column
-                if(array_get($custom_form_column, 'form_column_type') != Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN){
-                    continue;
-                }
-                // get column
-                $custom_column = CustomColumn::find(array_get($custom_form_column, 'form_column_target_id'));
+                // if(array_get($custom_form_column, 'form_column_type') != Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN){
+                //     continue;
+                // }
+                // // get column
+                // $custom_column = CustomColumn::find(array_get($custom_form_column, 'form_column_target_id'));
                 // if column_type is not select_table, return []
                 if(!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
                     continue;
@@ -262,7 +269,8 @@ class CustomFormController extends AdminControllerTableBase
                     continue;
                 }
                 // get select_table, user, organization columns
-                $select_table_columns[array_get($custom_form_column, 'form_column_target_id')] = array_get($custom_form_column, 'column_view_name');
+                //$select_table_columns[array_get($custom_form_column, 'form_column_target_id')] = array_get($custom_form_column, 'column_view_name');
+                $select_table_columns[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
             }
             $custom_form_block['select_table_columns'] = collect($select_table_columns)->toJson();
         }
