@@ -89,8 +89,8 @@ class CustomValueController extends AdminControllerTableBase
         }
         // if user doesn't have authority for target id data, show deny error.
         if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
-            $response = response($this->AdminContent()->withError(trans('admin.deny')));
-            Pjax::respond($response);
+            Checker::error();
+            return false;
         }
         $this->AdminContent($content);
         $content->body($this->createShowForm($id));
@@ -113,8 +113,8 @@ class CustomValueController extends AdminControllerTableBase
         }
         // if user doesn't have authority for target id data, show deny error.
         if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
-            $response = response($this->AdminContent()->withError(trans('admin.deny')));
-            Pjax::respond($response);
+            Checker::error();
+            return false;
         }
 
         // if user doesn't have edit permission, redirect to show
