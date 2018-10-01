@@ -236,15 +236,32 @@ class CustomValueController extends AdminControllerTableBase
                 if (!isset($block_label)) {
                     $block_label = exmtrans('custom_form.table_one_to_many_label') . $target_table->table_view_name;
                 }
-                $form->hasManyTable(
-                    getRelationNamebyObjs($this->custom_table, $target_table),
-                    $block_label,
-                    function ($form) use ($custom_form_block) {
-                        $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
-                            $this->setCustomFormColumns($form, $custom_form_block);
-                        });
-                    }
-                )->setTableWidth(12, 0);
+                // get form columns count
+                $count = count($custom_form_block->custom_form_columns);
+                // if form columns count >= 5, set as hasmany
+                if ($count >= 5) {
+                    $form->hasMany(
+                        getRelationNamebyObjs($this->custom_table, $target_table),
+                        $block_label,
+                        function ($form) use ($custom_form_block) {
+                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
+                                $this->setCustomFormColumns($form, $custom_form_block);
+                            });
+                        }
+                    );
+                }
+                // default,hasmanytable
+                else{
+                    $form->hasManyTable(
+                        getRelationNamebyObjs($this->custom_table, $target_table),
+                        $block_label,
+                        function ($form) use ($custom_form_block) {
+                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
+                                $this->setCustomFormColumns($form, $custom_form_block);
+                            });
+                        }
+                    )->setTableWidth(12, 0);                    
+                }
             // when many to many
             } else {
                 $target_table = $custom_form_block->target_table;

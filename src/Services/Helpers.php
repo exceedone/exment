@@ -169,10 +169,20 @@ if (!function_exists('array_key_value_exists')) {
      */
     function array_key_value_exists($key, $array)
     {
-        if (!array_key_exists($key, $array)) {
-            return false;
+        if(is_null($array)){return false;}
+        if(!is_array($key)){
+            $key = [$key];
         }
-        return !empty(array_get($array, $key));
+        foreach($key as $k){
+            if (!array_key_exists($k, $array)) {
+                continue;
+            }
+            if(!empty(array_get($array, $k))){
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
@@ -545,6 +555,9 @@ if (!function_exists('getValue')) {
                 return implode(exmtrans('common.separate_word'), $values);
             }
             return collect($values);
+        }
+        if(count($values) == 0){
+            return null;
         }
         return $values[0];
     }
