@@ -386,6 +386,16 @@ class TemplateInstaller
                             if (is_null($options)) {
                                 $options = null;
                             }
+                            // if has changedata_column_name and changedata_target_column_name, set id
+                            if(array_key_value_exists('changedata_column_name', $options)){
+                                $options['changedata_column_id'] = CustomColumn::where('column_name', $options['changedata_column_name'])->first()->id?? null;
+                                array_forget($options, 'changedata_column_name');
+                            }
+                            if(array_key_value_exists('changedata_target_column_name', $options)){
+                                $options['changedata_target_column_id'] = CustomColumn::where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
+                                array_forget($options, 'changedata_target_column_name');
+                            }
+
                             $obj_form_column->options = $options;
                             
                             $obj_form_column->saveOrFail();
@@ -837,6 +847,21 @@ class TemplateInstaller
                                 });
                                 $custom_form_column['form_column_target_name'] = isset($form_column_target_name) ? array_get($form_column_target_name, 'column_name') : null;
                             }
+                            
+                            if(is_null($custom_form_column['options'])){
+                                $custom_form_column['options'] = [];
+                            }
+                            // set as changedata_column_id to changedata_column_name
+                            if(array_key_value_exists('changedata_column_id', $custom_form_column['options'])){
+                                $custom_form_column['options']['changedata_column_name'] = CustomColumn::find($custom_form_column['options']['changedata_column_id'])->column_name ?? null;
+                                array_forget($custom_form_column['options'], 'changedata_column_id');
+                            }
+                            // set as changedata_target_column_id to changedata_target_column_name
+                            if(array_key_value_exists('changedata_target_column_id', $custom_form_column['options'])){
+                                $custom_form_column['options']['changedata_target_column_name'] = CustomColumn::find($custom_form_column['options']['changedata_target_column_id'])->column_name ?? null;
+                                array_forget($custom_form_column['options'], 'changedata_target_column_id');
+                            }
+
                             $custom_form_column = array_only($custom_form_column, [
                                 'form_column_type',
                                 'form_column_target_name',

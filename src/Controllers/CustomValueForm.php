@@ -280,6 +280,7 @@ trait CustomValueForm
                     $this->setCalcFormulaArray($column, $options, $calc_formula_array);
                 }
                 // data changedata
+                // if set form_column_options changedata_target_column_id, and changedata_column_id
                 if (array_has_value($form_column_options, 'changedata_target_column_id') && array_has_value($form_column_options, 'changedata_column_id')) {
                     ///// set changedata info
                     $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
@@ -572,7 +573,7 @@ trait CustomValueForm
      * 
      */
     protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array){
-        // get info
+        // get target and column info from form option
         $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
         $changedata_column_id = array_get($form_column_options, 'changedata_column_id');
         
