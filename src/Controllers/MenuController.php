@@ -16,6 +16,7 @@ use Encore\Admin\Layout\Row;
 use Encore\Admin\Tree;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MenuController extends AdminControllerBase
 {
@@ -67,6 +68,18 @@ class MenuController extends AdminControllerBase
     }
 
     /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($id)
+    {
+        return $this->form($id)->update($id);
+    }
+
+    /**
      * @return \Encore\Admin\Tree
      */
     protected function treeView()
@@ -114,40 +127,99 @@ class MenuController extends AdminControllerBase
      *
      * @return Form
      */
-    public function form()
+    public function form($id = null)
     {
-        return Menu::form(function (Form $form) {
-            $this->createMenuForm($form);
+        return Menu::form(function (Form $form) use($id) {
+            $this->createMenuForm($form, $id);
         });
     }
 
+    protected function createMenuForm($form, $id = null){
+        // get setting menu object
+        $menu = Menu::find($id);
+
+        // set controller
+        $contoller = $this;
+        $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
+        $form->select('menu_type', exmtrans("menu.menu_type"))->options(getTransArray(Define::MENU_TYPES, "menu.menu_type_options"))
+            ->load('menu_target', admin_base_path('api/menu/menutype'))
+            ->rules('required');
+        $form->select('menu_target', exmtrans("menu.menu_target"))
+            ->attribute(['data-changedata' => json_encode(
+                ['getitem' => 
+                    [  'uri' => admin_base_path('api/menu/menutargetvalue') 
+                       , 'key' => ['menu_type']
+                    ]
+                ]
+            ), 'data-filter' => json_encode([
+                'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_CUSTOM, Define::MENU_TYPE_PARENT_NODE]
+            ])])
+            ->options(function($option) use($menu, $contoller){
+                // get model 
+                if(!isset($menu)){
+                    return [];
+                }
+                return $contoller->getMenuType(array_get($menu, 'menu_type'), false);
+            })
+        ;
+        $form->text('uri', trans('admin.uri'))
+            ->attribute(['data-filter' => json_encode([
+                'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_SYSTEM, Define::MENU_TYPE_PLUGIN, Define::MENU_TYPE_TABLE, Define::MENU_TYPE_PARENT_NODE]
+            ])]);
+        $form->text('menu_name', exmtrans("menu.menu_name"))
+            ->rules(
+                [
+                    'required',
+                    Rule::unique(config('admin.database.menu_table'))->ignore($id),
+                ]
+            )->help(exmtrans('common.help_code'));
+        $form->text('title', exmtrans("menu.title"))->rules('required');
+        $form->icon('icon', trans('admin.icon'))->default('');
+    }
+
+    // menu_type and menutargetvalue --------------------------------------------------
+
+    // get menu type(calling from menu_type)
     public function menutype(Request $request){
         $type = $request->input('q');
+        return $this->getMenuType($type, true);
+    }
+
+    /**
+     * get menu type option array
+     * @param string menu_type string
+     * @param boolean isApi is api. if true, return id and value array. if false, return array(key:id, value:name)
+     */
+    protected function getMenuType($type, $isApi){
+        $options = [];
         switch($type){
             case Define::MENU_TYPE_SYSTEM:
-                $options = [];
                 foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value)
                 {
                     array_push($options, ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k ) ]);
                 }
-                return $options;
+                break;
             case Define::MENU_TYPE_PLUGIN:
                 $options = [];
                 foreach (Plugin::where('plugin_type', 'page')->get() as $value)
                 {
                     array_push($options, ['id' => $value->id, 'text' => $value->plugin_view_name]);
                 }
-                return $options;
+                break;
             case Define::MENU_TYPE_TABLE:
-                $options = [];
                 foreach (CustomTable::all() as $value)
                 {
                     array_push($options, ['id' => $value->id, 'text' => $value->table_view_name]);
                 }
-                return $options;
+                break;
         }
 
-        return [];
+        // if api, return
+        if($isApi){
+            return $options;
+        }
+        // if not api, return key:id, value:text array
+        return collect($options)->pluck('text', 'id')->toArray();
     }
 
     public function menutargetvalue(Request $request){
@@ -172,47 +244,31 @@ class MenuController extends AdminControllerBase
                 ];  
                 return Plugin::find($value);
             case Define::MENU_TYPE_TABLE:
-                    $item = CustomTable::find($value);
-                        return [
-                            'menu_name' => array_get($item, 'table_name'),
-                            'title' => array_get($item, 'table_view_name'),
-                            'icon' => array_get($item, 'icon'),
-                            'uri' => array_get($item, 'table_name'),
-                        ];  
+                $item = CustomTable::find($value);
+                return [
+                    'menu_name' => array_get($item, 'table_name'),
+                    'title' => array_get($item, 'table_view_name'),
+                    'icon' => array_get($item, 'icon'),
+                    'uri' => array_get($item, 'table_name'),
+                ];  
             case Define::MENU_TYPE_CUSTOM:
-                    return [
-                        'menu_name' => '',
-                        'title' => '',
-                        'icon' => '',
-                        'uri' => '',
-                    ];  
+                return [
+                    'menu_name' => '',
+                    'title' => '',
+                    'icon' => '',
+                    'uri' => '',
+                ];  
+                
+            case Define::MENU_TYPE_PARENT_NODE:
+                return [
+                    'menu_name' => '',
+                    'title' => '',
+                    'icon' => '',
+                    'uri' => '#',
+                ];  
         }
 
         return [];
     }
 
-    protected function createMenuForm($form){
-        $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
-        $form->select('menu_type', exmtrans("menu.menu_type"))->options(getTransArray(Define::MENU_TYPES, "menu.menu_type_options"))
-            ->load('menu_target', admin_base_path('api/menu/menutype'))
-            ->rules('required');
-        $form->select('menu_target', exmtrans("menu.menu_target"))
-            ->attribute(['data-changedata' => json_encode(
-                ['getitem' => 
-                    [  'uri' => admin_base_path('api/menu/menutargetvalue') 
-                       , 'key' => ['menu_type']
-                    ]
-                ]
-            ), 'data-filter' => json_encode([
-                'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_CUSTOM]
-            ])])
-        ;
-        $form->text('menu_name', exmtrans("menu.menu_name"))->rules('required');
-        $form->text('uri', trans('admin.uri'))
-            ->attribute(['data-filter' => json_encode([
-                'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_SYSTEM, Define::MENU_TYPE_PLUGIN, Define::MENU_TYPE_TABLE]
-            ])]);
-        $form->text('title', exmtrans("menu.title"))->rules('required');
-        $form->icon('icon', trans('admin.icon'))->default('');
-    }
 }

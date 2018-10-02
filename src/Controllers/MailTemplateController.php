@@ -53,7 +53,8 @@ class MailTemplateController extends AdminControllerBase
     {
         $form = new Form(new MailTemplate);
         if (!isset($id)) {
-            $form->text('mail_name', exmtrans("mail_template.mail_name"))->rules("required|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            $form->text('mail_name', exmtrans("mail_template.mail_name"))
+                ->rules("required|unique:".MailTemplate::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(exmtrans("mail_template.help.mail_name").exmtrans("common.help_code"));
         } else {
             $form->display('mail_name', exmtrans("mail_template.mail_name"))

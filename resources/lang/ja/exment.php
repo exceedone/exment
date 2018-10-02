@@ -9,7 +9,7 @@ return [
         'input' => '入力',
         'available_true' => '有効',
         'available_false' => '無効',
-        'help_code' => '保存後、変更はできません。半角英数字、"-"または"_"で記入してください。',
+        'help_code' => '保存後、変更はできません。半角英数字、"-"または"_"で記入してください。他のデータと同じ値は登録できません。',
         'created_at' => '作成日時',
         'updated_at' => '更新日時',
         'separate_word' => '、',
@@ -550,6 +550,7 @@ return [
             'system' => 'システムメニュー',
             'plugin' => 'プラグイン',
             'table' => 'テーブルデータ',
+            'parent_node' => '親階層',
             'custom' => 'カスタムURL',
         ],
         

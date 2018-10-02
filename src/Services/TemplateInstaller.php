@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services;
 
 use Illuminate\Support\Facades\File;
+use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
@@ -231,6 +232,22 @@ class TemplateInstaller
                         $options['select_target_table'] = $id;
                         array_forget($options, 'select_target_table_name');
                     }
+
+                    // if column type is calc, set dynamic val
+                    if(array_get($column, 'column_type') == 'calc'){
+                        $calc_formula = array_get($options, 'calc_formula');
+                        if(is_array($calc_formula)){
+                            foreach($calc_formula as &$c){
+                                // if not dynamic, continue
+                                if(array_get($c, 'type') != 'dynamic'){
+                                    continue;
+                                }
+                                // set id
+                                $c['val'] = CustomColumn::where('column_name', array_get($c, 'val'))->first()->id ?? null;
+                            }
+                        }
+                    }
+
                     $obj_column->options = $options;
 
                     ///// set view name
@@ -625,7 +642,8 @@ class TemplateInstaller
                     }
                     // title not exists, translate
                     else{
-                        $title = exmtrans('menu.system_definitions.'.array_get($menu, 'menu_target_name'));
+                        $translate_key = array_key_value_exists('menu_target_name', $menu) ? array_get($menu, 'menu_target_name') : array_get($menu, 'menu_name');
+                        $title = exmtrans('menu.system_definitions.'.$translate_key);
                     }
 
                     $obj_menu = Menu::firstOrNew(['menu_name' => array_get($menu, 'menu_name'), 'parent_id' => $parent_id]);
@@ -649,7 +667,7 @@ class TemplateInstaller
                                 }
                                 break;
                             case Define::MENU_TYPE_TABLE:
-                                $parent = CustomTable::where('table_name', $menu['menu_target_name'])->first();
+                                $parent = CustomTable::findByName($menu['menu_target_name']);
                                 if (isset($parent)) {
                                     $obj_menu->menu_target = $parent->id;
                                 }
@@ -664,9 +682,39 @@ class TemplateInstaller
                         $obj_menu->order = Menu::where('parent_id', $obj_menu->parent_id)->max('order') + 1;
                     }
 
-                    // icon
+                    ///// icon
                     if (isset($menu['icon'])) {
                         $obj_menu->icon = $menu['icon'];
+                    }
+                    // else, get icon from table, system, etc
+                    else{
+                        switch($obj_menu->menu_type){
+                            case Define::MENU_TYPE_SYSTEM:
+                                $obj_menu->icon = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
+                                break;
+                            case Define::MENU_TYPE_TABLE:
+                                $obj_menu->icon = CustomTable::findByName($obj_menu->menu_name)->icon ?? null;
+                                break;
+                        }
+                    }
+
+                    ///// uri
+                    if (isset($menu['uri'])) {
+                        $obj_menu->uri = $menu['uri'];
+                    }
+                    // else, get icon from table, system, etc
+                    else{
+                        switch($obj_menu->menu_type){
+                            case Define::MENU_TYPE_SYSTEM:
+                                $obj_menu->uri = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".uri");
+                                break;
+                            case Define::MENU_TYPE_TABLE:
+                                $obj_menu->uri = $obj_menu->menu_name;
+                                break;
+                            case Define::MENU_TYPE_TABLE:
+                                $obj_menu->uri = '#';
+                                break;
+                        }
                     }
 
                     $obj_menu->saveOrFail();
@@ -715,7 +763,7 @@ class TemplateInstaller
             static::setTemplateTable($config, $options['target_tables']);
         }
         if(in_array(Define::TEMPLATE_EXPORT_TARGET_MENU, $options['export_target'])){
-            static::setTemplateMenu($config);
+            static::setTemplateMenu($config, $options['target_tables']);
         }
         if(in_array(Define::TEMPLATE_EXPORT_TARGET_DASHBOARD, $options['export_target'])){
             static::setTemplateDashboard($config);
@@ -791,6 +839,28 @@ class TemplateInstaller
                             array_forget($custom_column['options'], 'select_target_table');
                         }
                     }
+                    // if column_type is calc, change value dynamic name using calc_formula property
+                    if (array_get($custom_column, 'column_type') == 'calc') {
+                        $calc_formula = array_get($custom_column['options'], 'calc_formula');
+                        if(is_array($calc_formula)){
+                            foreach($calc_formula as &$c){
+                                // if not dynamic, continue
+                                if(array_get($c, 'type') != 'dynamic'){
+                                    continue;
+                                }
+                                // get custom column name
+                                $calc_formula_column_name = CustomColumn::find(array_get($c, 'val'))->column_name ?? null;
+                                // set value
+                                $c['val'] = $calc_formula_column_name;
+                            }
+                        }
+                        $select_target_table = CustomTable::find(array_get($custom_column['options'], 'select_target_table'));
+                        if (isset($select_target_table)) {
+                            $custom_column['options']['select_target_table_name'] = CustomTable::find(array_get($custom_column['options'], 'select_target_table'))->table_name;
+                            array_forget($custom_column['options'], 'select_target_table');
+                        }
+                    }
+                    
                     $custom_column = array_only($custom_column, [
                         'column_name',
                         'column_view_name',
@@ -1008,10 +1078,15 @@ class TemplateInstaller
     /**
      * set menu info to config
      */
-    protected static function setTemplateMenu(&$config){
+    protected static function setTemplateMenu(&$config, $target_tables){
         // get menu --------------------------------------------------
         $menulist = (new Menu)->allNodes();
         foreach ($menulist as &$menu) {
+            // checking target table visible.
+            if(count($target_tables) > 0 && !Admin::user()->visible($menu, $target_tables)){
+                continue;
+            }
+
             // replace id to name
             //get parent name
             if (!isset($menu['parent_id']) || $menu['parent_id'] == '0') {
@@ -1031,14 +1106,16 @@ class TemplateInstaller
                 $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
             } elseif ($menu['menu_type'] == Define::MENU_TYPE_SYSTEM) {
                 $menu['menu_target_name'] = $menu['menu_name'];
-            } else {
+            } 
+            // custom, parent_node
+            else {
                 $menu['menu_target_name'] = $menu['menu_target'];
             }
         }
         // re-loop and remove others
         foreach ($menulist as &$menu) {
             // remove others
-            $menu = array_only($menu, ['parent_name', 'menu_type', 'menu_name', 'title', 'menu_target_name', 'order']);
+            $menu = array_only($menu, ['parent_name', 'menu_type', 'menu_name', 'title', 'menu_target_name', 'order', 'icon', 'uri']);
         }
         $config['menu'] = $menulist;
     }

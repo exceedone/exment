@@ -88,7 +88,6 @@ class Menu extends AdminMenu
                     $row['uri'] = array_get($defines, "uri");
                     break;
                 default:
-                    //$row['icon'] = null;
                     $row['uri'] = null;
                     break;
 

@@ -67,7 +67,8 @@ class CustomTableController extends AdminControllerBase
     {
         $form = new Form(new CustomTable);
         if(!isset($id)){
-            $form->text('table_name', exmtrans("custom_table.table_name"))->rules("required|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            $form->text('table_name', exmtrans("custom_table.table_name"))
+                ->rules("required|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(exmtrans('common.help_code'));
         }else{
             $form->display('table_name', exmtrans("custom_table.table_name"));

@@ -81,7 +81,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->string('suuid', 20)->unique();
             $table->enum('authority_type', Define::AUTHORITY_TYPES);
-            $table->string('authority_name', 256)->index();
+            $table->string('authority_name', 256)->index()->unique();
             $table->string('authority_view_name', 256);
             $table->string('description', 1000)->nullable();
             $table->boolean('default_flg')->default(false);
@@ -291,13 +291,7 @@ class CreateTableDefine extends Migration
         // Update --------------------------------------------------
         Schema::table(config('admin.database.menu_table'), function (Blueprint $table) {
             $table->enum(
-                'menu_type',
-                [
-                    Define::MENU_TYPE_SYSTEM,
-                    Define::MENU_TYPE_PLUGIN,
-                    Define::MENU_TYPE_TABLE,
-                    Define::MENU_TYPE_CUSTOM
-                ]
+                'menu_type', Define::MENU_TYPES
             );
             $table->string('menu_name')->nullable();
             $table->integer('menu_target')->nullable();
