@@ -197,7 +197,8 @@ EOT;
         $form->hidden('dashboard_type')->default('system');
 
         if(!isset($id)){
-            $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
+                ->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(exmtrans('common.help_code'));
         }else{
             $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));

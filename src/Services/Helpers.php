@@ -845,7 +845,7 @@ if (!function_exists('alterColumn')) {
         if(boolval(config($key))){return;}
 
         // Create index --------------------------------------------------
-        $table = CustomTable::where('table_name', $table_name)->first();
+        $table = CustomTable::findByName($table_name);
         $column = $table->custom_columns()->where('column_name', $column_name)->first();
 
         //DB table name

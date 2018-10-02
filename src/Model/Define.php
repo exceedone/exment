@@ -109,7 +109,8 @@ class Define
 
     public const TABLE_COLUMN_TYPE_CALC = [
         "integer", 
-        "decimal",
+        "decimal", 
+        "calc",
     ];
     
     public const RELATION_TYPE_ONE_TO_MANY = 'one_to_many';
@@ -208,12 +209,14 @@ class Define
     public const MENU_TYPE_SYSTEM = 'system';
     public const MENU_TYPE_PLUGIN = 'plugin';
     public const MENU_TYPE_TABLE = 'table';
+    public const MENU_TYPE_PARENT_NODE = 'parent_node';
     public const MENU_TYPE_CUSTOM = 'custom';
 
     public const MENU_TYPES = [
         self::MENU_TYPE_SYSTEM,
         self::MENU_TYPE_PLUGIN,
         self::MENU_TYPE_TABLE,
+        self::MENU_TYPE_PARENT_NODE,
         self::MENU_TYPE_CUSTOM,
     ];
 

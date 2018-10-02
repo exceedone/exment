@@ -174,11 +174,12 @@ trait HasPermissions
     /**
      * If visible for roles.
      *
-     * @param $roles
+     * @param $item menu item
+     * @param $target_tables output target tables. for template export. default nothing item
      *
      * @return bool
      */
-    public function visible($item) : bool
+    public function visible($item, $target_tables = []) : bool
     {
         if (empty($item)) {
             return false;
@@ -191,6 +192,16 @@ trait HasPermissions
                 return $this->visible($child);
             });
             return !is_null($first);
+        }
+
+        // get target tables.
+        if(count($target_tables) > 0){
+            // if $item->menu_name is not contains $target_tables, return false
+            if(!collect($target_tables)->first(function($target_table) use($item){
+                return array_get($item, 'menu_name') == $target_table;
+            })){
+                return false;
+            }
         }
 
         // get permission for target endpoint

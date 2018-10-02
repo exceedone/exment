@@ -491,7 +491,7 @@
         },
         {
             "authority_type": "table",
-            "authority_name": "admin",
+            "authority_name": "table_admin",
             "authority_view_name": "管理者",
             "description": "テーブルやフォーム・ビュー設定を編集・削除可能な権限です。",
             "permissions": [
@@ -505,7 +505,7 @@
         },
         {
             "authority_type": "table",
-            "authority_name": "all_editor",
+            "authority_name": "table_all_editor",
             "authority_view_name": "全データ編集者",
             "description": "テーブル内のすべてのデータを編集できます。",
             "permissions": [
@@ -516,7 +516,7 @@
         },
         {
             "authority_type": "table",
-            "authority_name": "editor",
+            "authority_name": "table_editor",
             "authority_view_name": "編集者",
             "description": "自分が担当者のデータを編集できます。",
             "permissions": [
@@ -526,7 +526,7 @@
         },
         {
             "authority_type": "table",
-            "authority_name": "viewer",
+            "authority_name": "table_viewer",
             "authority_view_name": "閲覧者",
             "description": "自分が担当者のデータを閲覧できます。",
             "permissions": [
@@ -535,7 +535,7 @@
         },
         {
             "authority_type": "value",
-            "authority_name": "editor",
+            "authority_name": "value_editor",
             "authority_view_name": "編集者",
             "description": "対象のデータを編集できます。",
             "permissions": [
@@ -545,7 +545,7 @@
         },
         {
             "authority_type": "value",
-            "authority_name": "viewer",
+            "authority_name": "value_viewer",
             "authority_view_name": "閲覧者",
             "description": "対象のデータを閲覧できます。",
             "permissions": [
@@ -645,10 +645,10 @@
         },
         {
             "order": "6",
-            "menu_type": "system",
+            "menu_type": "parent_node",
             "menu_name": "master",
             "parent_name": null,
-            "menu_target_name": "master",
+            "menu_target_name": null,
             "icon": "fa-database"
         },
         {

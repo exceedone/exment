@@ -64,6 +64,10 @@ trait CustomValueForm
                             if (isset($options) && !is_null(array_get($options, 'number_max'))) {
                                 $field->attribute(['max' => array_get($options, 'number_max')]);
                             }
+                            // if set updown button
+                            if(!boolval(array_get($options, 'updown_button'))){
+                                $field->disableUpdown();
+                            }
                             break;
                         case 'decimal':
                             $field = new Field\Text($column_name, [$column_view_name]);

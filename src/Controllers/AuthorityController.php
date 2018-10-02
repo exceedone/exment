@@ -82,7 +82,8 @@ class AuthorityController extends AdminControllerBase
         $form->display('authority_type', exmtrans("authority.authority_type"))->default(exmtrans("authority.authority_type_options.".$authority_type));
 
         if (!isset($id)) {
-            $form->text('authority_name', exmtrans('authority.authority_name'))->rules("required|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            $form->text('authority_name', exmtrans('authority.authority_name'))
+            ->rules("required|unique:".Authority::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
             ->help(exmtrans('common.help_code'));
         } else {
             $form->display('authority_name', exmtrans('authority.authority_name'));

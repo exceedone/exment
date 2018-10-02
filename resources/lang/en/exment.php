@@ -9,7 +9,7 @@ return [
         'input' => 'Input',
         'available_true' => 'Available',
         'available_false' => 'Not Available',
-        'help_code' => 'Cannot edit after save. Please enter lowercase letters, numbers, "-" or "_".',
+        'help_code' => "Cannot edit after save. Please enter lowercase letters, numbers, '-' or '_'. Cannot use other data's value.",
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',
         'separate_word' => ',',
