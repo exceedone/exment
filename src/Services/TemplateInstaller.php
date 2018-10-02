@@ -799,7 +799,7 @@ class TemplateInstaller
         }
 
         // add config array
-        $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE));
+        $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
         $zip->close();
 
@@ -1080,44 +1080,73 @@ class TemplateInstaller
      */
     protected static function setTemplateMenu(&$config, $target_tables){
         // get menu --------------------------------------------------
-        $menulist = (new Menu)->allNodes();
-        foreach ($menulist as &$menu) {
-            // checking target table visible.
-            if(count($target_tables) > 0 && !Admin::user()->visible($menu, $target_tables)){
-                continue;
-            }
+        $menuTree = (new Menu)->toTree(); // menutree:hierarchy
+        $menulist = (new Menu)->allNodes(); // allNodes:dimensional
+        $menus = [];
 
-            // replace id to name
-            //get parent name
-            if (!isset($menu['parent_id']) || $menu['parent_id'] == '0') {
-                $menu['parent_name'] = null;
-            } else {
-                $parent_id = $menu['parent_id'];
-                $parent = collect($menulist)->first(function ($value, $key) use ($parent_id) {
-                    return array_get($value, 'id') == $parent_id;
-                });
-                $menu['parent_name'] = isset($parent) ? array_get($parent, 'menu_name') : null;
-            }
-
-            // menu_target
-            if ($menu['menu_type'] == Define::MENU_TYPE_TABLE) {
-                $menu['menu_target_name'] = CustomTable::find($menu['menu_target'])->table_name ?? null;
-            } elseif ($menu['menu_type'] == Define::MENU_TYPE_PLUGIN) {
-                $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
-            } elseif ($menu['menu_type'] == Define::MENU_TYPE_SYSTEM) {
-                $menu['menu_target_name'] = $menu['menu_name'];
-            } 
-            // custom, parent_node
-            else {
-                $menu['menu_target_name'] = $menu['menu_target'];
-            }
+        // loop for menutree
+        foreach ($menuTree as &$menu) {
+            // looping and get menu item
+            $menus = array_merge($menus, static::getTemplateMenuItems($menu, $target_tables, $menulist));
         }
         // re-loop and remove others
-        foreach ($menulist as &$menu) {
+        foreach ($menus as &$menu) {
             // remove others
             $menu = array_only($menu, ['parent_name', 'menu_type', 'menu_name', 'title', 'menu_target_name', 'order', 'icon', 'uri']);
         }
-        $config['menu'] = $menulist;
+        $config['menu'] = $menus;
+    }
+
+    protected static function getTemplateMenuItems($menu, $target_tables, $menulist){
+        // checking target table visible. if false, return empty array
+        $menus = [];
+        if(count($target_tables) > 0 && !Admin::user()->visible($menu, $target_tables)){
+            return [];
+        }
+
+        // add item
+        // replace id to name
+        //get parent name
+        if (!isset($menu['parent_id']) || $menu['parent_id'] == '0') {
+            $menu['parent_name'] = null;
+        } else {
+            $parent_id = $menu['parent_id'];
+            $parent = collect($menulist)->first(function ($value, $key) use ($parent_id) {
+                return array_get($value, 'id') == $parent_id;
+            });
+            $menu['parent_name'] = isset($parent) ? array_get($parent, 'menu_name') : null;
+        }
+
+        // menu_target
+        if ($menu['menu_type'] == Define::MENU_TYPE_TABLE) {
+            $menu['menu_target_name'] = CustomTable::find($menu['menu_target'])->table_name ?? null;
+        } elseif ($menu['menu_type'] == Define::MENU_TYPE_PLUGIN) {
+            $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
+        } elseif ($menu['menu_type'] == Define::MENU_TYPE_SYSTEM) {
+            $menu['menu_target_name'] = $menu['menu_name'];
+        } 
+        // custom, parent_node
+        else {
+            $menu['menu_target_name'] = $menu['menu_target'];
+        }
+
+        //// url
+        // menu type is table, remove uri "data/"
+        if($menu['menu_type'] == Define::MENU_TYPE_TABLE){
+            $menu['uri'] = preg_replace('/^data\//', '', $menu['uri']);
+        }
+
+        // add array
+        $menus[] = $menu;
+
+        // if has children, loop
+        if(array_key_value_exists('children', $menu)){
+            foreach(array_get($menu, 'children') as $child){
+                // set children menu item recursively to $menus.
+                $menus = array_merge($menus, static::getTemplateMenuItems($child, $target_tables, $menulist));
+            }
+        }
+        return $menus;
     }
 
     /**

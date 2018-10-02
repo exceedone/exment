@@ -188,17 +188,17 @@ trait HasPermissions
         // if $item has children, get children's visible result.
         // if children have true result, return true;
         if (array_key_exists('children', $item)) {
-            $first = collect($item['children'])->first(function ($child) use ($item) {
-                return $this->visible($child);
+            $first = collect($item['children'])->first(function ($child) use ($item, $target_tables) {
+                return $this->visible($child, $target_tables);
             });
             return !is_null($first);
         }
 
-        // get target tables.
+        // if has target tables.
         if(count($target_tables) > 0){
             // if $item->menu_name is not contains $target_tables, return false
             if(!collect($target_tables)->first(function($target_table) use($item){
-                return array_get($item, 'menu_name') == $target_table;
+                return array_get($item, 'table_name') == $target_table;
             })){
                 return false;
             }
