@@ -29,10 +29,12 @@ trait DocumentForm
         $isMitsumori = $table_name == 'estimate';
         $documentItems = [
             ['y' => 0, 'fixWidth' => true, 'text' => $isMitsumori ? '見積書' : '請求書', 'align' => 'C', 'font_size' => 20, 'border' => 'TLBR'],
-            ['x' => 0, 'y' => 20, 'width' => 95, 'text' => '${value:company-customer:company-name}', 'font_size' => 15, 'border' => 'B'],
+            
+            // TO:customer
+            ['x' => 0, 'y' => 20, 'width' => 95, 'text' => '${value:deal:company_customer:company_name}', 'font_size' => 15, 'border' => 'B'],
             ['x' => 95, 'y' => 20, 'text' => '様'],
-            ['x' => 0, 'y' => 35, 'width' => 30, 'text' => '${value:'.$table_name.'-amount}', 'border' => 'B'],
-            ['x' => 30, 'y' => 35, 'text' => '税込'],
+            ['x' => 0, 'y' => 35, 'width' => 30, 'text' => '${sum:'.$table_name.'_detail:sum_tax_price}', 'align' => 'R', 'border' => 'B'],
+            ['x' => 30, 'y' => 35, 'text' => '円(税込)'],
 
             // company info
             ['x' => 0, 'y' => 35, 'width' => 20, 'image' => '${base_info:company_stamp}', 'align' => 'R'],
@@ -43,17 +45,17 @@ trait DocumentForm
             ['y' => 65, 'fixWidth' => true, 'text' => 'TEL:${base_info:tel01}-${base_info:tel02}-${base_info:tel03}', 'align' => 'R', 'font_size' => 10],
 
             // tables
-            ['y' => 90, 'fixWidth' => true, 'document_item_type' => 'table', 'font_size' => 8, 'target_table' => $table_name.'-detail', 'table_count' => 10, 'target_columns' => [
+            ['y' => 90, 'fixWidth' => true, 'document_item_type' => 'table', 'font_size' => 8, 'target_table' => $table_name.'_detail', 'table_count' => 10, 'target_columns' => [
                 ['column_name' => 'merchandise', 'width' => '*'],
-                ['column_name' => 'unit-price', 'width' => '20', 'align' => 'R'],
-                ['column_name' => 'unit', 'width' => '20', 'align' => 'C'],
+                ['column_name' => 'price', 'width' => '20', 'align' => 'R'],
+                ['column_name' => 'num', 'width' => '20', 'align' => 'C'],
                 ['column_name' => 'quantity', 'width' => '20', 'align' => 'C'],
-                ['column_name' => 'amount', 'width' => '20', 'align' => 'R'],
+                ['column_name' => 'sum_price', 'width' => '20', 'align' => 'R'],
             ]],
 
             // comment
             ['y' => 200, 'fixWidth' => true, 'text' => '備考', 'font_size' => 10],
-            ['y' => 205, 'fixWidth' => true, 'height' => 50, 'border' => 'TLBR'],
+            ['y' => 205, 'fixWidth' => true, 'height' => 50, 'border' => 'TLBR', 'text' => '${value:tekiyou}'],
         ];
         if($isMitsumori){
             $documentItems[] = ['x' => 0, 'y' => 45, 'text' => '有効期限：'.Carbon::today()->addMonth()->addDay(-1)->format('Y/m/d')];
@@ -67,11 +69,12 @@ trait DocumentForm
         $document_attachment_file = $service->getPdfPath();
         // save pdf
         $path = $this->savePdfInServer($document_attachment_file, $service);
+        $filename = $service->getPdfFileName();
 
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
             //'Content-Disposition' => 'inline; filename="'.$filename.'"'
-            'Content-Disposition' => 'inline;'
+            'Content-Disposition' => 'inline; filename="'.$filename.'"'
         ]);
         
 
