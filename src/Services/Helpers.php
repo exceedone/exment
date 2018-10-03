@@ -594,7 +594,7 @@ if (!function_exists('getValueUseTable')) {
                 $loop_value = $value;
                 $loop_custom_table = $custom_table;
                 foreach ($columns as $k => $c) {
-                    $lastIndex = ($k != count($columns) - 1);
+                    $lastIndex = ($k == count($columns) - 1);
                     // if $k is not last index, $loop_label is false(because using CustomValue Object)
                     if (!$lastIndex) {
                         $loop_label = false;
@@ -782,8 +782,11 @@ if (!function_exists('getValueUseTable')) {
             return null;
         }
         else{
-            // add comma
-            if(boolval(array_get($column_array, 'options.number_format'))){
+            // if not label, return 
+            if($label !== true){
+                return $val;
+            }
+            if(boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)){
                 $val = number_format($val);
             }
             return $val;

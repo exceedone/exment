@@ -33,13 +33,13 @@ trait DocumentForm
             // TO:customer
             ['x' => 0, 'y' => 20, 'width' => 95, 'text' => '${value:deal:company_customer:company_name}', 'font_size' => 15, 'border' => 'B'],
             ['x' => 95, 'y' => 20, 'text' => '様'],
-            ['x' => 0, 'y' => 35, 'width' => 30, 'text' => '${sum:'.$table_name.'_detail:sum_tax_price}', 'align' => 'R', 'border' => 'B'],
-            ['x' => 30, 'y' => 35, 'text' => '円(税込)'],
+            ['x' => 0, 'y' => 35, 'width' => 30, 'text' => '${sum:'.$table_name.'_detail:sum_tax_price}', 'font_size' => 14, 'align' => 'R', 'border' => 'B', 'number_format' => true, 'valign', 'B'],
+            ['x' => 30, 'y' => 35, 'text' => '円(税込)', 'valign', 'B'],
 
             // company info
             ['x' => 0, 'y' => 35, 'width' => 20, 'image' => '${base_info:company_stamp}', 'align' => 'R'],
             ['x' => 0, 'y' => 20, 'width' => 40, 'image' => '${base_info:company_logo}', 'align' => 'R'],
-            ['y' => 50, 'fixWidth' => true, 'text' => '${base_info:company_name}', 'align' => 'R', 'font_size' => 10],
+            ['y' => 50, 'fixWidth' => true, 'text' => '${base_info:company_name}', 'align' => 'R', 'font_size' => 14],
             ['y' => 55, 'fixWidth' => true, 'text' => '〒${base_info:zip01}-${base_info:zip02}', 'align' => 'R', 'font_size' => 10],
             ['y' => 60, 'fixWidth' => true, 'text' => '${base_info:pref}${base_info:addr01} ${base_info:addr02}', 'align' => 'R', 'font_size' => 10],
             ['y' => 65, 'fixWidth' => true, 'text' => 'TEL:${base_info:tel01}-${base_info:tel02}-${base_info:tel03}', 'align' => 'R', 'font_size' => 10],
@@ -48,9 +48,13 @@ trait DocumentForm
             ['y' => 90, 'fixWidth' => true, 'document_item_type' => 'table', 'font_size' => 8, 'target_table' => $table_name.'_detail', 'table_count' => 10, 'target_columns' => [
                 ['column_name' => 'merchandise', 'width' => '*'],
                 ['column_name' => 'price', 'width' => '20', 'align' => 'R'],
-                ['column_name' => 'num', 'width' => '20', 'align' => 'C'],
-                ['column_name' => 'quantity', 'width' => '20', 'align' => 'C'],
+                ['column_name' => 'num', 'width' => '12', 'align' => 'C'],
+                ['column_name' => 'unit', 'width' => '12', 'align' => 'C'],
                 ['column_name' => 'sum_price', 'width' => '20', 'align' => 'R'],
+            ], 'footers' => [
+                ['header' => ['text' => '合計(税抜)', 'align' => 'R', 'width' => '*'], 'body' => ['width' => '32', 'text' => '${sum:'.$table_name.'_detail:sum_price}', 'align' => 'R', 'number_format' => true]],
+                ['header' => ['text' => '消費税', 'align' => 'R', 'width' => '*'], 'body' => ['width' => '32', 'text' => '${sum:'.$table_name.'_detail:tax_price}', 'align' => 'R', 'number_format' => true]],
+                ['header' => ['text' => '合計(税込)', 'align' => 'R', 'width' => '*'], 'body' => ['width' => '32', 'text' => '${sum:'.$table_name.'_detail:sum_tax_price}', 'align' => 'R', 'number_format' => true]],
             ]],
 
             // comment

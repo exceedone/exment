@@ -616,7 +616,7 @@ var rmcomma = function (x) {
     if (x === null || x === undefined) {
         return x;
     }
-    return x.toString().replace(',', '');
+    return x.toString().replace(/,/g, '');
 };
 var trimAny = function (str, any) {
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
