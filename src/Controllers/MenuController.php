@@ -175,6 +175,37 @@ class MenuController extends AdminControllerBase
             )->help(exmtrans('common.help_code'));
         $form->text('title', exmtrans("menu.title"))->rules('required');
         $form->icon('icon', trans('admin.icon'))->default('');
+        $form->hidden('order');
+
+        $form->saving(function ($form) {
+            // whether set order
+            $isset_order = false;
+            // get parent id
+            $parent_id = $form->parent_id;
+            
+            // get id
+            $id = $form->model()->id;
+            // if not set id(create), set order
+            if(!isset($id)){
+                $isset_order = true;
+            }
+            // if set id(update), whether change parent id
+            else{
+                $model_parent_id = $form->model()->parent_id;
+                $isset_order = ($model_parent_id != $parent_id);
+            }
+            
+            // get same parent_id count
+            if($isset_order){
+                $query = Menu::where('parent_id', $parent_id);
+                if(isset($id)){
+                    $query->whereNot('id', $id);
+                }
+                $count = $query->count();
+                // set order $count+1;
+                $form->order = $count + 1;
+            }
+        });
     }
 
     // menu_type and menutargetvalue --------------------------------------------------
