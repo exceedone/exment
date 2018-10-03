@@ -123,6 +123,7 @@ class DocumentPdfService extends AbstractFPDIService
             $font_size = array_get($documentItem, 'font_size', $this->fontSize);
             $font_style = array_get($documentItem, 'font_style');
             $align = array_get($documentItem, 'align');
+            $valign = array_get($documentItem, 'valign');
             $border = array_get($documentItem, 'border');
             $fixWidth = array_get($documentItem, 'fixWidth', false);
             
@@ -133,8 +134,9 @@ class DocumentPdfService extends AbstractFPDIService
                 $children = getChildrenValues($model, array_get($documentItem, 'target_table'));
                 $table_count = array_get($documentItem, 'table_count', 5);
                 $target_columns = array_get($documentItem, 'target_columns', []);
+                $footers = array_get($documentItem, 'footers', []);
 
-                $this->lfTable($x, $y, $target_table_name, $children, $target_columns, [
+                $this->lfTable($model, $x, $y, $target_table_name, $children, $target_columns, $footers, [
                     'font_size' => $font_size,
                     'font_style' => $font_style,
                     'table_count' => $table_count,
@@ -191,69 +193,7 @@ class DocumentPdfService extends AbstractFPDIService
             }
 
             // get text
-            $text = array_get($documentItem, 'text');
-            // check string
-            preg_match_all('/\${(.*?)\}/', $text, $matches);
-            if (isset($matches)) {
-                // loop for matches. because we want to get inner {}, loop $matches[1].
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    try{
-                        $match = strtolower($matches[1][$i]);
-                    
-                        // get column
-                        $length_array = explode(":", $match);
-                        
-                        ///// value
-                        if (strpos($match, "value") !== false) {
-                            // get value from model
-                            if (count($length_array) <= 1) {
-                                $str = '';
-                            }
-                            // elseif(count($length_array) == 2) {
-                            //     $str = getValue($model, $length_array[1], true);
-                            // }
-                            //else, getting value recursively
-                            else{
-                                // get comma string from index 1.
-                                $length_array = array_slice($length_array, 1);
-                                $str = getValue($model, implode(',', $length_array), true);
-                            }
-                            $text = str_replace($matches[0][$i], $str, $text);
-                        }
-                        ///// sum
-                        elseif (strpos($match, "sum") !== false) {
-                            // get sum value from children model
-                            if (count($length_array) <= 2) {
-                                $str = '';
-                            }
-                            //else, getting value using cihldren
-                            else{
-                                // get children values
-                                $children = getChildrenValues($model, $length_array[1]);
-                                // looping
-                                $sum = 0;
-                                foreach($children as $child){
-                                    $sum += intval($child->getValue($length_array[2]));
-                                }
-                                $str = strval($sum);
-                            }
-                            $text = str_replace($matches[0][$i], $str, $text);
-                        }
-                        // base_info
-                        elseif(strpos($match, "base_info") !== false){
-                            $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
-                            // get value from model
-                            if (count($length_array) <= 1) {
-                                $str = '';
-                            }else{
-                                $str = getValue($base_info, $length_array[1]);
-                            }
-                            $text = str_replace($matches[0][$i], $str, $text);
-                        }
-                    } catch(Exception $e) {
-                    }
-                }
-            }
+            $text = $this->getText($model, $documentItem);
 
             // write text
             $this->lfText($x, $y, $text, 
@@ -263,6 +203,7 @@ class DocumentPdfService extends AbstractFPDIService
                 'font_size' => $font_size,
                 'font_style' => $font_style,
                 'align' => $align,
+                'valign' => $valign,
                 'border' => $border,
                 'fixWidth' => $fixWidth,
             ]);
@@ -330,19 +271,9 @@ class DocumentPdfService extends AbstractFPDIService
     {
         // remove null value
         array_filter($options, function($value) { return $value !== ''; });
+
         // merge options to default
-        $options = array_merge(
-            [
-                'width' => 0,
-                'height' => 0,
-                'font_size' => $this->FontSizePt,
-                'style' => '',
-                'align' => 'J',
-                'border' => '',
-                'fixWidth' => false,
-            ],
-            $options
-        );
+        $options = array_merge($this->getDefaultOptions(), $options);
 
         // Escape Font
         $bakFontStyle = $this->FontStyle;
@@ -365,7 +296,14 @@ class DocumentPdfService extends AbstractFPDIService
             null, // fill
             1, //ln
             $x + $this->baseOffsetX, 
-            $y + $this->baseOffsetY
+            $y + $this->baseOffsetY,
+            $reseth = true, 
+            $strech = 0, 
+            $ishtml = false, 
+            $autopadding = true, 
+            $maxh=0, 
+            $valign = $options['valign'], 
+            true
         );
         // Restore
         $this->SetFont('', $bakFontStyle, $bakFontSize);
@@ -410,7 +348,7 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * Write Table
      */
-    protected function lfTable($x, $y, $target_table_name, $children, $target_columns, $options = [])
+    protected function lfTable($model, $x, $y, $target_table_name, $children, $target_columns, $footers, $options = [])
     {
         // remove null value
         array_filter($options, function($value) { return $value !== ''; });
@@ -433,19 +371,14 @@ class DocumentPdfService extends AbstractFPDIService
         $bakFontSize = $this->FontSizePt;
         $this->SetFont(self::FONT_GOTHIC, $options['style'], $options['font_size']);
 
+        // set default options to $target_columns
+        $this->setItemProps($target_columns);
+
         // get content width
         $contentWidth = $this->getContentWidth();
         // set header info.
         // get real_width if not *
         foreach($target_columns as &$target_column){
-            if(is_numeric(array_get($target_column, 'width'))){
-                $target_column['real_width'] = intval(array_get($target_column, 'width'));
-            }
-            // when *, set 0
-            else{
-                $target_column['real_width'] = 0;
-            }
-
             // set header name using table
             $target_column['label'] = 
                 CustomTable::findByName($target_table_name)
@@ -458,13 +391,10 @@ class DocumentPdfService extends AbstractFPDIService
                 'align' => 'J',
             ], $target_column);
         }
-        // set real_width
+
+        // set header
         $this->SetFillColor(216, 216, 216);
         foreach($target_columns as &$target_column){
-            if(array_get($target_column, 'width') == '*'){
-                $target_column['real_width'] = $contentWidth - collect($target_columns)->sum('real_width');
-            }
-
             // set table header
             $this->Cell($target_column['real_width'], 7, $target_column['label'], 1, 0, 'C', true);
         }
@@ -480,7 +410,6 @@ class DocumentPdfService extends AbstractFPDIService
             $y0 = $this->GetY();
 
             foreach($target_columns as &$target_column){
-                $option_detail = [];
                 $this->MultiCell(
                     $target_column['real_width'], 
                     7, 
@@ -496,7 +425,7 @@ class DocumentPdfService extends AbstractFPDIService
                     $ishtml = false, 
                     $autopadding = true, 
                     $maxh=0, 
-                    $valign = 'M', 
+                    $valign = $target_column['valign'], 
                     true
                 );
                 $x0 += $target_column['real_width'];
@@ -509,8 +438,175 @@ class DocumentPdfService extends AbstractFPDIService
             $this->Ln();
         }
 
+        // set table footer --------------------------------------------------
+        $this->SetFillColor(216, 216, 216);
+        foreach($footers as &$footer){
+            // set default options to $target_columns
+            $footer_array = [array_get($footer, 'header', []), array_get($footer, 'body', [])];
+            $this->setItemProps($footer_array);
+            $footer_header = $footer_array[0];
+            $footer_body = $footer_array[1];
+
+            $x0 = $this->GetX();
+            $this->SetX($x0);
+            $y0 = $this->GetY();
+            
+            // set label
+            $this->MultiCell(
+                $footer_header['real_width'], 
+                7, 
+                $this->getText($model, $footer_header),
+                1, 
+                $footer_header['align'] ?? '' ,
+                true, // fill 
+                1, 
+                '', 
+                '', 
+                $reseth = true, 
+                $strech = 0, 
+                $ishtml = false, 
+                $autopadding = true, 
+                $maxh=0, 
+                $valign = $footer_header['valign'], 
+                true
+            );
+            $x0 += intval($footer_header['real_width']);
+            $this->SetXY($x0, $y0);
+
+            // set item
+            $this->MultiCell(
+                $footer_body['real_width'], 
+                7, 
+                $this->getText($model, $footer_body),
+                1, 
+                $footer_body['align'] ?? '', 
+                false, //fill 
+                1, 
+                '', 
+                '', 
+                $reseth = true, 
+                $strech = 0, 
+                $ishtml = false, 
+                $autopadding = true, 
+                $maxh=0, 
+                $valign = $footer_body['valign'], 
+                true
+            );
+        }
+
         // Restore
         $this->SetFont('', $bakFontStyle, $bakFontSize);
+    }
+
+    /**
+     * set real width, default prop, ...
+     */
+    protected function setItemProps(&$items){
+        $contentWidth = $this->getContentWidth();
+        if(!is_array($items)){
+            $items = [$items];
+        }
+
+        // looping items
+        foreach($items as &$item){
+            // set default options
+            $item = array_merge($this->getDefaultOptions(), $item);
+
+            // calc real width
+            // calc width
+            if (is_numeric(array_get($item, 'width'))) {
+                $item['real_width'] = intval(array_get($item, 'width'));
+            }
+            // when *, set 0
+            else {
+                $item['real_width'] = 0;
+            }
+        }
+
+        // re-loop
+        foreach($items as &$item){
+            // if width is *, calc real_width
+            if(array_get($item, 'width') == '*'){
+                $item['real_width'] = $contentWidth - collect($items)->sum('real_width');
+            }
+        }
+    }
+
+    /**
+     * get output text
+     */
+    protected function getText($model, $documentItem){
+        $text = array_get($documentItem, 'text');
+        // check string
+        preg_match_all('/\${(.*?)\}/', $text, $matches);
+        if (isset($matches)) {
+            // loop for matches. because we want to get inner {}, loop $matches[1].
+            for ($i = 0; $i < count($matches[1]); $i++) {
+                try{
+                    $match = strtolower($matches[1][$i]);
+                
+                    // get column
+                    $length_array = explode(":", $match);
+                    
+                    ///// value
+                    if (strpos($match, "value") !== false) {
+                        // get value from model
+                        if (count($length_array) <= 1) {
+                            $str = '';
+                        }
+                        // elseif(count($length_array) == 2) {
+                        //     $str = getValue($model, $length_array[1], true);
+                        // }
+                        //else, getting value recursively
+                        else{
+                            // get comma string from index 1.
+                            $length_array = array_slice($length_array, 1);
+                            $str = getValue($model, implode(',', $length_array), true);
+                        }
+                        $text = str_replace($matches[0][$i], $str, $text);
+                    }
+                    ///// sum
+                    elseif (strpos($match, "sum") !== false) {
+                        // get sum value from children model
+                        if (count($length_array) <= 2) {
+                            $str = '';
+                        }
+                        //else, getting value using cihldren
+                        else{
+                            // get children values
+                            $children = getChildrenValues($model, $length_array[1]);
+                            // looping
+                            $sum = 0;
+                            foreach($children as $child){
+                                // get value
+                                $sum += intval($child->getValue($length_array[2]));
+                            }
+                            $str = strval($sum);
+                        }
+                        $text = str_replace($matches[0][$i], $str, $text);
+                    }
+                    // base_info
+                    elseif(strpos($match, "base_info") !== false){
+                        $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
+                        // get value from model
+                        if (count($length_array) <= 1) {
+                            $str = '';
+                        }else{
+                            $str = getValue($base_info, $length_array[1]);
+                        }
+                        $text = str_replace($matches[0][$i], $str, $text);
+                    }
+                } catch(Exception $e) {
+                }
+            }
+        }
+
+        // add comma if number_format
+        if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',')){
+            $text = number_format($text);
+        }
+
+        return $text;
     }
     
     /**
@@ -536,6 +632,19 @@ class DocumentPdfService extends AbstractFPDIService
         $this->SetX($actualX);
         $actualY = is_null($y) ? $result['top'] : $result['top'] + $y;
         $this->SetY($actualY);
+    }
+
+    protected function getDefaultOptions(){
+        return [
+            'width' => 0,
+            'height' => 0,
+            'font_size' => $this->FontSizePt,
+            'style' => '',
+            'align' => 'J',
+            'valign' => 'M',
+            'border' => '',
+            'fixWidth' => false,
+        ];
     }
 }
 
