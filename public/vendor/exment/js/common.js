@@ -49,11 +49,6 @@ var Exment;
             });
         };
         /**
-         * add comma and remove comma if focus
-         */
-        CommonEvent.numberComma = function () {
-        };
-        /**
          * Set changedata event
          */
         CommonEvent.setChangedataEvent = function (datalist) {
@@ -76,7 +71,7 @@ var Exment;
                 // get element value from model
                 var from = modeldata['value'][changedata_from];
                 // copy to element from model
-                var val = $elem.prop('number_format') ? comma(from) : from;
+                var val = $elem.attr('number_format') ? comma(from) : from;
                 $elem.val(val);
             }
             CommonEvent.setFormFilter($target);
@@ -101,7 +96,7 @@ var Exment;
                     if ($e.data('getitem')) {
                         continue;
                     }
-                    var val = $e.prop('number_format') ? comma(data[key]) : data[key];
+                    var val = $e.attr('number_format') ? comma(data[key]) : data[key];
                     $e.val(val);
                     // if target-item is "iconpicker-input", set icon
                     if ($e.hasClass('iconpicker-input')) {
@@ -218,6 +213,7 @@ var Exment;
             if (prefix === void 0) { prefix = ''; }
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
         };
+        CommonEvent.calcDataList = [];
         /**
         * 日付の計算
         */
@@ -474,13 +470,18 @@ var Exment;
          * Set calc event
          */
         CommonEvent.setCalcEvent = function (datalist) {
+            // set datalist for after flow.
+            CommonEvent.calcDataList = [];
             // loop "data-calc" targets   
             for (var key in datalist) {
                 var data = datalist[key];
                 // set data to element
-                $(CommonEvent.getClassKey(key)).data('calc_data', data);
+                // cannot use because cannot fire new row
+                //$(CommonEvent.getClassKey(key)).data('calc_data', data);
+                // set calcDataList array. key is getClassKey. data is data
+                CommonEvent.calcDataList.push({ "classKey": CommonEvent.getClassKey(key), "data": data });
                 // set calc event
-                $(document).on('change', CommonEvent.getClassKey(key), { data: data }, function (ev) {
+                $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, function (ev) {
                     CommonEvent.setCalc($(ev.target), ev.data.data);
                 });
                 // set event for plus minus button
@@ -555,11 +556,17 @@ var Exment;
                         }
                         break;
                 }
-                $to.val(bn.toPrecision());
+                var precision = bn.toPrecision();
+                $to.val($to.attr('number_format') ? comma(precision) : precision);
                 // if $to has "calc_data" data, execute setcalc function again
-                var to_data = $to.data('calc_data');
-                if (hasValue(to_data)) {
-                    CommonEvent.setCalc($to, to_data);
+                //var to_data = $to.data('calc_data');
+                for (var key in CommonEvent.calcDataList) {
+                    var calcData = CommonEvent.calcDataList[key];
+                    // filter $to obj
+                    var $filterTo = $to.filter(calcData.classKey);
+                    if (hasValue($filterTo)) {
+                        CommonEvent.setCalc($filterTo, calcData.data);
+                    }
                 }
             }
         };

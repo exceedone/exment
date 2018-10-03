@@ -471,8 +471,11 @@ if (!function_exists('getRelationNamebyObjs')) {
      */
     function getRelationNamebyObjs($parent, $child)
     {
-        $parent_suuid = CustomTable::getEloquent($parent)->suuid;
-        $child_suuid = CustomTable::getEloquent($child)->suuid;
+        $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
+        $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
+        if(is_null($parent_suuid) || is_null($child_suuid)){
+            return null;
+        }
         return "pivot_{$parent_suuid}_{$child_suuid}";
     }
 }
@@ -566,32 +569,83 @@ if (!function_exists('getValue')) {
 if (!function_exists('getValueUseTable')) {
     /**
      * Get Custom Value
-     * @param $value
-     * @param string|array|CustomColumn $column
+     * @param array|CustomValue $value trget value 
+     * @param string|array|CustomColumn $column target column_name or CustomColumn object. If null, it's label column
      * @param mixin $label if column_type is select_table or select_valtext, only get label 
      * @return string
      */
     function getValueUseTable($custom_table, $value, $column = null, $label = false)
     {
         if (is_null($value)) {
-            return $nullvalue;
+            return null;
         }
-
+        $custom_table = CustomTable::getEloquent($custom_table);
         if(is_null($column)){
             $column = getLabelColumn($custom_table);
         }
-        
-        // get custom column as array
+
+        // if $column is string and  and contains comma
+        if (is_string($column) && str_contains($column, ',')) {
+            ///// getting value Recursively
+            // split comma
+            $columns = explode(",", $column);
+            // if $columns count >= 2, loop columns
+            if (count($columns) >= 2) {
+                $loop_value = $value;
+                $loop_custom_table = $custom_table;
+                foreach ($columns as $k => $c) {
+                    $lastIndex = ($k != count($columns) - 1);
+                    // if $k is not last index, $loop_label is false(because using CustomValue Object)
+                    if (!$lastIndex) {
+                        $loop_label = false;
+                    }
+                    // if last index, $loop_label is called $label
+                    else {
+                        $loop_label = $label;
+                    }
+                    // get value using $c
+                    $loop_value = getValueUseTable($loop_custom_table, $loop_value, $c, $loop_label);
+                    // if null, return
+                    if (is_null($loop_value)) {
+                        return null;
+                    }
+
+                    // if last index, return value
+                    if($lastIndex){
+                        return $loop_value;
+                    }
+                    // get custom table. if CustomValue
+                    if($loop_value instanceof CustomValue){
+                        $loop_custom_table = $loop_value->getCustomTable();
+                    }
+                    // else, something wrong, so return null
+                    else{
+                        return null;
+                    }
+                }
+                return $loop_value;
+            }
+            // if length <= 1, set normal getValueUseTable flow, so $column = $columns[0]
+            else{
+                $column = $columns[0];
+            }
+        }
+
+        ///// get custom column as array
+        // if string
         if (is_string($column)) {
             $column_first = CustomColumn
                 ::where('column_name', $column)
-                ->where('custom_table_id', $custom_table->id)
+                ->where('custom_table_id', array_get($custom_table, 'id'))
                 ->first();
                 if(is_null($column_first)){return null;}
                 $column_array = $column_first->toArray() ?? null;
-        } elseif ($column instanceof CustomValue) {
+        }
+        // if $column is CustomColumn, convert to array.
+        elseif ($column instanceof CustomColumn) {
             $column_array = $column->toArray();
-        } else {
+        } 
+        else {
             $column_array = $column;
         }
 
@@ -600,6 +654,9 @@ if (!function_exists('getValueUseTable')) {
         if(is_array($value)){
             $key = array_get($column_array, 'column_name');
             $val = array_get($value, $key);
+        }elseif($value instanceof CustomValue){
+            $key = array_get($column_array, 'column_name');
+            $val = array_get($value->value, $key);
         }else{
             $val = $value;
         }

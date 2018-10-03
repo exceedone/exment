@@ -208,14 +208,39 @@ class DocumentPdfService extends AbstractFPDIService
                             // get value from model
                             if (count($length_array) <= 1) {
                                 $str = '';
-                            }else if(count($length_array) == 2) {
-                                $str = getValue($model, $length_array[1], true);
-                            }else{
-                                $str = getValue($model, $length_array[1], $length_array[2]);
+                            }
+                            // elseif(count($length_array) == 2) {
+                            //     $str = getValue($model, $length_array[1], true);
+                            // }
+                            //else, getting value recursively
+                            else{
+                                // get comma string from index 1.
+                                $length_array = array_slice($length_array, 1);
+                                $str = getValue($model, implode(',', $length_array), true);
                             }
                             $text = str_replace($matches[0][$i], $str, $text);
                         }
-                        else if(strpos($match, "base_info") !== false){
+                        ///// sum
+                        elseif (strpos($match, "sum") !== false) {
+                            // get sum value from children model
+                            if (count($length_array) <= 2) {
+                                $str = '';
+                            }
+                            //else, getting value using cihldren
+                            else{
+                                // get children values
+                                $children = getChildrenValues($model, $length_array[1]);
+                                // looping
+                                $sum = 0;
+                                foreach($children as $child){
+                                    $sum += intval($child->getValue($length_array[2]));
+                                }
+                                $str = strval($sum);
+                            }
+                            $text = str_replace($matches[0][$i], $str, $text);
+                        }
+                        // base_info
+                        elseif(strpos($match, "base_info") !== false){
                             $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
                             // get value from model
                             if (count($length_array) <= 1) {

@@ -236,6 +236,10 @@ class TemplateInstaller
                     // if column type is calc, set dynamic val
                     if(array_get($column, 'column_type') == 'calc'){
                         $calc_formula = array_get($options, 'calc_formula');
+                        // if $calc_formula is string, convert to json
+                        if(is_string($calc_formula)){
+                            $calc_formula = json_decode($calc_formula, true);
+                        }
                         if(is_array($calc_formula)){
                             foreach($calc_formula as &$c){
                                 // if not dynamic, continue
@@ -243,9 +247,13 @@ class TemplateInstaller
                                     continue;
                                 }
                                 // set id
-                                $c['val'] = CustomColumn::where('column_name', array_get($c, 'val'))->first()->id ?? null;
+                                //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
+                                //$c['val'] = CustomColumn::where('column_name', array_get($c, 'val'))->first()->id ?? null;
+                                $c['val'] = $obj_table->custom_columns()->where('column_name', array_get($c, 'val'))->first()->id ?? null;
                             }
                         }
+                        // set as json string
+                        $options['calc_formula'] = json_encode($calc_formula);
                     }
 
                     $obj_column->options = $options;
@@ -404,12 +412,17 @@ class TemplateInstaller
                                 $options = null;
                             }
                             // if has changedata_column_name and changedata_target_column_name, set id
-                            if(array_key_value_exists('changedata_column_name', $options)){
-                                $options['changedata_column_id'] = CustomColumn::where('column_name', $options['changedata_column_name'])->first()->id?? null;
+                            if(array_key_value_exists('changedata_column_name', $options) && array_key_value_exists('changedata_column_table_name', $options)){
+                                //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
+                                //$options['changedata_column_id'] = CustomColumn::where('column_name', $options['changedata_column_name'])->first()->id?? null;
+                                // get using changedata_column_table_name
+                                $options['changedata_column_id'] = CustomTable::findByName($options['changedata_column_table_name'])->custom_columns()->where('column_name', $options['changedata_column_name'])->first()->id?? null;
                                 array_forget($options, 'changedata_column_name');
                             }
                             if(array_key_value_exists('changedata_target_column_name', $options)){
-                                $options['changedata_target_column_id'] = CustomColumn::where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
+                                //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
+                                //$options['changedata_target_column_id'] = CustomColumn::where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
+                                $options['changedata_target_column_id'] = $target_table->custom_columns()->where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
                                 array_forget($options, 'changedata_target_column_name');
                             }
 
@@ -842,6 +855,10 @@ class TemplateInstaller
                     // if column_type is calc, change value dynamic name using calc_formula property
                     if (array_get($custom_column, 'column_type') == 'calc') {
                         $calc_formula = array_get($custom_column['options'], 'calc_formula');
+                        // if $calc_formula is string, convert to json
+                        if(is_string($calc_formula)){
+                            $calc_formula = json_decode($calc_formula, true);
+                        }
                         if(is_array($calc_formula)){
                             foreach($calc_formula as &$c){
                                 // if not dynamic, continue
@@ -851,14 +868,18 @@ class TemplateInstaller
                                 // get custom column name
                                 $calc_formula_column_name = CustomColumn::find(array_get($c, 'val'))->column_name ?? null;
                                 // set value
+                                \Log::debug('calc_formula_column_name:'.$calc_formula_column_name);
                                 $c['val'] = $calc_formula_column_name;
                             }
                         }
-                        $select_target_table = CustomTable::find(array_get($custom_column['options'], 'select_target_table'));
-                        if (isset($select_target_table)) {
-                            $custom_column['options']['select_target_table_name'] = CustomTable::find(array_get($custom_column['options'], 'select_target_table'))->table_name;
-                            array_forget($custom_column['options'], 'select_target_table');
-                        }
+                        // set options
+                        $custom_column['options']['calc_formula'] = $calc_formula;
+                    }
+                    
+                    $select_target_table = CustomTable::find(array_get($custom_column['options'], 'select_target_table'));
+                    if (isset($select_target_table)) {
+                        $custom_column['options']['select_target_table_name'] = CustomTable::find(array_get($custom_column['options'], 'select_target_table'))->table_name;
+                        array_forget($custom_column['options'], 'select_target_table');
                     }
                     
                     $custom_column = array_only($custom_column, [
@@ -923,14 +944,17 @@ class TemplateInstaller
                             }
                             // set as changedata_column_id to changedata_column_name
                             if(array_key_value_exists('changedata_column_id', $custom_form_column['options'])){
-                                $custom_form_column['options']['changedata_column_name'] = CustomColumn::find($custom_form_column['options']['changedata_column_id'])->column_name ?? null;
-                                array_forget($custom_form_column['options'], 'changedata_column_id');
+                                $changedata_column = CustomColumn::find($custom_form_column['options']['changedata_column_id']);
+                                $custom_form_column['options']['changedata_column_name'] = $changedata_column->column_name ?? null;
+                                // set changedata_column table name
+                                $custom_form_column['options']['changedata_column_table_name'] = $changedata_column->custom_table->table_name ?? null;
                             }
+                            array_forget($custom_form_column['options'], 'changedata_column_id');
                             // set as changedata_target_column_id to changedata_target_column_name
                             if(array_key_value_exists('changedata_target_column_id', $custom_form_column['options'])){
                                 $custom_form_column['options']['changedata_target_column_name'] = CustomColumn::find($custom_form_column['options']['changedata_target_column_id'])->column_name ?? null;
-                                array_forget($custom_form_column['options'], 'changedata_target_column_id');
                             }
+                            array_forget($custom_form_column['options'], 'changedata_target_column_id');
 
                             $custom_form_column = array_only($custom_form_column, [
                                 'form_column_type',
