@@ -18,6 +18,7 @@ class Define
     public const SYSTEM_TABLE_NAME_ORGANIZATION = 'organization';
     public const SYSTEM_TABLE_NAME_BASEINFO = 'base_info';
     public const SYSTEM_TABLE_NAME_DOCUMENT = 'document';
+    public const SYSTEM_TABLE_NAME_CUSTOM_TABLE = 'custom_tables';
 
     public const SYSTEM_SETTING_ID_VALUE = [
         'initialized' => ['id' => 1, 'type' => 'boolean', 'default' => '0'],

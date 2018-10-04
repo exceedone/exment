@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 
 /*
@@ -51,7 +52,9 @@ Route::group([
     $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
     $router->resource('notify', 'NotifyController', ['except' => ['show']]);
 
-    if(Schema::hasTable(CustomTable::getTableName())){
+    // set static name. because this function is called composer install.
+   // if(Schema::hasTable(CustomTable::getTableName())){
+    if(Schema::hasTable(Define::SYSTEM_TABLE_NAME_CUSTOM_TABLE)){
         foreach (CustomTable::all()->pluck('table_name') as $value)
         {
             $router->post("data/{$value}/import", 'CustomValueController@import');

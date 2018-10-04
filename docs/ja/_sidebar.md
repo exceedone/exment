@@ -7,9 +7,13 @@
   * [カスタム列](/ja/column.md)
   * [関連テーブル](/ja/relation.md)
   * [ユーザー・ログインユーザー](/ja/user.md)
+  * [メニュー](/ja/menu.md)
+  * [テンプレート](/ja/template.md)
   * [プラグイン](/ja/plugin.md)
   * [メールテンプレート](/ja/mail.md)
 * 【ユーザー向け】
+  * [データ](/ja/data.md)
+  * [データ一覧](/ja/data_grid.md)
 * 【開発者向け】
   * [関数リファレンス](/ja/func_reference.md)
   * [プラグイン開発方法](/ja/plugin_quickstart.md)
