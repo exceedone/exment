@@ -27,7 +27,7 @@ trait CustomValueGrid
             foreach ($search_enabled_columns as $search_column) {
                 $column_name = getColumnName($search_column);
                 $column_view_name = array_get($search_column, 'column_view_name');
-                $filter->equal($column_name, $column_view_name);
+                $filter->like($column_name, $column_view_name);
             }
         });
     }
