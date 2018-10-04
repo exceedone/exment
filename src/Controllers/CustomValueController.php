@@ -307,11 +307,8 @@ EOT;
             Admin::script($script);
         }
 
-        // add authority form --------------------------------------------------
-        // ignore user and org
-        if (!in_array($this->custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
-            $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_VALUE);
-        }
+        // add authority form 
+        $this->setAuthorityForm($form);
 
         // add form saving and saved event
         $this->manageFormSaving($form);
@@ -325,6 +322,24 @@ EOT;
 
         $this->manageFormToolButton($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton);
         return $form;
+    }
+
+    /**
+     * setAuthorityForm.
+     * if table is user, org, etc...., not set authority
+     */
+    protected function setAuthorityForm($form){
+        // if ignore user and org, return
+        if (in_array($this->custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+            return;
+        }
+        // if table setting is "one_record_flg" (can save only one record), return
+        if (boolval($this->custom_table->one_record_flg)) {
+            return;
+        }
+
+        // set addAuthorityForm
+        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_VALUE);
     }
 
     /**
