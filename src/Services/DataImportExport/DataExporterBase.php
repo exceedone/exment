@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Services;
+namespace Exceedone\Exment\Services\DataImportExport;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Exporters\AbstractExporter;
 
-class ExmentExporter extends AbstractExporter
+abstract class DataExporterBase extends AbstractExporter
 {
     const SCOPE_ALL = 'all';
     const SCOPE_TEMPLATE = 'temp';
@@ -42,17 +42,12 @@ class ExmentExporter extends AbstractExporter
 
     /**
      */
-    public function export()
-    {
-        $filename = $this->table->table_name.date('YmdHis').'.csv';
-        $res_headers = [
-            'Content-Encoding'    => 'UTF-8',
-            'Content-Type'        => 'text/csv;charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
+    abstract public function export();
 
-        $titles = [];
-
+    /**
+     * get export table. contains header and body.
+     */
+    protected function getDataTable(){
         // get header info
         list($firstColumns, $custom_columns, $lastColumns) = $this->getColumnDefines();
         // get header and body
@@ -66,18 +61,9 @@ class ExmentExporter extends AbstractExporter
             $bodies = $this->getBodies($this->getRecords(), $firstColumns, $custom_columns, $lastColumns);
         }
         // get output items
-        $outputs = array_merge([$headers], $bodies);
+        $outputs = array_merge($headers, $bodies);
 
-        response()->stream(function () use($outputs){
-            $handle = fopen('php://output', 'w');
-            foreach ($outputs as $output) {
-                fputcsv($handle, $output);
-            }
-            // Close the output stream
-            fclose($handle);
-        }, 200, $res_headers)->send();
-
-        exit;
+        return $outputs;
     }
 
     /**
@@ -89,7 +75,7 @@ class ExmentExporter extends AbstractExporter
         $lastColumns = ['created_at','updated_at','deleted_at'];
 
         // get custom columns
-        $custom_columns = $this->table->custom_columns()->pluck('column_name')->toArray();
+        $custom_columns = $this->table->custom_columns()->get(['column_name', 'column_view_name'])->toArray();
         return [$firstColumns, $custom_columns, $lastColumns];
     }
 
@@ -108,24 +94,50 @@ class ExmentExporter extends AbstractExporter
 
     /**
      * get export headers
+     * contains custom column name, column view name 
      */
     protected function getHeaders($firstColumns, $custom_columns, $lastColumns){
-        $mapped_custom_columns = collect($custom_columns)->map(function($value){
-            return "value.".$value;
-        })->toArray();
-        return array_merge($firstColumns, $mapped_custom_columns, $lastColumns);
+        // create 2 rows.
+        $rows = [];
+        
+        // 1st row, column name
+        $rows[] = array_merge(
+            $firstColumns, 
+            collect($custom_columns)->map(function($value){
+                return "value.".array_get($value, 'column_name');
+            })->toArray(), 
+            $lastColumns
+        );
+
+        // 2st row, column view name
+        $rows[] = array_merge(
+            collect($firstColumns)->map(function($value){
+                return exmtrans("custom_column.system_columns.$value");
+            })->toArray(),
+            collect($custom_columns)->map(function($value){
+                return array_get($value, 'column_view_name');
+            })->toArray(),
+            collect($lastColumns)->map(function($value){
+                return exmtrans("custom_column.system_columns.$value");
+            })->toArray()
+        );
+
+        return $rows;
     }
 
     /**
      * get export bodies
      */
     protected function getBodies($records, $firstColumns, $custom_columns, $lastColumns){
+        // convert $custom_columns to pluck column_name array
+        $custom_column_names = collect($custom_columns)->pluck('column_name')->toArray();
+        
         $bodies = [];
         foreach($records as $record){
             $body_items = [];
             // add items
             $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_columns, "value."));
+            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value."));
             $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
 
             $bodies[] = $body_items;
@@ -141,5 +153,19 @@ class ExmentExporter extends AbstractExporter
             $body_items[] = array_get($record, $key);
         }
         return $body_items;
+    }
+
+    /**
+     * get exporter model
+     */
+    public static function getModel(Grid $grid = null, $table = null, $search_enabled_columns = null)
+    {
+        $format = \Request::capture()->input('format');
+        switch($format){
+            case 'excel':
+                return new ExcelExporter($grid, $table, $search_enabled_columns);
+            default:
+                return new CsvExporter($grid, $table, $search_enabled_columns);
+        }
     }
 }

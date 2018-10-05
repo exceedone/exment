@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Services;
+namespace Exceedone\Exment\Services\DataImportExport;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
@@ -9,12 +9,14 @@ use Encore\Admin\Facades\Admin;
 use Validator;
 use Carbon\Carbon;
 
-class ExmentImporter
+abstract class DataImporterBase
 {
     protected $custom_table;
+    protected $accept_extension = '';
     public function __construct($custom_table){
         $this->custom_table = $custom_table;
     }
+
 
     /**
      * @param $request
@@ -32,11 +34,10 @@ class ExmentImporter
             ];
         }
 
-        // get file
-        $path = $request->file('custom_table_file')->getRealPath();
-        $dataCsv = array_map('str_getcsv', file($path));
+        // get table data
+        $tableData = $this->getDataTable($request);
         //Remove empty data csv
-        $data = array_filter($dataCsv, function($value) { return count(array_filter($value)) > 0 ; });
+        $data = array_filter($tableData, function($value) { return count(array_filter($value)) > 0 ; });
         list($data_import, $error_data) = $this->checkingData($request->select_action, $data);
         
         // if has error data, return error data
@@ -91,7 +92,7 @@ class ExmentImporter
             ],
             [
                 'file'          => 'required',
-                'custom_table_file'      => 'required|in:csv',
+                'custom_table_file'      => 'required|in:'.$this->accept_extension,
             ],
             [
                 'custom_table_file' => \Lang::get('validation.mimes')
@@ -104,39 +105,6 @@ class ExmentImporter
 
         return true;
     }
-
-    /**
-     * @param $suuid
-     * @return array
-     */
-    // public function getHeader($suuid){
-    //     $header = [];
-    //     $columnName = \Schema::getColumnListing('exm__'.$suuid);
-    //     foreach($columnName as $key => $value){
-    //         if((strpos($value, 'id') !== false && strpos($value, 'parent') === false) || strpos($value, 'suuid') !== false){
-    //             $header[$key] = $value;
-    //         }
-    //         if(strpos($value, 'column_') !== false){
-    //             $column_suuid = str_replace('column_', '', $value);
-    //             array_push($header, 'value.'.$this->getDisplayColumnName($column_suuid));
-    //         }
-    //     }
-    //     array_push($header, 'created_at');
-    //     array_push($header, 'updated_at');
-    //     return array_dot($header);
-    // }
-
-    // /**
-    //  * @param $column_suuid
-    //  * @return mixed
-    //  */
-    // public function getDisplayColumnName($column_suuid){
-    //     $columnName = DB::table('custom_columns')
-    //         ->where('suuid', '=' ,$column_suuid)
-    //         ->first();
-    //     return $columnName->column_name;
-    // }
-
 
     /**
      * @param $request
@@ -175,10 +143,17 @@ class ExmentImporter
         $success_data = array();
         $headers = array();
         foreach($data as $key => $value){
+            // column_name row
             if ($key === 0)
             {
                 $headers = $value;
-            } else {
+            } 
+            // column_view_name row
+            elseif ($key === 1)
+            {
+                continue;
+            } 
+            else {
                 $data_custom = array_combine($headers, $value);
 
                 $check = $this->checkingDataItem($key, $data_custom);
@@ -310,7 +285,7 @@ class ExmentImporter
 
         $form->action(admin_base_path('data/'.$table_name.'/import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
-            ->rules('mimes:csv')->setWidth(8, 3)->addElementClass('custom_table_file')
+            ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options(['showPreview' => false])
             ->help(exmtrans('custom_value.import.help.custom_table_file'));
             
@@ -343,4 +318,39 @@ class ExmentImporter
 
         return $modal;
     }
+    
+    /**
+     * get importer model
+     */
+    public static function getModel($custom_table, $format = null)
+    {
+        switch($format){
+            case 'excel':
+                return new ExcelImporter($custom_table);
+            default:
+                return new CsvImporter($custom_table);
+        }
+    }
+
+    /**
+     * get uploaded file extension
+     */
+    public static function getFileExtension($request){
+        $file = $request->file('custom_table_file');
+        if(!isset($file)){
+            return null;
+        }
+        switch($file->extension()){
+            case 'xlsx':
+                return 'excel';
+            case 'csv':
+                return 'csv';
+        }
+        return null;
+    }
+    /**
+     * get table from excel or csv.
+     */
+    abstract protected function getDataTable($request);
+
 }

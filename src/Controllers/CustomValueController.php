@@ -14,7 +14,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
-use Exceedone\Exment\Services\ExmentExporter;
+use Exceedone\Exment\Services\DataImportExport;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -183,7 +183,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->manageMenuToolButton($grid, $listButton);
 
         // create exporter
-        $grid->exporter(new ExmentExporter($grid, $this->custom_table, $search_enabled_columns));
+        $grid->exporter(DataImportExport\DataExporterBase::getModel($grid, $this->custom_table, $search_enabled_columns));
         
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $grid;

@@ -43,25 +43,43 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 
         $page = request('page', 1);
 
-        return <<<EOT
+        // get format and list array
+        $buttons = [];
+        // output formats
+        $formats = [
+            'csv'  => 'CSV', 
+            'excel' => 'Excel',
+        ];
 
-<div class="btn-group pull-right" style="margin-right: 5px">
-    <button type="button" class="btn btn-sm btn-twitter dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <i class="fa fa-download"></i> {$import_export}
-        <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-        <li class="dropdown-header">$export</li>
-        <li><a href="{$this->grid->getExportUrl('all')}" target="_blank">{$all}</a></li>
-        <li><a href="{$this->grid->getExportUrl('page', $page)}" target="_blank">{$currentPage}</a></li>
-        <li><a href="{$this->grid->getExportUrl('selected', '__rows__')}" target="_blank" class='{$this->grid->getExportSelectedName()}'>{$selectedRows}</a></li>
-        <li class="dropdown-header">$import</li>
-        <li><a href="$import_template" target="_blank">$import_template_trans</a></li>
-        <li><a href="" data-toggle="modal" data-target="#data_import_modal" target="_blank">$import</a></li>
-    </ul>
-</div>
-&nbsp;&nbsp;
+        foreach($formats as $format => $format_text){
+            $buttons[$format] = [
+                'format_text' => $format_text,
+                'menulist' => [
+                    ///// export
+                    [
+                        'action' => 'export',
+                        'label' => trans('admin.export'), 
+                        'items' =>[
+                            ['href' => $this->grid->getExportUrl('all'), 'text' => $all, 'target' => '_blank'],
+                            ['href' => $this->grid->getExportUrl('page', $page), 'text' => $currentPage, 'target' => '_blank'],
+                            ['href' => $this->grid->getExportUrl('selected', '__rows__'), 'text' => $selectedRows, 'class' => $this->grid->getExportSelectedName(), 'target' => '_blank'],
+                        ]
+                    ],
+                    ///// import
+                    [
+                        'action' => 'import',
+                        'label' => exmtrans('common.import'), 
+                        'items' =>[
+                            ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
+                            ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal'],
+                        ]
+                    ],
+                ]
+            ];
+        }
 
-EOT;
+        return view('exment::tools.exportimport-button', [
+            'buttons' => $buttons, 
+        ]);
     }
 }
