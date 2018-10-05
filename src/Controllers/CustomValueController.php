@@ -106,7 +106,6 @@ class CustomValueController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         $this->setFormViewInfo($request);
-        
         //Validation table value
         if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
             return;
@@ -116,7 +115,6 @@ class CustomValueController extends AdminControllerTableBase
             Checker::error();
             return false;
         }
-
         // if user doesn't have edit permission, redirect to show
         $redirect = $this->redirectShow($id);
         if (isset($redirect)) {
@@ -128,6 +126,19 @@ class CustomValueController extends AdminControllerTableBase
         $content->body($this->form($id)->edit($id));
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $content;
+    }
+    
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($id)
+    {
+        // call form using id
+        return $this->form($id)->update($id);
     }
 
     /**
@@ -226,8 +237,8 @@ class CustomValueController extends AdminControllerTableBase
             // when default block, set as normal form columns.
             if ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
                 //$form->embeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use($custom_form_block) {
-                $form->embeds('value', exmtrans("common.input"), function (Form\EmbeddedForm $form) use ($custom_form_block) {
-                    $this->setCustomFormColumns($form, $custom_form_block);
+                $form->embeds('value', exmtrans("common.input"), function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                    $this->setCustomFormColumns($form, $custom_form_block, $id);
                 });
             } elseif ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY) {
                 $target_table = $custom_form_block->target_table;
@@ -256,8 +267,8 @@ class CustomValueController extends AdminControllerTableBase
                         getRelationNamebyObjs($this->custom_table, $target_table),
                         $block_label,
                         function ($form) use ($custom_form_block) {
-                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
-                                $this->setCustomFormColumns($form, $custom_form_block);
+                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                                $this->setCustomFormColumns($form, $custom_form_block, $id);
                             });
                         }
                     )->setTableWidth(12, 0);                    

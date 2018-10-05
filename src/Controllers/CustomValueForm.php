@@ -23,7 +23,7 @@ trait CustomValueForm
     /**
      * set custom form columns
      */
-    protected function setCustomFormColumns($form, $custom_form_block)
+    protected function setCustomFormColumns($form, $custom_form_block, $id = null)
     {
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             $form_column_options = $form_column->options;
@@ -197,6 +197,17 @@ trait CustomValueForm
                 $field->rules('required');
             }else{
                 $field->rules('nullable');
+            }
+                        
+            // unique
+            if (isset($options) && boolval(array_get($options, 'unique')) && !in_array(get_class($field), ["Encore\\Admin\\Form\\Field\\Display", ExmentField\Display::class])) {
+                // add unique field
+                $unique_table_name = getDBTableName($this->custom_table); // database table name
+                $unique_column_name = "value->".$column->column_name; // column name
+                // create rules.if isset id, add
+                $rules = "unique:$unique_table_name,$unique_column_name" . (isset($id) ? ",$id" : "");
+                // add rules
+                $field->rules($rules);
             }
 
             // placeholder
