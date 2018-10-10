@@ -167,6 +167,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('search_enabled', exmtrans("custom_column.options.search_enabled"))
                 ->help(exmtrans("custom_column.help.search_enabled"));
+            $form->switchbool('unique', exmtrans("custom_column.options.reqired"));
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             $form->switchbool('use_label_flg', exmtrans("custom_column.options.use_label_flg"))

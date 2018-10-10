@@ -868,7 +868,6 @@ class TemplateInstaller
                                 // get custom column name
                                 $calc_formula_column_name = CustomColumn::find(array_get($c, 'val'))->column_name ?? null;
                                 // set value
-                                \Log::debug('calc_formula_column_name:'.$calc_formula_column_name);
                                 $c['val'] = $calc_formula_column_name;
                             }
                         }

@@ -9,8 +9,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Services\ExmentExporter;
-use Exceedone\Exment\Services\ExmentImporter;
+use Exceedone\Exment\Services\DataImportExport;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Request as Req;
 use Exceedone\Exment\Form\Widgets\ModalForm;
@@ -27,7 +26,7 @@ trait CustomValueGrid
             foreach ($search_enabled_columns as $search_column) {
                 $column_name = getColumnName($search_column);
                 $column_view_name = array_get($search_column, 'column_view_name');
-                $filter->equal($column_name, $column_view_name);
+                $filter->like($column_name, $column_view_name);
             }
         });
     }
@@ -176,7 +175,10 @@ EOT;
      */
     public function import(Request $request)
     {
-        $result = (new ExmentImporter(CustomTable::find($request->custom_table_id)))->import($request);
+        // get file extenstion
+        $format = DataImportExport\DataImporterBase::getFileExtension($request);
+        $result = DataImportExport\DataImporterBase::getModel(CustomTable::find($request->custom_table_id), $format)
+            ->import($request);
 
         return ModalForm::getAjaxResponse($result);
         // if ($result) {
@@ -189,7 +191,7 @@ EOT;
 
     public function ImportSettingModal()
     {
-        $exmenImporter = new ExmentImporter($this->custom_table);
+        $exmenImporter = DataImportExport\DataImporterBase::getModel($this->custom_table);
         return $exmenImporter->importModal();
         return $modal;
     }

@@ -211,6 +211,22 @@ if (!function_exists('array_has_value')) {
     }
 }
 
+if (!function_exists('array_dot_reverse')) {
+    /**
+     * @return array
+     */
+    function array_dot_reverse($array)
+    {
+        if(is_null($array)){return null;}
+        $array_reverse = [];
+        foreach ($array as $key => $value) {
+            array_set($array_reverse, $key, $value);
+        }
+        return $array_reverse;
+    }
+}
+
+
 function is_json($string){
     return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
 }
@@ -400,31 +416,25 @@ if (!function_exists('getColumnName')) {
     /**
      * Get column name. This function uses only search-enabled column.
      * @param CustomColumn|array $obj
+     * @param boolean $label if get the columnname only get column label.
      * @return string
      */
-    function getColumnName($obj, $label = false)
+    function getColumnName($column_obj, $label = false)
     {
-        if ($obj instanceof CustomColumn) {
-            $obj = $obj->toArray();
-        }
-        if ($obj instanceof stdClass) {
-            $obj = (array)$obj;
-        }
-        return 'column_'.array_get($obj, 'suuid').($label ? '_label' : '');
+        $column_obj = CustomColumn::getEloquent($column_obj);
+        return 'column_'.array_get($column_obj, 'suuid').($label ? '_label' : '');
     }
 }
 
 if (!function_exists('getColumnNameByTable')) {
     /**
-     * Get column name using table model. This function uses only search-enabled column.
+     * Get column name using table model.
      * @param string|CustomTable|array $obj
      * @return string
      */
-    function getColumnNameByTable($obj, $column_name)
+    function getColumnNameByTable($table_obj, $column_name)
     {
-        $obj = CustomTable::getEloquent($obj);
-        $column = $obj->custom_columns()->where('column_name', $column_name)->first();
-        return getColumnName($column);
+        return CustomColumn::getEloquent($column_name, $table_obj)->column_name ?? null;
     }
 }
 
@@ -1141,6 +1151,7 @@ if (!function_exists('getTransArrayValue')) {
 
 
 // laravel-admin --------------------------------------------------
+
 if (!function_exists('isGetOptions')) {
     /**
      * get options for select, multipleselect.

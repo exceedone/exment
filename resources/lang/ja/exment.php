@@ -254,6 +254,7 @@ return [
         'options' => [
             'header' => '詳細オプション',
             'search_enabled' => '検索インデックス',
+            'unique' => 'ユニーク(一意)',
             'placeholder' => 'プレースホルダー',
             'help' => 'ヘルプ',
             'string_length' => '最大文字数',
@@ -284,8 +285,11 @@ return [
         'system_columns' => [
             'id' => 'ID',
             'suuid' => '内部ID(20桁)',
+            'parent_id' => '親データのID',
+            'parent_type' => '親データのテーブル名',
             'created_at' => '作成日時',
-            'updated_at' => '更新日時',            
+            'updated_at' => '更新日時', 
+            'deleted_at' => '削除日時',            
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -312,6 +316,7 @@ return [
         ],
         'help' => [
             'search_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>※同一のテーブルで、「検索インデックス」を非常に多く設定すると、パフォーマンスが低下する可能性があります。',
+            'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'use_label_flg' => 'このデータを選択時、画面に表示する文言の列です。複数列登録した場合、1列のみ反映されます。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
@@ -631,13 +636,13 @@ return [
         'import_export' => 'インポート・エクスポート',
         'import' => [
             'import_file' => 'インポートファイル',
-            'import_file_select' => 'CSVファイルを選択',
+            'import_file_select' => 'CSVもしくはExcelファイルを選択',
             'primary_key' => '主キー',
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
             'help' => [
-                'custom_table_file' => 'テンプレート出力した、CSVファイルを選択してください。',
+                'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
                 'import_error_message' => '取込ファイルに不備があった場合、この項目に、行番号と、エラーメッセージを表示します。',
