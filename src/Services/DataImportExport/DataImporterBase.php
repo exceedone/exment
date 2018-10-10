@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Services\FormHelper;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Facades\Admin;
 use Validator;
@@ -35,9 +36,13 @@ abstract class DataImporterBase
 
         // get table data
         $tableData = $this->getDataTable($request);
-        //Remove empty data csv
+        //Remove empty data
         $data = array_filter($tableData, function($value) { return count(array_filter($value)) > 0 ; });
-        list($data_import, $error_data) = $this->checkingData($request->select_action, $data);
+
+        // get target data and model list
+        $dataAndModels = $this->getDataAndModels($data, $request->select_primary_key);
+        // validate data
+        list($data_import, $error_data) = $this->validateData($dataAndModels);
         
         // if has error data, return error data
         if(count($error_data) > 0){
@@ -48,15 +53,22 @@ abstract class DataImporterBase
             ];
         }
 
-        // loop error data
-        foreach ($data_import as $index => $row)
+        // execute imoport
+        foreach ($data_import as $index => &$row)
         {
-            $validate_data = $this->validateData($row);
-            if ($validate_data) {
-                $data_custom = $this->dataProcessing($row);
-                $this->dataImportFlow($request->custom_table_name, $data_custom, $request->select_primary_key);
-            }
+            $row['data'] = $this->dataProcessing(array_get($row, 'data'));
+            $this->dataImportFlow($request->custom_table_name, $row, $request->select_primary_key);
         }
+
+        // loop error data
+        // foreach ($data_import as $index => $row)
+        // {
+        //     $validate_data = $this->validateData($row);
+        //     if ($validate_data) {
+        //         $data_custom = $this->dataProcessing($row);
+        //         $this->dataImportFlow($request->custom_table_name, $data_custom, $request->select_primary_key);
+        //     }
+        // }
 
         // if success, return result and toastor messsage
         return [
@@ -105,91 +117,142 @@ abstract class DataImporterBase
         return true;
     }
 
-    /**
-     * @param $request
-     * @param $data
-     * @return bool
-     */
-    public function validateData($data){
-        $validateData = true;
-        $custom_columns = $this->custom_table->custom_columns;
-        foreach($data as $key => $value){
-            if(strpos($key, "value.") !== false){
-                $new_key = str_replace('value.', '', $key);
-                foreach($custom_columns as $custom_column_data){
-                    if ($custom_column_data->column_name == $new_key && $custom_column_data->column_type == 'select' ) {
-                        $options = createSelectOptions(array_get(json_decode($custom_column_data->options, true), 'select_item'));
-                        if (in_array($value, $options)) {
-                            $validateData = true;
-                        } else {
-                            return false;
-                        }
+    // /**
+    //  * @param $request
+    //  * @param $data
+    //  * @return bool
+    //  */
+    // public function validateData($data){
+    //     $validateData = true;
+    //     $custom_columns = $this->custom_table->custom_columns;
+    //     foreach($data as $key => $value){
+    //         if(strpos($key, "value.") !== false){
+    //             $new_key = str_replace('value.', '', $key);
+    //             foreach($custom_columns as $custom_column_data){
+    //                 if ($custom_column_data->column_name == $new_key && $custom_column_data->column_type == 'select' ) {
+    //                     $options = createSelectOptions(array_get(json_decode($custom_column_data->options, true), 'select_item'));
+    //                     if (in_array($value, $options)) {
+    //                         $validateData = true;
+    //                     } else {
+    //                         return false;
+    //                     }
 
-                    }
-                }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return $validateData;
+    // }
+
+    /**
+     * get data and model array
+     */
+    public function getDataAndModels($data, $primary_key){
+        $results = [];
+        $headers = [];
+        foreach($data as $key => $value){
+            // get header if $key == 0
+            if($key == 0){
+                $headers = $value;
+                continue;
             }
+            // continue if $key == 1
+            elseif ($key == 1)
+            {
+                continue;
+            }
+
+            // combine value
+            $value_custom = array_combine($headers, $value);
+
+            // get model
+            $modelName = getModelName($this->custom_table->table_name);
+            // select $model using primary key and value
+            $primary_value = array_get($value_custom, $primary_key);
+            // if not exists, new instance
+            if(is_nullorempty($primary_value)){
+                $model = new $modelName;
+            }
+            // if exists, firstOrNew
+            else{
+                //*Replace "." to "->" for json value
+                $model = $modelName::firstOrNew([str_replace(".", "->", $primary_key) => $primary_value]);
+            }
+            if(!isset($model)){continue;}
+
+            $results[] = ['data' => $value_custom, 'model' => $model];
         }
-        return $validateData;
+
+        return $results;
     }
 
     /**
-     * checking imported all data.
-     * @param $action
+     * validate imported all data.
      * @param $data
      * @return array
      */
-    public function checkingData($action, $data){
+    public function validateData($dataAndModels){
+        ///// get all table columns
+        $validate_columns = $this->custom_table->custom_columns;
+        
         $error_data = array();
         $success_data = array();
-        $headers = array();
-        foreach($data as $key => $value){
-            // column_name row
-            if ($key === 0)
-            {
-                $headers = $value;
-            } 
-            // column_view_name row
-            elseif ($key === 1)
-            {
-                continue;
-            } 
+        foreach($dataAndModels as $key => $value){
+            $check = $this->validateDataRow($key, $value, $validate_columns);
+            if($check === true){
+                array_push($success_data, $value);
+            }
             else {
-                $data_custom = array_combine($headers, $value);
-
-                $check = $this->checkingDataRow($key, $data_custom);
-                if($check === true){
-                    array_push($success_data, $data_custom);
-                }
-                else {
-                    $error_data = array_merge($error_data, $check);
-                }
+                $error_data = array_merge($error_data, $check);
             }
         }
         return [$success_data, $error_data];
     }
 
     /**
-     * checking data row
+     * validate data row
      * @param $action
      * @param $data
      * @return array
      */
-    public function checkingDataRow($line_no, $data_custom){
-        // create validate rule
-        $rules = [
-            'id' => 'nullable|regex:/^[0-9]+$/',
-            'suuid' => 'nullable|regex:/^[a-z0-9]{20}$/',
-            'created_at' => 'nullable|date',
-            'updated_at' => 'nullable|date',
-            'deleted_at' => 'nullable|date',
-        ];
+    public function validateDataRow($line_no, $dataAndModel, $validate_columns){
+        $data = array_get($dataAndModel, 'data');
+        $model = array_get($dataAndModel, 'model');
 
-        $validator = Validator::make($data_custom, $rules);
+        // get fields for validation
+        $fields = [];
+        foreach($validate_columns as $validate_column){
+            $fields[] = FormHelper::getFormField($this->custom_table, $validate_column, array_get($model, 'id'), null, 'value.');
+        }
+        // create common validate rules.
+        $rules = [
+            'id' => ['nullable', 'regex:/^[0-9]+$/'],
+            'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
+            'created_at' => ['nullable', 'date'],
+            'updated_at' => ['nullable', 'date'],
+            'deleted_at' => ['nullable', 'date'],
+        ];
+        // foreach for field validation rules
+        foreach($fields as $field){
+            // get field validator
+            $field_validator = $field->getValidator($data);
+            if(!$field_validator){
+                continue;
+            }
+            // get field rules
+            $field_rules = $field_validator->getRules();
+
+            // merge rules
+            $rules = array_merge($field_rules, $rules);
+        }
+        
+        // execute validation
+        $validator = Validator::make(array_dot_reverse($data), $rules);
         if ($validator->fails()) {
             // create error message
             $errors = [];
             foreach($validator->errors()->messages() as $message){
-                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), $line_no, implode(',', $message));
+                $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
             }
             return $errors;
         }
@@ -218,18 +281,17 @@ abstract class DataImporterBase
     /**
      * import data 
      */
-    public function dataImportFlow($table_name, $data, $primary_key){
-        $modelName = getModelName($table_name);
+    public function dataImportFlow($table_name, $dataAndModel, $primary_key){
+        $data = array_get($dataAndModel, 'data');
+        $model = array_get($dataAndModel, 'model');
         // select $model using primary key and value
         $primary_value = array_get($data, $primary_key);
         // if not exists, new instance
         if(is_nullorempty($primary_value)){
-            $model = new $modelName;
             $isCreate = true;
         }
         // if exists, firstOrNew
         else{
-            $model = $modelName::firstOrNew([$primary_key => $primary_value]);
             $isCreate = !$model->exists;
         }
         if(!isset($model)){return;}
@@ -278,9 +340,12 @@ abstract class DataImporterBase
         $model->save();
     }
 
+
+    // Import Modal --------------------------------------------------
+
     public function importModal(){
         $table_name = $this->custom_table->table_name;
-        $import_path = admin_base_path('data/'.$table_name.'/import');
+        $import_path = admin_base_path(url_join('data', $table_name, 'import'));
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset();
@@ -290,9 +355,10 @@ abstract class DataImporterBase
             ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options(['showPreview' => false])
             ->help(exmtrans('custom_value.import.help.custom_table_file'));
-            
+        
+        // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
-            ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options"))
+            ->options($this->getPrimaryKeys())
             ->default('id')
             ->setWidth(8, 3)
             ->addElementClass('select_primary_key')
@@ -355,4 +421,29 @@ abstract class DataImporterBase
      */
     abstract protected function getDataTable($request);
 
+    
+    /**
+     * get primary key list.
+     */
+    protected function getPrimaryKeys(){
+        // default list
+        $keys = getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options");
+
+        // get columns where "unique" options is true.
+        $columns = $this->custom_table
+            ->custom_columns()
+            ->where('options->unique', "1")
+            ->pluck('column_view_name', 'column_name')
+            ->toArray();
+        // add key name "value.";
+        $val_columns = [];
+        foreach($columns as $column_key => $column_value){
+            $val_columns['value.'.$column_key] = $column_value;
+        }
+
+        // merge
+        $keys = array_merge($keys, $val_columns);
+
+        return $keys;
+    }
 }

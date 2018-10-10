@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Services\PluginInstaller;
+use Exceedone\Exment\Services\FormHelper;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -25,150 +26,14 @@ trait CustomValueForm
      */
     protected function setCustomFormColumns($form, $custom_form_block, $id = null)
     {
+        $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             $form_column_options = $form_column->options;
             switch ($form_column->form_column_type) {
                 case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
                     $column = $form_column->custom_column;
-                    $options = $column->options;
-                    $column_name = $column->column_name;
-                    $column_view_name = $column->column_view_name;
-                
-                    // if hidden setting, add hidden field and continue
-                    if(isset($form_column_options) && boolval(array_get($form_column_options, 'hidden'))){
-                        $form->pushField(new Field\Hidden($column_name));
-                        continue 2;
-                    }
-
-                    switch ($column->column_type) {
-                        case 'text':
-                            $field = new Field\Text($column_name, [$column_view_name]);
-                            break;
-                        case 'textarea':
-                            $field = new Field\Textarea($column_name, [$column_view_name]);
-                            break;
-                        case 'url':
-                            $field = new Field\Url($column_name, [$column_view_name]);
-                            break;
-                        case 'email':
-                            $field = new Field\Email($column_name, [$column_view_name]);
-                            break;
-                        case 'password':
-                            $field = new Field\Password($column_name, [$column_view_name]);
-                            break;
-                        case 'integer':
-                            $field = new ExmentField\Number($column_name, [$column_view_name]);
-                            if (isset($options) && !is_null(array_get($options, 'number_min'))) {
-                                $field->attribute(['min' => array_get($options, 'number_min')]);
-                            }
-                            if (isset($options) && !is_null(array_get($options, 'number_max'))) {
-                                $field->attribute(['max' => array_get($options, 'number_max')]);
-                            }
-                            // if set updown button
-                            if(!boolval(array_get($options, 'updown_button'))){
-                                $field->disableUpdown();
-                            }
-                            break;
-                        case 'decimal':
-                            $field = new Field\Text($column_name, [$column_view_name]);
-                            if (isset($options) && !is_null(array_get($options, 'number_min'))) {
-                                $field->attribute(['min' => array_get($options, 'number_min')]);
-                            }
-                            if (isset($options) && !is_null(array_get($options, 'number_max'))) {
-                                $field->attribute(['max' => array_get($options, 'number_max')]);
-                            }
-                            break;
-                        case 'date':
-                            $field = new Field\Date($column_name, [$column_view_name]);
-                            $field->options(['useCurrent' => false]);
-                            break;
-                        case 'time':
-                            $field = new Field\Time($column_name, [$column_view_name]);
-                            $field->options(['useCurrent' => false]);
-                            break;
-                        case 'datetime':
-                            $field = new Field\Datetime($column_name, [$column_view_name]);
-                            $field->options(['useCurrent' => false]);
-                            break;
-                        case 'select':
-                        case 'select_valtext':
-                            if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                                $field = new Field\MultipleSelect($column_name, [$column_view_name]);
-                            } else {
-                                $field = new Field\Select($column_name, [$column_view_name]);
-                            }
-                            // create select
-                            $field->options(
-                                createSelectOptions(array_get($options, $column->column_type == 'select' ? 'select_item' : 'select_item_valtext'), 
-                                $column->column_type == 'select_valtext')
-                            );
-                            break;
-                        case 'select_table':
-                        case 'user':
-                        case 'organization':
-                            if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                                $field = new Field\MultipleSelect($column_name, [$column_view_name]);
-                            } else {
-                                $field = new Field\Select($column_name, [$column_view_name]);
-                            }
-
-                            // get select_target_table
-                            if ($column->column_type == 'select_table') {
-                                $select_target_table_id = array_get($options, 'select_target_table');
-                                if (isset($select_target_table_id)) {
-                                    $select_target_table = CustomTable::find($select_target_table_id)->table_name;
-                                } else {
-                                    $select_target_table = null;
-                                }
-                            } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_USER) {
-                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
-                            } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
-                            }
-                            $field->options(function ($val) use ($select_target_table) {
-                                // get DB option value
-                                $select_options = getOptions($select_target_table, $val);
-                                return $select_options;
-                            });
-                            // get ajax
-                            $ajax = getOptionAjaxUrl($select_target_table);
-                            if (isset($ajax)) {
-                                $field->ajax($ajax);
-                            }
-                            break;
-                        case 'yesno':
-                            $field = new ExmentField\SwitchBoolField($column_name, [$column_view_name]);
-                            break;
-                        case 'boolean':
-                            $field = new Field\SwitchField($column_name, [$column_view_name]);
-                            // set options
-                            $states = [
-                                'on'  => ['value' => array_get($options, 'true_value'), 'text' => array_get($options, 'true_label')],
-                                'off' => ['value' => array_get($options, 'false_value'), 'text' => array_get($options, 'false_label')],
-                            ];
-                            $field->states($states);
-                            break;
-                        case 'auto_number':
-                            $field = new ExmentField\Display($column_name, [$column_view_name]);
-                            break;
-                        case 'image':
-                            if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                                $field = new Field\MultipleImage($column_name, [$column_view_name]);
-                            } else {
-                                $field = new Field\Image($column_name, [$column_view_name]);
-                            }
-                            break;
-                        case 'file':
-                            if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                                $field = new Field\MultipleFile($column_name, [$column_view_name]);
-                            } else {
-                                $field = new Field\File($column_name, [$column_view_name]);
-                            }
-                            break;
-                        default:
-                            $field = new Field\Text($column_name, [$column_view_name]);
-                            break;
-                    }
+                    $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
+                    $fields[] = $field;
                     break;
                 case Define::CUSTOM_FORM_COLUMN_TYPE_OTHER:
                     $options = [];
@@ -177,12 +42,15 @@ trait CustomValueForm
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
                             $field->hr();
+                            $fields[] = $field;
                             break;
                         case 'explain':
                             $field = new ExmentField\Description(array_get($form_column_options, 'text'));
+                            $fields[] = $field;
                             break;
                         case 'html':
                             $field = new Field\Html(array_get($form_column_options, 'html'));
+                            $fields[] = $field;
                             break;
                         default:
                             continue;
@@ -191,44 +59,9 @@ trait CustomValueForm
                 break;
             }
 
-            // setting options --------------------------------------------------
-            
-            // placeholder
-            if (array_has_value($options, 'placeholder')) {
-                $field->placeholder(array_get($options, 'placeholder'));
-            }
+        }
 
-            // number_format
-            if (isset($options) && boolval(array_get($options, 'number_format'))) {
-                $field->attribute(['number_format' => true]);
-            }
-
-            // readonly
-            if (isset($form_column_options) && boolval(array_get($form_column_options, 'view_only'))) {
-                $field->attribute(['readonly' => true]);
-            }
-
-            // set validates
-            $validate_options = [];
-            $validates = getColumnValidates($this->custom_table, $column, $id, $validate_options);
-            // set validates
-            if(count($validates)){
-                $field->rules($validates);
-            }
-        
-            // set help string using result_options
-            $help = null;
-            $help_regexes = array_get($validate_options, 'help_regexes');
-            if (array_has_value($options, 'help')) {
-                $help = array_get($options, 'help');
-            }
-            if(isset($help_regexes)){
-                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
-            }
-            if(isset($help)){
-                $field->help($help);
-            }
-
+        foreach($fields as $field){
             // push field to form
             $form->pushField($field);
         }

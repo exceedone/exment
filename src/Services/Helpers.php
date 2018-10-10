@@ -211,6 +211,22 @@ if (!function_exists('array_has_value')) {
     }
 }
 
+if (!function_exists('array_dot_reverse')) {
+    /**
+     * @return array
+     */
+    function array_dot_reverse($array)
+    {
+        if(is_null($array)){return null;}
+        $array_reverse = [];
+        foreach ($array as $key => $value) {
+            array_set($array_reverse, $key, $value);
+        }
+        return $array_reverse;
+    }
+}
+
+
 function is_json($string){
     return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
 }
@@ -441,108 +457,6 @@ if (!function_exists('getLabelColumn')) {
         }else{
             return $column;
         }
-    }
-}
-
-if (!function_exists('getColumnValidates')) {
-    /**
-     * Get column validate array.
-     * @param string|CustomTable|array $table_obj table object
-     * @param string column_name target column name
-     * @param array result_options Ex help string, ....
-     * @return string
-     */
-    function getColumnValidates($table_obj, $column_name, $value_id = null, &$result_options = [])
-    {
-        // get column and options
-        $table_obj = CustomTable::getEloquent($table_obj);
-        $custom_column = CustomColumn::getEloquent($column_name, $table_obj);
-        $options = array_get($custom_column, 'options');
-        $column_type = array_get($custom_column, 'column_type');
-        if (!isset($options)) {
-            return [];
-        }
-        
-        $valudates = [];
-        // setting options --------------------------------------------------
-        // required
-        if (boolval(array_get($options, 'required'))) {
-            $valudates[] = 'required';
-        } else {
-            $valudates[] = 'nullable';
-        }
-    
-        // unique
-        if (boolval(array_get($options, 'unique'))) {
-            // add unique field
-            $unique_table_name = getDBTableName($table_obj); // database table name
-            $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name
-            // create rules.if isset id, add
-            $rules = "unique:$unique_table_name,$unique_column_name" . (isset($value_id) ? ",$value_id" : "");
-            // add rules
-            $valudates[] = $rules;
-        }
-
-        // regex rules
-        $help_regexes = [];
-        if (array_has_value($options, 'available_characters')) {
-            $available_characters = array_get($options, 'available_characters');
-            $regexes = [];
-            // add regexes using loop
-            foreach ($available_characters as $available_character) {
-                switch ($available_character) {
-                    case 'lower':
-                        $regexes[] = 'a-z';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.lower');
-                        break;
-                    case 'upper':
-                        $regexes[] = 'A-Z';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.upper');
-                        break;
-                    case 'number':
-                        $regexes[] = '0-9';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.number');
-                        break;
-                    case 'hyphen_underscore':
-                        $regexes[] = '_\-';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.hyphen_underscore');
-                        break;
-                    case 'symbol':
-                        $regexes[] = '!"#$%&\'()\*\+\-\.,\/:;<=>?@\[\]^_`{}~';
-                        $help_regexes[] = exmtrans('custom_column.available_characters.symbol');
-                    break;
-                }
-            }
-            if (count($regexes) > 0) {
-                $valudates[] = 'regex:/['.implode("", $regexes).']/';
-            }
-        }
-        
-        // set help_regexes to result_options
-        if (count($help_regexes) > 0) {
-            $result_options['help_regexes'] = $help_regexes;
-        }
-
-        // text validate
-        if (in_array($column_type, ['text','textarea'])) {
-            // string_length
-            if (array_get($options, 'string_length')) {
-                $valudates[] = 'size:'.array_get($options, 'string_length');
-            }
-        }
-
-        // number attribute
-        if (in_array($column_type, ['integer','decimal'])) {
-            // value size
-            if (array_get($options, 'number_min')) {
-                $valudates[] = 'min:'.array_get($options, 'number_min');
-            }
-            if (array_get($options, 'number_max')) {
-                $valudates[] = 'max:'.array_get($options, 'number_max');
-            }
-        }
-
-        return $valudates;
     }
 }
 
@@ -1237,6 +1151,7 @@ if (!function_exists('getTransArrayValue')) {
 
 
 // laravel-admin --------------------------------------------------
+
 if (!function_exists('isGetOptions')) {
     /**
      * get options for select, multipleselect.

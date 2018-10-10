@@ -285,7 +285,7 @@ class Define
     ];
     public const CUSTOM_VALUE_IMPORT_ERROR = [
         'stop',
-        'skip',
+        //'skip', //TODO:how to develop
     ];
 
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
