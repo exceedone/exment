@@ -17,7 +17,6 @@ abstract class DataImporterBase
         $this->custom_table = $custom_table;
     }
 
-
     /**
      * @param $request
      * @return mixed|void error message or success message etc...
@@ -52,7 +51,7 @@ abstract class DataImporterBase
         // loop error data
         foreach ($data_import as $index => $row)
         {
-            $validate_data = $this->validateData($request,$row);
+            $validate_data = $this->validateData($row);
             if ($validate_data) {
                 $data_custom = $this->dataProcessing($row);
                 $this->dataImportFlow($request->custom_table_name, $data_custom, $request->select_primary_key);
@@ -111,7 +110,7 @@ abstract class DataImporterBase
      * @param $data
      * @return bool
      */
-    public function validateData($request,$data){
+    public function validateData($data){
         $validateData = true;
         $custom_columns = $this->custom_table->custom_columns;
         foreach($data as $key => $value){
@@ -134,6 +133,7 @@ abstract class DataImporterBase
     }
 
     /**
+     * checking imported all data.
      * @param $action
      * @param $data
      * @return array
@@ -156,7 +156,7 @@ abstract class DataImporterBase
             else {
                 $data_custom = array_combine($headers, $value);
 
-                $check = $this->checkingDataItem($key, $data_custom);
+                $check = $this->checkingDataRow($key, $data_custom);
                 if($check === true){
                     array_push($success_data, $data_custom);
                 }
@@ -169,11 +169,12 @@ abstract class DataImporterBase
     }
 
     /**
+     * checking data row
      * @param $action
      * @param $data
      * @return array
      */
-    public function checkingDataItem($line_no, $data_custom){
+    public function checkingDataRow($line_no, $data_custom){
         // create validate rule
         $rules = [
             'id' => 'nullable|regex:/^[0-9]+$/',
@@ -182,6 +183,7 @@ abstract class DataImporterBase
             'updated_at' => 'nullable|date',
             'deleted_at' => 'nullable|date',
         ];
+
         $validator = Validator::make($data_custom, $rules);
         if ($validator->fails()) {
             // create error message

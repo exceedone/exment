@@ -400,31 +400,25 @@ if (!function_exists('getColumnName')) {
     /**
      * Get column name. This function uses only search-enabled column.
      * @param CustomColumn|array $obj
+     * @param boolean $label if get the columnname only get column label.
      * @return string
      */
-    function getColumnName($obj, $label = false)
+    function getColumnName($column_obj, $label = false)
     {
-        if ($obj instanceof CustomColumn) {
-            $obj = $obj->toArray();
-        }
-        if ($obj instanceof stdClass) {
-            $obj = (array)$obj;
-        }
-        return 'column_'.array_get($obj, 'suuid').($label ? '_label' : '');
+        $column_obj = CustomColumn::getEloquent($column_obj);
+        return 'column_'.array_get($column_obj, 'suuid').($label ? '_label' : '');
     }
 }
 
 if (!function_exists('getColumnNameByTable')) {
     /**
-     * Get column name using table model. This function uses only search-enabled column.
+     * Get column name using table model.
      * @param string|CustomTable|array $obj
      * @return string
      */
-    function getColumnNameByTable($obj, $column_name)
+    function getColumnNameByTable($table_obj, $column_name)
     {
-        $obj = CustomTable::getEloquent($obj);
-        $column = $obj->custom_columns()->where('column_name', $column_name)->first();
-        return getColumnName($column);
+        return CustomColumn::getEloquent($column_name, $table_obj)->column_name ?? null;
     }
 }
 
@@ -447,6 +441,108 @@ if (!function_exists('getLabelColumn')) {
         }else{
             return $column;
         }
+    }
+}
+
+if (!function_exists('getColumnValidates')) {
+    /**
+     * Get column validate array.
+     * @param string|CustomTable|array $table_obj table object
+     * @param string column_name target column name
+     * @param array result_options Ex help string, ....
+     * @return string
+     */
+    function getColumnValidates($table_obj, $column_name, $value_id = null, &$result_options = [])
+    {
+        // get column and options
+        $table_obj = CustomTable::getEloquent($table_obj);
+        $custom_column = CustomColumn::getEloquent($column_name, $table_obj);
+        $options = array_get($custom_column, 'options');
+        $column_type = array_get($custom_column, 'column_type');
+        if (!isset($options)) {
+            return [];
+        }
+        
+        $valudates = [];
+        // setting options --------------------------------------------------
+        // required
+        if (boolval(array_get($options, 'required'))) {
+            $valudates[] = 'required';
+        } else {
+            $valudates[] = 'nullable';
+        }
+    
+        // unique
+        if (boolval(array_get($options, 'unique'))) {
+            // add unique field
+            $unique_table_name = getDBTableName($table_obj); // database table name
+            $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name
+            // create rules.if isset id, add
+            $rules = "unique:$unique_table_name,$unique_column_name" . (isset($value_id) ? ",$value_id" : "");
+            // add rules
+            $valudates[] = $rules;
+        }
+
+        // regex rules
+        $help_regexes = [];
+        if (array_has_value($options, 'available_characters')) {
+            $available_characters = array_get($options, 'available_characters');
+            $regexes = [];
+            // add regexes using loop
+            foreach ($available_characters as $available_character) {
+                switch ($available_character) {
+                    case 'lower':
+                        $regexes[] = 'a-z';
+                        $help_regexes[] = exmtrans('custom_column.available_characters.lower');
+                        break;
+                    case 'upper':
+                        $regexes[] = 'A-Z';
+                        $help_regexes[] = exmtrans('custom_column.available_characters.upper');
+                        break;
+                    case 'number':
+                        $regexes[] = '0-9';
+                        $help_regexes[] = exmtrans('custom_column.available_characters.number');
+                        break;
+                    case 'hyphen_underscore':
+                        $regexes[] = '_\-';
+                        $help_regexes[] = exmtrans('custom_column.available_characters.hyphen_underscore');
+                        break;
+                    case 'symbol':
+                        $regexes[] = '!"#$%&\'()\*\+\-\.,\/:;<=>?@\[\]^_`{}~';
+                        $help_regexes[] = exmtrans('custom_column.available_characters.symbol');
+                    break;
+                }
+            }
+            if (count($regexes) > 0) {
+                $valudates[] = 'regex:/['.implode("", $regexes).']/';
+            }
+        }
+        
+        // set help_regexes to result_options
+        if (count($help_regexes) > 0) {
+            $result_options['help_regexes'] = $help_regexes;
+        }
+
+        // text validate
+        if (in_array($column_type, ['text','textarea'])) {
+            // string_length
+            if (array_get($options, 'string_length')) {
+                $valudates[] = 'size:'.array_get($options, 'string_length');
+            }
+        }
+
+        // number attribute
+        if (in_array($column_type, ['integer','decimal'])) {
+            // value size
+            if (array_get($options, 'number_min')) {
+                $valudates[] = 'min:'.array_get($options, 'number_min');
+            }
+            if (array_get($options, 'number_max')) {
+                $valudates[] = 'max:'.array_get($options, 'number_max');
+            }
+        }
+
+        return $valudates;
     }
 }
 

@@ -192,24 +192,7 @@ trait CustomValueForm
             }
 
             // setting options --------------------------------------------------
-            // required
-            if (isset($options) && boolval(array_get($options, 'required')) && !in_array(get_class($field), ["Encore\\Admin\\Form\\Field\\Display", ExmentField\Display::class])) {
-                $field->rules('required');
-            }else{
-                $field->rules('nullable');
-            }
-                        
-            // unique
-            if (isset($options) && boolval(array_get($options, 'unique')) && !in_array(get_class($field), ["Encore\\Admin\\Form\\Field\\Display", ExmentField\Display::class])) {
-                // add unique field
-                $unique_table_name = getDBTableName($this->custom_table); // database table name
-                $unique_column_name = "value->".$column->column_name; // column name
-                // create rules.if isset id, add
-                $rules = "unique:$unique_table_name,$unique_column_name" . (isset($id) ? ",$id" : "");
-                // add rules
-                $field->rules($rules);
-            }
-
+            
             // placeholder
             if (array_has_value($options, 'placeholder')) {
                 $field->placeholder(array_get($options, 'placeholder'));
@@ -225,46 +208,21 @@ trait CustomValueForm
                 $field->attribute(['readonly' => true]);
             }
 
-            // regex rules
-            $help_regexes = [];
-            if (array_has_value($options, 'available_characters')) {
-                $available_characters = array_get($options, 'available_characters');
-                $regexes = [];
-                // add regexes using loop
-                foreach($available_characters as $available_character){
-                    switch($available_character){
-                        case 'lower':
-                            $regexes[] = 'a-z';
-                            $help_regexes[] = exmtrans('custom_column.available_characters.lower');
-                            break;
-                        case 'upper':
-                            $regexes[] = 'A-Z';
-                            $help_regexes[] = exmtrans('custom_column.available_characters.upper');
-                            break;
-                        case 'number':
-                            $regexes[] = '0-9';
-                            $help_regexes[] = exmtrans('custom_column.available_characters.number');
-                            break;
-                        case 'hyphen_underscore':
-                            $regexes[] = '_\-';
-                            $help_regexes[] = exmtrans('custom_column.available_characters.hyphen_underscore');
-                            break;
-                        case 'symbol':
-                            $regexes[] = '!"#$%&\'()\*\+\-\.,\/:;<=>?@\[\]^_`{}~';
-                            $help_regexes[] = exmtrans('custom_column.available_characters.symbol');
-                        break;
-                    }
-                }
-                if(count($regexes) > 0){
-                    $field->rules('regex:/['.implode("", $regexes).']/');
-                }
+            // set validates
+            $validate_options = [];
+            $validates = getColumnValidates($this->custom_table, $column, $id, $validate_options);
+            // set validates
+            if(count($validates)){
+                $field->rules($validates);
             }
-
+        
+            // set help string using result_options
             $help = null;
+            $help_regexes = array_get($validate_options, 'help_regexes');
             if (array_has_value($options, 'help')) {
                 $help = array_get($options, 'help');
             }
-            if(count($help_regexes) > 0){
+            if(isset($help_regexes)){
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
             }
             if(isset($help)){
