@@ -207,8 +207,9 @@ class CustomValueController extends AdminControllerTableBase
 
                 $field->destroy(); // delete file
                 \Exceedone\Exment\Model\File::deleteFileInfo($original); // delete file table
-                $obj->setValue($del_column_name, null);
-                $ret = $obj->save();
+                $obj->setValue($del_column_name, null)
+                    ->remove_file_columns($del_column_name)
+                    ->save();
             });
         });
 
