@@ -2,9 +2,8 @@
 
 namespace Exceedone\Exment\Form\Field;
 use Encore\Admin\Form\Field;
-
 use Exceedone\Exment\Form\NestedEmbeddedForm;
-use Encore\Admin\Form\Field\Embeds;
+use Exceedone\Exment\Form\Field\Embeds;
 
 class NestedEmbeds extends Embeds
 {
@@ -32,13 +31,6 @@ class NestedEmbeds extends Embeds
         $form->fill($this->getEmbeddedData());
 
         return $form;
-    }
-
-    /**
-     * get fields in NestedEmbeddedForm
-     */
-    public function fields(){
-        return $this->buildEmbeddedForm()->fields();
     }
 
     /**

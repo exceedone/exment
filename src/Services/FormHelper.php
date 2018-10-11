@@ -103,10 +103,7 @@ class FormHelper
                     $field = new Field\Select($form_column_name, [$column_view_name]);
                 }
                 // create select
-                $field->options(
-                    createSelectOptions(array_get($options, $column->column_type == 'select' ? 'select_item' : 'select_item_valtext'), 
-                    $column->column_type == 'select_valtext')
-                );
+                $field->options(createSelectOptions($column));
                 break;
             case 'select_table':
             case 'user':
@@ -162,13 +159,24 @@ class FormHelper
                 } else {
                     $field = new Field\Image($form_column_name, [$column_view_name]);
                 }
+                // set file options
+                $field->options(
+                    static::getFileOptions($custom_table, $column, $id)
+                )->removable();
                 break;
             case 'file':
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
                     $field = new Field\MultipleFile($form_column_name, [$column_view_name]);
                 } else {
-                    $field = new Field\File($form_column_name, [$column_view_name]);
+                    $field = new ExmentField\NestedFile($form_column_name, [$column_view_name]);
                 }
+                // set file options
+                $field->options(
+                    array_merge(
+                        static::getFileOptions($custom_table, $column, $id)
+                    //, ['showPreview' => false]
+                    )
+                )->removable();
                 break;
             default:
                 $field = new Field\Text($form_column_name, [$column_view_name]);
@@ -312,5 +320,16 @@ class FormHelper
         }
 
         return $valudates;
+    }
+
+    protected static function getFileOptions($custom_table, $custom_column, $id){
+        return [
+            'deleteUrl' => admin_url(url_join('data', $custom_table->table_name, $id, 'filedelete')),
+            'deleteExtraData'      => [
+                Field::FILE_DELETE_FLAG         => $custom_column->column_name,
+                '_token'                         => csrf_token(),
+                '_method'                        => 'PUT',
+            ],
+        ];
     }
 }

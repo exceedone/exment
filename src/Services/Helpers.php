@@ -434,7 +434,10 @@ if (!function_exists('getColumnNameByTable')) {
      */
     function getColumnNameByTable($table_obj, $column_name)
     {
-        return CustomColumn::getEloquent($column_name, $table_obj)->column_name ?? null;
+        // get column eloquent
+        $column_obj = CustomColumn::getEloquent($column_name, $table_obj);
+        // return column name
+        return getColumnName($column_obj);
     }
 }
 
@@ -681,7 +684,7 @@ if (!function_exists('getValueUseTable')) {
         if (in_array($column_type, ['select', 'select_valtext'])) {
             $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
             $select_item = array_get($column_array, $array_get_key);
-            $options = createSelectOptions($select_item, $column_type == 'select_valtext');
+            $options = createSelectOptions(CustomColumn::getEloquent($custom_table, $column));
             if (!array_keys_exists($val, $options)) {
                 return null;
             }
@@ -764,8 +767,12 @@ if (!function_exists('getValueUseTable')) {
                 // todo:return multiple files;
                 
             }else{
-                $file = File::getFile($val);
-                return $file;
+                // get file
+                if($label !== true){
+                    $file = File::getFile($val);
+                    return $file;            
+                }
+                return $val;
             }
         }
         // yesno
@@ -1231,7 +1238,7 @@ if (!function_exists('getOptionAjaxUrl')) {
         if ($count <= 100) {
             return null;
         }
-        return admin_base_path("api/".array_get($table, 'table_name')."/query");
+        return admin_base_path(url_join("api", array_get($table, 'table_name'), "query"));
     }
 }
 
@@ -1240,24 +1247,33 @@ if (!function_exists('createSelectOptions')) {
     /**
      * Create laravel-admin select box options.
      */
-    function createSelectOptions($obj, $isValueText)
+    function createSelectOptions($column)
     {
+        // get value
+        $column_type = array_get($column, 'column_type');
+        $column_options = array_get($column, 'options');
+
+        // get select item string
+        $array_get_key = $column_type == 'select' ? 'select_item' : 'select_item_valtext';
+        $select_item = array_get($column_options, $array_get_key);
+        $isValueText = ($column_type == 'select_valtext');
+        
         $options = [];
-        if (is_null($obj)) {
+        if (is_null($select_item)) {
             return $options;
         }
 
-        if (is_string($obj)) {
-            $str = str_replace(array("\r\n","\r","\n"), "\n", $obj);
+        if (is_string($select_item)) {
+            $str = str_replace(array("\r\n","\r","\n"), "\n", $select_item);
             if (isset($str) && mb_strlen($str) > 0) {
-                // 改行で分割してループ
+                // loop for split new line
                 $array = explode("\n", $str);
                 foreach ($array as $a) {
                     setSelectOptionItem($a, $options, $isValueText);
                 }
             }
-        } elseif (is_array($obj)) {
-            foreach ($obj as $key => $value) {
+        } elseif (is_array($select_item)) {
+            foreach ($select_item as $key => $value) {
                 setSelectOptionItem($value, $options, $isValueText);
             }
         }

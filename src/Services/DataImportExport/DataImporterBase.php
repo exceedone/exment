@@ -117,33 +117,6 @@ abstract class DataImporterBase
         return true;
     }
 
-    // /**
-    //  * @param $request
-    //  * @param $data
-    //  * @return bool
-    //  */
-    // public function validateData($data){
-    //     $validateData = true;
-    //     $custom_columns = $this->custom_table->custom_columns;
-    //     foreach($data as $key => $value){
-    //         if(strpos($key, "value.") !== false){
-    //             $new_key = str_replace('value.', '', $key);
-    //             foreach($custom_columns as $custom_column_data){
-    //                 if ($custom_column_data->column_name == $new_key && $custom_column_data->column_type == 'select' ) {
-    //                     $options = createSelectOptions(array_get(json_decode($custom_column_data->options, true), 'select_item'));
-    //                     if (in_array($value, $options)) {
-    //                         $validateData = true;
-    //                     } else {
-    //                         return false;
-    //                     }
-
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     return $validateData;
-    // }
-
     /**
      * get data and model array
      */

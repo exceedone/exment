@@ -49,13 +49,13 @@ trait CustomValueGrid
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                $grid->column($column_name, $column_view_name);
+                $grid->column($column_name, $column_view_name)->sortable();
             }
             // system column
             else {
                 // get column name
                 $view_column_target = array_get($custom_view_column, 'view_column_target');
-                $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"));
+                $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable();
             }
         }
     }

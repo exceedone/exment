@@ -57,10 +57,40 @@ class CustomValue extends ModelBase
         if(is_null($value)){$value = [];}
         $value[$key] = $val;
         $this->value = $value;
+
+        return $this;
     }
-    
+
     protected static function boot() {
         parent::boot();
+
+        // ///// saving event for image, file event
+        // // https://github.com/z-song/laravel-admin/issues/1024
+        // static::saving(function ($model) {
+        //     // re-set image and file field data --------------------------------------------------
+        //     $value = $model->value;
+        //     // get image and file columns
+        //     $file_columns = $model->getCustomTable()
+        //         ->custom_columns
+        //         ->whereIn('column_type', ['file', 'image'])
+        //         ->pluck('column_name')
+        //         ->toArray();
+
+        //     // loop columns
+        //     $isset_file = false;
+        //     foreach ($file_columns as $file_column) {
+        //         // if not set, set from original
+        //         if(!array_key_value_exists($file_column, $value)) {
+        //             $isset_file = true;
+        //             $original = json_decode($model->getOriginal('value'), true);
+        //             $value[$file_column] = array_get($original, $file_column);
+        //         }
+        //     }
+        //     // if update
+        //     if ($isset_file) {
+        //         $model->setAttribute('value', $value);
+        //     }
+        // });
         
         static::deleting(function($model) {
             $parent_table = $model->getCustomTable();

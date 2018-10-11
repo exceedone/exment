@@ -31,6 +31,7 @@ class Bootstrap
             'hasManyTable'           => Field\HasManyTable::class,
             'relationTable'          => Field\RelationTable::class,
             'tableitem'          => Field\RelationTableItem::class,
+            'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,
         ];
@@ -51,7 +52,8 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/common.js?ver='.$date));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$date));
         
-        // add admin_base_path
+        // add admin_base_path and file delete confirm
+        $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
         $script = <<<EOT
 $('body').append($('<input/>', {
@@ -59,6 +61,14 @@ $('body').append($('<input/>', {
     'id': 'admin_base_path',
     'value': '$prefix'
 }));
+$("input[type='file']").on("filepredelete", function(jqXHR) {
+    var abort = true;
+    if (confirm("$delete_confirm")) {
+        abort = false;
+    }
+    return abort; // you can also send any data/object that you can receive on `filecustomerror` event
+});
+
 EOT;
         Ad::script($script);
     

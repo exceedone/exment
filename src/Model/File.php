@@ -52,6 +52,18 @@ class File extends ModelBase
     }
 
     /**
+     * delete file info to database
+     * @param string $fileName
+     * @return void
+     */
+    public static function deleteFileInfo(string $path)
+    {
+        $file = static::getData($path);
+        if(is_null($file)){return;}
+        $file->delete();        
+    }
+
+    /**
      * Download file
      */
     public static function download($uuid, Closure $authCallback = null){
@@ -85,7 +97,7 @@ class File extends ModelBase
     public static function getFile($uuid, Closure $authCallback = null){
         $data = static::getData($uuid);
         if(!$data){
-            abort(404);
+            return null;
         }
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
