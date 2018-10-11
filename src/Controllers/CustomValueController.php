@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Form\Field as ExmentField;
 
 class CustomValueController extends AdminControllerTableBase
 {
@@ -164,6 +165,58 @@ class CustomValueController extends AdminControllerTableBase
         $content->body($this->form(null));
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $content;
+    }
+
+    /**
+     * for file delete function.
+     */
+    public function filedelete(Request $request, $id){
+        //Validation table value
+        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
+            return;
+        }
+        // if user doesn't have authority for target id data, show deny error.
+        if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
+            Checker::error();
+            return false;
+        }
+        // if user doesn't have edit permission, redirect to show
+        $redirect = $this->redirectShow($id);
+        if (isset($redirect)) {
+            return $redirect;
+        }
+
+        // get file delete flg column name
+        $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
+        /// file remove
+        $form = $this->form($id);
+        $fields = $form->builder()->fields();
+        // filter file
+        $fields->filter(function ($field) use($del_column_name) {
+            return $field instanceof Field\Embeds;
+        })->each(function ($field) use($del_column_name, $id) {
+            // get fields
+            $embedFields = $field->fields();
+            $embedFields->filter(function ($field) use($del_column_name) {
+                return $field->column() == $del_column_name;
+            })->each(function ($field) use($del_column_name, $id) {
+                // get file path
+                $obj = getModelName($this->custom_table)::find($id);
+                $original = $obj->getValue($del_column_name, true);
+                $field->setOriginal($obj->value);
+
+                $field->destroy(); // delete file
+                \Exceedone\Exment\Model\File::deleteFileInfo($original); // delete file table
+                $obj->setValue($del_column_name, null)
+                    ->remove_file_columns($del_column_name)
+                    ->save();
+            });
+        });
+
+        return response([
+            'status'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
     }
 
     /**

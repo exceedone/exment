@@ -58,6 +58,7 @@ Route::group([
         foreach (CustomTable::all()->pluck('table_name') as $value)
         {
             $router->post("data/{$value}/import", 'CustomValueController@import');
+            $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->resource("data/{$value}", 'CustomValueController');
             //$router->get("data/{$value}/{id}/document", 'CustomValueController@getDocumentForm');
             //$router->post("data/{$value}/{id}/document", 'CustomValueController@postDocumentForm');

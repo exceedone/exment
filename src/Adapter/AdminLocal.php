@@ -84,11 +84,21 @@ class AdminLocal extends Local
     }
 
     /**
+     * @inheritdoc
+     */
+    public function has($path)
+    {
+        $location = $this->applyPathPrefix($path);
+
+        return file_exists($location);
+    }
+
+    /**
      * Get URL using File class
      */
     public function getUrl($path)
     {
-        $path =File::getUrl($path); 
+        $path = File::getUrl($path); 
 
         // TODO:hard coding. It's OK?
         return admin_url("files/".$path);
