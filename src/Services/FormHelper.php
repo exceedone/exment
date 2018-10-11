@@ -168,7 +168,7 @@ class FormHelper
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
                     $field = new Field\MultipleFile($form_column_name, [$column_view_name]);
                 } else {
-                    $field = new ExmentField\NestedFile($form_column_name, [$column_view_name]);
+                    $field = new Field\File($form_column_name, [$column_view_name]);
                 }
                 // set file options
                 $field->options(
