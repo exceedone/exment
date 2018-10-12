@@ -536,6 +536,8 @@ class TemplateImporter
                     }
                     // Create view --------------------------------------------------
                     $obj_view = Customview::firstOrNew($findArray);
+                    $obj_view->custom_table_id = $table->id;
+                    $obj_view->suuid = $findArray['suuid'];
                     $obj_view->view_type = array_get($view, 'view_type') ?? Define::VIEW_COLUMN_TYPE_SYSTEM;
                     $obj_view->view_view_name = array_get($view, 'view_view_name');
                     $obj_view->saveOrFail();
@@ -551,21 +553,26 @@ class TemplateImporter
 
                             $view_column_name = array_get($view_column, "view_column_target_name");
                             switch ($view_column_target_type) {
-                                    // for table column
-                                    case Define::VIEW_COLUMN_TYPE_COLUMN:
-                                        // get column name
-                                        $view_column_target = CustomColumn
-                                            ::where('column_name', $view_column_name)
-                                            ->where('custom_table_id', $table->id)
-                                            ->first()->id ?? null;
-                                        break;
-                                    // system column
-                                    default:
+                                // for table column
+                                case Define::VIEW_COLUMN_TYPE_COLUMN:
+                                    // get column name
+                                    $view_column_target = CustomColumn
+                                        ::where('column_name', $view_column_name)
+                                        ->where('custom_table_id', $table->id)
+                                        ->first()->id ?? null;
+                                    break;
+                                // system column
+                                default:
+                                    // set parent id
+                                    if($view_column_name == 'parent_id'){
+                                        $view_column_target = 'parent_id';
+                                    }else{
                                         $view_column_target = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($view_column_name) {
                                             return $item['name'] == $view_column_name;
                                         })['name'] ?? null;
-                                        break;
-                                }
+                                    }
+                                    break;
+                            }
 
                             // if not set column id, continue
                             if (!isset($view_column_target)) {

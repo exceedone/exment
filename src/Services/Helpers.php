@@ -902,7 +902,7 @@ if (!function_exists('getSearchEnabledColumns')) {
         // loop for custom_columns.
         foreach ($table['custom_columns'] as $custom_column) {
             // if custom_column is search_enabled column, add $column_arrays.
-            if (boolval(array_get($custom_column['options'], 'search_enabled'))) {
+            if (boolval(array_get($custom_column, 'options.search_enabled'))) {
                 array_push($column_arrays, $custom_column);
             }
         }
@@ -1215,7 +1215,7 @@ if (!function_exists('getOptions')) {
      * @param array|CustomTable $table
      * @param $selected_value
      */
-    function getOptions($table, $selected_value)
+    function getOptions($table, $selected_value = null)
     {
         $labelcolumn = getLabelColumn($table)->column_name;
         // get count table.
