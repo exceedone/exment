@@ -341,6 +341,13 @@ class Define
         self::TEMPLATE_EXPORT_TARGET_MENU,
     ];
 
+    public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
+        'custom_tables',
+        'custom_columns',
+        'custom_relations',
+        'admin_menu',
+    ];
+
     // Mail Template --------------------------------------------------
 
     public const MAIL_TEMPLATE_TYPE_HEADER = 'header';

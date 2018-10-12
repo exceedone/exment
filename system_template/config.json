@@ -2,7 +2,7 @@
     "template_name": "system_template",
     "template_view_name": "システムテンプレート",
     "description": "システム向けのテンプレートです。必ずインストールする必要があります。",
-    "tables": [
+    "custom_tables": [
         {
             "table_name": "document",
             "icon": "fa-file",
@@ -261,14 +261,14 @@
             ]
         }
     ],
-    "relations": [
+    "custom_relations": [
         {
             "relation_type": "many_to_many",
             "parent_custom_table_name": "organization",
             "child_custom_table_name": "user"
         }
     ],
-    "form": [
+    "custom_forms": [
         {
             "form_view_name": "フォーム",
             "custom_form_blocks": [
@@ -376,7 +376,7 @@
             "table_name": "organization"
         }
     ],
-	"view": [
+	"custom_views": [
 		{
 			"suuid": "3471e23fbff8dc65437b",
 			"view_view_name": "既定のビュー",
@@ -449,7 +449,7 @@
 			"table_name": "organization"
 		}
 	],
-    "dashboard": [
+    "dashboards": [
 		{
 			"dashboard_type": "system",
 			"dashboard_name": "system_default_dashboard",
@@ -575,7 +575,7 @@
             ]
         }
     ],
-    "menu": [
+    "admin_menu": [
         {
             "order": "1",
             "menu_type": "system",

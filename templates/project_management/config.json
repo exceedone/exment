@@ -2,7 +2,7 @@
     "template_name": "project_management",
     "template_view_name": "プロジェクト・タスク管理",
     "description": "プロジェクト・タスク管理を行います。",
-    "tables": [
+    "custom_tables": [
         {
             "table_name": "project",
             "table_view_name": "プロジェクト管理",
@@ -361,7 +361,7 @@
             ]
         }
     ],
-    "form": [
+    "custom_forms": [
         {
             "form_view_name": "フォーム",
             "custom_form_blocks": [
@@ -479,7 +479,7 @@
             "table_name": "task"
         }
     ],
-    "view": [
+    "custom_views": [
         {
             "suuid": "7ef66a7fdef45f094079",
             "view_view_name": "既定のビュー",
@@ -617,8 +617,8 @@
             "table_name": "task"
         }
     ],
-    "relations": [],
-    "menu": [
+    "custom_relations": [],
+    "admin_menu": [
         {
             "order": "0",
             "title": "プロジェクト管理",

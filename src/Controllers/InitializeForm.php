@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Validator;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\TemplateInstaller;
+use Exceedone\Exment\Services\TemplateImportExport;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -84,9 +84,9 @@ trait InitializeForm
         // upload zip file
         $this->uploadTemplate($request);
 
-        // install template
+        // import template
         if ($request->has('template')) {
-            TemplateInstaller::installTemplate($request->input('template'));
+            TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
         }
 
         return true;
@@ -117,7 +117,7 @@ trait InitializeForm
         // template list
         $form->tile('template', exmtrans("system.template"))
             ->options(function ($template) {
-                $array = TemplateInstaller::getTemplates();
+                $array = TemplateImportExport\TemplateImporter::getTemplates();
                 if (is_null($array)) {
                     return [];
                 }
@@ -144,6 +144,11 @@ trait InitializeForm
             ;
 
         $form->file('upload_template', exmtrans('template.upload_template'))->rules('mimes:zip|nullable')->help(exmtrans('template.help.upload_template'));
+
+        $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
+            ->rules('mimes:xlsx|nullable')
+            ->help(exmtrans('template.help.upload_template'))
+            ->options(['showPreview' => false]);
     }
 
     /**
@@ -156,8 +161,16 @@ trait InitializeForm
         if($request->has('upload_template')){
             // get upload file
             $file = $request->file('upload_template');
-            $upload_template = TemplateInstaller::uploadTemplate($file);
-            TemplateInstaller::installTemplate($upload_template);
+            $upload_template = TemplateImportExport\TemplateImporter::uploadTemplate($file);
+            TemplateImportExport\TemplateImporter::importTemplate($upload_template);
+        }
+        
+        // upload excel file
+        if($request->has('upload_template_excel')){
+            // get upload file
+            $file = $request->file('upload_template_excel');
+            $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);
+            TemplateImportExport\TemplateImporter::import($json);
         }
     }
 }

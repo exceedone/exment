@@ -213,6 +213,7 @@ if (!function_exists('array_has_value')) {
 
 if (!function_exists('array_dot_reverse')) {
     /**
+     * convert dotted_array to array
      * @return array
      */
     function array_dot_reverse($array)

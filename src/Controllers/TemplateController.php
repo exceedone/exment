@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Services\TemplateInstaller;
+use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Encore\Admin\Layout\Content;
@@ -97,7 +97,7 @@ class TemplateController extends AdminControllerBase
         }
 
         // execute export
-        return TemplateInstaller::exportTemplate(
+        return TemplateImportExport\TemplateExporter::exportTemplate(
             $request->input('template_name'),
             $request->input('template_view_name'),
             $request->input('description'),
@@ -119,7 +119,7 @@ class TemplateController extends AdminControllerBase
 
         // install templates selected tiles.
         if ($request->has('template')) {
-            TemplateInstaller::installTemplate($request->input('template'));
+            TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
         }
 
         admin_toastr(trans('admin.save_succeeded'));

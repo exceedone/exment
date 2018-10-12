@@ -42,7 +42,13 @@ Route::group([
     $router->get('template', 'TemplateController@index');
     $router->post('template/import', 'TemplateController@import');
     $router->post('template/export', 'TemplateController@export');
-
+    $router->get('template/import', function(){
+        return redirect(admin_base_path('template'));
+    });
+    $router->get('template/export', function(){
+        return redirect(admin_base_path('template'));
+    });
+    
     $router->resource('plugin', 'PluginController', ['except' => ['show']]);
     $router->resource('authority', 'AuthorityController', ['except' => ['show']]);
     $router->resource('table', 'CustomTableController', ['except' => ['show']]);
