@@ -666,7 +666,7 @@ class TemplateInstaller
                     $obj_menu->parent_id = $parent_id;
 
                     // get menu target id
-                    if (isset($menu['menu_target'])) {
+                    if (isset($menu['menu_target_id'])) {
                         $obj_menu->menu_target = $menu['menu_target_id'];
                     }
                     // get menu target id from menu_target_name

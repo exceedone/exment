@@ -30,7 +30,6 @@ class Bootstrap
             'tile'          => Field\Tile::class,
             'hasManyTable'           => Field\HasManyTable::class,
             'relationTable'          => Field\RelationTable::class,
-            'tableitem'          => Field\RelationTableItem::class,
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,
