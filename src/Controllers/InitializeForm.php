@@ -155,7 +155,6 @@ trait InitializeForm
      * Upload Template
      */
     protected function uploadTemplate(Request $request){
-        
         // upload zip file
         $upload_template = null;
         if($request->has('upload_template')){

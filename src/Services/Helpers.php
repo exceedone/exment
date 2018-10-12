@@ -467,12 +467,12 @@ if (!function_exists('getLabelColumn')) {
 if (!function_exists('getRelationName')) {
     /**
      * Get relation name.
-     * @param CustomRelation $obj
+     * @param CustomRelation $relation_obj
      * @return string
      */
-    function getRelationName($obj)
+    function getRelationName($relation_obj)
     {
-        return getRelationNamebyObjs($obj->parent_custom_table, $obj->child_custom_table);
+        return getRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
     }
 }
 
@@ -491,6 +491,36 @@ if (!function_exists('getRelationNamebyObjs')) {
             return null;
         }
         return "pivot_{$parent_suuid}_{$child_suuid}";
+    }
+}
+
+if (!function_exists('getChildRelationName')) {
+    /**
+     * Get relation name.
+     * @param CustomRelation $relation_obj
+     * @return string
+     */
+    function getChildRelationName($relation_obj)
+    {
+        return getChildRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
+    }
+}
+
+if (!function_exists('getChildRelationNamebyObjs')) {
+    /**
+     * Get relation name using parent and child table.
+     * @param $parent
+     * @param $child
+     * @return string
+     */
+    function getChildRelationNamebyObjs($parent, $child)
+    {
+        $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
+        $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
+        if(is_null($parent_suuid) || is_null($child_suuid)){
+            return null;
+        }
+        return "pivot_child_{$parent_suuid}_{$child_suuid}";
     }
 }
 
@@ -1314,7 +1344,9 @@ if (!function_exists('getColumnsSelectOptions')) {
      */
     function getColumnsSelectOptions($table, $search_enabled_only = false)
     {
+        $table = CustomTable::getEloquent($table);
         $options = [];
+        
         ///// get system columns
         foreach(Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option){
             // not header, continue
@@ -1324,8 +1356,13 @@ if (!function_exists('getColumnsSelectOptions')) {
             $options[array_get($option, 'name')] = exmtrans('custom_column.system_columns.'.array_get($option, 'name'));
         }
 
-        // get table columns
-        $table = CustomTable::getEloquent($table);
+        ///// if this table is child relation(1:n), add parent table
+        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table->id)->first();
+        if(isset($relation)){
+            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name').'(親テーブル)';
+        }
+
+        ///// get table columns
         $custom_columns = $table->custom_columns;
         foreach($custom_columns as $option){
             // if $search_enabled_only = true and options.search_enabled is false, continue

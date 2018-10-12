@@ -389,8 +389,6 @@ class TemplateImporter
                     $obj_relation->child_custom_table_id = $child_id;
                     $obj_relation->relation_type = array_get($relation, 'relation_type');
                     $obj_relation->saveOrFail();
-
-
                 }
             }
 

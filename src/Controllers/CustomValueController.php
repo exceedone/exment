@@ -10,6 +10,7 @@ use Encore\Admin\Controllers\ModelForm;
 use Encore\Admin\Middleware\Pjax;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\PluginInstaller;
@@ -281,6 +282,20 @@ class CustomValueController extends AdminControllerTableBase
         //https://github.com/z-song/laravel-admin/issues/1998
         $form->hidden('laravel_admin_escape');
 
+        // add parent select if this form is 1:n relation
+        $relation = CustomRelation
+            ::with('parent_custom_table')
+            ->where('child_custom_table_id', $this->custom_table->id)
+            ->first();
+        if(isset($relation)){
+            $form->hidden('parent_type');
+            $form->select('parent_id', $relation->parent_custom_table->table_view_name)
+                ->options(function($option) use($relation){
+                    return getModelName($relation->parent_custom_table)::pluck('id', 'id');
+                })
+                ->rules('required');
+        }
+
         // loop for custom form blocks
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             // if available is false, continue
@@ -319,7 +334,7 @@ class CustomValueController extends AdminControllerTableBase
                     $form->hasManyTable(
                         getRelationNamebyObjs($this->custom_table, $target_table),
                         $block_label,
-                        function ($form) use ($custom_form_block) {
+                        function ($form) use ($custom_form_block, $id) {
                             $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
                                 $this->setCustomFormColumns($form, $custom_form_block, $id);
                             });

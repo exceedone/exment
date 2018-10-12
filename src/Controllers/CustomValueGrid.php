@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\DataImportExport;
@@ -51,10 +52,26 @@ trait CustomValueGrid
 
                 $grid->column($column_name, $column_view_name)->sortable();
             }
+            // parent_id
+            elseif($view_column_target == 'parent_id'){
+                // get parent data
+                $relation = CustomRelation
+                    ::with('parent_custom_table')
+                    ->where('child_custom_table_id', $this->custom_table->id)
+                    ->first();
+                if(isset($relation)){
+                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
+                        ->sortable()
+                        ->display(function($value){
+                            // get parent_type
+                            $parent_type = $this->parent_type;
+                            return getModelName($parent_type)::find($value)->getValue();
+                    });
+                }
+            }
             // system column
             else {
                 // get column name
-                $view_column_target = array_get($custom_view_column, 'view_column_target');
                 $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable();
             }
         }
