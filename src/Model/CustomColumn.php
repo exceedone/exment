@@ -29,8 +29,11 @@ class CustomColumn extends ModelBase
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
         }
+        elseif (is_array($column_obj)) {
+            return CustomColumn::find(array_get($column_obj, 'id'));
+        }
         elseif (is_numeric($column_obj)) {
-            return CustomColumn::find($obj);
+            return CustomColumn::find($column_obj);
         }
         // else,call $table_obj
         else{

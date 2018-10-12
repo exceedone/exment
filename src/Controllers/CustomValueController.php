@@ -288,12 +288,24 @@ class CustomValueController extends AdminControllerTableBase
             ->where('child_custom_table_id', $this->custom_table->id)
             ->first();
         if(isset($relation)){
-            $form->hidden('parent_type');
-            $form->select('parent_id', $relation->parent_custom_table->table_view_name)
-                ->options(function($option) use($relation){
-                    return getModelName($relation->parent_custom_table)::pluck('id', 'id');
+            $parent_custom_table = $relation->parent_custom_table;
+            $form->hidden('parent_type')->default($parent_custom_table->table_name);
+
+            // set select options
+            if(isGetOptions($parent_custom_table)){
+                $form->select('parent_id', $parent_custom_table->table_view_name)
+                ->options(function($value) use($parent_custom_table){
+                    return getOptions($parent_custom_table, $value);
                 })
                 ->rules('required');
+            }else{
+                $form->select('parent_id', $parent_custom_table->table_view_name)
+                ->options(function($value) use($parent_custom_table){
+                    return getOptions($parent_custom_table, $value);
+                })
+                ->ajax(getOptionAjaxUrl($parent_custom_table))
+                ->rules('required');
+            }
         }
 
         // loop for custom form blocks

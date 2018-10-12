@@ -65,6 +65,7 @@ trait CustomValueGrid
                         ->display(function($value){
                             // get parent_type
                             $parent_type = $this->parent_type;
+                            if(is_null($parent_type)){return null;}
                             return getModelName($parent_type)::find($value)->getValue();
                     });
                 }

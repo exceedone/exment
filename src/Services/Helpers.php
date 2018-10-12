@@ -1201,7 +1201,7 @@ if (!function_exists('isGetOptions')) {
     function isGetOptions($table)
     {
         // get count table.
-        $count = getModelName($table)::count();
+        $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
         return $count <= 100;
     }
@@ -1219,10 +1219,10 @@ if (!function_exists('getOptions')) {
     {
         $labelcolumn = getLabelColumn($table)->column_name;
         // get count table.
-        $count = getModelName($table)::count();
+        $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
         if($count > 100){
-            $item = getModelName($table)::find($selected_value);
+            $item = getOptionsQuery($table)::find($selected_value);
 
             if ($item) {
                 // check whether $item is multiple value.
@@ -1238,7 +1238,7 @@ if (!function_exists('getOptions')) {
                 return [];
             }
         }
-        return getModelName($table)::all()->pluck("value.{$labelcolumn}", "id");
+        return getOptionsQuery($table)::get()->pluck("value.{$labelcolumn}", "id");
     }
 }
 
@@ -1252,19 +1252,8 @@ if (!function_exists('getOptionAjaxUrl')) {
     function getOptionAjaxUrl($table)
     {
         $table = CustomTable::getEloquent($table);
-        if (is_numeric($table)) {
-            $table = CustomTable::find($table);
-        }
-        else if (is_string($table)) {
-            $table = CustomTable::findByName($table);
-        } else if($table instanceof CustomValue) {
-            $table = $table->getCustomTable();
-        } else {
-            $table = $table;
-        }
-
         // get count table.
-        $count = getModelName($table)::count();
+        $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
         if ($count <= 100) {
             return null;
@@ -1273,10 +1262,26 @@ if (!function_exists('getOptionAjaxUrl')) {
     }
 }
 
+if(!function_exists('getOptionsQuery')){
+    /**
+     * getOptionsQuery. this function uses for count, get, ... 
+     */
+    function getOptionsQuery($table)
+    {
+        // get model
+        $modelname = getModelName($table);
+        $model = new $modelname;
+
+        // filter model
+        Admin::user()->filterModel($model, $table);
+        return $model;
+    }   
+}
+
 
 if (!function_exists('createSelectOptions')) {
     /**
-     * Create laravel-admin select box options.
+     * Create laravel-admin select box options. for column_type "select", "select_valtext"
      */
     function createSelectOptions($column)
     {
@@ -1359,7 +1364,7 @@ if (!function_exists('getColumnsSelectOptions')) {
         ///// if this table is child relation(1:n), add parent table
         $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table->id)->first();
         if(isset($relation)){
-            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name').'(親テーブル)';
+            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
         }
 
         ///// get table columns
