@@ -75,8 +75,9 @@ Route::group([
             $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
             $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
             $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
-            $router->get("api/{$value}/query", 'ApiController@query');
-            $router->post("api/{$value}/{id}", 'ApiController@find');
+            $router->get("api/{$value}/query", 'ApiTableController@query');
+            $router->get("api/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
+            $router->post("api/{$value}/{id}", 'ApiTableController@find');
         }
     }
 
@@ -85,10 +86,10 @@ Route::group([
     $router->post('search/header', 'SearchController@header');
     $router->post('search/relation', 'SearchController@getRelationList');
 
-    $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
     $router->get('api/table/{id}', 'ApiController@table');
-    $router->get('api/menu/menutype', 'MenuController@menutype');
-    $router->post('api/menu/menutargetvalue', 'MenuController@menutargetvalue');
+    $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
+    $router->get('auth/menu/menutype', 'MenuController@menutype');
+    $router->post('auth/menu/menutargetvalue', 'MenuController@menutargetvalue');
 
     // TODO:hard coding
     $router->get("data/estimate/{id}/doc", 'CustomValueController@getDocumentForm');

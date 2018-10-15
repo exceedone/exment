@@ -304,39 +304,30 @@ namespace Exment {
             if(!hasValue($base)){
                 return;
             }
-            // if ($target.children('option').length > 0) {
-            //     var continueFlg = false;
-            //     for (var j = 0; j < $target.children('option').length; j++) {
-            //         if (hasValue($target.children('option').eq(j).val())) {
-            //             continueFlg = true;
-            //             break;
-            //         }
-            //     }
-            //     if (continueFlg) {
-            //         return;
-            //     }
-            // }
             var $parent = CommonEvent.getParentRow($base);
             var linkages = $base.data('linkage');
-            // var $base = $parent.find(CommonEvent.getClassKey(link));
-            // if (!hasValue($base.val())) {
-            //     continue;
-            // }
-            // var linkages = data.linkage;
-            if (hasValue(linkages)) {
-                for (var key in linkages) {
-                    var link = linkages[key];
-                    var $target = $parent.find(CommonEvent.getClassKey(key));
-                    console.log('linkage from setLinkage');
-                    CommonEvent.linkage($target, link, $base.val());
-                }
+            if (!hasValue(linkages)) {
+                return;
+            }
+
+            // get expand data
+            var expand = $base.data('linkage-expand');
+            // execute linkage event
+            for (var key in linkages) {
+                var link = linkages[key];
+                var $target = $parent.find(CommonEvent.getClassKey(key));
+                CommonEvent.linkage($target, link, $base.val(), expand);
             }
         }
 
-        private static linkage($target: JQuery<Element>, url: string, val: any) {
+        private static linkage($target: JQuery<Element>, url: string, val: any, expand?:any) {
             var $d = $.Deferred();
-            console.log('start linkage. url : ' + url + ', q=' + val);
-            $.get(url + '?q=' + val, function (data) {
+
+            // create querystring
+            if(!hasValue(expand)){expand = [];}
+            expand['q'] = val;
+            var query = $.param(expand);
+            $.get(url + '?' + query, function (data) {
                 $target.find("option").remove();
                 $target.select2({
                     data: $.map(data, function (d) {

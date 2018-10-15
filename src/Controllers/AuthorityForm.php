@@ -59,12 +59,12 @@ trait AuthorityForm
             $pivots = ['authority_id' => $authority->id, 'related_type' => $related_type];
             
             if (isGetOptions($related_type)) {
-            $form->pivotMultiSelect($authority_name, $authority_view_name)
-                ->options(function ($options) use ($related_type, $related_types) {
-                    return getOptions($related_type, $options);
-                })
-                ->pivot($pivots)
-                ;
+                $form->pivotMultiSelect($authority_name, $authority_view_name)
+                    ->options(function ($options) use ($related_type, $related_types) {
+                        return getOptions($related_type, $options);
+                    })
+                    ->pivot($pivots)
+                    ;
             }else{
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
                 ->options(function ($options) use ($related_type, $related_types) {
