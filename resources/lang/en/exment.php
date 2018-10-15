@@ -254,6 +254,7 @@ return [
         'options' => [
             'header' => 'Detail Option',
             'search_enabled' => 'Search Index',
+            'unique' => 'Unique',
             'placeholder' => 'PlaceHolder',
             'help' => 'Help',
             'string_length' => 'Max Length',
@@ -284,8 +285,11 @@ return [
         'system_columns' => [
             'id' => 'ID',
             'suuid' => 'System ID(20-length)',
+            'parent_id' => 'Parent Data ID',
+            'parent_type' => 'Parent Data Table Name',
             'created_at' => 'Created Datetime',
-            'updated_at' => 'Updated Datetime',            
+            'updated_at' => 'Updated Datetime',  
+            'deleted_at' => 'Deleted Datetime',           
         ],
         'column_type_options' => [
             "text" => "One-Line Text",
@@ -312,6 +316,7 @@ return [
         ],
         'help' => [
             'search_enabled' => 'When set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>*If you set too many this setting on the same table, the performance may decline.',
+            'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'help' => 'Help string displayed below the field.',
             'use_label_flg' => 'When this data is selected, it is a column of wording displayed on the screen. When multiple columns are registered, only one column is reflected.',
             'number_format' => 'By turning YES, the text field will be displayed as a comma value.',
@@ -550,6 +555,7 @@ return [
             'system' => 'System Menu',
             'plugin' => 'Plugin',
             'table' => 'Table Data',
+            'parent_node' => 'Parent Node',
             'custom' => 'Custom URL',
         ],
         
@@ -605,13 +611,15 @@ return [
         'template_view_name' => 'Template View Name',
         'form_description' => 'Template Description',
         'thumbnail' => 'Thumbnail',
-        'upload_template' => 'Upload Template',
+        'upload_template' => 'Upload(zip)',
+        'upload_template_excel' => 'Upload(Excel)',
         'export_target' => 'Export Target',
         'target_tables' => 'Target Tables',
         
         'help' => [
             'thumbnail' => 'Recommended size:256px*256px',
-            'upload_template' => 'Upload the template file and install it on the system.',
+            'upload_template' => 'Upload the template zip file exported on another system and import the settings into this system.',
+            'upload_template_excel' => 'Upload the configuration file created in Excel format and import the settings to the system.',
             'export_target' => 'Select export target.',
             'target_tables' => 'Select export tables. If not select, export all tables.',
         ],

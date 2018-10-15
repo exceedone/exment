@@ -611,13 +611,15 @@ return [
         'template_view_name' => 'テンプレート表示名',
         'form_description' => 'テンプレート説明文',
         'thumbnail' => 'サムネイル',
-        'upload_template' => 'テンプレートアップロード',
+        'upload_template' => 'アップロード(zip)',
+        'upload_template_excel' => 'アップロード(Excel)',
         'export_target' => 'エクスポート対象',
         'target_tables' => 'エクスポート対象テーブル',
         
         'help' => [
             'thumbnail' => '推奨サイズ：256px*256px',
-            'upload_template' => 'テンプレートファイルをアップロードして、システムにインストールします。',
+            'upload_template' => '他のシステムでエクスポートした、テンプレートzipファイルをアップロードして、このシステムに設定をインポートします。',
+            'upload_template_excel' => 'Excelフォーマットで作成した、設定ファイルをアップロードして、システムに設定をインポートします。',
             'export_target' => 'エクスポートする対象を選択してください。',
             'target_tables' => 'エクスポートするテーブルを選択してください。未選択の場合、すべてのテーブル情報をエクスポートします。',
         ],
