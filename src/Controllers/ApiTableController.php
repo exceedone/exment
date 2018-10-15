@@ -21,7 +21,7 @@ class ApiTableController extends AdminControllerTableBase
 
     /**
      * find data by id
-     * use select linkage
+     * use select Changedata
      * @param mixed $id
      * @return mixed
      */
@@ -70,7 +70,7 @@ class ApiTableController extends AdminControllerTableBase
         return getModelName($child_table)
             ::where('parent_id', $q)
             ->where('parent_type', $this->custom_table->table_name)
-            ->paginate(null, ['id', $column_name.' as text']);
+            ->get(['id', $column_name.' as text']);
     }
 }
 

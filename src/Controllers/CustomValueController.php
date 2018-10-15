@@ -378,7 +378,8 @@ class CustomValueController extends AdminControllerTableBase
 
         $calc_formula_array = [];
         $changedata_array = [];
-        $this->setCustomForEvents($calc_formula_array, $changedata_array);
+        $relatedlinkage_array = [];
+        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array);
 
         // add calc_formula_array and changedata_array info
         if (count($calc_formula_array) > 0) {
@@ -394,6 +395,14 @@ EOT;
             $script = <<<EOT
             var json = $json;
             Exment.CommonEvent.setChangedataEvent(json);
+EOT;
+            Admin::script($script);
+        }
+        if (count($relatedlinkage_array) > 0) {
+            $json = json_encode($relatedlinkage_array);
+            $script = <<<EOT
+            var json = $json;
+            Exment.CommonEvent.setRelatedLinkageEvent(json);
 EOT;
             Admin::script($script);
         }

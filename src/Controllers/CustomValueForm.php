@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Services\PluginInstaller;
 use Exceedone\Exment\Services\FormHelper;
@@ -70,7 +71,7 @@ trait CustomValueForm
     /**
      * set custom form columns
      */
-    protected function setCustomForEvents(&$calc_formula_array, &$changedata_array)
+    protected function setCustomFormEvents(&$calc_formula_array, &$changedata_array, &$relatedlinkage_array)
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -92,6 +93,9 @@ trait CustomValueForm
                     $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
                 }
             }
+
+            // set relatedlinkage_array
+            $this->setRelatedLinkageArray($custom_form_block, $relatedlinkage_array);
         }
     }
 
@@ -376,7 +380,8 @@ trait CustomValueForm
     }
 
     /**
-     * 
+     * set change data array.
+     * "change data": When selecting a list, paste the value of that item into another form item.
      */
     protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array){
         // get target and column info from form option
@@ -400,5 +405,57 @@ trait CustomValueForm
             'from' => $changedata_column->column_name,
             'to' => $column->column_name,
         ];
+    }
+    
+    /**
+     * set related linkage array.
+     * "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
+     */
+    protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array){
+        // set target_table columns
+        $columns = [];
+        // if available is false, continue
+        if (!$custom_form_block->available) {
+            return;
+        }
+        foreach ($custom_form_block->custom_form_columns as $form_column) {
+            $column = $form_column->custom_column;
+
+            // if column_type is not select_table, continue
+            if(array_get($column, 'column_type') != 'select_table'){
+                continue;
+            }
+            // set columns
+            $columns[] = $column;
+        }
+
+        // re-loop for relation
+        foreach ($columns as $column) {
+            // get relation
+            $relations = CustomRelation::where('parent_custom_table_id', array_get($column, 'options.select_target_table'))->get();
+            // if not exists, continue
+            if(!$relations){
+                continue;
+            }
+            foreach($relations as $relation){
+                // add $relatedlinkage_array if contains 
+                $child_custom_table_id = array_get($relation, 'child_custom_table_id');
+                collect($columns)->filter(function($c) use($child_custom_table_id){
+                    return array_get($c, 'options.select_target_table') == $child_custom_table_id;
+                })->each(function($c) use($column, $relation, &$relatedlinkage_array){
+                    $column_name = array_get($column, 'column_name');
+                    // if not exists $column_name in $relatedlinkage_array
+                    if(!array_key_exists($column_name, $relatedlinkage_array)){
+                        $relatedlinkage_array[$column_name] = [];
+                    }
+                    // add array. key is column name.
+                    $relatedlinkage_array[$column_name][] = [
+                        'url' => admin_base_path(url_join('api', $relation->parent_custom_table->table_name, 'relatedLinkage')),
+                        'expand' => ['child_table_id' => $relation->child_custom_table_id],
+                        'to' => array_get($c, 'column_name'),
+                    ];                   
+                });
+            }
+        }
     }
 }

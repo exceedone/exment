@@ -2,6 +2,7 @@
 namespace Exment {
     export class CommonEvent {
         protected static calcDataList = [];
+        protected static relatedLinkageList = [];
         /**
          * Call only once. It's $(document).on event.
          */
@@ -296,10 +297,55 @@ namespace Exment {
         }
 
         /**
+         * Set RelatedLinkage event
+         */
+        public static setRelatedLinkageEvent(datalist) {
+            // set relatedLinkageList for after flow.
+            CommonEvent.relatedLinkageList = [];
+            // loop "related Linkage" targets   
+            for(var key in datalist){
+                var data = datalist[key];
+                
+                // set data to element
+                // cannot use because cannot fire new row
+                //$(CommonEvent.getClassKey(key)).data('calc_data', data);
+                // set relatedLinkageList array. key is getClassKey. data is data
+                CommonEvent.relatedLinkageList.push({"classKey" : CommonEvent.getClassKey(key), "data": data});
+
+                // set linkage event
+                $(document).on('change', CommonEvent.getClassKey(key), { data: data, key:key }, CommonEvent.setRelatedLinkageChangeEvent);
+            }
+        }
+
+        /**
+         * call select2 items using linkage
+         */
+        private static setRelatedLinkageChangeEvent = (ev: JQueryEventObject) => {
+            var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
+            if(!hasValue($base)){
+                return;
+            }
+            var $parent = CommonEvent.getParentRow($base);
+            var linkages = ev.data.data;
+            if (!hasValue(linkages)) {
+                return;
+            }
+
+            // execute linkage event
+            for (var key in linkages) {
+                // set param from PHP
+                var link = linkages[key];
+                var url = link.url;
+                var expand = link.expand;
+                var $target = $parent.find(CommonEvent.getClassKey(link.to));
+                CommonEvent.linkage($target, url, $base.val(), expand);
+            }
+        }
+
+        /**
          * call select2 items using linkage
          */
         private static setLinkageEvent = (ev: JQueryEventObject) => {
-            var $d = $.Deferred();
             var $base = $(ev.target).closest('[data-linkage]');
             if(!hasValue($base)){
                 return;
@@ -327,14 +373,16 @@ namespace Exment {
             if(!hasValue(expand)){expand = [];}
             expand['q'] = val;
             var query = $.param(expand);
-            $.get(url + '?' + query, function (data) {
+            $.get(url + '?' + query, function (json) {
                 $target.find("option").remove();
                 $target.select2({
-                    data: $.map(data, function (d) {
+                    data: $.map(json, function (d) {
                         d.id = hasValue(d.id) ? d.id : '';
                         d.text = d.text;
                         return d;
-                    })
+                    }),
+                    "allowClear": true, 
+                    "placeholder": $target.next().find('.select2-selection__placeholder').text(), 
                 }).trigger('change');
 
                 $d.resolve();

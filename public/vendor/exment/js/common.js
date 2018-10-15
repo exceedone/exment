@@ -164,17 +164,42 @@ var Exment;
             });
             return $d.promise();
         };
-        CommonEvent.linkage = function ($target, url, val) {
+        /**
+         * Set RelatedLinkage event
+         */
+        CommonEvent.setRelatedLinkageEvent = function (datalist) {
+            // set relatedLinkageList for after flow.
+            CommonEvent.relatedLinkageList = [];
+            // loop "related Linkage" targets   
+            for (var key in datalist) {
+                var data = datalist[key];
+                // set data to element
+                // cannot use because cannot fire new row
+                //$(CommonEvent.getClassKey(key)).data('calc_data', data);
+                // set relatedLinkageList array. key is getClassKey. data is data
+                CommonEvent.relatedLinkageList.push({ "classKey": CommonEvent.getClassKey(key), "data": data });
+                // set linkage event
+                $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
+            }
+        };
+        CommonEvent.linkage = function ($target, url, val, expand) {
             var $d = $.Deferred();
-            console.log('start linkage. url : ' + url + ', q=' + val);
-            $.get(url + '?q=' + val, function (data) {
+            // create querystring
+            if (!hasValue(expand)) {
+                expand = [];
+            }
+            expand['q'] = val;
+            var query = $.param(expand);
+            $.get(url + '?' + query, function (json) {
                 $target.find("option").remove();
                 $target.select2({
-                    data: $.map(data, function (d) {
+                    data: $.map(json, function (d) {
                         d.id = hasValue(d.id) ? d.id : '';
                         d.text = d.text;
                         return d;
-                    })
+                    }),
+                    "allowClear": true,
+                    "placeholder": $target.next().find('.select2-selection__placeholder').text(),
                 }).trigger('change');
                 $d.resolve();
             });
@@ -214,6 +239,7 @@ var Exment;
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
         };
         CommonEvent.calcDataList = [];
+        CommonEvent.relatedLinkageList = [];
         /**
         * 日付の計算
         */
@@ -330,38 +356,46 @@ var Exment;
         /**
          * call select2 items using linkage
          */
+        CommonEvent.setRelatedLinkageChangeEvent = function (ev) {
+            var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
+            if (!hasValue($base)) {
+                return;
+            }
+            var $parent = CommonEvent.getParentRow($base);
+            var linkages = ev.data.data;
+            if (!hasValue(linkages)) {
+                return;
+            }
+            // execute linkage event
+            for (var key in linkages) {
+                // set param from PHP
+                var link = linkages[key];
+                var url = link.url;
+                var expand = link.expand;
+                var $target = $parent.find(CommonEvent.getClassKey(link.to));
+                CommonEvent.linkage($target, url, $base.val(), expand);
+            }
+        };
+        /**
+         * call select2 items using linkage
+         */
         CommonEvent.setLinkageEvent = function (ev) {
-            var $d = $.Deferred();
             var $base = $(ev.target).closest('[data-linkage]');
             if (!hasValue($base)) {
                 return;
             }
-            // if ($target.children('option').length > 0) {
-            //     var continueFlg = false;
-            //     for (var j = 0; j < $target.children('option').length; j++) {
-            //         if (hasValue($target.children('option').eq(j).val())) {
-            //             continueFlg = true;
-            //             break;
-            //         }
-            //     }
-            //     if (continueFlg) {
-            //         return;
-            //     }
-            // }
             var $parent = CommonEvent.getParentRow($base);
             var linkages = $base.data('linkage');
-            // var $base = $parent.find(CommonEvent.getClassKey(link));
-            // if (!hasValue($base.val())) {
-            //     continue;
-            // }
-            // var linkages = data.linkage;
-            if (hasValue(linkages)) {
-                for (var key in linkages) {
-                    var link = linkages[key];
-                    var $target = $parent.find(CommonEvent.getClassKey(key));
-                    console.log('linkage from setLinkage');
-                    CommonEvent.linkage($target, link, $base.val());
-                }
+            if (!hasValue(linkages)) {
+                return;
+            }
+            // get expand data
+            var expand = $base.data('linkage-expand');
+            // execute linkage event
+            for (var key in linkages) {
+                var link = linkages[key];
+                var $target = $parent.find(CommonEvent.getClassKey(key));
+                CommonEvent.linkage($target, link, $base.val(), expand);
             }
         };
         /**
