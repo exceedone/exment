@@ -329,22 +329,39 @@ if (!function_exists('getModelName')) {
      */
     function getModelName($obj, $get_name_only = false)
     {
-        if (is_numeric($obj)) {
-            // Get suuid.
-            // using DB query builder (because this function may be called createCustomTableExt. this function is trait CustomTable
-            //$table = CustomTable::find($obj);
-            $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
+        ///// get request session
+        // stop db access too much
+        if (is_numeric($obj) || is_string($obj)) {
+            // has request session, set suuid
+            if(!is_null(getRequestSession('getModelName_'.$obj))){
+                $suuid = getRequestSession('getModelName_'.$obj);
+            }
         }
-        else if (is_string($obj)) {
-            // get by table_name
-            // $table = CustomTable::findByName($obj);
-            $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
-        } else if($obj instanceof CustomValue) {
-            $table = $obj->getCustomTable();
-            $suuid = $table->suuid;
-        } else {
-            $table = $obj;
-            $suuid = $table->suuid;
+
+        // not has suuid(first call), set suuid and request session
+        if(!isset($suuid)){
+            if (is_numeric($obj)) {
+                // Get suuid.
+                // using DB query builder (because this function may be called createCustomTableExt. this function is trait CustomTable
+                //$table = CustomTable::find($obj);
+                $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
+                setRequestSession('getModelName_'.$obj, $suuid);
+            }
+            elseif (is_string($obj)) {
+                // get by table_name
+                // $table = CustomTable::findByName($obj);
+                $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
+                setRequestSession('getModelName_'.$obj, $suuid);
+            } elseif($obj instanceof CustomValue) {
+                $table = $obj->getCustomTable();
+                $suuid = $table->suuid;
+            }elseif(is_null($obj)){
+                return null; // TODO: It's OK???
+            }
+            else {
+                $table = $obj;
+                $suuid = $table->suuid;
+            }
         }
 
         $namespace = "App\\CustomModel";
@@ -491,36 +508,6 @@ if (!function_exists('getRelationNamebyObjs')) {
             return null;
         }
         return "pivot_{$parent_suuid}_{$child_suuid}";
-    }
-}
-
-if (!function_exists('getChildRelationName')) {
-    /**
-     * Get relation name.
-     * @param CustomRelation $relation_obj
-     * @return string
-     */
-    function getChildRelationName($relation_obj)
-    {
-        return getChildRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
-    }
-}
-
-if (!function_exists('getChildRelationNamebyObjs')) {
-    /**
-     * Get relation name using parent and child table.
-     * @param $parent
-     * @param $child
-     * @return string
-     */
-    function getChildRelationNamebyObjs($parent, $child)
-    {
-        $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
-        $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
-        if(is_null($parent_suuid) || is_null($child_suuid)){
-            return null;
-        }
-        return "pivot_child_{$parent_suuid}_{$child_suuid}";
     }
 }
 
@@ -1217,6 +1204,7 @@ if (!function_exists('getOptions')) {
      */
     function getOptions($table, $selected_value = null)
     {
+        if(is_null($table)){return [];}
         $labelcolumn = getLabelColumn($table)->column_name;
         // get count table.
         $count = getOptionsQuery($table)::count();
@@ -1251,6 +1239,7 @@ if (!function_exists('getOptionAjaxUrl')) {
      */
     function getOptionAjaxUrl($table)
     {
+        if(is_null($table)){return null;}
         $table = CustomTable::getEloquent($table);
         // get count table.
         $count = getOptionsQuery($table)::count();

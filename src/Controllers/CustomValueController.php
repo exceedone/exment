@@ -329,30 +329,32 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 // get form columns count
                 $count = count($custom_form_block->custom_form_columns);
-                // if form columns count >= 5, set as hasmany
-                // if ($count >= 5) {
-                //     $form->hasMany(
-                //         getRelationNamebyObjs($this->custom_table, $target_table),
-                //         $block_label,
-                //         function ($form) use ($custom_form_block) {
-                //             $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
-                //                 $this->setCustomFormColumns($form, $custom_form_block);
-                //             });
-                //         }
-                //     );
-                // }
-                // // default,hasmanytable
-                // else{
+                $form_block_options = array_get($custom_form_block, 'options', []);
+                $relation_name = getRelationNamebyObjs($this->custom_table, $target_table);
+                // if form_block_options.hasmany_type is 1, hasmanytable
+                if (boolval(array_get($form_block_options, 'hasmany_type'))) {
                     $form->hasManyTable(
-                        getRelationNamebyObjs($this->custom_table, $target_table),
+                        $relation_name,
                         $block_label,
                         function ($form) use ($custom_form_block, $id) {
                             $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
                                 $this->setCustomFormColumns($form, $custom_form_block, $id);
                             });
                         }
-                    )->setTableWidth(12, 0);                    
-                //}
+                    )->setTableWidth(12, 0);
+                }
+                // default,hasmany
+                else{           
+                    $form->hasMany(
+                        $relation_name,
+                        $block_label,
+                        function ($form) use ($custom_form_block, $id) {
+                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                                $this->setCustomFormColumns($form, $custom_form_block, $id);
+                            });
+                        }
+                    );         
+                }
             // when many to many
             } else {
                 $target_table = $custom_form_block->target_table;

@@ -99,7 +99,7 @@ EOT;
 
         $results = [];
         // Get table list
-        $tables = CustomTable::all();
+        $tables = CustomTable::where('search_enabled', true)->get();
         foreach ($tables as $table)
         {
             if(count($results) >= 10){break;}
@@ -140,7 +140,7 @@ EOT;
         if($request->has('table_name') && $request->has('value_id')){
             return $this->getRelationSearch($request, $content);
         }else{
-            return $this->getFreeWord($request);
+            return $this->getFreeWord($request, $content);
         }
     }
 

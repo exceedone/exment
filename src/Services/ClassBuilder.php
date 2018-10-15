@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services;
 use \Exceedone\Exment\Model\Define;
 use \Exceedone\Exment\Model\System;
 use \Exceedone\Exment\Model\Authority;
+use \Exceedone\Exment\Model\CustomTable;
 use \Exceedone\Exment\Model\CustomColumn;
 use \Exceedone\Exment\Model\CustomRelation;
 use Illuminate\Support\Facades\DB;
@@ -160,6 +161,9 @@ class ClassBuilder {
 		eval( $this->toString() );
 	}
 
+
+	// static method --------------------------------------------------
+
 	/**
 	 * Create Custom Value Class Definition
 	 */
@@ -167,44 +171,12 @@ class ClassBuilder {
 		$builder = static::startBuild($className)
                 ->addNamespace($namespace)
                 ->addUse("\Exceedone\Exment\Model\CustomValue")
-                //->addUse("\Exceedone\Exment\Model\AutoSUuid")
                 ->extend("CustomValue")
-                //->addInUse('AutoSUuid')
                 ->addProperty("protected", 'table', "'".getDBTableName($table)."'")
-                //->addProperty("protected", 'casts', "['value' => 'json']")
                 ;
 
-            // Add column functions --------------------------------------------------
-            $columns = CustomColumn
-            ::where('custom_table_id', $table->id)
-            ->get();
-            foreach ($columns as $column) {
-                // add getAttribute function
-                $builder->addMethod(
-                    "public",
-                    "get".pascalize(getColumnName($column))."Attribute()",
-                         "return \$this->getValue('{$column->column_name}');"
-                );
-				// add method for grid page
-				$builder->addMethod(
-                    "public",
-                    "get".pascalize(getColumnName($column))."LabelAttribute()",
-                         "return \$this->getValue('{$column->column_name}', true);"
-                );
-
-                $builder->addMethod(
-                    "public",
-                    "set".pascalize(getColumnName($column))."Attribute(\$val)",
-                         "\$this->setValue('{$column->column_name}', \$val);"
-                );
-            }
-
-			// create field
-			$column_props = $columns->map(function($value, $key){return "'".getColumnName($value)."'";})->toArray();
-			$column_props = array_merge($columns->map(function($value, $key){return "'".getColumnName($value, true)."'";})->toArray(), $column_props);
-            $builder->addProperty("protected", 'appends', "[".implode(",", $column_props)."]");
-
-            // Create Relationship --------------------------------------------------
+			// Create Relationship --------------------------------------------------
+			$table = CustomTable::getEloquent($table);
             $relations = CustomRelation
             ::with('child_custom_table')
             ->where('parent_custom_table_id', $table->id)

@@ -296,9 +296,9 @@ class Define
     public const GRID_CHANGE_PAGE_MENULIST = [
         ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
         ['url' => 'column', 'icon' => 'fa-list', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
+        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
         ['url' => 'form', 'icon' => 'fa-keyboard-o', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
         ['url' => 'view', 'icon' => 'fa-th-list', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
-        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
         ['url' => 'data', 'icon' => 'fa-database', 'authorities' => self::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 

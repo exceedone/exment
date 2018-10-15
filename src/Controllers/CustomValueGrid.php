@@ -101,7 +101,11 @@ trait CustomValueGrid
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                $grid->column($column_name, $column_view_name)->sortable();
+                //$grid->column($column_name, $column_view_name)->sortable();
+                $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function($v) use($column){
+                    if(is_null($this)){return '';}
+                    return $this->getValue($column, true);
+                });
             }
             // parent_id
             elseif($view_column_target == 'parent_id'){

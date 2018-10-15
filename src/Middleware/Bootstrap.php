@@ -28,6 +28,7 @@ class Bootstrap
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
             'checkboxone'          => Field\Checkboxone::class,
             'tile'          => Field\Tile::class,
+            'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,
             'relationTable'          => Field\RelationTable::class,
             'embeds'          => Field\Embeds::class,
