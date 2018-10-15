@@ -399,7 +399,7 @@ class TemplateImporter
                         $obj_column->system_flg = $system_flg;
 
                         ///// set options
-                        $options = array_get($column, 'options');
+                        $options = array_get($column, 'options', []);
                         // remove null value
                         $options = collect($options)->filter(function($option){
                             return isset($option);
@@ -441,6 +441,15 @@ class TemplateImporter
                             }
                             // set as json string
                             $options['calc_formula'] = json_encode($calc_formula);
+                        }
+
+                        // set characters
+                        if(array_key_value_exists('available_characters', $options)){
+                            $available_characters = array_get($options, 'available_characters');
+                            // if string, convert to array
+                            if(is_string($available_characters)){
+                                $options['available_characters'] = explode(",", $available_characters);
+                            }
                         }
 
                         $obj_column->options = $options;
@@ -592,10 +601,11 @@ class TemplateImporter
                                     $obj_form_column->order = ++$count;
                                 }
                                 
-                                $options = array_get($form_column, 'options');
-                                if (is_null($options)) {
-                                    $options = null;
-                                }
+                                $options = array_get($form_column, 'options', []);
+                                $options = collect($options)->filter(function($option){
+                                    return isset($option);
+                                })->toArray();
+
                                 // if has changedata_column_name and changedata_target_column_name, set id
                                 if(array_key_value_exists('changedata_column_name', $options) && array_key_value_exists('changedata_column_table_name', $options)){
                                     //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
@@ -786,6 +796,10 @@ class TemplateImporter
 
                             // set options
                             $options = $obj_dashboard_box->options;
+                            $options = collect($options)->filter(function($option){
+                                return isset($option);
+                            })->toArray();
+                            
                             // switch dashboard_box_type
                             switch($obj_dashboard_box->dashboard_box_type){
                                 // system box

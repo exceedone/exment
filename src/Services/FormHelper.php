@@ -240,13 +240,13 @@ class FormHelper
             return [];
         }
         
-        $valudates = [];
+        $validates = [];
         // setting options --------------------------------------------------
         // required
         if (boolval(array_get($options, 'required'))) {
-            $valudates[] = 'required';
+            $validates[] = 'required';
         } else {
-            $valudates[] = 'nullable';
+            $validates[] = 'nullable';
         }
     
         // unique
@@ -257,7 +257,7 @@ class FormHelper
             // create rules.if isset id, add
             $rules = "unique:$unique_table_name,$unique_column_name" . (isset($value_id) ? ",$value_id" : "");
             // add rules
-            $valudates[] = $rules;
+            $validates[] = $rules;
         }
 
         // regex rules
@@ -291,7 +291,7 @@ class FormHelper
                 }
             }
             if (count($regexes) > 0) {
-                $valudates[] = 'regex:/^['.implode("", $regexes).']*$/';
+                $validates[] = 'regex:/^['.implode("", $regexes).']*$/';
             }
         }
         
@@ -304,7 +304,7 @@ class FormHelper
         if (in_array($column_type, ['text','textarea'])) {
             // string_length
             if (array_get($options, 'string_length')) {
-                $valudates[] = 'size:'.array_get($options, 'string_length');
+                $validates[] = 'max:'.array_get($options, 'string_length');
             }
         }
 
@@ -312,14 +312,14 @@ class FormHelper
         if (in_array($column_type, ['integer','decimal'])) {
             // value size
             if (array_get($options, 'number_min')) {
-                $valudates[] = 'min:'.array_get($options, 'number_min');
+                $validates[] = 'min:'.array_get($options, 'number_min');
             }
             if (array_get($options, 'number_max')) {
-                $valudates[] = 'max:'.array_get($options, 'number_max');
+                $validates[] = 'max:'.array_get($options, 'number_max');
             }
         }
 
-        return $valudates;
+        return $validates;
     }
 
     protected static function getFileOptions($custom_table, $custom_column, $id){
