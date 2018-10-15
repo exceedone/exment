@@ -175,34 +175,35 @@ class ClassBuilder {
                 ;
 
             // Add column functions --------------------------------------------------
-            $columns = CustomColumn
-            ::where('custom_table_id', $table->id)
-            ->get();
-            foreach ($columns as $column) {
-                // add getAttribute function
-                $builder->addMethod(
-                    "public",
-                    "get".pascalize(getColumnName($column))."Attribute()",
-                         "return \$this->getValue('{$column->column_name}');"
-                );
-				// add method for grid page
-				$builder->addMethod(
-                    "public",
-                    "get".pascalize(getColumnName($column))."LabelAttribute()",
-                         "return \$this->getValue('{$column->column_name}', true);"
-                );
+            // $columns = CustomColumn
+            // ::where('custom_table_id', $table->id)
+            // ->get();
+            // foreach ($columns as $column) {
+            //     // add getAttribute function
+            //     $builder->addMethod(
+            //         "public",
+            //         "get".pascalize(getColumnName($column))."Attribute()",
+            //              "return \$this->getValue('{$column->column_name}');"
+            //     );
+			// 	// add method for grid page
+			// 	$builder->addMethod(
+            //         "public",
+            //         "get".pascalize(getColumnName($column))."LabelAttribute()",
+            //              "return \$this->getValue('{$column->column_name}', true);"
+            //     );
 
-                $builder->addMethod(
-                    "public",
-                    "set".pascalize(getColumnName($column))."Attribute(\$val)",
-                         "\$this->setValue('{$column->column_name}', \$val);"
-                );
-            }
+            //     $builder->addMethod(
+            //         "public",
+            //         "set".pascalize(getColumnName($column))."Attribute(\$val)",
+            //              "\$this->setValue('{$column->column_name}', \$val);"
+            //     );
+            // }
 
 			// create field
-			$column_props = $columns->map(function($value, $key){return "'".getColumnName($value)."'";})->toArray();
-			$column_props = array_merge($columns->map(function($value, $key){return "'".getColumnName($value, true)."'";})->toArray(), $column_props);
-            $builder->addProperty("protected", 'appends', "[".implode(",", $column_props)."]");
+			// not need. I think we have to use for grid and show, but not need.
+			// $column_props = $columns->map(function($value, $key){return "'".getColumnName($value)."'";})->toArray();
+			// $column_props = array_merge($columns->map(function($value, $key){return "'".getColumnName($value, true)."'";})->toArray(), $column_props);
+            // $builder->addProperty("protected", 'appends', "[".implode(",", $column_props)."]");
 
             // Create Relationship --------------------------------------------------
             $relations = CustomRelation
