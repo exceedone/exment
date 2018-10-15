@@ -2,7 +2,7 @@
     "template_name": "for_product_saller",
     "template_view_name": "製品販売会社用テンプレート",
     "description": "製品販売会社向けのテンプレートです。契約管理、製品管理を含んでいます。",
-    "tables": [
+    "custom_tables": [
         {
             "table_name": "client",
             "table_view_name": "顧客",
@@ -370,7 +370,7 @@
             ]
         }
     ],
-    "relations": [
+    "custom_relations": [
         {
             "relation_type": "one_to_many",
             "parent_custom_table_name": "contract",
@@ -382,7 +382,7 @@
             "child_custom_table_name": "product_version"
         }
     ],
-    "form": [
+    "custom_forms": [
         {
             "form_view_name": "フォーム",
             "custom_form_blocks": [
@@ -520,7 +520,7 @@
             "table_name": "contract"
         }
     ],
-    "menu": [
+    "admin_menu": [
         {
             "order": "1",
             "menu_type": "table",

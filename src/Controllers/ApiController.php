@@ -10,10 +10,7 @@ use Exceedone\Exment\Model\CustomColumn;
 
 class ApiController extends AdminControllerBase
 {
-    protected $custom_table;
-
     public function __construct(Request $request){
-        $this->custom_table = getEndpointTable();
     }
 
     /**
@@ -22,48 +19,18 @@ class ApiController extends AdminControllerBase
      * @return mixed
      */
     public function table($id, Request $request){
-        // if(!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)){
-        //     abort(403);
-        // }
-        $result = CustomTable::find($id);
-        return $result;
-    }
-
-    /**
-     * find data by id
-     * @param mixed $id
-     * @return mixed
-     */
-    public function find($id, Request $request){
-        if(!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)){
+        $table = CustomTable::find($id);
+        if(!Admin::user()->hasPermissionTable($table,Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
             abort(403);
         }
-        $result = getModelName($this->custom_table->table_name)::findOrFail($id)->toArray();
-        if($request->has('dot') && boolval($request->get('dot'))){
-            $result = array_dot($result);
-        }
         return $result;
-    }
-
-    /**
-     * find match data by query
-     * @param mixed $id
-     * @return mixed
-     */
-    public function query(Request $request){
-        // get model filtered using authority
-        $model = getModelName($this->custom_table->table_name)::query();
-        Admin::user()->filterModel($model, $this->custom_table->table_name);
-
-        // filtered query 
-        $q = $request->get('q');
-        $labelcolumn = getLabelColumn($this->custom_table);
-        $column_name = getColumnName($labelcolumn);
-        return $model->where($column_name, 'like', "%$q%")->paginate(null, ['id', $column_name.' as text']);
     }
 
     /**
      * get columns that belongs table using column id
+     * 1. find column and get column info
+     * 2. get column target table
+     * 3. get columns that belongs to target table
      * @param mixed select_table custon_column id
      */
     public function targetBelongsColumns($id){
@@ -80,5 +47,6 @@ class ApiController extends AdminControllerBase
         if(!isset($select_target_table)){return [];}
         return CustomTable::find($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
+
 }
 

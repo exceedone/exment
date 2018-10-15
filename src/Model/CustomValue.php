@@ -35,6 +35,10 @@ class CustomValue extends ModelBase
         return CustomTable::findByDBTableName($this->getTable());
     }
 
+    public function parent_custom_value(){
+        return $this->morphTo();
+    }
+
     /**
      * get Authoritable values.
      * this function selects value_authoritable, and get all values.
@@ -56,7 +60,6 @@ class CustomValue extends ModelBase
     public function getValue($key = null, $label = false){
         return getValue($this, $key, $label);
     }
-
     public function setValue($key, $val){
         if(!isset($key)){return;}
         $value = $this->value;

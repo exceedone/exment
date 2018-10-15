@@ -2,7 +2,7 @@
     "template_name": "project_management",
     "template_view_name": "プロジェクト・タスク管理",
     "description": "プロジェクト・タスク管理を行います。",
-    "tables": [
+    "custom_tables": [
         {
             "table_name": "project",
             "table_view_name": "プロジェクト管理",
@@ -299,36 +299,6 @@
                     }
                 },
                 {
-                    "column_name": "target_project",
-                    "column_view_name": "対象プロジェクト",
-                    "column_type": "select_table",
-                    "description": null,
-                    "options": {
-                        "help": null,
-                        "required": "1",
-                        "number_max": null,
-                        "number_min": null,
-                        "true_label": "はい",
-                        "true_value": null,
-                        "false_label": "いいえ",
-                        "false_value": null,
-                        "placeholder": null,
-                        "select_item": null,
-                        "calc_formula": null,
-                        "number_format": "0",
-                        "string_length": "256",
-                        "updown_button": "0",
-                        "use_label_flg": "0",
-                        "search_enabled": "1",
-                        "auto_number_type": null,
-                        "multiple_enabled": "0",
-                        "auto_number_format": null,
-                        "select_item_valtext": null,
-                        "available_characters": [],
-                        "select_target_table_name": "project"
-                    }
-                },
-                {
                     "column_name": "complete_flg",
                     "column_view_name": "完了フラグ",
                     "column_type": "yesno",
@@ -361,7 +331,7 @@
             ]
         }
     ],
-    "form": [
+    "custom_forms": [
         {
             "form_view_name": "フォーム",
             "custom_form_blocks": [
@@ -407,14 +377,6 @@
                                 "changedata_target_column_id": null
                             },
                             "form_column_target_name": "task_name"
-                        },
-                        {
-                            "form_column_type": "column",
-                            "options": {
-                                "changedata_column_id": null,
-                                "changedata_target_column_id": null
-                            },
-                            "form_column_target_name": "target_project"
                         },
                         {
                             "form_column_type": "column",
@@ -479,7 +441,7 @@
             "table_name": "task"
         }
     ],
-    "view": [
+    "custom_views": [
         {
             "suuid": "7ef66a7fdef45f094079",
             "view_view_name": "既定のビュー",
@@ -524,12 +486,12 @@
                 },
                 {
                     "order": "2",
-                    "view_column_target_name": "status",
-                    "view_column_target_type": "column"
+                    "view_column_target_name": "parent_id",
+                    "view_column_target_type": "system"
                 },
                 {
                     "order": "3",
-                    "view_column_target_name": "target_project",
+                    "view_column_target_name": "status",
                     "view_column_target_type": "column"
                 },
                 {
@@ -579,6 +541,11 @@
                 },
                 {
                     "order": "2",
+                    "view_column_target_name": "parent_id",
+                    "view_column_target_type": "system"
+                },
+                {
+                    "order": "3",
                     "view_column_target_name": "status",
                     "view_column_target_type": "column"
                 },
@@ -617,8 +584,14 @@
             "table_name": "task"
         }
     ],
-    "relations": [],
-    "menu": [
+    "custom_relations": [
+        {
+            "relation_type": "one_to_many",
+            "parent_custom_table_name": "project",
+            "child_custom_table_name": "task"
+        }
+    ],
+    "admin_menu": [
         {
             "order": "0",
             "title": "プロジェクト管理",

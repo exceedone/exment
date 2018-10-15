@@ -228,7 +228,7 @@ class ClassBuilder {
                 }
                 $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
             }
-            
+			
             // add authority --------------------------------------------------
             authorityLoop(Define::AUTHORITY_TYPE_VALUE, function($authority, $related_type) use($builder, $obj){
 				$target_model = getModelName($related_type, true);

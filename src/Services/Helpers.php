@@ -213,6 +213,7 @@ if (!function_exists('array_has_value')) {
 
 if (!function_exists('array_dot_reverse')) {
     /**
+     * convert dotted_array to array
      * @return array
      */
     function array_dot_reverse($array)
@@ -466,12 +467,12 @@ if (!function_exists('getLabelColumn')) {
 if (!function_exists('getRelationName')) {
     /**
      * Get relation name.
-     * @param CustomRelation $obj
+     * @param CustomRelation $relation_obj
      * @return string
      */
-    function getRelationName($obj)
+    function getRelationName($relation_obj)
     {
-        return getRelationNamebyObjs($obj->parent_custom_table, $obj->child_custom_table);
+        return getRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
     }
 }
 
@@ -490,6 +491,36 @@ if (!function_exists('getRelationNamebyObjs')) {
             return null;
         }
         return "pivot_{$parent_suuid}_{$child_suuid}";
+    }
+}
+
+if (!function_exists('getChildRelationName')) {
+    /**
+     * Get relation name.
+     * @param CustomRelation $relation_obj
+     * @return string
+     */
+    function getChildRelationName($relation_obj)
+    {
+        return getChildRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
+    }
+}
+
+if (!function_exists('getChildRelationNamebyObjs')) {
+    /**
+     * Get relation name using parent and child table.
+     * @param $parent
+     * @param $child
+     * @return string
+     */
+    function getChildRelationNamebyObjs($parent, $child)
+    {
+        $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
+        $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
+        if(is_null($parent_suuid) || is_null($child_suuid)){
+            return null;
+        }
+        return "pivot_child_{$parent_suuid}_{$child_suuid}";
     }
 }
 
@@ -871,7 +902,7 @@ if (!function_exists('getSearchEnabledColumns')) {
         // loop for custom_columns.
         foreach ($table['custom_columns'] as $custom_column) {
             // if custom_column is search_enabled column, add $column_arrays.
-            if (boolval(array_get($custom_column['options'], 'search_enabled'))) {
+            if (boolval(array_get($custom_column, 'options.search_enabled'))) {
                 array_push($column_arrays, $custom_column);
             }
         }
@@ -1170,7 +1201,7 @@ if (!function_exists('isGetOptions')) {
     function isGetOptions($table)
     {
         // get count table.
-        $count = getModelName($table)::count();
+        $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
         return $count <= 100;
     }
@@ -1184,14 +1215,14 @@ if (!function_exists('getOptions')) {
      * @param array|CustomTable $table
      * @param $selected_value
      */
-    function getOptions($table, $selected_value)
+    function getOptions($table, $selected_value = null)
     {
         $labelcolumn = getLabelColumn($table)->column_name;
         // get count table.
-        $count = getModelName($table)::count();
+        $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
         if($count > 100){
-            $item = getModelName($table)::find($selected_value);
+            $item = getOptionsQuery($table)::find($selected_value);
 
             if ($item) {
                 // check whether $item is multiple value.
@@ -1207,7 +1238,7 @@ if (!function_exists('getOptions')) {
                 return [];
             }
         }
-        return getModelName($table)::all()->pluck("value.{$labelcolumn}", "id");
+        return getOptionsQuery($table)::get()->pluck("value.{$labelcolumn}", "id");
     }
 }
 
@@ -1221,19 +1252,8 @@ if (!function_exists('getOptionAjaxUrl')) {
     function getOptionAjaxUrl($table)
     {
         $table = CustomTable::getEloquent($table);
-        if (is_numeric($table)) {
-            $table = CustomTable::find($table);
-        }
-        else if (is_string($table)) {
-            $table = CustomTable::findByName($table);
-        } else if($table instanceof CustomValue) {
-            $table = $table->getCustomTable();
-        } else {
-            $table = $table;
-        }
-
         // get count table.
-        $count = getModelName($table)::count();
+        $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
         if ($count <= 100) {
             return null;
@@ -1242,10 +1262,26 @@ if (!function_exists('getOptionAjaxUrl')) {
     }
 }
 
+if(!function_exists('getOptionsQuery')){
+    /**
+     * getOptionsQuery. this function uses for count, get, ... 
+     */
+    function getOptionsQuery($table)
+    {
+        // get model
+        $modelname = getModelName($table);
+        $model = new $modelname;
+
+        // filter model
+        Admin::user()->filterModel($model, $table);
+        return $model;
+    }   
+}
+
 
 if (!function_exists('createSelectOptions')) {
     /**
-     * Create laravel-admin select box options.
+     * Create laravel-admin select box options. for column_type "select", "select_valtext"
      */
     function createSelectOptions($column)
     {
@@ -1313,7 +1349,9 @@ if (!function_exists('getColumnsSelectOptions')) {
      */
     function getColumnsSelectOptions($table, $search_enabled_only = false)
     {
+        $table = CustomTable::getEloquent($table);
         $options = [];
+        
         ///// get system columns
         foreach(Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option){
             // not header, continue
@@ -1323,8 +1361,13 @@ if (!function_exists('getColumnsSelectOptions')) {
             $options[array_get($option, 'name')] = exmtrans('custom_column.system_columns.'.array_get($option, 'name'));
         }
 
-        // get table columns
-        $table = CustomTable::getEloquent($table);
+        ///// if this table is child relation(1:n), add parent table
+        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table->id)->first();
+        if(isset($relation)){
+            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
+        }
+
+        ///// get table columns
         $custom_columns = $table->custom_columns;
         foreach($custom_columns as $option){
             // if $search_enabled_only = true and options.search_enabled is false, continue
