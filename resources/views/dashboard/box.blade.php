@@ -48,13 +48,7 @@
 
 {{-- TODO:scssに記載 --}}
 <style type="text/css">
-    .row{
-        display: -webkit-box;
-        display: -webkit-flex;
-        display: -ms-flexbox;
-        display: flex;
-    }
-    
+        
     [class^="col-"] {
         margin-bottom: 20px;
     }

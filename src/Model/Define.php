@@ -345,6 +345,11 @@ class Define
         'custom_tables',
         'custom_columns',
         'custom_relations',
+        'custom_forms',
+        'custom_form_blocks',
+        'custom_form_columns',
+        'custom_views',
+        'custom_view_columns',
         'admin_menu',
     ];
 

@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -183,7 +184,7 @@ class TemplateImporter
                 if($index == 0){continue;}
                 // set row no. row no is $index + 1;
                 $rowno = $index + 2;
-                // if empty row, break
+                // check has cell value. if empty row, break
                 $cell = $sheet->getCellByColumnAndRow(0,$rowno)->getValue();
                 if(!isset($cell)){
                     break;
@@ -213,18 +214,116 @@ class TemplateImporter
                     }
                     // set custom_column to $custom_table
                     $target_custom_table_columns = array_get($custom_table, 'custom_columns', []);
-                    $target_custom_table_columns[] = array_dot_reverse($custom_column);
-                    $custom_table['custom_columns'] = $target_custom_table_columns;
                     // remove custom column table name
                     array_forget($custom_column, 'table_name');
+                    $target_custom_table_columns[] = array_dot_reverse($custom_column);
+                    $custom_table['custom_columns'] = $target_custom_table_columns;
                     // jump to next column
                     break;
                 }
             }
         }
-
         // forget custom_columns array
         array_forget($settings, 'custom_columns');
+
+        // convert custom_form_columns to custom_form_blocks->custom_columns
+        if(array_key_exists('custom_form_columns', $settings) && array_key_exists('custom_form_blocks', $settings)){
+            $custom_form_columns = array_get($settings, 'custom_form_columns');
+            foreach($custom_form_columns as &$custom_form_column){
+                // get target_form_name etc
+                $target_form_name = array_get($custom_form_column, 'target_form_name');
+                $form_block_target_table_name = array_get($custom_form_column, 'form_block_target_table_name');
+                // find $settings->custom_tables
+                if (!isset($target_form_name) || !isset($form_block_target_table_name)) {
+                    continue;
+                }
+                // get target custom_form_blocks
+                foreach($settings['custom_form_blocks'] as &$custom_form_block){
+                    // if not match, continue
+                    if($target_form_name != array_get($custom_form_block, 'target_form_name')){
+                        continue;
+                    }
+                    if($form_block_target_table_name != array_get($custom_form_block, 'form_block_target_table_name')){
+                        continue;
+                    }
+
+                    // set custom_column to $custom_table
+                    $target_custom_form_columns = array_get($custom_form_block, 'custom_form_columns', []);
+                    // remove custom form column form name and table name
+                    array_forget($custom_form_column, 'target_form_name');
+                    array_forget($custom_form_column, 'form_block_target_table_name');
+                    // add array
+                    $target_custom_form_columns[] = array_dot_reverse($custom_form_column);
+                    $custom_form_block['custom_form_columns'] = $target_custom_form_columns;
+                    // jump to next column
+                    break;
+                }
+            }
+        }
+        // forget custom_columns array
+        array_forget($settings, 'custom_form_columns');
+
+
+        // convert custom_form_blocks to custom_forms->custom_form_blocks
+        if(array_key_exists('custom_form_blocks', $settings) && array_key_exists('custom_forms', $settings)){
+            $custom_form_blocks = array_get($settings, 'custom_form_blocks');
+            foreach($custom_form_blocks as &$custom_form_block){
+                // get target_form_name etc
+                $target_form_name = array_get($custom_form_block, 'target_form_name');
+                if (!isset($target_form_name)) {
+                    continue;
+                }
+                // get target custom_form_blocks
+                foreach($settings['custom_forms'] as &$custom_form){
+                    // if not match, continue
+                    if($target_form_name != array_get($custom_form, 'form_name')){
+                        continue;
+                    }
+
+                    // set custom_column to $custom_table
+                    $target_custom_form_blocks = array_get($custom_form, 'custom_form_blocks', []);
+                    // remove custom form column form name and table name
+                    array_forget($custom_form_block, 'target_form_name');
+                    $target_custom_form_blocks[] = array_dot_reverse($custom_form_block);
+                    $custom_form['custom_form_blocks'] = $target_custom_form_blocks;
+                    // jump to next column
+                    break;
+                }
+            }
+        }
+        // forget custom_blocks array
+        array_forget($settings, 'custom_form_blocks');
+
+
+        // convert custom_view_columns to custom_views->custom_view_columns
+        if(array_key_exists('custom_view_columns', $settings) && array_key_exists('custom_views', $settings)){
+            $custom_view_columns = array_get($settings, 'custom_view_columns');
+            foreach($custom_view_columns as &$custom_view_column){
+                // get target_view_name etc
+                $target_view_name = array_get($custom_view_column, 'target_view_name');
+                if (!isset($target_view_name)) {
+                    continue;
+                }
+                // get target views
+                foreach($settings['custom_views'] as &$custom_view){
+                    // if not match, continue
+                    if($target_view_name != array_get($custom_view, 'target_view_name')){
+                        continue;
+                    }
+
+                    // set custom_view_column to $custom_view
+                    $target_custom_view_columns = array_get($custom_view, 'custom_view_columns', []);
+                    // remove custom view column view name
+                    array_forget($custom_view_column, 'target_view_name');
+                    $target_custom_view_columns[] = array_dot_reverse($custom_view_column);
+                    $custom_view['custom_view_columns'] = $target_custom_view_columns;
+                    // jump to next column
+                    break;
+                }
+            }
+        }
+        // forget custom_view_columns array
+        array_forget($settings, 'custom_view_columns');
 
         return $settings;
     }
@@ -255,7 +354,7 @@ class TemplateImporter
      */
     public static function import($json, $system_flg = false)
     {
-        \DB::transaction(function() use($json, $system_flg){
+        DB::transaction(function() use($json, $system_flg){
             // Loop by tables
             foreach (array_get($json, "custom_tables") as $table) {
                 // Create tables. --------------------------------------------------
@@ -301,6 +400,11 @@ class TemplateImporter
 
                         ///// set options
                         $options = array_get($column, 'options');
+                        // remove null value
+                        $options = collect($options)->filter(function($option){
+                            return isset($option);
+                        })->toArray();
+
                         if (is_null($options)) {
                             $options = [];
                         }
@@ -338,11 +442,6 @@ class TemplateImporter
                             // set as json string
                             $options['calc_formula'] = json_encode($calc_formula);
                         }
-
-                        // remove null value
-                        $options = collect($options)->filter(function($option){
-                            return isset($option);
-                        })->toArray();
 
                         $obj_column->options = $options;
 
@@ -803,6 +902,7 @@ class TemplateImporter
                                     break;
                             }
                         }
+                        if(is_null($obj_menu->icon)){$obj_menu->icon = '';}
 
                         ///// uri
                         if (isset($menu['uri'])) {
