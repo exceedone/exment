@@ -606,7 +606,7 @@ return [
         'header_import' => 'Template - Import',
         'description' => "Import or export Exmemt's table, column and form.",
         'description_export' => 'Export tables, columns, and form information registered in the system. This template file can be imported on other systems.',
-        'description_import' => 'Import the exported Exment template information to this system and install the tables, columns, and form information.',
+        'description_import' => 'Import the exported Exment template information to this system and install the tables, columns, and form information.<br />Please select one from the following three items and carry out.',
         'template_name' => 'Template Name',
         'template_view_name' => 'Template View Name',
         'form_description' => 'Template Description',

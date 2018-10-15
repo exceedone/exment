@@ -196,6 +196,7 @@ class CreateTableDefine extends Migration
             $table->enum('form_block_type', Define::CUSTOM_FORM_BLOCK_TYPE);
             $table->integer('form_block_target_table_id')->unsigned()->nullable();
             $table->boolean('available')->default(false);
+            $table->json('options')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

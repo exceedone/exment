@@ -6,13 +6,12 @@ use Encore\Admin\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Form\Field\Hidden;
-use Encore\Admin\Form\Field\HasMany as AdminHasMany;
 use Encore\Admin\Form\NestedForm;
 
 /**
  * Class HasMany.
  */
-class HasManyTable extends AdminHasMany
+class HasManyTable extends HasMany
 {
 
     protected $tablecolumnwidths = [];
@@ -243,21 +242,5 @@ EOT;
             'tablecolumnwidths' => $this->tablecolumnwidths,
             'description' => $this->description,
         ]);
-    }
-
-    /**
-     * TODO: I don't know the best way
-     */
-    protected function getTemplateHtmlAndScript($form){
-        list($template, $script) = $form->getTemplateHtmlAndScript();
-
-        // re-set $script
-        $scripts = [];
-        foreach($form->fields() as $field){
-            // when NestedEmbeds item, get NestedEmbeds's getScript()
-            $scripts[] = $field->getScript();
-        }
-
-        return [$template, implode("\r\n", $scripts)];
     }
 }

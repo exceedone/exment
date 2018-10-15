@@ -547,10 +547,19 @@ class TemplateImporter
                         ]);
                         $obj_form_block->custom_form_id = $obj_form->id;
                         $obj_form_block->form_block_type = $form_block_type;
+                        $obj_form_block->form_block_view_name = array_get($form_block, 'form_block_view_name');
                         $obj_form_block->form_block_target_table_id = $target_table->id;
                         if (!$obj_form_block->exists) {
                             $obj_form_block->available = true;
                         }
+
+                        // set option
+                        $options = array_get($form_block, 'options', []);
+                        $options = collect($options)->filter(function($option){
+                            return isset($option);
+                        })->toArray();
+                        $obj_form_block->options = $options;
+
                         $obj_form_block->saveOrFail();
 
                         // create form colunms --------------------------------------------------

@@ -217,7 +217,8 @@ class CustomFormController extends AdminControllerTableBase
             $block->form_block_target_table_id = $this->custom_table->id;
             $block->label = exmtrans('custom_form.table_default_label');
             $block->form_block_view_name = exmtrans('custom_form.table_default_label');
-            $block->available = true;
+            $block->available = 1;
+            $block->options = [];
             $block->custom_form_columns = [];
             array_push($custom_form_blocks, $block->toArray());
         }
@@ -236,6 +237,9 @@ class CustomFormController extends AdminControllerTableBase
                             .$relation->child_custom_table->table_view_name;
                 $block->form_block_view_name = $block->label;
                 $block->available = 0;
+                $block->options = [
+                    'hasmany_type' => Define::RELATION_TYPE_ONE_TO_MANY ? 1 : null
+                ];
                 $block->custom_form_columns = [];
                 array_push($custom_form_blocks, $block->toArray());
             }
@@ -410,6 +414,7 @@ class CustomFormController extends AdminControllerTableBase
                 }
                 $block->available = array_get($value, 'available') ?? 0;
                 $block->form_block_view_name = array_get($value, 'form_block_view_name');
+                $block->options = array_get($value, 'options', []);
                 $block->saveOrFail();
 
                 // create columns --------------------------------------------------

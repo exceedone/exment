@@ -50,6 +50,16 @@
             @else {{ Form::hidden("{$custom_form_block['header_name']}[available]", $custom_form_block['available']) }} @endif
             <div class="custom_form_block" style="display:{{ boolval($custom_form_block['available']) ? 'block' : 'none' }}">
                 {{-- Form Block Label --}}
+                <div class="col-sm-12">
+                    {{-- select hasmany or hasmanytable --}}
+                    @if($custom_form_block['form_block_type'] == 'one_to_many')
+                    <div class="form-group">
+                        {{ Form::checkbox("{$custom_form_block['header_name']}[options][hasmany_type]", 1, array_get($custom_form_block, 'options.hasmany_type'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
+                        'class' => 'icheck']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
+                        exmtrans('custom_form.hasmany_type')) }}
+                    </div>
+                    @endif
+                </div>
                 <div class="form-inline col-sm-12">
                     <div class="form-group">
                         {{ Form::label("", exmtrans('custom_form.form_block_name'), ['class' => 'control-label', 'style' => 'padding-right:15px;'])
