@@ -585,6 +585,12 @@ class TemplateImporter
                                             ->first();
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
                                         break;
+                                    case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
+                                        $form_column_target = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($form_column_name) {
+                                            return $item['name'] == $form_column_name;
+                                        });
+                                        $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
+                                        break;
                                     default:
                                         $form_column_target = collect(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE)->first(function ($item) use ($form_column_name) {
                                             return $item['column_name'] == $form_column_name;

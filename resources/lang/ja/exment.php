@@ -389,6 +389,7 @@ return [
         'table_default_label' => 'テーブル',
         'table_one_to_many_label' => '子テーブル - ',
         'table_many_to_many_label' => '関連テーブル - ',
+        'suggest_system_label' => 'システム列',
         'suggest_column_label' => 'テーブル列',
         'suggest_other_label' => 'その他',
         'form_block_name' => 'フォームブロック名',

@@ -39,7 +39,7 @@ class CreateTableDefine extends Migration
             $table->string('mail_view_name', 256);
             $table->string('mail_subject', 256);
             $table->string('mail_body', 4000);
-            $table->enum('mail_template_type', Define::MAIL_TEMPLATE_TYPE)->default(Define::MAIL_TEMPLATE_TYPE_BODY);
+            $table->string('mail_template_type')->default(Define::MAIL_TEMPLATE_TYPE_BODY);
             $table->boolean('system_flg')->default(false);
             $table->timestamps();
             $table->softDeletes();
@@ -51,7 +51,7 @@ class CreateTableDefine extends Migration
             $table->string('plugin_name', 256)->unique();
             $table->string('plugin_view_name', 256);
             $table->string('author', 256)->nullable();
-            $table->enum('plugin_type', ['page', 'trigger']);
+            $table->string('plugin_type');
             $table->string('version', 128)->nullable();
             $table->string('description', 1000)->nullable();
             $table->boolean('active_flg')->default(true);
@@ -80,7 +80,7 @@ class CreateTableDefine extends Migration
         Schema::create('authorities', function (Blueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
-            $table->enum('authority_type', Define::AUTHORITY_TYPES);
+            $table->string('authority_type');
             $table->string('authority_name', 256)->index()->unique();
             $table->string('authority_view_name', 256);
             $table->string('description', 1000)->nullable();
@@ -93,7 +93,7 @@ class CreateTableDefine extends Migration
         Schema::create('dashboards', function (Blueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
-            $table->enum('dashboard_type', ['system', 'user']);
+            $table->string('dashboard_type');
             $table->string('dashboard_name', 256)->unique();
             $table->string('dashboard_view_name', 40);
             $table->integer('row1');
@@ -110,7 +110,7 @@ class CreateTableDefine extends Migration
             $table->integer('row_no')->index();
             $table->integer('column_no')->index();
             $table->string('dashboard_box_view_name', 40);
-            $table->enum('dashboard_box_type', ['list', 'system']);
+            $table->string('dashboard_box_type');
             $table->json('options')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -169,7 +169,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->integer('parent_custom_table_id')->unsigned();
             $table->integer('child_custom_table_id')->unsigned();
-            $table->enum('relation_type', Define::RELATION_TYPE)->default('one_to_many');
+            $table->string('relation_type')->default('one_to_many');
             $table->timestamps();
             $table->softDeletes();
 
@@ -193,7 +193,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->integer('custom_form_id')->unsigned();
             $table->string('form_block_view_name')->nullable();
-            $table->enum('form_block_type', Define::CUSTOM_FORM_BLOCK_TYPE);
+            $table->string('form_block_type');
             $table->integer('form_block_target_table_id')->unsigned()->nullable();
             $table->boolean('available')->default(false);
             $table->json('options')->nullable();
@@ -207,7 +207,7 @@ class CreateTableDefine extends Migration
         Schema::create('custom_form_columns', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('custom_form_block_id')->unsigned();
-            $table->enum('form_column_type', Define::CUSTOM_FORM_COLUMN_TYPE);
+            $table->string('form_column_type');
             $table->integer('form_column_target_id')->nullable();
             $table->json('options')->nullable();
             $table->integer('order')->default(0);
@@ -222,7 +222,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->string('suuid', 20)->unique();
             $table->integer('custom_table_id')->unsigned();
-            $table->enum('view_type', ['system', 'user']);
+            $table->string('view_type');
             $table->string('view_view_name', 40);
             $table->timestamps();
             $table->softDeletes();
@@ -291,9 +291,7 @@ class CreateTableDefine extends Migration
         
         // Update --------------------------------------------------
         Schema::table(config('admin.database.menu_table'), function (Blueprint $table) {
-            $table->enum(
-                'menu_type', Define::MENU_TYPES
-            );
+            $table->string('menu_type');
             $table->string('menu_name')->nullable();
             $table->integer('menu_target')->nullable();
         });

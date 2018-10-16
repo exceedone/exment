@@ -185,6 +185,15 @@ class CustomFormController extends AdminControllerTableBase
                         }
                         $column_view_name = $custom_column->column_view_name;
                         break;
+                        
+                    case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
+                        // get column name
+                        $column_form_column_array = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($option) use($custom_form_column){
+                            return array_get($option, 'id') == array_get($custom_form_column, 'form_column_target_id');
+                        }) ?? [];
+                        $column_form_column_name = array_get($column_form_column_array, 'name');
+                        $column_view_name =  exmtrans("custom_column.system_columns.".array_get($column_form_column_array, 'name'));
+                        break;
                     default:
                         // get column name
                         $column_form_column_array = array_get(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE, array_get($custom_form_column, 'form_column_target_id'));
@@ -290,28 +299,66 @@ class CustomFormController extends AdminControllerTableBase
         // if form_block_type is n:n, no get columns.
         if (array_get($custom_form_block, 'form_block_type') != Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY) {
 
-        // get columns by form_block_target_table_id.
+            // get columns by form_block_target_table_id.
             $custom_columns = CustomColumn::where('custom_table_id', array_get($custom_form_block, 'form_block_target_table_id'))->get()->toArray();
             $custom_form_columns = [];
-            foreach ($custom_columns as &$custom_column) {
-                $has_custom_forms = false;
-                // if $custom_column has $this->custom_form_columns, continue loop
-                if ($form->custom_form_columns->first(function ($custom_form_column) use ($custom_column) {
-                    return isset($custom_form_column->custom_column)
-                && $custom_form_column->custom_column->id == array_get($custom_column, 'id');
-                })) {
-                    $has_custom_forms = true;
-                }
-                $custom_column = array_merge($custom_column, [
-                'form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN
-                , 'form_column_target_id' => array_get($custom_column, 'id')
-                , 'has_custom_forms' => $has_custom_forms
-            ]);
+            
+            // set VIEW_COLUMN_SYSTEM_OPTIONS as header and footer
+            $system_columns_header = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->filter(function($option){return array_key_value_exists('header', $option); });
+            $system_columns_footer = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->filter(function($option){return array_key_value_exists('footer', $option); });
+            
+            $loops = [
+                ['form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM , 'columns' => $system_columns_header],
+                ['form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN , 'columns' => $custom_columns],
+                ['form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM ,'columns' => $system_columns_footer],
+            ];
 
-                // remove id (because "custom_form_columns->id" is custom_form_column's id, not custom_column's id. )
-                $custom_column['id'] = null;
-                
-                array_push($custom_form_columns, $custom_column);
+            // loop header, custom_columns, footer
+            foreach ($loops as $loop) {
+                // get array items
+                $form_column_type = array_get($loop, 'form_column_type');
+                $columns = array_get($loop, 'columns');
+                // loop each column
+                foreach ($columns as &$custom_column) {
+                    $has_custom_forms = false;
+                    // check $form->custom_form_columns. if $custom_column has $this->custom_form_columns, add parameter has_custom_forms.
+                    // if has_custom_forms is true, not show display default.
+                    if ($form->custom_form_columns->first(function ($custom_form_column) use ($custom_column, $form_column_type) {
+                        // if system column
+                        if ($form_column_type == Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM) {
+                            return array_get($custom_form_column, 'form_column_type') == Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
+                        }
+                        // if column
+                        else {
+                            return array_get($custom_form_column, 'form_column_type') == Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN && array_get($custom_form_column, 'custom_column.id') == array_get($custom_column, 'id');
+                        }
+                    })) {
+                        $has_custom_forms = true;
+                    }
+
+                    // re-set column
+                    if ($form_column_type == Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM) {
+                        $custom_column = [
+                            'column_name' => array_get($custom_column, 'name'),
+                            'column_view_name' => exmtrans("custom_column.system_columns.".array_get($custom_column, 'name')),
+                            //'column_type' => null,
+                            'form_column_type' => $form_column_type,
+                            'form_column_target_id' => array_get($custom_column, 'id'),
+                            'has_custom_forms' => $has_custom_forms,
+                        ];
+                    } else {
+                        $custom_column = [
+                            'column_name' => array_get($custom_column, 'column_name'),
+                            'column_view_name' => array_get($custom_column, 'column_view_name'),
+                            'column_type' => array_get($custom_column, 'column_type'),
+                            'form_column_type' => $form_column_type,
+                            'form_column_target_id' => array_get($custom_column, 'id'),
+                            'has_custom_forms' => $has_custom_forms,
+                        ];
+                    }
+
+                    array_push($custom_form_columns, $custom_column);
+                }
             }
         
             // add header name
@@ -332,7 +379,6 @@ class CustomFormController extends AdminControllerTableBase
 
         // set free html
         $custom_form_columns  = [];
-
         foreach(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE as $id => $type){
             $header_column_name = '[custom_form_columns][NEW__'.make_uuid().']';
             array_push($custom_form_columns, [
