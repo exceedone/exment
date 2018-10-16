@@ -290,7 +290,10 @@ return [
             'parent_type' => '親データのテーブル名',
             'created_at' => '作成日時',
             'updated_at' => '更新日時', 
-            'deleted_at' => '削除日時',            
+            'deleted_at' => '削除日時', 
+            'created_user' => '作成ユーザー',
+            'updated_user' => '更新ユーザー', 
+            'deleted_user' => '削除ユーザー',            
         ],
         'column_type_options' => [
             "text" => "1行テキスト",
@@ -318,7 +321,7 @@ return [
         'help' => [
             'search_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>※同一のテーブルで、「検索インデックス」を非常に多く設定すると、パフォーマンスが低下する可能性があります。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
-            'default' => '新規登録時の、値の初期値です。',
+            'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'use_label_flg' => 'このデータを選択時、画面に表示する文言の列です。複数列登録した場合、1列のみ反映されます。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
@@ -389,7 +392,6 @@ return [
         'table_default_label' => 'テーブル',
         'table_one_to_many_label' => '子テーブル - ',
         'table_many_to_many_label' => '関連テーブル - ',
-        'suggest_system_label' => 'システム列',
         'suggest_column_label' => 'テーブル列',
         'suggest_other_label' => 'その他',
         'form_block_name' => 'フォームブロック名',

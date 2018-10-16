@@ -173,7 +173,7 @@
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
-                        "select_item_valtext": "1,新規\r\n2,対応中\r\n90,完了\r\n91,保留\r\n99,対応なし",
+                        "select_item_valtext": "1,新規\r\n2,対応中\r\n90,完了\r\n91,保留\r\n97,対応なし",
                         "select_target_table": null,
                         "available_characters": []
                     }
@@ -462,12 +462,12 @@
                     "view_column_target_type": "column"
                 },
                 {
-                    "order": "98",
+                    "order": "96",
                     "view_column_target_name": "created_at",
                     "view_column_target_type": "system"
                 },
                 {
-                    "order": "99",
+                    "order": "97",
                     "view_column_target_name": "updated_at",
                     "view_column_target_type": "system"
                 }
@@ -510,12 +510,12 @@
                     "view_column_target_type": "column"
                 },
                 {
-                    "order": "98",
+                    "order": "96",
                     "view_column_target_name": "created_at",
                     "view_column_target_type": "system"
                 },
                 {
-                    "order": "99",
+                    "order": "97",
                     "view_column_target_name": "updated_at",
                     "view_column_target_type": "system"
                 }
@@ -570,12 +570,12 @@
                     "view_column_target_type": "column"
                 },
                 {
-                    "order": "98",
+                    "order": "96",
                     "view_column_target_name": "created_at",
                     "view_column_target_type": "system"
                 },
                 {
-                    "order": "99",
+                    "order": "97",
                     "view_column_target_name": "updated_at",
                     "view_column_target_type": "system"
                 }

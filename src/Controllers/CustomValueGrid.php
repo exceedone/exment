@@ -128,7 +128,12 @@ trait CustomValueGrid
             // system column
             else {
                 // get column name
-                $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable();
+                $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable()
+                    ->display(function($value) use($view_column_target){
+                        if(!is_null($value)){return $value;}
+                        // if cannnot get value, return array_get from this
+                        return array_get($this, $view_column_target);
+                    });
             }
         }
     }

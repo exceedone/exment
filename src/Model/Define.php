@@ -230,10 +230,6 @@ class Define
             'uri' => 'system',
             'icon' => 'fa-cogs',
         ],
-        'plugin' => [
-            'uri' => 'plugin',
-            'icon' => 'fa-plug',
-        ],
         'custom_table' => [
             'uri' => 'table',
             'icon' => 'fa-table',
@@ -257,6 +253,10 @@ class Define
         'template' => [
             'uri' => 'template',
             'icon' => 'fa-clone',
+        ],
+        'plugin' => [
+            'uri' => 'plugin',
+            'icon' => 'fa-plug',
         ],
         'notify' => [
             'uri' => 'notify',
@@ -367,8 +367,10 @@ class Define
     public const VIEW_COLUMN_SYSTEM_OPTIONS = [
         ['id' => 1, 'name' => 'id', 'default' => true, 'order' => 1, 'header' => true],
         ['id' => 2, 'name' => 'suuid', 'default' => false, 'order' => 2, 'header' => true],
-        ['id' => 98, 'name' => 'created_at', 'default' => true, 'order' => 98, 'footer' => true],
-        ['id' => 99, 'name' => 'updated_at', 'default' => true, 'order' => 99, 'footer' => true],
+        ['id' => 96, 'name' => 'created_at', 'default' => true, 'order' => 96, 'footer' => true],
+        ['id' => 97, 'name' => 'updated_at', 'default' => true, 'order' => 97, 'footer' => true],
+        ['id' => 98, 'name' => 'created_user', 'default' => false, 'order' => 98, 'footer' => true],
+        ['id' => 99, 'name' => 'updated_user', 'default' => false, 'order' => 99, 'footer' => true],
     ];
     public const VIEW_COLUMN_FILTER_TYPE_DEFAULT = 'default';
     public const VIEW_COLUMN_FILTER_TYPE_DAY = 'day';
