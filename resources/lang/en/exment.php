@@ -282,6 +282,7 @@ return [
             'multiple_enabled' => 'Approval Multiple Select',
             'use_label_flg' => 'Use Label',
             'calc_formula' => 'Calc Formula',
+            'currency_symbol' => 'Currency Format',
         ],
         'system_columns' => [
             'id' => 'ID',
@@ -303,6 +304,7 @@ return [
             "integer" => "Integer",
             "decimal" => "Decimal",
             "calc" => "Calc Result",
+            "currency" => "Currency",
             "date" => "Date",
             "time" => "Time",
             "datetime" => "Date and Time",
@@ -336,6 +338,7 @@ return [
 			'available_characters' => 'Please select an inputable character. If you clear all checks, you can enter all the characters.',
             'auto_number_format' => 'Set the numbering rule to be registered. For details of rules, please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'calc_formula' => 'Enter the calculation formula using other fields. *It is currently beta version.',
+            'currency_symbol' => 'Please select the format of the currency displayed on the screen.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 

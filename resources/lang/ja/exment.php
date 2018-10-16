@@ -338,7 +338,7 @@ return [
             'available_characters' => '入力可能な文字を選択してください。すべてのチェックを外すと、すべての文字を入力できます。',
             'auto_number_format' => '登録する採番のルールを設定します。詳細のルールは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'calc_formula' => '他のフィールドを使用した、計算式を入力します。※現在β版です。',
-            'currency_symbol' => '画面表示する通貨の形式を選択してください。',
+            'currency_symbol' => '画面に表示する通貨の形式を選択してください。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

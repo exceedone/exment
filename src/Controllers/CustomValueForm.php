@@ -125,75 +125,75 @@ trait CustomValueForm
 
     protected function manageFormSaved($form)
     {
-        $custom_table = $this->custom_table;
-        $custom_form_columns = $this->custom_form->custom_form_columns;
-        $form->saved(function ($form) use($custom_table, $custom_form_columns) {
-            PluginInstaller::pluginPreparing($this->plugins, 'saved');
+        // $custom_table = $this->custom_table;
+        // $custom_form_columns = $this->custom_form->custom_form_columns;
+        // $form->saved(function ($form) use($custom_table, $custom_form_columns) {
+        //     PluginInstaller::pluginPreparing($this->plugins, 'saved');
             
-            // change value if necessary
-            $update_flg = false;
-            $model = $form->model();
-            $id = $model->id;
+        //     // change value if necessary
+        //     $update_flg = false;
+        //     $model = $form->model();
+        //     $id = $model->id;
             
-            // loop for form columns
-            foreach ($custom_form_columns as $custom_form_column) {
-                // custom column
-                $custom_column = array_get($custom_form_column, 'custom_column');
-                $column_name = array_get($custom_column, 'column_name');
+        //     // loop for form columns
+        //     foreach ($custom_form_columns as $custom_form_column) {
+        //         // custom column
+        //         $custom_column = array_get($custom_form_column, 'custom_column');
+        //         $column_name = array_get($custom_column, 'column_name');
 
-                switch (array_get($custom_column, 'column_type')) {
-                    // if column type is auto_number, set auto number.
-                    case 'auto_number':
-                        // already set value, break
-                        if(!is_null($model->getValue($column_name))){
-                            break;
-                        }
-                        $options = $custom_column->options;
-                        if (!isset($options)) {
-                            break;
-                        }
-                        if (array_get($options, 'auto_number_type') == 'format') {
-                            $auto_number = $this->createAutoNumberFormat($model, $id, $options);
-                        }
-                        // if auto_number_type is random25, set value
-                        if (array_get($options, 'auto_number_type') == 'random25') {
-                            $auto_number = make_licensecode();
-                        }
-                        // if auto_number_type is UUID, set value
-                        if (array_get($options, 'auto_number_type') == 'random32') {
-                            $auto_number = make_uuid();
-                        }
-                        $model->setValue($column_name, $auto_number);
-                        $update_flg = true;
-                        break;
-                }
-            }
+        //         switch (array_get($custom_column, 'column_type')) {
+        //             // if column type is auto_number, set auto number.
+        //             case 'auto_number':
+        //                 // already set value, break
+        //                 if(!is_null($model->getValue($column_name))){
+        //                     break;
+        //                 }
+        //                 $options = $custom_column->options;
+        //                 if (!isset($options)) {
+        //                     break;
+        //                 }
+        //                 if (array_get($options, 'auto_number_type') == 'format') {
+        //                     $auto_number = $this->createAutoNumberFormat($model, $id, $options);
+        //                 }
+        //                 // if auto_number_type is random25, set value
+        //                 if (array_get($options, 'auto_number_type') == 'random25') {
+        //                     $auto_number = make_licensecode();
+        //                 }
+        //                 // if auto_number_type is UUID, set value
+        //                 if (array_get($options, 'auto_number_type') == 'random32') {
+        //                     $auto_number = make_uuid();
+        //                 }
+        //                 $model->setValue($column_name, $auto_number);
+        //                 $update_flg = true;
+        //                 break;
+        //         }
+        //     }
 
-            if($update_flg){
-                $model->saveOrFail();
-            }
+        //     if($update_flg){
+        //         $model->saveOrFail();
+        //     }
             
-            // get target custom_value's value_authoritable
-            if(($form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER)->count() == 0
-                || $form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->count() == 0)
-                && !in_array($custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])
-            ){
-                ///// if all user and org is 0, add userself authority
-                // get authority where custom_value_edit is 1
-                $authority = Authority::where('authority_type', Define::AUTHORITY_TYPE_VALUE)
-                    ->where("permissions->".Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT, "1")
-                    ->first();
+        //     // get target custom_value's value_authoritable
+        //     if(($form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER)->count() == 0
+        //         || $form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->count() == 0)
+        //         && !in_array($custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])
+        //     ){
+        //         ///// if all user and org is 0, add userself authority
+        //         // get authority where custom_value_edit is 1
+        //         $authority = Authority::where('authority_type', Define::AUTHORITY_TYPE_VALUE)
+        //             ->where("permissions->".Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT, "1")
+        //             ->first();
 
-                DB::table('value_authoritable')
-                    ->insert([
-                        'related_id' => Admin::user()->base_user_id,
-                        'related_type' => Define::SYSTEM_TABLE_NAME_USER,
-                        'morph_id' => $form->model()->id,
-                        'morph_type' => $custom_table->table_name,
-                        'authority_id' => $authority->id,
-                    ]);
-            }
-        });
+        //         DB::table('value_authoritable')
+        //             ->insert([
+        //                 'related_id' => Admin::user()->base_user_id,
+        //                 'related_type' => Define::SYSTEM_TABLE_NAME_USER,
+        //                 'morph_id' => $form->model()->id,
+        //                 'morph_type' => $custom_table->table_name,
+        //                 'authority_id' => $authority->id,
+        //             ]);
+        //     }
+        // });
     }
 
     protected function manageFormToolButton($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton)
@@ -272,89 +272,6 @@ trait CustomValueForm
         });
     }
 
-    /**
-     * Create Auto Number value using format.
-     */
-    protected function createAutoNumberFormat($model, $id, $options){
-        // get format
-        $format = array_get($options, "auto_number_format");
-        try {
-            // check string
-            preg_match_all('/\${(.*?)\}/', $format, $matches);
-            if (isset($matches)) {
-                // loop for matches. because we want to get inner {}, loop $matches[1].
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    try{
-                        $match = strtolower($matches[1][$i]);
-                    
-                        // get length
-                        $length_array = explode(":", $match);
-                        
-                        ///// id
-                        if (strpos($match, "id") !== false) {
-                            // replace add zero using id.
-                            if (count($length_array) > 1) {
-                                $id_string = sprintf('%0'.$length_array[1].'d', $id);
-                            } else {
-                                $id_string = $id;
-                            }
-                            $format = str_replace($matches[0][$i], $id_string, $format);
-                        }
-
-                        ///// Year
-                        elseif (strpos($match, "y") !== false) {
-                            $str = Carbon::now()->year;
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-
-                        ///// Month
-                        elseif (strpos($match, "m") !== false) {
-                            $str = Carbon::now()->month;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-                    
-                        ///// Day
-                        elseif (strpos($match, "d") !== false) {
-                            $str = Carbon::now()->day;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-
-                        ///// value
-                        elseif (strpos($match, "value") !== false) {
-                            // get value from model
-                            if (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                $str = $model->getValue($length_array);
-                            }
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-                    } catch(Exception $e) {
-                    }
-                }
-            }
-        } catch(Exception $e) {
-
-        }
-        return $format;
-    }
-    
     /**
      * Create calc formula info.
      */

@@ -27,6 +27,19 @@ if (!function_exists('exmtrans')) {
     }
 }
 
+if (!function_exists('getManualUrl')) {
+    function getManualUrl($uri)
+    {
+        $manual_url_base = config('exment.manual_url');
+        // if ja, set
+        if(config('app.locale') == 'ja'){
+            $manual_url_base = url_join($manual_url_base, 'ja');
+        }
+        $manual_url_base = url_join($manual_url_base, $uri);
+        return $manual_url_base;
+    }
+}
+
 
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)

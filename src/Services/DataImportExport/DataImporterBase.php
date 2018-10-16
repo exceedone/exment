@@ -60,16 +60,6 @@ abstract class DataImporterBase
             $this->dataImportFlow($request->custom_table_name, $row, $request->select_primary_key);
         }
 
-        // loop error data
-        // foreach ($data_import as $index => $row)
-        // {
-        //     $validate_data = $this->validateData($row);
-        //     if ($validate_data) {
-        //         $data_custom = $this->dataProcessing($row);
-        //         $this->dataImportFlow($request->custom_table_name, $data_custom, $request->select_primary_key);
-        //     }
-        // }
-
         // if success, return result and toastor messsage
         return [
             'result' => true,

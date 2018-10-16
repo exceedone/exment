@@ -8,5 +8,5 @@ return [
       'max' => '32',
     ],
 
-    'manual_url' => env('EXMENT_MANUAL_URL', '')
+    'manual_url' => env('EXMENT_MANUAL_URL', 'https://exment.net/docs/#/'),
 ];
