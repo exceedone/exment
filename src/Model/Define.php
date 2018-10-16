@@ -54,6 +54,11 @@ class Define
         'layout_mini' => ['sidebar-collapse', 'sidebar-mini'],
     ];
 
+    public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
+    public const SYSTEM_KEY_SESSION_AUTHORITY = "authority";
+    public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
+    public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
+
     // Dashboard --------------------------------------------------
     public const DASHBOARD_BOX_TYPE_SYSTEM = 'system';
     public const DASHBOARD_BOX_TYPE_LIST = 'list';
@@ -92,6 +97,7 @@ class Define
         "integer", 
         "decimal",
         "calc", 
+        "currency",
         "date", 
         "time", 
         "datetime", 
@@ -276,6 +282,12 @@ class Define
         'lower','upper','number','hyphen_underscore','symbol'
     ];
 
+    public const CUSTOM_COLUMN_CURRENCYLIST = [
+        '&yen;' => ['type' => 'before'],
+        '円' => ['type' => 'after'],
+        '$' => ['type' => 'before'],
+    ];
+
     public const CUSTOM_VALUE_IMPORT_KEY = [
         'id',
         'suuid',
@@ -284,11 +296,6 @@ class Define
         'stop',
         //'skip', //TODO:how to develop
     ];
-
-    public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
-    public const SYSTEM_KEY_SESSION_AUTHORITY = "authority";
-    public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
-    public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
 
     public const GRID_CHANGE_PAGE_MENULIST = [
         ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
