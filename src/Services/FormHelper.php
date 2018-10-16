@@ -254,7 +254,8 @@ class FormHelper
         $validates = [];
         // setting options --------------------------------------------------
         // required
-        if (boolval(array_get($options, 'required'))) {
+        // ignore auto_number. because auto_number is saved flow.
+        if (boolval(array_get($options, 'required')) && $column_type != 'auto_number') {
             $validates[] = 'required';
         } else {
             $validates[] = 'nullable';
