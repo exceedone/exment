@@ -23,7 +23,6 @@ class ModelBase extends Model
     {
         return with(new static)->getTable();
     }
-  
 
      /**
      *

@@ -192,22 +192,35 @@ class CustomColumnController extends AdminControllerTableBase
             // number            
             //if(in_array($column_type, ['integer','decimal'])){
             $form->number('number_min', exmtrans("custom_column.options.number_min"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal', 'currency']])])
                 ->disableUpdown()
                 ->defaultEmpty();
             $form->number('number_max', exmtrans("custom_column.options.number_max"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal', 'currency']])])
                 ->disableUpdown()
                 ->defaultEmpty();
             
             $form->switchbool('number_format', exmtrans("custom_column.options.number_format"))
                     ->help(exmtrans("custom_column.help.number_format"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal','calc']])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal','calc', 'currency']])]);
 
             $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
                 ->help(exmtrans("custom_column.help.updown_button"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer']])])
                 ;
+            
+            $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
+                ->help(exmtrans("custom_column.help.currency_symbol"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['currency']])])
+                ->options(function($option){
+                    // create options
+                    $options = [];
+                    foreach(Define::CUSTOM_COLUMN_CURRENCYLIST as $symbol => $l){
+                        // make text
+                        $options[$symbol] = getCurrencySymbolLabel($symbol);
+                    }
+                    return $options;
+                });
                 //}
 
             // select

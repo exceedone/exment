@@ -791,6 +791,19 @@ if (!function_exists('getValueUseTable')) {
             }
             return null;
         }
+        // currency
+        elseif(in_array($column_type, ['currency'])){
+            // if not label, return 
+            if($label !== true){
+                return $val;
+            }
+            if(boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)){
+                $val = number_format($val);
+            }
+            // get symbol
+            $symbol = array_get($column_array, 'options.currency_symbol');
+            return getCurrencySymbolLabel($symbol, $val);
+        }
         else{
             // if not label, return 
             if($label !== true){
@@ -849,6 +862,25 @@ if (!function_exists('getChildrenValues')) {
     }
 }
 
+
+
+if (!function_exists('getCurrencySymbolLabel')) {
+    /**
+     */
+    function getCurrencySymbolLabel($symbol, $value = '123,456.00')
+    {
+        $symbol_item = array_get(Define::CUSTOM_COLUMN_CURRENCYLIST, $symbol);
+        if(isset($symbol_item)){
+            if(array_get($symbol_item, 'type') == 'before'){
+                $text = "$symbol$value";
+            }else{
+                $text = "$value$symbol";
+            }
+            return $text;
+        }
+        return null;
+    }
+}
 
 if (!function_exists('getSearchEnabledColumns')) {
     /**

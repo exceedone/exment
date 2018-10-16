@@ -255,8 +255,7 @@ trait CustomValueForm
                 }
                 foreach ($custom_form_block->custom_form_columns as $form_column) {
                     $column = $form_column->custom_column;
-                    $options = $column->options;
-                    $show->field(array_get($column, 'column_name'), $column->column_view_name)->as(function($v) use($column){
+                    $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function($v) use($column){
                         if(is_null($this)){return '';}
                         return $this->getValue($column, true);
                     });

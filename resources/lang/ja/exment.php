@@ -282,6 +282,7 @@ return [
             'multiple_enabled' => '複数選択を許可する',
             'use_label_flg' => 'ラベルで使用する',
             'calc_formula' => '計算式',
+            'currency_symbol' => '通貨の表示形式',
         ],
         'system_columns' => [
             'id' => 'ID',
@@ -303,6 +304,7 @@ return [
             "integer" => "整数",
             "decimal" => "小数",
             "calc" => "計算結果",
+            "currency" => "通貨",
             "date" => "日付",
             "time" => "時刻",
             "datetime" => "日付と時刻",
@@ -336,6 +338,7 @@ return [
             'available_characters' => '入力可能な文字を選択してください。すべてのチェックを外すと、すべての文字を入力できます。',
             'auto_number_format' => '登録する採番のルールを設定します。詳細のルールは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'calc_formula' => '他のフィールドを使用した、計算式を入力します。※現在β版です。',
+            'currency_symbol' => '画面表示する通貨の形式を選択してください。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Form\Field;
 
 class Number extends \Encore\Admin\Form\Field\Number
 {
+    protected $rules = "nullable|integer";
+
     protected $disableUpdown = false;
     protected $defaultEmpty = false;
 
@@ -39,7 +41,7 @@ $('{$this->getElementClassSelector()}:not(.initialized)')
 EOT;
             $this->prepend('')->defaultAttribute('style', 'width: 100px');
         }else{
-            $this->defaultAttribute('style', 'width: 200px');
+            $this->defaultAttribute('style', 'max-width: 200px;');
         }
 
         $grandParent = get_parent_class(get_parent_class($this));

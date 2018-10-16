@@ -63,25 +63,21 @@ class FormHelper
                 break;
             case 'integer':
                 $field = new ExmentField\Number($form_column_name, [$column_view_name]);
-                if (isset($options) && !is_null(array_get($options, 'number_min'))) {
-                    $field->attribute(['min' => array_get($options, 'number_min')]);
-                }
-                if (isset($options) && !is_null(array_get($options, 'number_max'))) {
-                    $field->attribute(['max' => array_get($options, 'number_max')]);
-                }
                 // if set updown button
                 if(!boolval(array_get($options, 'updown_button'))){
                     $field->disableUpdown();
+                    $field->defaultEmpty();
                 }
                 break;
             case 'decimal':
                 $field = new Field\Text($form_column_name, [$column_view_name]);
-                if (isset($options) && !is_null(array_get($options, 'number_min'))) {
-                    $field->attribute(['min' => array_get($options, 'number_min')]);
-                }
-                if (isset($options) && !is_null(array_get($options, 'number_max'))) {
-                    $field->attribute(['max' => array_get($options, 'number_max')]);
-                }
+                break;
+            case 'currency':
+                $field = new Field\Text($form_column_name, [$column_view_name]);
+                // get symbol
+                $symbol = array_get($options, 'currency_symbol');
+                $field->prepend($symbol);
+                $field->attribute(['style' => 'max-width: 200px']);
                 break;
             case 'date':
                 $field = new Field\Date($form_column_name, [$column_view_name]);
@@ -204,6 +200,16 @@ class FormHelper
             $field->attribute(['readonly' => true]);
         }
 
+        // min, max(numeric only)
+        if(in_array($column->column_type, ['integer', 'decimal', 'currency'])){
+            if (isset($options) && !is_null(array_get($options, 'number_min'))) {
+                $field->attribute(['min' => array_get($options, 'number_min')]);
+            }
+            if (isset($options) && !is_null(array_get($options, 'number_max'))) {
+                $field->attribute(['max' => array_get($options, 'number_max')]);
+            }
+        }
+
         // set validates
         $validate_options = [];
         $validates = static::getColumnValidates($custom_table, $column, $id, $validate_options);
@@ -314,7 +320,7 @@ class FormHelper
         }
 
         // number attribute
-        if (in_array($column_type, ['integer','decimal'])) {
+        if (in_array($column_type, ['integer','decimal', 'currency'])) {
             // value size
             if (array_get($options, 'number_min')) {
                 $validates[] = 'min:'.array_get($options, 'number_min');
@@ -322,6 +328,9 @@ class FormHelper
             if (array_get($options, 'number_max')) {
                 $validates[] = 'max:'.array_get($options, 'number_max');
             }
+        }
+        if (in_array($column_type, ['decimal', 'currency'])) {
+            $validates[] = 'numeric';
         }
 
         return $validates;
