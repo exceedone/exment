@@ -84,8 +84,11 @@ trait CustomValueExt
                     elseif (array_get($options, 'auto_number_type') == 'random32') {
                         $auto_number = make_uuid();
                     }
-                    $model->setValue($column_name, $auto_number);
-                    $update_flg = true;
+
+                    if (isset($auto_number)) {
+                        $model->setValue($column_name, $auto_number);
+                        $update_flg = true;
+                    }
                     break;
             }
         }
