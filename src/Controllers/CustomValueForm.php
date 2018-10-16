@@ -83,12 +83,12 @@ trait CustomValueForm
                 $options = $column->options;
                 
                 // set calc rule for javascript
-                if (array_has_value($options, 'calc_formula')) {
+                if (array_key_value_exists('calc_formula', $options)) {
                     $this->setCalcFormulaArray($column, $options, $calc_formula_array);
                 }
                 // data changedata
                 // if set form_column_options changedata_target_column_id, and changedata_column_id
-                if (array_has_value($form_column_options, 'changedata_target_column_id') && array_has_value($form_column_options, 'changedata_column_id')) {
+                if (array_key_value_exists('changedata_target_column_id', $form_column_options) && array_key_value_exists('changedata_column_id', $form_column_options)) {
                     ///// set changedata info
                     $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
                 }

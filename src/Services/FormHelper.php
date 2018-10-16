@@ -185,17 +185,22 @@ class FormHelper
         
         // setting options --------------------------------------------------
         // placeholder
-        if (array_has_value($options, 'placeholder')) {
+        if (array_key_value_exists('placeholder', $options)) {
             $field->placeholder(array_get($options, 'placeholder'));
         }
 
+        // default
+        if (array_key_value_exists('default', $options)) {
+            $field->default(array_get($options, 'default'));
+        }
+
         // number_format
-        if (isset($options) && boolval(array_get($options, 'number_format'))) {
+        if (boolval(array_get($options, 'number_format'))) {
             $field->attribute(['number_format' => true]);
         }
 
         // readonly
-        if (isset($form_column_options) && boolval(array_get($form_column_options, 'view_only'))) {
+        if (boolval(array_get($form_column_options, 'view_only'))) {
             $field->attribute(['readonly' => true]);
         }
 
@@ -210,7 +215,7 @@ class FormHelper
         // set help string using result_options
         $help = null;
         $help_regexes = array_get($validate_options, 'help_regexes');
-        if (array_has_value($options, 'help')) {
+        if (array_key_value_exists('help', $options)) {
             $help = array_get($options, 'help');
         }
         if(isset($help_regexes)){
@@ -262,7 +267,7 @@ class FormHelper
 
         // regex rules
         $help_regexes = [];
-        if (array_has_value($options, 'available_characters')) {
+        if (array_key_value_exists('available_characters', $options)) {
             $available_characters = array_get($options, 'available_characters');
             $regexes = [];
             // add regexes using loop

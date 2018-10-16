@@ -186,31 +186,6 @@ if (!function_exists('array_key_value_exists')) {
     }
 }
 
-if (!function_exists('array_has_value')) {
-    /**
-     * whether has array_key and array_get
-     * @return bool
-     */
-    function array_has_value($array, $key)
-    {
-        if(is_null($array)){return false;}
-        if (!array_has($array, $key)) {
-            return false;
-        }
-        if(is_string($key)){
-            $key = [$key];
-        }
-        // get each value and check isset
-        foreach($key as $k){
-            $val = array_get($array, $k);
-            if(!isset($val)){
-                return false;
-            }
-        }
-        return true;
-    }
-}
-
 if (!function_exists('array_dot_reverse')) {
     /**
      * convert dotted_array to array
