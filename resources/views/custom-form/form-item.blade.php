@@ -32,7 +32,7 @@
                                 {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][changedata_target_column_id]", array_get($custom_form_column, 'options.changedata_target_column_id'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__changedata_target_column_id_", 'class' => 'changedata_target_column_id']) }}
                                 {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[options][changedata_column_id]", array_get($custom_form_column, 'options.changedata_column_id'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__changedata_column_id_", 'class' => 'changedata_column_id']) }}
 
-                                <span class="small red changedata_available" style="margin-left:5px; display:{{(array_has_value($custom_form_column, 'options.changedata_target_column_id') && array_has_value($custom_form_column, 'options.changedata_target_column_id')) ? 'inline' : 'none'}}">設定済</span>
+                                <span class="small red changedata_available" style="margin-left:5px; display:{{(array_key_value_exists('options.changedata_target_column_id', $custom_form_column) && array_key_value_exists('options.changedata_target_column_id', $custom_form_column)) ? 'inline' : 'none'}}">設定済</span>
                         </div>
                     </div>
                     @endif

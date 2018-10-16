@@ -129,13 +129,10 @@ class Define
         self::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY,
         self::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY,
     ];
+    public const CUSTOM_FORM_COLUMN_TYPE_SYSTEM = 'system';
     public const CUSTOM_FORM_COLUMN_TYPE_COLUMN = 'column';
     public const CUSTOM_FORM_COLUMN_TYPE_OTHER = 'other';
-    public const CUSTOM_FORM_COLUMN_TYPE = [
-        self::CUSTOM_FORM_COLUMN_TYPE_COLUMN,
-        self::CUSTOM_FORM_COLUMN_TYPE_OTHER,
-    ];
-    
+
     public const CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE = [
         1 => ['id' => 1, 'column_name' => 'header'],
         2 => ['id' => 2, 'column_name' => 'explain'],
@@ -233,10 +230,6 @@ class Define
             'uri' => 'system',
             'icon' => 'fa-cogs',
         ],
-        'plugin' => [
-            'uri' => 'plugin',
-            'icon' => 'fa-plug',
-        ],
         'custom_table' => [
             'uri' => 'table',
             'icon' => 'fa-table',
@@ -260,6 +253,10 @@ class Define
         'template' => [
             'uri' => 'template',
             'icon' => 'fa-clone',
+        ],
+        'plugin' => [
+            'uri' => 'plugin',
+            'icon' => 'fa-plug',
         ],
         'notify' => [
             'uri' => 'notify',
@@ -368,10 +365,12 @@ class Define
     public const VIEW_COLUMN_TYPE_SYSTEM = 'system';
     public const VIEW_COLUMN_TYPE_COLUMN = 'column';
     public const VIEW_COLUMN_SYSTEM_OPTIONS = [
-        ['name' => 'id', 'default' => true, 'order' => 1, 'header' => true],
-        ['name' => 'suuid', 'default' => false, 'order' => 2, 'header' => true],
-        ['name' => 'created_at', 'default' => true, 'order' => 98, 'footer' => true],
-        ['name' => 'updated_at', 'default' => true, 'order' => 99, 'footer' => true],
+        ['id' => 1, 'name' => 'id', 'default' => true, 'order' => 1, 'header' => true],
+        ['id' => 2, 'name' => 'suuid', 'default' => false, 'order' => 2, 'header' => true],
+        ['id' => 96, 'name' => 'created_at', 'default' => true, 'order' => 96, 'footer' => true],
+        ['id' => 97, 'name' => 'updated_at', 'default' => true, 'order' => 97, 'footer' => true],
+        ['id' => 98, 'name' => 'created_user', 'default' => false, 'order' => 98, 'footer' => true],
+        ['id' => 99, 'name' => 'updated_user', 'default' => false, 'order' => 99, 'footer' => true],
     ];
     public const VIEW_COLUMN_FILTER_TYPE_DEFAULT = 'default';
     public const VIEW_COLUMN_FILTER_TYPE_DAY = 'day';

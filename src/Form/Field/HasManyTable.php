@@ -231,7 +231,8 @@ EOT;
 
         $this->setupScript($script);
 
-        $grandParent = get_parent_class(get_parent_class($this));
+        // get field class 
+        $grandParent = get_parent_class(get_parent_class(get_parent_class($this)));
         return $grandParent::render()->with([
             'forms'        => $relatedforms,
             'template'     => $template,

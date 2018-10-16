@@ -286,6 +286,7 @@ class CustomValueController extends AdminControllerTableBase
         $relation = CustomRelation
             ::with('parent_custom_table')
             ->where('child_custom_table_id', $this->custom_table->id)
+            ->where('relation_type', Define::RELATION_TYPE_ONE_TO_MANY)
             ->first();
         if(isset($relation)){
             $parent_custom_table = $relation->parent_custom_table;

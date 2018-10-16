@@ -402,12 +402,12 @@
 					"view_column_target_type": "column"
 				},
 				{
-					"order": "98",
+					"order": "96",
 					"view_column_target_name": "created_at",
 					"view_column_target_type": "system"
 				},
 				{
-					"order": "99",
+					"order": "97",
 					"view_column_target_name": "updated_at",
 					"view_column_target_type": "system"
 				}
@@ -435,12 +435,12 @@
 					"view_column_target_type": "column"
 				},
 				{
-					"order": "98",
+					"order": "96",
 					"view_column_target_name": "created_at",
 					"view_column_target_type": "system"
 				},
 				{
-					"order": "99",
+					"order": "97",
 					"view_column_target_name": "updated_at",
 					"view_column_target_type": "system"
 				}
@@ -631,26 +631,19 @@
         {
             "order": "2",
             "menu_type": "system",
-            "menu_name": "plugin",
-            "parent_name": "admin",
-            "menu_target_name": "plugin"
-        },
-        {
-            "order": "3",
-            "menu_type": "system",
             "menu_name": "custom_table",
             "parent_name": "admin",
             "menu_target_name": "custom_table"
         },
         {
-            "order": "4",
+            "order": "3",
             "menu_type": "system",
             "menu_name": "menu",
             "parent_name": "admin",
             "menu_target_name": "menu"
         },
         {
-            "order": "5",
+            "order": "4",
             "menu_type": "system",
             "menu_name": "template",
             "parent_name": "admin",
@@ -664,11 +657,18 @@
             "menu_target_name": "loginuser"
         },
         {
-            "order": "7",
+            "order": "6",
             "menu_type": "system",
             "menu_name": "authority",
             "parent_name": "admin",
             "menu_target_name": "authority"
+        },
+        {
+            "order": "7",
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "parent_name": "admin",
+            "menu_target_name": "plugin"
         },
         {
             "order": "8",

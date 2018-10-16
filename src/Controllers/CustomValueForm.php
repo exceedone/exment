@@ -36,6 +36,21 @@ trait CustomValueForm
                     $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
                     $fields[] = $field;
                     break;
+                case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
+                    // id is null, as create, so continue
+                    if(!isset($id)){break;}
+                    $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($option) use($form_column){
+                        return array_get($option, 'id') == array_get($form_column, 'form_column_target_id');
+                    }) ?? [];
+                    // get form column name
+                    $form_column_name = array_get($form_column_obj, 'name');
+                    $column_view_name =  exmtrans("custom_column.system_columns.".$form_column_name);
+                    // get model. we can get model is id almost has.
+                    $model = $this->getModelNameDV()::find($id);
+                    $field = new ExmentField\Display($form_column_name, [$column_view_name]);
+                    $field->default(array_get($model, $form_column_name));
+                    $fields[] = $field;
+                    break;
                 case Define::CUSTOM_FORM_COLUMN_TYPE_OTHER:
                     $options = [];
                     $form_column_obj = array_get(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE, $form_column->form_column_target_id);
@@ -83,12 +98,12 @@ trait CustomValueForm
                 $options = $column->options;
                 
                 // set calc rule for javascript
-                if (array_has_value($options, 'calc_formula')) {
+                if (array_key_value_exists('calc_formula', $options)) {
                     $this->setCalcFormulaArray($column, $options, $calc_formula_array);
                 }
                 // data changedata
                 // if set form_column_options changedata_target_column_id, and changedata_column_id
-                if (array_has_value($form_column_options, 'changedata_target_column_id') && array_has_value($form_column_options, 'changedata_column_id')) {
+                if (array_key_value_exists('changedata_target_column_id', $form_column_options) && array_key_value_exists('changedata_column_id', $form_column_options)) {
                     ///// set changedata info
                     $this->setChangeDataArray($column, $form_column_options, $options, $changedata_array);
                 }
@@ -123,10 +138,10 @@ trait CustomValueForm
             // loop for form columns
             foreach ($custom_form_columns as $custom_form_column) {
                 // custom column
-                $custom_column = $custom_form_column->custom_column;
-                $column_name = $custom_column->column_name;
+                $custom_column = array_get($custom_form_column, 'custom_column');
+                $column_name = array_get($custom_column, 'column_name');
 
-                switch ($custom_column->column_type) {
+                switch (array_get($custom_column, 'column_type')) {
                     // if column type is auto_number, set auto number.
                     case 'auto_number':
                         // already set value, break

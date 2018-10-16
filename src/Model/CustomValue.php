@@ -15,6 +15,15 @@ class CustomValue extends ModelBase
      */
     protected $remove_file_columns = [];
 
+    // public function getValueAttribute(){
+    //     return $this->value;
+    // }
+
+    // public function setValueAttribute($value){
+
+    // }
+
+
     // user value_authoritable. it's all authority data. only filter  morph_type
     public function value_authoritable_users(){
         return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
