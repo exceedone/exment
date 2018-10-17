@@ -114,7 +114,7 @@ class FormHelper
                 if ($column->column_type == 'select_table') {
                     $select_target_table_id = array_get($options, 'select_target_table');
                     if (isset($select_target_table_id)) {
-                        $select_target_table = CustomTable::find($select_target_table_id)->table_name;
+                        $select_target_table = CustomTable::find($select_target_table_id)->table_name ?? null;
                     } else {
                         $select_target_table = null;
                     }
@@ -123,12 +123,11 @@ class FormHelper
                 } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
                     $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
                 }
+
                 $field->options(function ($val) use ($select_target_table) {
                     // get DB option value
-                    $select_options = getOptions($select_target_table, $val);
-                    return $select_options;
+                    return getOptions($select_target_table, $val);
                 });
-                // get ajax
                 $ajax = getOptionAjaxUrl($select_target_table);
                 if (isset($ajax)) {
                     $field->ajax($ajax);

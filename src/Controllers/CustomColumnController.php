@@ -106,9 +106,6 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->batch(function (Grid\Tools\BatchActions $actions) {
-                $actions->disableDelete();
-            });
             $tools->append(new Tools\GridChangePageMenu('column', $this->custom_table, false));
         });
 

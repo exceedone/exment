@@ -35,12 +35,6 @@ class MailTemplateController extends AdminControllerBase
             }
             $actions->disableView();
         });
-        
-        $grid->tools(function (Grid\Tools $tools) {
-            $tools->batch(function (Grid\Tools\BatchActions $actions) {
-                $actions->disableDelete();
-            });
-        });
         return $grid;
     }
 

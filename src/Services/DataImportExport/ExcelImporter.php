@@ -25,11 +25,19 @@ class ExcelImporter extends DataImporterBase
         config(['excel.import.heading' => false]); // heading false. read first row
 
         // read cell
+        $sheet = $reader->getSheet();
         $data = [];
-        foreach ($reader->all() as $cells)
+        foreach ($reader->all() as $index => $cells)
         {
-            $aa = $cells->all();
-            $data[] = $cells->all();
+            // get data 
+            $d = $cells->all();
+            // if not found, break
+            if(collect($d)->filter(function($v){
+                return !is_nullorempty($v);
+            })->count() == 0){
+                break;
+            }
+            $data[] = $d;
         }
         
         return $data;
