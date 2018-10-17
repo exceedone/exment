@@ -66,8 +66,6 @@ Route::group([
             $router->post("data/{$value}/import", 'CustomValueController@import');
             $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->resource("data/{$value}", 'CustomValueController');
-            //$router->get("data/{$value}/{id}/document", 'CustomValueController@getDocumentForm');
-            //$router->post("data/{$value}/{id}/document", 'CustomValueController@postDocumentForm');
             $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
             $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
             $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
@@ -93,9 +91,8 @@ Route::group([
 
     // TODO:hard coding
     $router->get("data/estimate/{id}/doc", 'CustomValueController@getDocumentForm');
-    $router->post("data/estimate/{id}/doc", 'CustomValueController@postDocumentForm');
     $router->get("data/invoice/{id}/doc", 'CustomValueController@getDocumentForm');
-    $router->post("data/invoice/{id}/doc", 'CustomValueController@postDocumentForm');
+    $router->get("data/claim/{id}/doc", 'CustomValueController@getDocumentForm');
 
     $router->get('files/{uuid}', function($uuid){
         return File::download($uuid);

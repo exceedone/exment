@@ -69,6 +69,18 @@ if (!function_exists('parseIntN')) {
     }
 }
 
+if (!function_exists('hex2rgb')) {
+    function hex2rgb($hex)
+    {
+        if (substr($hex, 0, 1) == "#") {
+            $hex = substr($hex, 1) ;
+        }
+        if (strlen($hex) == 3) {
+            $hex = substr($hex, 0, 1) . substr($hex, 0, 1) . substr($hex, 1, 1) . substr($hex, 1, 1) . substr($hex, 2, 1) . substr($hex, 2, 1) ;
+        }
+        return array_map("hexdec", [ substr($hex, 0, 2), substr($hex, 2, 2), substr($hex, 4, 2) ]) ;
+    }
+}
 
 // File, path  --------------------------------------------------
 if (!function_exists('namespace_join')) {

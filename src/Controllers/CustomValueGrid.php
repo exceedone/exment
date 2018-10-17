@@ -187,7 +187,7 @@ trait CustomValueGrid
             // TODO:hard coding
             // when estimate, add pdf button
             $table_name = $this->custom_table->table_name;
-            if (in_array($table_name, ['estimate', 'invoice'])) {
+            if (in_array($table_name, ['estimate', 'claim'])) {
                 $error = exmtrans('common.error');
                 $error_message = exmtrans('change_page_menu.error_select');
                 

@@ -115,32 +115,23 @@ class DocumentPdfService extends AbstractFPDIService
         // Add Document Item using $documentItems array
         foreach($documentItems as $documentItem)
         {
-            $x = array_get($documentItem, 'x');
-            $y = array_get($documentItem, 'y');
-            $width = array_get($documentItem, 'width', 0);
-            $height = array_get($documentItem, 'height', 0);
+            // $x = array_get($documentItem, 'x');
+            // $y = array_get($documentItem, 'y');
+            // $width = array_get($documentItem, 'width', 0);
+            // $height = array_get($documentItem, 'height', 0);
 
-            $font_size = array_get($documentItem, 'font_size', $this->fontSize);
-            $font_style = array_get($documentItem, 'font_style');
-            $align = array_get($documentItem, 'align');
-            $valign = array_get($documentItem, 'valign');
-            $border = array_get($documentItem, 'border');
-            $fixWidth = array_get($documentItem, 'fixWidth', false);
+            // $font_size = array_get($documentItem, 'font_size', $this->fontSize);
+            // $font_style = array_get($documentItem, 'font_style');
+            // $align = array_get($documentItem, 'align');
+            // $valign = array_get($documentItem, 'valign');
+            // $border = array_get($documentItem, 'border');
+            // $fixWidth = array_get($documentItem, 'fixWidth', false);
             
             //tables
             if(array_get($documentItem, 'document_item_type') == 'table'){
                 // get children
-                $target_table_name = array_get($documentItem, 'target_table');
                 $children = getChildrenValues($model, array_get($documentItem, 'target_table'));
-                $table_count = array_get($documentItem, 'table_count', 5);
-                $target_columns = array_get($documentItem, 'target_columns', []);
-                $footers = array_get($documentItem, 'footers', []);
-
-                $this->lfTable($model, $x, $y, $target_table_name, $children, $target_columns, $footers, [
-                    'font_size' => $font_size,
-                    'font_style' => $font_style,
-                    'table_count' => $table_count,
-                ]);
+                $this->lfTable($model, $children, $documentItem);
                 continue;
             }
 
@@ -184,29 +175,15 @@ class DocumentPdfService extends AbstractFPDIService
 
                 if(!isset($image)){continue;}
                 // write image
-                $this->lfImage($image, $x, $y,  [
-                    'width' => $width,
-                    'height' => $height,
-                    'align' => $align,
-                ]);
+                $this->lfImage($image, $documentItem);
                 continue;
             }
 
             // get text
-            $text = $this->getText($model, $documentItem);
+            $text = $this->getText(array_get($documentItem, 'text'), $model, $documentItem);
 
             // write text
-            $this->lfText($x, $y, $text, 
-            [
-                'width' => $width,
-                'height' => $height,
-                'font_size' => $font_size,
-                'font_style' => $font_style,
-                'align' => $align,
-                'valign' => $valign,
-                'border' => $border,
-                'fixWidth' => $fixWidth,
-            ]);
+            $this->lfText($text, $documentItem);
         }
 
         return true;
@@ -267,13 +244,17 @@ class DocumentPdfService extends AbstractFPDIService
      * @param int $size Font Size
      * @param string $style Font Style
      */
-    protected function lfText($x, $y, $text, $options = [])
+    protected function lfText($text, $options = [])
     {
         // remove null value
         array_filter($options, function($value) { return $value !== ''; });
 
         // merge options to default
         $options = array_merge($this->getDefaultOptions(), $options);
+
+        // get x and y
+        $x = array_get($options, 'x');
+        $y = array_get($options, 'y');     
 
         // Escape Font
         $bakFontStyle = $this->FontStyle;
@@ -286,24 +267,11 @@ class DocumentPdfService extends AbstractFPDIService
             $x = 0;
         }
 
-        //$this->Text($x + $this->baseOffsetX, $y + $this->baseOffsetY, $text);
-        $this->MultiCell(
-            $options['width'], 
-            $options['height'], 
-            trim($text), 
-            $options['border'], // border
-            $options['align'], // align
-            null, // fill
-            1, //ln
-            $x + $this->baseOffsetX, 
-            $y + $this->baseOffsetY,
-            $reseth = true, 
-            $strech = 0, 
-            $ishtml = false, 
-            $autopadding = true, 
-            $maxh=0, 
-            $valign = $options['valign'], 
-            true
+        $this->setMultiCell(
+            $text,
+            $this->getOutputX($x, $options),
+            $this->getOutputY($y, $options),
+            $options
         );
         // Restore
         $this->SetFont('', $bakFontStyle, $bakFontSize);
@@ -311,57 +279,56 @@ class DocumentPdfService extends AbstractFPDIService
     
     /**
      * Write Image
-     * @param int $x X
-     * @param int $y Y
      * @param string $text Writing text
      * @param int $size Font Size
      * @param string $style Font Style
      */
-    protected function lfImage($image, $x, $y, $options)
+    protected function lfImage($image, $options)
     {
         // remove null value
         array_filter($options, function($value) { return $value !== ''; });
         // merge options to default
-        $options = array_merge(
-            [
-                'width' => 0,
-                'height' => 0,
-                'align' => 'L',
-            ],
-            $options
-        );
-
-        // if $options['align'] == 'R', re-set $x
-        if($options['align'] == 'R'){
-            $x = $this->getContentWidth() -$x - $options['width'];
-        }
+        $options = array_merge($this->getDefaultOptions(), $options);
+        
+        // get x and y
+        $x = array_get($options, 'x');
+        $y = array_get($options, 'y');     
 
         $path = getFullpath($image, 'admin');
         $this->Image($path, 
-            $x + $this->baseOffsetX, 
-            $y + $this->baseOffsetY,
+            $this->getOutputX($x, $options),
+            $this->getOutputY($y, $options),
             $options['width'], 
-            $options['height']
+            $options['height'],
+            '',  //$type
+            '',  //$link
+            '', //$align=
+            true //resize
         );
     }
         
     /**
      * Write Table
      */
-    protected function lfTable($model, $x, $y, $target_table_name, $children, $target_columns, $footers, $options = [])
+    protected function lfTable($model, $children, $options = [])
     {
         // remove null value
         array_filter($options, function($value) { return $value !== ''; });
         // merge options to default
         $options = array_merge(
+            $this->getDefaultOptions(),
             [
-                'font_size' => $this->FontSizePt,
-                'style' => '',
                 'table_count' => 5,
                 'fill' => true,
+                'fixed_table_count' => false,
             ],
             $options
         );
+
+        // get x and y
+        $x = array_get($options, 'x');
+        $y = array_get($options, 'y');
+        $target_columns = $options['target_columns'];
 
         // set base position
         $this->setBasePosition($x, $y);
@@ -380,23 +347,30 @@ class DocumentPdfService extends AbstractFPDIService
         // get real_width if not *
         foreach($target_columns as &$target_column){
             // set header name using table
-            $target_column['label'] = 
-                CustomTable::findByName($target_table_name)
+            if (!array_key_value_exists('label', $target_column)) {
+                $target_column['label'] =
+                CustomTable::findByName($options['target_table'])
                 ->custom_columns()
                 ->where('column_name', array_get($target_column, 'column_name'))
                 ->first()->column_view_name ?? '';
+            }
 
             // set default target_column
-            $target_column = array_merge([
-                'align' => 'J',
-            ], $target_column);
+            $target_column['border'] = 1;
         }
 
-        // set header
-        $this->SetFillColor(216, 216, 216);
         foreach($target_columns as &$target_column){
+            // set header options
+            $table_header = array_merge(
+                $this->getDefaultOptions(),
+                ['ln' => 0, 'real_width' => array_get($target_column, 'real_width')],
+                array_get($options, 'table_header', [])
+            );
+
             // set table header
-            $this->Cell($target_column['real_width'], 7, $target_column['label'], 1, 0, 'C', true);
+            $this->setMultiCell($target_column['label'], '', '', 
+                array_set($table_header,'real_width', $target_column['real_width'])
+            );
         }
 
         // set table body --------------------------------------------------
@@ -404,29 +378,25 @@ class DocumentPdfService extends AbstractFPDIService
         $this->Ln();
         $fill = false;
         for ($i=0; $i < $options['table_count']; $i++) { 
+            // if param fixed_table_count is true, and end of $children, break
+            if($i >= count($children) && boolval(array_get($options, 'fixed_table_count'))){
+                break;
+            }
             $child = $children[$i] ?? null;
             $x0 = $this->GetX();
             $this->SetX($x0);
             $y0 = $this->GetY();
 
             foreach($target_columns as &$target_column){
-                $this->MultiCell(
-                    $target_column['real_width'], 
-                    7, 
-                    getValue($child, array_get($target_column, 'column_name'), true) ?? '', 
-                    1, 
-                    $target_column['align'], 
-                    $fill, 
-                    1, 
-                    '', 
-                    '', 
-                    $reseth = true, 
-                    $strech = 0, 
-                    $ishtml = false, 
-                    $autopadding = true, 
-                    $maxh=0, 
-                    $valign = $target_column['valign'], 
-                    true
+                // get text
+                $text = getValue($child, array_get($target_column, 'column_name'), true);
+                $text = $this->getText($text, $child, $target_column);
+                    
+                $this->setMultiCell(
+                    $text,
+                    '',
+                    '',
+                    array_set($target_column, 'height', 7)
                 );
                 $x0 += $target_column['real_width'];
                 $this->SetXY($x0, $y0);
@@ -439,7 +409,7 @@ class DocumentPdfService extends AbstractFPDIService
         }
 
         // set table footer --------------------------------------------------
-        $this->SetFillColor(216, 216, 216);
+        $footers = array_get($options, 'table_footers', []);
         foreach($footers as &$footer){
             // set default options to $target_columns
             $footer_array = [array_get($footer, 'header', []), array_get($footer, 'body', [])];
@@ -447,55 +417,73 @@ class DocumentPdfService extends AbstractFPDIService
             $footer_header = $footer_array[0];
             $footer_body = $footer_array[1];
 
-            $x0 = $this->GetX();
+            // get x using real_width
+            $x0 = $this->getOutputX(0, array_set($footer, 'width', $footer_header['real_width'] + $footer_body['real_width']));
             $this->SetX($x0);
             $y0 = $this->GetY();
-            
+
+            /////TODO: COPY AND PASTE!!
             // set label
-            $this->MultiCell(
-                $footer_header['real_width'], 
-                7, 
-                $this->getText($model, $footer_header),
-                1, 
-                $footer_header['align'] ?? '' ,
-                true, // fill 
-                1, 
-                '', 
-                '', 
-                $reseth = true, 
-                $strech = 0, 
-                $ishtml = false, 
-                $autopadding = true, 
-                $maxh=0, 
-                $valign = $footer_header['valign'], 
-                true
+            $this->setMultiCell(
+                $this->getText(array_get($footer_header, 'text'), $model, $footer_header),
+                '',
+                '',
+                $footer_header
             );
+
             $x0 += intval($footer_header['real_width']);
             $this->SetXY($x0, $y0);
 
             // set item
-            $this->MultiCell(
-                $footer_body['real_width'], 
-                7, 
-                $this->getText($model, $footer_body),
-                1, 
-                $footer_body['align'] ?? '', 
-                false, //fill 
-                1, 
-                '', 
-                '', 
-                $reseth = true, 
-                $strech = 0, 
-                $ishtml = false, 
-                $autopadding = true, 
-                $maxh=0, 
-                $valign = $footer_body['valign'], 
-                true
+            $this->setMultiCell(
+                $this->getText(array_get($footer_body, 'text'), $model, $footer_body),
+                '',
+                '',
+                $footer_body
             );
         }
 
         // Restore
         $this->SetFont('', $bakFontStyle, $bakFontSize);
+    }
+
+    protected function setMultiCell($text, $x, $y, $options){
+        // set fillColor
+        if(array_key_value_exists('fillColor', $options)){
+            $rgb = hex2rgb(array_get($options, 'fillColor'));
+            $this->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
+            $fill = true;
+        }else{
+            $fill = false;
+        }
+        // set Color
+        if(array_key_value_exists('color', $options)){
+            $rgb = hex2rgb(array_get($options, 'color'));
+            $this->SetTextColor($rgb[0], $rgb[1], $rgb[2]);
+        }
+        // default
+        else{
+            $this->SetTextColor(0, 0, 0);
+        }
+
+        $this->MultiCell(
+            array_get($options, 'real_width', array_get($options, 'width', 0)),
+            array_get($options, 'real_height', array_get($options, 'height', 0)),
+            trim($text),
+            array_get($options, 'border', 0), 
+            array_get($options, 'align', 'L'), 
+            $fill, //fill 
+            array_get($options, 'ln', 1),  // ln
+            $x,
+            $y, 
+            $reseth = true, 
+            $strech = 0, 
+            $ishtml = false, 
+            $autopadding = true, 
+            $maxh=0, 
+            array_get($options, 'valign', ''), 
+            true
+        );
     }
 
     /**
@@ -535,8 +523,7 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * get output text
      */
-    protected function getText($model, $documentItem){
-        $text = array_get($documentItem, 'text');
+    protected function getText($text, $model, $documentItem){
         // check string
         preg_match_all('/\${(.*?)\}/', $text, $matches);
         if (isset($matches)) {
@@ -602,9 +589,14 @@ class DocumentPdfService extends AbstractFPDIService
         }
 
         // add comma if number_format
-        if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',')){
+        if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)){
             $text = number_format($text);
         }
+
+        // replace <br/> or \r\n, \n, \r to new line
+        $text = preg_replace("/\\\\r\\\\n|\\\\r|\\\\n/", "\n", $text);
+        // &yen; to 
+        $text = str_replace("&yen;", "¥", $text);
 
         return $text;
     }
@@ -615,6 +607,44 @@ class DocumentPdfService extends AbstractFPDIService
     protected function getContentWidth(){
         $margins = $this->getMargins();
         return $this->GetPageWidth() - $margins['left'] - $margins['right'];
+    }
+
+    /**
+     * Get Content Height
+     */
+    protected function getContentHeight(){
+        $margins = $this->getMargins();
+        return $this->getPageHeight() - $margins['top'] - $margins['bottom'];
+    }
+
+    /**
+     * get output x for text or image
+     */
+    protected function getOutputX($x, $options){
+        // if option->position Contains 'R', calc for document right
+        if(str_contains(array_get($options, 'position'), 'R')){
+            return $this->GetPageWidth() - ($x + $this->baseOffsetX + array_get($options, 'width'));
+        }
+        // if center
+        elseif(str_contains(array_get($options, 'position'), 'C')){
+            return ($this->GetPageWidth() - array_get($options, 'width')) / 2;
+        }
+
+        // default
+        return $x + $this->baseOffsetX;
+    }
+    
+    /**
+     * get output y for text or image
+     */
+    protected function getOutputY($y, $options){
+        // if option->position Contains 'B', calc for document right
+        if(str_contains(array_get($options, 'position'), 'B')){
+            return $this->getContentHeight() - ($y + $this->baseOffsetY + array_get($options, 'height'));
+        }
+
+        // default
+        return $y + $this->baseOffsetY;
     }
     
     /**
@@ -640,10 +670,17 @@ class DocumentPdfService extends AbstractFPDIService
             'height' => 0,
             'font_size' => $this->FontSizePt,
             'style' => '',
-            'align' => 'J',
+            'fillColor' => '',
+            'color' => '',
+            'align' => 'L',
             'valign' => 'M',
+            'position' => 'L',
             'border' => '',
             'fixWidth' => false,
+            'target_table' => '',
+            'table_count' => 5,
+            'target_columns' => [],
+            'footers' => [],
         ];
     }
 }
