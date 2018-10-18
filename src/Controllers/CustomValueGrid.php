@@ -1,23 +1,57 @@
 <?php
 
 namespace Exceedone\Exment\Controllers;
-
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Facades\Admin;
-use Illuminate\Http\Request;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Services\DataImportExport;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\Request as Req;
 use Exceedone\Exment\Form\Widgets\ModalForm;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request as Req;
 
 trait CustomValueGrid
 {
+    /**
+     * Make a grid builder.
+     *
+     * @return Grid
+     */
+    protected function grid()
+    {
+        $classname = $this->getModelNameDV();
+        $grid = new Grid(new $classname);
+        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        
+        // get search_enabled_columns and loop
+        $search_enabled_columns = getSearchEnabledColumns($this->custom_table->table_name);
+    
+        // create grid
+        $this->createGrid($grid);
+
+        // manage row action
+        $this->manageRowAction($grid);
+
+        // filter
+        Admin::user()->filterModel($grid->model(), $this->custom_table->table_name, $this->custom_view);
+        $this->setCustomGridFilters($grid, $search_enabled_columns);
+
+        // manage tool button
+        $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
+        $this->manageMenuToolButton($grid, $listButton);
+
+        // create exporter
+        $grid->exporter(DataImportExport\DataExporterBase::getModel($grid, $this->custom_table, $search_enabled_columns));
+        
+        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        return $grid;
+    }
+
     /**
      * set grid filter
      */
@@ -168,34 +202,6 @@ trait CustomValueGrid
                 }
             }
             
-//             // TODO:hard coding
-//             // when estimate, add pdf button
-//             $table_name = $this->custom_table->table_name;
-//             if (in_array($table_name, ['estimate', 'claim'])) {
-//                 $error = exmtrans('common.error');
-//                 $error_message = exmtrans('change_page_menu.error_select');
-                
-//                 $script = <<<EOT
-//                 $('#estimate_button').off('click').on('click',function(ev){
-//                     // get select row
-//                     var rows = selectedRows();
-//                     if(rows.length !== 1){
-//                         swal("$error", "$error_message", "error");
-//                         return;
-//                     }
-//                     else{
-//                         var id = rows[0];
-//                         var url = admin_base_path(URLJoin('data/$table_name', id, 'doc'));
-//                         window.open(url);
-//                     }
-//                 });
-
-// EOT;
-//                 Admin::script($script);
-//                 $button = '<a id="estimate_button" class=" pull-right btn btn-sm btn-info" href="javascript:void(0);" style="margin-right:5px;"><i class="fa fa-file-text-o"></i>&nbsp;'. ($table_name == 'estimate' ?  '見積書' : '請求書'). '出力</a>';
-//                 $tools->append($button);
-//             }
-
             // manage batch --------------------------------------------------
             // if cannot edit, disable delete
             if (!$edit_flg) {
@@ -243,11 +249,6 @@ trait CustomValueGrid
             ->import($request);
 
         return ModalForm::getAjaxResponse($result);
-        // if ($result) {
-        //     admin_toastr(exmtrans('common.message.import_success'));
-        //     return back();
-        // }
-        // admin_toastr(exmtrans('common.message.import_error'), 'error');
     }
 
 

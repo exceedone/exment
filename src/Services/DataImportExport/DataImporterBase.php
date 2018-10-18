@@ -3,10 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport;
 
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\FormHelper;
-use Illuminate\Support\Facades\DB;
-use Encore\Admin\Facades\Admin;
 use Validator;
 use Carbon\Carbon;
 

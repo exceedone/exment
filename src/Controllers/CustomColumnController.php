@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\Tools;
-use Illuminate\Http\RedirectResponse;
 
 class CustomColumnController extends AdminControllerTableBase
 {

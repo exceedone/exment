@@ -2,26 +2,215 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
-use Encore\Admin\Show;
 use Encore\Admin\Facades\Admin;
+use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
+use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Form\Field as ExmentField;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\FormHelper;
-use Illuminate\Support\Facades\Input;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueForm
 {
-    
+ 
+
+    /**
+     * Make a form builder.
+     * @param $id if edit mode, set model id
+     * @return Form
+     */
+    protected function form($id = null)
+    {
+        $this->setFormViewInfo(\Request::capture());
+
+        $classname = $this->getModelNameDV();
+        $form = new Form(new $classname);
+
+        //PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        // create
+        if (!isset($id)) {
+            $isButtonCreate = true;
+            $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+        }
+        // edit
+        else {
+            $isButtonCreate = false;
+            $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+        }
+
+        //TODO: escape laravel-admin bug.
+        //https://github.com/z-song/laravel-admin/issues/1998
+        $form->hidden('laravel_admin_escape');
+
+        // add parent select if this form is 1:n relation
+        $relation = CustomRelation
+            ::with('parent_custom_table')
+            ->where('child_custom_table_id', $this->custom_table->id)
+            ->where('relation_type', Define::RELATION_TYPE_ONE_TO_MANY)
+            ->first();
+        if(isset($relation)){
+            $parent_custom_table = $relation->parent_custom_table;
+            $form->hidden('parent_type')->default($parent_custom_table->table_name);
+
+            // set select options
+            if(isGetOptions($parent_custom_table)){
+                $form->select('parent_id', $parent_custom_table->table_view_name)
+                ->options(function($value) use($parent_custom_table){
+                    return getOptions($parent_custom_table, $value);
+                })
+                ->rules('required');
+            }else{
+                $form->select('parent_id', $parent_custom_table->table_view_name)
+                ->options(function($value) use($parent_custom_table){
+                    return getOptions($parent_custom_table, $value);
+                })
+                ->ajax(getOptionAjaxUrl($parent_custom_table))
+                ->rules('required');
+            }
+        }
+
+        // loop for custom form blocks
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            // if available is false, continue
+            if (!$custom_form_block->available) {
+                continue;
+            }
+            // when default block, set as normal form columns.
+            if ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
+                //$form->embeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use($custom_form_block) {
+                $form->embeds('value', exmtrans("common.input"), function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                    $this->setCustomFormColumns($form, $custom_form_block, $id);
+                });
+            } elseif ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY) {
+                $target_table = $custom_form_block->target_table;
+                // get label hasmany
+                $block_label = $custom_form_block->form_block_view_name;
+                if (!isset($block_label)) {
+                    $block_label = exmtrans('custom_form.table_one_to_many_label') . $target_table->table_view_name;
+                }
+                // get form columns count
+                $count = count($custom_form_block->custom_form_columns);
+                $form_block_options = array_get($custom_form_block, 'options', []);
+                $relation_name = getRelationNamebyObjs($this->custom_table, $target_table);
+                // if form_block_options.hasmany_type is 1, hasmanytable
+                if (boolval(array_get($form_block_options, 'hasmany_type'))) {
+                    $form->hasManyTable(
+                        $relation_name,
+                        $block_label,
+                        function ($form) use ($custom_form_block, $id) {
+                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                                $this->setCustomFormColumns($form, $custom_form_block, $id);
+                            });
+                        }
+                    )->setTableWidth(12, 0);
+                }
+                // default,hasmany
+                else{           
+                    $form->hasMany(
+                        $relation_name,
+                        $block_label,
+                        function ($form) use ($custom_form_block, $id) {
+                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                                $this->setCustomFormColumns($form, $custom_form_block, $id);
+                            });
+                        }
+                    );         
+                }
+            // when many to many
+            } else {
+                $target_table = $custom_form_block->target_table;
+                // get label hasmany
+                $block_label = $custom_form_block->form_block_view_name;
+                if (!isset($block_label)) {
+                    $block_label = exmtrans('custom_form.table_many_to_many_label') . $target_table->table_view_name;
+                }
+
+                $field = new Field\Listbox(
+                    getRelationNamebyObjs($this->custom_table, $target_table),
+                    [$block_label]
+                );
+                $field->options(function ($select) use ($target_table) {
+                    return getOptions($target_table, $select);
+                });
+                if (getModelName($target_table)::count() > 100) {
+                    $field->ajax(getOptionAjaxUrl($target_table));
+                }
+                $form->pushField($field);
+            }
+        }
+
+        $calc_formula_array = [];
+        $changedata_array = [];
+        $relatedlinkage_array = [];
+        $this->setCustomFormEvents($calc_formula_array, $changedata_array, $relatedlinkage_array);
+
+        // add calc_formula_array and changedata_array info
+        if (count($calc_formula_array) > 0) {
+            $json = json_encode($calc_formula_array);
+            $script = <<<EOT
+            var json = $json;
+            Exment.CommonEvent.setCalcEvent(json);
+EOT;
+            Admin::script($script);
+        }
+        if (count($changedata_array) > 0) {
+            $json = json_encode($changedata_array);
+            $script = <<<EOT
+            var json = $json;
+            Exment.CommonEvent.setChangedataEvent(json);
+EOT;
+            Admin::script($script);
+        }
+        if (count($relatedlinkage_array) > 0) {
+            $json = json_encode($relatedlinkage_array);
+            $script = <<<EOT
+            var json = $json;
+            Exment.CommonEvent.setRelatedLinkageEvent(json);
+EOT;
+            Admin::script($script);
+        }
+
+        // add authority form 
+        $this->setAuthorityForm($form);
+
+        // add form saving and saved event
+        $this->manageFormSaving($form);
+        $this->manageFormSaved($form);
+
+        $form->disableReset();
+
+        $isNew = $this->isNew();
+        $custom_table = $this->custom_table;
+        $custom_form = $this->custom_form;
+
+        $this->manageFormToolButton($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton);
+        return $form;
+    }
+
+    /**
+     * setAuthorityForm.
+     * if table is user, org, etc...., not set authority
+     */
+    protected function setAuthorityForm($form){
+        // if ignore user and org, return
+        if (in_array($this->custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+            return;
+        }
+        // if table setting is "one_record_flg" (can save only one record), return
+        if (boolval($this->custom_table->one_record_flg)) {
+            return;
+        }
+
+        // set addAuthorityForm
+        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_VALUE);
+    }
+
     /**
      * set custom form columns
      */
@@ -125,81 +314,15 @@ trait CustomValueForm
 
     protected function manageFormSaved($form)
     {
-        // $custom_table = $this->custom_table;
-        // $custom_form_columns = $this->custom_form->custom_form_columns;
-        // $form->saved(function ($form) use($custom_table, $custom_form_columns) {
-        //     PluginInstaller::pluginPreparing($this->plugins, 'saved');
-            
-        //     // change value if necessary
-        //     $update_flg = false;
-        //     $model = $form->model();
-        //     $id = $model->id;
-            
-        //     // loop for form columns
-        //     foreach ($custom_form_columns as $custom_form_column) {
-        //         // custom column
-        //         $custom_column = array_get($custom_form_column, 'custom_column');
-        //         $column_name = array_get($custom_column, 'column_name');
-
-        //         switch (array_get($custom_column, 'column_type')) {
-        //             // if column type is auto_number, set auto number.
-        //             case 'auto_number':
-        //                 // already set value, break
-        //                 if(!is_null($model->getValue($column_name))){
-        //                     break;
-        //                 }
-        //                 $options = $custom_column->options;
-        //                 if (!isset($options)) {
-        //                     break;
-        //                 }
-        //                 if (array_get($options, 'auto_number_type') == 'format') {
-        //                     $auto_number = $this->createAutoNumberFormat($model, $id, $options);
-        //                 }
-        //                 // if auto_number_type is random25, set value
-        //                 if (array_get($options, 'auto_number_type') == 'random25') {
-        //                     $auto_number = make_licensecode();
-        //                 }
-        //                 // if auto_number_type is UUID, set value
-        //                 if (array_get($options, 'auto_number_type') == 'random32') {
-        //                     $auto_number = make_uuid();
-        //                 }
-        //                 $model->setValue($column_name, $auto_number);
-        //                 $update_flg = true;
-        //                 break;
-        //         }
-        //     }
-
-        //     if($update_flg){
-        //         $model->saveOrFail();
-        //     }
-            
-        //     // get target custom_value's value_authoritable
-        //     if(($form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER)->count() == 0
-        //         || $form->model()->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->count() == 0)
-        //         && !in_array($custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])
-        //     ){
-        //         ///// if all user and org is 0, add userself authority
-        //         // get authority where custom_value_edit is 1
-        //         $authority = Authority::where('authority_type', Define::AUTHORITY_TYPE_VALUE)
-        //             ->where("permissions->".Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT, "1")
-        //             ->first();
-
-        //         DB::table('value_authoritable')
-        //             ->insert([
-        //                 'related_id' => Admin::user()->base_user_id,
-        //                 'related_type' => Define::SYSTEM_TABLE_NAME_USER,
-        //                 'morph_id' => $form->model()->id,
-        //                 'morph_type' => $custom_table->table_name,
-        //                 'authority_id' => $authority->id,
-        //             ]);
-        //     }
-        // });
+        // after saving
+        $form->saved(function ($form) {
+            PluginInstaller::pluginPreparing($this->plugins, 'saved');
+        });
     }
 
     protected function manageFormToolButton($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton)
     {
         $form->tools(function (Form\Tools $tools) use ($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton) {        // Disable back btn.
-
             // if one_record_flg, disable list
             if ($custom_table->one_record_flg) {
                 $tools->disableListButton();
@@ -214,90 +337,17 @@ trait CustomValueForm
                 $form->disableViewCheck();
             }
 
-            if ($listButton !== null && (count($listButton) > 0 && ($isButtonCreate && $id === null) || (!$isButtonCreate && $id !== null))) {
-                $index = 0;
-                foreach ($listButton as $buttonItem) {
-                    $index++;
-                    $button = '<a class="btn btn-sm btn-info" onclick="onPluginClick'.$index.'()"><i class="fa fa-archive"></i>&nbsp;'.$buttonItem->plugin_view_name.'</a>';
-                    $tools->add($button);
-                    $ajaxContainer = '<script>
-                    function onPluginClick'.$index.'() {
-                          $.ajax({
-                               type: "POST",
-                               url: '.admin_base_path('data/'.$custom_table->table_name.'/onPluginClick').',
-                               data:{_token: LA.token,plugin_name:"'.$buttonItem->plugin_name.'"},
-                               success:function(reponse) {
-                                toastr.success(reponse);
-                               }
-                          });
-                     }
-                </script>';
-                    $tools->add($ajaxContainer);
+            // add plugin button
+            if ($listButton !== null && count($listButton) > 0) {
+                foreach ($listButton as $plugin) {
+                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
                 }
             }
-
+            
             $tools->add((new Tools\GridChangePageMenu('data', $custom_table, false))->render());
         });
     }
     
-    /** 
-     * create show form list
-     */
-    protected function createShowForm($id = null)
-    {
-        //PluginInstaller::pluginPreparing($this->plugins, 'loading');
-        return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id) {
-            // loop for custom form blocks
-            foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
-                // if available is false, continue
-                if (!$custom_form_block->available) {
-                    continue;
-                }
-                foreach ($custom_form_block->custom_form_columns as $form_column) {
-                    $column = $form_column->custom_column;
-                    $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function($v) use($column){
-                        if(is_null($this)){return '';}
-                        return $this->getValue($column, true);
-                    });
-                }
-            }
-
-            // show document list
-            if(isset($id)){
-                $documents = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
-                    ::where('parent_id', $id)
-                    ->where('parent_type', $this->custom_table->table_name)
-                    ->get();
-                // loop and add as link
-                foreach($documents as $index => $d){
-                    $show->field('document_'.array_get($d, 'id'), '書類')->as(function($v) use($d){
-                        $link = '<a href="'.admin_base_path(url_join('files', $d->getValue('file_uuid', true))).'" target="_blank">'. $d->getValue('document_name').'</a>';
-                        $comment = "<small>(作成日：".$d->created_at." 作成者：".$d->created_user.")</small>";
-                        return $link.$comment;
-                    })->unescape();
-                }
-            }
-
-            // if user only view permission, disable delete and view
-            if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
-                $show->panel()->tools(function ($tools) {
-                    $tools->disableEdit();
-                    $tools->disableDelete();
-                });
-            }
-            
-            // show plugin button
-            $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
-            if(count($listButtons) > 0){
-                $show->panel()->tools(function ($tools) use($listButtons, $id) {
-                    foreach($listButtons as $plugin){
-                        $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
-                    }
-                });
-            }
-        });
-    }
-
     /**
      * Create calc formula info.
      */

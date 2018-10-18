@@ -1,7 +1,6 @@
 <?php
 
 namespace Exceedone\Exment\Form\Field;
-use Closure;
 use Encore\Admin\Form\Field;
 
 class Display extends Field\Display

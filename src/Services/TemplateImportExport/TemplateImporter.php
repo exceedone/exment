@@ -3,7 +3,6 @@ namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;

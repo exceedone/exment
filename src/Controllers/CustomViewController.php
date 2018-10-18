@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
-use Illuminate\Http\RedirectResponse;
 
 class CustomViewController extends AdminControllerTableBase
 {

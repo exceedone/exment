@@ -70,20 +70,20 @@ class DocumentPdfService extends AbstractFPDIService
      *
      */
     private $baseInfo;
+    private $documentInfo;
+    private $documentItems;
 
-    /**
-     * 作成するDocument情報
-     */
-    private $document;
-
+    private $model;
     /**
      * コンストラクタ.
      * @param Request $request
      * @param $document
      */
-    public function __construct()
+    public function __construct($model, $documentInfo, $documentItems)
     {
-        //$this->document = $document;
+        $this->model = $model;
+        $this->documentInfo = $documentInfo;
+        $this->documentItems = $documentItems;
 
         // set baseInfo
         //$this->baseInfo = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
@@ -110,10 +110,10 @@ class DocumentPdfService extends AbstractFPDIService
      * Create PDF
      * @return boolean
      */
-    public function makeContractPdf($model, $documentInfo, $documentItems = [])
+    public function makeContractPdf()
     {
         // Add Document Item using $documentItems array
-        foreach($documentItems as $documentItem)
+        foreach($this->documentItems as $documentItem)
         {
             // $x = array_get($documentItem, 'x');
             // $y = array_get($documentItem, 'y');
@@ -130,8 +130,8 @@ class DocumentPdfService extends AbstractFPDIService
             //tables
             if(array_get($documentItem, 'document_item_type') == 'table'){
                 // get children
-                $children = getChildrenValues($model, array_get($documentItem, 'target_table'));
-                $this->lfTable($model, $children, $documentItem);
+                $children = getChildrenValues($this->model, array_get($documentItem, 'target_table'));
+                $this->lfTable($children, $documentItem);
                 continue;
             }
 
@@ -157,7 +157,7 @@ class DocumentPdfService extends AbstractFPDIService
                                     $image = null;
                                 } else {
                                     // todo:how to get only path
-                                    $image = array_get($model->value, $length_array[1]);
+                                    $image = array_get($this->model->value, $length_array[1]);
                                 }
                             } elseif (strpos($match, "base_info") !== false) {
                                 $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
@@ -180,7 +180,7 @@ class DocumentPdfService extends AbstractFPDIService
             }
 
             // get text
-            $text = $this->getText(array_get($documentItem, 'text'), $model, $documentItem);
+            $text = $this->getText(array_get($documentItem, 'text'), $documentItem);
 
             // write text
             $this->lfText($text, $documentItem);
@@ -204,14 +204,16 @@ class DocumentPdfService extends AbstractFPDIService
      */
     public function getPdfFileName()
     {
-        if (!is_null($this->downloadFileName)) {
-            return $this->downloadFileName;
+        // get document file name
+        $filename = $this->getText(array_get($this->documentInfo, 'filename'));
+        if(!isset($filename)){
+            $filename = make_uuid();
         }
         // get filename from document_type
         //$document_array = array_get(Define::DOCUMENT_TYPE, $this->document->document_type);
         //TODO:hsato
         //$this->downloadFileName = $document_array['label']. '_' . $this->document->document_code . '.pdf';
-        $this->downloadFileName = make_uuid().'.pdf';
+        $this->downloadFileName = $filename.'.pdf';
         return $this->downloadFileName;
     }
 
@@ -310,7 +312,7 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * Write Table
      */
-    protected function lfTable($model, $children, $options = [])
+    protected function lfTable($children, $options = [])
     {
         // remove null value
         array_filter($options, function($value) { return $value !== ''; });
@@ -425,7 +427,7 @@ class DocumentPdfService extends AbstractFPDIService
             /////TODO: COPY AND PASTE!!
             // set label
             $this->setMultiCell(
-                $this->getText(array_get($footer_header, 'text'), $model, $footer_header),
+                $this->getText(array_get($footer_header, 'text'), $footer_header),
                 '',
                 '',
                 $footer_header
@@ -436,7 +438,7 @@ class DocumentPdfService extends AbstractFPDIService
 
             // set item
             $this->setMultiCell(
-                $this->getText(array_get($footer_body, 'text'), $model, $footer_body),
+                $this->getText(array_get($footer_body, 'text'), $footer_body),
                 '',
                 '',
                 $footer_body
@@ -523,7 +525,7 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * get output text
      */
-    protected function getText($text, $model, $documentItem){
+    protected function getText($text, $documentItem = []){
         // check string
         preg_match_all('/\${(.*?)\}/', $text, $matches);
         if (isset($matches)) {
@@ -548,7 +550,7 @@ class DocumentPdfService extends AbstractFPDIService
                         else{
                             // get comma string from index 1.
                             $length_array = array_slice($length_array, 1);
-                            $str = getValue($model, implode(',', $length_array), true);
+                            $str = getValue($this->model, implode(',', $length_array), true);
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
@@ -561,7 +563,7 @@ class DocumentPdfService extends AbstractFPDIService
                         //else, getting value using cihldren
                         else{
                             // get children values
-                            $children = getChildrenValues($model, $length_array[1]);
+                            $children = getChildrenValues($this->model, $length_array[1]);
                             // looping
                             $sum = 0;
                             foreach($children as $child){

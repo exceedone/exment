@@ -23,11 +23,11 @@ abstract class PluginDocument {
     public function execute(){
         $table_name = $this->custom_table->table_name;
         // get document items from json
-        $documentItems = $this->getDocumentItem();
+        $documentItem = $this->getDocumentItem();
 
         // create pdf
-        $service = new DocumentPdfService();
-        $service->makeContractPdf($this->custom_value, null, $documentItems);
+        $service = new DocumentPdfService($this->custom_value, array_get($documentItem, 'info', []), array_get($documentItem, 'items', []));
+        $service->makeContractPdf();
 
         // save
         $document_attachment_file = $service->getPdfPath();

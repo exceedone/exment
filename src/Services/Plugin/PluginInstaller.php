@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services\Plugin;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;

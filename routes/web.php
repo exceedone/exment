@@ -91,11 +91,6 @@ Route::group([
     $router->get('auth/menu/menutype', 'MenuController@menutype');
     $router->post('auth/menu/menutargetvalue', 'MenuController@menutargetvalue');
 
-    // TODO:hard coding
-    $router->get("data/estimate/{id}/doc", 'CustomValueController@getDocumentForm');
-    $router->get("data/invoice/{id}/doc", 'CustomValueController@getDocumentForm');
-    $router->get("data/claim/{id}/doc", 'CustomValueController@getDocumentForm');
-
     $router->get('files/{uuid}', function($uuid){
         return File::download($uuid);
     });

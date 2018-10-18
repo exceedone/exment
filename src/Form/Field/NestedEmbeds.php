@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Form\Field;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\NestedEmbeddedForm;
-use Exceedone\Exment\Form\Field\Embeds;
 
 class NestedEmbeds extends Embeds
 {
