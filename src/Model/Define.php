@@ -111,7 +111,6 @@ class Define
         "file", 
         "user", 
         "organization",
-        "document",
     ];
 
     public const TABLE_COLUMN_TYPE_CALC = [

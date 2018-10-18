@@ -6,7 +6,7 @@
  * Time: 4:56 PM
  */
 
-namespace Exceedone\Exment\Plugin;
+namespace Exceedone\Exment\Services\Plugin;
 
 trait PluginBase {
     protected $plugin;

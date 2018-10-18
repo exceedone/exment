@@ -144,73 +144,57 @@ trait CustomValueGrid
      */
     protected function manageMenuToolButton($grid, $listButton)
     {
-        $table_id = $this->custom_table->id;
-        $table_name = $this->custom_table->table_name;
+        $custom_table = $this->custom_table;
         $grid->disableCreateButton();
         $grid->disableExport();
-        $grid->tools(function (Grid\Tools $tools) use ($table_id, $table_name, $listButton, $grid) {
-            if ($listButton !== null && count($listButton) > 0) {
-                $index = 0;
-                foreach ($listButton as $buttonItem) {
-                    $index++;
-                    $button = '<a class="btn btn-sm btn-info" onclick="onPluginClick'.$index.'()"><i class="fa fa-archive"></i>&nbsp;'.$buttonItem->plugin_view_name.'</a>';
-                    $tools->append($button);
-                    $ajaxContainer = '<script>
-                        function onPluginClick'.$index.'() {
-                            $.ajax({
-                                type: "POST",
-                                url: admin_base_path("data/'.$table_name.'/onPluginClick"),
-                                data:{_token: LA.token,plugin_name:"'.$buttonItem->plugin_name.'"},
-                                success:function(reponse) {
-                                    toastr.success(reponse);
-                                }
-                            });
-                        }
-                    </script>';
-                    $tools->append($ajaxContainer);
-                }
-            }
-            
+        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid) {
             // have edit flg
-            $edit_flg = Admin::user()->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = Admin::user()->hasPermissionTable($this->custom_table->table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton($table_name, $grid));
-                $tools->append(view('exment::custom-value.new-button', ['table_name' => $table_name]));
-                $tools->append($this->ImportSettingModal($table_name));
+                $tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid));
+                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+                $tools->append($this->ImportSettingModal($this->custom_table->table_name));
             }
             
             // add page change button(contains view seting)
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
-
-            // TODO:hard coding
-            // when estimate, add pdf button
-            $table_name = $this->custom_table->table_name;
-            if (in_array($table_name, ['estimate', 'claim'])) {
-                $error = exmtrans('common.error');
-                $error_message = exmtrans('change_page_menu.error_select');
-                
-                $script = <<<EOT
-                $('#estimate_button').off('click').on('click',function(ev){
-                    // get select row
-                    var rows = selectedRows();
-                    if(rows.length !== 1){
-                        swal("$error", "$error_message", "error");
-                        return;
-                    }
-                    else{
-                        var id = rows[0];
-                        var url = admin_base_path(URLJoin('data/$table_name', id, 'doc'));
-                        window.open(url);
-                    }
-                });
-
-EOT;
-                Admin::script($script);
-                $button = '<a id="estimate_button" class=" pull-right btn btn-sm btn-info" href="javascript:void(0);" style="margin-right:5px;"><i class="fa fa-file-text-o"></i>&nbsp;'. ($table_name == 'estimate' ?  '見積書' : '請求書'). '出力</a>';
-                $tools->append($button);
+            
+            // add plugin button
+            if ($listButton !== null && count($listButton) > 0) {
+                foreach ($listButton as $plugin) {
+                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
+                }
             }
+            
+//             // TODO:hard coding
+//             // when estimate, add pdf button
+//             $table_name = $this->custom_table->table_name;
+//             if (in_array($table_name, ['estimate', 'claim'])) {
+//                 $error = exmtrans('common.error');
+//                 $error_message = exmtrans('change_page_menu.error_select');
+                
+//                 $script = <<<EOT
+//                 $('#estimate_button').off('click').on('click',function(ev){
+//                     // get select row
+//                     var rows = selectedRows();
+//                     if(rows.length !== 1){
+//                         swal("$error", "$error_message", "error");
+//                         return;
+//                     }
+//                     else{
+//                         var id = rows[0];
+//                         var url = admin_base_path(URLJoin('data/$table_name', id, 'doc'));
+//                         window.open(url);
+//                     }
+//                 });
+
+// EOT;
+//                 Admin::script($script);
+//                 $button = '<a id="estimate_button" class=" pull-right btn btn-sm btn-info" href="javascript:void(0);" style="margin-right:5px;"><i class="fa fa-file-text-o"></i>&nbsp;'. ($table_name == 'estimate' ?  '見積書' : '請求書'). '出力</a>';
+//                 $tools->append($button);
+//             }
 
             // manage batch --------------------------------------------------
             // if cannot edit, disable delete

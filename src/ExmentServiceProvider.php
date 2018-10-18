@@ -4,7 +4,7 @@ namespace Exceedone\Exment;
 
 use Storage;
 use Request;
-use Exceedone\Exment\Services\PluginInstaller;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Validator\UniqueInTableValidator;

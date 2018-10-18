@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Services\PluginInstaller;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Form\Field as ExmentField;
@@ -36,7 +36,7 @@ class CustomValueController extends AdminControllerTableBase
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
-            $this->plugins = PluginInstaller::getPluginByTableId($this->custom_table->id);
+            $this->plugins = PluginInstaller::getPluginByTable($this->custom_table->table_name);
         }
     }
 
@@ -48,7 +48,6 @@ class CustomValueController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
-        $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
@@ -58,20 +57,18 @@ class CustomValueController extends AdminControllerTableBase
             // has record, execute
             if (isset($record)) {
                 $id = $record->id;
-                $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_base_path("data/{$this->custom_table->table_name}/$id"));
                 $content->body($form);
             }
             // no record
             else {
-                $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
                 $form = $this->form(null);
                 $form->setAction(admin_base_path("data/{$this->custom_table->table_name}"));
                 $content->body($form);
             }
         } else {
-            $content->body($this->grid($listButton));
+            $content->body($this->grid());
         }
         return $content;
     }
@@ -220,12 +217,39 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
+    //Function handle click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function pluginClick(Request $request, $id = null)
+    {
+        if ($request->input('uuid') === null) {
+            abort(404);
+        }
+        // get plugin
+        $plugin = Plugin::where('uuid', $request->input('uuid'))->first();
+        if(!isset($plugin)){
+            abort(404);
+        }
+        
+        $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
+        if (class_exists($classname)) {
+            switch(array_get($plugin, 'plugin_type')){
+                case 'document':
+                    $class = new $classname($this->custom_table, $id);
+                    break;
+            }
+            $class->execute();
+        }
+        return Response::create('Plugin Called', 200);
+    }
     /**
      * Make a grid builder.
      *
      * @return Grid
      */
-    protected function grid($listButton = null)
+    protected function grid()
     {
         $classname = $this->getModelNameDV();
         $grid = new Grid(new $classname);
@@ -245,6 +269,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
+        $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
         $this->manageMenuToolButton($grid, $listButton);
 
         // create exporter

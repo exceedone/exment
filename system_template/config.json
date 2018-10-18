@@ -8,12 +8,18 @@
             "icon": "fa-file",
             "color": null,
             "description": null,
-            "search_enabled": "1",
+            "search_enabled": "0",
             "one_record_flg": "0",
             "custom_columns": [
                 {
-                    "column_name": "file",
-                    "column_type": "file",
+                    "column_name": "document_name",
+                    "column_type": "text",
+                    "description": null,
+                    "options": []
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_type": "text",
                     "description": null,
                     "options": []
                 }

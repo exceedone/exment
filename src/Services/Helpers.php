@@ -89,7 +89,7 @@ if (!function_exists('namespace_join')) {
      */
     function namespace_join(...$pass_array)
     {
-        return join_paths("\\", $pass_array);
+        return join_paths('\\', $pass_array);
     }
 }
 
@@ -123,7 +123,10 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
-            if ($ret_pass == "") {
+            if(is_array($value)){
+                $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
+            }
+            elseif ($ret_pass == "") {
                 $ret_pass   =   $value;
             }else {
                 $ret_pass   =   rtrim($ret_pass,$trim_str);
@@ -147,9 +150,14 @@ if (!function_exists('getFullpath')) {
 if (!function_exists('getPluginNamespace')) {
     function getPluginNamespace(...$pass_array)
     {
-        $basename = "\\App\\Plugins";
+        $basename = 'App\Plugins';
         if(isset($pass_array) && count($pass_array) > 0){
-            array_unshift($pass_array, $basename);
+            // convert to pascal case
+            $pass_array = collect($pass_array)->map(function($p){
+                return pascalize($p);
+            })->toArray();
+
+            $pass_array = array_prepend($pass_array, $basename);
             $basename = namespace_join($pass_array);
         }
         return $basename;

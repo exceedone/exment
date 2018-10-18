@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Form\Field as ExmentField;
-use Exceedone\Exment\Services\PluginInstaller;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Services\FormHelper;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
@@ -262,11 +262,37 @@ trait CustomValueForm
                 }
             }
 
+            // show document list
+            if(isset($id)){
+                $documents = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
+                    ::where('parent_id', $id)
+                    ->where('parent_type', $this->custom_table->table_name)
+                    ->get();
+                // loop and add as link
+                foreach($documents as $index => $d){
+                    $show->field('document_'.array_get($d, 'id'), '書類')->as(function($v) use($d){
+                        $link = '<a href="'.admin_base_path(url_join('files', $d->getValue('file_uuid', true))).'" target="_blank">'. $d->getValue('document_name').'</a>';
+                        $comment = "<small>(作成日：".$d->created_at." 作成者：".$d->created_user.")</small>";
+                        return $link.$comment;
+                    })->unescape();
+                }
+            }
+
             // if user only view permission, disable delete and view
             if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
                 $show->panel()->tools(function ($tools) {
                     $tools->disableEdit();
                     $tools->disableDelete();
+                });
+            }
+            
+            // show plugin button
+            $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
+            if(count($listButtons) > 0){
+                $show->panel()->tools(function ($tools) use($listButtons, $id) {
+                    foreach($listButtons as $plugin){
+                        $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                    }
                 });
             }
         });

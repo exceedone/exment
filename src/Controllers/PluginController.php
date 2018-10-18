@@ -10,7 +10,7 @@ use Encore\Admin\Controllers\ModelForm;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Services\PluginInstaller;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -244,14 +244,17 @@ class PluginController extends AdminControllerBase
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
         $plugin_type = Plugin::getFieldById($id, 'plugin_type');
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-            if ($plugin_type == 'trigger') {
-                $form->select('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($target_tables) {
-                    $options = CustomTable::all()->pluck('table_view_name', 'id')->toArray();
+            if (in_array($plugin_type, ['trigger', 'document'])) {
+                $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
+                    $options = CustomTable::all()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
-                $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($event_triggers) {
-                    return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
-                })->help(exmtrans("plugin.help.event_triggers"));
+                // only trigger
+                if ($plugin_type == 'trigger') {
+                    $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($value) {
+                        return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
+                    })->help(exmtrans("plugin.help.event_triggers"));
+                }
             } else {
                 // Plugin_type = 'page'
                 $form->text('uri', exmtrans("plugin.options.uri"));
@@ -262,9 +265,10 @@ class PluginController extends AdminControllerBase
         });
 
         // Authority setting --------------------------------------------------
-        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_PLUGIN);
+        // TODO:error
+        //$this->addAuthorityForm($form, Define::AUTHORITY_TYPE_PLUGIN);
 
         $form->disableReset();
         return $form;
-        }
+    }
 }

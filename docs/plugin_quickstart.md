@@ -34,7 +34,7 @@ https://www.famkruithof.net/uuid/uuidgen
 <?php
 namespace App\Plugins\PluginDemoTrigger;
 
-use Exceedone\Exment\Plugin\PluginTrigger;
+use Exceedone\Exment\Services\Plugin\PluginTrigger;
 class Plugin extends PluginTrigger
 {
     /**

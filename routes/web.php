@@ -64,6 +64,8 @@ Route::group([
         foreach (CustomTable::all()->pluck('table_name') as $value)
         {
             $router->post("data/{$value}/import", 'CustomValueController@import');
+            $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
             $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->resource("data/{$value}", 'CustomValueController');
             $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);

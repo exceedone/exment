@@ -27,7 +27,7 @@ trait DocumentForm
         $model = getModelName($table_name)::find($id);
         
         $documentItems = $this->getDocumentItem($table_name);
-
+        \Log::debug(json_encode($documentItems, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         $service = new DocumentPdfService();
         $service->makeContractPdf($model, null, $documentItems);
 

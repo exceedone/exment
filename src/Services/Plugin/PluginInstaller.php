@@ -1,9 +1,10 @@
 <?php
-namespace Exceedone\Exment\Services;
+namespace Exceedone\Exment\Services\Plugin;
 
 use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -90,13 +91,6 @@ class PluginInstaller
      */
     public static function uploadPlugin($uploadFile)
     {
-        // $plugin = new Plugin();
-        // $file = $request->file('fileUpload');
-        // //Get file name with extension
-        // $fileFullName = $file->getClientOriginalName();
-        // //Get file name without extension
-        // $fileNameOnly = basename($request->file('fileUpload')->getClientOriginalName(), '.'.$request->file('fileUpload')->getClientOriginalExtension());
-
         // store uploaded file and get tmp path
         $filename = $uploadFile->store('upload_tmp', 'local');
         $fullpath = getFullpath($filename, 'local');
@@ -106,13 +100,11 @@ class PluginInstaller
 
         //Folder to move file uploaded
         $pluginBasePath = path_join(app_path(), 'Plugins');
-        // $file->move($appPath.$pluginBasePath, $fileFullName);
-        // //Get file's path with full name (include extionsion of file)
-        // $fullpath = $appPath.$pluginBasePath.$fileFullName;
-        // //Get file's path with name only (folder file)
-        // $shortPath = $appPath.$pluginBasePath.$fileNameOnly;
+        if(!\File::exists($pluginBasePath)){
+            \File::makeDirectory($pluginBasePath, 0775);
+        }
 
-        $plugin = new Plugin();
+        // open zip file
         $zip = new ZipArchive;
         //Define variable like flag to check exitsed file config (config.json) before extract zip file
         $res = $zip->open($fullpath);
@@ -121,8 +113,6 @@ class PluginInstaller
         }
                 
         //Get folder into zip file
-        $folderAfterExtract = trim($zip->getNameIndex(0), '/');
-
         //Check existed file config (config.json)
         $config_path = null;
         for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -142,72 +132,66 @@ class PluginInstaller
             // get config.json
             $json = json_decode(File::get($config_path), true);
 
-            // $zip->extractTo($appPath.$pluginBasePath);
-            // $zip->close();
-            // //Delete zip file after extract
-            // unlink($fullPath);
-                    
-            // //Check folder name after extract, if named folder is different than name of zip file so rename to name of this file
-            // if ($folderAfterExtract !== null && $folderAfterExtract !== $fileNameOnly && strpos($folderAfterExtract, '/') === false) {
-            //     rename($appPath.$pluginBasePath.$folderAfterExtract, $appPath.$pluginBasePath.$fileNameOnly);
-            // }
-            // //Decode config file to get infomation of plugin uploaded
-            // $json = json_decode(file_get_contents($shortPath . '/config.json'), true);
-
             //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.jsonファイルが不正です'
             if ($json == null) {
-                File::deleteDirectory($shortPath);
-                return back()->with('errorMess', 'config.jsonファイルが不正です');
+                $response = back()->with('errorMess', 'config.jsonファイルが不正です');
             }
-            //Validate json file with fields require
-            $checkRuleConfig = static::checkRuleConfigFile($json);
-            if ($checkRuleConfig) {
-                //If json pass validation, prepare data to do continue
-                $plugin = static::prepareData($json, $plugin);
-                //Check if the name of the plugin has existed
-                $plugineExistByName = static::checkPluginNameExisted($plugin->plugin_name);
-                //Check if the uuid of the plugin has existed
-                $plugineExistByUUID = static::checkPluginUUIDExisted($plugin->uuid);
-                //Make path of folder where contain plugin with name is plugin's name
-                $pluginFolder = path_join($pluginBasePath, strtolower(preg_replace('/\s+/', '', $json['plugin_name'])));
-                //If both name and uuid existed, update data for this plugin
-                if ($plugineExistByName > 0 && $plugineExistByUUID > 0) {
-                    $pluginUpdated = static::updateExistedPlugin($plugin);
-                    if ($pluginUpdated) {
+            else{
+                //Validate json file with fields require
+                $checkRuleConfig = static::checkRuleConfigFile($json);
+                if ($checkRuleConfig) {
+                    //Check if the name of the plugin has existed
+                    $plugineExistByName = static::checkPluginNameExisted(array_get($json, 'plugin_name'));
+                    //Check if the uuid of the plugin has existed
+                    $plugineExistByUUID = static::checkPluginUUIDExisted(array_get($json, 'uuid'));
+                    //Make path of folder where contain plugin with name is plugin's name
+                    $pluginFolder = path_join($pluginBasePath, strtolower(preg_replace('/\s+/', '', array_get($json, 'plugin_name'))));
+
+                    //If json pass validation, prepare data to do continue
+                    $plugin = static::prepareData($json);
+                    //If both name and uuid existed, update data for this plugin
+                    if ($plugineExistByName > 0 && $plugineExistByUUID > 0) {
+                        $pluginUpdated = $plugin->saveOrFail();
                         //Rename folder with plugin name
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
                         admin_toastr('アップロードに成功しました');
-                        return back();
+                        $response = back();
                     }
-                }
-                //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
-                if ($plugineExistByName <= 0 && $plugineExistByUUID <= 0) {
-                    $plugin->save();
-                    static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
-                    admin_toastr('アップロードに成功しました');
-                    return back();
-                }
+                    //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
+                    elseif ($plugineExistByName <= 0 && $plugineExistByUUID <= 0) {
+                        $plugin->save();
+                        static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
+                        admin_toastr('アップロードに成功しました');
+                        $response = back();
+                    }
 
-                //If name has existed but uuid does not existed, then delete folder and return error with message
-                if ($plugineExistByName > 0 && $plugineExistByUUID <= 0) {
-                    File::deleteDirectory($shortPath);
-                    return back()->with('errorMess', '同名プラグインが存在します。確認してから一度お試してください。');
+                    //If name has existed but uuid does not existed, then delete folder and return error with message
+                    elseif ($plugineExistByName > 0 && $plugineExistByUUID <= 0) {
+                        $response = back()->with('errorMess', '同名プラグインが存在します。確認してから一度お試してください。');
+                    }
+                    //If uuid has existed but name does not existed, then delete folder and return error with message
+                    elseif ($plugineExistByName <= 0 && $plugineExistByUUID > 0) {
+                        $response = back()->with('errorMess', 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。');
+                    }
+                    //rename folder without Uppercase, space, tab, ...
+                    else{
+                        $response = back();
+                    }
+                } else {
+                    $response = back()->with('errorMess', 'config.jsonファイルが不正です');
                 }
-                //If uuid has existed but name does not existed, then delete folder and return error with message
-                if ($plugineExistByName <= 0 && $plugineExistByUUID > 0) {
-                    File::deleteDirectory($shortPath);
-                    return back()->with('errorMess', 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。');
-                }
-                //rename folder without Uppercase, space, tab, ...
-            } else {
-                File::deleteDirectory($shortPath);
-                return back()->with('errorMess', 'config.jsonファイルが不正です');
             }
-            //return error if plugin existed
         }
-
+        
+        // delete tmp folder
+        File::deleteDirectory($tmpfolderpath);
         $zip->close();
-        unlink($fullPath);
+        // delete zip
+        unlink($fullpath);
+        //return response
+        if(isset($response)){
+            return $response;
+        }
     }
     
     //Function validate config.json file with field required
@@ -215,7 +199,7 @@ class PluginInstaller
     {
         $rules = [
             'plugin_name' => 'required',
-            'plugin_type' => 'required|in:trigger,page,dashboard,batch',
+            'plugin_type' => 'required|in:trigger,page,dashboard,batch,document',
             'plugin_view_name' => 'required',
             'uuid' => 'required'
         ];
@@ -230,16 +214,37 @@ class PluginInstaller
     }
 
     //Function prepare data to do continue
-    protected static function prepareData($json, $plugin)
+    protected static function prepareData($json)
     {
-        $plugin->plugin_name = $json['plugin_name'];
-        $plugin->plugin_type = $json['plugin_type'];
-        $plugin->author = $json['author'] ?? '';
-        $plugin->version = $json['version'] ?? '';
-        $plugin->uuid = $json['uuid'];
-        $plugin->plugin_view_name = $json['plugin_view_name'];
-        $plugin->description = $json['description'] ?? '';
+        // find or new $plugin
+        $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
+        $plugin->plugin_name = array_get($json, 'plugin_name');
+        $plugin->plugin_type = array_get($json, 'plugin_type');
+        $plugin->author = array_get($json, 'author');
+        $plugin->version = array_get($json, 'version');
+        $plugin->uuid = array_get($json, 'uuid');
+        $plugin->plugin_view_name = array_get($json, 'plugin_view_name');
+        $plugin->description = array_get($json, 'description');
         $plugin->active_flg = true;
+
+        // set options 
+        $options = array_get($plugin, 'options', []);
+        // set if exists
+        if(array_key_value_exists('target_tables', $json)){
+            $target_tables = array_get($json, 'target_tables');
+            // if is_string $target_tables
+            if(is_string($target_tables)){
+                $target_tables = [$target_tables];
+            }
+            $options['target_tables'] = $target_tables;
+        }
+        if(array_key_value_exists('label', $json)){
+            $options['label'] = array_get($json, 'label');
+        }
+        if(array_key_value_exists('icon', $json)){
+            $options['icon'] = array_get($json, 'icon');
+        }
+        $plugin->options = $options;
 
         return $plugin;
     }
@@ -260,33 +265,23 @@ class PluginInstaller
             ->count();
     }
 
-    //Get plugin by custom_table id
+    //Get plugin by custom_table name
     //Where active_flg = 1 and target_tables contains custom_table id
     /**
      * @param $id
      * @return mixed
      */
-    public static function getPluginByTableId($id)
+    public static function getPluginByTable($table_name)
     {
-        return Plugin::where('plugin_type', 'trigger')
-            ->where('active_flg', '=', 1)
-            ->where('options->target_tables', $id)
-            //->whereRaw('JSON_CONTAINS(options, \'{"target_tables": "'.$id.'"}\')')
+        // espace name
+        $table_name_escape = trim(DB::getPdo()->quote($table_name), "'");
+        // execute query
+        return Plugin::where('active_flg', '=', 1)
+            ->whereIn('plugin_type', ['trigger', 'document'])
+            ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
+            //->where('options->target_tables', $table_name)
             ->get()
             ;
-    }
-
-    //Update record if existed both name and uuid
-    protected static function updateExistedPlugin($plugin)
-    {
-        $pluginUpdate = Plugin
-            ::where('plugin_name', '=', $plugin->plugin_name)
-            ->where('uuid', '=', $plugin->uuid)
-            ->update(['author' => $plugin->author, 'version' => $plugin->version, 'plugin_type' => $plugin->plugin_type, 'description' => $plugin->description, 'plugin_view_name' => $plugin->plugin_view_name]);
-        if ($pluginUpdate >= 0) {
-            return true;
-        }
-        return false;
     }
 
     //Copy tmp folder to app folder
@@ -393,7 +388,7 @@ class PluginInstaller
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 $event_triggers = $plugin->options['event_triggers'];
-                $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit'];
+                $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
                 $classname = getPluginNamespace($plugin->plugin_name, 'Plugin');
                 if (in_array($event, $event_triggers) && !in_array($event, $event_triggers_button) && class_exists($classname)) {
@@ -418,33 +413,25 @@ class PluginInstaller
         $buttonList = [];
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
-                $event_triggers = $plugin->options['event_triggers'];
-                $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit'];
-                if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
-                    array_push($buttonList, $plugin);
+                // get plugin_type
+                $plugin_type = array_get($plugin, 'plugin_type');
+                switch($plugin_type){
+                    case 'document':
+                        $event_triggers_button = ['form_menubutton_show'];
+                        if (in_array($event, $event_triggers_button)) {
+                            array_push($buttonList, $plugin);
+                        }
+                        break;
+                    case 'trigger':
+                        $event_triggers = $plugin->options['event_triggers'];
+                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                        if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
+                            array_push($buttonList, $plugin);
+                        }
+                    break;
                 }
             }
         }
         return $buttonList;
-    }
-
-    //Function handle click event
-    /**
-     * @param Request $request
-     * @return Response
-     */
-    public static function onPluginClick(Request $request)
-    {
-        if ($request->input('plugin_name') !== null) {
-            $classname = getPluginNamespace($request->input('plugin_name'), 'Plugin');
-            if (class_exists($classname)) {
-                //$response = app('\App\Plugin\\'.$request->input('plugin_name').'\Plugin')->execute();
-                app($classname)->execute();
-//                if($response){
-//                    return response('Success');
-//                }
-            }
-        }
-        return Response::create('Plugin Called', 200);
     }
 }

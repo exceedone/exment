@@ -318,7 +318,6 @@ return [
             "file" => "File",
             "user" => "User",
             "organization" => "Organization",
-            'document' => 'Document',
         ],
         'help' => [
             'search_enabled' => 'When set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>*If you set too many this setting on the same table, the performance may decline.',
