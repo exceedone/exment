@@ -18,8 +18,6 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueForm
 {
- 
-
     /**
      * Make a form builder.
      * @param $id if edit mode, set model id
@@ -87,62 +85,55 @@ trait CustomValueForm
                 $form->embeds('value', exmtrans("common.input"), function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
                     $this->setCustomFormColumns($form, $custom_form_block, $id);
                 });
-            } elseif ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY) {
+            } 
+            // one_to_many or manytomany
+            else{
+                list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                 $target_table = $custom_form_block->target_table;
-                // get label hasmany
-                $block_label = $custom_form_block->form_block_view_name;
-                if (!isset($block_label)) {
-                    $block_label = exmtrans('custom_form.table_one_to_many_label') . $target_table->table_view_name;
+                // 1:n
+                if($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY){
+                    // get form columns count
+                    $form_block_options = array_get($custom_form_block, 'options', []);
+                    // if form_block_options.hasmany_type is 1, hasmanytable
+                    if (boolval(array_get($form_block_options, 'hasmany_type'))) {
+                        $form->hasManyTable(
+                            $relation_name,
+                            $block_label,
+                            function ($form) use ($custom_form_block, $id) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                                    $this->setCustomFormColumns($form, $custom_form_block, $id);
+                                });
+                            }
+                        )->setTableWidth(12, 0);
+                    }
+                    // default,hasmany
+                    else{           
+                        $form->hasMany(
+                            $relation_name,
+                            $block_label,
+                            function ($form) use ($custom_form_block, $id) {
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
+                                    $this->setCustomFormColumns($form, $custom_form_block, $id);
+                                });
+                            }
+                        );         
+                    }
                 }
-                // get form columns count
-                $count = count($custom_form_block->custom_form_columns);
-                $form_block_options = array_get($custom_form_block, 'options', []);
-                $relation_name = getRelationNamebyObjs($this->custom_table, $target_table);
-                // if form_block_options.hasmany_type is 1, hasmanytable
-                if (boolval(array_get($form_block_options, 'hasmany_type'))) {
-                    $form->hasManyTable(
-                        $relation_name,
-                        $block_label,
-                        function ($form) use ($custom_form_block, $id) {
-                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
-                                $this->setCustomFormColumns($form, $custom_form_block, $id);
-                            });
-                        }
-                    )->setTableWidth(12, 0);
+                // n:n
+                else{
+                    $field = new Field\Listbox(
+                        getRelationNamebyObjs($this->custom_table, $target_table),
+                        [$block_label]
+                    );
+                    $field->options(function ($select) use ($target_table) {
+                        return getOptions($target_table, $select);
+                    });
+                    if (getModelName($target_table)::count() > 100) {
+                        $field->ajax(getOptionAjaxUrl($target_table));
+                    }
+                    $form->pushField($field);
                 }
-                // default,hasmany
-                else{           
-                    $form->hasMany(
-                        $relation_name,
-                        $block_label,
-                        function ($form) use ($custom_form_block, $id) {
-                            $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
-                                $this->setCustomFormColumns($form, $custom_form_block, $id);
-                            });
-                        }
-                    );         
-                }
-            // when many to many
-            } else {
-                $target_table = $custom_form_block->target_table;
-                // get label hasmany
-                $block_label = $custom_form_block->form_block_view_name;
-                if (!isset($block_label)) {
-                    $block_label = exmtrans('custom_form.table_many_to_many_label') . $target_table->table_view_name;
-                }
-
-                $field = new Field\Listbox(
-                    getRelationNamebyObjs($this->custom_table, $target_table),
-                    [$block_label]
-                );
-                $field->options(function ($select) use ($target_table) {
-                    return getOptions($target_table, $select);
-                });
-                if (getModelName($target_table)::count() > 100) {
-                    $field->ajax(getOptionAjaxUrl($target_table));
-                }
-                $form->pushField($field);
-            }
+            } 
         }
 
         $calc_formula_array = [];

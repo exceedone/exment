@@ -13,8 +13,8 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
 {
-    
-    /** 
+
+    /**
      * create show form list
      */
     protected function createShowForm($id = null)
@@ -27,11 +27,46 @@ trait CustomValueShow
                 if (!$custom_form_block->available) {
                     continue;
                 }
-                foreach ($custom_form_block->custom_form_columns as $form_column) {
-                    $column = $form_column->custom_column;
-                    $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function($v) use($column){
-                        if(is_null($this)){return '';}
-                        return $this->getValue($column, true);
+                if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
+                    foreach ($custom_form_block->custom_form_columns as $form_column) {
+                        $column = $form_column->custom_column;
+
+                        $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($column) {
+                            if (is_null($this)) {
+                                return '';
+                            }
+                            return $this->getValue($column, true);
+                        });
+                    }
+                }else{
+                    list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
+                    $target_table = $custom_form_block->target_table;
+                    $show->{$relation_name}($block_label, function($grid) use($custom_form_block){
+                        foreach ($custom_form_block->custom_form_columns as $form_column) {
+                            $column = $form_column->custom_column;
+
+                            $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->sortable()->display(function($v) use($column){
+                                if(is_null($this)){return '';}
+                                return $this->getValue($column, true);
+                            });
+                            
+                            // $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function($v) use($column){
+                            //     if(is_null($this)){return '';}
+                            //     return $this->getValue($column, true);
+                            // });
+                        }
+
+                        $grid->disableFilter();
+                        $grid->disableCreateButton();
+                        $grid->disableExport();
+                        $grid->tools(function ($tools) {
+                            $tools->batch(function ($batch) {
+                                $batch->disableDelete();
+                            });
+                        });
+                        $grid->disableRowSelector();
+                        $grid->disableActions();
+
                     });
                 }
             }
@@ -59,7 +94,7 @@ trait CustomValueShow
                     $tools->disableDelete();
                 });
             }
-            
+
             // show plugin button
             $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
             if(count($listButtons) > 0){
@@ -70,5 +105,9 @@ trait CustomValueShow
                 });
             }
         });
+    }
+
+    protected function setShowFormItem($show, $custom_form_block){
+
     }
 }
