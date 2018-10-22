@@ -1357,7 +1357,6 @@ if (!function_exists('setSelectOptionItem')) {
             // $isValueText is true(split comma)
             if ($isValueText) {
                 $splits = explode(',', $item);
-                // 1つ以上であれば(","があれば)
                 if (count($splits) > 1) {
                     $options[trim($splits[0])] = trim($splits[1]);
                 } else {

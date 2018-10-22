@@ -129,14 +129,14 @@ class TemplateImporter
             // get config.json
             $json = json_decode(File::get($config_path), true);
             if (!isset($json)) {
-                // TODO:エラー
+                // TODO:Error
                 return;
             }
 
             // get template name
             $template_name = array_get($json, 'template_name');
             if (!isset($template_name)) {
-                //TODO:エラー
+                // TODO:Error
                 return;
             }
 
@@ -334,14 +334,14 @@ class TemplateImporter
     {
         // If file not exists
         if (!File::exists($basePath)) {
-            // TODO:エラー
+            // TODO:Error
         }
 
         // Get file
         $filestring = File::get($basePath);
         $json = json_decode($filestring, true);
         if (!isset($json)) {
-            // TODO:エラー
+            // TODO:Error
             return;
         }
 

@@ -15,7 +15,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 
 /**
- * FPDIのラッパークラス.
+ * FPDI Wrapper Class.
  */
 abstract class AbstractFPDIService extends Fpdi\TcpdfFpdi
 {
@@ -28,42 +28,22 @@ abstract class AbstractFPDIService extends Fpdi\TcpdfFpdi
  */
 class DocumentPdfService extends AbstractFPDIService
 {
-    // ====================================
-    // 定数宣言
-    // ====================================
-
-    /** 通貨単位 */
-    const MONETARY_UNIT = '円';
-
-    /** FONT ゴシック */
+    /** FONT Gothic */
     const FONT_GOTHIC = 'kozgopromedium';
-    /** FONT 明朝 */
-    const FONT_SJIS = 'kozminproregular';
-
-    // ====================================
-    // 変数宣言
-    // ====================================
-
-    /*** 購入詳細情報 幅サイズ配列
-     * @var array
-     */
-    private $widthCell = array();
 
     // --------------------------------------
-    // Font情報のバックアップデータ
-    /** @var string フォント名 */
-    private $bakFontFamily;
-    /** @var string フォントスタイル */
+    // Font backup
+    /** @var string Font Style */
     private $bakFontStyle;
-    /** @var string フォントサイズ */
+    /** @var string Font size */
     private $bakFontSize;
-    // lfTextのoffset
+    // lfText's offset
     private $baseOffsetX = 0;
     private $baseOffsetY = -4;
 
-    /** ダウンロードファイル名 @var string */
+    /** Download file name @var string */
     private $downloadFileName = null;
-    /*font size */
+    /* font size */
     private $fontSize = 10;
 
     /**
@@ -75,7 +55,7 @@ class DocumentPdfService extends AbstractFPDIService
 
     private $model;
     /**
-     * コンストラクタ.
+     * construct
      * @param Request $request
      * @param $document
      */
@@ -85,25 +65,17 @@ class DocumentPdfService extends AbstractFPDIService
         $this->documentInfo = $documentInfo;
         $this->documentItems = $documentItems;
 
-        // set baseInfo
-        //$this->baseInfo = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
-
         parent::__construct();
 
-        // // Fontの設定しておかないと文字化けを起こす
-        // $this->SetFont(self::FONT_SJIS);
         // // Set margin PDF
         $this->SetMargins(20, 20);
         $this->baseOffsetX = 20;
         $this->baseOffsetY = 20;
-        // // ヘッダーの出力を無効化
+        // // disable print header and footer
         $this->setPrintHeader(false);
-        // // フッターの出力を無効化
         $this->setPrintFooter(true);
 
         $this->AddPage();
-        // $this->setFooterMargin();
-        // $this->setFooterFont(array(self::FONT_SJIS, '', 8));
     }
 
     /**
@@ -115,18 +87,6 @@ class DocumentPdfService extends AbstractFPDIService
         // Add Document Item using $documentItems array
         foreach($this->documentItems as $documentItem)
         {
-            // $x = array_get($documentItem, 'x');
-            // $y = array_get($documentItem, 'y');
-            // $width = array_get($documentItem, 'width', 0);
-            // $height = array_get($documentItem, 'height', 0);
-
-            // $font_size = array_get($documentItem, 'font_size', $this->fontSize);
-            // $font_style = array_get($documentItem, 'font_style');
-            // $align = array_get($documentItem, 'align');
-            // $valign = array_get($documentItem, 'valign');
-            // $border = array_get($documentItem, 'border');
-            // $fixWidth = array_get($documentItem, 'fixWidth', false);
-            
             //tables
             if(array_get($documentItem, 'document_item_type') == 'table'){
                 // get children
@@ -199,8 +159,8 @@ class DocumentPdfService extends AbstractFPDIService
 
     /**
      * get pdf file name
-     * PDFが1枚の時は注文番号をファイル名につける.
-     * @return string ファイル名
+     *  When there is one PDF, attach the order number to the file name.
+     * @return string File name
      */
     public function getPdfFileName()
     {
@@ -209,10 +169,7 @@ class DocumentPdfService extends AbstractFPDIService
         if(!isset($filename)){
             $filename = make_uuid();
         }
-        // get filename from document_type
-        //$document_array = array_get(Define::DOCUMENT_TYPE, $this->document->document_type);
-        //TODO:hsato
-        //$this->downloadFileName = $document_array['label']. '_' . $this->document->document_code . '.pdf';
+        // set from document_type
         $this->downloadFileName = $filename.'.pdf';
         return $this->downloadFileName;
     }
@@ -230,11 +187,11 @@ class DocumentPdfService extends AbstractFPDIService
      */
     protected function addPdfPage()
     {
-        // ページを追加
+        // Add Page
         $this->AddPage();
-        // テンプレートに使うテンプレートファイルのページ番号を取得
+        //Get page number of template file to use for template
         $tplIdx = $this->importPage(1);
-        // テンプレートに使うテンプレートファイルのページ番号を指定
+        //Specify the page number of the template file to use for the template
         $this->useTemplate($tplIdx, null, null, null, null, true);
     }
     
@@ -543,10 +500,6 @@ class DocumentPdfService extends AbstractFPDIService
                         if (count($length_array) <= 1) {
                             $str = '';
                         }
-                        // elseif(count($length_array) == 2) {
-                        //     $str = getValue($model, $length_array[1], true);
-                        // }
-                        //else, getting value recursively
                         else{
                             // get comma string from index 1.
                             $length_array = array_slice($length_array, 1);
@@ -650,16 +603,16 @@ class DocumentPdfService extends AbstractFPDIService
     }
     
     /**
-     * 基準座標を設定する.
+     * Set base position.
      *
      * @param int $x
      * @param int $y
      */
     protected function setBasePosition($x = null, $y = null)
     {
-        // 現在のマージンを取得する
+        // Get current margin position.
         $result = $this->getMargins();
-        // 基準座標を指定する
+        // Set base position
         $actualX = is_null($x) ? $result['left'] : $result['left'] + $x;
         $this->SetX($actualX);
         $actualY = is_null($y) ? $result['top'] : $result['top'] + $y;

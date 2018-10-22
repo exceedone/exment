@@ -74,10 +74,7 @@ class Define
 
     public const PLUGIN_TYPE_PAGE = 'page';
     public const PLUGIN_TYPE_TRIGGER = 'trigger';
-    public const PLUGIN_TYPE = [
-        self::PLUGIN_TYPE_PAGE,
-        self::PLUGIN_TYPE_TRIGGER,
-    ];
+    public const PLUGIN_TYPE_DOCUMENT = 'document';
     
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
@@ -192,13 +189,6 @@ class Define
             self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT,
             self::AUTHORITY_VALUE_CUSTOM_VALUE_VIEW,
         ]
-        // , self::AUTHORITY_TYPE_VIEW => [
-        //     'label' => 'ビュー', 'defines' =>[
-        //         'custom_view_edit' => ['label' => 'ビュー定義の変更・削除', 'help' => ''],
-        //         'custom_view_share' => ['label' => 'ビュー定義の共有', 'help' => ''],
-        //         'custom_view_use' => ['label' => 'ビュー定義の使用', 'help' => ''],
-        //     ]
-        // ]
         , self::AUTHORITY_TYPE_VALUE => [
             self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT,
             self::AUTHORITY_VALUE_CUSTOM_VALUE_VIEW,

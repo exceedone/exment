@@ -16,11 +16,6 @@ class InstallSeeder extends Seeder
      */
     public function run()
     {
-        // システム用のユーザー組織がインストールされていなければインストール
-        //if(!Schema::hasTable(getModelName(Define::SYSTEM_TABLE_NAME_USER)::getTableName())){
-
-        //}
-
         //DB::beginTransaction();
         try
         {

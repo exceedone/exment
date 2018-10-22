@@ -21,6 +21,7 @@ composer require exceedone/exment=dev-master
 php artisan vendor:publish --provider="Encore\Admin\AdminServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=public --force
+php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=lang --force
 ~~~
 
 ## Change config

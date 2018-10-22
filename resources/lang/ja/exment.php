@@ -5,6 +5,7 @@ return [
         'home' => 'HOME',
         'error' => 'エラー',
         'import' => 'インポート',
+        'change' => '変更',
         'reqired' => '必須',
         'input' => '入力',
         'available_true' => '有効',
@@ -165,6 +166,7 @@ return [
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
+            'document' => 'ドキュメント',
         ],
     ],
 
@@ -352,6 +354,7 @@ return [
              'dynamic' => '列',
              'fixed' => '固定値',
              'symbol' => '記号',
+             'input_number' => '数値を入力',
         ],
         
         'system_definitions' => [
@@ -408,6 +411,7 @@ return [
         'items' => '項目',
         'add_all_items' => 'すべて項目に追加',
         'changedata_target_column' => '列を選択',
+        'changedata_target_column_available' => '設定済',
         'changedata_target_column_when' => 'の項目を選択したとき',
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',

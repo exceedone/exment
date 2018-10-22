@@ -129,7 +129,7 @@ EOT;
 
         // set button label
         if(is_null($this->buttonlabel)){
-            $this->buttonlabel = '変更';
+            $this->buttonlabel = exmtrans('common.change');
         }
 
         // set script

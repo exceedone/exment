@@ -59,13 +59,9 @@ class PluginController extends AdminControllerBase
 
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
         $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
-        $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($plugin_type) {
-            switch ($plugin_type) {
-                case 'page':
-                    return '画面';
-                default:
-                    return '機能';
-            }
+        $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($value) {
+            if(is_null($value)){return '';}
+            return exmtrans("plugin.plugin_type_options.$value");
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
         $grid->column('version', exmtrans("plugin.version"));
@@ -235,22 +231,30 @@ class PluginController extends AdminControllerBase
      */
     protected function form($id = null)
     {
+        $plugin = Plugin::find($id);
+
+        // create form
         $form = new Form(new Plugin);
         $form->display('uuid', exmtrans("plugin.uuid"));
         $form->display('plugin_name', exmtrans("plugin.plugin_name"));
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
+        // create as label
+        $form->display('plugin_type_label', exmtrans("plugin.plugin_type"))->default(function($value) use($plugin){
+            if(is_null($plugin)){return '';}
+            return exmtrans("plugin.plugin_type_options.{$plugin->plugin_type}");
+        });
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
         $plugin_type = Plugin::getFieldById($id, 'plugin_type');
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-            if (in_array($plugin_type, ['trigger', 'document'])) {
+            if (in_array($plugin_type, [Define::PLUGIN_TYPE_TRIGGER, Define::PLUGIN_TYPE_DOCUMENT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::all()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
                 // only trigger
-                if ($plugin_type == 'trigger') {
+                if ($plugin_type == Define::PLUGIN_TYPE_TRIGGER) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($value) {
                         return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
                     })->help(exmtrans("plugin.help.event_triggers"));

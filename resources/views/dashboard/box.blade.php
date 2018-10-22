@@ -46,7 +46,7 @@
 </div>
 
 
-{{-- TODO:scssに記載 --}}
+{{-- TODO:scss --}}
 <style type="text/css">
         
     [class^="col-"] {
