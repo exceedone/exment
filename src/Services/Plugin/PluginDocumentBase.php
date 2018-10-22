@@ -30,7 +30,7 @@ abstract class PluginDocumentBase {
 
         // create pdf
         $service = new DocumentPdfService($this->custom_value, array_get($documentItem, 'info', []), array_get($documentItem, 'items', []));
-        $service->makeContractPdf();
+        $service->makePdf();
 
         // save
         $document_attachment_file = $service->getPdfPath();
@@ -56,8 +56,7 @@ abstract class PluginDocumentBase {
         $this->executed();
 
         // 
-        admin_toastr('Create Success!');
-        return response('Success');
+        return response($this->getResponseMessage(true));
     }
 
     protected function getDocumentItem(){
@@ -82,6 +81,23 @@ abstract class PluginDocumentBase {
         // save file
         $file = ExmentFile::getData($path);
         return $file;
+    }
+    
+    /**
+     * get response message
+     */
+    protected function getResponseMessage($result)
+    {
+        if($result){
+            return ([
+                'status'  => true,
+                'message' => 'Create Document Success!!', //TODO:trans
+            ]);
+        }
+        return ([
+            'status'  => false,
+            'message' => 'Create Document failure', //TODO:trans
+        ]);
     }
     
     /**

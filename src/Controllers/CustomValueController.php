@@ -9,6 +9,7 @@ use Encore\Admin\Controllers\ModelForm;
 use Encore\Admin\Middleware\Pjax;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -134,7 +135,8 @@ class CustomValueController extends AdminControllerTableBase
     public function update($id)
     {
         // call form using id
-        return $this->form($id)->update($id);
+        $response = $this->form($id)->update($id);
+        return $response;
     }
 
     /**
@@ -234,9 +236,16 @@ class CustomValueController extends AdminControllerTableBase
                     $class = new $classname($this->custom_table, $id);
                     break;
             }
-            $class->execute();
+            $response = $class->execute();
         }
-        return Response::create('Plugin Called', 200);
+        if (isset($response) && $response instanceof HttpResponse) {
+            return $response;
+        }
+        //TODO:error
+        return response([
+            'status'  => false,
+            'message' => null,
+        ]);
     }
 
     /**

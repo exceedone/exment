@@ -567,7 +567,7 @@ if (!function_exists('getValue')) {
      * @param bool $isonly_label if column_type is select_table or select_valtext, only get label 
      * @return string
      */
-    function getValue($custom_value, $column = null, $isonly_label = false)
+    function getValue($custom_value, $column = null, $isonly_label = false, $format = '')
     {
         if(is_null($custom_value)){return $isonly_label ? '' : null;}
 
@@ -587,7 +587,7 @@ if (!function_exists('getValue')) {
                 continue;
             }
             
-            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label);    
+            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label, $format);    
         }
 
         // if is collection
@@ -610,10 +610,10 @@ if (!function_exists('getValueUseTable')) {
      * Get Custom Value
      * @param array|CustomValue $value trget value 
      * @param string|array|CustomColumn $column target column_name or CustomColumn object. If null, it's label column
-     * @param mixin $label if column_type is select_table or select_valtext, only get label 
+     * @param mixin $label if column_type is select_table or select_valtext, only get label.
      * @return string
      */
-    function getValueUseTable($custom_table, $value, $column = null, $label = false)
+    function getValueUseTable($custom_table, $value, $column = null, $label = false, $format = '')
     {
         if (is_null($value)) {
             return null;
@@ -653,6 +653,7 @@ if (!function_exists('getValueUseTable')) {
                     if($lastIndex){
                         return $loop_value;
                     }
+
                     // get custom table. if CustomValue
                     if($loop_value instanceof CustomValue){
                         $loop_custom_table = $loop_value->getCustomTable();
@@ -836,6 +837,15 @@ if (!function_exists('getValueUseTable')) {
             // get symbol
             $symbol = array_get($column_array, 'options.currency_symbol');
             return getCurrencySymbolLabel($symbol, $val);
+        }
+        // datetime, date
+        elseif(in_array($column_type, ['datetime', 'date'])){
+            // if not empty format, using carbon
+            if(!is_nullorempty($format)){
+                return (new \Carbon\Carbon($val))->format($format) ?? null;
+            }
+            // else, return
+            return $val;
         }
         else{
             // if not label, return 

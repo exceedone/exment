@@ -82,7 +82,7 @@ class DocumentPdfService extends AbstractFPDIService
      * Create PDF
      * @return boolean
      */
-    public function makeContractPdf()
+    public function makePdf()
     {
         // Add Document Item using $documentItems array
         foreach($this->documentItems as $documentItem)
@@ -117,7 +117,7 @@ class DocumentPdfService extends AbstractFPDIService
                                     $image = null;
                                 } else {
                                     // todo:how to get only path
-                                    $image = array_get($this->model->value, $length_array[1]);
+                                    $image = array_get(array_get($this->model, 'value'), $length_array[1]);
                                 }
                             } elseif (strpos($match, "base_info") !== false) {
                                 $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
@@ -125,7 +125,7 @@ class DocumentPdfService extends AbstractFPDIService
                                 if (count($length_array) <= 1) {
                                     $image = null;
                                 } else {
-                                    $image = array_get($base_info->value, $length_array[1]);
+                                    $image = array_get(array_get($base_info, 'value'), $length_array[1]);
                                 }
                             }
                         } catch (Exception $e) {
@@ -348,7 +348,7 @@ class DocumentPdfService extends AbstractFPDIService
 
             foreach($target_columns as &$target_column){
                 // get text
-                $text = getValue($child, array_get($target_column, 'column_name'), true);
+                $text = getValue($child, array_get($target_column, 'column_name'), true, array_get($target_column, 'format'));
                 $text = $this->getText($text, $child, $target_column);
                     
                 $this->setMultiCell(
@@ -503,7 +503,7 @@ class DocumentPdfService extends AbstractFPDIService
                         else{
                             // get comma string from index 1.
                             $length_array = array_slice($length_array, 1);
-                            $str = getValue($this->model, implode(',', $length_array), true);
+                            $str = getValue($this->model, implode(',', $length_array), true, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
@@ -534,7 +534,7 @@ class DocumentPdfService extends AbstractFPDIService
                         if (count($length_array) <= 1) {
                             $str = '';
                         }else{
-                            $str = getValue($base_info, $length_array[1]);
+                            $str = getValue($base_info, $length_array[1], false, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
@@ -624,6 +624,7 @@ class DocumentPdfService extends AbstractFPDIService
             'width' => 0,
             'height' => 0,
             'font_size' => $this->FontSizePt,
+            'format' => '',
             'style' => '',
             'fillColor' => '',
             'color' => '',

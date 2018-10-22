@@ -28,13 +28,25 @@ class PluginMenuButton
         }
         return <<<EOT
         $('#plugin_menu_button_$uuid').off('click').on('click', function(){
-            $.pjax({
+            $.ajax({
                 type: "POST",
                 url: "$url",
-                container: "#pjax-container",
+                //container: "#pjax-container",
                 data:{ _pjax: true, _token: LA.token,uuid:"$uuid"},
-                success:function(reponse) {
-                    toastr.success(reponse);
+                success:function(repsonse) {
+                    //toastr.success(repsonse);
+                    $.pjax.reload('#pjax-container');
+                    if(hasValue(repsonse.status) && repsonse.status){
+                        if(repsonse.status){
+                            toastr.success(repsonse.message);
+                        }
+                        else{
+                            toastr.error(repsonse.message);
+                        }
+                    }
+                },
+                error: function(repsonse){
+                    toastr.error(repsonse.message);
                 }
             });
         });
