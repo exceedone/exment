@@ -11,7 +11,7 @@
 | ---- | ---- | ---- |
 | plugin | Plugin | プラグインのEloquentインスタンス |
 
-### PluginTrigger
+### PluginTriggerBase
 - namespace Exceedone\Exment
 - extends Exceedone\Exment\PluginBase
 - プラグイン(トリガー)の基底クラス。

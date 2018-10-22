@@ -34,8 +34,8 @@ https://www.famkruithof.net/uuid/uuidgen
 <?php
 namespace App\Plugins\PluginDemoTrigger;
 
-use Exceedone\Exment\Services\Plugin\PluginTrigger;
-class Plugin extends PluginTrigger
+use Exceedone\Exment\Services\Plugin\PluginTriggerBase;
+class Plugin extends PluginTriggerBase
 {
     /**
      * Plugin Trigger
@@ -50,8 +50,8 @@ class Plugin extends PluginTrigger
 - Namespace should be ** App\Plugins\(plugin name) **.
 - When it matches the trigger condition registered on the plugin management screen, the plugin is called and the execute function in Plugin.php is executed.
 
-- The Plugin class extends class "PluginTrigger".  
-PluginTrigger owns properties such as the caller's custom table $custom_table and table value $custom_value,  
+- The Plugin class extends class "PluginTriggerBase".  
+PluginTriggerBase owns properties such as the caller's custom table $custom_table and table value $custom_value,  
 When the execute function is called, its value is assigned to that property.  
 For details on properties, please refer to [Plugin Reference](plugin_reference.md).
 

@@ -29,14 +29,32 @@ trait CustomValueShow
                 }
                 if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        $column = $form_column->custom_column;
-
-                        $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($column) {
-                            if (is_null($this)) {
-                                return '';
-                            }
-                            return $this->getValue($column, true);
-                        });
+                        //// change value using custom form value
+                        switch (array_get($form_column, 'form_column_type')) {
+                            // for table column
+                            case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
+                                $column = $form_column->custom_column;
+                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column) {
+                                    if (is_null($this)) {
+                                        return '';
+                                    }
+                                    return $this->getValue($column, true);
+                                });
+                                break;
+                            case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
+                                $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($form_column) {
+                                    return $item['id'] == array_get($form_column, 'form_column_target_id');
+                                });
+                                // get form column name
+                                $form_column_name = array_get($form_column_obj, 'name');
+                                $column_view_name =  exmtrans("custom_column.system_columns.".$form_column_name);
+                                $show->field($form_column_name, $column_view_name)->as(function ($v) use ($form_column_name) {
+                                    return array_get($this, $form_column_name);
+                                });
+                                break;
+                            default:
+                                continue;
+                        }
                     }
                 }else{
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
@@ -49,11 +67,6 @@ trait CustomValueShow
                                 if(is_null($this)){return '';}
                                 return $this->getValue($column, true);
                             });
-                            
-                            // $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function($v) use($column){
-                            //     if(is_null($this)){return '';}
-                            //     return $this->getValue($column, true);
-                            // });
                         }
 
                         $grid->disableFilter();

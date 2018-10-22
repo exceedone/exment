@@ -9,7 +9,7 @@ namespace Exceedone\Exment\Services\Plugin;
 
 use App\Http\Controllers\Controller;
 
-abstract class PluginPageController extends Controller
+abstract class PluginPageControllerBase extends Controller
 {
     
 }

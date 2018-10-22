@@ -5,7 +5,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
 
-abstract class PluginDocument {
+abstract class PluginDocumentBase {
     use PluginBase;
     
     protected $custom_table;
@@ -24,6 +24,9 @@ abstract class PluginDocument {
         $table_name = $this->custom_table->table_name;
         // get document items from json
         $documentItem = $this->getDocumentItem();
+
+        // execute prependExecute
+        $this->executing();
 
         // create pdf
         $service = new DocumentPdfService($this->custom_value, array_get($documentItem, 'info', []), array_get($documentItem, 'items', []));
@@ -45,6 +48,12 @@ abstract class PluginDocument {
             'document_name' => $filename,
         ]);
         $document_model->save();
+
+        // set document value
+        $this->document_value = $document_model;
+
+        // execute appendExecute
+        $this->executed();
 
         // 
         admin_toastr('Create Success!');
@@ -78,10 +87,10 @@ abstract class PluginDocument {
     /**
      * execute before creating document
      */
-    abstract protected function prenendExecute();
+    abstract protected function executing();
     
     /**
      * execute after creating document
      */
-    abstract protected function appendExecute();
+    abstract protected function executed();
 }

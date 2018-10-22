@@ -7,7 +7,7 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-class PluginTrigger {
+class PluginTriggerBase {
     use PluginBase;
     
     public $custom_table;
