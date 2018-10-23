@@ -287,7 +287,7 @@ class DocumentPdfService extends AbstractFPDIService
         // get x and y
         $x = array_get($options, 'x');
         $y = array_get($options, 'y');
-        $target_columns = $options['target_columns'];
+        $target_columns = array_get($options, 'target_columns');
 
         // set base position
         $this->setBasePosition($x, $y);
@@ -303,7 +303,6 @@ class DocumentPdfService extends AbstractFPDIService
         // get content width
         $contentWidth = $this->getContentWidth();
         // set header info.
-        // get real_width if not *
         foreach($target_columns as &$target_column){
             // set header name using table
             if (!array_key_value_exists('label', $target_column)) {
@@ -316,9 +315,7 @@ class DocumentPdfService extends AbstractFPDIService
 
             // set default target_column
             $target_column['border'] = 1;
-        }
 
-        foreach($target_columns as &$target_column){
             // set header options
             $table_header = array_merge(
                 $this->getDefaultOptions(),
@@ -346,10 +343,22 @@ class DocumentPdfService extends AbstractFPDIService
             $this->SetX($x0);
             $y0 = $this->GetY();
 
-            foreach($target_columns as &$target_column){
-                // get text
-                $text = getValue($child, array_get($target_column, 'column_name'), true, array_get($target_column, 'format'));
-                $text = $this->getText($text, $child, $target_column);
+            foreach($target_columns as $index => &$target_column){
+                ///// get text
+                // has column_name
+                if(array_key_value_exists('column_name', $target_column)){
+                    $text = getValue($child, array_get($target_column, 'column_name'), true, array_get($target_column, 'format'));
+                    $text = $this->replaceText($text, $target_column);
+                }
+                elseif(array_key_value_exists('loop_index', $target_column)){
+                    $text = $index;
+                }
+                elseif(array_key_value_exists('loop_no', $target_column)){
+                    $text = ($index + 1);
+                }
+                else{
+                    continue;
+                }
                     
                 $this->setMultiCell(
                     $text,
@@ -480,7 +489,7 @@ class DocumentPdfService extends AbstractFPDIService
     }
 
     /**
-     * get output text
+     * get output text from document item
      */
     protected function getText($text, $documentItem = []){
         // check string
@@ -543,6 +552,13 @@ class DocumentPdfService extends AbstractFPDIService
             }
         }
 
+        return $this->replaceText($text, $documentItem);
+    }
+
+    /**
+     * replace text. ex.comma, &yen, etc...
+     */
+    protected function replaceText($text, $documentItem){
         // add comma if number_format
         if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)){
             $text = number_format($text);

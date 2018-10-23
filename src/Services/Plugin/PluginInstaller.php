@@ -145,7 +145,7 @@ class PluginInstaller
                     //Check if the uuid of the plugin has existed
                     $plugineExistByUUID = static::checkPluginUUIDExisted(array_get($json, 'uuid'));
                     //Make path of folder where contain plugin with name is plugin's name
-                    $pluginFolder = path_join($pluginBasePath, strtolower(preg_replace('/\s+/', '', array_get($json, 'plugin_name'))));
+                    $pluginFolder = path_join($pluginBasePath, pascalize(preg_replace('/\s+/', '', array_get($json, 'plugin_name'))));
 
                     //If json pass validation, prepare data to do continue
                     $plugin = static::prepareData($json);

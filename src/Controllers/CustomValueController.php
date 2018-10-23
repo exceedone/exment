@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
+use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\ModelForm;

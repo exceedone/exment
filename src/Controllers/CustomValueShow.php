@@ -119,8 +119,4 @@ trait CustomValueShow
             }
         });
     }
-
-    protected function setShowFormItem($show, $custom_form_block){
-
-    }
 }
