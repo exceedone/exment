@@ -711,7 +711,7 @@ if (!function_exists('getValueUseTable')) {
         if (in_array($column_type, ['select', 'select_valtext'])) {
             $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
             $select_item = array_get($column_array, $array_get_key);
-            $options = createSelectOptions(CustomColumn::getEloquent($custom_table, $column));
+            $options = createSelectOptions(CustomColumn::getEloquent($column, $custom_table));
             if (!array_keys_exists($val, $options)) {
                 return null;
             }
