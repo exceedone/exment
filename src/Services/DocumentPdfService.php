@@ -543,7 +543,7 @@ class DocumentPdfService extends AbstractFPDIService
                         if (count($length_array) <= 1) {
                             $str = '';
                         }else{
-                            $str = getValue($base_info, $length_array[1], false, array_get($documentItem, 'format'));
+                            $str = getValue($base_info, $length_array[1], true, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
