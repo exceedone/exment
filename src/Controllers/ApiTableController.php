@@ -4,9 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 
 /**
  * Api about target table 

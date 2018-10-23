@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;

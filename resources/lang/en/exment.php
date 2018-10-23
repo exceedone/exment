@@ -5,6 +5,7 @@ return [
         'home' => 'HOME',
         'error' => 'Error',
         'import' => 'Import',
+        'change' => 'Change',
         'reqired' => 'Required',
         'input' => 'Input',
         'available_true' => 'Available',
@@ -165,6 +166,7 @@ return [
         'plugin_type_options' => [
             'page' => 'Page',
             'trigger' => 'Trigger',
+            'document' => 'Document',
         ],
     ],
 
@@ -318,7 +320,6 @@ return [
             "file" => "File",
             "user" => "User",
             "organization" => "Organization",
-            'document' => 'Document',
         ],
         'help' => [
             'search_enabled' => 'When set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>*If you set too many this setting on the same table, the performance may decline.',
@@ -353,6 +354,7 @@ return [
              'dynamic' => 'Column',
              'fixed' => 'Fixed Value',
              'symbol' => 'Symbol',
+             'input_number' => 'Input Number',
         ],
         
         'system_definitions' => [
@@ -409,6 +411,7 @@ return [
         'items' => 'Items',
         'add_all_items' => 'Add All Items',
         'changedata_target_column' => 'Select Column',
+        'changedata_target_column_available' => 'Already Setting',
         'changedata_target_column_when' => 'When select this column,',
         'changedata_column' => 'Select Link Column',
         'changedata_column_then' => 'Copy this column',

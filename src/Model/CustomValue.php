@@ -61,8 +61,15 @@ class CustomValue extends ModelBase
     public function getValue($column = null, $label = false){
         return getValue($this, $column, $label);
     }
-    public function setValue($key, $val){
+    public function setValue($key, $val = null){
         if(!isset($key)){return;}
+        // if key is array, loop key value
+        if(is_array($key)){
+            foreach($key as $k => $v){
+                $this->setValue($k, $v);
+            }
+            return $this;
+        }
         $value = $this->value;
         if(is_null($value)){$value = [];}
         $value[$key] = $val;

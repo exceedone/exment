@@ -64,10 +64,10 @@ Route::group([
         foreach (CustomTable::all()->pluck('table_name') as $value)
         {
             $router->post("data/{$value}/import", 'CustomValueController@import');
+            $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
             $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->resource("data/{$value}", 'CustomValueController');
-            //$router->get("data/{$value}/{id}/document", 'CustomValueController@getDocumentForm');
-            //$router->post("data/{$value}/{id}/document", 'CustomValueController@postDocumentForm');
             $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
             $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
             $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
@@ -90,12 +90,6 @@ Route::group([
     $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
     $router->get('auth/menu/menutype', 'MenuController@menutype');
     $router->post('auth/menu/menutargetvalue', 'MenuController@menutargetvalue');
-
-    // TODO:hard coding
-    $router->get("data/estimate/{id}/doc", 'CustomValueController@getDocumentForm');
-    $router->post("data/estimate/{id}/doc", 'CustomValueController@postDocumentForm');
-    $router->get("data/invoice/{id}/doc", 'CustomValueController@getDocumentForm');
-    $router->post("data/invoice/{id}/doc", 'CustomValueController@postDocumentForm');
 
     $router->get('files/{uuid}', function($uuid){
         return File::download($uuid);

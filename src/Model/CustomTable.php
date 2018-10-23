@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Model\CustomValue;
 
 getCustomTableExt();
 

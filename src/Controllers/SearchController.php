@@ -398,7 +398,6 @@ EOT;
                 break;   
             // select_table(select box)             
             case 'select_table':
-                // テーブル「カスタム列」の、列「options.search_target_table」が、value_idであるレコード一覧を取得する
                 // Retrieve the record list whose value is "value_id" in the column "options.search_target_table" of the table "custom column"
                 $selecttable_columns = CustomColumn::where('column_type', 'select_table')
                     ->where('options->search_target_table', $value_table->id)

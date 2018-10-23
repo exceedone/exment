@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
-use Illuminate\Http\RedirectResponse;
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -97,9 +96,6 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->batch(function (Grid\Tools\BatchActions $actions) {
-                $actions->disableDelete();
-            });
             $tools->append(new Tools\GridChangePageMenu('view', $this->custom_table, false));
         });
         return $grid;

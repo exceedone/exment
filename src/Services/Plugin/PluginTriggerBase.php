@@ -5,9 +5,9 @@
  * Date: 6/8/2018
  * Time: 4:56 PM
  */
-namespace Exceedone\Exment\Plugin;
+namespace Exceedone\Exment\Services\Plugin;
 
-class PluginTrigger {
+class PluginTriggerBase {
     use PluginBase;
     
     public $custom_table;

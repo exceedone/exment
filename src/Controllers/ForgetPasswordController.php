@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
-use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\Define;
 use Password;

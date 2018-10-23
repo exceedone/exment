@@ -6,7 +6,7 @@
 
 <p align="center">
 <a href="https://exment.net/docs/#">Document</a> | 
-<a href="https://exment.net/docs/#/ja/">ドキュメント</a> | 
+<a href="https://exment.net/docs/#/ja/">ドキュメント</a>
 </p>
 
 Demo

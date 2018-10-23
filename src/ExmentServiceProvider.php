@@ -4,7 +4,7 @@ namespace Exceedone\Exment;
 
 use Storage;
 use Request;
-use Exceedone\Exment\Services\PluginInstaller;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Validator\UniqueInTableValidator;
@@ -79,11 +79,9 @@ class ExmentServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([__DIR__.'/../config' => config_path()]);
+        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
-        
         $this->publishes([__DIR__.'/../resources/views/vendor/admin' => resource_path('views/vendor/admin')]);
-        
-        //$this->publishes([__DIR__.'/../templates' => app_path('Templates')]);
         
         $this->mergeConfigFrom(
             __DIR__.'/../config/exment.php', 'exment'

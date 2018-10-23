@@ -5,6 +5,7 @@ return [
         'home' => 'HOME',
         'error' => 'エラー',
         'import' => 'インポート',
+        'change' => '変更',
         'reqired' => '必須',
         'input' => '入力',
         'available_true' => '有効',
@@ -165,6 +166,7 @@ return [
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
+            'document' => 'ドキュメント',
         ],
     ],
 
@@ -318,7 +320,6 @@ return [
             "file" => "ファイル",
             "user" => "ユーザー",
             "organization" => "組織",
-            'document' => '書類',
         ],
         'help' => [
             'search_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>※同一のテーブルで、「検索インデックス」を非常に多く設定すると、パフォーマンスが低下する可能性があります。',
@@ -353,6 +354,7 @@ return [
              'dynamic' => '列',
              'fixed' => '固定値',
              'symbol' => '記号',
+             'input_number' => '数値を入力',
         ],
         
         'system_definitions' => [
@@ -409,6 +411,7 @@ return [
         'items' => '項目',
         'add_all_items' => 'すべて項目に追加',
         'changedata_target_column' => '列を選択',
+        'changedata_target_column_available' => '設定済',
         'changedata_target_column_when' => 'の項目を選択したとき',
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',

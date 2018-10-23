@@ -35,8 +35,8 @@ https://www.famkruithof.net/uuid/uuidgen
 <?php
 namespace App\Plugins\PluginDemoTrigger;
 
-use Exceedone\Exment\Plugin\PluginTrigger;
-class Plugin extends PluginTrigger
+use Exceedone\Exment\Services\Plugin\PluginTriggerBase;
+class Plugin extends PluginTriggerBase
 {
     /**
      * Plugin Trigger
@@ -52,8 +52,8 @@ class Plugin extends PluginTrigger
 
 - プラグイン管理画面で登録した、トリガーの条件に合致した場合に、プラグインが呼び出され、Plugin.php内のexecute関数が実行されます。  
 
-- Pluginクラスは、クラスPluginTriggerを継承しています。  
-PluginTriggerは、呼び出し元のカスタムテーブル$custom_table、テーブル値$custom_valueなどのプロパティを所有しており、  
+- Pluginクラスは、クラスPluginTriggerBaseを継承しています。  
+PluginTriggerBaseは、呼び出し元のカスタムテーブル$custom_table、テーブル値$custom_valueなどのプロパティを所有しており、  
 execute関数が呼び出された時点で、そのプロパティに値が代入されます。  
 プロパティの詳細については、[プラグインリファレンス](plugin_reference.md)をご参照ください。  
 

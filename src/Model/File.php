@@ -15,6 +15,13 @@ class File extends ModelBase
     // increment disable
     public $incrementing = false;
 
+    public function getFileNameAttribute(){
+        // get pathinfo
+        $pathinfo = pathinfo($this->path) ?? null;
+        if(is_null($pathinfo)){return null;}
+        return array_get($pathinfo, 'basename');
+    }
+
     /**
      * get the file url
      * @return void
@@ -38,17 +45,7 @@ class File extends ModelBase
         $file = static::firstOrNew(['path' => $path]);
         $file->uuid = Uuid::generate()->string;
         $file->save();
-
-        // // split path
-        // $paths = explode("/", $path);
-        // $path = implode("/", array_slice($paths, 0, count($paths) - 1))
-        //     ."/"
-        //     .$file->uuid
-        //     .'.'
-        //     .pathinfo($file->base_filename, PATHINFO_EXTENSION);
-        
         return $path;
-        //return $file->uuid;
     }
 
     /**
@@ -83,10 +80,13 @@ class File extends ModelBase
 
         $file = Storage::disk(config('admin.upload.disk'))->get($path);
         $type = Storage::disk(config('admin.upload.disk'))->mimeType($path);
+        // get page name
+        $name = rawurlencode($data->filename);
 
+        //TODO:It's OK???
         $response = Response::make($file, 200);
         $response->header("Content-Type", $type);
-        $response->header('Content-Disposition', 'attachment; filename*=UTF-8\'\''.rawurlencode($data->base_filename));
+        $response->header('Content-Disposition', 'inline; filename*=UTF-8\'\''.$name);
 
         return $response;
     }

@@ -45,7 +45,7 @@
                         <button type="button" class="btn btn-default button-addcalcitem" data-type="fixed">
                             <i class="fa fa-caret-left"></i>
                         </button>
-                        <input type="text" class="form-control w100px col-target-fixedval" placeholder="数値を入力">
+                        <input type="text" class="form-control w100px col-target-fixedval" placeholder="{{exmtrans('custom_column.calc_formula.input_number')}}">
                     </div>
                 </div>
             </div>
@@ -69,7 +69,7 @@
     {{--// calc suggest item list --}}
 </div>
 
-{{-- TODO:CSS場所変更 --}}
+{{-- TODO:CSS--}}
 <style type="text/css">
     .col-value-item{
         margin:2px;

@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\Tools;
-use Illuminate\Http\RedirectResponse;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -106,9 +105,6 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         $grid->tools(function (Grid\Tools $tools) {
-            $tools->batch(function (Grid\Tools\BatchActions $actions) {
-                $actions->disableDelete();
-            });
             $tools->append(new Tools\GridChangePageMenu('column', $this->custom_table, false));
         });
 

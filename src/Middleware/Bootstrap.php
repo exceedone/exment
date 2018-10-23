@@ -11,7 +11,7 @@ use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Controllers;
 
 /**
- * 初期設定に関するMiddleware
+ * Middleware as Initialization
  */
 class Bootstrap
 {

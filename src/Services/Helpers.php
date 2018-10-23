@@ -69,6 +69,18 @@ if (!function_exists('parseIntN')) {
     }
 }
 
+if (!function_exists('hex2rgb')) {
+    function hex2rgb($hex)
+    {
+        if (substr($hex, 0, 1) == "#") {
+            $hex = substr($hex, 1) ;
+        }
+        if (strlen($hex) == 3) {
+            $hex = substr($hex, 0, 1) . substr($hex, 0, 1) . substr($hex, 1, 1) . substr($hex, 1, 1) . substr($hex, 2, 1) . substr($hex, 2, 1) ;
+        }
+        return array_map("hexdec", [ substr($hex, 0, 2), substr($hex, 2, 2), substr($hex, 4, 2) ]) ;
+    }
+}
 
 // File, path  --------------------------------------------------
 if (!function_exists('namespace_join')) {
@@ -77,7 +89,7 @@ if (!function_exists('namespace_join')) {
      */
     function namespace_join(...$pass_array)
     {
-        return join_paths("\\", $pass_array);
+        return join_paths('\\', $pass_array);
     }
 }
 
@@ -111,7 +123,10 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
-            if ($ret_pass == "") {
+            if(is_array($value)){
+                $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
+            }
+            elseif ($ret_pass == "") {
                 $ret_pass   =   $value;
             }else {
                 $ret_pass   =   rtrim($ret_pass,$trim_str);
@@ -135,9 +150,14 @@ if (!function_exists('getFullpath')) {
 if (!function_exists('getPluginNamespace')) {
     function getPluginNamespace(...$pass_array)
     {
-        $basename = "\\App\\Plugins";
+        $basename = 'App\Plugins';
         if(isset($pass_array) && count($pass_array) > 0){
-            array_unshift($pass_array, $basename);
+            // convert to pascal case
+            $pass_array = collect($pass_array)->map(function($p){
+                return pascalize($p);
+            })->toArray();
+
+            $pass_array = array_prepend($pass_array, $basename);
             $basename = namespace_join($pass_array);
         }
         return $basename;
@@ -547,7 +567,7 @@ if (!function_exists('getValue')) {
      * @param bool $isonly_label if column_type is select_table or select_valtext, only get label 
      * @return string
      */
-    function getValue($custom_value, $column = null, $isonly_label = false)
+    function getValue($custom_value, $column = null, $isonly_label = false, $format = '')
     {
         if(is_null($custom_value)){return $isonly_label ? '' : null;}
 
@@ -567,7 +587,7 @@ if (!function_exists('getValue')) {
                 continue;
             }
             
-            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label);    
+            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label, $format);    
         }
 
         // if is collection
@@ -590,10 +610,10 @@ if (!function_exists('getValueUseTable')) {
      * Get Custom Value
      * @param array|CustomValue $value trget value 
      * @param string|array|CustomColumn $column target column_name or CustomColumn object. If null, it's label column
-     * @param mixin $label if column_type is select_table or select_valtext, only get label 
+     * @param mixin $label if column_type is select_table or select_valtext, only get label.
      * @return string
      */
-    function getValueUseTable($custom_table, $value, $column = null, $label = false)
+    function getValueUseTable($custom_table, $value, $column = null, $label = false, $format = '')
     {
         if (is_null($value)) {
             return null;
@@ -633,6 +653,7 @@ if (!function_exists('getValueUseTable')) {
                     if($lastIndex){
                         return $loop_value;
                     }
+
                     // get custom table. if CustomValue
                     if($loop_value instanceof CustomValue){
                         $loop_custom_table = $loop_value->getCustomTable();
@@ -816,6 +837,15 @@ if (!function_exists('getValueUseTable')) {
             // get symbol
             $symbol = array_get($column_array, 'options.currency_symbol');
             return getCurrencySymbolLabel($symbol, $val);
+        }
+        // datetime, date
+        elseif(in_array($column_type, ['datetime', 'date'])){
+            // if not empty format, using carbon
+            if(!is_nullorempty($format)){
+                return (new \Carbon\Carbon($val))->format($format) ?? null;
+            }
+            // else, return
+            return $val;
         }
         else{
             // if not label, return 
@@ -1337,7 +1367,6 @@ if (!function_exists('setSelectOptionItem')) {
             // $isValueText is true(split comma)
             if ($isValueText) {
                 $splits = explode(',', $item);
-                // 1つ以上であれば(","があれば)
                 if (count($splits) > 1) {
                     $options[trim($splits[0])] = trim($splits[1]);
                 } else {

@@ -8,30 +8,17 @@
         float: left;
     }
 
-        .search-form input[type="text"] {
-            color: #666;
-            border: 0;
-        }
+    .search-form input[type="text"] {
+        color: #666;
+        border: 0;
+    }
 
-        .search-form .btn {
-            color: #999;
-            background-color: #fff;
-            border: 0;
-        }
-</style>
-
-<form action="{{ admin_base_path('search') }}" method="get" class="search-form" pjax-container>
-    <div class="input-group input-group-sm ">
-        <input type="text" name="query" id="query" class="form-control" placeholder="{{ exmtrans('search.placeholder') }}" />
-        <span class="input-group-btn">
-            <button type="submit" id="search-btn" class="btn btn-flat">
-                <i class="fa fa-search"></i>
-            </button>
-        </span>
-    </div>
-</form>
-
-<style type="text/css">
+    .search-form .btn {
+        color: #999;
+        background-color: #fff;
+        border: 0;
+    }
+        
     .ui-autocomplete {
         z-index: 1031;
     }
@@ -49,3 +36,14 @@
         padding-right:2px;
     }
 </style>
+
+<form action="{{ admin_base_path('search') }}" method="get" class="search-form" pjax-container>
+    <div class="input-group input-group-sm ">
+        <input type="text" name="query" id="query" class="form-control" placeholder="{{ exmtrans('search.placeholder') }}" />
+        <span class="input-group-btn">
+            <button type="submit" id="search-btn" class="btn btn-flat">
+                <i class="fa fa-search"></i>
+            </button>
+        </span>
+    </div>
+</form>

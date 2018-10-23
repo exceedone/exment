@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Illuminate\Http\RedirectResponse;
 
 class CustomRelationController extends AdminControllerTableBase
 {

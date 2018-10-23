@@ -78,8 +78,7 @@ class System extends ModelBase
         $system = System::find(array_get($setting, 'id'));
         $value = null;
         
-        // if has data, return setting value
-        // データが存在する場合は、そのまま返却設定値もしくはデフォルト値を返却
+        // if has data, return setting value or default value
         if (isset($system)) {
             $value = $system->system_value;
         }
