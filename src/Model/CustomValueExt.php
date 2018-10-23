@@ -6,21 +6,22 @@ use Carbon\Carbon;
 
 trait CustomValueExt
 {       
-    // re-set image and file field data --------------------------------------------------
-    protected static function resetFileData($model){
+    // re-set field data --------------------------------------------------
+    // if user update form and save, but other field remove if not conatins form field, so re-set field before update
+    protected static function regetOriginalData($model){
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
         // because on value edit display, if before upload file and not upload again, don't post value. 
         $value = $model->value;
-        // get image and file columns
+        $original = json_decode($model->getOriginal('value'), true);
+        // get  columns
         $file_columns = $model->getCustomTable()
             ->custom_columns
-            ->whereIn('column_type', ['file', 'image'])
             ->pluck('column_name')
             ->toArray();
 
         // loop columns
-        $isset_file = false;
+        $update_flg = false;
         foreach ($file_columns as $file_column) {
 
             // if not set, set from original
@@ -31,15 +32,14 @@ trait CustomValueExt
                     continue;
                 }
 
-                $original = json_decode($model->getOriginal('value'), true);
                 if(array_key_value_exists($file_column, $original)){
                     $value[$file_column] = array_get($original, $file_column);
-                    $isset_file = true;
+                    $update_flg = true;
                 }
             }
         }
         // if update
-        if ($isset_file) {
+        if ($update_flg) {
             $model->setAttribute('value', $value);
         }
     }
