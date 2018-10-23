@@ -186,7 +186,7 @@ var Exment;
             var $d = $.Deferred();
             // create querystring
             if (!hasValue(expand)) {
-                expand = [];
+                expand = {};
             }
             expand['q'] = val;
             var query = $.param(expand);

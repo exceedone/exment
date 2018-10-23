@@ -11,7 +11,7 @@ class ExcelExporter extends DataExporterBase
      */
     public function export()
     {
-        $filename = $this->table->table_name.date('YmdHis');
+        $filename = $this->table->table_view_name.date('YmdHis');
         // get output table
         $outputs = $this->getDataTable();
 
@@ -21,7 +21,7 @@ class ExcelExporter extends DataExporterBase
         // create excel
         Excel::create($filename, function($excel) use($outputs) {
             // create sheet
-            $excel->sheet('Sheet1', function($sheet) use($outputs) {
+            $excel->sheet($this->table->table_name, function($sheet) use($outputs) {
                 // add from array
                 $sheet->fromArray($outputs, null, 'A1', false, false);
             });

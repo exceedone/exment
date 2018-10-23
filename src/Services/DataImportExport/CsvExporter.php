@@ -10,7 +10,7 @@ class CsvExporter extends DataExporterBase
      */
     public function export()
     {
-        $filename = $this->table->table_name.date('YmdHis').'.csv';
+        $filename = $this->table->table_view_name.date('YmdHis').'.csv';
         $res_headers = [
             'Content-Encoding'    => 'UTF-8',
             'Content-Type'        => 'text/csv;charset=UTF-8',
