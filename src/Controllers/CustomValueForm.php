@@ -385,26 +385,40 @@ EOT;
      * "change data": When selecting a list, paste the value of that item into another form item.
      */
     protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array){
-        // get target and column info from form option
-        $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
-        $changedata_column_id = array_get($form_column_options, 'changedata_column_id');
-        
-        // get getting target model name
-        $changedata_target_column = CustomColumn::find($changedata_target_column_id);
-        $changedata_target_table = CustomTable::find(array_get($changedata_target_column, 'options.select_target_table'));
+        // get this table
+        $column_table = $column->custom_table;
 
+        // get getting target model name
+        $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
+        $changedata_target_column = CustomColumn::find($changedata_target_column_id);
+        $changedata_target_table = $changedata_target_column->custom_table;
+        
         // get table column. It's that when get model data, copied from column
+        $changedata_column_id = array_get($form_column_options, 'changedata_column_id');
         $changedata_column = CustomColumn::find($changedata_column_id);
+        $changedata_table = $changedata_column->custom_table;
+
+        // get select target table 
+        $select_target_table = CustomTable::find(array_get($changedata_target_column, 'options.select_target_table'));
+
+        // if different $column_table and changedata_target_table, get to_target block name using relation
+        if($column_table->id != $changedata_target_table->id){
+            $to_block_name = getRelationNameByObjs($changedata_target_table, $column_table);
+        }else{
+            $to_block_name = null;
+        }
 
         // if not exists $changedata_target_column->column_name in $changedata_array
-        if(!array_key_exists($changedata_target_column->column_name, $changedata_array)){
+        if(!array_has($changedata_array, $changedata_target_column->column_name)){
             $changedata_array[$changedata_target_column->column_name] = [];
         }
         // push changedata column from and to column name
         $changedata_array[$changedata_target_column->column_name][] = [
-            'target_table' => $changedata_target_table->table_name,
+            'target_table' => $select_target_table->table_name,
             'from' => $changedata_column->column_name,
             'to' => $column->column_name,
+            'to_block' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . ',.has-many-table-' . $to_block_name,
+            'to_block_form' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . '-form,.has-many-table-' . $to_block_name.'-form',
         ];
     }
     

@@ -207,7 +207,7 @@ if (!function_exists('array_key_value_exists')) {
             $key = [$key];
         }
         foreach($key as $k){
-            if (!array_key_exists($k, $array)) {
+            if (!array_has($array, $k)) {
                 continue;
             }
             if(!empty(array_get($array, $k))){

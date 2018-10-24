@@ -7,7 +7,7 @@ namespace Exment {
          * Call only once. It's $(document).on event.
          */
         public static AddEventOnce() {
-            $(document).on('change', '[data-changedata]', {}, CommonEvent.changeModelData);
+            $(document).on('change', '[data-changedata]', {}, (ev) => {CommonEvent.changeModelData($(ev.target));});
             $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
@@ -89,23 +89,39 @@ namespace Exment {
                 var data = datalist[key];
 
                 // set change event
-                $(document).on('change', CommonEvent.getClassKey(key), { data: data }, CommonEvent.changeModelData);
+                $(document).on('change', CommonEvent.getClassKey(key), { data: data }, (ev) =>{
+                    CommonEvent.changeModelData($(ev.target), ev.data.data);
+                });
+
+                // if hasvalue to_block, add event when click add button
+                for(var i = 0; i < data.length; i++){
+                    var d = data[i];
+                    if(!hasValue(d.to_block)){
+                        continue;
+                    }
+                    $(d.to_block).on('click', '.add', { key:key, data: d }, (ev) => {
+                        // get target
+                        var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
+                        var data = ev.data.data;
+                        data['to_lastindex'] = true;
+                        CommonEvent.changeModelData($target, data);
+                    });
+                }
             }
         }
 
         /**
         * get model and change value
         */
-        private static changeModelData = (ev) => {
+        private static changeModelData = ($target:JQuery, data:any = null) => {
             var $d = $.Deferred();
-            // get model name
-            var $target = $(ev.target);
             // get parent element from the form field.
             var $parent = CommonEvent.getParentRow($target);
 
-            // get data
-            var data = ev.data.data;
+            // if has data, get from data object
             if (hasValue(data)) {
+                // if data is not array, set as array
+                if(!Array.isArray(data)){data = [data];}
                 // loop for model table
                 for (var i = 0; i < data.length; i++) {
                     var d = data[i];
@@ -117,7 +133,7 @@ namespace Exment {
                     // get value.
                     var value = $target.val();
                     if (!hasValue(value)) {
-                        CommonEvent.setModelItem($target, $parent, null, d.from, d.to);
+                        CommonEvent.setModelItem(null, $parent, $target, d);
                         continue;
                     }
                     $.ajaxSetup({
@@ -129,12 +145,11 @@ namespace Exment {
                         url: admin_base_path(URLJoin('api', target_table, value)),
                         type: 'POST',
                         context: {
-                            from: d.from,
-                            to: d.to,
+                            data: d,
                         }
                     })
                     .done(function (modeldata) {
-                        CommonEvent.setModelItem($target, $parent, modeldata, this.from, this.to);
+                        CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
                     })
                     .fail(function (errordata) {
                         console.log(errordata);
@@ -143,7 +158,7 @@ namespace Exment {
             }
 
             // getItem
-            var changedata_data = $(ev.target).data('changedata');
+            var changedata_data = $target.data('changedata');
             if(hasValue(changedata_data)){
                 var getitem = changedata_data.getitem;
                 if (hasValue(getitem)) {
@@ -187,18 +202,29 @@ namespace Exment {
         /**
          * set getmodel or getitem data to form
          */
-        private static setModelItem($target: JQuery, $parent: JQuery, modeldata: any, changedata_from, changedata_to) {
-            var $elem = $parent.find(CommonEvent.getClassKey(changedata_to));
+        private static setModelItem(modeldata: any, $changedata_target: JQuery, $elem: JQuery, options:any) {
+            // if has changedata_to_block, get $elem using changedata_to_block
+            if(hasValue(options.to_block)){
+                $changedata_target = $(options.to_block);
+                // if has to_lastindex, get last children item
+                if(hasValue(options.to_lastindex)){
+                    $changedata_target = $changedata_target.find(options.to_block_form).last();
+                }
+            }
+            // get element
+            var $elem = $changedata_target.find(CommonEvent.getClassKey(options.to));
             if (!hasValue(modeldata)) {
                 $elem.val('');
             } else {
                 // get element value from model
-                var from = modeldata['value'][changedata_from];
+                var from = modeldata['value'][options.from];
                 // copy to element from model
                 var val = $elem.attr('number_format') ? comma(from) : from;
                 $elem.val(val);
             }
-            CommonEvent.setFormFilter($target);
+
+            // view filter execute
+            CommonEvent.setFormFilter($elem);
         }
 
         /**

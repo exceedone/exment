@@ -25,6 +25,10 @@ class Number extends \Encore\Admin\Form\Field\Number
             $this->default((int) $this->default);
         }
 
+        if(array_has($this->attributes, 'readonly')){
+            $this->disableUpdown = true;
+        }
+
         // if not $disableUpdown
         if (!$this->disableUpdown) {
             // get class remoiving dot

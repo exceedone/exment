@@ -631,7 +631,18 @@ class TemplateImporter
                                 if(array_key_value_exists('changedata_target_column_name', $options)){
                                     //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
                                     //$options['changedata_target_column_id'] = CustomColumn::where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
-                                    $options['changedata_target_column_id'] = $target_table->custom_columns()->where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
+                                    
+                                    // get changedata target table name and column
+                                    // if changedata_target_column_name value has dotted, get parent table name
+                                    if(str_contains($options['changedata_target_column_name'], ".")){
+                                        list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $options['changedata_target_column_name']);
+                                        $changedata_target_table = CustomTable::findByName($changedata_target_table_name);
+                                    }
+                                    else{
+                                        $changedata_target_table = $target_table;
+                                        $changedata_target_column_name = $options['changedata_target_column_name'];
+                                    }
+                                    $options['changedata_target_column_id'] = $changedata_target_table->custom_columns()->where('column_name', $changedata_target_column_name)->first()->id?? null;
                                     array_forget($options, 'changedata_target_column_name');
                                 }
 

@@ -3379,3 +3379,7 @@
   font-size: 10px;
   padding-left: 10px;
 }
+
+.input-group .input-group-addon {
+  min-width: 45px;
+}
