@@ -284,7 +284,7 @@ class CustomColumnController extends AdminControllerTableBase
             // calc
             $custom_table = $this->custom_table;
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'calc'])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => Define::TABLE_COLUMN_TYPE_CALC])])
                 ->help(exmtrans("custom_column.help.calc_formula"))
                 ->text(function($value){
                     /////TODO:copy and paste

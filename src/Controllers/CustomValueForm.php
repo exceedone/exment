@@ -412,11 +412,13 @@ EOT;
         if(!array_has($changedata_array, $changedata_target_column->column_name)){
             $changedata_array[$changedata_target_column->column_name] = [];
         }
+        if(!array_has($changedata_array[$changedata_target_column->column_name], $select_target_table->table_name)){
+            $changedata_array[$changedata_target_column->column_name][$select_target_table->table_name] = [];
+        }
         // push changedata column from and to column name
-        $changedata_array[$changedata_target_column->column_name][] = [
-            'target_table' => $select_target_table->table_name,
-            'from' => $changedata_column->column_name,
-            'to' => $column->column_name,
+        $changedata_array[$changedata_target_column->column_name][$select_target_table->table_name][] = [
+            'from' => $changedata_column->column_name, // target_table's column
+            'to' => $column->column_name, // set data
             'to_block' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . ',.has-many-table-' . $to_block_name,
             'to_block_form' => is_null($to_block_name) ? null : '.has-many-' . $to_block_name . '-form,.has-many-table-' . $to_block_name.'-form',
         ];
@@ -460,7 +462,7 @@ EOT;
                 })->each(function($c) use($column, $relation, &$relatedlinkage_array){
                     $column_name = array_get($column, 'column_name');
                     // if not exists $column_name in $relatedlinkage_array
-                    if(!array_key_exists($column_name, $relatedlinkage_array)){
+                    if(!array_has($column_name, $relatedlinkage_array)){
                         $relatedlinkage_array[$column_name] = [];
                     }
                     // add array. key is column name.

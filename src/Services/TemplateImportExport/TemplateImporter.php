@@ -200,6 +200,21 @@ class TemplateImporter
         if(array_key_exists('custom_columns', $settings) && array_key_exists('custom_tables', $settings)){
             $custom_columns = array_get($settings, 'custom_columns');
             foreach($custom_columns as &$custom_column){
+                // set calc formula
+                if(array_key_value_exists('options.calc_formula', $custom_column)){
+                    // split new line
+                    $calc_formula_strings = preg_split ('/$\R?^/m', $custom_column['options.calc_formula']);
+                    $calc_formula = [];
+                    foreach($calc_formula_strings as $calc_formula_string){
+                        // split ","
+                        $c =  explode(",", $calc_formula_string);
+                        if(count($c) < 2){continue;}
+                        $calc_formula[] = ['type' => $c[0], 'val' => $c[1]];
+                    }
+
+                    $custom_column['options.calc_formula'] = $calc_formula;
+                }
+
                 // get table name
                 $table_name = array_get($custom_column, 'table_name');
                 // find $settings->custom_tables
@@ -215,6 +230,7 @@ class TemplateImporter
                     $target_custom_table_columns = array_get($custom_table, 'custom_columns', []);
                     // remove custom column table name
                     array_forget($custom_column, 'table_name');
+                    $target_custom_table_column = array_dot_reverse($custom_column);
                     $target_custom_table_columns[] = array_dot_reverse($custom_column);
                     $custom_table['custom_columns'] = $target_custom_table_columns;
                     // jump to next column
@@ -420,7 +436,7 @@ class TemplateImporter
                         }
 
                         // if column type is calc, set dynamic val
-                        if(array_get($column, 'column_type') == 'calc'){
+                        if (in_array(array_get($column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
                             $calc_formula = array_get($options, 'calc_formula');
                             // if $calc_formula is string, convert to json
                             if(is_string($calc_formula)){

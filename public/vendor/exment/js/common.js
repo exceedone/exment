@@ -60,18 +60,33 @@ var Exment;
                     CommonEvent.changeModelData($(ev.target), ev.data.data);
                 });
                 // if hasvalue to_block, add event when click add button
-                for (var i = 0; i < data.length; i++) {
-                    var d = data[i];
-                    if (!hasValue(d.to_block)) {
+                for (var table_name in data) {
+                    var target_table_data = data[table_name];
+                    if (!hasValue(target_table_data)) {
                         continue;
                     }
-                    $(d.to_block).on('click', '.add', { key: key, data: d }, function (ev) {
-                        // get target
-                        var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
-                        var data = ev.data.data;
-                        data['to_lastindex'] = true;
-                        CommonEvent.changeModelData($target, data);
-                    });
+                    for (var i = 0; i < target_table_data.length; i++) {
+                        var d = target_table_data[i];
+                        if (!hasValue(d.to_block)) {
+                            continue;
+                        }
+                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, function (ev) {
+                            // get target
+                            var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
+                            var data = ev.data.data;
+                            // set to_lastindex matched index
+                            for (var i = 0; i < data.length; i++) {
+                                if (i != ev.data.index) {
+                                    continue;
+                                }
+                                data[i]['to_lastindex'] = true;
+                            }
+                            // create rensou array.
+                            var modelArray = {};
+                            modelArray[ev.data.table_name] = data;
+                            CommonEvent.changeModelData($target, modelArray);
+                        });
+                    }
                 }
             }
         };
@@ -79,28 +94,32 @@ var Exment;
          * set getmodel or getitem data to form
          */
         CommonEvent.setModelItem = function (modeldata, $changedata_target, $elem, options) {
-            // if has changedata_to_block, get $elem using changedata_to_block
-            if (hasValue(options.to_block)) {
-                $changedata_target = $(options.to_block);
-                // if has to_lastindex, get last children item
-                if (hasValue(options.to_lastindex)) {
-                    $changedata_target = $changedata_target.find(options.to_block_form).last();
+            // loop for options
+            for (var i = 0; i < options.length; i++) {
+                var option = options[i];
+                // if has changedata_to_block, get $elem using changedata_to_block
+                if (hasValue(option.to_block)) {
+                    $changedata_target = $(option.to_block);
+                    // if has to_lastindex, get last children item
+                    if (hasValue(option.to_lastindex)) {
+                        $changedata_target = $changedata_target.find(option.to_block_form).last();
+                    }
                 }
+                // get element
+                var $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                if (!hasValue(modeldata)) {
+                    $elem.val('');
+                }
+                else {
+                    // get element value from model
+                    var from = modeldata['value'][option.from];
+                    // copy to element from model
+                    var val = $elem.attr('number_format') ? comma(from) : from;
+                    $elem.val(val);
+                }
+                // view filter execute
+                CommonEvent.setFormFilter($elem);
             }
-            // get element
-            var $elem = $changedata_target.find(CommonEvent.getClassKey(options.to));
-            if (!hasValue(modeldata)) {
-                $elem.val('');
-            }
-            else {
-                // get element value from model
-                var from = modeldata['value'][options.from];
-                // copy to element from model
-                var val = $elem.attr('number_format') ? comma(from) : from;
-                $elem.val(val);
-            }
-            // view filter execute
-            CommonEvent.setFormFilter($elem);
         };
         /**
          * set getmodel or getitem data to form
@@ -303,21 +322,18 @@ var Exment;
             // if has data, get from data object
             if (hasValue(data)) {
                 // if data is not array, set as array
-                if (!Array.isArray(data)) {
-                    data = [data];
-                }
+                //if(!Array.isArray(data)){data = [data];}
                 // loop for model table
-                for (var i = 0; i < data.length; i++) {
-                    var d = data[i];
-                    // get selected model
-                    var target_table = d.target_table;
-                    if (!hasValue(target_table)) {
+                for (var table_name in data) {
+                    var target_table_data = data[table_name];
+                    if (!hasValue(target_table_data)) {
                         continue;
                     }
+                    // get selected model
                     // get value.
                     var value = $target.val();
                     if (!hasValue(value)) {
-                        CommonEvent.setModelItem(null, $parent, $target, d);
+                        CommonEvent.setModelItem(null, $parent, $target, target_table_data);
                         continue;
                     }
                     $.ajaxSetup({
@@ -326,10 +342,10 @@ var Exment;
                         }
                     });
                     $.ajax({
-                        url: admin_base_path(URLJoin('api', target_table, value)),
+                        url: admin_base_path(URLJoin('api', table_name, value)),
                         type: 'POST',
                         context: {
-                            data: d,
+                            data: target_table_data,
                         }
                     })
                         .done(function (modeldata) {
@@ -339,6 +355,7 @@ var Exment;
                         console.log(errordata);
                     });
                 }
+                //}
             }
             // getItem
             var changedata_data = $target.data('changedata');
