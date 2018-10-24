@@ -376,16 +376,13 @@ namespace Exment {
             }
 
             // execute linkage event
-            for (var table_name in linkages) {
-                var linkage_table = linkages[table_name];
-                var url = admin_base_path(URLJoin('api', table_name, 'relatedLinkage'));
-                for(var i = 0; i < linkage_table.length; i++){
+            for (var key in linkages) {
                 // set param from PHP
                 var link = linkages[key];
+                var url = link.url;
                 var expand = link.expand;
                 var $target = $parent.find(CommonEvent.getClassKey(link.to));
                 CommonEvent.linkage($target, url, $base.val(), expand);
-                }
             }
         }
 
