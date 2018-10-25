@@ -288,7 +288,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.calc_formula"))
                 ->text(function($value){
                     /////TODO:copy and paste
-                    if(!isset($value)){$value = [];}
+                    if(!isset($value)){return null;}
                     // convert json to array
                     if(!is_array($value) && is_json($value)){
                         $value = json_decode($value, true);
