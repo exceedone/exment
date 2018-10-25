@@ -346,6 +346,7 @@ EOT;
         if(is_null($calc_formula_array)){$calc_formula_array = [];}
         // get format for calc formula
         $option_calc_formulas = array_get($options, "calc_formula");
+        if($option_calc_formulas == "null"){return;} //TODO:why???
         if(!is_array($option_calc_formulas) && is_json($option_calc_formulas)){
             $option_calc_formulas = json_decode($option_calc_formulas, true);
         }
@@ -354,22 +355,29 @@ EOT;
         $keys = [];
         // loop $option_calc_formulas and get column_name
         foreach($option_calc_formulas as &$option_calc_formula){
-            if(array_get($option_calc_formula, 'type') != 'dynamic'){
+            if(!in_array(array_get($option_calc_formula, 'type'), ['dynamic', 'select_table'])){
                 continue;
             }
             // set column name
             $formula_column = CustomColumn::find(array_get($option_calc_formula, 'val'));
+            // get column name as key
             $key = $formula_column->column_name ?? null;
             if(!isset($key)){continue;}
             $keys[] = $key;
             // set $option_calc_formula val using key
             $option_calc_formula['val'] = $key;
+
+            // if select table, set from value
+            if($option_calc_formula['type'] == 'select_table'){
+                $column_from = CustomColumn::find(array_get($option_calc_formula, 'from'));
+                $option_calc_formula['from'] = $column_from->column_name ?? null;
+            }
         }
 
         // loop for $keys and set $calc_formula_array
         foreach($keys as $key){
             // if not exists $key in $calc_formula_array, set as array
-            if(!array_key_exists($key, $calc_formula_array)){
+            if(!array_has($calc_formula_array, $key)){
                 $calc_formula_array[$key] = [];
             }
             // set $calc_formula_array
@@ -462,7 +470,7 @@ EOT;
                 })->each(function($c) use($column, $relation, &$relatedlinkage_array){
                     $column_name = array_get($column, 'column_name');
                     // if not exists $column_name in $relatedlinkage_array
-                    if(!array_has($column_name, $relatedlinkage_array)){
+                    if(!array_has($relatedlinkage_array, $column_name)){
                         $relatedlinkage_array[$column_name] = [];
                     }
                     // add array. key is column name.

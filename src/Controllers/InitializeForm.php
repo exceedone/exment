@@ -114,6 +114,8 @@ trait InitializeForm
     }
      
     protected function addTemplateTile($form){
+        $form->header(exmtrans('template.header'))->hr();
+
         // template list
         $form->tile('template', exmtrans("system.template"))
             ->options(function ($template) {

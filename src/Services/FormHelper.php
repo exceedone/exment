@@ -27,10 +27,10 @@ class FormHelper
     
         // if hidden setting, add hidden field and continue
         if(isset($form_column_options) && boolval(array_get($form_column_options, 'hidden'))){
-            return new Field\Hidden($form_column_name);
+            $field = new Field\Hidden($form_column_name);
         }
-
-        switch ($column->column_type) {
+        else{
+            switch ($column->column_type) {
             case 'text':
                 $field = new Field\Text($form_column_name, [$column_view_name]);
                 break;
@@ -49,7 +49,7 @@ class FormHelper
             case 'integer':
                 $field = new ExmentField\Number($form_column_name, [$column_view_name]);
                 // if set updown button
-                if(!boolval(array_get($options, 'updown_button'))){
+                if (!boolval(array_get($options, 'updown_button'))) {
                     $field->disableUpdown();
                     $field->defaultEmpty();
                 }
@@ -117,6 +117,8 @@ class FormHelper
                 if (isset($ajax)) {
                     $field->ajax($ajax);
                 }
+                // add table info
+                $field->attribute(['data-target_table_name' => $select_target_table]);
                 break;
             case 'yesno':
                 $field = new ExmentField\SwitchBoolField($form_column_name, [$column_view_name]);
@@ -163,58 +165,61 @@ class FormHelper
                 break;
         }
         
-        // setting options --------------------------------------------------
-        // placeholder
-        if (array_key_value_exists('placeholder', $options)) {
-            $field->placeholder(array_get($options, 'placeholder'));
-        }
-
-        // default
-        if (array_key_value_exists('default', $options)) {
-            $field->default(array_get($options, 'default'));
-        }
-
-        // number_format
-        if (boolval(array_get($options, 'number_format'))) {
-            $field->attribute(['number_format' => true]);
-        }
-
-        // readonly
-        if (boolval(array_get($form_column_options, 'view_only'))) {
-            $field->attribute(['readonly' => true]);
-        }
-
-        // min, max(numeric only)
-        if(in_array($column->column_type, ['integer', 'decimal', 'currency'])){
-            if (isset($options) && !is_null(array_get($options, 'number_min'))) {
-                $field->attribute(['min' => array_get($options, 'number_min')]);
+            // setting options --------------------------------------------------
+            // placeholder
+            if (array_key_value_exists('placeholder', $options)) {
+                $field->placeholder(array_get($options, 'placeholder'));
             }
-            if (isset($options) && !is_null(array_get($options, 'number_max'))) {
-                $field->attribute(['max' => array_get($options, 'number_max')]);
-            }
-        }
 
-        // set validates
-        $validate_options = [];
-        $validates = static::getColumnValidates($custom_table, $column, $id, $validate_options);
-        // set validates
-        if(count($validates)){
-            $field->rules($validates);
-        }
+            // default
+            if (array_key_value_exists('default', $options)) {
+                $field->default(array_get($options, 'default'));
+            }
+
+            // number_format
+            if (boolval(array_get($options, 'number_format'))) {
+                $field->attribute(['number_format' => true]);
+            }
+
+            // readonly
+            if (boolval(array_get($form_column_options, 'view_only'))) {
+                $field->attribute(['readonly' => true]);
+            }
+
+            // min, max(numeric only)
+            if (in_array($column->column_type, ['integer', 'decimal', 'currency'])) {
+                if (isset($options) && !is_null(array_get($options, 'number_min'))) {
+                    $field->attribute(['min' => array_get($options, 'number_min')]);
+                }
+                if (isset($options) && !is_null(array_get($options, 'number_max'))) {
+                    $field->attribute(['max' => array_get($options, 'number_max')]);
+                }
+            }
+
+            // set validates
+            $validate_options = [];
+            $validates = static::getColumnValidates($custom_table, $column, $id, $validate_options);
+            // set validates
+            if (count($validates)) {
+                $field->rules($validates);
+            }
     
-        // set help string using result_options
-        $help = null;
-        $help_regexes = array_get($validate_options, 'help_regexes');
-        if (array_key_value_exists('help', $options)) {
-            $help = array_get($options, 'help');
-        }
-        if(isset($help_regexes)){
-            $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
-        }
-        if(isset($help)){
-            $field->help($help);
+            // set help string using result_options
+            $help = null;
+            $help_regexes = array_get($validate_options, 'help_regexes');
+            if (array_key_value_exists('help', $options)) {
+                $help = array_get($options, 'help');
+            }
+            if (isset($help_regexes)) {
+                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+            }
+            if (isset($help)) {
+                $field->help($help);
+            }
         }
 
+        // set column type
+        $field->attribute(['data-column_type' => $column->column_type]);
         return $field;
     }
     /**

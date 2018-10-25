@@ -108,7 +108,7 @@ class Define
         "user", 
         "organization",
     ];
-
+    
     public const TABLE_COLUMN_TYPE_CALC = [
         "integer", 
         "decimal", 
