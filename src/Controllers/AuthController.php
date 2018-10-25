@@ -56,23 +56,29 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             });
 
             $form->saving(function (Form $form) {
-                if ($form->password && $form->model()->password != $form->password) {
-                    $form->password = bcrypt($form->password);
+                // if not contains $form->password, return
+                $form_password = $form->password;
+                if(!isset($form_password)){
+                    $form->password = $form->model()->password;
+                }
+                elseif ($form_password && $form->model()->password != $form_password) {
+                    $form->password = bcrypt($form_password);
                 }
             });
             
             $form->saved(function ($form) {
                 // saving user info
                 DB::transaction(function () use($form) {
+                    $req = Req::all();
+
                     // login_user id
                     $user_id = $form->model()->base_user->id;
                     // save user name and email
                     $user = getModelName(Define::SYSTEM_TABLE_NAME_USER)::find($user_id);
-                    $value = $user->value;
-                    $req = Req::all();
-                    $value['user_name'] = array_get($req, 'base_user.value.user_name');
-                    $value['email'] = array_get($req, 'base_user.value.email');
-                    $user->value = $value;
+                    $user->setValue([
+                        'user_name' => array_get($req, 'base_user.value.user_name'), 
+                        'email' => array_get($req, 'base_user.value.email'), 
+                    ]);
                     $user->save();
                 });
                 

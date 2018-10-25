@@ -96,8 +96,8 @@ class CustomValue extends ModelBase
         parent::boot();
 
         static::saving(function ($model) {
-            // re-set image and file field data --------------------------------------------------
-            static::resetFileData($model);
+            // re-get field data --------------------------------------------------
+            static::regetOriginalData($model);
         });
         static::saved(function ($model) {
             // set auto format

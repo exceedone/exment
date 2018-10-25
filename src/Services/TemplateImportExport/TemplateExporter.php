@@ -120,7 +120,7 @@ class TemplateExporter
                         }
                     }
                     // if column_type is calc, change value dynamic name using calc_formula property
-                    if (array_get($custom_column, 'column_type') == 'calc') {
+                    if (in_array(array_get($custom_column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
                         $calc_formula = array_get($custom_column['options'], 'calc_formula');
                         // if $calc_formula is string, convert to json
                         if(is_string($calc_formula)){

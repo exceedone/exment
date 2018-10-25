@@ -200,6 +200,34 @@ class TemplateImporter
         if(array_key_exists('custom_columns', $settings) && array_key_exists('custom_tables', $settings)){
             $custom_columns = array_get($settings, 'custom_columns');
             foreach($custom_columns as &$custom_column){
+                // set calc formula
+                if(array_key_value_exists('options.calc_formula', $custom_column)){
+                    // split new line
+                    $calc_formula_strings = preg_split ('/$\R?^/m', $custom_column['options.calc_formula']);
+                    $calc_formula = [];
+                    foreach($calc_formula_strings as $calc_formula_string){
+                        // split ","
+                        $c =  explode(",", $calc_formula_string);
+                        if(count($c) < 2){continue;}
+                        $type = $c[0];
+
+                        // if select table, set type, val and from
+                        if($type == 'select_table'){
+                            // get custom_column using target column name and from column_name
+                            $vals = explode(".", $c[1]);
+                            if(count($vals) < 2){continue;}
+                            // set calc formula. val and from
+                            $calc_formula[] = ['type' => $type, 'val' => $vals[0], 'from' => $vals[1]];
+                        }
+                        // if select table, set type, val and from
+                        else{
+                            $calc_formula[] = ['type' => $type, 'val' => $c[1]];
+                        }
+                    }
+
+                    $custom_column['options.calc_formula'] = $calc_formula;
+                }
+
                 // get table name
                 $table_name = array_get($custom_column, 'table_name');
                 // find $settings->custom_tables
@@ -215,6 +243,7 @@ class TemplateImporter
                     $target_custom_table_columns = array_get($custom_table, 'custom_columns', []);
                     // remove custom column table name
                     array_forget($custom_column, 'table_name');
+                    $target_custom_table_column = array_dot_reverse($custom_column);
                     $target_custom_table_columns[] = array_dot_reverse($custom_column);
                     $custom_table['custom_columns'] = $target_custom_table_columns;
                     // jump to next column
@@ -419,29 +448,6 @@ class TemplateImporter
                             array_forget($options, 'select_target_table_name');
                         }
 
-                        // if column type is calc, set dynamic val
-                        if(array_get($column, 'column_type') == 'calc'){
-                            $calc_formula = array_get($options, 'calc_formula');
-                            // if $calc_formula is string, convert to json
-                            if(is_string($calc_formula)){
-                                $calc_formula = json_decode($calc_formula, true);
-                            }
-                            if(is_array($calc_formula)){
-                                foreach($calc_formula as &$c){
-                                    // if not dynamic, continue
-                                    if(array_get($c, 'type') != 'dynamic'){
-                                        continue;
-                                    }
-                                    // set id
-                                    //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
-                                    //$c['val'] = CustomColumn::where('column_name', array_get($c, 'val'))->first()->id ?? null;
-                                    $c['val'] = $obj_table->custom_columns()->where('column_name', array_get($c, 'val'))->first()->id ?? null;
-                                }
-                            }
-                            // set as json string
-                            $options['calc_formula'] = json_encode($calc_formula);
-                        }
-
                         // set characters
                         if(array_key_value_exists('available_characters', $options)){
                             $available_characters = array_get($options, 'available_characters');
@@ -450,6 +456,9 @@ class TemplateImporter
                                 $options['available_characters'] = explode(",", $available_characters);
                             }
                         }
+
+                        // remove calc_formula(after getting)
+                        array_forget($options, 'calc_formula');
 
                         $obj_column->options = $options;
 
@@ -475,6 +484,64 @@ class TemplateImporter
                 // alter table
                 foreach (getSearchEnabledColumns($table_name) as $column) {
                     alterColumn($table_name, array_get($column, 'column_name'));
+                }
+            }
+
+            // re-loop columns. because we have to get other column id --------------------------------------------------
+            foreach (array_get($json, "custom_tables") as $table) {
+                // find tables. --------------------------------------------------
+                $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
+                // get columns. --------------------------------------------------
+                if (array_key_exists('custom_columns', $table)) {
+                    foreach (array_get($table, 'custom_columns') as $column) {
+                        $column_name = array_get($column, 'column_name');
+                        $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
+                        
+                        ///// set options
+                        $options = array_get($column, 'options', []);
+                        if (is_null($options)) {
+                            $options = [];
+                        }
+                        
+                        // check need update
+                        $update_flg = false;
+                        // if column type is calc, set dynamic val
+                        if (in_array(array_get($column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
+                            $calc_formula = array_get($column, 'options.calc_formula', []);
+                            if(is_null($calc_formula)){continue;}
+                            // if $calc_formula is string, convert to json
+                            if(is_string($calc_formula)){
+                                $calc_formula = json_decode($calc_formula, true);
+                            }
+                            if(is_array($calc_formula)){
+                                foreach($calc_formula as &$c){
+                                    $val = $c['val'];
+                                    // if dynamic or select table
+                                    if(in_array(array_get($c, 'type'), ['dynamic', 'select_table'])){
+                                        $c['val'] = $obj_table->custom_columns()->where('column_name', $val)->first()->id ?? null;
+                                    }
+                                    
+                                    // if select_table
+                                    if(array_get($c, 'type') == 'select_table'){
+                                        // get select table
+                                        $select_table_id = array_get(CustomColumn::find($c['val']), 'options.select_target_table');
+                                        $select_table = CustomTable::find($select_table_id) ?? null;
+                                        // get select from column
+                                        $from_column_id = $select_table->custom_columns()->where('column_name', array_get($c, 'from'))->first()->id ?? null;
+                                        $c['from'] = $from_column_id;
+                                    }
+                                }
+                            }
+                            // set as json string
+                            $options['calc_formula'] = json_encode($calc_formula);
+                            $update_flg = true;
+                        }
+
+                        if ($update_flg) {
+                            $obj_column->options = $options;
+                            $obj_column->save();
+                        }
+                    }
                 }
             }
 
@@ -631,7 +698,18 @@ class TemplateImporter
                                 if(array_key_value_exists('changedata_target_column_name', $options)){
                                     //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
                                     //$options['changedata_target_column_id'] = CustomColumn::where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
-                                    $options['changedata_target_column_id'] = $target_table->custom_columns()->where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
+                                    
+                                    // get changedata target table name and column
+                                    // if changedata_target_column_name value has dotted, get parent table name
+                                    if(str_contains($options['changedata_target_column_name'], ".")){
+                                        list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $options['changedata_target_column_name']);
+                                        $changedata_target_table = CustomTable::findByName($changedata_target_table_name);
+                                    }
+                                    else{
+                                        $changedata_target_table = $target_table;
+                                        $changedata_target_column_name = $options['changedata_target_column_name'];
+                                    }
+                                    $options['changedata_target_column_id'] = $changedata_target_table->custom_columns()->where('column_name', $changedata_target_column_name)->first()->id?? null;
                                     array_forget($options, 'changedata_target_column_name');
                                 }
 

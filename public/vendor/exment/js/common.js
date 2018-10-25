@@ -1,36 +1,42 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var Exment;
 (function (Exment) {
-    var CommonEvent = /** @class */ (function () {
-        function CommonEvent() {
-        }
+    class CommonEvent {
         /**
          * Call only once. It's $(document).on event.
          */
-        CommonEvent.AddEventOnce = function () {
-            $(document).on('change', '[data-changedata]', {}, CommonEvent.changeModelData);
-            $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, function (ev) {
+        static AddEventOnce() {
+            $(document).on('change', '[data-changedata]', {}, (ev) => __awaiter(this, void 0, void 0, function* () { yield CommonEvent.changeModelData($(ev.target)); }));
+            $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
-            $(document).on('click', '.add,.remove', {}, function (ev) {
+            $(document).on('click', '.add,.remove', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
-        };
-        CommonEvent.AddEvent = function () {
+        }
+        static AddEvent() {
             CommonEvent.addSelect2();
             // 表示・非表示は読み込み時に全レコード実行する
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
             CommonEvent.setchangedata();
             $.numberformat('[number_format]');
-        };
+        }
         /**
          * if click grid row, move page
          */
-        CommonEvent.tableHoverLink = function () {
+        static tableHoverLink() {
             $('table.table-hover').find('[data-id]').closest('tr').on('click', function (ev) {
                 //e.targetはクリックした要素自体、それがa要素以外であれば
                 if ($(ev.target).closest('a').length > 0) {
@@ -47,39 +53,189 @@ var Exment;
                 }
                 linkElem.closest('a').click();
             });
-        };
+        }
         /**
          * Set changedata event
          */
-        CommonEvent.setChangedataEvent = function (datalist) {
+        static setChangedataEvent(datalist) {
             // loop "data-changedata" targets   
             for (var key in datalist) {
                 var data = datalist[key];
                 // set change event
-                $(document).on('change', CommonEvent.getClassKey(key), { data: data }, CommonEvent.changeModelData);
+                $(document).on('change', CommonEvent.getClassKey(key), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                    yield CommonEvent.changeModelData($(ev.target), ev.data.data);
+                }));
+                // if hasvalue to_block, add event when click add button
+                for (var table_name in data) {
+                    var target_table_data = data[table_name];
+                    if (!hasValue(target_table_data)) {
+                        continue;
+                    }
+                    for (var i = 0; i < target_table_data.length; i++) {
+                        var d = target_table_data[i];
+                        if (!hasValue(d.to_block)) {
+                            continue;
+                        }
+                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                            // get target
+                            var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
+                            var data = ev.data.data;
+                            // set to_lastindex matched index
+                            for (var i = 0; i < data.length; i++) {
+                                if (i != ev.data.index) {
+                                    continue;
+                                }
+                                data[i]['to_lastindex'] = true;
+                            }
+                            // create rensou array.
+                            var modelArray = {};
+                            modelArray[ev.data.table_name] = data;
+                            yield CommonEvent.changeModelData($target, modelArray);
+                        }));
+                    }
+                }
             }
-        };
+        }
+        /**
+        * get model and change value
+        */
+        static changeModelData($target, data = null) {
+            return __awaiter(this, void 0, void 0, function* () {
+                var $d = $.Deferred();
+                // get parent element from the form field.
+                var $parent = CommonEvent.getParentRow($target);
+                // if has data, get from data object
+                if (hasValue(data)) {
+                    // if data is not array, set as array
+                    //if(!Array.isArray(data)){data = [data];}
+                    // loop for model table
+                    for (var table_name in data) {
+                        var target_table_data = data[table_name];
+                        if (!hasValue(target_table_data)) {
+                            continue;
+                        }
+                        // get selected model
+                        // get value.
+                        var value = $target.val();
+                        if (!hasValue(value)) {
+                            yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
+                            continue;
+                        }
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('[name="_token"]').val()
+                            }
+                        });
+                        $.ajax({
+                            url: admin_base_path(URLJoin('api', table_name, value)),
+                            type: 'POST',
+                            context: {
+                                data: target_table_data,
+                            }
+                        })
+                            .done(function (modeldata) {
+                            return __awaiter(this, void 0, void 0, function* () {
+                                yield CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
+                                $d.resolve();
+                            });
+                        })
+                            .fail(function (errordata) {
+                            console.log(errordata);
+                            $d.reject();
+                        });
+                    }
+                    //}
+                }
+                // getItem
+                var changedata_data = $target.data('changedata');
+                if (hasValue(changedata_data)) {
+                    var getitem = changedata_data.getitem;
+                    if (hasValue(getitem)) {
+                        var send_data = {};
+                        send_data['value'] = $target.val();
+                        // get data-key
+                        for (var index in getitem.key) {
+                            var key = getitem.key[index];
+                            var $elem = $parent.find(CommonEvent.getClassKey(key));
+                            if ($elem.length == 0) {
+                                continue;
+                            }
+                            send_data[key] = $elem.val();
+                        }
+                        // send ajax
+                        $.ajaxSetup({
+                            headers: {
+                                'X-CSRF-TOKEN': $('[name="_token"]').val()
+                            }
+                        });
+                        $.ajax({
+                            url: getitem.uri,
+                            type: 'POST',
+                            data: send_data,
+                            context: {
+                                target: $target,
+                                parent: $parent,
+                            }
+                        })
+                            .done(function (data) {
+                            CommonEvent.setModelItemKey(this.target, this.parent, data);
+                            $d.resolve();
+                        })
+                            .fail(function (data) {
+                            console.log(data);
+                            $d.reject();
+                        });
+                    }
+                }
+                return $d.promise();
+            });
+        }
         /**
          * set getmodel or getitem data to form
          */
-        CommonEvent.setModelItem = function ($target, $parent, modeldata, changedata_from, changedata_to) {
-            var $elem = $parent.find(CommonEvent.getClassKey(changedata_to));
-            if (!hasValue(modeldata)) {
-                $elem.val('');
-            }
-            else {
-                // get element value from model
-                var from = modeldata['value'][changedata_from];
-                // copy to element from model
-                var val = $elem.attr('number_format') ? comma(from) : from;
-                $elem.val(val);
-            }
-            CommonEvent.setFormFilter($target);
-        };
+        static setModelItem(modeldata, $changedata_target, $elem, options) {
+            var $elem;
+            return __awaiter(this, void 0, void 0, function* () {
+                // loop for options
+                for (var i = 0; i < options.length; i++) {
+                    var option = options[i];
+                    // if has changedata_to_block, get $elem using changedata_to_block
+                    if (hasValue(option.to_block)) {
+                        $changedata_target = $(option.to_block);
+                        // if has to_lastindex, get last children item
+                        if (hasValue(option.to_lastindex)) {
+                            $changedata_target = $changedata_target.find(option.to_block_form).last();
+                        }
+                    }
+                    $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                    if (!hasValue(modeldata)) {
+                        $elem.val('');
+                    }
+                    else {
+                        // get element value from model
+                        var from = modeldata['value'][option.from];
+                        yield CommonEvent.setValue($elem, from);
+                    }
+                    // view filter execute
+                    CommonEvent.setFormFilter($elem);
+                    ///// execute calc
+                    for (var i = 0; i < CommonEvent.calcDataList.length; i++) {
+                        var calcData = CommonEvent.calcDataList[i];
+                        // if calcData.key matches option.to, execute cals
+                        if (calcData.key == option.to) {
+                            var $filterTo = $elem.filter(calcData.classKey);
+                            if (hasValue($filterTo)) {
+                                yield CommonEvent.setCalc($filterTo, calcData.data);
+                            }
+                        }
+                    }
+                }
+            });
+        }
         /**
          * set getmodel or getitem data to form
          */
-        CommonEvent.setModelItemKey = function ($target, $parent, data) {
+        static setModelItemKey($target, $parent, data) {
             // 取得した要素でループ
             for (var key in data) {
                 //id系は除外
@@ -96,8 +252,7 @@ var Exment;
                     if ($e.data('getitem')) {
                         continue;
                     }
-                    var val = $e.attr('number_format') ? comma(data[key]) : data[key];
-                    $e.val(val);
+                    CommonEvent.setValue($e, data[key]);
                     // if target-item is "iconpicker-input", set icon
                     if ($e.hasClass('iconpicker-input')) {
                         $e.closest('.iconpicker-container').find('i').removeClass().addClass('fa ' + val);
@@ -105,11 +260,11 @@ var Exment;
                 }
             }
             CommonEvent.setFormFilter($target);
-        };
+        }
         /**
          * call select2 items using changedata
          */
-        CommonEvent.setchangedata = function () {
+        static setchangedata() {
             var $d = $.Deferred();
             var $targets = $('[data-changedata-from]');
             for (var i = 0; i < $targets.length; i++) {
@@ -147,8 +302,8 @@ var Exment;
                     }
                 }
             }
-        };
-        CommonEvent.changedata = function ($target, url, val) {
+        }
+        static changedata($target, url, val) {
             var $d = $.Deferred();
             console.log('start changedata. url : ' + url + ', q=' + val);
             $.get(url + '?q=' + val, function (data) {
@@ -163,11 +318,11 @@ var Exment;
                 $d.resolve();
             });
             return $d.promise();
-        };
+        }
         /**
          * Set RelatedLinkage event
          */
-        CommonEvent.setRelatedLinkageEvent = function (datalist) {
+        static setRelatedLinkageEvent(datalist) {
             // set relatedLinkageList for after flow.
             CommonEvent.relatedLinkageList = [];
             // loop "related Linkage" targets   
@@ -177,12 +332,12 @@ var Exment;
                 // cannot use because cannot fire new row
                 //$(CommonEvent.getClassKey(key)).data('calc_data', data);
                 // set relatedLinkageList array. key is getClassKey. data is data
-                CommonEvent.relatedLinkageList.push({ "classKey": CommonEvent.getClassKey(key), "data": data });
+                CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
                 // set linkage event
                 $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
-        };
-        CommonEvent.linkage = function ($target, url, val, expand) {
+        }
+        static linkage($target, url, val, expand) {
             var $d = $.Deferred();
             // create querystring
             if (!hasValue(expand)) {
@@ -204,26 +359,194 @@ var Exment;
                 $d.resolve();
             });
             return $d.promise();
-        };
+        }
         /**
-         * select2の追加
+         * set calc
+         * data : has "to" and "options". options has properties "val" and "type"
+         *
          */
-        CommonEvent.addSelect2 = function () {
+        static setCalc($target, data) {
+            return __awaiter(this, void 0, void 0, function* () {
+                // if not found target, return.
+                if (!hasValue($target)) {
+                    return;
+                }
+                var $parent = CommonEvent.getParentRow($target);
+                if (!hasValue(data)) {
+                    return;
+                }
+                // loop for calc target.
+                for (var i = 0; i < data.length; i++) {
+                    // for creating array contains object "value0" and "calc_type" and "value1".
+                    var value_itemlist = [];
+                    var value_item = { values: [], calc_type: null };
+                    var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
+                    var isfirst = true;
+                    for (var j = 0; j < data[i].options.length; j++) {
+                        var val = 0;
+                        // calc option
+                        var option = data[i].options[j];
+                        // when fixed value
+                        if (option.type == 'fixed') {
+                            value_item.values.push(rmcomma(option.val));
+                        }
+                        // when dynamic value, get value
+                        else if (option.type == 'dynamic') {
+                            val = rmcomma($parent.find(CommonEvent.getClassKey(option.val)).val());
+                            if (!hasValue(val)) {
+                                val = 0;
+                            }
+                            value_item.values.push(val);
+                        }
+                        // when select_table value, get value from table
+                        else if (option.type == 'select_table') {
+                            // find select target table
+                            var $select = $parent.find(CommonEvent.getClassKey(option.val));
+                            var table_name = $select.data('target_table_name');
+                            // get selected table model
+                            var model = yield CommonEvent.findModel(table_name, $select.val());
+                            // get value
+                            if (hasValue(model)) {
+                                val = model['value'][option.from];
+                                if (!hasValue(val)) {
+                                    val = 0;
+                                }
+                            }
+                            value_item.values.push(val);
+                        }
+                        // when symbol
+                        else if (option.type == 'symbol') {
+                            value_item.calc_type = option.val;
+                        }
+                        // if hasValue calc_type and values.length == 1 or first, set value_itemlist
+                        if (hasValue(value_item.calc_type) &&
+                            value_item.values.length >= 2 || (!isfirst && value_item.values.length >= 1)) {
+                            value_itemlist.push(value_item);
+                            // reset
+                            value_item = { values: [], calc_type: null };
+                            isfirst = false;
+                        }
+                    }
+                    // get value useing value_itemlist
+                    var bn = null;
+                    for (var j = 0; j < value_itemlist.length; j++) {
+                        value_item = value_itemlist[j];
+                        // if first item, new BigNumber using first item
+                        if (value_item.values.length == 2) {
+                            bn = new BigNumber(value_item.values[0]);
+                        }
+                        // get appended value
+                        var v = value_item.values[value_item.values.length - 1];
+                        switch (value_item.calc_type) {
+                            case 'plus':
+                                bn = bn.plus(v);
+                                break;
+                            case 'minus':
+                                bn = bn.minus(v);
+                                break;
+                            case 'times':
+                                bn = bn.times(v);
+                                break;
+                            case 'div':
+                                if (v == 0) {
+                                    bn = new BigNumber(0);
+                                }
+                                else {
+                                    bn = bn.div(v);
+                                }
+                                break;
+                        }
+                    }
+                    var precision = bn.toPrecision();
+                    CommonEvent.setValue($to, precision);
+                }
+                ///// re-loop after all data setting value
+                for (var i = 0; i < data.length; i++) {
+                    var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
+                    // if $to has "calc_data" data, execute setcalc function again
+                    //var to_data = $to.data('calc_data');
+                    for (var key in CommonEvent.calcDataList) {
+                        var calcData = CommonEvent.calcDataList[key];
+                        // filter $to obj
+                        var $filterTo = $to.filter(calcData.classKey);
+                        if (hasValue($filterTo)) {
+                            yield CommonEvent.setCalc($filterTo, calcData.data);
+                        }
+                    }
+                }
+            });
+        }
+        /**
+         * find table data
+         * @param table_name
+         * @param value
+         * @param context
+         */
+        static findModel(table_name, value, context = null) {
+            var $d = $.Deferred();
+            if (!hasValue(value)) {
+                $d.resolve(null);
+            }
+            else {
+                $.ajax({
+                    url: admin_base_path(URLJoin('api', table_name, value)),
+                    type: 'POST',
+                    context: context
+                })
+                    .done(function (modeldata) {
+                    $d.resolve(modeldata);
+                })
+                    .fail(function (errordata) {
+                    console.log(errordata);
+                    $d.reject();
+                });
+            }
+            return $d.promise();
+        }
+        /**
+         * set value. check number format, column type, etc...
+         * @param $target
+         */
+        static setValue($target, value) {
+            if (!hasValue($target)) {
+                return;
+            }
+            var isNumber = $.inArray($target.data('column_type'), ['integer', 'decimal', 'currency']);
+            // if number, remove comma
+            if (isNumber) {
+                value = rmcomma(value);
+            }
+            // if integer, floor value
+            if ($target.data('column_type') == 'integer') {
+                var bn = new BigNumber(value);
+                value = bn.integerValue().toPrecision();
+            }
+            // if number format, add comma
+            if (isNumber && $target.attr('number_format')) {
+                value = comma(value);
+            }
+            // set value
+            $target.val(value);
+        }
+        /**
+         * add select2
+         */
+        static addSelect2() {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem) {
                 $(elem).select2({
                     "allowClear": true, "placeholder": $(elem).data('add-select2'), width: '100%'
                 });
             }).addClass('added-select2');
-        };
-        CommonEvent.getFilterVal = function ($parent, a) {
+        }
+        static getFilterVal($parent, a) {
             // get filter object
             var $filterObj = $parent.find(CommonEvent.getClassKey(a.key)).filter(':last');
             if ($filterObj.is(':checkbox')) {
                 return $filterObj.is(':checked') ? $filterObj.val() : null;
             }
             return $filterObj.val();
-        };
-        CommonEvent.getParentRow = function ($query) {
+        }
+        static getParentRow($query) {
             if ($query.closest('tr').length > 0) {
                 return $query.closest('tr');
             }
@@ -233,407 +556,232 @@ var Exment;
                 return $query.parents('.fields-group').eq(0);
             }
             return $query.closest('.fields-group');
-        };
-        CommonEvent.getClassKey = function (key, prefix) {
-            if (prefix === void 0) { prefix = ''; }
+        }
+        static getClassKey(key, prefix = '') {
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
-        };
-        CommonEvent.calcDataList = [];
-        CommonEvent.relatedLinkageList = [];
-        /**
-        * 日付の計算
-        */
-        CommonEvent.calcDate = function () {
-            var $type = $('.subscription_claim_type');
-            var $start_date = $('.subscription_agreement_start_date');
-            var $term = $('.subscription_agreement_term');
-            var $end_date = $('.subscription_agreement_limit_date');
-            var term = pInt($term.val());
-            if (!$type.val() || !$start_date.val()) {
-                return;
-            }
-            // 日付計算
-            var dt = new Date($('.subscription_agreement_start_date').val());
-            if ($type.val() == 'month') {
-                dt.setMonth(dt.getMonth() + term);
-            }
-            else if ($type.val() == 'year') {
-                dt.setFullYear(dt.getFullYear() + term);
-            }
-            dt.setDate(dt.getDate() - 1);
-            // セット
-            $end_date.val(dt.getFullYear() + '-'
-                + ('00' + (dt.getMonth() + 1)).slice(-2)
-                + '-' + ('00' + dt.getDate()).slice(-2));
-        };
-        /**
-        * get model and change value
-        */
-        CommonEvent.changeModelData = function (ev) {
-            var $d = $.Deferred();
-            // get model name
-            var $target = $(ev.target);
-            // get parent element from the form field.
-            var $parent = CommonEvent.getParentRow($target);
-            // get data
-            var data = ev.data.data;
-            if (hasValue(data)) {
-                // loop for model table
-                for (var i = 0; i < data.length; i++) {
-                    var d = data[i];
-                    // get selected model
-                    var target_table = d.target_table;
-                    if (!hasValue(target_table)) {
-                        continue;
-                    }
-                    // get value.
-                    var value = $target.val();
-                    if (!hasValue(value)) {
-                        CommonEvent.setModelItem($target, $parent, null, d.from, d.to);
-                        continue;
-                    }
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('[name="_token"]').val()
-                        }
-                    });
-                    $.ajax({
-                        url: admin_base_path(URLJoin('api', target_table, value)),
-                        type: 'POST',
-                        context: {
-                            from: d.from,
-                            to: d.to,
-                        }
-                    })
-                        .done(function (modeldata) {
-                        CommonEvent.setModelItem($target, $parent, modeldata, this.from, this.to);
-                    })
-                        .fail(function (errordata) {
-                        console.log(errordata);
-                    });
+        }
+    }
+    CommonEvent.calcDataList = [];
+    CommonEvent.relatedLinkageList = [];
+    /**
+    * 日付の計算
+    */
+    CommonEvent.calcDate = () => {
+        var $type = $('.subscription_claim_type');
+        var $start_date = $('.subscription_agreement_start_date');
+        var $term = $('.subscription_agreement_term');
+        var $end_date = $('.subscription_agreement_limit_date');
+        var term = pInt($term.val());
+        if (!$type.val() || !$start_date.val()) {
+            return;
+        }
+        // 日付計算
+        var dt = new Date($('.subscription_agreement_start_date').val());
+        if ($type.val() == 'month') {
+            dt.setMonth(dt.getMonth() + term);
+        }
+        else if ($type.val() == 'year') {
+            dt.setFullYear(dt.getFullYear() + term);
+        }
+        dt.setDate(dt.getDate() - 1);
+        // セット
+        $end_date.val(dt.getFullYear() + '-'
+            + ('00' + (dt.getMonth() + 1)).slice(-2)
+            + '-' + ('00' + dt.getDate()).slice(-2));
+    };
+    /**
+     * call select2 items using linkage
+     */
+    CommonEvent.setRelatedLinkageChangeEvent = (ev) => {
+        var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
+        if (!hasValue($base)) {
+            return;
+        }
+        var $parent = CommonEvent.getParentRow($base);
+        var linkages = ev.data.data;
+        if (!hasValue(linkages)) {
+            return;
+        }
+        // execute linkage event
+        for (var key in linkages) {
+            // set param from PHP
+            var link = linkages[key];
+            var url = link.url;
+            var expand = link.expand;
+            var $target = $parent.find(CommonEvent.getClassKey(link.to));
+            CommonEvent.linkage($target, url, $base.val(), expand);
+        }
+    };
+    /**
+     * call select2 items using linkage
+     */
+    CommonEvent.setLinkageEvent = (ev) => {
+        var $base = $(ev.target).closest('[data-linkage]');
+        if (!hasValue($base)) {
+            return;
+        }
+        var $parent = CommonEvent.getParentRow($base);
+        var linkages = $base.data('linkage');
+        if (!hasValue(linkages)) {
+            return;
+        }
+        // get expand data
+        var expand = $base.data('linkage-expand');
+        // execute linkage event
+        for (var key in linkages) {
+            var link = linkages[key];
+            var $target = $parent.find(CommonEvent.getClassKey(key));
+            CommonEvent.linkage($target, link, $base.val(), expand);
+        }
+    };
+    /**
+     * 対象のセレクトボックスの値に応じて、表示・非表示を切り替える
+     * @param $target
+     */
+    CommonEvent.setFormFilter = ($target) => {
+        $target = CommonEvent.getParentRow($target).find('[data-filter]');
+        for (var tIndex = 0; tIndex < $target.length; tIndex++) {
+            var $t = $target.eq(tIndex);
+            // 表示フィルターを掛ける場合
+            //if (!$t.data('filter')) {
+            //    continue;
+            //}
+            // そのinputの親要素取得
+            var $parent = CommonEvent.getParentRow($t);
+            // 行の要素取得
+            var $eParent = $t.parents('.form-group');
+            //var $elem = $parent.find('[data-filter-target]'); // 表示非表示対象
+            // 検索対象のキー・値取得
+            try {
+                var array = $t.data('filter');
+                // 配列でない場合、配列に変換
+                if (!Array.isArray(array)) {
+                    array = [array];
                 }
-            }
-            // getItem
-            var changedata_data = $(ev.target).data('changedata');
-            if (hasValue(changedata_data)) {
-                var getitem = changedata_data.getitem;
-                if (hasValue(getitem)) {
-                    var send_data = {};
-                    send_data['value'] = $target.val();
-                    // get data-key
-                    for (var index in getitem.key) {
-                        var key = getitem.key[index];
-                        var $elem = $parent.find(CommonEvent.getClassKey(key));
-                        if ($elem.length == 0) {
-                            continue;
+                var isShow = true;
+                var isReadOnly = false;
+                for (var index = 0; index < array.length; index++) {
+                    var a = array[index];
+                    // そのkeyを持つclassの値取得
+                    // 最終的に送信されるのは最後の要素なので、last-child付ける
+                    // parent値ある場合
+                    var parentCount = a.parent ? a.parent : 0;
+                    if (parentCount > 0) {
+                        var $calcParent = $parent;
+                        for (var i = 0; i < parentCount; i++) {
+                            $calcParent = CommonEvent.getParentRow($calcParent);
                         }
-                        send_data[key] = $elem.val();
+                        var filterVal = CommonEvent.getFilterVal($calcParent, a);
                     }
-                    // send ajax
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('[name="_token"]').val()
-                        }
-                    });
-                    $.ajax({
-                        url: getitem.uri,
-                        type: 'POST',
-                        data: send_data,
-                        context: {
-                            target: $target,
-                            parent: $parent,
-                        }
-                    })
-                        .done(function (data) {
-                        CommonEvent.setModelItemKey(this.target, this.parent, data);
-                    })
-                        .fail(function (data) {
-                        console.log(data);
-                    });
-                }
-            }
-        };
-        /**
-         * call select2 items using linkage
-         */
-        CommonEvent.setRelatedLinkageChangeEvent = function (ev) {
-            var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
-            if (!hasValue($base)) {
-                return;
-            }
-            var $parent = CommonEvent.getParentRow($base);
-            var linkages = ev.data.data;
-            if (!hasValue(linkages)) {
-                return;
-            }
-            // execute linkage event
-            for (var key in linkages) {
-                // set param from PHP
-                var link = linkages[key];
-                var url = link.url;
-                var expand = link.expand;
-                var $target = $parent.find(CommonEvent.getClassKey(link.to));
-                CommonEvent.linkage($target, url, $base.val(), expand);
-            }
-        };
-        /**
-         * call select2 items using linkage
-         */
-        CommonEvent.setLinkageEvent = function (ev) {
-            var $base = $(ev.target).closest('[data-linkage]');
-            if (!hasValue($base)) {
-                return;
-            }
-            var $parent = CommonEvent.getParentRow($base);
-            var linkages = $base.data('linkage');
-            if (!hasValue(linkages)) {
-                return;
-            }
-            // get expand data
-            var expand = $base.data('linkage-expand');
-            // execute linkage event
-            for (var key in linkages) {
-                var link = linkages[key];
-                var $target = $parent.find(CommonEvent.getClassKey(key));
-                CommonEvent.linkage($target, link, $base.val(), expand);
-            }
-        };
-        /**
-         * 対象のセレクトボックスの値に応じて、表示・非表示を切り替える
-         * @param $target
-         */
-        CommonEvent.setFormFilter = function ($target) {
-            $target = CommonEvent.getParentRow($target).find('[data-filter]');
-            for (var tIndex = 0; tIndex < $target.length; tIndex++) {
-                var $t = $target.eq(tIndex);
-                // 表示フィルターを掛ける場合
-                //if (!$t.data('filter')) {
-                //    continue;
-                //}
-                // そのinputの親要素取得
-                var $parent = CommonEvent.getParentRow($t);
-                // 行の要素取得
-                var $eParent = $t.parents('.form-group');
-                //var $elem = $parent.find('[data-filter-target]'); // 表示非表示対象
-                // 検索対象のキー・値取得
-                try {
-                    var array = $t.data('filter');
-                    // 配列でない場合、配列に変換
-                    if (!Array.isArray(array)) {
-                        array = [array];
-                    }
-                    var isShow = true;
-                    var isReadOnly = false;
-                    for (var index = 0; index < array.length; index++) {
-                        var a = array[index];
-                        // そのkeyを持つclassの値取得
-                        // 最終的に送信されるのは最後の要素なので、last-child付ける
-                        // parent値ある場合
-                        var parentCount = a.parent ? a.parent : 0;
-                        if (parentCount > 0) {
-                            var $calcParent = $parent;
-                            for (var i = 0; i < parentCount; i++) {
-                                $calcParent = CommonEvent.getParentRow($calcParent);
-                            }
-                            var filterVal = CommonEvent.getFilterVal($calcParent, a);
-                        }
-                        else {
-                            var filterVal = CommonEvent.getFilterVal($parent, a);
-                        }
-                        if (isShow) {
-                            // nullかどうかのチェックの場合
-                            if (a.hasValue) {
-                                if (!hasValue(filterVal)) {
-                                    isShow = false;
-                                }
-                            }
-                            // when value is null and not set "nullValue", isSnow = false
-                            if (filterVal == null && !a.nullValue) {
-                                isShow = false;
-                            }
-                            else if (filterVal != null && a.nullValue) {
-                                isShow = false;
-                            }
-                            // その値が、a.valueに含まれているか
-                            if (a.value) {
-                                var valueArray = !Array.isArray(a.value) ? a.value.split(',') : a.value;
-                                if (valueArray.indexOf(filterVal) == -1) {
-                                    isShow = false;
-                                }
-                            }
-                            if (a.notValue) {
-                                var valueArray = !Array.isArray(a.notValue) ? a.notValue.split(',') : a.notValue;
-                                if (valueArray.indexOf(filterVal) != -1) {
-                                    isShow = false;
-                                }
-                            }
-                        }
-                        // change readonly attribute
-                        if (!isReadOnly && a.readonlyValue) {
-                            var valueArray = !Array.isArray(a.readonlyValue) ? a.readonlyValue.split(',') : a.readonlyValue;
-                            if (valueArray.indexOf(filterVal) != -1) {
-                                isReadOnly = true;
-                            }
-                        }
+                    else {
+                        var filterVal = CommonEvent.getFilterVal($parent, a);
                     }
                     if (isShow) {
-                        $eParent.show();
-                        // disabled false
-                    }
-                    else {
-                        $eParent.hide();
-                        ///// remove value
-                        // comment out because remove default value
-                        //$t.val('');
-                    }
-                    // if selectbox, disabled
-                    var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
-                        ? 'disabled' : 'readonly';
-                    if (isReadOnly) {
-                        $t.prop(propName, true);
-                    }
-                    else {
-                        $t.prop(propName, false);
-                    }
-                }
-                catch (e) {
-                }
-            }
-        };
-        /**
-         * Set calc event
-         */
-        CommonEvent.setCalcEvent = function (datalist) {
-            // set datalist for after flow.
-            CommonEvent.calcDataList = [];
-            // loop "data-calc" targets   
-            for (var key in datalist) {
-                var data = datalist[key];
-                // set data to element
-                // cannot use because cannot fire new row
-                //$(CommonEvent.getClassKey(key)).data('calc_data', data);
-                // set calcDataList array. key is getClassKey. data is data
-                CommonEvent.calcDataList.push({ "classKey": CommonEvent.getClassKey(key), "data": data });
-                // set calc event
-                $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, function (ev) {
-                    CommonEvent.setCalc($(ev.target), ev.data.data);
-                });
-                // set event for plus minus button
-                $(document).on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, function (ev) {
-                    CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
-                });
-            }
-        };
-        /**
-         * set calc
-         * data : has "to" and "options". options has properties "val" and "type"
-         *
-         */
-        CommonEvent.setCalc = function ($target, data) {
-            // if not found target, return.
-            if (!hasValue($target)) {
-                return;
-            }
-            var $parent = CommonEvent.getParentRow($target);
-            if (!hasValue(data)) {
-                return;
-            }
-            // loop for calc target
-            for (var i = 0; i < data.length; i++) {
-                var values = [];
-                var calc_type = null;
-                var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
-                for (var j = 0; j < data[i].options.length; j++) {
-                    // calc option
-                    var option = data[i].options[j];
-                    // when fixed value
-                    if (option.type == 'fixed') {
-                        values.push(rmcomma(option.val));
-                    }
-                    // when dynamic value, get value
-                    else if (option.type == 'dynamic') {
-                        var val = rmcomma($parent.find(CommonEvent.getClassKey(option.val)).val());
-                        if (!hasValue(val)) {
-                            val = 0;
+                        // nullかどうかのチェックの場合
+                        if (a.hasValue) {
+                            if (!hasValue(filterVal)) {
+                                isShow = false;
+                            }
                         }
-                        values.push(val);
-                    }
-                    // when symbol
-                    else if (option.type == 'symbol') {
-                        calc_type = option.val;
-                    }
-                }
-                if (!calc_type) {
-                    continue;
-                }
-                if (values.length < 2) {
-                    continue;
-                }
-                // get value
-                var bn = new BigNumber(values[0]);
-                switch (calc_type) {
-                    case 'plus':
-                        bn = bn.plus(values[1]);
-                        break;
-                    case 'minus':
-                        bn = bn.minus(values[1]);
-                        break;
-                    case 'times':
-                        bn = bn.times(values[1]);
-                        break;
-                    case 'div':
-                        if (values[1] == 0) {
-                            bn = new BigNumber(0);
+                        // when value is null and not set "nullValue", isSnow = false
+                        if (filterVal == null && !a.nullValue) {
+                            isShow = false;
                         }
-                        else {
-                            bn = bn.div(values[1]);
+                        else if (filterVal != null && a.nullValue) {
+                            isShow = false;
                         }
-                        break;
-                }
-                var precision = bn.toPrecision();
-                $to.val($to.attr('number_format') ? comma(precision) : precision);
-                // if $to has "calc_data" data, execute setcalc function again
-                //var to_data = $to.data('calc_data');
-                for (var key in CommonEvent.calcDataList) {
-                    var calcData = CommonEvent.calcDataList[key];
-                    // filter $to obj
-                    var $filterTo = $to.filter(calcData.classKey);
-                    if (hasValue($filterTo)) {
-                        CommonEvent.setCalc($filterTo, calcData.data);
+                        // その値が、a.valueに含まれているか
+                        if (a.value) {
+                            var valueArray = !Array.isArray(a.value) ? a.value.split(',') : a.value;
+                            if (valueArray.indexOf(filterVal) == -1) {
+                                isShow = false;
+                            }
+                        }
+                        if (a.notValue) {
+                            var valueArray = !Array.isArray(a.notValue) ? a.notValue.split(',') : a.notValue;
+                            if (valueArray.indexOf(filterVal) != -1) {
+                                isShow = false;
+                            }
+                        }
                     }
+                    // change readonly attribute
+                    if (!isReadOnly && a.readonlyValue) {
+                        var valueArray = !Array.isArray(a.readonlyValue) ? a.readonlyValue.split(',') : a.readonlyValue;
+                        if (valueArray.indexOf(filterVal) != -1) {
+                            isReadOnly = true;
+                        }
+                    }
+                }
+                if (isShow) {
+                    $eParent.show();
+                    // disabled false
+                }
+                else {
+                    $eParent.hide();
+                    ///// remove value
+                    // comment out because remove default value
+                    //$t.val('');
+                }
+                // if selectbox, disabled
+                var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
+                    ? 'disabled' : 'readonly';
+                if (isReadOnly) {
+                    $t.prop(propName, true);
+                }
+                else {
+                    $t.prop(propName, false);
                 }
             }
-        };
-        return CommonEvent;
-    }());
+            catch (e) {
+            }
+        }
+    };
+    /**
+     * Set calc event
+     */
+    CommonEvent.setCalcEvent = (datalist) => {
+        // set datalist for after flow.
+        CommonEvent.calcDataList = [];
+        // loop "data-calc" targets   
+        for (var key in datalist) {
+            var data = datalist[key];
+            // set data to element
+            // cannot use because cannot fire new row
+            //$(CommonEvent.getClassKey(key)).data('calc_data', data);
+            // set calcDataList array. key is getClassKey. data is data
+            CommonEvent.calcDataList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
+            // set calc event
+            $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                yield CommonEvent.setCalc($(ev.target), ev.data.data);
+            }));
+            // set event for plus minus button
+            $(document).on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                yield CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
+            }));
+        }
+    };
     Exment.CommonEvent = CommonEvent;
 })(Exment || (Exment = {}));
 $(function () {
     Exment.CommonEvent.AddEvent();
     Exment.CommonEvent.AddEventOnce();
 });
-var URLJoin = function () {
-    var args = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        args[_i] = arguments[_i];
-    }
-    return args
-        .join('/')
-        .replace(/[\/]+/g, '/')
-        .replace(/^(.+):\//, '$1://')
-        .replace(/^file:/, 'file:/')
-        .replace(/\/(\?|&|#[^!])/g, '$1')
-        .replace(/\?/g, '&')
-        .replace('&', '?');
-};
-var pInt = function (obj) {
+const URLJoin = (...args) => args
+    .join('/')
+    .replace(/[\/]+/g, '/')
+    .replace(/^(.+):\//, '$1://')
+    .replace(/^file:/, 'file:/')
+    .replace(/\/(\?|&|#[^!])/g, '$1')
+    .replace(/\?/g, '&')
+    .replace('&', '?');
+const pInt = (obj) => {
     if (!hasValue(obj)) {
         return 0;
     }
     obj = obj.toString().replace(/,/g, '');
     return parseInt(obj);
 };
-var hasValue = function (obj) {
+const hasValue = (obj) => {
     if (obj == null || obj == undefined || obj.length == 0) {
         return false;
     }
@@ -643,30 +791,30 @@ var hasValue = function (obj) {
 //    return rmcomma(x).replace(/(\d)(?=(?:\d{3}){2,}(?:\.|$))|(\d)(\d{3}(?:\.\d*)?$)/g
 //        , '$1$2,$3');
 //}
-var comma = function (x) {
+const comma = (x) => {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
-var rmcomma = function (x) {
+const rmcomma = (x) => {
     if (x === null || x === undefined) {
         return x;
     }
     return x.toString().replace(/,/g, '');
 };
-var trimAny = function (str, any) {
+const trimAny = function (str, any) {
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
 };
-var selectedRow = function () {
+const selectedRow = function () {
     var id = $('.grid-row-checkbox:checked').eq(0).data('id');
     return id;
 };
-var selectedRows = function () {
+const selectedRows = function () {
     var rows = [];
-    $('.grid-row-checkbox:checked').each(function (num, element) {
+    $('.grid-row-checkbox:checked').each((num, element) => {
         rows.push($(element).data('id'));
     });
     return rows;
 };
-var admin_base_path = function (path) {
+const admin_base_path = function (path) {
     var prefix = '/' + trimAny($('#admin_base_path').val(), '/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');

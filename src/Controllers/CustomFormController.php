@@ -88,6 +88,36 @@ class CustomFormController extends AdminControllerTableBase
     }
 
     /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        if ($this->saveform($request, $id)) {
+            admin_toastr(trans('admin.save_succeeded'));
+            return redirect(admin_base_path("form/{$this->custom_table->table_name}"));
+        }
+        return null; //TODO
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        if ($this->saveform($request)) {
+            admin_toastr(trans('admin.save_succeeded'));
+            return redirect(admin_base_path("form/{$this->custom_table->table_name}"));
+        }
+        return null; //TODO
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid
@@ -113,7 +143,6 @@ class CustomFormController extends AdminControllerTableBase
         });
         return $grid;
     }
-
     
     /**
      *
@@ -252,6 +281,7 @@ class CustomFormController extends AdminControllerTableBase
             }
         }
 
+        $parent_table_id = null;
         foreach ($custom_form_blocks as &$custom_form_block) {
             // add header name
             $custom_form_block['header_name'] = 'custom_form_blocks['
@@ -261,16 +291,22 @@ class CustomFormController extends AdminControllerTableBase
             ///// Set changedata selection select list
             $select_table_columns = [];
             // get custom columns
-            $custom_columns = CustomTable::find(array_get($custom_form_block, 'form_block_target_table_id'))
-                ->custom_columns;
-            //foreach (array_get($custom_form_block, 'custom_form_columns') as $custom_form_column) {
+            $form_block_target_table_id = array_get($custom_form_block, 'form_block_target_table_id');
+            $custom_columns = CustomTable::find($form_block_target_table_id)->custom_columns->toArray();
+            
+            // if form block type is 1:n or n:n, get parent tables columns too. use parent_table_id.
+            if(in_array(array_get($custom_form_block, 'form_block_type'), [Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY, Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY])){
+                $custom_columns = array_merge(
+                    CustomTable::find($parent_table_id)->custom_columns->toArray(), 
+                    $custom_columns
+                );
+            }
+            // else, get form_block_target_table_id as parent_table_id
+            else{
+                $parent_table_id = $form_block_target_table_id;
+            }
+            
             foreach ($custom_columns as $custom_column) {
-                // only table column
-                // if(array_get($custom_form_column, 'form_column_type') != Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN){
-                //     continue;
-                // }
-                // // get column
-                // $custom_column = CustomColumn::find(array_get($custom_form_column, 'form_column_target_id'));
                 // if column_type is not select_table, return []
                 if(!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
                     continue;
@@ -280,7 +316,6 @@ class CustomFormController extends AdminControllerTableBase
                     continue;
                 }
                 // get select_table, user, organization columns
-                //$select_table_columns[array_get($custom_form_column, 'form_column_target_id')] = array_get($custom_form_column, 'column_view_name');
                 $select_table_columns[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
             }
             $custom_form_block['select_table_columns'] = collect($select_table_columns)->toJson();
@@ -393,36 +428,6 @@ class CustomFormController extends AdminControllerTableBase
             'clone' => true,
             'form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_OTHER,
         ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        if ($this->saveform($request, $id)) {
-            admin_toastr(trans('admin.save_succeeded'));
-            return redirect(admin_base_path("form/{$this->custom_table->table_name}"));
-        }
-        return null; //TODO
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        if ($this->saveform($request)) {
-            admin_toastr(trans('admin.save_succeeded'));
-            return redirect(admin_base_path("form/{$this->custom_table->table_name}"));
-        }
-        return null; //TODO
     }
 
     /**

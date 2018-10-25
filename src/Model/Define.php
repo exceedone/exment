@@ -93,7 +93,6 @@ class Define
         "email", 
         "integer", 
         "decimal",
-        "calc", 
         "currency",
         "date", 
         "time", 
@@ -109,11 +108,11 @@ class Define
         "user", 
         "organization",
     ];
-
+    
     public const TABLE_COLUMN_TYPE_CALC = [
         "integer", 
         "decimal", 
-        "calc",
+        "currency",
     ];
     
     public const RELATION_TYPE_ONE_TO_MANY = 'one_to_many';
