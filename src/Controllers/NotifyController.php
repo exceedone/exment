@@ -93,7 +93,7 @@ class NotifyController extends AdminControllerBase
                 
             $form->number('notify_hour', exmtrans("notify.notify_hour"))->min(0)->max(23)
             ->help(exmtrans("notify.help.notify_hour"));
-        });
+        })->disableHeader();
 
         $form->header(exmtrans("notify.header_action"))->hr();
         $form->select('notify_action', exmtrans("notify.notify_action"))
@@ -117,7 +117,7 @@ class NotifyController extends AdminControllerBase
                 return MailTemplate::all()->pluck('mail_view_name', 'id');
             })->help(exmtrans("notify.help.mail_template_id"))
             ->default($notify_mail_id);
-        });
+        })->disableHeader();
         $form->disableReset();
         $form->disableViewCheck();
         $form->tools(function (Form\Tools $tools){

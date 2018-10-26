@@ -28,7 +28,7 @@ namespace Exment {
         private static addAllItems = (ev) => {
             var $block = $(ev.target).closest('.custom_form_column_block_inner');
             var $items = $block.find('.custom_form_column_item:visible'); // ignore template item
-            var $target_ul = $block.closest('.box-body').find('.custom_form_column_items');
+            var $target_ul = $block.closest('.box-body').find('.custom_form_column_items').first();
             $items.each(function(index:number, elem:Element){
                 $(elem).appendTo($target_ul);
                 // show item options, 
@@ -36,7 +36,7 @@ namespace Exment {
             });
         }
 
-        private static addDragEvent($elem: JQuery = null) {
+        private static addDragEvent($elem: JQuery<Element>= null) {
             //if (!$elem) {
             // create draagble form
             $('.custom_form_column_suggests.draggables').each(function(index:number, elem:Element){
@@ -45,7 +45,7 @@ namespace Exment {
 
                 $elem.draggable({
                     // connect to sortable. set only same block
-                    connectToSortable: '#' + d.data('connecttosortable') + ' .draggables',
+                    connectToSortable: '.' + d.data('connecttosortable') + ' .draggables',
                     //cursor: 'move',
                     helper: d.data('draggable_clone') ? 'clone' : '',
                     revert: "invalid",
@@ -67,12 +67,15 @@ namespace Exment {
                                 value: ui.helper.find('.form_column_type').val(),
                                 type: 'hidden',
                             }));
+                            ui.helper.append($('<input/>', {
+                                name: header_name + '[column_no]',
+                                value: ui.helper.closest('[data-form_column_no]').data('form_column_no'),
+                                'class': 'column_no',
+                                type: 'hidden',
+                            }));
 
                             // add icheck event
                             CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
-
-                            // replace header full name.
-                            //ui.helper.html(ui.helper.html().replace(new RegExp(header_name + '[custom_form_columns][]', 'g'), header_name + '[custom_form_columns][' + 'aaaa' + ']'));
                         } else {
                             ui.helper.find('.delete,.options').hide();
                         }
@@ -80,7 +83,44 @@ namespace Exment {
                 });
             });
             // add sorable event (only left column)
-            $(".custom_form_column_items.draggables").sortable({});
+            $(".custom_form_column_items.draggables")
+                .sortable({})
+                // add 1to2 or 2to1 draagable event
+                .each(function(index:number, elem:Element){
+                    var d = $(elem);
+                    $elem = d.children('.draggable');
+
+                    $elem.each(function(index2, elem2){
+                        CustomFromEvent.setDragItemEvent($(elem2));
+                    });
+                });
+        }
+
+        private static setDragItemEvent($elem, initialize = true){
+            // get parent div
+            var $div = $elem.parents('.custom_form_column_block');
+            // get id name for connectToSortable
+            var id = 'ul_' 
+                + $div.data('form_block_type') 
+                + '_' + $div.data('form_block_target_table_id')
+                //+ '_' + ($div.data('form_column_no') == 1 ? 2 : 1);
+            if(initialize){
+                $elem.draggable({
+                    // connect to sortable. set only same block
+                    connectToSortable: '.' + id,
+                    //cursor: 'move',
+                    revert: "invalid",
+                    droppable: "drop",
+                    stop: (event, ui) => {
+                        // reset draageble target
+                        CustomFromEvent.setDragItemEvent(ui.helper, false);
+                        // set column no
+                        ui.helper.find('.column_no').val(ui.helper.closest('[data-form_column_no]').data('form_column_no'));
+                    }
+                });
+            }else{
+                $elem.draggable( "option", "connectToSortable", "." + id );
+            }
         }
 
         private static toggleFormColumnItem($elem: JQuery, isShow = true) {
@@ -150,13 +190,24 @@ namespace Exment {
                 var form_column_target_id = item.find('.form_column_target_id').val();
                 var form_block_type = item.closest('.custom_form_column_block').data('form_block_type');
                 var form_block_target_table_id = item.closest('.custom_form_column_block').data('form_block_target_table_id');
-                var $custom_form_column_suggests = $('.custom_form_column_block')
-                    .filter('[data-form_block_type="' + form_block_type + '"]')
-                    .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]')
+
+                // get suggest_form_column_type.
+                if(form_column_type == 'system'){
+                   var suggest_form_column_type:any = 'column';
+                }else{
+                    suggest_form_column_type = form_column_type;
+                }
+
+                // get target suggest div area.
+                var $custom_form_block_target = $('.custom_form_column_block')
+                .filter('[data-form_block_type="' + form_block_type + '"]')
+                .filter('[data-form_block_target_table_id="' + form_block_target_table_id + '"]');
+
+                var $custom_form_column_suggests = $custom_form_block_target
                     .find('.custom_form_column_suggests')
-                    .filter('[data-form_column_type="' + form_column_type + '"]');
+                    .filter('[data-form_column_type="' + suggest_form_column_type + '"]');
                 // find the same value hidden in suggest ul.
-                var $template = $('[data-form_column_target_id="' + form_column_target_id + '"]')
+                var $template = $custom_form_block_target.find('[data-form_column_target_id="' + form_column_target_id + '"]')
                     .filter('[data-form_column_type="' + form_column_type + '"]');
                 if ($template) {
                     var $clone: any = $template.children('li').clone(true);

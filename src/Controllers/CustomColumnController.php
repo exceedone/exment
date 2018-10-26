@@ -371,7 +371,7 @@ class CustomColumnController extends AdminControllerTableBase
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file','image', 'select_table', 'select', 'select_valtext', 'user', 'organization']])]);
-        });
+        })->disableHeader();
 
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
