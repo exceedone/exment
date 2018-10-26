@@ -189,7 +189,7 @@ class DashboardBoxController extends AdminControllerBase
                         ->options($options)
                         ;
             }
-        });
+        })->disableHeader();
 
         $form->disableReset();            
         $form->disableViewCheck();

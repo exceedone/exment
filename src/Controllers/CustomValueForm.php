@@ -81,10 +81,8 @@ trait CustomValueForm
             }
             // when default block, set as normal form columns.
             if ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
-                //$form->embeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use($custom_form_block) {
-                $form->embeds('value', exmtrans("common.input"), function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
-                    $this->setCustomFormColumns($form, $custom_form_block, $id);
-                });
+                $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $id))
+                    ->disableHeader();
             } 
             // one_to_many or manytomany
             else{
@@ -112,9 +110,8 @@ trait CustomValueForm
                             $relation_name,
                             $block_label,
                             function ($form) use ($custom_form_block, $id) {
-                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block, $id) {
-                                    $this->setCustomFormColumns($form, $custom_form_block, $id);
-                                });
+                                $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $id))
+                                ->disableHeader();
                             }
                         );         
                     }
@@ -261,6 +258,106 @@ EOT;
             // push field to form
             $form->pushField($field);
         }
+    }
+
+    /**
+     * set custom form columns
+     */
+    protected function getCustomFormColumns($form, $custom_form_block, $id = null)
+    {
+        $closures = [[], []];
+        // setting fields.
+        foreach ($custom_form_block->custom_form_columns as $form_column) {
+            $field = null;
+            $form_column_options = $form_column->options;
+            switch ($form_column->form_column_type) {
+                case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
+                    $column = $form_column->custom_column;
+                    $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
+                    break;
+                case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
+                    // id is null, as create, so continue
+                    if(!isset($id)){break;}
+                    $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($option) use($form_column){
+                        return array_get($option, 'id') == array_get($form_column, 'form_column_target_id');
+                    }) ?? [];
+                    // get form column name
+                    $form_column_name = array_get($form_column_obj, 'name');
+                    $column_view_name =  exmtrans("custom_column.system_columns.".$form_column_name);
+                    // get model. we can get model is id almost has.
+                    $model = $this->getModelNameDV()::find($id);
+                    $field = new ExmentField\Display($form_column_name, [$column_view_name]);
+                    $field->default(array_get($model, $form_column_name));
+                    break;
+                case Define::CUSTOM_FORM_COLUMN_TYPE_OTHER:
+                    $options = [];
+                    $form_column_obj = array_get(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE, $form_column->form_column_target_id);
+                    switch (array_get($form_column_obj, 'column_name')) {
+                        case 'header':
+                            $field = new ExmentField\Header(array_get($form_column_options, 'text'));
+                            $field->hr();
+                            break;
+                        case 'explain':
+                            $field = new ExmentField\Description(array_get($form_column_options, 'text'));
+                            break;
+                        case 'html':
+                            $field = new Field\Html(array_get($form_column_options, 'html'));
+                            break;
+                        default:
+                            continue;
+                            break;
+                    }
+                break;
+            }
+
+            // set $closures using $form_column->column_no
+            if (isset($field)) {
+                $column_no = array_get($form_column, 'column_no');
+                if ($column_no == 2) {
+                    $closures[1][] = $field;
+                } else {
+                    $closures[0][] = $field;
+                }
+            }
+        }
+
+        // if $closures[1] count is 0, return closure function 
+        if(count($closures[1]) == 0){
+            return function($form) use ($closures){
+                foreach($closures[0] as $field){
+                    // push field to form
+                    $form->pushField($field);
+                }
+            };
+        }
+        return collect($closures)->map(function($closure){
+            return function($form) use ($closure){
+                foreach($closure as $field){
+                    // push field to form
+                    $field->setWidth(8, 3);
+                    $form->pushField($field);
+                }
+            };
+        })->toArray();
+
+        // $clos = [[], []];
+        // foreach($fields as $index => $field){
+        //     $field->setWidth(8, 3);
+        //     // push field to form
+        //     $clos[$index % 2][] = $field;
+        // }
+
+        // return [function (Form\EmbeddedForm $form) use ($custom_form_block, $id, $clos){
+        //     foreach($clos[0] as $index => $field){
+        //         // push field to form
+        //         $form->pushField($field);
+        //     }
+        // }, function (Form\EmbeddedForm $form) use ($custom_form_block, $id, $clos){
+        //     foreach($clos[1] as $index => $field){
+        //         // push field to form
+        //         $form->pushField($field);
+        //     }
+        // }, ];
     }
 
     /**

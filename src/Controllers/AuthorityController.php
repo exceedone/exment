@@ -94,7 +94,6 @@ class AuthorityController extends AdminControllerBase
         $form->switchbool('default_flg', exmtrans('authority.default_flg'));
 
         // create permissons looping
-        $form->header(exmtrans('authority.permissions'))->hr();
         $form->embeds('permissions', exmtrans('authority.permissions'), function ($form) use ($authority_type) {
             // authority define
             foreach (Define::AUTHORITIES[$authority_type] as $authority_define) {

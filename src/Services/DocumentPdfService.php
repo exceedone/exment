@@ -530,7 +530,7 @@ class DocumentPdfService extends AbstractFPDIService
                             $sum = 0;
                             foreach($children as $child){
                                 // get value
-                                $sum += intval($child->getValue($length_array[2]));
+                                $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
                             }
                             $str = strval($sum);
                         }

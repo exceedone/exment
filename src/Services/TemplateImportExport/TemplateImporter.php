@@ -681,6 +681,7 @@ class TemplateImporter
                                 if (!$obj_form_column->exists) {
                                     $obj_form_column->order = ++$count;
                                 }
+                                $obj_form_column->column_no = array_get($form_column, 'column_no', 1);
                                 
                                 $options = array_get($form_column, 'options', []);
                                 $options = collect($options)->filter(function($option){

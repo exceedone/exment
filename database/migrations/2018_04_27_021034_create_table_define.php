@@ -230,6 +230,7 @@ class CreateTableDefine extends Migration
             $table->integer('custom_form_block_id')->unsigned();
             $table->string('form_column_type');
             $table->integer('form_column_target_id')->nullable();
+            $table->integer('column_no')->default(1);
             $table->json('options')->nullable();
             $table->integer('order')->default(0);
             $table->timestamps();

@@ -202,6 +202,9 @@ class CustomFormController extends AdminControllerTableBase
             ]);
             foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
                 $custom_form_column_array = $custom_form_column->toArray();
+                if(!isset($custom_form_column_array['column_no'])){
+                    $custom_form_column_array['column_no'] = 1;
+                }
 
                 // get column view name
                 switch ($custom_form_column->form_column_type) {
@@ -490,9 +493,10 @@ class CustomFormController extends AdminControllerTableBase
                             continue;
                         }
                         $column->form_column_target_id = array_get($column_value, 'form_column_target_id');
-                    } else {
+                        } else {
                         $column = CustomFormColumn::findOrFail($column_key);
                     }
+                    $column->column_no = array_get($column_value, 'column_no', 1);
                     $column->options = array_get($column_value, 'options');
                     $column->order = $order++;
                     $column->saveOrFail();

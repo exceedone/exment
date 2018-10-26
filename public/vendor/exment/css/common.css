@@ -3383,3 +3383,32 @@
 .input-group .input-group-addon {
   min-width: 45px;
 }
+
+.calc_formula_modal .col-value-item {
+  margin: 2px;
+  padding: 4px 5px;
+  border: 1px solid black;
+  display: inline-block;
+  border-radius: 3px;
+}
+
+.calc_formula_modal .col-value-item span {
+  padding: 0px 12px;
+}
+
+.calc_formula_modal .col-target .col-target-block {
+  margin-bottom: 2em;
+}
+
+.calc_formula_modal .col-target .col-target-block h5, .calc_formula_modal .col-value h5 {
+  margin-bottom: 0.25em;
+}
+
+.calc_formula_modal .col-target-block-column .btn {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.calc_formula_modal .col-value-item-remove {
+  cursor: pointer;
+}

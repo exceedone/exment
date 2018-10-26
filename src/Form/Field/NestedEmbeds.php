@@ -6,7 +6,7 @@ use Exceedone\Exment\Form\NestedEmbeddedForm;
 
 class NestedEmbeds extends Embeds
 {
-    protected $view = 'admin::form.embeds';
+    protected $view = 'exment::form.field.embeds';
 
     /**
      * Create a new HasMany field instance.
@@ -22,14 +22,14 @@ class NestedEmbeds extends Embeds
     protected function buildEmbeddedForm()
     {
         $form = new NestedEmbeddedForm($this->elementName);
+        return $this->setFormField($form);
+        // $form->setParent($this->form);
 
-        $form->setParent($this->form);
+        // call_user_func($this->builder, $form);
 
-        call_user_func($this->builder, $form);
+        // $form->fill($this->getEmbeddedData());
 
-        $form->fill($this->getEmbeddedData());
-
-        return $form;
+        // return $form;
     }
 
     /**
