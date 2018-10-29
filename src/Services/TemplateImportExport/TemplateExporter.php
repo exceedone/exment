@@ -165,6 +165,7 @@ class TemplateExporter
                 'search_enabled',
                 'one_record_flg',
                 //'system_flg',
+                'showlist_flg',
                 'icon',
                 'color',
                 'custom_columns',

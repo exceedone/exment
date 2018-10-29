@@ -396,6 +396,16 @@ class TemplateImporter
                 $obj_table->search_enabled = boolval(array_get($table, 'search_enabled'));
                 $obj_table->system_flg = $system_flg;
 
+                // set showlist_flg
+                if(!array_has($table, 'showlist_flg')){
+                    $obj_table->showlist_flg = true;
+                }
+                elseif(boolval(array_get($table, 'showlist_flg'))){
+                    $obj_table->showlist_flg = true;
+                }else{
+                    $obj_table->showlist_flg = false;
+                }
+
                 // if contains table view name in config
                 if(array_key_value_exists('table_view_name', $table)){
                     $obj_table->table_view_name = array_get($table, 'table_view_name');
@@ -681,7 +691,7 @@ class TemplateImporter
                                 if (!$obj_form_column->exists) {
                                     $obj_form_column->order = ++$count;
                                 }
-                                $obj_form_column->column_no = array_get($form_column, 'column_no', 1);
+                                $obj_form_column->column_no = array_get($form_column, 'column_no', 1) ?? 1;
                                 
                                 $options = array_get($form_column, 'options', []);
                                 $options = collect($options)->filter(function($option){

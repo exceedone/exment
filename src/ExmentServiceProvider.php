@@ -100,7 +100,6 @@ class ExmentServiceProvider extends ServiceProvider
 
         // $this->bootPlugin();
 
-        // \Route::pattern('id', '[0-9]+');
     }
 
     /**
@@ -209,7 +208,8 @@ class ExmentServiceProvider extends ServiceProvider
         }
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
-        
+        Config::set('admin.enable_default_breadcrumb', false);
+
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
             return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);

@@ -10,6 +10,7 @@
             "description": null,
             "search_enabled": "0",
             "one_record_flg": "0",
+            "showlist_flg": "0",
             "custom_columns": [
                 {
                     "column_name": "document_name",

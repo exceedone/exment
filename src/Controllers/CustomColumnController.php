@@ -236,7 +236,7 @@ class CustomColumnController extends AdminControllerTableBase
                     ->help(exmtrans("custom_column.help.select_target_table"))
                     //->rules('required')
                     ->options(function ($select_table) {
-                        $options = CustomTable::all()->pluck('table_view_name', 'id')->toArray();
+                        $options = CustomTable::where('showlist_flg', true)->pluck('table_view_name', 'id')->toArray();
                         return $options;
                     })
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'select_table'])]);
@@ -378,8 +378,7 @@ class CustomColumnController extends AdminControllerTableBase
             $model = $form->model();
             alterColumn($model->custom_table->table_name, $model->column_name);
         });
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
             $tools->disableView();

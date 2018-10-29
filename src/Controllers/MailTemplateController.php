@@ -70,8 +70,7 @@ class MailTemplateController extends AdminControllerBase
             
         $form->textarea('mail_body', exmtrans("mail_template.mail_body"))->rows(10)
             ->help(exmtrans("mail_template.help.mail_body"));
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools){
             $tools->disableView();
         });

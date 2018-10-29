@@ -165,8 +165,7 @@ class CustomViewController extends AdminControllerTableBase
             $model = $form->model();
             alterColumn($model->custom_table->table_name, $model->view_name);
         });
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {

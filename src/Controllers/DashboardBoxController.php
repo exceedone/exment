@@ -190,10 +190,7 @@ class DashboardBoxController extends AdminControllerBase
                         ;
             }
         })->disableHeader();
-
-        $form->disableReset();            
-        $form->disableViewCheck();
-
+        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use($id, $form) {
             $tools->disableView();
             $tools->disableList();

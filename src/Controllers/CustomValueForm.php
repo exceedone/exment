@@ -422,7 +422,7 @@ EOT;
             else if (!Admin::user()->hasPermissionEditData($id, $custom_table->table_name)) {
                 $tools->disableDelete();
                 $tools->disableView();
-                $form->disableViewCheck();
+                disableFormFooter($form);
             }
 
             // add plugin button

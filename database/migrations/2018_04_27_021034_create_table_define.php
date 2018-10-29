@@ -22,6 +22,18 @@ class CreateTableDefine extends Migration
             return new ExtendedBlueprint($table, $callback);
         });
 
+        // remove defalut login_users and create
+        Schema::dropIfExists('login_users');
+        $schema->create('login_users', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('base_user_id')->unsigned()->index();
+            $table->string('password', 1000);
+            $table->string('avatar', 512)->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->timeusers();
+        });
+
         $schema->create('files', function (ExtendedBlueprint $table) {
             $table->uuid('uuid')->primary();
             $table->string('path')->index();
@@ -65,16 +77,6 @@ class CreateTableDefine extends Migration
             $table->string('description', 1000)->nullable();
             $table->boolean('active_flg')->default(true);
             $table->json('options')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-            $table->timeusers();
-        });
-
-        $schema->create('login_users', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->integer('base_user_id')->unsigned()->index();
-            $table->string('password', 1000);
-            $table->string('avatar', 512)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
@@ -158,6 +160,7 @@ class CreateTableDefine extends Migration
             $table->boolean('search_enabled')->default(true);
             $table->boolean('one_record_flg')->default(false);
             $table->boolean('system_flg')->default(false);
+            $table->boolean('showlist_flg')->default(true);
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

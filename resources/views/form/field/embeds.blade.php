@@ -31,4 +31,6 @@
     </div>
 </div>
 
+@if($header)
 <hr style="margin-top: 0px;">
+@endif

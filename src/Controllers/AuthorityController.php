@@ -101,9 +101,7 @@ class AuthorityController extends AdminControllerBase
                 $form->switchbool($authority_define, array_get($transArray, 'label'))->help(array_get($transArray, 'help'));
             }
         });
-
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools){
             $tools->disableView();
         });

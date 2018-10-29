@@ -69,7 +69,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
                 'driver' => 'exment-auth',
                 // Exment Edit------e
             ],
-        ],
+        ],  
     ],
 ~~~
 
@@ -116,6 +116,5 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 - 以下のコマンドを実行します。
 
 ~~~
-php artisan admin:install
 php artisan exment:install
 ~~~

@@ -228,9 +228,7 @@ EOT;
             ->help(exmtrans("dashboard.description_row2"))
             ->rules("required")
             ->default(2);
-
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         
         $form->tools(function (Form\Tools $tools) use($id, $form) {
             $tools->disableView();

@@ -118,8 +118,8 @@ class NotifyController extends AdminControllerBase
             })->help(exmtrans("notify.help.mail_template_id"))
             ->default($notify_mail_id);
         })->disableHeader();
-        $form->disableReset();
-        $form->disableViewCheck();
+        
+        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools){
             $tools->disableView();
         });

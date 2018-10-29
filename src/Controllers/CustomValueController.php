@@ -56,11 +56,13 @@ class CustomValueController extends AdminControllerTableBase
                 $id = $record->id;
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_base_path("data/{$this->custom_table->table_name}/$id"));
+                disableFormFooter($form);
                 $content->body($form);
             }
             // no record
             else {
                 $form = $this->form(null);
+                disableFormFooter($form);
                 $form->setAction(admin_base_path("data/{$this->custom_table->table_name}"));
                 $content->body($form);
             }

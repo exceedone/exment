@@ -88,8 +88,8 @@ Route::group([
 
     $router->get('api/table/{id}', 'ApiController@table');
     $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
-    $router->get('auth/menu/menutype', 'MenuController@menutype');
-    $router->post('auth/menu/menutargetvalue', 'MenuController@menutargetvalue');
+    $router->get('api/menu/menutype', 'MenuController@menutype');
+    $router->post('api/menu/menutargetvalue', 'MenuController@menutargetvalue');
 
     $router->get('files/{uuid}', function($uuid){
         return File::download($uuid);

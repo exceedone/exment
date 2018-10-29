@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-
-class InstallCommand extends Command
+use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
+class InstallCommand extends AdminInstallCommand
 {
     /**
      * The console command name.
@@ -35,6 +35,7 @@ class InstallCommand extends Command
     public function handle()
     {
         $this->initDatabase();
+        $this->initAdminDirectory();
     }
 
     /**

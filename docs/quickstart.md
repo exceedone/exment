@@ -26,7 +26,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ## Change config
 
-- Open "config \ database.php" and modify the value of the key "mysql" as follows.
+- Open "config\database.php" and modify the value of the key "mysql" as follows.
 
 ~~~ php
 'mysql' => [
@@ -56,7 +56,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~
 
-- Open "config \ admin.php" and modify the key "auth.providers.admin" as follows.
+- Open "config\admin.php" and modify the key "auth.providers.admin" as follows.
 
 ~~~ php
     'auth' => [
@@ -73,7 +73,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 ~~~
 
 
-- Open "config \ app.php" and add the following line to the key "providers".  
+- Open "config\app.php" and add the following line to the key "providers".  
 
 ~~~ php
 
@@ -113,7 +113,6 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 - Execute the following command.
 
 ~~~
-php artisan admin:install
 php artisan exment:install
 ~~~
 

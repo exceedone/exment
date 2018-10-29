@@ -44,6 +44,9 @@ class CustomTableController extends AdminControllerBase
             $actions->disableView();
         });
 
+        // filter table --------------------------------------------------
+        $grid->model()->where('showlist_flg', true);
+
         // if not exists, filter model using permission
         if (!Admin::user()->hasPermission(Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             // get tables has custom_table permission.
@@ -82,9 +85,7 @@ class CustomTableController extends AdminControllerBase
 
         // Authority setting --------------------------------------------------
         $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_TABLE);
-
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use($id, $form) {
             $tools->disableView();
             // if edit mode

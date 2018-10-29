@@ -131,12 +131,7 @@ class CustomRelationController extends AdminControllerTableBase
 
         $relation_type_options = getTransArray(Define::RELATION_TYPE, "custom_relation.relation_type_options");
         $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->rules('required');
-
-        // $form->saved(function(){
-        //     createModel($this->custom_table->table_name);
-        // });
-        $form->disableReset();
-        $form->disableViewCheck();
+        disableFormFooter($form);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use($id, $form, $custom_table) {
             $tools->disableView();
