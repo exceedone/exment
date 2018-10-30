@@ -256,6 +256,5 @@ trait CustomValueGrid
     {
         $exmenImporter = DataImportExport\DataImporterBase::getModel($this->custom_table);
         return $exmenImporter->importModal();
-        return $modal;
     }
 }

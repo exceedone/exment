@@ -851,3 +851,11 @@ const admin_base_path = function (path) {
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 }
+
+const getParamFromArray = function(array){
+    array = array.filter(function(x){
+        return (x.value !== (undefined || null || ''));
+    });
+    return $.param(array);
+
+}

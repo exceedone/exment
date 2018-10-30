@@ -2,31 +2,32 @@
 
 namespace Exceedone\Exment\Form\Widgets;
 
-use Encore\Admin\Widgets\Form;
+use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Facades\Admin;
 
 
-class ModalForm extends Form
-{
+class ModalForm extends WidgetForm
+{    
     /**
-     * Render the form.
-     *
-     * @return string
+     * @var array
      */
-    public function render()
-    {
-        $url = $this->attributes['action'];
-        $this->attribute('id', 'modal-form');
-        $this->disableAjax();
+    protected $modalAttributes = [];
+    /**
+     * @var array
+     */
+    protected $modalInnerAttributes = [];
 
+    protected $modalHeader;
+
+    protected function script(){
+        $formurl = $this->attributes['action']; // from url
+        $id = $this->modalAttributes['id'];  // modal id
+        $method = $this->attributes['method'];
         // Add script
         $script = <<<EOT
-            $("#modal-form [type='submit']").off('click').on('click', function (e) {
+            $("#$id .modal-submit").off('click').on('click', function (e) {
                 e.preventDefault();
-                var form = $('form#modal-form').get()[0];
-
-                // Create FormData Object
-                var formData = new FormData( form );
+                var form = $('#$id form').get()[0];
 
                 // get button element
                 var button = $(e.target).closest('button');
@@ -40,14 +41,18 @@ class ModalForm extends Form
                 $('.modal').find('.error-input-area').val('');
             
                 // POST Ajax
-                $.ajaxSetup({
-                    headers: {
-                        'X-CSRF-TOKEN': LA.token
-                    }
-                });
+                if('$method' == 'GET'){
+                    var formData = getParamFromArray($(form).serializeArray());
+                    $.pjax({container:'#pjax-container', url: '{$formurl}?' + formData });
+                    $('.modal').modal('hide');
+                    return;
+                }
+                // Create FormData Object
+                var formData = new FormData( form ); 
+                    
                 $.ajax({
-                    url: '$url',
-                    method: 'POST',
+                    url: '$formurl',
+                    method: '$method',
                     // data as FormData
                     data: formData,
                     // Ajax doesn't process data
@@ -104,9 +109,132 @@ class ModalForm extends Form
                 return false;
             });
 EOT;
-            Admin::script($script);
+        Admin::script($script);
+    }
 
-        return view('admin::widgets.form', $this->getVariables())->render();
+    /**
+     * Add modal header.
+     *
+     * @param string|array $attr
+     * @param string       $value
+     *
+     * @return $this
+     */
+    public function modalHeader($header)
+    {
+        $this->modalHeader = $header;
+        return $this;
+    }
+    /**
+     * Add modal attributes.
+     *
+     * @param string|array $attr
+     * @param string       $value
+     *
+     * @return $this
+     */
+    public function modalAttribute($attr, $value = '')
+    {
+        return $this->modal_attribute('modalAttributes', $attr, $value);
+    }
+    /**
+     * Add modal attributes.
+     *
+     * @param string|array $attr
+     * @param string       $value
+     *
+     * @return $this
+     */
+    public function modalInnerAttribute($attr, $value = '')
+    {
+        return $this->modal_attribute('modalInnerAttributes', $attr, $value);
+    }
+    /**
+     * Add modal attributes.
+     *
+     * @param string|array $attr
+     * @param string       $value
+     *
+     * @return $this
+     */
+    protected function modal_attribute($arrayName, $attr, $value = '')
+    {
+        if (is_array($attr)) {
+            foreach ($attr as $key => $value) {
+                $this->modal_attribute($arrayName, $key, $value);
+            }
+        } else {
+            $this->$arrayName[$attr] = $value;
+        }
+        return $this;
+    }
+    /**
+     * @param string|array $attr
+     * @param string       $value
+     *
+     * @return $this
+     */
+    protected function convert_attribute($attributes)
+    {
+        $html = [];
+        foreach ($attributes as $key => $val) {
+            $html[] = "$key=\"$val\"";
+        }
+
+        return implode(' ', $html) ?: '';
+    }
+
+    protected function setDefaultAttributes()
+    {
+        $this->attributes = array_merge([
+            'id' => 'modalform-form',
+        ], $this->attributes);
+        
+        $this->modalAttributes = array_merge([
+            'tabindex' => -1,
+            'role' => 'dialog',
+            'aria-labelledby' => 'myModalLabel',
+            'data-backdrop' => 'static',
+            'id' => 'modal-form',
+            'class' => 'modal fade',
+        ], $this->modalAttributes);
+        
+        $this->modalInnerAttributes = array_merge([
+            'role' => 'document',
+            'class' => 'modal-dialog modal-lg',
+        ], $this->modalInnerAttributes);
+    }
+
+    /**
+     * Render the form.
+     *
+     * @return string
+     */
+    public function render()
+    {
+        $this->setDefaultAttributes();
+        $this->disableAjax();
+        $this->disableReset();
+
+        // if has submit button, remove default submit, and add js submit button
+        $submit = false;
+        if(in_array('submit', $this->buttons)){
+            $this->disableSubmit();
+            $submit = true;
+            $this->script();
+        }
+
+        // get form render
+        $form_render = parent::render();
+
+        // get view 
+        return view('exment::widgets.modalform',[
+            'header' => $this->modalHeader,
+            'body' => $form_render,
+            'submit' => $submit,
+            'modalAttributes' => $this->convert_attribute($this->modalAttributes),
+            'modalInnerAttributes' => $this->convert_attribute($this->modalInnerAttributes),
+        ]);
     }
 
     public static function getAjaxResponse($results){
@@ -118,7 +246,6 @@ EOT;
 
         // loop for $results
         foreach($results as $result){
-
         }
 
         return response($results, $results['result'] === true ? 200 : 400);

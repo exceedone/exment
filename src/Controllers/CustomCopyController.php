@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
+use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\Request as Req;
 
 class CustomCopyController extends AdminControllerTableBase
@@ -89,7 +90,10 @@ class CustomCopyController extends AdminControllerTableBase
             $grid->model()->where('from_custom_table_id', $this->custom_table->id);
         }
         
+        $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
+            $tools->append(view('exment::custom-value.new-button-copy'));
+            $tools->append($this->createNewModal());
             $tools->append(new Tools\GridChangePageMenu('copy', $this->custom_table, false));
         });
         
@@ -161,24 +165,24 @@ class CustomCopyController extends AdminControllerTableBase
     }
 
     /**
-     * Create new button. 
+     * Create new button for modal. 
      */
-    protected function createNewButton(){
+    protected function createNewModal(){
         $table_name = $this->custom_table->table_name;
         $path = admin_base_path(url_join('copy', $table_name, 'create'));
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
-        $form->action($path)->disableReset();
+        $form->action($path);
+        $form->method('GET');
+        $form->modalHeader(trans('admin.setting'));
 
-        $form
-            ->select('to_custom_table', 'コピー先のテーブル')
+        $form->select('to_custom_table', 'コピー先のテーブル')
             ->options(function($option){
                 return CustomTable::where('showlist_flg', true)->pluck('table_view_name', 'suuid');
             })
-            ->help('コピー先のテーブルを選択してください。');
-        
-        $modal = view('exment::custom-value.import-modal', ['form' => $form]);
-
-        return $modal;
+            ->setWidth(8,3)
+            ->help('コピー先のテーブルを選択してください。');        
+        // add button
+        return $form->render()->render();
     }
 }
