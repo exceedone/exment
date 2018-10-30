@@ -218,6 +218,7 @@ return [
         'custom_view' => 'ビュー設定',
         'custom_form' => 'フォーム設定',
         'custom_relation' => '関連テーブル設定',
+        'custom_copy' => 'データコピー設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],

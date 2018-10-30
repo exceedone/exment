@@ -310,6 +310,7 @@ abstract class DataImporterBase
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset();
         $form->modalAttribute('id', 'data_import_modal');
+        $form->modalHeader(exmtrans('common.import'));
 
         $form->action(admin_base_path('data/'.$table_name.'/import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
