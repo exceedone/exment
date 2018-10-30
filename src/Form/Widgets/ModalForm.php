@@ -38,12 +38,11 @@ class ModalForm extends Form
                 $('.modal').find('.has-error').removeClass('has-error');
                 $('.modal').find('.error-label').remove();
                 $('.modal').find('.error-input-area').val('');
-                
             
                 // POST Ajax
                 $.ajaxSetup({
                     headers: {
-                        'X-CSRF-TOKEN': $('[name="_token"]').val()
+                        'X-CSRF-TOKEN': LA.token
                     }
                 });
                 $.ajax({

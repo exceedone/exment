@@ -48,16 +48,25 @@ class AdminControllerTableBase extends AdminControllerBase
         // check same id
         else{
             $id = $this->custom_table->id;
-            $is_custom_relation = str_contains($className, 'CustomRelation');
             // if custom relation, check $val->parent_custom_table_id and id
-            if($is_custom_relation && str_contains($className, 'CustomRelation') && $val->parent_custom_table_id != $id){
-                admin_toastr(exmtrans('common.message.wrongdata'), 'error');
-                $result = false;
+            if(str_contains($className, 'CustomRelation')){
+                if ($val->parent_custom_table_id != $id) {
+                    admin_toastr(exmtrans('common.message.wrongdata'), 'error');
+                    $result = false;
+                }
+            }
+            elseif(str_contains($className, 'CustomCopy')){
+                if($val->from_custom_table_id != $id){
+                    admin_toastr(exmtrans('common.message.wrongdata'), 'error');
+                    $result = false;
+                }
             }
             // check $val->custom_table_id == $this->custom_table->id
-            elseif (!$is_custom_relation && $val->custom_table_id != $id) {
-                admin_toastr(exmtrans('common.message.wrongdata'), 'error');
-                $result = false;
+            else {
+                if ($val->custom_table_id != $id) {
+                    admin_toastr(exmtrans('common.message.wrongdata'), 'error');
+                    $result = false;
+                }
             }
         }
 

@@ -286,6 +286,34 @@ class CreateTableDefine extends Migration
             //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
         });
 
+        $schema->create('custom_copies', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->string('suuid', 20)->unique();
+            $table->integer('from_custom_table_id')->unsigned();
+            $table->integer('to_custom_table_id')->unsigned();
+            $table->json('options')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->timeusers();
+
+            $table->foreign('from_custom_table_id')->references('id')->on('custom_tables');
+            $table->foreign('to_custom_table_id')->references('id')->on('custom_tables');
+        });
+
+        $schema->create('custom_copy_columns', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('custom_copy_id')->unsigned();
+            $table->integer('from_custom_column_id')->unsigned();
+            $table->integer('to_custom_column_id')->unsigned();
+            $table->timestamps();
+            $table->softDeletes();
+            $table->timeusers();
+
+            $table->foreign('custom_copy_id')->references('id')->on('custom_copies');
+            $table->foreign('from_custom_column_id')->references('id')->on('custom_columns');
+            $table->foreign('to_custom_column_id')->references('id')->on('custom_columns');
+        });
+
         $schema->create('custom_values', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
@@ -358,12 +386,14 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('custom_relation_values');
         Schema::dropIfExists('custom_values');
         Schema::dropIfExists('custom_relations');
-        Schema::dropIfExists('custom_form_columns');
-        Schema::dropIfExists('custom_form_blocks');
-        Schema::dropIfExists('custom_forms');
+        Schema::dropIfExists('custom_copy_columns');
+        Schema::dropIfExists('custom_copies');
         Schema::dropIfExists('custom_view_filters');
         Schema::dropIfExists('custom_view_columns');
         Schema::dropIfExists('custom_views');
+        Schema::dropIfExists('custom_form_columns');
+        Schema::dropIfExists('custom_form_blocks');
+        Schema::dropIfExists('custom_forms');
         Schema::dropIfExists('custom_columns');
         Schema::dropIfExists('custom_tables');
         Schema::dropIfExists('dashboard_boxes');

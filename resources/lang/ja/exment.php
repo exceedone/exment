@@ -5,6 +5,7 @@ return [
         'home' => 'HOME',
         'error' => 'エラー',
         'import' => 'インポート',
+        'copy' => 'コピー',
         'change' => '変更',
         'reqired' => '必須',
         'input' => '入力',
@@ -545,6 +546,18 @@ return [
         'child_custom_table' => '子テーブル',
         'child_custom_table_name' => '子テーブル名',
         'child_custom_table_view_name' => '子テーブル表示名',
+    ],
+
+
+    'custom_copy' => [
+        'header' => 'データコピー設定',
+        'description' => 'テーブルからテーブルにデータをコピーするための設定を定義します。',
+        'from_custom_table_view_name' => 'コピー元テーブル',
+        'to_custom_table_view_name' => 'コピー先テーブル',
+        'custom_copy_columns' => 'コピー列設定',
+        'from_custom_column' => 'コピー元テーブル列',
+        'to_custom_column' => 'コピー先テーブル列',
+        'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
     ],
 
     'search' => [

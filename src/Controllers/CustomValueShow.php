@@ -8,6 +8,7 @@ use Encore\Admin\Show;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 
@@ -108,15 +109,17 @@ trait CustomValueShow
                 });
             }
 
-            // show plugin button
+            // show plugin button and copy button
             $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
-            if(count($listButtons) > 0){
-                $show->panel()->tools(function ($tools) use($listButtons, $id) {
-                    foreach($listButtons as $plugin){
-                        $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
-                    }
-                });
-            }
+            $copyButtons = $this->custom_table->from_custom_copies;
+            $show->panel()->tools(function ($tools) use($listButtons, $copyButtons, $id) {
+                foreach($listButtons as $plugin){
+                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                }
+                foreach($copyButtons as $plugin){
+                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                }
+            });
         });
     }
 }

@@ -34,6 +34,10 @@ class CustomTable extends ModelBase
         return $this->hasMany(CustomRelation::class, 'child_custom_table_id');
     }
     
+    public function from_custom_copies(){
+        return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
+    }
+    
     public function custom_form_block_target_tables(){
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }

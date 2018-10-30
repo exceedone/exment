@@ -339,25 +339,6 @@ EOT;
                 }
             };
         })->toArray();
-
-        // $clos = [[], []];
-        // foreach($fields as $index => $field){
-        //     $field->setWidth(8, 3);
-        //     // push field to form
-        //     $clos[$index % 2][] = $field;
-        // }
-
-        // return [function (Form\EmbeddedForm $form) use ($custom_form_block, $id, $clos){
-        //     foreach($clos[0] as $index => $field){
-        //         // push field to form
-        //         $form->pushField($field);
-        //     }
-        // }, function (Form\EmbeddedForm $form) use ($custom_form_block, $id, $clos){
-        //     foreach($clos[1] as $index => $field){
-        //         // push field to form
-        //         $form->pushField($field);
-        //     }
-        // }, ];
     }
 
     /**

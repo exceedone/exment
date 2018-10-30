@@ -8,6 +8,9 @@
         <div class="modal-body">
             {!! $form !!}
         </div>
-      </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">{{trans('admin.close')}}</button>
+        </div>
+  </div>
     </div>
 </div>

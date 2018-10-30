@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -216,7 +217,7 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
-    //Function handle click event
+    //Function handle plugin click event
     /**
      * @param Request $request
      * @return Response
@@ -232,6 +233,45 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         
+        $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
+        if (class_exists($classname)) {
+            switch(array_get($plugin, 'plugin_type')){
+                case 'document':
+                    $class = new $classname($this->custom_table, $id);
+                    break;
+            }
+            $response = $class->execute();
+        }
+        if (isset($response) && $response instanceof HttpResponse) {
+            return $response;
+        }
+        //TODO:error
+        return response([
+            'status'  => false,
+            'message' => null,
+        ]);
+    }
+
+    //Function handle copy click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function copyClick(Request $request, $id = null)
+    {
+        if ($request->input('uuid') === null) {
+            abort(404);
+        }
+        // get copy eloquent
+        $copy = CustomCopy::findBySuuid($request->input('uuid'));
+        if(!isset($copy)){
+            abort(404);
+        }
+        
+        // execute copy
+        $custom_value = getModelName($this->custom_table)::find($id);
+        $copy->execute($custom_value);
+
         $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
         if (class_exists($classname)) {
             switch(array_get($plugin, 'plugin_type')){

@@ -1111,6 +1111,15 @@ if (!function_exists('getGridTable')) {
                 if(isset($custom_column)){
                     $headers[] = $custom_column->column_view_name;
                 }    
+            }elseif($custom_view_column->view_column_target == 'parent_id'){
+                // get parent data
+                $relation = CustomRelation
+                    ::with('parent_custom_table')
+                    ->where('child_custom_table_id', $custom_table->id)
+                    ->first();
+                if(isset($relation)){
+                    $headers[] = $relation->parent_custom_table->table_view_name;
+                }
             }else{
                 // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
                 $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($value) use($custom_view_column){
@@ -1134,6 +1143,15 @@ if (!function_exists('getGridTable')) {
                         $custom_column = $custom_view_column->custom_column;
                         if(isset($custom_column)){
                             $body_items[] = getValue($data, $custom_column, true);
+                        }
+                    }elseif($custom_view_column->view_column_target == 'parent_id'){
+                        // get parent data
+                        $relation = CustomRelation
+                            ::with('parent_custom_table')
+                            ->where('child_custom_table_id', $custom_table->id)
+                            ->first();
+                        if(isset($relation)){
+                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getValue();
                         }
                     }else{
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.

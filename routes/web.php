@@ -66,6 +66,8 @@ Route::group([
             $router->post("data/{$value}/import", 'CustomValueController@import');
             $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
             $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{$value}/copyClick", 'CustomValueController@copyClick');
+            $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->resource("data/{$value}", 'CustomValueController');
             $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
@@ -73,6 +75,7 @@ Route::group([
             $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
             $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
+            $router->resource("copy/{$value}", 'CustomCopyController', ['except' => ['show']]);
             $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
             $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
             $router->get("api/{$value}/query", 'ApiTableController@query');

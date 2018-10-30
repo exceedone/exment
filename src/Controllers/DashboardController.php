@@ -121,28 +121,30 @@ class DashboardController extends AdminControllerBase
                     confirmButtonColor: "#DD6B55",
                     confirmButtonText: "$confirm",
                     closeOnConfirm: false,
-                    cancelButtonText: "$cancel"
-                  },
-                  function(){
-                      $.ajax({
-                          method: 'post',
-                          url: admin_base_path('dashboardbox/delete/' + suuid),
-                          data: {
-                              _method:'delete',
-                              _token:LA.token
-                          },
-                          success: function (data) {
-                              $.pjax.reload('#pjax-container');
-              
-                              if (typeof data === 'object') {
-                                  if (data.status) {
-                                      swal(data.message, '', 'success');
-                                  } else {
-                                      swal(data.message, '', 'error');
-                                  }
-                              }
-                          }
-                      });
+                    cancelButtonText: "$cancel",
+                    preConfirm: function() {
+                        return new Promise(function(resolve) {
+                            $.ajax({
+                                method: 'post',
+                                url: admin_base_path('dashboardbox/delete/' + suuid),
+                                data: {
+                                    _method:'delete',
+                                    _token:LA.token
+                                },
+                                success: function (data) {
+                                    $.pjax.reload('#pjax-container');
+                    
+                                    if (typeof data === 'object') {
+                                        if (data.status) {
+                                            swal(data.message, '', 'success');
+                                        } else {
+                                            swal(data.message, '', 'error');
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                    }
                   });
             });
             
@@ -229,7 +231,7 @@ EOT;
             ->rules("required")
             ->default(2);
         disableFormFooter($form);
-        
+
         $form->tools(function (Form\Tools $tools) use($id, $form) {
             $tools->disableView();
             $tools->disableList();
