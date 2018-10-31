@@ -115,25 +115,25 @@ class CustomViewController extends AdminControllerTableBase
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
         
-        $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->rules("required|max:40");
+        $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
         
         $custom_table = $this->custom_table;
 
         // columns setting
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function($form) use($custom_table){
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->rules('required')
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options(getColumnsSelectOptions($this->custom_table));
-            $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->rules('required');
+            $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
         })->setTableColumnWidth(6,4,2)
         ->description(exmtrans("custom_view.description_custom_view_columns"));
 
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function($form) use($custom_table){
-            $form->select('view_filter_target', exmtrans("custom_view.view_filter_target"))->rules('required')
+            $form->select('view_filter_target', exmtrans("custom_view.view_filter_target"))->required()
                 ->options(getColumnsSelectOptions($this->custom_table, true))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_path(url_join('view', $custom_table->table_name, 'filter-condition'))])]);
 
-            $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->rules('required')
+            $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
                 ->options(function($val){
                     // if null, return empty array.
                     if(!isset($val)){return [];}

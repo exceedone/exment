@@ -558,7 +558,10 @@ return [
         'custom_copy_columns' => 'コピー列設定',
         'from_custom_column' => 'コピー元テーブル列',
         'to_custom_column' => 'コピー先テーブル列',
+        'custom_copy_input_columns' => '入力ダイアログ設定',
+        'input_custom_column' => '対象テーブル列',
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
+        'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
     ],
 
     'search' => [

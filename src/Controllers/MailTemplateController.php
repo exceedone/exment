@@ -48,7 +48,8 @@ class MailTemplateController extends AdminControllerBase
         $form = new Form(new MailTemplate);
         if (!isset($id)) {
             $form->text('mail_name', exmtrans("mail_template.mail_name"))
-                ->rules("required|unique:".MailTemplate::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+                ->required()
+                ->rules("unique:".MailTemplate::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(exmtrans("mail_template.help.mail_name").exmtrans("common.help_code"));
         } else {
             $form->display('mail_name', exmtrans("mail_template.mail_name"))
@@ -57,10 +58,10 @@ class MailTemplateController extends AdminControllerBase
 
         // get manual url abou mail temlate valiable value
         $manual_url = url_join(config('exment.manual_url'), 'mail');
-        $form->text('mail_view_name', exmtrans("mail_template.mail_view_name"))->rules("required")
+        $form->text('mail_view_name', exmtrans("mail_template.mail_view_name"))->required()
             ->help(exmtrans("mail_template.help.mail_view_name"));
         
-        $form->select('mail_template_type', exmtrans("mail_template.mail_template_type"))->rules("required")
+        $form->select('mail_template_type', exmtrans("mail_template.mail_template_type"))->required()
             ->options(getTransArray(Define::MAIL_TEMPLATE_TYPE, 'mail_template.mail_template_type_options'))
             ->default(Define::MAIL_TEMPLATE_TYPE_BODY);
 

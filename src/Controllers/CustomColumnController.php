@@ -142,17 +142,18 @@ class CustomColumnController extends AdminControllerTableBase
         if (!isset($id)) {
             $classname = CustomColumn::class;
             $form->text('column_name', exmtrans("custom_column.column_name"))
-                ->rules("required|regex:/^[a-zA-Z0-9\-_]*$/|uniqueInTable:{$classname},{$this->custom_table->id}")
+                ->required()
+                ->rules("regex:/^[a-zA-Z0-9\-_]*$/|uniqueInTable:{$classname},{$this->custom_table->id}")
                 ->help(exmtrans('common.help_code'));
         } else {
             $form->display('column_name', exmtrans("custom_column.column_name"));
         }
 
-        $form->text('column_view_name', exmtrans("custom_column.column_view_name"))->rules("required");
+        $form->text('column_view_name', exmtrans("custom_column.column_view_name"))->required();
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"))
         ->attribute(['data-filtertrigger' =>true])
-        ->rules('required');
+        ->required();
 
         if (!isset($id)) {
             $id = $form->model()->id;

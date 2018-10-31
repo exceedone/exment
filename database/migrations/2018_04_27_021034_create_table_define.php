@@ -176,8 +176,6 @@ class CreateTableDefine extends Migration
             $table->string('description', 1000)->nullable();
             $table->boolean('system_flg')->default(false);
             $table->json('options')->nullable();
-            // $table->boolean('required')->virtualAs("json_unquote(json_extract(`options`,'$.required'))");
-            // $table->boolean('search_enabled')->virtualAs("json_unquote(json_extract(`options`,'$.search_enabled'))");
 
             $table->timestamps();
             $table->softDeletes();
@@ -303,8 +301,9 @@ class CreateTableDefine extends Migration
         $schema->create('custom_copy_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_copy_id')->unsigned();
-            $table->integer('from_custom_column_id')->unsigned();
+            $table->integer('from_custom_column_id')->unsigned()->nullable();
             $table->integer('to_custom_column_id')->unsigned();
+            $table->string('custom_copy_type');
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

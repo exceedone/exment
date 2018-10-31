@@ -143,7 +143,8 @@ class MenuController extends AdminControllerBase
         $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
         $form->select('menu_type', exmtrans("menu.menu_type"))->options(getTransArray(Define::MENU_TYPES, "menu.menu_type_options"))
             ->load('menu_target', admin_base_path('api/menu/menutype'))
-            ->rules('required');
+            ->required();
+
         $form->select('menu_target', exmtrans("menu.menu_target"))
             ->attribute(['data-changedata' => json_encode(
                 ['getitem' => 
@@ -167,13 +168,13 @@ class MenuController extends AdminControllerBase
                 'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_SYSTEM, Define::MENU_TYPE_PLUGIN, Define::MENU_TYPE_TABLE, Define::MENU_TYPE_PARENT_NODE]
             ])]);
         $form->text('menu_name', exmtrans("menu.menu_name"))
+            ->required()
             ->rules(
                 [
-                    'required',
                     Rule::unique(config('admin.database.menu_table'))->ignore($id),
                 ]
             )->help(exmtrans('common.help_code'));
-        $form->text('title', exmtrans("menu.title"))->rules('required');
+        $form->text('title', exmtrans("menu.title"))->required();
         $form->icon('icon', trans('admin.icon'))->default('');
         $form->hidden('order');
 

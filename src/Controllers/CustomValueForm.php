@@ -62,14 +62,14 @@ trait CustomValueForm
                 ->options(function($value) use($parent_custom_table){
                     return getOptions($parent_custom_table, $value);
                 })
-                ->rules('required');
+                ->required();
             }else{
                 $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function($value) use($parent_custom_table){
                     return getOptions($parent_custom_table, $value);
                 })
                 ->ajax(getOptionAjaxUrl($parent_custom_table))
-                ->rules('required');
+                ->required();
             }
         }
 

@@ -145,7 +145,7 @@ class CustomCopyController extends AdminControllerTableBase
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
         })->disableHeader();
 
-        // get from and to columns
+        ///// get from and to columns
         $custom_table = $this->custom_table;
         $from_custom_column_options = $this->custom_columns->pluck('column_view_name', 'id');
         $to_custom_column_options = $to_table->custom_columns->pluck('column_view_name', 'id') ?? [];
@@ -153,8 +153,16 @@ class CustomCopyController extends AdminControllerTableBase
             $form->select('from_custom_column_id', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
             $form->description('▶');
             $form->select('to_custom_column_id', exmtrans("custom_copy.to_custom_column"))->options($to_custom_column_options);
+            $form->hidden('custom_copy_type')->default('default');
         })->setTableWidth(10,1)
         ->description(exmtrans("custom_copy.column_description"));
+
+        ///// get input columns
+        $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function($form) use($from_custom_column_options, $to_custom_column_options){
+            $form->select('to_custom_column_id', exmtrans("custom_copy.input_custom_column"))->options($to_custom_column_options);
+            $form->hidden('custom_copy_type')->default('input');
+        })->setTableWidth(10,1)
+        ->description(exmtrans("custom_copy.input_column_description"));
 
         disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use($id, $form, $custom_table) {

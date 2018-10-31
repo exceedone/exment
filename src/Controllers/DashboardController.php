@@ -200,13 +200,14 @@ EOT;
 
         if(!isset($id)){
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
-                ->rules("required|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+                ->required()
+                ->rules("unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(exmtrans('common.help_code'));
         }else{
             $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
         }
 
-        $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->rules("required");
+        $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->required();
         
         // create row1 select options
         $row1 = [];
@@ -216,7 +217,7 @@ EOT;
         $form->radio('row1', exmtrans("dashboard.row1"))
             ->options($row1)
             ->help(exmtrans("dashboard.description_row1"))
-            ->rules("required")
+            ->required()
             ->default(1);
 
         // create row2 select options
@@ -228,7 +229,7 @@ EOT;
         $form->radio('row2', exmtrans("dashboard.row2"))
             ->options($row2)
             ->help(exmtrans("dashboard.description_row2"))
-            ->rules("required")
+            ->required()
             ->default(2);
         disableFormFooter($form);
 

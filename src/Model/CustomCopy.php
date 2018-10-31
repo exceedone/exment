@@ -19,7 +19,13 @@ class CustomCopy extends ModelBase
     }
 
     public function custom_copy_columns(){
-        return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id');
+        return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
+        ->where('custom_copy_type', 'default');
+    }
+
+    public function custom_copy_input_columns(){
+        return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
+        ->where('custom_copy_type', 'input');
     }
 
     /**

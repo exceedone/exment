@@ -156,7 +156,7 @@ class DashboardBoxController extends AdminControllerBase
         $form->display('dashboard_box_type_display', exmtrans('dashboard.dashboard_box_type'))->default(exmtrans("dashboard.dashboard_box_type_options.$dashboard_box_type"));
         $form->hidden('dashboard_box_type')->default($dashboard_box_type);
 
-        $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("required");
+        $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->required();
         
         // Option Setting --------------------------------------------------
         $form->embeds('options', function($form) use($dashboard_box_type){
@@ -164,12 +164,12 @@ class DashboardBoxController extends AdminControllerBase
             switch($dashboard_box_type){
                 case Define::DASHBOARD_BOX_TYPE_LIST:
                     $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
-                        ->rules("required")
+                        ->required()
                         ->options(CustomTable::get(['id', 'table_view_name'])->pluck('table_view_name', 'id'))
                         ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
 
                     $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
-                        ->rules("required")
+                        ->required()
                         ->options(function($value){
                             if(!isset($value)){return [];}
 
@@ -185,7 +185,7 @@ class DashboardBoxController extends AdminControllerBase
                         $options[array_get($page, 'id')] = exmtrans('dashboard.dashboard_box_system_pages.'.array_get($page, 'name')); 
                     }
                     $form->select('target_system_id', exmtrans("dashboard.dashboard_box_options.target_system_id"))
-                        ->rules("required")
+                        ->required()
                         ->options($options)
                         ;
             }

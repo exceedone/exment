@@ -53,12 +53,12 @@ class NotifyController extends AdminControllerBase
     protected function form($id = null)
     {
         $form = new Form(new Notify);
-        $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->rules("required");
+        $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required();
         // TODO: only authority tables
 
         $form->header(exmtrans('notify.header_trigger'))->hr();
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
-        ->rules("required")
+        ->required()
         ->options(function($custom_table_id){
             return CustomTable::all()->pluck('table_view_name', 'id');
         })->attribute(['data-changedata' => json_encode(['changedata' => [
@@ -71,7 +71,7 @@ class NotifyController extends AdminControllerBase
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
             ->options(getTransArrayValue(Define::NOTIFY_TRIGGER, 'notify.notify_trigger_options'))
             ->default('1')
-            ->rules("required")
+            ->required()
             ->help(exmtrans("notify.help.notify_trigger"));
 
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form){
@@ -99,7 +99,7 @@ class NotifyController extends AdminControllerBase
         $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(getTransArrayValue(Define::NOTIFY_ACTION, 'notify.notify_action_options'))
             ->default('1')
-            ->rules("required")
+            ->required()
             ->help(exmtrans("notify.notify_action"))
             ;
 
@@ -107,7 +107,7 @@ class NotifyController extends AdminControllerBase
             $form->select('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(getTransArray(Define::NOTIFY_ACTION_TARGET, 'notify.notify_action_target_options'))
                 ->default('1')
-                ->rules("required")
+                ->required()
                 ->help(exmtrans("notify.help.notify_action_target"));
 
             // get notify mail template

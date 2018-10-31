@@ -195,7 +195,15 @@ class FormHelper
                     $field->attribute(['max' => array_get($options, 'number_max')]);
                 }
             }
-
+        
+            // required
+            // ignore auto_number. because auto_number is saved flow.
+            if (boolval(array_get($options, 'required')) && $column->column_type != 'auto_number') {
+                $field->required();
+            } else {
+                $field->rules('nullable');
+            }
+    
             // set validates
             $validate_options = [];
             $validates = static::getColumnValidates($custom_table, $column, $id, $validate_options);
@@ -242,14 +250,7 @@ class FormHelper
         
         $validates = [];
         // setting options --------------------------------------------------
-        // required
-        // ignore auto_number. because auto_number is saved flow.
-        if (boolval(array_get($options, 'required')) && $column_type != 'auto_number') {
-            $validates[] = 'required';
-        } else {
-            $validates[] = 'nullable';
-        }
-    
+        
         // unique
         if (boolval(array_get($options, 'unique'))) {
             // add unique field

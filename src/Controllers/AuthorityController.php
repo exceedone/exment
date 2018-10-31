@@ -83,13 +83,14 @@ class AuthorityController extends AdminControllerBase
 
         if (!isset($id)) {
             $form->text('authority_name', exmtrans('authority.authority_name'))
-            ->rules("required|unique:".Authority::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            ->required()
+            ->rules("unique:".Authority::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
             ->help(exmtrans('common.help_code'));
         } else {
             $form->display('authority_name', exmtrans('authority.authority_name'));
         }
 
-        $form->text('authority_view_name', exmtrans('authority.authority_view_name'))->rules("required");
+        $form->text('authority_view_name', exmtrans('authority.authority_view_name'))->required();
         $form->textarea('description', exmtrans('authority.description_field'))->rows(3);
         $form->switchbool('default_flg', exmtrans('authority.default_flg'));
 
