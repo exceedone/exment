@@ -35,7 +35,7 @@ class Dashboard extends ModelBase
     /**
      * get default dashboard
      */
-    public static function getDefaultDashboard(){
+    public static function getDefault(){
         $user = Admin::user();
         // get request
         $request = Req::capture();

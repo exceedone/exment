@@ -171,7 +171,7 @@ class CustomView extends ModelBase
     /**
      * get default view using table
      */
-    public static function getDefaultView($tableObj){
+    public static function getDefault($tableObj){
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
 

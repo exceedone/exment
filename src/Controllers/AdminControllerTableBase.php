@@ -85,9 +85,9 @@ class AdminControllerTableBase extends AdminControllerBase
         // get admin_user
         $admin_user = Admin::user();
         // set view
-        $this->custom_view = CustomView::getDefaultView($this->custom_table);
+        $this->custom_view = CustomView::getDefault($this->custom_table);
 
         // set form
-        $this->custom_form = CustomForm::getDefaultForm($this->custom_table);
+        $this->custom_form = CustomForm::getDefault($this->custom_table);
     }
 }

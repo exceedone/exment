@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomView;
 
 class SearchController extends AdminControllerBase
 {
@@ -286,7 +287,7 @@ EOT;
         }
 
         // get headers and bodies
-        $view = $table->custom_views()->first(); //TODO
+        $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist);
 
         return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];
@@ -418,11 +419,11 @@ EOT;
 
         // Get search result HTML.
         if(count($data) == 0){
-            return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
+            return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
         
         // get headers and bodies
-        $view = $search_table->custom_views()->first(); //TODO
+        $view = CustomView::getDefault($search_table);
         list($headers, $bodies) = $view->getDataTable($data);
 
         return ['table_name' => array_get($search_table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];

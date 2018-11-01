@@ -26,7 +26,7 @@ class CustomForm extends ModelBase
     /**
      * get default view using table
      */
-    public static function getDefaultForm($tableObj){
+    public static function getDefault($tableObj){
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
         // get request

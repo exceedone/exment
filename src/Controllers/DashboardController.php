@@ -23,7 +23,7 @@ class DashboardController extends AdminControllerBase
     }
 
     protected function setDashboardInfo(Request $request){
-        $this->dashboard = Dashboard::getDefaultDashboard();
+        $this->dashboard = Dashboard::getDefault();
     }
 
     public function index(Request $request, Content $content)
