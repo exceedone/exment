@@ -1,10 +1,10 @@
 <?php
 
-namespace Exceedone\Exment\Model;
+namespace Exceedone\Exment\Model\Traits;
 
-trait AutoSUuid
+trait AutoSUuidTrait
 {
-    public static function bootAutoSUuid()
+    public static function bootAutoSUuidTrait()
     {
         self::observe(AutoSUuidObserver::class);
     }

@@ -116,6 +116,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
         
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
+        $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         
         $custom_table = $this->custom_table;
 

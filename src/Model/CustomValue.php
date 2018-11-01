@@ -5,8 +5,8 @@ use Encore\Admin\Facades\Admin;
 
 class CustomValue extends ModelBase
 {        
-    use CustomValueExt;
-    use AutoSUuid;
+    use Traits\CustomValueTrait;
+    use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $casts = ['value' => 'json'];
 

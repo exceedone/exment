@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Model;
 
 class Notify extends ModelBase
 {
-    use AutoSUuid;
+    use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];

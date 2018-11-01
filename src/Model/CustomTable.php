@@ -3,12 +3,12 @@
 namespace Exceedone\Exment\Model;
 
 
-getCustomTableExt();
+getCustomTableTrait();
 
 class CustomTable extends ModelBase
 {
-    use CustomTableExt; // CustomTableExt:Dynamic Creation trait it defines relationship.
-    use AutoSUuid;
+    use Traits\CustomTableTrait; // CustomTableTrait:Dynamic Creation trait it defines relationship.
+    use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $casts = ['authority' => 'json'];

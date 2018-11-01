@@ -201,8 +201,8 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->string('suuid', 20)->unique();
             $table->integer('custom_table_id')->unsigned();
-            //$table->string('form_name')->index();
             $table->string('form_view_name', 256);
+            $table->boolean('default_flg')->default(false);
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
@@ -248,6 +248,7 @@ class CreateTableDefine extends Migration
             $table->integer('custom_table_id')->unsigned();
             $table->string('view_type');
             $table->string('view_view_name', 40);
+            $table->boolean('default_flg')->default(false);
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

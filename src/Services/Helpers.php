@@ -349,7 +349,7 @@ if (!function_exists('getModelName')) {
         if(!isset($suuid)){
             if (is_numeric($obj)) {
                 // Get suuid.
-                // using DB query builder (because this function may be called createCustomTableExt. this function is trait CustomTable
+                // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
                 //$table = CustomTable::find($obj);
                 $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
                 setRequestSession('getModelName_'.$obj, $suuid);
@@ -377,7 +377,7 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
-            // get table. this block isn't called by createCustomTableExt
+            // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
             createTable($table);    
             ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
@@ -386,20 +386,20 @@ if (!function_exists('getModelName')) {
         return "\\".$fillpath;
     }
 }
-if (!function_exists('getCustomTableExt')) {
+if (!function_exists('getCustomTableTrait')) {
     /**
-     * For use function in "CustomTable"、create CustomTableExt class
+     * For use function in "CustomTable"、create CustomTableTrait class
      * @param string|CustomTable $obj
      * @return string
      */
-    function getCustomTableExt()
+    function getCustomTableTrait()
     {
-        $namespace = "Exceedone\\Exment\\Model";
-        $className = "CustomTableExt";
+        $namespace = "Exceedone\\Exment\\Model\\Traits";
+        $className = "CustomTableTrait";
         $fillpath = "{$namespace}\\{$className}";
         // if the model doesn't defined
         if (!class_exists($fillpath)) {
-            ClassBuilder::createCustomTableExt($namespace, $className, $fillpath);
+            ClassBuilder::createCustomTableTrait($namespace, $className, $fillpath);
         }
 
         return "\\".$fillpath;

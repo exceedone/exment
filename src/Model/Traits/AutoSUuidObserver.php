@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Model;
+namespace Exceedone\Exment\Model\Traits;
 
 class AutoSUuidObserver
 {

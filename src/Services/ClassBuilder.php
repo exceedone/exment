@@ -215,7 +215,7 @@ class ClassBuilder {
 
             // especially flow if table is user --------------------------------------------------
             if ($table->table_name == Define::SYSTEM_TABLE_NAME_USER) {
-                $builder->addInUse('\Exceedone\Exment\Model\UserTrait');
+                $builder->addInUse('\Exceedone\Exment\Model\Traits\UserTrait');
             }
 
             $builder->build();
@@ -224,7 +224,7 @@ class ClassBuilder {
 	/**
 	 * Create Custom Table Exts Definition
 	 */
-	public static function createCustomTableExt($namespace, $className, $fillpath){
+	public static function createCustomTableTrait($namespace, $className, $fillpath){
 		$builder = ClassBuilder::startBuild($className)
                 ->addNamespace($namespace)
                 ->addTrait()

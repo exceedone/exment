@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 class CustomCopy extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
-    use AutoSUuid;
+    use Traits\AutoSUuidTrait;
     
     protected $casts = ['options' => 'json'];
 

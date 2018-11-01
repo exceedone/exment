@@ -8,7 +8,8 @@ use Illuminate\Http\Request as Req;
 
 class CustomView extends ModelBase
 {    
-    use AutoSUuid;
+    use Traits\AutoSUuidTrait;
+    use Traits\DefaultFlgTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $guarded = ['id', 'suuid'];
@@ -251,6 +252,13 @@ class CustomView extends ModelBase
     protected static function boot() {
         parent::boot();
         
+        static::creating(function($model) {
+            $model->setDefaultFlgInTable();
+        });
+        static::updating(function($model) {
+            $model->setDefaultFlgInTable();
+        });
+
         // delete event
         static::deleting(function($model) {
             // Delete items

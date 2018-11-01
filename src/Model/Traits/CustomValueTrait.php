@@ -1,10 +1,10 @@
 <?php
 
-namespace Exceedone\Exment\Model;
+namespace Exceedone\Exment\Model\Traits;
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
 
-trait CustomValueExt
+trait CustomValueTrait
 {       
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update

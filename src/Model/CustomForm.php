@@ -6,7 +6,8 @@ use Illuminate\Http\Request as Req;
 
 class CustomForm extends ModelBase
 {
-    use AutoSUuid;
+    use Traits\AutoSUuidTrait;
+    use Traits\DefaultFlgTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     public function custom_table(){
@@ -110,6 +111,13 @@ class CustomForm extends ModelBase
 
     protected static function boot() {
         parent::boot();
+        
+        static::creating(function($model) {
+            $model->setDefaultFlgInTable();
+        });
+        static::updating(function($model) {
+            $model->setDefaultFlgInTable();
+        });
         
         static::deleting(function($model) {
             $model->deletingChildren();

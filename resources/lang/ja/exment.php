@@ -8,6 +8,7 @@ return [
         'copy' => 'コピー',
         'change' => '変更',
         'reqired' => '必須',
+        'default' => '既定',
         'input' => '入力',
         'available_true' => '有効',
         'available_false' => '無効',
