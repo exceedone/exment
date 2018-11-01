@@ -32,7 +32,7 @@ trait CustomValueGrid
         $search_enabled_columns = getSearchEnabledColumns($this->custom_table->table_name);
     
         // create grid
-        $this->createGrid($grid);
+        $this->custom_view->setGrid($grid);
 
         // manage row action
         $this->manageRowAction($grid);
@@ -117,60 +117,60 @@ trait CustomValueGrid
         });
     }
 
-    /**
-     * Create Grid
-     * And Manage Batch Action
-     */
-    protected function createGrid($grid)
-    {
-        $custom_table = $this->custom_table;
-        // get view columns
-        $custom_view_columns = $this->custom_view->custom_view_columns()->get();
-        foreach ($custom_view_columns as $custom_view_column) {
-            $view_column_target = array_get($custom_view_column, 'view_column_target');
-            // if tagret is number, column type is column.
-            if (is_numeric($view_column_target)) {
-                $column = $custom_view_column->custom_column;
-                $column_name = getColumnName($column, true);
-                $column_type = array_get($column, 'column_type');
-                $column_view_name = array_get($column, 'column_view_name');
+    // /**
+    //  * Create Grid
+    //  * And Manage Batch Action
+    //  */
+    // protected function createGrid($grid)
+    // {
+    //     $custom_table = $this->custom_table;
+    //     // get view columns
+    //     $custom_view_columns = $this->custom_view->custom_view_columns()->get();
+    //     foreach ($custom_view_columns as $custom_view_column) {
+    //         $view_column_target = array_get($custom_view_column, 'view_column_target');
+    //         // if tagret is number, column type is column.
+    //         if (is_numeric($view_column_target)) {
+    //             $column = $custom_view_column->custom_column;
+    //             $column_name = getColumnName($column, true);
+    //             $column_type = array_get($column, 'column_type');
+    //             $column_view_name = array_get($column, 'column_view_name');
 
-                //$grid->column($column_name, $column_view_name)->sortable();
-                $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function($v) use($column){
-                    if(is_null($this)){return '';}
-                    return $this->getValue($column, true);
-                });
-            }
-            // parent_id
-            elseif($view_column_target == 'parent_id'){
-                // get parent data
-                $relation = CustomRelation
-                    ::with('parent_custom_table')
-                    ->where('child_custom_table_id', $this->custom_table->id)
-                    ->first();
-                if(isset($relation)){
-                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
-                        ->sortable()
-                        ->display(function($value){
-                            // get parent_type
-                            $parent_type = $this->parent_type;
-                            if(is_null($parent_type)){return null;}
-                            return getModelName($parent_type)::find($value)->getValue();
-                    });
-                }
-            }
-            // system column
-            else {
-                // get column name
-                $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable()
-                    ->display(function($value) use($view_column_target){
-                        if(!is_null($value)){return $value;}
-                        // if cannnot get value, return array_get from this
-                        return array_get($this, $view_column_target);
-                    });
-            }
-        }
-    }
+    //             //$grid->column($column_name, $column_view_name)->sortable();
+    //             $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function($v) use($column){
+    //                 if(is_null($this)){return '';}
+    //                 return $this->getValue($column, true);
+    //             });
+    //         }
+    //         // parent_id
+    //         elseif($view_column_target == 'parent_id'){
+    //             // get parent data
+    //             $relation = CustomRelation
+    //                 ::with('parent_custom_table')
+    //                 ->where('child_custom_table_id', $this->custom_table->id)
+    //                 ->first();
+    //             if(isset($relation)){
+    //                 $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
+    //                     ->sortable()
+    //                     ->display(function($value){
+    //                         // get parent_type
+    //                         $parent_type = $this->parent_type;
+    //                         if(is_null($parent_type)){return null;}
+    //                         return getModelName($parent_type)::find($value)->getValue();
+    //                 });
+    //             }
+    //         }
+    //         // system column
+    //         else {
+    //             // get column name
+    //             $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable()
+    //                 ->display(function($value) use($view_column_target){
+    //                     if(!is_null($value)){return $value;}
+    //                     // if cannnot get value, return array_get from this
+    //                     return array_get($this, $view_column_target);
+    //                 });
+    //         }
+    //     }
+    // }
 
     /**
      * Manage Grid Tool Button

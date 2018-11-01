@@ -15,7 +15,6 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
 {
-
     /**
      * create show form list
      */
@@ -65,36 +64,9 @@ trait CustomValueShow
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
                     $show->{$relation_name}($block_label, function($grid) use($custom_form_block, $target_table){
-                        // 1:n relation
-                        if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY) {
-                            foreach ($custom_form_block->custom_form_columns as $form_column) {
-                                $column = $form_column->custom_column;
-
-                                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->sortable()->display(function ($v) use ($column) {
-                                    if (is_null($this)) {
-                                        return '';
-                                    }
-                                    return $this->getValue($column, true);
-                                });
-                            }
-                        }
-                        // n:n
-                        else{
-                            // get default view and columns
-                            $custom_view = $target_table->custom_views()->first(); //TODO
-                            $custom_view_columns = $custom_view->custom_view_columns;
-
-                            foreach($custom_view_columns as $custom_view_column){
-                                $column = $custom_view_column->custom_column;
-                                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->sortable()->display(function ($v) use ($column) {
-                                    if (is_null($this)) {
-                                        return '';
-                                    }
-                                    return $this->getValue($column, true);
-                                });
-                            }
-                        }
-
+                        $custom_view = $target_table->custom_views()->first(); //TODO
+                        $custom_view->setGrid($grid);
+                        
                         $grid->disableFilter();
                         $grid->disableCreateButton();
                         $grid->disableExport();
@@ -105,7 +77,6 @@ trait CustomValueShow
                         });
                         $grid->disableRowSelector();
                         $grid->disableActions();
-
                     });
                 }
             }

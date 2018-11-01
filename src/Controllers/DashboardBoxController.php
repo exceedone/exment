@@ -7,6 +7,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\ModelForm;
 use Encore\Admin\Widgets\Box;
+use Encore\Admin\Widgets\Table as WidgetTable;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -110,7 +111,8 @@ class DashboardBoxController extends AdminControllerBase
                     $datalist = $model->take(5)->get();
 
                     // get widget table
-                    $widgetTable = getGridTable($datalist, $table, $view);
+                    list($headers, $bodies) = $view->getDataTable($datalist);
+                    $widgetTable = new WidgetTable($headers, $bodies);
 
                     $html = view('exment::dashboard.list.header', [
                         'new_url' => admin_base_path("data/{$table->table_name}/create")

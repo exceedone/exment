@@ -145,7 +145,4 @@ class CustomCopy extends ModelBase
         return $to_custom_value;
     }
     
-    protected function aaaa(){
-        // 
-    }
 }

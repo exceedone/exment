@@ -6,7 +6,7 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
-use Encore\Admin\Widgets\Table;
+use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -269,7 +269,7 @@ EOT;
      */
     public function getList(Request $request){
         $q = $request->input('query');
-        $table = CustomTable::findByName($request->input('table_name'), true)->toArray();
+        $table = CustomTable::findByName($request->input('table_name'), true);
         // Get search enabled columns.
         $search_columns = getSearchEnabledColumns(array_get($table, 'table_name'));
 
@@ -278,31 +278,18 @@ EOT;
         }
 
         // search all data using index --------------------------------------------------
-        $data = $this->searchValue($q, $table, $search_columns, 5);
+        $datalist = $this->searchValue($q, $table, $search_columns, 5);
         
         // Get result HTML.
-        if(count($data) == 0){
+        if(count($datalist) == 0){
             return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
 
-        $headers = array_column($search_columns, 'column_view_name');
-        $rows = [];
-        foreach ($data as $d)
-        {
-            // Add columns
-            $columns = [];
-            foreach (array_column($search_columns, 'column_name') as $c)
-            {
-                array_push($columns, array_get($d, "value.$c"));
-            }
-            // Add links
-            $link = '<a href="'.admin_base_path('data/'.array_get($table, 'table_name').'/'.array_get($d, 'id')).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
-            $link .= '<a href="'.admin_base_path('data/'.array_get($table, 'table_name').'/'.array_get($d, 'id').'/edit').'"><i class="fa fa-edit"></i></a>';
-            array_push($columns, $link);
+        // get headers and bodies
+        $view = $table->custom_views()->first(); //TODO
+        list($headers, $bodies) = $view->getDataTable($datalist);
 
-            array_push($rows, $columns);
-        }
-        return ['table_name' => array_get($table, 'table_name'), "html" => (new Table($headers, $rows))->render()];
+        return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];
     }
     
     // For relation search  --------------------------------------------------    
@@ -426,11 +413,6 @@ EOT;
                     ->where("$relation_name.parent_id", $value_id)
                     ->take(5)
                     ->get([getDBTableName($search_table).".*"])->toArray();
-                // if(isset($data)){
-                //     $data = $data->map(function($value, $key) use($relation_name){
-                //         return $value->{$relation_name}->value;
-                //     })->toArray();
-                // }
                 break;            
         }
 
@@ -438,25 +420,12 @@ EOT;
         if(count($data) == 0){
             return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
+        
+        // get headers and bodies
+        $view = $search_table->custom_views()->first(); //TODO
+        list($headers, $bodies) = $view->getDataTable($data);
 
-        $headers = array_column($search_columns, 'column_view_name');
-        $rows = [];
-        foreach ($data as $d)
-        {
-            // Get items
-            $columns = [];
-            foreach (array_column($search_columns, 'column_name') as $c)
-            {
-                array_push($columns, array_get($d, "value.$c"));
-            }
-            // Add link
-            $link = '<a href="'.admin_base_path('data/'.array_get($search_table, 'table_name').'/'.array_get($d, 'id')).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
-            $link .= '<a href="'.admin_base_path('data/'.array_get($search_table, 'table_name').'/'.array_get($d, 'id').'/edit').'"><i class="fa fa-edit"></i></a>';
-            array_push($columns, $link);
-
-            array_push($rows, $columns);
-        }
-        return ['table_name' => array_get($search_table, 'table_name'), "html" => (new Table($headers, $rows))->render()];
+        return ['table_name' => array_get($search_table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];
     }
 
     /**
@@ -536,7 +505,7 @@ EOT;
         foreach ($search_columns as $search_column)
         {
             // get data
-            $foodata = getModelName(array_get($table, 'table_name'))
+            $foodata = getModelName($table)
                 ::where(getColumnName($search_column), 'LIKE', $q.'%')
                 ->take($max_count - count($data))
                 ->get()->toArray();

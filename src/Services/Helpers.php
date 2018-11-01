@@ -1,5 +1,4 @@
 <?php
-use Encore\Admin\Widgets\Table as WidgetTable;
 use \Exceedone\Exment\Services\ClassBuilder;
 use \Exceedone\Exment\Model\Define;
 use \Exceedone\Exment\Model\System;
@@ -562,7 +561,7 @@ if (!function_exists('authorityLoop')) {
 if (!function_exists('getValue')) {
     /**
      * Get custom value
-     * @param $custom_value
+     * @param CustomValue $custom_value
      * @param string|array|CustomColumn $column
      * @param bool $isonly_label if column_type is select_table or select_valtext, only get label 
      * @return string
@@ -1044,142 +1043,6 @@ if (!function_exists('alterColumn')) {
             }
         }
         config([$key => 1]);
-    }
-}
-
-if (!function_exists('createDefaultView')) {
-    /**
-     * Create DefaultView
-     *
-     * @param CustomTable $obj
-     * @return void
-     */
-    function createDefaultView($obj)
-    {
-        $view = new CustomView;
-        $view->custom_table_id = $obj->id;
-        $view->view_type = 'system';
-        $view->view_view_name = exmtrans('custom_view.default_view_name');
-        $view->saveOrFail();
-        return $view;
-    }
-}
-
-if (!function_exists('createDefaultViewColumns')) {
-    /**
-     * Create DefaultView
-     *
-     * @param CustomView $custom_view
-     * @return void
-     */
-    function createDefaultViewColumns($custom_view)
-    {
-        $view_columns = [];
-        // set default view_column
-        foreach(Define::VIEW_COLUMN_SYSTEM_OPTIONS as $view_column_system){
-            // if not default, continue
-            if(!boolval(array_get($view_column_system, 'default'))){
-                continue;
-            }
-            $view_column = new CustomViewColumn;
-            $view_column->custom_view_id = $custom_view->id;
-            $view_column->view_column_target = array_get($view_column_system, 'name');
-            $view_column->order = array_get($view_column_system, 'order');
-            array_push($view_columns, $view_column);
-        }
-        $custom_view->custom_view_columns()->saveMany($view_columns);
-        return $view_columns;
-    }
-}
-
-if (!function_exists('getGridTable')) {
-    /**
-     * Get Grid table using datalist and view
-     * 
-     */
-    function getGridTable($datalist, CustomTable $custom_table, CustomView $custom_view)
-    {
-        // get custom view columns
-        $custom_view_columns = $custom_view->custom_view_columns;
-        
-        // create headers
-        $headers = [];
-        foreach($custom_view_columns as $custom_view_column){
-            // get column --------------------------------------------------
-            // if number, get custom column
-            if(is_numeric($custom_view_column->view_column_target)){
-                $custom_column = $custom_view_column->custom_column;
-                if(isset($custom_column)){
-                    $headers[] = $custom_column->column_view_name;
-                }    
-            }elseif($custom_view_column->view_column_target == 'parent_id'){
-                // get parent data
-                $relation = CustomRelation
-                    ::with('parent_custom_table')
-                    ->where('child_custom_table_id', $custom_table->id)
-                    ->first();
-                if(isset($relation)){
-                    $headers[] = $relation->parent_custom_table->table_view_name;
-                }
-            }else{
-                // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($value) use($custom_view_column){
-                    return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
-                })['name'] ?? null;
-                // add headers transaction 
-                $headers[] = exmtrans('custom_column.system_columns.'.$name);
-            }
-        }
-        $headers[] = trans('admin.action');
-
-        // get table bodies
-        $bodies = [];
-        if(isset($datalist)){
-            foreach($datalist as $data){
-                $body_items = [];
-                foreach($custom_view_columns as $custom_view_column){
-                    // get column --------------------------------------------------
-                    // if number, get custom column
-                    if(is_numeric($custom_view_column->view_column_target)){
-                        $custom_column = $custom_view_column->custom_column;
-                        if(isset($custom_column)){
-                            $body_items[] = getValue($data, $custom_column, true);
-                        }
-                    }elseif($custom_view_column->view_column_target == 'parent_id'){
-                        // get parent data
-                        $relation = CustomRelation
-                            ::with('parent_custom_table')
-                            ->where('child_custom_table_id', $custom_table->id)
-                            ->first();
-                        if(isset($relation)){
-                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getValue();
-                        }
-                    }else{
-                        // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                        $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($value) use($custom_view_column){
-                            return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
-                        })['name'] ?? null;
-                        if(isset($name)){
-                            $body_items[] = array_get($data, $name);
-                        }
-                    }
-                }
-
-                ///// add show and edit link
-                // using authority
-                $link = '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'))).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
-                if(Admin::user()->hasPermissionEditData($data->id, $custom_table->table_name)){
-                    $link .= '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit')).'"><i class="fa fa-edit"></i></a>';
-                }
-                $body_items[] = $link;
-
-                // add items to body
-                $bodies[] = $body_items;
-            }
-        }
-
-        //return Widget Table
-        return new WidgetTable($headers, $bodies);
     }
 }
 
