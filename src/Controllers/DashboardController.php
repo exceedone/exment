@@ -23,33 +23,7 @@ class DashboardController extends AdminControllerBase
     }
 
     protected function setDashboardInfo(Request $request){
-        // get admin_user
-        $admin_user = Admin::user();
-
-        // get dashboard using query
-        if(!is_null($request->input('dashboard'))){
-            $suuid = $request->input('dashboard');
-            // if query has view id, set form.
-            $this->dashboard = Dashboard::findBySuuid($suuid);
-            // set suuid
-            if (!is_null($admin_user)) {
-                $admin_user->setSettingValue(Define::USER_SETTING_DASHBOARD, $suuid);
-            }
-        }
-        // if url doesn't contain dashboard query, get dashboard user setting.
-        if(is_null($this->dashboard) && !is_null($admin_user)){
-            // get suuid
-            $suuid = $admin_user->getSettingValue(Define::USER_SETTING_DASHBOARD);
-            $this->dashboard = Dashboard::findBySuuid($suuid);
-        }
-        // if null, get dashboard first.
-        if(is_null($this->dashboard)){
-            $this->dashboard = Dashboard::first();
-        }
-
-        if(is_null($this->dashboard)){
-            $this->setDefaultDashboard();
-        }
+        $this->dashboard = Dashboard::getDefaultDashboard();
     }
 
     public function index(Request $request, Content $content)
@@ -208,7 +182,7 @@ EOT;
         }
 
         $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->required();
-        
+
         // create row1 select options
         $row1 = [];
         for($i = 1; $i <= 4; $i++){
@@ -231,8 +205,9 @@ EOT;
             ->help(exmtrans("dashboard.description_row2"))
             ->required()
             ->default(2);
-        disableFormFooter($form);
+        $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 
+        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use($id, $form) {
             $tools->disableView();
             $tools->disableList();
@@ -240,27 +215,24 @@ EOT;
             // addhome button
             $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
-        return $form;
-        }
 
-    /**
-     * set default dashboard
-     */
-    protected function setDefaultDashboard(){
-        $this->dashboard = new Dashboard;
-        $this->dashboard->dashboard_type = 'system';
-        $this->dashboard->dashboard_name = 'system_default_dashboard';
-        $this->dashboard->dashboard_view_name = exmtrans('dashboard.default_dashboard_name');
-        $this->dashboard->row1 = 1;
-        $this->dashboard->row2 = 2;
-        $this->dashboard->save();
+        $form->saved(function($form){
+            // get form model
+            $model = $form->model();
+            if(isset($model)){
+                // set setting value
+                Admin::user()->setSettingValue(Define::USER_SETTING_DASHBOARD, array_get($model, 'suuid'));
+            }
+        });
+
+        return $form;
     }
 
     protected function setDashboardBox($content, $row_column_count, $row_no){
         $content->row(function($row) use($content, $row_column_count, $row_no) {
-                // check authority.
-                //TODO:now system admin. change if user dashboard
-                $has_authority = Admin::user()->hasPermission(Define::AUTHORITY_VALUE_SYSTEM);
+            // check authority.
+            //TODO:now system admin. change if user dashboard
+            $has_authority = Admin::user()->hasPermission(Define::AUTHORITY_VALUE_SYSTEM);
             for($i = 1; $i <= $row_column_count; $i++){
                 // get $boxes as $row_no
                 if($row_no == 1){

@@ -50,6 +50,10 @@ class CustomForm extends ModelBase
             $form = CustomForm::findBySuuid($suuid);
         }
 
+        // if not exists, get default.
+        if(!isset($form)){
+            $form = $tableObj->custom_forms()->where('default_flg', true)->first();
+        }
         // if not exists, get first.
         if(!isset($form)){
             $form = $tableObj->custom_forms()->first();

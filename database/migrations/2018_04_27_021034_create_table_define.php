@@ -111,6 +111,7 @@ class CreateTableDefine extends Migration
             $table->string('dashboard_type');
             $table->string('dashboard_name', 256)->unique();
             $table->string('dashboard_view_name', 40);
+            $table->boolean('default_flg')->default(false);
             $table->integer('row1');
             $table->integer('row2');
             

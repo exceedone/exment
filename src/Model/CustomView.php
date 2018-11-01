@@ -195,7 +195,10 @@ class CustomView extends ModelBase
             $suuid = $user->getSettingValue(implode(".", [Define::USER_SETTING_VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
         }
-        // if url doesn't contain view query, get custom view.
+        // if url doesn't contain view query, get custom view. first
+        if (!isset($view)) {
+            $view = $tableObj->custom_views()->where('default_flg', true)->first();
+        }
         if (!isset($view)) {
             $view = $tableObj->custom_views()->first();
         }

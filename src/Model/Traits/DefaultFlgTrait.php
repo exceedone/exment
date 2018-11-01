@@ -12,7 +12,7 @@ trait DefaultFlgTrait
         $this->setDefaultFlg('custom_table_id');
     }
     
-    protected function setDefaultFlg($key){        
+    protected function setDefaultFlg($key = null){        
         // create query
         $query = static::query();
         // only get default flg is 1
