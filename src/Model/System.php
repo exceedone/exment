@@ -11,12 +11,13 @@ class System extends ModelBase
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $casts = ['authority' => 'json'];
+    protected $primaryKey = 'system_name';
 
     public static function __callStatic($name, $argments)
     {
         // Get system setting value
         if (static::hasFunction($name)) {
-            $setting = Define::SYSTEM_SETTING_ID_VALUE[$name];
+            $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
             return static::getset_system_value($name, $setting, $argments);
         }
 
@@ -28,13 +29,13 @@ class System extends ModelBase
      */
     public static function hasFunction($name)
     {
-        return array_key_exists($name, Define::SYSTEM_SETTING_ID_VALUE);
+        return array_key_exists($name, Define::SYSTEM_SETTING_NAME_VALUE);
     }
 
     public static function get_system_values()
     {
         $array = [];
-        foreach (Define::SYSTEM_SETTING_ID_VALUE as $k => $v) {
+        foreach (Define::SYSTEM_SETTING_NAME_VALUE as $k => $v) {
             $array[$k] = static::{$k}();
         }
 
@@ -75,7 +76,7 @@ class System extends ModelBase
         if(!is_null(getRequestSession($config_key))){
             return getRequestSession($config_key);
         }
-        $system = System::find(array_get($setting, 'id'));
+        $system = System::find($name);
         $value = null;
         
         // if has data, return setting value or default value
@@ -104,11 +105,9 @@ class System extends ModelBase
 
     protected static function set_system_value($name, $setting, $value)
     {
-        $id = array_get($setting, 'id');
-        $system = System::find($id);
+        $system = System::find($name);
         if (!isset($system)) {
             $system = new System;
-            $system->id = $id;
             $system->system_name = $name;
         }
 

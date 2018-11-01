@@ -20,18 +20,18 @@ class Define
     public const SYSTEM_TABLE_NAME_DOCUMENT = 'document';
     public const SYSTEM_TABLE_NAME_CUSTOM_TABLE = 'custom_tables';
 
-    public const SYSTEM_SETTING_ID_VALUE = [
-        'initialized' => ['id' => 1, 'type' => 'boolean', 'default' => '0'],
-        'site_name' => ['id' => 2, 'default' => 'Exment'],
-        'site_name_short' => ['id' => 3, 'default' => 'ExM'],
-        'site_logo' => ['id' => 4, 'type' => 'file', 'move' => 'system'],
-        'site_logo_mini' => ['id' => 5, 'type' => 'file', 'move' => 'system'],
-        'site_skin' => ['id' => 6, 'config' => 'admin.skin'],
-        'authority_available' => ['id' => 7, 'type' => 'boolean', 'default' => '1'],
-        'organization_available' => ['id' => 8, 'type' => 'boolean', 'default' => '1'],
-        ///'system_authority' => ['id' => 9, 'type' => 'json'],
-        'system_mail_from' => ['id' => 10, 'default' => 'no-reply@hogehoge.com'],
-        'site_layout' => ['id' => 11, 'default' => 'layout_default'],
+    public const SYSTEM_SETTING_NAME_VALUE = [
+        'initialized' => ['type' => 'boolean', 'default' => '0'],
+        'site_name' => ['default' => 'Exment'],
+        'site_name_short' => ['default' => 'ExM'],
+        'site_logo' => ['type' => 'file', 'move' => 'system'],
+        'site_logo_mini' => ['type' => 'file', 'move' => 'system'],
+        'site_skin' => ['config' => 'admin.skin'],
+        'authority_available' => ['type' => 'boolean', 'default' => '1'],
+        'organization_available' => ['type' => 'boolean', 'default' => '1'],
+        ///'system_authority' => ['type' => 'json'],
+        'system_mail_from' => ['default' => 'no-reply@hogehoge.com'],
+        'site_layout' => ['default' => 'layout_default'],
     ];
 
     public const SYSTEM_SKIN = [

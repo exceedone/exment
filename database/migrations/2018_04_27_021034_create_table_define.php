@@ -43,14 +43,13 @@ class CreateTableDefine extends Migration
         });
 
         $schema->create('systems', function (ExtendedBlueprint $table) {
-            $table->integer('id')->unsigned();
             $table->string('system_name')->nullable();
             $table->text('system_value')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
 
-            $table->primary('id');
+            $table->primary('system_name');
         });
 
         $schema->create('mail_templates', function (ExtendedBlueprint $table) {
