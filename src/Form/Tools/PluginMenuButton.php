@@ -6,32 +6,27 @@ use Encore\Admin\Facades\Admin;
 
 /**
  * Plugin menu button.
- * *Contains Copy button flow
  */
 class PluginMenuButton
 {
     protected $plugin;
     protected $custom_table;
     protected $id;
-    protected $isCopyButton = false; // if copy button, it's true
     
     public function __construct($plugin, $custom_table, $id = null){
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
         $this->id = $id;
-        
-        $this->isCopyButton = !array_has($plugin, 'plugin_name');
     }
 
     protected function script($uuid)
     {
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
-        $endpoint = ($this->isCopyButton ? "copyClick" : "pluginClick");
         if(isset($this->id)){
-            $url = admin_base_path(url_join("data", $table_name, $this->id, $endpoint));
+            $url = admin_base_path(url_join("data", $table_name, $this->id, "pluginClick"));
         }else{
-            $url = admin_base_path(url_join("data", $table_name, $endpoint));
+            $url = admin_base_path(url_join("data", $table_name, "pluginClick"));
         }
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
@@ -39,7 +34,7 @@ class PluginMenuButton
         // TODO:下のメッセージは要変更
         return <<<EOT
 
-        $('#plugin_menu_button_$uuid').off('click').on('click', function(){
+        $('#menu_button_$uuid').off('click').on('click', function(){
             swal({
                 title: "コピーを実行します。よろしいですか？",
                 type: "warning",
@@ -91,11 +86,7 @@ EOT;
     public function render()
     {
         // get uuid
-        if($this->isCopyButton){
-            $uuid = array_get($this->plugin, 'suuid');
-        }else{
-            $uuid = array_get($this->plugin, 'uuid');
-        }
+        $uuid = array_get($this->plugin, 'uuid');
         Admin::script($this->script($uuid));
 
         // get button_class

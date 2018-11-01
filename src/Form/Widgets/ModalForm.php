@@ -60,13 +60,7 @@ class ModalForm extends WidgetForm
                     // contentType is false
                     contentType: false
                 }).done(function( res ) {
-                    $('.modal').modal('hide');
-                    $.pjax.reload('#pjax-container');
-                    // show toastr
-                    if(hasValue(res.toastr)){
-                        toastr.success(res.toastr);
-                    }
-    
+                    Exment.CommonEvent.CallbackExmentAjax(res);
                 }).fail(function( res, textStatus, errorThrown ) {
                     // reomve class and prop
                     button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
@@ -110,6 +104,18 @@ class ModalForm extends WidgetForm
             });
 EOT;
         Admin::script($script);
+    }
+
+
+    /**
+     * Add a form field to form.
+     * It's the same function WidgetForm pushField, but why don't know pushField is PROTECTED function. so I added
+     *
+     * @return $this
+     */
+    public function push_Field(&$field)
+    {
+        return $this->pushField($field);
     }
 
     /**
@@ -235,19 +241,5 @@ EOT;
             'modalAttributes' => $this->convert_attribute($this->modalAttributes),
             'modalInnerAttributes' => $this->convert_attribute($this->modalInnerAttributes),
         ]);
-    }
-
-    public static function getAjaxResponse($results){
-        $results = array_merge([
-            'result' => true,
-            'toastr' => null,
-            'errors' => [],
-        ], $results);
-
-        // loop for $results
-        foreach($results as $result){
-        }
-
-        return response($results, $results['result'] === true ? 200 : 400);
     }
 }

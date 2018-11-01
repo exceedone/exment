@@ -1058,6 +1058,7 @@ if (!function_exists('createDefaultView')) {
     {
         $view = new CustomView;
         $view->custom_table_id = $obj->id;
+        $view->view_type = 'system';
         $view->view_view_name = exmtrans('custom_view.default_view_name');
         $view->saveOrFail();
         return $view;
@@ -1483,5 +1484,25 @@ if (!function_exists('setRequestSession')) {
     {
         $config_key = "exment_global.$key";
         config([$config_key => $value]);
+    }
+}
+
+
+if (!function_exists('getAjaxResponse')) {
+    /**
+     * get ajax response.
+     * using plugin, copy, data import/export
+     */
+    function getAjaxResponse($results){
+        if(is_bool($results)){
+            $results = ['result' => $results];
+        }
+        $results = array_merge([
+            'result' => true,
+            'toastr' => null,
+            'errors' => [],
+        ], $results);
+
+        return response($results, $results['result'] === true ? 200 : 400);
     }
 }

@@ -8,6 +8,7 @@ use Encore\Admin\Show;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
@@ -28,6 +29,7 @@ trait CustomValueShow
                 if (!$custom_form_block->available) {
                     continue;
                 }
+                ////// default block(no relation block)
                 if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         //// change value using custom form value
@@ -57,17 +59,40 @@ trait CustomValueShow
                                 continue;
                         }
                     }
-                }else{
+                }
+                ////// relation block
+                else{
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function($grid) use($custom_form_block){
-                        foreach ($custom_form_block->custom_form_columns as $form_column) {
-                            $column = $form_column->custom_column;
+                    $show->{$relation_name}($block_label, function($grid) use($custom_form_block, $target_table){
+                        // 1:n relation
+                        if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY) {
+                            foreach ($custom_form_block->custom_form_columns as $form_column) {
+                                $column = $form_column->custom_column;
 
-                            $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->sortable()->display(function($v) use($column){
-                                if(is_null($this)){return '';}
-                                return $this->getValue($column, true);
-                            });
+                                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->sortable()->display(function ($v) use ($column) {
+                                    if (is_null($this)) {
+                                        return '';
+                                    }
+                                    return $this->getValue($column, true);
+                                });
+                            }
+                        }
+                        // n:n
+                        else{
+                            // get default view and columns
+                            $custom_view = $target_table->custom_views()->first(); //TODO
+                            $custom_view_columns = $custom_view->custom_view_columns;
+
+                            foreach($custom_view_columns as $custom_view_column){
+                                $column = $custom_view_column->custom_column;
+                                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->sortable()->display(function ($v) use ($column) {
+                                    if (is_null($this)) {
+                                        return '';
+                                    }
+                                    return $this->getValue($column, true);
+                                });
+                            }
                         }
 
                         $grid->disableFilter();
@@ -116,8 +141,10 @@ trait CustomValueShow
                 foreach($listButtons as $plugin){
                     $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
                 }
-                foreach($copyButtons as $plugin){
-                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                foreach($copyButtons as $copyButton){
+                    $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
+                    
+                    $tools->append($b->toHtml());
                 }
             });
         });

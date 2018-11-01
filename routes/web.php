@@ -66,7 +66,6 @@ Route::group([
             $router->post("data/{$value}/import", 'CustomValueController@import');
             $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
             $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
-            $router->post("data/{$value}/copyClick", 'CustomValueController@copyClick');
             $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->resource("data/{$value}", 'CustomValueController');

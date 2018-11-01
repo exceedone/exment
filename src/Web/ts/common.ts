@@ -31,6 +31,31 @@ namespace Exment {
         }
 
         /**
+         * 
+         */
+        public static CallbackExmentAjax(res){
+            if(res.result === true){
+                $('.modal').modal('hide');
+                
+                if(hasValue(res.redirect)){
+                    $.pjax({container:'#pjax-container', url: res.redirect });
+                }else{
+                    $.pjax.reload('#pjax-container');
+                }
+                // show toastr
+                if(hasValue(res.toastr)){
+                    toastr.success(res.toastr);
+                }
+            }
+            else{
+                // show toastr
+                if(hasValue(res.toastr)){
+                    toastr.error(res.toastr);
+                }
+            }
+        }
+
+        /**
          * if click grid row, move page
          */
         private static tableHoverLink() {
@@ -246,7 +271,10 @@ namespace Exment {
 
                 // view filter execute
                 CommonEvent.setFormFilter($elem);
+            }
 
+            // re-loop for options
+            for(var i = 0; i < options.length; i++){
                 ///// execute calc
                 for(var i = 0; i < CommonEvent.calcDataList.length; i++){
                     var calcData = CommonEvent.calcDataList[i];

@@ -242,14 +242,10 @@ class CustomValueController extends AdminControllerTableBase
             }
             $response = $class->execute();
         }
-        if (isset($response) && $response instanceof HttpResponse) {
-            return $response;
+        if (isset($response)) {
+            return getAjaxResponse($response);
         }
-        //TODO:error
-        return response([
-            'status'  => false,
-            'message' => null,
-        ]);
+        return getAjaxResponse(false);
     }
 
     //Function handle copy click event
@@ -270,25 +266,13 @@ class CustomValueController extends AdminControllerTableBase
         
         // execute copy
         $custom_value = getModelName($this->custom_table)::find($id);
-        $copy->execute($custom_value);
+        $response = $copy->execute($custom_value, $request);
 
-        $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
-        if (class_exists($classname)) {
-            switch(array_get($plugin, 'plugin_type')){
-                case 'document':
-                    $class = new $classname($this->custom_table, $id);
-                    break;
-            }
-            $response = $class->execute();
-        }
-        if (isset($response) && $response instanceof HttpResponse) {
-            return $response;
+        if (isset($response)) {
+            return getAjaxResponse($response);
         }
         //TODO:error
-        return response([
-            'status'  => false,
-            'message' => null,
-        ]);
+        return getAjaxResponse(false);
     }
 
     /**
