@@ -30,7 +30,6 @@ var Exment;
             // 表示・非表示は読み込み時に全レコード実行する
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
-            CommonEvent.setchangedata();
             $.numberformat('[number_format]');
         }
         /**
@@ -86,7 +85,7 @@ var Exment;
             for (var key in datalist) {
                 var data = datalist[key];
                 // set change event
-                $(document).on('change', CommonEvent.getClassKey(key), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
                     yield CommonEvent.changeModelData($(ev.target), ev.data.data);
                 }));
                 // if hasvalue to_block, add event when click add button
@@ -242,12 +241,16 @@ var Exment;
                     }
                     // view filter execute
                     CommonEvent.setFormFilter($elem);
+                    // add $elem to option
+                    option['elem'] = $elem;
                 }
                 // re-loop for options
                 for (var i = 0; i < options.length; i++) {
+                    var option = options[i];
+                    $elem = option['elem'];
                     ///// execute calc
-                    for (var i = 0; i < CommonEvent.calcDataList.length; i++) {
-                        var calcData = CommonEvent.calcDataList[i];
+                    for (var j = 0; j < CommonEvent.calcDataList.length; j++) {
+                        var calcData = CommonEvent.calcDataList[j];
                         // if calcData.key matches option.to, execute cals
                         if (calcData.key == option.to) {
                             var $filterTo = $elem.filter(calcData.classKey);
@@ -289,64 +292,6 @@ var Exment;
             CommonEvent.setFormFilter($target);
         }
         /**
-         * call select2 items using changedata
-         */
-        static setchangedata() {
-            var $d = $.Deferred();
-            var $targets = $('[data-changedata-from]');
-            for (var i = 0; i < $targets.length; i++) {
-                var $target = $targets.eq(i);
-                if ($target.children('option').length > 0) {
-                    var continueFlg = false;
-                    for (var j = 0; j < $target.children('option').length; j++) {
-                        if (hasValue($target.children('option').eq(j).val())) {
-                            continueFlg = true;
-                            break;
-                        }
-                    }
-                    if (continueFlg) {
-                        continue;
-                    }
-                }
-                var $parent = CommonEvent.getParentRow($target);
-                var link = $target.data('changedata-from');
-                var $base = $parent.find('.' + link);
-                if (!hasValue($base.val())) {
-                    continue;
-                }
-                var data = $base.data('changedata');
-                if (!hasValue(data)) {
-                    return;
-                }
-                var changedatas = data.changedata;
-                if (hasValue(changedatas)) {
-                    for (var key in changedatas) {
-                        if (!$target.hasClass(key)) {
-                            continue;
-                        }
-                        console.log('changedata from setchangedata');
-                        CommonEvent.changedata($target, changedatas[key], $base.val());
-                    }
-                }
-            }
-        }
-        static changedata($target, url, val) {
-            var $d = $.Deferred();
-            console.log('start changedata. url : ' + url + ', q=' + val);
-            $.get(url + '?q=' + val, function (data) {
-                $target.find("option").remove();
-                $target.select2({
-                    data: $.map(data, function (d) {
-                        d.id = hasValue(d.id) ? d.id : '';
-                        d.text = d.text;
-                        return d;
-                    })
-                }).trigger('change');
-                $d.resolve();
-            });
-            return $d.promise();
-        }
-        /**
          * Set RelatedLinkage event
          */
         static setRelatedLinkageEvent(datalist) {
@@ -361,7 +306,7 @@ var Exment;
                 // set relatedLinkageList array. key is getClassKey. data is data
                 CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
                 // set linkage event
-                $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
         }
         static linkage($target, url, val, expand) {
@@ -538,15 +483,21 @@ var Exment;
             if (!hasValue($target)) {
                 return;
             }
-            var isNumber = $.inArray($target.data('column_type'), ['integer', 'decimal', 'currency']);
+            var column_type = $target.data('column_type');
+            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']);
             // if number, remove comma
             if (isNumber) {
                 value = rmcomma(value);
             }
             // if integer, floor value
-            if ($target.data('column_type') == 'integer') {
+            if (column_type == 'integer') {
                 var bn = new BigNumber(value);
                 value = bn.integerValue().toPrecision();
+            }
+            // if 'decimal' or 'currency', floor 
+            if ($.inArray(column_type, ['decimal', 'currency']) && hasValue($target.attr('decimal_digit'))) {
+                var bn = new BigNumber(value);
+                value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
             }
             // if number format, add comma
             if (isNumber && $target.attr('number_format')) {
@@ -778,11 +729,11 @@ var Exment;
             // set calcDataList array. key is getClassKey. data is data
             CommonEvent.calcDataList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
             // set calc event
-            $(document).on('change', CommonEvent.getClassKey(key), { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
+            $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
                 yield CommonEvent.setCalc($(ev.target), ev.data.data);
             }));
             // set event for plus minus button
-            $(document).on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
+            $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
                 yield CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
             }));
         }

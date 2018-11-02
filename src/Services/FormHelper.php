@@ -196,6 +196,13 @@ class FormHelper
                 }
             }
         
+            // decimal_digit
+            if (in_array($column->column_type, ['decimal', 'currency'])) {
+                if (isset($options) && !is_null(array_get($options, 'decimal_digit'))) {
+                    $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
+                }
+            }
+        
             // required
             // ignore auto_number. because auto_number is saved flow.
             if (boolval(array_get($options, 'required')) && $column->column_type != 'auto_number') {

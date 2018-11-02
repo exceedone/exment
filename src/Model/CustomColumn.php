@@ -25,6 +25,7 @@ class CustomColumn extends ModelBase
      * get custom column eloquent. (use table)
      */
     public static function getEloquent($column_obj, $table_obj = null){
+        if(!isset($column_obj)){return null;}
         // get column eloquent model
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
@@ -51,8 +52,8 @@ class CustomColumn extends ModelBase
             elseif(is_array($column_obj)){
                 $column_name = array_get($column_obj, 'column_name');
             }
-            elseif ($column_obj instanceof stdClass) {
-                $column_name = (array)$column_obj;
+            elseif ($column_obj instanceof \stdClass) {
+                $column_name = array_get((array)$column_obj, 'column_name');
             }
             return $table_obj->custom_columns()->where('column_name', $column_name)->first() ?? null;
         }

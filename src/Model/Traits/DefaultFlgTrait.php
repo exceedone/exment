@@ -25,7 +25,7 @@ trait DefaultFlgTrait
         }
         // if has id, ignore
         if(isset($this->id)){
-            $query->notWhere('id', $this->id);
+            $query->where('id', '<>', $this->id);
         }
         // get default flg idlist
         $idlist = $query->pluck('id')->toArray();

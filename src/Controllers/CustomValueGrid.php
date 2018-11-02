@@ -248,7 +248,7 @@ trait CustomValueGrid
         $result = DataImportExport\DataImporterBase::getModel(CustomTable::find($request->custom_table_id), $format)
             ->import($request);
 
-        return ModalForm::getModalResponse($result);
+        return getAjaxResponse($result);
     }
 
 

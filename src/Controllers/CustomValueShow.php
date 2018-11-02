@@ -64,7 +64,7 @@ trait CustomValueShow
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
                     $show->{$relation_name}($block_label, function($grid) use($custom_form_block, $target_table){
-                        $custom_view = $target_table->custom_views()->first(); //TODO
+                        $custom_view = CustomView::getDefault($target_table);
                         $custom_view->setGrid($grid);
                         
                         $grid->disableFilter();

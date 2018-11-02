@@ -206,6 +206,12 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer']])])
                 ;
             
+            $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['decimal', 'currency']])])
+                ->default(2)
+                ->min(0)
+                ->max(8);
+
             $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
                 ->help(exmtrans("custom_column.help.currency_symbol"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['currency']])])

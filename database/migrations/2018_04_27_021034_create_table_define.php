@@ -304,7 +304,7 @@ class CreateTableDefine extends Migration
             $table->integer('custom_copy_id')->unsigned();
             $table->integer('from_custom_column_id')->unsigned()->nullable();
             $table->integer('to_custom_column_id')->unsigned();
-            $table->string('custom_copy_type');
+            $table->string('custom_copy_column_type');
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

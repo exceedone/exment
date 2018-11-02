@@ -141,7 +141,7 @@ return [
             'header' => 'オプション設定',
             'target_tables' => '対象テーブル',
             'event_triggers' => '実施トリガー',
-            'label' => 'ボタンの見出し',
+            'label' => 'ボタンのラベル',
             'button_class' => 'ボタンのHTML class',
             'icon' => 'ボタンのアイコン',
             'uri' => 'URL',

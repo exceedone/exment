@@ -73,8 +73,11 @@ class CustomTable extends ModelBase
      * @param mixed $obj id, table_name, CustomTable object, CustomValue object. 
      */
     public static function getEloquent($obj){
+        if($obj instanceof \stdClass){
+            $obj = (array)$obj;
+        }
         // get id or array value
-        if ($obj instanceof stdClass || is_array($obj)) {
+        if (is_array($obj)) {
             // get id or table_name
             if(array_key_value_exists('id', $obj)){
                 $obj = array_get($obj, 'id');

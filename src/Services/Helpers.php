@@ -705,6 +705,15 @@ if (!function_exists('getValueUseTable')) {
         }
         $column_type = array_get($column_array, 'column_type');
 
+        // calcurate  --------------------------------------------------
+        if (in_array($column_type, ['decimal', 'currency'])) {
+            $val = floatval($val);
+            if(array_has($column_array, 'options.decimal_digit')){
+                $val = floor($val, array_get($column_array, 'options.decimal_digit'));
+            }
+        }
+
+        // return finally value --------------------------------------------------
         // get value as select
         // get value as select_valtext
         if (in_array($column_type, ['select', 'select_valtext'])) {

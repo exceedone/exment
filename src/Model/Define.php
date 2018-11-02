@@ -343,6 +343,8 @@ class Define
         'custom_form_columns',
         'custom_views',
         'custom_view_columns',
+        'custom_copies',
+        'custom_copy_columns',
         'admin_menu',
     ];
 
