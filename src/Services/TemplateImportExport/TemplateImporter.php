@@ -901,7 +901,7 @@ class TemplateImporter
                     })->toArray();
                     $options = array_merge(
                         array_get($copy, 'options', []),
-                        $obj_copy->options
+                        $obj_copy->options ?? []
                     );
                     $obj_copy->options = $options;
                     $obj_copy->saveOrFail();
