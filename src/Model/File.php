@@ -17,9 +17,10 @@ class File extends ModelBase
 
     public function getFileNameAttribute(){
         // get pathinfo
-        $pathinfo = pathinfo($this->path) ?? null;
-        if(is_null($pathinfo)){return null;}
-        return array_get($pathinfo, 'basename');
+        return mb_basename($this->path);
+        // $pathinfo = pathinfo($this->path) ?? null;
+        // if(is_null($pathinfo)){return null;}
+        // return array_get($pathinfo, 'basename');
     }
 
     /**
@@ -82,11 +83,10 @@ class File extends ModelBase
         $type = Storage::disk(config('admin.upload.disk'))->mimeType($path);
         // get page name
         $name = rawurlencode($data->filename);
-
         // create response
         $response = Response::make($file, 200);
         $response->header("Content-Type", $type);
-        $response->header('Content-Disposition', "inline; filename*=UTF-8''$name;filename={$data->filename}");
+        $response->header('Content-Disposition', "inline; filename*=UTF-8''$name");
 
         return $response;
     }

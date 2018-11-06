@@ -173,6 +173,18 @@ if (!function_exists('getPluginNamespace')) {
     }
 }
 
+if (!function_exists('mb_basename')) {
+    function mb_basename($str, $suffix=null){
+        $tmp = preg_split('/[\/\\\\]/', $str);
+        $res = end($tmp);
+        if(strlen($suffix)){
+            $suffix = preg_quote($suffix);
+            $res = preg_replace("/({$suffix})$/u", "", $res);
+        }
+        return $res;
+    }
+}
+
 
 
 
