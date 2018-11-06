@@ -1377,6 +1377,9 @@ if (!function_exists('getAjaxResponse')) {
      * using plugin, copy, data import/export
      */
     function getAjaxResponse($results){
+        if($results instanceof \Illuminate\Http\Response){
+            return $results;
+        }
         if(is_bool($results)){
             $results = ['result' => $results];
         }

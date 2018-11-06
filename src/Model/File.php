@@ -83,10 +83,10 @@ class File extends ModelBase
         // get page name
         $name = rawurlencode($data->filename);
 
-        //TODO:It's OK???
+        // create response
         $response = Response::make($file, 200);
         $response->header("Content-Type", $type);
-        $response->header('Content-Disposition', 'inline; filename*=UTF-8\'\''.$name);
+        $response->header('Content-Disposition', "inline; filename*=UTF-8''$name;filename={$data->filename}");
 
         return $response;
     }
@@ -168,7 +168,7 @@ class File extends ModelBase
         return $path;
     }
 
-    protected static function getData($pathOrUuid){
+    public static function getData($pathOrUuid){
         $file = static::where(function($query) use($pathOrUuid){
             $query->orWhere('path', $pathOrUuid);
             $query->orWhere('uuid', $pathOrUuid);

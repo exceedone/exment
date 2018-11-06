@@ -28,6 +28,8 @@ class DocumentExcelService
      *
      */
     private $baseInfo;
+    private $tempfilename;
+    private $outputfilename;
     private $filename;
 
     private $model;
@@ -36,10 +38,11 @@ class DocumentExcelService
      * @param Request $request
      * @param $document
      */
-    public function __construct($model, $filename)
+    public function __construct($model, $tempfilename, $outputfilename)
     {
         $this->model = $model;
-        $this->filename = $filename;
+        $this->tempfilename = $tempfilename;
+        $this->outputfilename = $outputfilename;
     }
 
     /**
@@ -50,7 +53,7 @@ class DocumentExcelService
     {
         //Excel::selectSheetsByIndex(0)->load($this->filename, function($reader) {
         $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($this->filename);
+        $spreadsheet = $reader->load($this->tempfilename);
         $sheet = $spreadsheet->getActiveSheet();
         // output table
         $this->lfTable($sheet);
@@ -60,43 +63,9 @@ class DocumentExcelService
 
         // output excel 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save(path_join($this->getDirPath(), $this->getFileNameWithExtension()));
+        $writer->save($this->getFullPath());
 
         return true;
-    }
-
-    /**
-     * get file name
-     * @return string File name
-     */
-    public function getFileName()
-    {
-        // get document file name
-        //$filename = $this->getText(array_get($this->documentInfo, 'filename'));
-        if(!isset($filename)){
-            $filename = make_uuid();
-        }
-        // set from document_type
-        return $filename;
-    }
-
-    /**
-     * get file name
-     * @return string File name
-     */
-    public function getFileNameWithExtension()
-    {
-        return $this->getFileName().'.xlsx';
-    }
-
-    /**
-     * get Directory path
-     * @return string File path
-     */
-    public function getDirPath()
-    {
-        // set from document_type
-        return storage_path(path_join('document'));
     }
 
     /**
@@ -262,6 +231,26 @@ class DocumentExcelService
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
+                    // suuid
+                    elseif(strpos($match, "suuid") !== false){
+                        $text = str_replace($matches[0][$i], short_uuid(), $text);
+                    }
+                    // uuid
+                    elseif(strpos($match, "uuid") !== false){
+                        $text = str_replace($matches[0][$i], make_uuid(), $text);
+                    }
+                    // ymdhms
+                    elseif(strpos($match, "ymdhms") !== false){
+                        $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHis'), $text);
+                    }
+                    // ymdhm
+                    elseif(strpos($match, "ymdhm") !== false){
+                        $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHi'), $text);
+                    }
+                    // ymd
+                    elseif(strpos($match, "ymd") !== false){
+                        $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('Ymd'), $text);
+                    }
                 } catch(Exception $e) {
                 }
             }
@@ -286,26 +275,46 @@ class DocumentExcelService
 
         return $text;
     }
-    
-    protected function getDefaultOptions(){
-        return [
-            'width' => 0,
-            'height' => 0,
-            'font_size' => $this->FontSizePt,
-            'format' => '',
-            'style' => '',
-            'fillColor' => '',
-            'color' => '',
-            'align' => 'L',
-            'valign' => 'M',
-            'position' => 'L',
-            'border' => '',
-            'fixWidth' => false,
-            'target_table' => '',
-            'table_count' => 5,
-            'target_columns' => [],
-            'footers' => [],
-        ];
+    /**
+     * get file name
+     * @return string File name
+     */
+    public function getFileName()
+    {
+        if(!isset($this->filename)){
+            // get template file name
+            $this->filename = $this->getText($this->outputfilename) ?? make_uuid();
+        }
+        return $this->filename.'.xlsx';
+    }
+
+    /**
+     * get File path after storage/admin.
+     * @return string File path
+     */
+    public function getFilePath()
+    {
+        return path_join($this->getDirPath(), $this->getFileName());
+    }
+
+    /**
+     * get Directory path after storage/admin.
+     * @return string File path
+     */
+    public function getDirPath()
+    {
+        //return getFullpath('document', config('admin.upload.disk'));
+        return 'document';
+    }
+
+    /**
+     * get Directory full path from root
+     * @return string File path
+     */
+    public function getFullPath()
+    {
+        $filepath = path_join($this->getDirPath(), $this->getFileName());
+        return getFullpath($filepath, config('admin.upload.disk'));
     }
 }
 

@@ -30,15 +30,14 @@ abstract class PluginDocumentBase {
         $this->executing();
 
         // create pdf
-        //$service = new DocumentPdfService($this->custom_value, array_get($documentItem, 'info', []), array_get($documentItem, 'items', []));
-        $service = new DocumentExcelService($this->custom_value, storage_path('テンプレート_見積書.xlsx'));
+        list($template_path, $output_filename) = $this->getDocumentInfo();
+        $service = new DocumentExcelService($this->custom_value, $template_path, $output_filename);
         $service->makeExcel();
 
-        // save
-        //$document_attachment_file = $service->getPdfPath();
-        // save pdf
-        $file = $this->savePdfInServer($document_attachment_file, $service);
-        $filename = $service->getPdfFileName();
+        // set path and file info
+        $path = $service->getFilePath();
+        $file = ExmentFile::saveFileInfo($path);
+        $file = ExmentFile::getData($file);
 
         // save Document Model
         $modelname = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT);
@@ -47,7 +46,7 @@ abstract class PluginDocumentBase {
         $document_model->parent_type = $this->custom_table->table_name;
         $document_model->setValue([
             'file_uuid' => $file->uuid,
-            'document_name' => $filename,
+            'document_name' => $service->getFileName(),
         ]);
         $document_model->save();
 
@@ -58,7 +57,7 @@ abstract class PluginDocumentBase {
         $this->executed();
 
         // 
-        return response($this->getResponseMessage(true));
+        return $this->getResponseMessage(true);
     }
 
     protected function getDocumentItem(){
@@ -92,14 +91,34 @@ abstract class PluginDocumentBase {
     {
         if($result){
             return ([
-                'status'  => true,
+                'result'  => true,
                 'message' => 'Create Document Success!!', //TODO:trans
             ]);
         }
         return ([
-            'status'  => false,
+            'result'  => false,
             'message' => 'Create Document failure', //TODO:trans
         ]);
+    }
+
+    /**
+     * get document info.
+     * first, template xlsx fullpath.
+     * second, output file name.
+     */
+    protected function getDocumentInfo(){
+        $reflector = new \ReflectionClass(get_class($this));
+        $dir_path = dirname($reflector->getFileName());
+        // read config.json
+        $document_json_path = path_join($dir_path, 'config.json');
+        $json = json_decode(File::get($document_json_path), true);
+
+        // return "filename" value
+        // if not exists, document and date time
+        return [
+            path_join($dir_path, 'document.xlsx'),
+            array_get($json, "filename", "document".\Carbon\Carbon::now()->format('YmdHis'))
+        ];
     }
     
     /**

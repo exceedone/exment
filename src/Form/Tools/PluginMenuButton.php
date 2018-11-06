@@ -36,7 +36,7 @@ class PluginMenuButton
 
         $('#menu_button_$uuid').off('click').on('click', function(){
             swal({
-                title: "コピーを実行します。よろしいですか？",
+                title: "プラグインを実行します。よろしいですか？",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
@@ -51,16 +51,8 @@ class PluginMenuButton
                             //container: "#pjax-container",
                             data:{ _pjax: true, _token: LA.token,uuid:"$uuid"},
                             success:function(repsonse) {
-                                //toastr.success(repsonse);
-                                $.pjax.reload('#pjax-container');
-                                if(hasValue(repsonse.status) && repsonse.status){
-                                    if(repsonse.status){
-                                        toastr.success(repsonse.message);
-                                    }
-                                    else{
-                                        toastr.error(repsonse.message);
-                                    }
-                                }
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                resolve(repsonse);
                             },
                             error: function(repsonse){
                                 toastr.error(repsonse.message);
@@ -68,14 +60,12 @@ class PluginMenuButton
                         });
                     });
                 }
-            }).then(function(result) {
-                var data = result.value;
-                if (typeof data === 'object') {
-                    if (data.status) {
-                        swal(data.message, '', 'success');
-                    } else {
-                        swal(data.message, '', 'error');
-                    }
+            }).then(function(data) {
+                var value = data.value;
+                if (value.result) {
+                    swal(value.message, '', 'success');
+                } else {
+                    swal(value.message, '', 'error');
                 }
             });
     
