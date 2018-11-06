@@ -2,38 +2,20 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
-use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ExcelImporter extends DataImporterBase
 {
     protected $accept_extension = 'xlsx';
 
     protected function getDataTable($request){
-        $reader = Excel::load($request->file('custom_table_file')->getRealPath());
-        if ($reader == null)
-        {
-            throw new \Exception('error.');
-        }
-
-        // set config
-        config(['excel.import.heading' => false]); // heading false. read first row
+        $reader = IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($request->file('custom_table_file')->getRealPath());
+        $sheet = $spreadsheet->getActiveSheet();
 
         // read cell
-        $sheet = $reader->getSheet();
-        $data = [];
-        foreach ($reader->all() as $index => $cells)
-        {
-            // get data 
-            $d = $cells->all();
-            // if not found, break
-            if(collect($d)->filter(function($v){
-                return !is_nullorempty($v);
-            })->count() == 0){
-                break;
-            }
-            $data[] = $d;
-        }
-        
-        return $data;
+        //$sheet = $reader->getSheet();
+        return getDataFromSheet($sheet);
     }    
 }

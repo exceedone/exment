@@ -21,7 +21,8 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
-use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
 /**
@@ -167,33 +168,18 @@ class TemplateImporter
         $settings = [];
 
         // loop for excel sheets
+        $reader = IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($file->getRealPath());
         foreach(Define::TEMPLATE_IMPORT_EXCEL_SHEETNAME as $sheetname){
-            $reader = Excel::selectSheets($sheetname)->load($file->getRealPath());
-            // if null(cannot find sheet), add as empty array.
-            if ($reader == null)
-            {
+            $sheet = $spreadsheet->getSheetByName($sheetname);
+
+            // if not exists sheet, set empty array
+            if(!isset($sheet)){
                 $settings[$sheetname] = [];
                 continue;
             }
 
-            // read cell
-            $sheet = $reader->getSheet();
-            $data = [];
-            foreach ($reader->all() as $index => $cells)
-            {
-                // if first row, it's view name row, so continue
-                if($index == 0){continue;}
-                // set row no. row no is $index + 1;
-                $rowno = $index + 2;
-                // check has cell value. if empty row, break
-                $cell = $sheet->getCellByColumnAndRow(0,$rowno)->getValue();
-                if(!isset($cell)){
-                    break;
-                }
-
-                $data[] = $cells->all();
-            }
-        
+            $data = getDataFromSheet($sheet, 2, true);
             // set config json
             $settings[$sheetname] = $data;
         }

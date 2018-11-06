@@ -28,7 +28,7 @@
         "setasign/fpdi-tcpdf": "^2.0",
         "tecnickcom/tcpdf": "^6.2",
         "webpatser/laravel-uuid": "^3.0",
-        "maatwebsite/excel":"~2.1.0"
+        "phpoffice/phpspreadsheet": "^1.5.0"
     },
     "autoload": {
         "psr-4": {

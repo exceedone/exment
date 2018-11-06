@@ -67,6 +67,16 @@ if (!function_exists('parseIntN')) {
         return null;
     }
 }
+if (!function_exists('parseFloat')) {
+    /**
+     * parseFloat
+     */
+    function parseFloat($num)
+    {
+        if(is_null($num)){return null;}
+        return floatval(str_replace(",","",$num));
+    }
+}
 
 if (!function_exists('hex2rgb')) {
     function hex2rgb($hex)
@@ -707,9 +717,10 @@ if (!function_exists('getValueUseTable')) {
 
         // calcurate  --------------------------------------------------
         if (in_array($column_type, ['decimal', 'currency'])) {
-            $val = floatval($val);
+            $val = parseFloat($val);
             if(array_has($column_array, 'options.decimal_digit')){
-                $val = floor($val, array_get($column_array, 'options.decimal_digit'));
+                $digit = intval(array_get($column_array, 'options.decimal_digit'));
+                $val = floor($val * pow( 10 , $digit )) / pow( 10 , $digit );
             }
         }
 
@@ -1376,5 +1387,49 @@ if (!function_exists('getAjaxResponse')) {
         ], $results);
 
         return response($results, $results['result'] === true ? 200 : 400);
+    }
+}
+
+
+// Excel --------------------------------------------------
+if (!function_exists('getDataFromSheet')) {
+    /**
+     * get Data from excel sheet
+     */
+    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false){
+        $data = [];
+        foreach ($sheet->getRowIterator() as $row_no => $row) {
+            // if index < $skip_excel_row_no, conitnue
+            if($row_no <= $skip_excel_row_no){continue;}
+
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(FALSE); // This loops through all cells,
+            $cells = [];
+            foreach ($cellIterator as $column_no => $cell) {
+                $value = $cell->getCalculatedValue();
+                // if rich text, set plain value
+                if ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
+                    $value = $value->getPlainText();
+                }
+
+                // if keyvalue, set array as key value
+                if($keyvalue){
+                    $key = $sheet->getCell($column_no."1")->getValue();
+                    $cells[$key] = $value;
+                }
+                // if false, set as array
+                else{
+                    $cells[] = $value;                    
+                }
+            }
+            if(collect($cells)->filter(function($v){
+                return !is_nullorempty($v);
+            })->count() == 0){
+                break;
+            }
+            $data[] = $cells;
+        }
+
+        return $data;
     }
 }

@@ -2,7 +2,8 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
-use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ExcelExporter extends DataExporterBase
 {
@@ -11,21 +12,24 @@ class ExcelExporter extends DataExporterBase
      */
     public function export()
     {
-        $filename = $this->table->table_view_name.date('YmdHis');
+        $filename = $this->table->table_view_name.date('YmdHis').".xlsx";
         // get output table
         $outputs = $this->getDataTable();
 
-        // set config
-        config(['excel.export.sheets.strictNullComparison' => true]); // Even if val is 0, outout cell
-
         // create excel
-        Excel::create($filename, function($excel) use($outputs) {
-            // create sheet
-            $excel->sheet($this->table->table_name, function($sheet) use($outputs) {
-                // add from array
-                $sheet->fromArray($outputs, null, 'A1', false, false);
-            });
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet()->setTitle($this->table->table_name);
+        $sheet->fromArray($outputs, null, 'A1', false, false);
 
-        })->export('xlsx');
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+
+        $res_headers = [
+            'Content-Type'        => 'application/vnd.ms-excel',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+        response()->stream(function () use($writer){
+            $writer->save('php://output');
+        }, 200, $res_headers)->send();
+        exit;
     }
 }

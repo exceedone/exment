@@ -1,6 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 use Exceedone\Exment\Services\DocumentPdfService;
+use Exceedone\Exment\Services\DocumentExcelService;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
@@ -29,11 +30,12 @@ abstract class PluginDocumentBase {
         $this->executing();
 
         // create pdf
-        $service = new DocumentPdfService($this->custom_value, array_get($documentItem, 'info', []), array_get($documentItem, 'items', []));
-        $service->makePdf();
+        //$service = new DocumentPdfService($this->custom_value, array_get($documentItem, 'info', []), array_get($documentItem, 'items', []));
+        $service = new DocumentExcelService($this->custom_value, storage_path('テンプレート_見積書.xlsx'));
+        $service->makeExcel();
 
         // save
-        $document_attachment_file = $service->getPdfPath();
+        //$document_attachment_file = $service->getPdfPath();
         // save pdf
         $file = $this->savePdfInServer($document_attachment_file, $service);
         $filename = $service->getPdfFileName();
