@@ -55,11 +55,12 @@ class DocumentExcelService
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($this->tempfilename);
         $sheet = $spreadsheet->getActiveSheet();
-        // output table
-        $this->lfTable($sheet);
 
         // outputvalue
         $this->lfValue($sheet);
+
+        // output table
+        $this->lfTable($sheet);
 
         // output excel 
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -112,9 +113,11 @@ class DocumentExcelService
         // looping item
         foreach($loops as $table => $loop_item){
             if(!array_has($loop_item, 'start') 
-                || !array_has($loop_item, 'end')
                 || !array_has($loop_item, 'items')
             ){continue;}
+            if(!array_has($loop_item, 'end')){
+                $loop_item['end'] = intval($loop_item['start']) + 100;
+            }
             // get children value
             $children = getChildrenValues($this->model, $table);
 
@@ -127,8 +130,17 @@ class DocumentExcelService
                 // loop items
                 foreach($loop_item['items'] as $column_name => $sheet_column_no){
                     // output sheet
-                    $text = $this->replaceText($child->getValue($column_name, true), []);
+                    $text = $this->replaceText($child->getValue($column_name, false), []);
                     $sheet->setCellValue($sheet_column_no . $row, $text);
+
+                    // $child_value = $this->replaceText($child->getValue($column_name, true));
+                    // // get replace_key
+                    // $replace_key = '${loop-item:'.$table.':'.$column_name.'}';
+                    // // replace text
+                    // $celltext = getCellValue($sheet_column_no . $row, $sheet);
+                    // // replace
+                    // $celltext = str_replace($replace_key, $child_value, $celltext);
+                    // $sheet->setCellValue($sheet_column_no . $row, $celltext);
                 }
 
                 $row++;
@@ -187,8 +199,11 @@ class DocumentExcelService
                     // get column
                     $length_array = explode(":", $match);
                     
+                    if (in_array($length_array[0], ['loop', 'loop-item'])) {
+                        continue;
+                    }
                     ///// value
-                    if (strpos($match, "value") !== false) {
+                    elseif ($length_array[0] == "value") {
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';
@@ -196,12 +211,12 @@ class DocumentExcelService
                         else{
                             // get comma string from index 1.
                             $length_array = array_slice($length_array, 1);
-                            $str = getValue($this->model, implode(',', $length_array), true, array_get($documentItem, 'format'));
+                            $str = getValue($this->model, implode(',', $length_array), false, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
                     ///// sum
-                    elseif (strpos($match, "sum") !== false) {
+                    elseif ($length_array[0] == "sum") {
                         // get sum value from children model
                         if (count($length_array) <= 2) {
                             $str = '';
@@ -221,34 +236,34 @@ class DocumentExcelService
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
                     // base_info
-                    elseif(strpos($match, "base_info") !== false){
+                    elseif($length_array[0] == "base_info"){
                         $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';
                         }else{
-                            $str = getValue($base_info, $length_array[1], true, array_get($documentItem, 'format'));
+                            $str = getValue($base_info, $length_array[1], false, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
                     // suuid
-                    elseif(strpos($match, "suuid") !== false){
+                    elseif($length_array[0] == "suuid"){
                         $text = str_replace($matches[0][$i], short_uuid(), $text);
                     }
                     // uuid
-                    elseif(strpos($match, "uuid") !== false){
+                    elseif($length_array[0] == "uuid"){
                         $text = str_replace($matches[0][$i], make_uuid(), $text);
                     }
                     // ymdhms
-                    elseif(strpos($match, "ymdhms") !== false){
+                    elseif($length_array[0] == "ymdhms"){
                         $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHis'), $text);
                     }
                     // ymdhm
-                    elseif(strpos($match, "ymdhm") !== false){
+                    elseif($length_array[0] == "ymdhm"){
                         $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHi'), $text);
                     }
                     // ymd
-                    elseif(strpos($match, "ymd") !== false){
+                    elseif($length_array[0] == "ymd"){
                         $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('Ymd'), $text);
                     }
                 } catch(Exception $e) {
@@ -262,7 +277,7 @@ class DocumentExcelService
     /**
      * replace text. ex.comma, &yen, etc...
      */
-    protected function replaceText($text, $documentItem){
+    protected function replaceText($text, $documentItem = []){
         // add comma if number_format
         if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)){
             $text = number_format($text);

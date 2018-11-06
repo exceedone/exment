@@ -23,9 +23,7 @@ abstract class PluginDocumentBase {
      */
     public function execute(){
         $table_name = $this->custom_table->table_name;
-        // get document items from json
-        $documentItem = $this->getDocumentItem();
-
+        
         // execute prependExecute
         $this->executing();
 

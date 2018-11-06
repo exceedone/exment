@@ -1409,21 +1409,11 @@ if (!function_exists('getDataFromSheet')) {
             $cellIterator->setIterateOnlyExistingCells(FALSE); // This loops through all cells,
             $cells = [];
             foreach ($cellIterator as $column_no => $cell) {
-                $value = $cell->getCalculatedValue();
-                //$value = $cell->getFormattedValue();
-                // is datetime, convert to date string
-                if(\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)){
-                    $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-                    $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
-                }
-                // if rich text, set plain value
-                elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
-                    $value = $value->getPlainText();
-                }
+                $value = getCellValue($cell, $sheet);
 
                 // if keyvalue, set array as key value
                 if($keyvalue){
-                    $key = $sheet->getCell($column_no."1")->getValue();
+                    $key = getCellValue($column_no."1", $sheet);
                     $cells[$key] = $value;
                 }
                 // if false, set as array
@@ -1440,5 +1430,27 @@ if (!function_exists('getDataFromSheet')) {
         }
 
         return $data;
+    }
+}
+
+if (!function_exists('getCellValue')) {
+    /**
+     * get cell value
+     */
+    function getCellValue($cell, $sheet){
+        if(is_string($cell)){
+            $cell = $sheet->getCell($cell);
+        }
+        $value = $cell->getCalculatedValue();
+        // is datetime, convert to date string
+        if(\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)){
+            $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+            $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+        }
+        // if rich text, set plain value
+        elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
+            $value = $value->getPlainText();
+        }
+        return $value;
     }
 }
