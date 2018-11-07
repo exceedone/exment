@@ -161,10 +161,14 @@ class CustomValueController extends AdminControllerTableBase
             Checker::error();
             return false;
         }
+        if (boolval($request->get('modal'))) {
+            return $this->createShowForm($id, true);
+        }
         $this->AdminContent($content);
         $content->body($this->createShowForm($id));
         return $content;
     }
+        
     /**
      * for file delete function.
      */

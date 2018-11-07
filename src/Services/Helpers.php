@@ -936,8 +936,6 @@ if (!function_exists('getChildrenValues')) {
     }
 }
 
-
-
 if (!function_exists('getCurrencySymbolLabel')) {
     /**
      */
@@ -975,6 +973,42 @@ if (!function_exists('getSearchEnabledColumns')) {
             }
         }
         return $column_arrays;
+    }
+}
+
+
+if (!function_exists('getUrl')) {
+    /**
+     * Get url for column_type is url, select_table.
+     * @param CustomValue $custom_value
+     * @param CustomColumn $column
+     * @return string
+     */
+    function getUrl($custom_value, $column, $tag = false)
+    {
+        if(is_null($custom_value)){return null;}
+        $url = null;
+        $value = $custom_value->getValue($column, true);
+        switch($column->column_type){
+            case 'url':
+                $url = $custom_value->getValue($column);
+                if(!$tag){
+                    return $url;
+                }
+                return "<a href='{$url}' target='_blank'>$value</a>";
+            case 'select_table':
+                $target_value = $custom_value->getValue($column);
+                $id =  $target_value->id ?? null;
+                if(!isset($id)){return null;}
+                // create url
+                $url = admin_url(url_join('data', $target_value->getCustomTable()->table_name, $id).'?modal=1');
+                if(!$tag){
+                    return $url;
+                }
+                return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$value</a>";
+        }
+
+        return null;
     }
 }
 

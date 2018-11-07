@@ -18,9 +18,6 @@ class File extends ModelBase
     public function getFileNameAttribute(){
         // get pathinfo
         return mb_basename($this->path);
-        // $pathinfo = pathinfo($this->path) ?? null;
-        // if(is_null($pathinfo)){return null;}
-        // return array_get($pathinfo, 'basename');
     }
 
     /**

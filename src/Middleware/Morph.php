@@ -39,6 +39,7 @@ class Morph
 
         // Define Modelname user and org.
         $tables = [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION];
+        //$tables = CustomTable::all();
         foreach($tables as $table){
             getModelName($table);
         }

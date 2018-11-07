@@ -25,3 +25,5 @@
         </li>
     @endif
 @endif
+
+{!! \Exceedone\Exment\Form\Widgets\Modal::widgetModalRender() !!}

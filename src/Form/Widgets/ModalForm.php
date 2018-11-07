@@ -8,16 +8,7 @@ use Encore\Admin\Facades\Admin;
 
 class ModalForm extends WidgetForm
 {    
-    /**
-     * @var array
-     */
-    protected $modalAttributes = [];
-    /**
-     * @var array
-     */
-    protected $modalInnerAttributes = [];
-
-    protected $modalHeader;
+    use ModalTrait;
 
     protected function script(){
         $formurl = $this->attributes['action']; // from url
@@ -118,97 +109,13 @@ EOT;
         return $this->pushField($field);
     }
 
-    /**
-     * Add modal header.
-     *
-     * @param string|array $attr
-     * @param string       $value
-     *
-     * @return $this
-     */
-    public function modalHeader($header)
-    {
-        $this->modalHeader = $header;
-        return $this;
-    }
-    /**
-     * Add modal attributes.
-     *
-     * @param string|array $attr
-     * @param string       $value
-     *
-     * @return $this
-     */
-    public function modalAttribute($attr, $value = '')
-    {
-        return $this->modal_attribute('modalAttributes', $attr, $value);
-    }
-    /**
-     * Add modal attributes.
-     *
-     * @param string|array $attr
-     * @param string       $value
-     *
-     * @return $this
-     */
-    public function modalInnerAttribute($attr, $value = '')
-    {
-        return $this->modal_attribute('modalInnerAttributes', $attr, $value);
-    }
-    /**
-     * Add modal attributes.
-     *
-     * @param string|array $attr
-     * @param string       $value
-     *
-     * @return $this
-     */
-    protected function modal_attribute($arrayName, $attr, $value = '')
-    {
-        if (is_array($attr)) {
-            foreach ($attr as $key => $value) {
-                $this->modal_attribute($arrayName, $key, $value);
-            }
-        } else {
-            $this->$arrayName[$attr] = $value;
-        }
-        return $this;
-    }
-    /**
-     * @param string|array $attr
-     * @param string       $value
-     *
-     * @return $this
-     */
-    protected function convert_attribute($attributes)
-    {
-        $html = [];
-        foreach ($attributes as $key => $val) {
-            $html[] = "$key=\"$val\"";
-        }
-
-        return implode(' ', $html) ?: '';
-    }
-
     protected function setDefaultAttributes()
     {
         $this->attributes = array_merge([
             'id' => 'modalform-form',
         ], $this->attributes);
         
-        $this->modalAttributes = array_merge([
-            'tabindex' => -1,
-            'role' => 'dialog',
-            'aria-labelledby' => 'myModalLabel',
-            'data-backdrop' => 'static',
-            'id' => 'modal-form',
-            'class' => 'modal fade',
-        ], $this->modalAttributes);
-        
-        $this->modalInnerAttributes = array_merge([
-            'role' => 'document',
-            'class' => 'modal-dialog modal-lg',
-        ], $this->modalInnerAttributes);
+        $this->setModalAttributes();
     }
 
     /**
@@ -234,7 +141,7 @@ EOT;
         $form_render = parent::render();
 
         // get view 
-        return view('exment::widgets.modalform',[
+        return view('exment::widgets.modal',[
             'header' => $this->modalHeader,
             'body' => $form_render,
             'submit' => $submit,

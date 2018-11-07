@@ -72,7 +72,7 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
 
 EOT;
         Ad::script($script);
-    
+            
         return $next($request);
     }
 }

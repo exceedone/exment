@@ -129,3 +129,16 @@
         cursor: pointer;
     }
 }
+
+/* box-show */
+.box.box-solid.box-default.box-show{
+    border: none;
+
+    .box-body{
+        padding-top: 7px;
+    }
+}
+.modal-body{
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+}

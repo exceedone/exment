@@ -18,10 +18,10 @@ trait CustomValueShow
     /**
      * create show form list
      */
-    protected function createShowForm($id = null)
+    protected function createShowForm($id = null, $modal = false)
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
-        return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id) {
+        return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue
@@ -36,12 +36,18 @@ trait CustomValueShow
                             // for table column
                             case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
                                 $column = $form_column->custom_column;
-                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column) {
+                                // set escape.
+                                // select_table, url is false
+                                $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
+                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column, $isUrl) {
                                     if (is_null($this)) {
                                         return '';
                                     }
+                                    if($isUrl){
+                                        return getUrl($this, $column, true);
+                                    }
                                     return $this->getValue($column, true);
-                                });
+                                })->setEscape(!$isUrl);
                                 break;
                             case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
                                 $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($form_column) {
@@ -61,6 +67,10 @@ trait CustomValueShow
                 }
                 ////// relation block
                 else{
+                    // if modal, dont show children
+                    if($modal){
+                        continue;
+                    }
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
                     $show->{$relation_name}($block_label, function($grid) use($custom_form_block, $target_table){
@@ -105,19 +115,29 @@ trait CustomValueShow
                 });
             }
 
+            // if modal, disable list and delete
+            if($modal){
+                $show->panel()->tools(function ($tools) {
+                    $tools->disableList();
+                    $tools->disableDelete();
+                });
+            }
+
             // show plugin button and copy button
-            $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
-            $copyButtons = $this->custom_table->from_custom_copies;
-            $show->panel()->tools(function ($tools) use($listButtons, $copyButtons, $id) {
-                foreach($listButtons as $plugin){
-                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
-                }
-                foreach($copyButtons as $copyButton){
-                    $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
+            if (!$modal) {
+                $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
+                $copyButtons = $this->custom_table->from_custom_copies;
+                $show->panel()->tools(function ($tools) use ($listButtons, $copyButtons, $id) {
+                    foreach ($listButtons as $plugin) {
+                        $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
+                    }
+                    foreach ($copyButtons as $copyButton) {
+                        $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
                     
-                    $tools->append($b->toHtml());
-                }
-            });
+                        $tools->append($b->toHtml());
+                    }
+                });
+            }
         });
     }
 }

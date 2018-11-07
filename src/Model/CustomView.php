@@ -45,6 +45,10 @@ class CustomView extends ModelBase
                 //$grid->column($column_name, $column_view_name)->sortable();
                 $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function($v) use($column){
                     if(is_null($this)){return '';}
+                    $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
+                    if($isUrl){
+                        return getUrl($this, $column, true);
+                    }
                     return $this->getValue($column, true);
                 });
             }
@@ -62,7 +66,7 @@ class CustomView extends ModelBase
                             // get parent_type
                             $parent_type = $this->parent_type;
                             if(is_null($parent_type)){return null;}
-                            return getModelName($parent_type)::find($value)->getValue();
+                            return getModelName($parent_type)::find($value)->getValue(true);
                     });
                 }
             }
@@ -138,7 +142,7 @@ class CustomView extends ModelBase
                             ->where('child_custom_table_id', $custom_table->id)
                             ->first();
                         if(isset($relation)){
-                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getValue();
+                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getValue(true) ?? null;
                         }
                     }else{
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
