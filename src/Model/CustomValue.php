@@ -79,6 +79,19 @@ class CustomValue extends ModelBase
     }
     
     /**
+     * get target custom_value's link url
+     */
+    public function getUrl($tag = false){
+        $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
+        if(!$tag){
+            return $url;
+        }
+        $url .= '?modal=1';
+        $label = $this->getValue(null, true);
+        return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
+    }
+
+    /**
      * get or set remove_file_columns
      */
     public function remove_file_columns($key = null){

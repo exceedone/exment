@@ -1001,11 +1001,7 @@ if (!function_exists('getUrl')) {
                 $id =  $target_value->id ?? null;
                 if(!isset($id)){return null;}
                 // create url
-                $url = admin_url(url_join('data', $target_value->getCustomTable()->table_name, $id).'?modal=1');
-                if(!$tag){
-                    return $url;
-                }
-                return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$value</a>";
+                return $target_value->getUrl($tag);
         }
 
         return null;

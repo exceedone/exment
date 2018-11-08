@@ -66,7 +66,9 @@ class CustomView extends ModelBase
                             // get parent_type
                             $parent_type = $this->parent_type;
                             if(is_null($parent_type)){return null;}
-                            return getModelName($parent_type)::find($value)->getValue(true);
+                            // get value
+                            $custom_value = getModelName($parent_type)::find($value);
+                            return $custom_value->getUrl(true);
                     });
                 }
             }
@@ -133,16 +135,24 @@ class CustomView extends ModelBase
                     if(is_numeric($custom_view_column->view_column_target)){
                         $custom_column = $custom_view_column->custom_column;
                         if(isset($custom_column)){
-                            $body_items[] = getValueUseTable($custom_table, array_get($data, 'value'), $custom_column, true);
+                            $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
+                            if($isUrl){
+                                $body_items[] = getUrl($data, $custom_column, true);
+                            }
+                            else{
+                                $body_items[] = $data->getValue($custom_column, true);
+                            }
                         }
-                    }elseif($custom_view_column->view_column_target == 'parent_id'){
+                    }
+                    // parent id
+                    elseif($custom_view_column->view_column_target == 'parent_id'){
                         // get parent data
                         $relation = CustomRelation
                             ::with('parent_custom_table')
                             ->where('child_custom_table_id', $custom_table->id)
                             ->first();
                         if(isset($relation)){
-                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getValue(true) ?? null;
+                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getUrl(true) ?? null;
                         }
                     }else{
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.

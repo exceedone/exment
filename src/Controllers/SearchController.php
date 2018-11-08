@@ -302,66 +302,66 @@ EOT;
     protected function getRelationSearch(Request $request, Content $content){
         $this->AdminContent($content);
 
-            $content->header(exmtrans('search.header_relation'));
-            $content->description(exmtrans('search.description_relation'));
+        $content->header(exmtrans('search.header_relation'));
+        $content->description(exmtrans('search.description_relation'));
 
-            // get seleted name
-            $table = CustomTable::findByName($request->input('table_name'));
-            $label = getLabelColumn($table);
-            $model = getModelName($table)::find($request->input('value_id'));
-            $value = getValue($model, $label, true);
-            $content->body(view('exment::search.index', [
-                'table_name' => $request->input('table_name')
-                , 'value_id' => $request->input('value_id')
-                , 'query' => $value
-                , 'tables' => $this->getSearchTargetRelationTable($table)]));
+        // get seleted name
+        $table = CustomTable::findByName($request->input('table_name'));
+        $label = getLabelColumn($table);
+        $model = getModelName($table)::find($request->input('value_id'));
+        $value = getValue($model, $label, true);
+        $content->body(view('exment::search.index', [
+            'table_name' => $request->input('table_name')
+            , 'value_id' => $request->input('value_id')
+            , 'query' => $value
+            , 'tables' => $this->getSearchTargetRelationTable($table)]));
 
-            // create searching javascript
-            $list_url = admin_base_path("search/relation");
-            $script = <<<EOT
-    var searchIndex = 0;
-    $(function () {
-        getNaviData();
-    });
+        // create searching javascript
+        $list_url = admin_base_path("search/relation");
+        $script = <<<EOT
+var searchIndex = 0;
+$(function () {
+    getNaviData();
+});
 
-    function getNaviData() {
-        var tables = JSON.parse($('.tables').val());
-        for (var i = 0; i < tables.length; i++) {
-            var table = tables[i];
+function getNaviData() {
+    var tables = JSON.parse($('.tables').val());
+    for (var i = 0; i < tables.length; i++) {
+        var table = tables[i];
 
-            // Get data
-            $.ajax({
-                url: '$list_url',
-                type: 'POST',
-                data: {
-                    search_table_name: table.table_name
-                    , value_table_name: $('.table_name').val()
-                    , value_id: $('.value_id').val()
-                    , search_type: table.search_type
-                    , _token: LA.token
-                },
-                dataType: "json"
+        // Get data
+        $.ajax({
+            url: '$list_url',
+            type: 'POST',
+            data: {
+                search_table_name: table.table_name
+                , value_table_name: $('.table_name').val()
+                , value_id: $('.value_id').val()
+                , search_type: table.search_type
+                , _token: LA.token
+            },
+            dataType: "json"
+        })
+            // Execute when success Ajax Request
+            .done((data) => {
+                console.log(data);
+                var box = $('.table_' + data.table_name);
+                box.find('.box-body').html(data.html);
+                box.find('.overlay').remove();
+
             })
-                // Execute when success Ajax Request
-                .done((data) => {
-                    console.log(data);
-                    var box = $('.table_' + data.table_name);
-                    box.find('.box-body').html(data.html);
-                    box.find('.overlay').remove();
-
-                })
-                .always((data) => {
-                });
-        }
+            .always((data) => {
+            });
     }
+}
 
 EOT;
-            Admin::script($script);
+        Admin::script($script);
 
-            // add header and description        
-            $title = sprintf(exmtrans("search.result_label"), $value);
-            $this->setPageInfo($title);
-            return $content;
+        // add header and description        
+        $title = sprintf(exmtrans("search.result_label"), $value);
+        $this->setPageInfo($title);
+        return $content;
     }
 
     /**
@@ -382,26 +382,25 @@ EOT;
         switch($search_type){
             // self table
             case 'self':
-                $data = [getModelName($search_table)::find($value_id)->toArray()];
+                $data = [getModelName($search_table)::find($value_id)];
                 break;   
             // select_table(select box)             
             case 'select_table':
-                // Retrieve the record list whose value is "value_id" in the column "options.search_target_table" of the table "custom column"
+                // Retrieve the record list whose value is "value_id" in the column "options.select_target_table" of the table "custom column"
                 $selecttable_columns = CustomColumn::where('column_type', 'select_table')
-                    ->where('options->search_target_table', $value_table->id)
+                    ->where('options->select_target_table', $value_table->id)
                     ->get();
 
                 if(count($search_columns) == 0){
                     return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
                 }
 
-                $query = getModelName(array_get($search_table, 'table_name'))::query();
-                $data = $this->searchValue($query, $search_table, $search_columns, 5);
+                $data = $this->searchValue($value_id, $search_table, $selecttable_columns, 5, false);
                 break;
             
             // one_to_many
             case 'one_to_many':
-                $data = getModelName($search_table)::where('parent_id', $value_id)->take(5)->get()->toArray();
+                $data = getModelName($search_table)::where('parent_id', $value_id)->take(5)->get();
                 break;
             // many_to_many
             case 'many_to_many':
@@ -413,7 +412,7 @@ EOT;
                     ::join($relation_name, "$relation_name.child_id", getDBTableName($search_table).".id")
                     ->where("$relation_name.parent_id", $value_id)
                     ->take(5)
-                    ->get([getDBTableName($search_table).".*"])->toArray();
+                    ->get();
                 break;            
         }
 
@@ -447,11 +446,11 @@ EOT;
 
         // 2. Get tables as "select_table". They contains these columns matching them.
         // * table_column > options > search_enabled is true.
-        // * table_column > options > search_target_table is table id user selected.
+        // * table_column > options > select_target_table is table id user selected.
         $tables = CustomTable
         ::whereHas('custom_columns', function($query) use($value_table){
-            $query->where('options->search_enabled', true)
-            ->where('options->search_target_table', $value_table->id);
+            $query->whereIn('options->search_enabled', [1, "1"])
+            ->where('options->select_target_table', $value_table->id);
         })
         ->where('search_enabled', true)
         ->get()
@@ -501,15 +500,17 @@ EOT;
     /**
      * search value using search-enabld column
      */
-    protected function searchValue($q, $table, $search_columns, $max_count){
+    protected function searchValue($q, $table, $search_columns, $max_count, $isLike = true){
         $data = [];
+        $query = $q . ($isLike ? '%' : '');
+        $mark = ($isLike ? 'LIKE' : '=');
         foreach ($search_columns as $search_column)
         {
             // get data
             $foodata = getModelName($table)
-                ::where(getColumnName($search_column), 'LIKE', $q.'%')
+                ::where(getColumnName($search_column), $mark, $query)
                 ->take($max_count - count($data))
-                ->get()->toArray();
+                ->get();
             
             foreach($foodata as $foo){
                 if(count($data) >= $max_count){break;}
