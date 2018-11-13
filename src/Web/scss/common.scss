@@ -142,3 +142,10 @@
     max-height: calc(100vh - 200px);
     overflow-y: auto;
 }
+
+.bootstrap-duallistbox-container > div:last-child select{
+    background-color: #fff900a3;
+}
+.bootstrap-duallistbox-container label{
+    font-size: 0.9em;
+}

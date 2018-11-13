@@ -58,62 +58,91 @@ trait CustomValueGrid
     protected function setCustomGridFilters($grid, $search_enabled_columns)
     {
         $grid->filter(function ($filter) use ($search_enabled_columns) {
-            // loop custom column
-            foreach ($search_enabled_columns as $search_column) {
-                $column_name = getColumnName($search_column);
-                $column_view_name = array_get($search_column, 'column_view_name');
-                // filter type
-                $column_type = array_get($search_column, 'column_type');
-                switch($column_type){
-                    case 'select':
-                    case 'select_valtext':
-                        $filter->equal($column_name, $column_view_name)->select(createSelectOptions($search_column));
-                        break;
-                    case 'select_table':
-                    case 'user':
-                    case 'organization':
-                        // get select_target_table
-                        if ($column_type == 'select_table') {
-                            $select_target_table_id = array_get($search_column, 'options.select_target_table');
-                            if (isset($select_target_table_id)) {
-                                $select_target_table = CustomTable::find($select_target_table_id)->table_name;
-                            } else {
-                                $select_target_table = null;
-                            }
-                        } elseif ($column_type == Define::SYSTEM_TABLE_NAME_USER) {
-                            $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
-                        } elseif ($column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
-                            $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
-                        }
+            $filter->column(1/2, function ($filter) {
+                $filter->between('created_at', exmtrans('common.created_at'))->date();
+                $filter->between('updated_at', exmtrans('common.updated_at'))->date();
+            });
 
-                        // get options and ajax url
-                        $options = getOptions($select_target_table);
-                        $ajax = getOptionAjaxUrl($select_target_table);
-                        if (isset($ajax)) {
-                            $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
-                        }else{
-                            $filter->equal($column_name, $column_view_name)->select($options);
-                        }
-                        break;
-                    case 'yesno':
-                        $filter->equal($column_name, $column_view_name)->radio([
-                            ''   => 'All',
-                            0    => 'NO',
-                            1    => 'YES',
-                        ]);
-                        break;
-                    case 'boolean':
-                        $filter->equal($column_name, $column_view_name)->radio([
-                            ''   => 'All',
-                            array_get($search_column, 'options.false_value')    => array_get($search_column, 'options.false_label'),
-                            array_get($search_column, 'options.true_value')    => array_get($search_column, 'options.true_label'),
-                        ]);
-                        break;
-                    default:
-                        $filter->like($column_name, $column_view_name);
-                        break;
+            // loop custom column
+            $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
+                // check 1:n relation
+                $relation = CustomRelation
+                    ::with('parent_custom_table')
+                    ->where('child_custom_table_id', $this->custom_table->id)
+                    ->first();
+                // if set, create select 
+                if(isset($relation)){
+                    // get options and ajax url
+                    $options = getOptions($relation->parent_custom_table);
+                    $ajax = getOptionAjaxUrl($relation->parent_custom_table);
+                    if (isset($ajax)) {
+                        $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                    }else{
+                        $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select($options);
+                    }
                 }
-            }
+
+                foreach ($search_enabled_columns as $search_column) {
+                    $column_name = getColumnName($search_column);
+                    $column_view_name = array_get($search_column, 'column_view_name');
+                    // filter type
+                    $column_type = array_get($search_column, 'column_type');
+                    switch($column_type){
+                        case 'select':
+                        case 'select_valtext':
+                            $filter->equal($column_name, $column_view_name)->select(createSelectOptions($search_column));
+                            break;
+                        case 'select_table':
+                        case 'user':
+                        case 'organization':
+                            // get select_target_table
+                            if ($column_type == 'select_table') {
+                                $select_target_table_id = array_get($search_column, 'options.select_target_table');
+                                if (isset($select_target_table_id)) {
+                                    $select_target_table = CustomTable::find($select_target_table_id)->table_name;
+                                } else {
+                                    $select_target_table = null;
+                                }
+                            } elseif ($column_type == Define::SYSTEM_TABLE_NAME_USER) {
+                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
+                            } elseif ($column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
+                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
+                            }
+
+                            // get options and ajax url
+                            $options = getOptions($select_target_table);
+                            $ajax = getOptionAjaxUrl($select_target_table);
+                            if (isset($ajax)) {
+                                $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
+                            }else{
+                                $filter->equal($column_name, $column_view_name)->select($options);
+                            }
+                            break;
+                        case 'yesno':
+                            $filter->equal($column_name, $column_view_name)->radio([
+                                ''   => 'All',
+                                0    => 'NO',
+                                1    => 'YES',
+                            ]);
+                            break;
+                        case 'boolean':
+                            $filter->equal($column_name, $column_view_name)->radio([
+                                ''   => 'All',
+                                array_get($search_column, 'options.false_value')    => array_get($search_column, 'options.false_label'),
+                                array_get($search_column, 'options.true_value')    => array_get($search_column, 'options.true_label'),
+                            ]);
+                            break;
+                        
+                        case 'date':
+                        case 'datetime':
+                            $filter->between($column_name, $column_view_name)->date();
+                            break;
+                        default:
+                            $filter->like($column_name, $column_view_name);
+                            break;
+                    }
+                }
+            });
         });
     }
 

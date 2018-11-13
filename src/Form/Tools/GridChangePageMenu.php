@@ -21,7 +21,7 @@ class GridChangePageMenu extends AbstractTool
 
     protected function script()
     {
-        $tables_json = CustomTable::all()->pluck('table_name', 'id')->toJson();
+        $tables_json = CustomTable::filterList()->pluck('table_name', 'id')->toJson();
         $isselect_row_bool = boolval($this->isselect_row) ? 1 : 0;
         $custom_table_id = isset($this->custom_table) ? $this->custom_table->id : null;
         $custom_table_name = isset($this->custom_table) ? $this->custom_table->table_name : null;

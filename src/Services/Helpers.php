@@ -423,7 +423,7 @@ if (!function_exists('getCustomTableTrait')) {
     function getCustomTableTrait()
     {
         $namespace = "Exceedone\\Exment\\Model\\Traits";
-        $className = "CustomTableTrait";
+        $className = "CustomTableDynamicTrait";
         $fillpath = "{$namespace}\\{$className}";
         // if the model doesn't defined
         if (!class_exists($fillpath)) {

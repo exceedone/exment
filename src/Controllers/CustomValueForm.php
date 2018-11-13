@@ -120,7 +120,7 @@ trait CustomValueForm
                 else{
                     $field = new Field\Listbox(
                         getRelationNamebyObjs($this->custom_table, $target_table),
-                        [$block_label]
+                        [$custom_form_block->target_table->table_view_name]
                     );
                     $field->options(function ($select) use ($target_table) {
                         return getOptions($target_table, $select);
@@ -128,6 +128,8 @@ trait CustomValueForm
                     if (getModelName($target_table)::count() > 100) {
                         $field->ajax(getOptionAjaxUrl($target_table));
                     }
+                    $field->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
+                    $field->help(exmtrans('custom_value.bootstrap_duallistbox_container.help'));
                     $form->pushField($field);
                 }
             } 

@@ -2,12 +2,12 @@
 
 namespace Exceedone\Exment\Model;
 
-
 getCustomTableTrait();
 
 class CustomTable extends ModelBase
 {
-    use Traits\CustomTableTrait; // CustomTableTrait:Dynamic Creation trait it defines relationship.
+    use Traits\CustomTableTrait; 
+    use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
@@ -42,70 +42,6 @@ class CustomTable extends ModelBase
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
     
-    /**
-     * Find record using table name
-     * @param mixed $model_name
-     * @return mixed
-     */
-    public static function findByName($model_name, $with_custom_columns = false){
-        $query = static::where('table_name', $model_name);
-        if($with_custom_columns){
-            $query = $query->with('custom_columns');
-        }
-        return $query->first();
-    }
-
-    /**
-     * Find record using database table name
-     * @param mixed $table_name
-     * @return mixed
-     */
-    public static function findByDBTableName($db_table_name, $with_custom_columns = false){
-        $query = static::where('suuid', preg_replace('/^exm__/', '', $db_table_name));
-        if($with_custom_columns){
-            $query = $query->with('custom_columns');
-        }
-        return $query->first();
-    }
-
-    /**
-     * get custom table eloquent.
-     * @param mixed $obj id, table_name, CustomTable object, CustomValue object. 
-     */
-    public static function getEloquent($obj){
-        if($obj instanceof \stdClass){
-            $obj = (array)$obj;
-        }
-        // get id or array value
-        if (is_array($obj)) {
-            // get id or table_name
-            if(array_key_value_exists('id', $obj)){
-                $obj = array_get($obj, 'id');
-            }elseif(array_key_value_exists('table_name', $obj)){
-                $obj = array_get($obj, 'table_name');
-            }
-            else{
-                return null;
-            }
-        }
-
-        // get eloquent model
-        if (is_numeric($obj)) {
-            $obj = static::find($obj);
-        }elseif (is_string($obj)) {
-            $obj = static::findByName($obj);
-        }
-        elseif (is_array($obj)) {
-            $obj = static::findByName(array_get($obj, 'table_name'));
-        }
-        elseif ($obj instanceof CustomTable) {
-            // nothing
-        }else if($obj instanceof CustomValue) {
-            $obj = $obj->getCustomTable();
-        }
-        return $obj;
-    }
-
     /**
      * Delete children items
      */

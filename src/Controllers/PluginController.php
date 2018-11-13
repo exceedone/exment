@@ -250,7 +250,7 @@ class PluginController extends AdminControllerBase
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
             if (in_array($plugin_type, [Define::PLUGIN_TYPE_TRIGGER, Define::PLUGIN_TYPE_DOCUMENT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
-                    $options = CustomTable::all()->pluck('table_view_name', 'table_name')->toArray();
+                    $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
                 // only trigger

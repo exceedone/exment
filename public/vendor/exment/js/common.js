@@ -60,22 +60,22 @@ var Exment;
          * if click grid row, move page
          */
         static tableHoverLink() {
-            $('table.table-hover').find('[data-id]').closest('tr').on('click', function (ev) {
-                //e.targetはクリックした要素自体、それがa要素以外であれば
+            $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
+                // if e.target closest"a" is length > 0, return
                 if ($(ev.target).closest('a').length > 0) {
                     return;
                 }
                 //その要素の先祖要素で一番近いtrの
                 //data-href属性の値に書かれているURLに遷移する
-                var linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                var linkElem = $(ev.target).closest('tr').find('.fa-eye');
                 if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }
                 if (!hasValue(linkElem)) {
                     return;
                 }
                 linkElem.closest('a').click();
-            });
+            }).addClass('tableHoverLinkEvent');
         }
         /**
          * Set changedata event

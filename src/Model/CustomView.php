@@ -171,6 +171,8 @@ class CustomView extends ModelBase
                 if(Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)){
                     $link .= '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit')).'"><i class="fa fa-edit"></i></a>';
                 }
+                // add hidden item about data id
+                $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
                 $body_items[] = $link;
 
                 // add items to body

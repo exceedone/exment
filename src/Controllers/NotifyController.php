@@ -60,11 +60,12 @@ class NotifyController extends AdminControllerBase
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
         ->required()
         ->options(function($custom_table_id){
-            return CustomTable::all()->pluck('table_view_name', 'id');
-        })->attribute(['data-changedata' => json_encode(['changedata' => [
-                'trigger_settings_notify_target_column' => admin_base_path('notify/targetcolumn'),
-                'action_settings_notify_action_target' => admin_base_path('notify/notify_action_target')
-            ]])
+            return CustomTable::filterList()->pluck('table_view_name', 'id');
+        })->attribute(['data-linkage' => json_encode(
+            [
+                'trigger_settings_notify_target_column' =>  admin_base_path('notify/targetcolumn'),
+                'action_settings_notify_action_target' => admin_base_path('notify/notify_action_target'),
+            ])
         ])
         ->help(exmtrans("notify.help.custom_table_id"));
 

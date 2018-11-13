@@ -54,7 +54,7 @@ class TemplateController extends AdminControllerBase
             ;
         
         $form->listbox('target_tables', exmtrans('template.target_tables'))
-            ->options(CustomTable::all()->pluck('table_view_name', 'table_name'))
+            ->options(CustomTable::filterList()->pluck('table_view_name', 'table_name'))
             ->help(exmtrans('template.help.target_tables'))
             ;
 

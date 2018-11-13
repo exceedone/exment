@@ -244,7 +244,7 @@ class CustomColumnController extends AdminControllerTableBase
                     ->help(exmtrans("custom_column.help.select_target_table"))
                     //->rules('required')
                     ->options(function ($select_table) {
-                        $options = CustomTable::where('showlist_flg', true)->pluck('table_view_name', 'id')->toArray();
+                        $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
                         return $options;
                     })
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'select_table'])]);
