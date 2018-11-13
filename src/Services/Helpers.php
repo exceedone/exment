@@ -1067,10 +1067,6 @@ if (!function_exists('alterColumn')) {
      */
     function alterColumn($table_name, $column_name, $forceDropIndex = false)
     {
-        // check already execute 
-        $key = 'global.alter_column.'.$table_name.'_'.$column_name;
-        if(boolval(config($key))){return;}
-
         // Create index --------------------------------------------------
         $table = CustomTable::findByName($table_name);
         $column = $table->custom_columns()->where('column_name', $column_name)->first();
@@ -1125,7 +1121,6 @@ if (!function_exists('alterColumn')) {
                 throw $exception;
             }
         }
-        config([$key => 1]);
     }
 }
 

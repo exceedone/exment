@@ -161,11 +161,6 @@ class CustomViewController extends AdminControllerTableBase
             $id = $form->model()->id;
         }
 
-        $form->saved(function (Form $form) {
-            // create or drop index --------------------------------------------------
-            $model = $form->model();
-            alterColumn($model->custom_table->table_name, $model->view_name);
-        });
         disableFormFooter($form);
         
         $custom_table = $this->custom_table;
