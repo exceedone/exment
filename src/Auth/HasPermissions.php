@@ -305,7 +305,7 @@ trait HasPermissions
     /**
      * filter target model
      */
-    public function filterModel(&$model, $table_name, $custom_view = null){
+    public function filterModel($model, $table_name, $custom_view = null){
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if(isset($custom_view)){
@@ -444,7 +444,7 @@ trait HasPermissions
         // system filter(using system authority) --------------------------------------------------
         // if user has all edit table, return. (nothing doing)
         if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
-            return;
+            return $model;
         }
 
         // if user has edit or view table
@@ -458,7 +458,7 @@ trait HasPermissions
                     ;
                 });
         }
-
+        return $model;
     }
 
     /**

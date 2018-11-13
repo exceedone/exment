@@ -407,7 +407,7 @@ class TemplateImporter
      */
     public static function import($json, $system_flg = false)
     {
-        //DB::transaction(function() use($json, $system_flg){
+        DB::transaction(function() use($json, $system_flg){
             // Loop by tables
             foreach (array_get($json, "custom_tables") as $table) {
                 // Create tables. --------------------------------------------------
@@ -473,13 +473,17 @@ class TemplateImporter
                         }
                         // if options has select_target_table_name, get id
                         if (array_key_exists('select_target_table_name', $options)) {
-                            $custom_table = CustomTable::findByName(array_get($options, 'select_target_table_name'));
-                            $id = $custom_table->id ?? null;
-                            // not set id, continue
-                            if (!isset($id)) {
-                                continue;
+                            if(is_nullorempty($options['select_target_table_name'])){
+                                $options['select_target_table'] = null;
+                            }else{
+                                $custom_table = CustomTable::findByName(array_get($options, 'select_target_table_name'));
+                                $id = $custom_table->id ?? null;
+                                // not set id, continue
+                                if (!isset($id)) {
+                                    continue;
+                                }
+                                $options['select_target_table'] = $id;
                             }
-                            $options['select_target_table'] = $id;
                             array_forget($options, 'select_target_table_name');
                         }
 
@@ -510,7 +514,9 @@ class TemplateImporter
                         array_push($table_columns, $obj_column);
                     }
 
-                    $obj_table->custom_columns()->saveMany($table_columns);
+                    if (count($table_columns) > 0) {
+                        $obj_table->custom_columns()->saveMany($table_columns);
+                    }
                 }
 
                 // Create database table.
@@ -1143,9 +1149,7 @@ class TemplateImporter
                     $obj_mail_template->saveOrFail();
                 }
             }
-            
-
-        //});
+        });
     }
 
 

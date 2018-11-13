@@ -67,16 +67,22 @@ class CustomForm extends ModelBase
             $form->saveOrFail();
             $form = $form;
 
+            // re-get form
+            $form = static::find($form->id);
+        }
+
+        // get form block
+        $form_block = $form->custom_form_blocks()
+            ->where('form_block_type', Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT)
+            ->first();
+        if(!isset($form_block)){
             // Create CustomFormBlock as default
             $form_block = new CustomFormBlock;
             $form_block->form_block_type = Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT;
             $form_block->form_block_target_table_id = $tableObj->id;
             $form_block->available = true;
             $form->custom_form_blocks()->save($form_block);
-
-            // re-get form
-            $form = static::find($form->id);
-        }
+        }   
 
         // if target form doesn't have columns, add columns for search_enabled columns.
         if(!isset($form->custom_form_columns) || count($form->custom_form_columns) == 0){
@@ -86,7 +92,7 @@ class CustomForm extends ModelBase
             // get target block as default.
             $form_block = $form->custom_form_blocks()
                 ->where('form_block_type', Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT)
-                ->firstOrFail();            
+                ->first();            
             // loop for search_enabled columns, and add form.
             foreach ($search_enabled_columns as $index => $search_enabled_column)
             {

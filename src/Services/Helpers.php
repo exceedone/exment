@@ -38,7 +38,13 @@ if (!function_exists('getManualUrl')) {
         return $manual_url_base;
     }
 }
-
+if (!function_exists('mbTrim')) {
+    function mbTrim($pString)
+    {
+        if(is_null($pString)){return null;}
+        return preg_replace('/\A[\p{C}\p{Z}]++|[\p{C}\p{Z}]++\z/u', '', $pString);
+    }
+}
 
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)
@@ -1236,23 +1242,24 @@ if (!function_exists('getOptions')) {
         // get count table.
         $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
-        if($count > 100){
-            $item = getOptionsQuery($table)::find($selected_value);
+        // if($count > 100){
+        //     if(!isset($selected_value)){return [];}
+        //     $item = getOptionsQuery($table)::find($selected_value);
 
-            if ($item) {
-                // check whether $item is multiple value.
-                if($item instanceof Collection){
-                    $ret = [];
-                    foreach($item as $i){
-                        $ret[$i->id] = $i->label;
-                    }
-                    return $ret;
-                }
-                return [$item->id => $item->label];
-            }else{
-                return [];
-            }
-        }
+        //     if ($item) {
+        //         // check whether $item is multiple value.
+        //         if($item instanceof Collection){
+        //             $ret = [];
+        //             foreach($item as $i){
+        //                 $ret[$i->id] = $i->label;
+        //             }
+        //             return $ret;
+        //         }
+        //         return [$item->id => $item->label];
+        //     }else{
+        //         return [];
+        //     }
+        // }
         return getOptionsQuery($table)::get()->pluck("label", "id");
     }
 }
@@ -1289,7 +1296,7 @@ if(!function_exists('getOptionsQuery')){
         $model = new $modelname;
 
         // filter model
-        Admin::user()->filterModel($model, $table);
+        $model = Admin::user()->filterModel($model, $table);
         return $model;
     }   
 }
@@ -1345,12 +1352,12 @@ if (!function_exists('setSelectOptionItem')) {
             if ($isValueText) {
                 $splits = explode(',', $item);
                 if (count($splits) > 1) {
-                    $options[trim($splits[0])] = trim($splits[1]);
+                    $options[mbTrim($splits[0])] = mbTrim($splits[1]);
                 } else {
-                    $options[trim($splits[0])] = trim($splits[0]);
+                    $options[mbTrim($splits[0])] = mbTrim($splits[0]);
                 }
             } else {
-                $options[trim($item)] = trim($item);
+                $options[mbTrim($item)] = mbTrim($item);
             }
         }
     }
@@ -1470,11 +1477,11 @@ if (!function_exists('getDataFromSheet')) {
                 // if keyvalue, set array as key value
                 if($keyvalue){
                     $key = getCellValue($column_no."1", $sheet);
-                    $cells[$key] = $value;
+                    $cells[$key] = mbTrim($value);
                 }
                 // if false, set as array
                 else{
-                    $cells[] = $value;                    
+                    $cells[] = mbTrim($value);                    
                 }
             }
             if(collect($cells)->filter(function($v){

@@ -113,10 +113,10 @@ class FormHelper
                     // get DB option value
                     return getOptions($select_target_table, $val);
                 });
-                $ajax = getOptionAjaxUrl($select_target_table);
-                if (isset($ajax)) {
-                    $field->ajax($ajax);
-                }
+                // $ajax = getOptionAjaxUrl($select_target_table);
+                // if (isset($ajax)) {
+                //     $field->ajax($ajax);
+                // }
                 // add table info
                 $field->attribute(['data-target_table_name' => $select_target_table]);
                 break;

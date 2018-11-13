@@ -105,7 +105,7 @@ class DashboardBoxController extends AdminControllerBase
                     $classname = getModelName($table);
                     $model = new $classname();
                     // filter model
-                    Admin::user()->filterModel($model, $table->table_name, $view);
+                    $model = Admin::user()->filterModel($model, $table->table_name, $view);
                     // get data
                     // TODO:only take 5 rows. add function that changing take and skip records.
                     $datalist = $model->take(5)->get();

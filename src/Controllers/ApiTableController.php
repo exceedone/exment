@@ -43,7 +43,7 @@ class ApiTableController extends AdminControllerTableBase
     public function query(Request $request){
         // get model filtered using authority
         $model = getModelName($this->custom_table)::query();
-        Admin::user()->filterModel($model, $this->custom_table);
+        $model = Admin::user()->filterModel($model, $this->custom_table);
 
         // filtered query 
         $q = $request->get('q');
@@ -71,10 +71,13 @@ class ApiTableController extends AdminControllerTableBase
         $q = $request->get('q');
 
         // get children items
-        return getModelName($child_table)
+        $datalist = getModelName($child_table)
             ::where('parent_id', $q)
             ->where('parent_type', $this->custom_table->table_name)
-            ->get(['id', 'label as text']);
+            ->get()->pluck('label', 'id');
+        return collect($datalist)->map(function($value, $key){
+            return ['id' => $key, 'text' => $value];
+        });
     }
 }
 
