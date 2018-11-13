@@ -305,7 +305,7 @@ trait HasPermissions
     /**
      * filter target model
      */
-    public function filterModel($model, $table_name, $custom_view = null){
+    public function filterModel(&$model, $table_name, $custom_view = null){
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if(isset($custom_view)){
@@ -321,23 +321,23 @@ trait HasPermissions
                 switch($view_filter_condition){
                     // equal
                     case Define::VIEW_COLUMN_FILTER_OPTION_EQ:
-                        $model->where($view_filter_target, $condition_value_text);
+                        $model = $model->where($view_filter_target, $condition_value_text);
                         break;
                     // not equal
                     case Define::VIEW_COLUMN_FILTER_OPTION_NE:
-                        $model->where($view_filter_target, '<>', $condition_value_text);
+                        $model = $model->where($view_filter_target, '<>', $condition_value_text);
                         break;
                     // not null
                     case Define::VIEW_COLUMN_FILTER_OPTION_NOT_NULL:
                     case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL;
                     case Define::VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL;
-                        $model->whereNotNull($view_filter_target);
+                        $model = $model->whereNotNull($view_filter_target);
                         break;
                     // null
                     case Define::VIEW_COLUMN_FILTER_OPTION_NULL:
                     case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NULL;
                     case Define::VIEW_COLUMN_FILTER_OPTION_USER_NULL;
-                        $model->whereNull($view_filter_target);
+                        $model = $model->whereNull($view_filter_target);
                         break;
                     
                     // for date --------------------------------------------------
@@ -361,7 +361,7 @@ trait HasPermissions
                                 $value_day = Carbon::tomorow();
                                 break;
                         }
-                        $model->whereDate($view_filter_target, $value_day);
+                        $model = $model->whereDate($view_filter_target, $value_day);
                         break;
                         
                     // date equal month
@@ -380,7 +380,7 @@ trait HasPermissions
                                 $value_day = new Carbon('first day of next month');
                                 break;
                         }
-                        $model->whereMonth($view_filter_target, $value_day);
+                        $model = $model->whereMonth($view_filter_target, $value_day);
                         break;
                         
                     // date equal year
@@ -399,7 +399,7 @@ trait HasPermissions
                                 $value_day = new Carbon('first day of next year');
                                 break;
                         }
-                        $model->whereYear($view_filter_target, $value_day);
+                        $model = $model->whereYear($view_filter_target, $value_day);
                         break;
                         
                     // date and X days before or after
@@ -427,15 +427,15 @@ trait HasPermissions
                                 $mark = "<=";
                                 break;
                         }
-                        $model->whereDate($view_filter_target, $mark, $target_day);
+                        $model = $model->whereDate($view_filter_target, $mark, $target_day);
                         break;
                         
                     // for user --------------------------------------------------
                     case Define::VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER:
-                        $model->where($view_filter_target, Admin::user()->base_user()->id);
+                        $model = $model->where($view_filter_target, Admin::user()->base_user()->id);
                         break;
                     case Define::VIEW_COLUMN_FILTER_OPTION_USER_NE_USER:
-                        $model->where($view_filter_target, '<>', Admin::user()->base_user()->id);
+                        $model = $model->where($view_filter_target, '<>', Admin::user()->base_user()->id);
                            
                 }
             }
@@ -450,7 +450,7 @@ trait HasPermissions
         // if user has edit or view table
         if (Admin::user()->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             // get only has authority
-            $model
+            $model = $model
                  ->whereHas('value_authoritable_users', function ($q) {
                     $q->where('related_id', $this->base_user_id);
                 })->orWhereHas('value_authoritable_organizations', function ($q) {

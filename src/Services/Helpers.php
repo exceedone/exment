@@ -488,28 +488,6 @@ if (!function_exists('getColumnNameByTable')) {
     }
 }
 
-if (!function_exists('getLabelColumn')) {
-    /**
-     * Get label column object for target table.
-     * @param CustomTable|array $obj
-     * @return string
-     */
-    function getLabelColumn($obj, $isonly_label = false)
-    {
-        $obj = CustomTable::getEloquent($obj);
-        $column = $obj->custom_columns()->whereIn('options->use_label_flg', [1, "1"])->first();
-        if (!isset($column)) {
-            $column = $obj->custom_columns()->first();
-        }
-
-        if($isonly_label){
-            return $column->column_view_name;
-        }else{
-            return $column;
-        }
-    }
-}
-
 if (!function_exists('getRelationName')) {
     /**
      * Get relation name.
@@ -641,7 +619,7 @@ if (!function_exists('getValueUseTable')) {
         }
         $custom_table = CustomTable::getEloquent($custom_table);
         if(is_null($column)){
-            $column = getLabelColumn($custom_table);
+            return getLabelUseTable($custom_table, $value);
         }
 
         // if $column is string and  and contains comma
@@ -793,27 +771,27 @@ if (!function_exists('getValueUseTable')) {
             if ($label === false) {
                 return $model;
             }
-
-            // get label column
-            // if label is true, get label column
-            if($label === true){
-                $column = getLabelColumn($target_table);
-            }
-            // if label is selecting column name, get target label
-            else if(is_string($label)){
-                $column = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
-            }
-            if (is_null($column)) {
-               return null; 
-            }
-
-            // if $model is array multiple, return 
+            
+            // if $model is array multiple, set as array 
             if(!($model instanceof \Illuminate\Database\Eloquent\Collection)){
                 $model = [$model];
             }
+
             $labels = [];
             foreach($model as $m){
-                $labels[] = array_get($m->value, array_get($column->toArray(), 'column_name'));
+                if (is_null($column)) {
+                    continue;
+                }
+                 
+                // get label column
+                // if label is true, return getLabel
+                if($label === true){
+                    $labels[] = $m->label;
+                }
+                // if label is selecting column name, get target label
+                elseif(is_string($label)){
+                    $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
+                }
             }
             return implode(exmtrans('common.separate_word'), $labels);
         }
@@ -891,6 +869,53 @@ if (!function_exists('getValueUseTable')) {
     }
 }
 
+if (!function_exists('getLabel')) {
+    /**
+     * Get label text
+     * @param CustomValue|array $custom_value
+     * @param CustomTable|array $obj
+     * @return string
+     */
+    function getLabel($custom_value)
+    {
+        if(is_null($custom_value)){return null;}
+        $custom_table = $custom_value->getCustomTable();
+        return getLabelUseTable($custom_table, array_get($custom_value, 'value'));
+    }
+}
+
+if (!function_exists('getLabelUseTable')) {
+    /**
+     * Get label text
+     * @param CustomTable $custom_table
+     * @param CustomValue|array $custom_value
+     * @return string
+     */
+    function getLabelUseTable($custom_table, $value)
+    {
+        if(is_null($value)){return null;}
+        $columns = $custom_table->custom_columns()
+            ->whereNotIn('options->use_label_flg', [0, "0"])
+            ->orderBy('options->use_label_flg')
+            ->get();
+        if (!isset($columns)) {
+            $columns = collect($custom_table->custom_columns()->first());
+        }
+
+        // loop for columns and get value
+        $labels = [];
+        foreach($columns as $column){
+            if(!isset($column)){continue;}
+            $label = getValueUseTable($custom_table, $value, $column, true);
+            if(!isset($label)){continue;}
+            $labels[] = $label;
+        }
+
+        return implode(' ', $labels);
+    }
+}
+
+
 if (!function_exists('getParentValue')) {
     /**
      * get parent value
@@ -902,17 +927,7 @@ if (!function_exists('getParentValue')) {
         if(!$isonly_label){
             return $model;
         }
-
-        if(is_null($model)){
-            return null;
-        }
-        
-        // get label column
-        $column = getLabelColumn($target_table);
-        if (is_null($column)) {
-            return null;
-        }
-        return array_get($model->value, array_get($column->toArray(), 'column_name'));
+        return $model->label;
     }
 }
 
@@ -1218,7 +1233,6 @@ if (!function_exists('getOptions')) {
     function getOptions($table, $selected_value = null)
     {
         if(is_null($table)){return [];}
-        $labelcolumn = getLabelColumn($table)->column_name;
         // get count table.
         $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
@@ -1230,16 +1244,16 @@ if (!function_exists('getOptions')) {
                 if($item instanceof Collection){
                     $ret = [];
                     foreach($item as $i){
-                        $ret[$i->id] = array_get($i->value, $labelcolumn);
+                        $ret[$i->id] = $i->label;
                     }
                     return $ret;
                 }
-                return [$item->id => array_get($item->value, $labelcolumn)];
+                return [$item->id => $item->label];
             }else{
                 return [];
             }
         }
-        return getOptionsQuery($table)::get()->pluck("value.{$labelcolumn}", "id");
+        return getOptionsQuery($table)::get()->pluck("label", "id");
     }
 }
 

@@ -42,14 +42,22 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function query(Request $request){
         // get model filtered using authority
-        $model = getModelName($this->custom_table->table_name)::query();
+        $model = getModelName($this->custom_table)::query();
         Admin::user()->filterModel($model, $this->custom_table);
 
         // filtered query 
         $q = $request->get('q');
-        $labelcolumn = getLabelColumn($this->custom_table);
-        $column_name = getColumnName($labelcolumn);
-        return $model->where($column_name, 'like', "%$q%")->paginate(null, ['id', $column_name.' as text']);
+
+        // get search target columns
+        $columns = getSearchEnabledColumns($this->custom_table->table_name);
+
+        foreach($columns as $column){
+            $column_name = getColumnName($column);
+            $model = $model->orWhere($column_name, 'like', "%$q%");
+        }
+        $paginate = $model->paginate(null);
+
+        return $paginate;
     }
     
     /**
@@ -63,12 +71,10 @@ class ApiTableController extends AdminControllerTableBase
         $q = $request->get('q');
 
         // get children items
-        $labelcolumn = getLabelColumn($child_table);
-        $column_name = getColumnName($labelcolumn);
         return getModelName($child_table)
             ::where('parent_id', $q)
             ->where('parent_type', $this->custom_table->table_name)
-            ->get(['id', $column_name.' as text']);
+            ->get(['id', 'label as text']);
     }
 }
 

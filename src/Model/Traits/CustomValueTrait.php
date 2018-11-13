@@ -181,4 +181,56 @@ trait CustomValueTrait
         return $format;
     }
     
+    /**
+     * get Authoritable values.
+     * this function selects value_authoritable, and get all values.
+     */
+    public function getAuthoritable($related_type){
+        if($related_type == Define::SYSTEM_TABLE_NAME_USER){
+            $query = $this
+            ->value_authoritable_users()
+            ->where('related_id', Admin::user()->base_user_id);
+        }else if($related_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION){
+            $query = $this
+            ->value_authoritable_organizations()
+            ->whereIn('related_id', Admin::user()->getOrganizationIds());
+        }
+
+        return $query->get();
+    }
+
+    public function getValue($column = null, $label = false){
+        return getValue($this, $column, $label);
+    }
+    public function setValue($key, $val = null){
+        if(!isset($key)){return;}
+        // if key is array, loop key value
+        if(is_array($key)){
+            foreach($key as $k => $v){
+                $this->setValue($k, $v);
+            }
+            return $this;
+        }
+        $value = $this->value;
+        if(is_null($value)){$value = [];}
+        $value[$key] = $val;
+        $this->value = $value;
+
+        return $this;
+    }
+    
+    /**
+     * get target custom_value's link url
+     */
+    public function getUrl($tag = false){
+        $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
+        if(!$tag){
+            return $url;
+        }
+        $url .= '?modal=1';
+        $label = $this->getValue(null, true);
+        return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
+    }
+
+
 }

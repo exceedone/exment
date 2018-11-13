@@ -113,14 +113,14 @@ EOT;
 
             // search all data using index --------------------------------------------------
             $data = $this->searchValue($q, $table, $search_columns, 10);
-            // get label
-            $label_column = getLabelColumn($table);
 
             foreach ($data as $d)
             {
+                // get label
+                $label = $d->label;
                 array_push($results, [
-                    'label' => array_get($d['value'], $label_column->column_name)
-                    , 'value' => array_get($d['value'], $label_column->column_name)
+                    'label' => $label
+                    , 'value' => $label
                     , 'icon' =>array_get($table, 'icon')
                     , 'table_view_name' => array_get($table, 'table_view_name')
                     , 'table_name' => array_get($table, 'table_name')
@@ -307,9 +307,8 @@ EOT;
 
         // get seleted name
         $table = CustomTable::findByName($request->input('table_name'));
-        $label = getLabelColumn($table);
         $model = getModelName($table)::find($request->input('value_id'));
-        $value = getValue($model, $label, true);
+        $value = $model->label;
         $content->body(view('exment::search.index', [
             'table_name' => $request->input('table_name')
             , 'value_id' => $request->input('value_id')
