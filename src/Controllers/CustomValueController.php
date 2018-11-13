@@ -14,6 +14,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -244,8 +245,11 @@ class CustomValueController extends AdminControllerTableBase
                     $class = new $classname($this->custom_table, $id);
                     break;
             }
-            $response = $class->execute();
+        }else{
+            // set default class
+            $class = new PluginDocumentDefault($this->custom_table, $id);
         }
+        $response = $class->execute();
         if (isset($response)) {
             return getAjaxResponse($response);
         }

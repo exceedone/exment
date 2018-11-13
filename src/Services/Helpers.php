@@ -1242,24 +1242,24 @@ if (!function_exists('getOptions')) {
         // get count table.
         $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
-        // if($count > 100){
-        //     if(!isset($selected_value)){return [];}
-        //     $item = getOptionsQuery($table)::find($selected_value);
+        if($count > 100){
+            if(!isset($selected_value)){return [];}
+            $item = getOptionsQuery($table)::find($selected_value);
 
-        //     if ($item) {
-        //         // check whether $item is multiple value.
-        //         if($item instanceof Collection){
-        //             $ret = [];
-        //             foreach($item as $i){
-        //                 $ret[$i->id] = $i->label;
-        //             }
-        //             return $ret;
-        //         }
-        //         return [$item->id => $item->label];
-        //     }else{
-        //         return [];
-        //     }
-        // }
+            if ($item) {
+                // check whether $item is multiple value.
+                if($item instanceof Collection){
+                    $ret = [];
+                    foreach($item as $i){
+                        $ret[$i->id] = $i->label;
+                    }
+                    return $ret;
+                }
+                return [$item->id => $item->label];
+            }else{
+                return [];
+            }
+        }
         return getOptionsQuery($table)::get()->pluck("label", "id");
     }
 }

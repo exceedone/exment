@@ -47,6 +47,7 @@ class ApiTableController extends AdminControllerTableBase
 
         // filtered query 
         $q = $request->get('q');
+        if(!isset($q)){return [];}
 
         // get search target columns
         $columns = getSearchEnabledColumns($this->custom_table->table_name);

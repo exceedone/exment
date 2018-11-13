@@ -90,7 +90,7 @@ trait CustomValueGrid
                         $options = getOptions($select_target_table);
                         $ajax = getOptionAjaxUrl($select_target_table);
                         if (isset($ajax)) {
-                            $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax);
+                            $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
                         }else{
                             $filter->equal($column_name, $column_view_name)->select($options);
                         }

@@ -49,8 +49,8 @@ class Bootstrap
 
         $date = date('YmdHis');
         Ad::css(asset('vendor/exment/css/common.css?ver='.$date));
-        //Ad::js(asset('vendor/exment/js/common.js?ver='.$date));
-        Ad::js(asset('vendor/exment/js/common.js'));
+        Ad::js(asset('vendor/exment/js/common.js?ver='.$date));
+        //Ad::js(asset('vendor/exment/js/common.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$date));
         
         // add admin_base_path and file delete confirm

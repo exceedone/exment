@@ -511,9 +511,45 @@ var Exment;
          */
         static addSelect2() {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem) {
-                $(elem).select2({
-                    "allowClear": true, "placeholder": $(elem).data('add-select2'), width: '100%'
-                });
+                var $elem = $(elem);
+                var options = {
+                    "allowClear": true, "placeholder": $elem.data('add-select2'), width: '100%'
+                };
+                if (hasValue($elem.data('add-select2-ajax'))) {
+                    options['ajax'] = {
+                        url: $(elem).data('add-select2-ajax'),
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term,
+                                page: params.page
+                            };
+                        },
+                        processResults: function (data, params) {
+                            if (!hasValue(data) || !hasValue(data.data)) {
+                                return { results: [] };
+                            }
+                            params.page = params.page || 1;
+                            return {
+                                results: $.map(data.data, function (d) {
+                                    d.id = d.id;
+                                    d.text = d.label; // label is custom value label appended.
+                                    return d;
+                                }),
+                                pagination: {
+                                    more: data.next_page_url
+                                }
+                            };
+                        },
+                        cache: true
+                    };
+                    options['escapeMarkup'] = function (markup) {
+                        return markup;
+                    };
+                    options['minimumInputLength'] = 1;
+                }
+                $(elem).select2(options);
             }).addClass('added-select2');
         }
         static getFilterVal($parent, a) {
