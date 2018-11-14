@@ -17,31 +17,28 @@ class InstallSeeder extends Seeder
     public function run()
     {
         //DB::beginTransaction();
-        try
-        {
+        try {
             // DROP laravel-admin's default TABLES
             $laravel_admin_tables = [
-                'admin_user_permissions', 
-                'admin_role_permissions', 
-                'admin_role_users', 
-                'admin_role_menu', 
-                //'admin_menu', 
-                'admin_permissions', 
-                'admin_roles', 
-                'admin_users', 
+                'admin_user_permissions',
+                'admin_role_permissions',
+                'admin_role_users',
+                'admin_role_menu',
+                //'admin_menu',
+                'admin_permissions',
+                'admin_roles',
+                'admin_users',
             ];
 
-            foreach($laravel_admin_tables as $laravel_admin_table){
+            foreach ($laravel_admin_tables as $laravel_admin_table) {
                 DB::statement("DROP TABLE IF EXISTS $laravel_admin_table;");
             }
 
             // DELETE
             DB::table(config('admin.database.menu_table'))->delete();
 
-        	TemplateImportExport\TemplateImporter::importSystemTemplate();
-        }
-        catch (Exception $exception)
-        {
+            TemplateImportExport\TemplateImporter::importSystemTemplate();
+        } catch (Exception $exception) {
             //DB::rollback();
             throw $exception;
         }

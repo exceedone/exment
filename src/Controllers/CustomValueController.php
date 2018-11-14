@@ -83,7 +83,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return;
         }
         // if user doesn't have permission creating data, throw admin.dany error.
@@ -109,7 +109,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -154,7 +154,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -173,9 +173,10 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * for file delete function.
      */
-    public function filedelete(Request $request, $id){
+    public function filedelete(Request $request, $id)
+    {
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return;
         }
         // if user doesn't have authority for target id data, show deny error.
@@ -195,14 +196,14 @@ class CustomValueController extends AdminControllerTableBase
         $form = $this->form($id);
         $fields = $form->builder()->fields();
         // filter file
-        $fields->filter(function ($field) use($del_column_name) {
+        $fields->filter(function ($field) use ($del_column_name) {
             return $field instanceof Field\Embeds;
-        })->each(function ($field) use($del_column_name, $id) {
+        })->each(function ($field) use ($del_column_name, $id) {
             // get fields
             $embedFields = $field->fields();
-            $embedFields->filter(function ($field) use($del_column_name) {
+            $embedFields->filter(function ($field) use ($del_column_name) {
                 return $field->column() == $del_column_name;
-            })->each(function ($field) use($del_column_name, $id) {
+            })->each(function ($field) use ($del_column_name, $id) {
                 // get file path
                 $obj = getModelName($this->custom_table)::find($id);
                 $original = $obj->getValue($del_column_name, true);
@@ -234,18 +235,18 @@ class CustomValueController extends AdminControllerTableBase
         }
         // get plugin
         $plugin = Plugin::where('uuid', $request->input('uuid'))->first();
-        if(!isset($plugin)){
+        if (!isset($plugin)) {
             abort(404);
         }
         
         $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
         if (class_exists($classname)) {
-            switch(array_get($plugin, 'plugin_type')){
+            switch (array_get($plugin, 'plugin_type')) {
                 case 'document':
                     $class = new $classname($this->custom_table, $id);
                     break;
             }
-        }else{
+        } else {
             // set default class
             $class = new PluginDocumentDefault($this->custom_table, $id);
         }
@@ -268,7 +269,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         // get copy eloquent
         $copy = CustomCopy::findBySuuid($request->input('uuid'));
-        if(!isset($copy)){
+        if (!isset($copy)) {
             abort(404);
         }
         
@@ -305,7 +306,8 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * get relation name etc for form block
      */
-    protected function getRelationName($custom_form_block){
+    protected function getRelationName($custom_form_block)
+    {
         $target_table = $custom_form_block->target_table;
         // get label hasmany
         $block_label = $custom_form_block->form_block_view_name;

@@ -8,6 +8,7 @@
 
 namespace Exceedone\Exment\Services\Plugin;
 
-trait PluginBase {
+trait PluginBase
+{
     protected $plugin;
 }

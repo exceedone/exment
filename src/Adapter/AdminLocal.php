@@ -98,7 +98,7 @@ class AdminLocal extends Local
      */
     public function getUrl($path)
     {
-        $path = File::getUrl($path); 
+        $path = File::getUrl($path);
 
         // TODO:hard coding. It's OK?
         return admin_url("files/".$path);
@@ -120,5 +120,4 @@ class AdminLocal extends Local
     {
         return $this->getPathPrefix() . ltrim($path, '\\/');
     }
-
 }

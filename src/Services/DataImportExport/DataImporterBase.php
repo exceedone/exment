@@ -11,7 +11,8 @@ abstract class DataImporterBase
 {
     protected $custom_table;
     protected $accept_extension = '';
-    public function __construct($custom_table){
+    public function __construct($custom_table)
+    {
         $this->custom_table = $custom_table;
     }
 
@@ -23,7 +24,7 @@ abstract class DataImporterBase
     {
         // validate request
         $validateRequest = $this->validateRequest($request);
-        if($validateRequest !== true){
+        if ($validateRequest !== true) {
             return [
                 'result' => false,
                 //'toastr' => exmtrans('common.message.import_error'),
@@ -34,7 +35,9 @@ abstract class DataImporterBase
         // get table data
         $tableData = $this->getDataTable($request);
         //Remove empty data
-        $data = array_filter($tableData, function($value) { return count(array_filter($value)) > 0 ; });
+        $data = array_filter($tableData, function ($value) {
+            return count(array_filter($value)) > 0 ;
+        });
 
         // get target data and model list
         $dataAndModels = $this->getDataAndModels($data, $request->select_primary_key);
@@ -42,7 +45,7 @@ abstract class DataImporterBase
         list($data_import, $error_data) = $this->validateData($dataAndModels);
         
         // if has error data, return error data
-        if(count($error_data) > 0){
+        if (count($error_data) > 0) {
             return [
                 'result' => false,
                 'toastr' => exmtrans('common.message.import_error'),
@@ -51,8 +54,7 @@ abstract class DataImporterBase
         }
 
         // execute imoport
-        foreach ($data_import as $index => &$row)
-        {
+        foreach ($data_import as $index => &$row) {
             $row['data'] = $this->dataProcessing(array_get($row, 'data'));
             $this->dataImportFlow($request->custom_table_name, $row, $request->select_primary_key);
         }
@@ -68,7 +70,8 @@ abstract class DataImporterBase
      * @param $request
      * @return bool
      */
-    public function validateRequest($request){
+    public function validateRequest($request)
+    {
         //validate
         $rules = [
             'custom_table_file' => 'required|file',
@@ -81,7 +84,7 @@ abstract class DataImporterBase
         }
 
         // file validation.
-        // (↑"$rules" always error by mimes because uploaded by ajax??) 
+        // (↑"$rules" always error by mimes because uploaded by ajax??)
         $file = $request->file('custom_table_file');
         $validator = Validator::make(
             [
@@ -107,18 +110,18 @@ abstract class DataImporterBase
     /**
      * get data and model array
      */
-    public function getDataAndModels($data, $primary_key){
+    public function getDataAndModels($data, $primary_key)
+    {
         $results = [];
         $headers = [];
-        foreach($data as $key => $value){
+        foreach ($data as $key => $value) {
             // get header if $key == 0
-            if($key == 0){
+            if ($key == 0) {
                 $headers = $value;
                 continue;
             }
             // continue if $key == 1
-            elseif ($key == 1)
-            {
+            elseif ($key == 1) {
                 continue;
             }
 
@@ -130,15 +133,17 @@ abstract class DataImporterBase
             // select $model using primary key and value
             $primary_value = array_get($value_custom, $primary_key);
             // if not exists, new instance
-            if(is_nullorempty($primary_value)){
+            if (is_nullorempty($primary_value)) {
                 $model = new $modelName;
             }
             // if exists, firstOrNew
-            else{
+            else {
                 //*Replace "." to "->" for json value
                 $model = $modelName::firstOrNew([str_replace(".", "->", $primary_key) => $primary_value]);
             }
-            if(!isset($model)){continue;}
+            if (!isset($model)) {
+                continue;
+            }
 
             $results[] = ['data' => $value_custom, 'model' => $model];
         }
@@ -151,18 +156,18 @@ abstract class DataImporterBase
      * @param $data
      * @return array
      */
-    public function validateData($dataAndModels){
+    public function validateData($dataAndModels)
+    {
         ///// get all table columns
         $validate_columns = $this->custom_table->custom_columns;
         
         $error_data = array();
         $success_data = array();
-        foreach($dataAndModels as $key => $value){
+        foreach ($dataAndModels as $key => $value) {
             $check = $this->validateDataRow($key, $value, $validate_columns);
-            if($check === true){
+            if ($check === true) {
                 array_push($success_data, $value);
-            }
-            else {
+            } else {
                 $error_data = array_merge($error_data, $check);
             }
         }
@@ -175,13 +180,14 @@ abstract class DataImporterBase
      * @param $data
      * @return array
      */
-    public function validateDataRow($line_no, $dataAndModel, $validate_columns){
+    public function validateDataRow($line_no, $dataAndModel, $validate_columns)
+    {
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
 
         // get fields for validation
         $fields = [];
-        foreach($validate_columns as $validate_column){
+        foreach ($validate_columns as $validate_column) {
             $fields[] = FormHelper::getFormField($this->custom_table, $validate_column, array_get($model, 'id'), null, 'value.');
         }
         // create common validate rules.
@@ -193,10 +199,10 @@ abstract class DataImporterBase
             'deleted_at' => ['nullable', 'date'],
         ];
         // foreach for field validation rules
-        foreach($fields as $field){
+        foreach ($fields as $field) {
             // get field validator
             $field_validator = $field->getValidator($data);
-            if(!$field_validator){
+            if (!$field_validator) {
                 continue;
             }
             // get field rules
@@ -211,7 +217,7 @@ abstract class DataImporterBase
         if ($validator->fails()) {
             // create error message
             $errors = [];
-            foreach($validator->errors()->messages() as $message){
+            foreach ($validator->errors()->messages() as $message) {
                 $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), implode(',', $message));
             }
             return $errors;
@@ -223,15 +229,16 @@ abstract class DataImporterBase
      * @param $data
      * @return array
      */
-    public function dataProcessing($data){
+    public function dataProcessing($data)
+    {
         $data_custom = array();
         $value_arr = array();
-        foreach($data as $key => $value){
-            if(strpos($key, "value.") !== false){
+        foreach ($data as $key => $value) {
+            if (strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
                 $value_arr[$new_key] = $value;
-            }else{
-                $data_custom[$key] = is_nullorempty($value) ? null : $value;  
+            } else {
+                $data_custom[$key] = is_nullorempty($value) ? null : $value;
             }
         }
         $data_custom['value'] = $value_arr;
@@ -239,60 +246,63 @@ abstract class DataImporterBase
     }
 
     /**
-     * import data 
+     * import data
      */
-    public function dataImportFlow($table_name, $dataAndModel, $primary_key){
+    public function dataImportFlow($table_name, $dataAndModel, $primary_key)
+    {
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
         // select $model using primary key and value
         $primary_value = array_get($data, $primary_key);
         // if not exists, new instance
-        if(is_nullorempty($primary_value)){
+        if (is_nullorempty($primary_value)) {
             $isCreate = true;
         }
         // if exists, firstOrNew
-        else{
+        else {
             $isCreate = !$model->exists;
         }
-        if(!isset($model)){return;}
+        if (!isset($model)) {
+            return;
+        }
 
         // loop for data
-        foreach($data as $dkey => $dvalue){
+        foreach ($data as $dkey => $dvalue) {
             $dvalue = is_nullorempty($dvalue) ? null : $dvalue;
             // if not exists column, continue
-            if(!in_array($dkey, ['id', 'suuid', 'parent_id', 'parent_type', 'value', 'created_at', 'updated_at', 'deleted_at'])){
+            if (!in_array($dkey, ['id', 'suuid', 'parent_id', 'parent_type', 'value', 'created_at', 'updated_at', 'deleted_at'])) {
                 continue;
             }
             // setvalue function if key is value
-            if($dkey == 'value'){
+            if ($dkey == 'value') {
                 // loop dvalue
-                foreach($dvalue as $dvalueKey => $dvalueValue){
+                foreach ($dvalue as $dvalueKey => $dvalueValue) {
                     $model->setValue($dvalueKey, $dvalueValue);
                 }
             }
             // if timestamps
-            elseif(in_array($dkey, ['created_at', 'updated_at', 'deleted_at'])){
+            elseif (in_array($dkey, ['created_at', 'updated_at', 'deleted_at'])) {
                 // if null, contiune
-                if(is_nullorempty($dvalue)){
+                if (is_nullorempty($dvalue)) {
                     continue;
                 }
                 // if not create and created_at, continue(because time back)
-                if(!$isCreate && $dkey == 'created_at'){
+                if (!$isCreate && $dkey == 'created_at') {
                     continue;
                 }
                 // set as date
                 $model->{$dkey} = Carbon::parse($dvalue);
             }
             // if id or suuid
-            elseif(in_array($dkey, ['id', 'suuid'])){
+            elseif (in_array($dkey, ['id', 'suuid'])) {
                 // if null, contiune
-                if(is_nullorempty($dvalue)){
+                if (is_nullorempty($dvalue)) {
                     continue;
                 }
                 $model->{$dkey} = $dvalue;
             }
-            // else, set 
-            else{
+            // else, set
+            else {
                 $model->{$dkey} = $dvalue;
             }
         }
@@ -303,7 +313,8 @@ abstract class DataImporterBase
 
     // Import Modal --------------------------------------------------
 
-    public function importModal(){
+    public function importModal()
+    {
         $table_name = $this->custom_table->table_name;
         $import_path = admin_base_path(url_join('data', $table_name, 'import'));
         // create form fields
@@ -352,7 +363,7 @@ abstract class DataImporterBase
      */
     public static function getModel($custom_table, $format = null)
     {
-        switch($format){
+        switch ($format) {
             case 'excel':
                 return new ExcelImporter($custom_table);
             default:
@@ -363,12 +374,13 @@ abstract class DataImporterBase
     /**
      * get uploaded file extension
      */
-    public static function getFileExtension($request){
+    public static function getFileExtension($request)
+    {
         $file = $request->file('custom_table_file');
-        if(!isset($file)){
+        if (!isset($file)) {
             return null;
         }
-        switch($file->extension()){
+        switch ($file->extension()) {
             case 'xlsx':
                 return 'excel';
             case 'csv':
@@ -385,7 +397,8 @@ abstract class DataImporterBase
     /**
      * get primary key list.
      */
-    protected function getPrimaryKeys(){
+    protected function getPrimaryKeys()
+    {
         // default list
         $keys = getTransArray(Define::CUSTOM_VALUE_IMPORT_KEY, "custom_value.import.key_options");
 
@@ -397,7 +410,7 @@ abstract class DataImporterBase
             ->toArray();
         // add key name "value.";
         $val_columns = [];
-        foreach($columns as $column_key => $column_value){
+        foreach ($columns as $column_key => $column_value) {
             $val_columns['value.'.$column_key] = $column_value;
         }
 

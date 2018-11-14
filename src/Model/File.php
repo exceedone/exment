@@ -6,6 +6,7 @@ use Exceedone\Exment\Services\Uuids;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Response;
+
 class File extends ModelBase
 {
     use Uuids;
@@ -15,7 +16,8 @@ class File extends ModelBase
     // increment disable
     public $incrementing = false;
 
-    public function getFileNameAttribute(){
+    public function getFileNameAttribute()
+    {
         // get pathinfo
         return mb_basename($this->path);
     }
@@ -24,7 +26,8 @@ class File extends ModelBase
      * get the file url
      * @return void
      */
-    public static function getUrl($path){
+    public static function getUrl($path)
+    {
         $file = static::getData($path);
         if (is_null($file)) {
             return null;
@@ -54,25 +57,28 @@ class File extends ModelBase
     public static function deleteFileInfo(string $path)
     {
         $file = static::getData($path);
-        if(is_null($file)){return;}
-        $file->delete();        
+        if (is_null($file)) {
+            return;
+        }
+        $file->delete();
     }
 
     /**
      * Download file
      */
-    public static function download($uuid, Closure $authCallback = null){
+    public static function download($uuid, Closure $authCallback = null)
+    {
         $data = static::getData($uuid);
-        if(!$data){
+        if (!$data) {
             abort(404);
         }
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
         
-        if(!$exists){
+        if (!$exists) {
             abort(404);
         }
-        if($authCallback){
+        if ($authCallback) {
             $authCallback($data);
         }
 
@@ -91,22 +97,23 @@ class File extends ModelBase
     /**
      * get file
      */
-    public static function getFile($uuid, Closure $authCallback = null){
+    public static function getFile($uuid, Closure $authCallback = null)
+    {
         $data = static::getData($uuid);
-        if(!$data){
+        if (!$data) {
             return null;
         }
         $path = $data->path;
         $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
         
-        if(!$exists){
+        if (!$exists) {
             return null;
         }
-        if($authCallback){
+        if ($authCallback) {
             $authCallback($data);
         }
 
-        return Storage::disk(config('admin.upload.disk'))->get($path);        
+        return Storage::disk(config('admin.upload.disk'))->get($path);
     }
 
     /**
@@ -117,7 +124,8 @@ class File extends ModelBase
      * @param  array|string  $options
      * @return string|false
      */
-    public static function put($disk, $path, $content, $options = []){
+    public static function put($disk, $path, $content, $options = [])
+    {
         Storage::disk($disk)->put($path, $content, $options);
         $path = static::saveFileInfo($path);
         return $path;
@@ -131,7 +139,8 @@ class File extends ModelBase
      * @param  array|string  $options
      * @return string|false
      */
-    public static function putAs($disk, $path, $content, $options = []){
+    public static function putAs($disk, $path, $content, $options = [])
+    {
         Storage::disk($disk)->put($path, $content, $options);
         $path = static::saveFileInfo($path);
         return $path;
@@ -145,7 +154,8 @@ class File extends ModelBase
      * @param  array|string  $options
      * @return string|false
      */
-    public static function store($content, $disk, $path, $options = []){
+    public static function store($content, $disk, $path, $options = [])
+    {
         $path = $content->store($path, $disk, $options);
         $path = static::saveFileInfo($path);
         return $path;
@@ -159,14 +169,16 @@ class File extends ModelBase
      * @param  array|string  $options
      * @return string|false
      */
-    public static function storeAs($content, $disk, $path, $name, $options = []){
+    public static function storeAs($content, $disk, $path, $name, $options = [])
+    {
         $path = $content->storeAs($path, $disk, $name, $options);
         $path = static::saveFileInfo($path);
         return $path;
     }
 
-    public static function getData($pathOrUuid){
-        $file = static::where(function($query) use($pathOrUuid){
+    public static function getData($pathOrUuid)
+    {
+        $file = static::where(function ($query) use ($pathOrUuid) {
             $query->orWhere('path', $pathOrUuid);
             $query->orWhere('uuid', $pathOrUuid);
         })->first();

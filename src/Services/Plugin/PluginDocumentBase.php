@@ -1,19 +1,22 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
+
 use Exceedone\Exment\Services\DocumentPdfService;
 use Exceedone\Exment\Services\DocumentExcelService;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
 
-abstract class PluginDocumentBase {
+abstract class PluginDocumentBase
+{
     use PluginBase;
     
     protected $custom_table;
     protected $custom_value;
     protected $document_value;
 
-    public function __construct($custom_table, $custom_value_id){
+    public function __construct($custom_table, $custom_value_id)
+    {
         $this->custom_table = $custom_table;
         $this->custom_value = getModelName($custom_table)::find($custom_value_id);
     }
@@ -21,7 +24,8 @@ abstract class PluginDocumentBase {
     /**
      * Create document
      */
-    public function execute(){
+    public function execute()
+    {
         $table_name = $this->custom_table->table_name;
         
         // execute prependExecute
@@ -54,11 +58,12 @@ abstract class PluginDocumentBase {
         // execute appendExecute
         $this->executed();
 
-        // 
+        //
         return $this->getResponseMessage(true);
     }
 
-    protected function getDocumentItem(){
+    protected function getDocumentItem()
+    {
         // get dir base path
         $reflector = new \ReflectionClass(get_class($this));
         $dir_path = dirname($reflector->getFileName());
@@ -87,7 +92,7 @@ abstract class PluginDocumentBase {
      */
     protected function getResponseMessage($result)
     {
-        if($result){
+        if ($result) {
             return ([
                 'result'  => true,
                 'message' => 'Create Document Success!!', //TODO:trans
@@ -104,7 +109,8 @@ abstract class PluginDocumentBase {
      * first, template xlsx fullpath.
      * second, output file name.
      */
-    protected function getDocumentInfo(){
+    protected function getDocumentInfo()
+    {
         $reflector = new \ReflectionClass(get_class($this));
         $dir_path = dirname($reflector->getFileName());
         // read config.json

@@ -18,10 +18,11 @@ class CustomRelationController extends AdminControllerTableBase
 {
     use ModelForm;
 
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_relation.header"), exmtrans("custom_relation.header"), exmtrans("custom_relation.description"));  
+        $this->setPageInfo(exmtrans("custom_relation.header"), exmtrans("custom_relation.header"), exmtrans("custom_relation.description"));
     }
 
     /**
@@ -33,7 +34,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -50,7 +51,7 @@ class CustomRelationController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
@@ -68,7 +69,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -86,12 +87,12 @@ class CustomRelationController extends AdminControllerTableBase
         $grid->column('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table_view_name"))->sortable();
         $grid->column('child_custom_table.table_name', exmtrans("custom_relation.child_custom_table_name"))->sortable();
         $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table_view_name"))->sortable();
-        $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function($relation_type){
+        $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function ($relation_type) {
             $relation_type_options = getTransArray(Define::RELATION_TYPE, "custom_relation.relation_type_options");
             return array_get($relation_type_options, $relation_type);
         });
 
-        if(isset($this->custom_table)){
+        if (isset($this->custom_table)) {
             $grid->model()->where('parent_custom_table_id', $this->custom_table->id);
         }
         
@@ -119,7 +120,7 @@ class CustomRelationController extends AdminControllerTableBase
         $form->display('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table_view_name"))->default($this->custom_table->table_view_name);
 
         $custom_table_id = $this->custom_table->id;
-        $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function($child_custom_table_id) use($custom_table_id){
+        $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {
             //TODO:autority
             return CustomTable
                 // ignore self table id
@@ -133,7 +134,7 @@ class CustomRelationController extends AdminControllerTableBase
         $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->required();
         disableFormFooter($form);
         $custom_table = $this->custom_table;
-        $form->tools(function (Form\Tools $tools) use($id, $form, $custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
             $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('relation', $custom_table, false))->render());
         });

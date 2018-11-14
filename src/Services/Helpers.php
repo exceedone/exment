@@ -31,7 +31,7 @@ if (!function_exists('getManualUrl')) {
     {
         $manual_url_base = config('exment.manual_url');
         // if ja, set
-        if(config('app.locale') == 'ja'){
+        if (config('app.locale') == 'ja') {
             $manual_url_base = url_join($manual_url_base, 'ja');
         }
         $manual_url_base = url_join($manual_url_base, $uri);
@@ -41,7 +41,9 @@ if (!function_exists('getManualUrl')) {
 if (!function_exists('mbTrim')) {
     function mbTrim($pString)
     {
-        if(is_null($pString)){return null;}
+        if (is_null($pString)) {
+            return null;
+        }
         return preg_replace('/\A[\p{C}\p{Z}]++|[\p{C}\p{Z}]++\z/u', '', $pString);
     }
 }
@@ -49,8 +51,12 @@ if (!function_exists('mbTrim')) {
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)
     {
-        if(is_null($obj)){return true;}
-        if(is_string($obj) && strlen($obj) == 0){return true;}
+        if (is_null($obj)) {
+            return true;
+        }
+        if (is_string($obj) && strlen($obj) == 0) {
+            return true;
+        }
         return false;
     }
 }
@@ -79,8 +85,10 @@ if (!function_exists('parseFloat')) {
      */
     function parseFloat($num)
     {
-        if(is_null($num)){return null;}
-        return floatval(str_replace(",","",$num));
+        if (is_null($num)) {
+            return null;
+        }
+        return floatval(str_replace(",", "", $num));
     }
 }
 
@@ -138,14 +146,13 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
-            if(is_array($value)){
+            if (is_array($value)) {
                 $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
-            }
-            elseif ($ret_pass == "") {
+            } elseif ($ret_pass == "") {
                 $ret_pass   =   $value;
-            }else {
-                $ret_pass   =   rtrim($ret_pass,$trim_str);
-                $value      =   ltrim($value,$trim_str);
+            } else {
+                $ret_pass   =   rtrim($ret_pass, $trim_str);
+                $value      =   ltrim($value, $trim_str);
                 $ret_pass   =   $ret_pass.$trim_str.$value;
             }
         }
@@ -166,9 +173,9 @@ if (!function_exists('getPluginNamespace')) {
     function getPluginNamespace(...$pass_array)
     {
         $basename = 'App\Plugins';
-        if(isset($pass_array) && count($pass_array) > 0){
+        if (isset($pass_array) && count($pass_array) > 0) {
             // convert to pascal case
-            $pass_array = collect($pass_array)->map(function($p){
+            $pass_array = collect($pass_array)->map(function ($p) {
                 return pascalize($p);
             })->toArray();
 
@@ -180,10 +187,11 @@ if (!function_exists('getPluginNamespace')) {
 }
 
 if (!function_exists('mb_basename')) {
-    function mb_basename($str, $suffix=null){
+    function mb_basename($str, $suffix=null)
+    {
         $tmp = preg_split('/[\/\\\\]/', $str);
         $res = end($tmp);
-        if(strlen($suffix)){
+        if (strlen($suffix)) {
             $suffix = preg_quote($suffix);
             $res = preg_replace("/({$suffix})$/u", "", $res);
         }
@@ -209,7 +217,7 @@ if (!function_exists('array_keys_exists')) {
         if (is_null($keys)) {
             return false;
         }
-        if(!is_array($keys)){
+        if (!is_array($keys)) {
             $keys = [$keys];
         }
         foreach ($keys as $key) {
@@ -229,15 +237,17 @@ if (!function_exists('array_key_value_exists')) {
      */
     function array_key_value_exists($key, $array)
     {
-        if(is_null($array)){return false;}
-        if(!is_array($key)){
+        if (is_null($array)) {
+            return false;
+        }
+        if (!is_array($key)) {
             $key = [$key];
         }
-        foreach($key as $k){
+        foreach ($key as $k) {
             if (!array_has($array, $k)) {
                 continue;
             }
-            if(!empty(array_get($array, $k))){
+            if (!empty(array_get($array, $k))) {
                 return true;
             }
         }
@@ -253,7 +263,9 @@ if (!function_exists('array_dot_reverse')) {
      */
     function array_dot_reverse($array)
     {
-        if(is_null($array)){return null;}
+        if (is_null($array)) {
+            return null;
+        }
         $array_reverse = [];
         foreach ($array as $key => $value) {
             array_set($array_reverse, $key, $value);
@@ -263,7 +275,8 @@ if (!function_exists('array_dot_reverse')) {
 }
 
 
-function is_json($string){
+function is_json($string)
+{
     return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
 }
  
@@ -339,14 +352,14 @@ if (!function_exists('get_password_rule')) {
         $validates = [];
         if ($required) {
             array_push($validates, 'required');
-        }else{
+        } else {
             array_push($validates, 'nullable');
         }
         array_push($validates, 'confirmed');
         array_push($validates, 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8'));
         array_push($validates, 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32'));
         
-        if(!is_null(config('exment.password_rule.rule'))){
+        if (!is_null(config('exment.password_rule.rule'))) {
             array_push($validates, 'regex:/'.config('exment.password_rule.rule').'/');
         }
 
@@ -368,32 +381,30 @@ if (!function_exists('getModelName')) {
         // stop db access too much
         if (is_numeric($obj) || is_string($obj)) {
             // has request session, set suuid
-            if(!is_null(getRequestSession('getModelName_'.$obj))){
+            if (!is_null(getRequestSession('getModelName_'.$obj))) {
                 $suuid = getRequestSession('getModelName_'.$obj);
             }
         }
 
         // not has suuid(first call), set suuid and request session
-        if(!isset($suuid)){
+        if (!isset($suuid)) {
             if (is_numeric($obj)) {
                 // Get suuid.
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
                 //$table = CustomTable::find($obj);
                 $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
                 setRequestSession('getModelName_'.$obj, $suuid);
-            }
-            elseif (is_string($obj)) {
+            } elseif (is_string($obj)) {
                 // get by table_name
                 // $table = CustomTable::findByName($obj);
                 $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
                 setRequestSession('getModelName_'.$obj, $suuid);
-            } elseif($obj instanceof CustomValue) {
+            } elseif ($obj instanceof CustomValue) {
                 $table = $obj->getCustomTable();
                 $suuid = $table->suuid;
-            }elseif(is_null($obj)){
+            } elseif (is_null($obj)) {
                 return null; // TODO: It's OK???
-            }
-            else {
+            } else {
                 $table = $obj;
                 $suuid = $table->suuid;
             }
@@ -407,7 +418,7 @@ if (!function_exists('getModelName')) {
         if (!$get_name_only && !class_exists($fillpath)) {
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            createTable($table);    
+            createTable($table);
             ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
         }
 
@@ -517,7 +528,7 @@ if (!function_exists('getRelationNamebyObjs')) {
     {
         $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
         $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
-        if(is_null($parent_suuid) || is_null($child_suuid)){
+        if (is_null($parent_suuid) || is_null($child_suuid)) {
             return null;
         }
         return "pivot_{$parent_suuid}_{$child_suuid}";
@@ -545,7 +556,7 @@ if (!function_exists('authorityLoop')) {
         if (!Schema::hasTable(System::getTableName()) || !Schema::hasTable(Authority::getTableName())) {
             return;
         }
-        if(!System::authority_available()){
+        if (!System::authority_available()) {
             return;
         }
         
@@ -554,7 +565,7 @@ if (!function_exists('authorityLoop')) {
         foreach ($authorities as $authority) {
             $related_types = [Define::SYSTEM_TABLE_NAME_USER];
             // if use organization, add
-            if(System::organization_available()){
+            if (System::organization_available()) {
                 $related_types[] = Define::SYSTEM_TABLE_NAME_ORGANIZATION;
             }
             foreach ($related_types as $related_type) {
@@ -569,16 +580,18 @@ if (!function_exists('getValue')) {
      * Get custom value
      * @param CustomValue $custom_value
      * @param string|array|CustomColumn $column
-     * @param bool $isonly_label if column_type is select_table or select_valtext, only get label 
+     * @param bool $isonly_label if column_type is select_table or select_valtext, only get label
      * @return string
      */
     function getValue($custom_value, $column = null, $isonly_label = false, $format = '')
     {
-        if(is_null($custom_value)){return $isonly_label ? '' : null;}
+        if (is_null($custom_value)) {
+            return $isonly_label ? '' : null;
+        }
 
         $isCollection = $custom_value instanceof \Illuminate\Database\Eloquent\Collection;
         // if multible data, set collection, so set as array
-        if(!$isCollection){
+        if (!$isCollection) {
             $custom_value = [$custom_value];
         }
 
@@ -586,24 +599,24 @@ if (!function_exists('getValue')) {
 
         // get value
         $values = [];
-        foreach($custom_value as $v){
+        foreach ($custom_value as $v) {
             $value = $v->value;
             if (is_null($value)) {
                 continue;
             }
             
-            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label, $format);    
+            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label, $format);
         }
 
         // if is collection
-        if($isCollection){
+        if ($isCollection) {
             // if isonly label, return comma string
             if ($isonly_label) {
                 return implode(exmtrans('common.separate_word'), $values);
             }
             return collect($values);
         }
-        if(count($values) == 0){
+        if (count($values) == 0) {
             return null;
         }
         return $values[0];
@@ -613,7 +626,7 @@ if (!function_exists('getValue')) {
 if (!function_exists('getValueUseTable')) {
     /**
      * Get Custom Value
-     * @param array|CustomValue $value trget value 
+     * @param array|CustomValue $value trget value
      * @param string|array|CustomColumn $column target column_name or CustomColumn object. If null, it's label column
      * @param mixin $label if column_type is select_table or select_valtext, only get label.
      * @return string
@@ -624,7 +637,7 @@ if (!function_exists('getValueUseTable')) {
             return null;
         }
         $custom_table = CustomTable::getEloquent($custom_table);
-        if(is_null($column)){
+        if (is_null($column)) {
             return getLabelUseTable($custom_table, $value);
         }
 
@@ -655,23 +668,23 @@ if (!function_exists('getValueUseTable')) {
                     }
 
                     // if last index, return value
-                    if($lastIndex){
+                    if ($lastIndex) {
                         return $loop_value;
                     }
 
                     // get custom table. if CustomValue
-                    if($loop_value instanceof CustomValue){
+                    if ($loop_value instanceof CustomValue) {
                         $loop_custom_table = $loop_value->getCustomTable();
                     }
                     // else, something wrong, so return null
-                    else{
+                    else {
                         return null;
                     }
                 }
                 return $loop_value;
             }
             // if length <= 1, set normal getValueUseTable flow, so $column = $columns[0]
-            else{
+            else {
                 $column = $columns[0];
             }
         }
@@ -683,26 +696,29 @@ if (!function_exists('getValueUseTable')) {
                 ::where('column_name', $column)
                 ->where('custom_table_id', array_get($custom_table, 'id'))
                 ->first();
-                if(is_null($column_first)){return null;}
-                $column_array = $column_first->toArray() ?? null;
+            if (is_null($column_first)) {
+                return null;
+            }
+            $column_array = $column_first->toArray() ?? null;
         }
         // if $column is CustomColumn, convert to array.
         elseif ($column instanceof CustomColumn) {
             $column_array = $column->toArray();
-        } 
-        else {
+        } else {
             $column_array = $column;
         }
 
-        if(is_null($column_array)){return null;}
+        if (is_null($column_array)) {
+            return null;
+        }
 
-        if(is_array($value)){
+        if (is_array($value)) {
             $key = array_get($column_array, 'column_name');
             $val = array_get($value, $key);
-        }elseif($value instanceof CustomValue){
+        } elseif ($value instanceof CustomValue) {
             $key = array_get($column_array, 'column_name');
             $val = array_get($value->value, $key);
-        }else{
+        } else {
             $val = $value;
         }
 
@@ -714,9 +730,9 @@ if (!function_exists('getValueUseTable')) {
         // calcurate  --------------------------------------------------
         if (in_array($column_type, ['decimal', 'currency'])) {
             $val = parseFloat($val);
-            if(array_has($column_array, 'options.decimal_digit')){
+            if (array_has($column_array, 'options.decimal_digit')) {
                 $digit = intval(array_get($column_array, 'options.decimal_digit'));
-                $val = floor($val * pow( 10 , $digit )) / pow( 10 , $digit );
+                $val = floor($val * pow(10, $digit)) / pow(10, $digit);
             }
         }
 
@@ -733,30 +749,29 @@ if (!function_exists('getValueUseTable')) {
 
             // if $val is array
             $multiple = true;
-            if(!is_array($val)){
+            if (!is_array($val)) {
                 $val = [$val];
                 $multiple = false;
             }
             // switch column_type and get return value
             $returns = [];
-            switch($column_type){
+            switch ($column_type) {
                 case 'select':
                     $returns = $val;
                     break;
                 case 'select_valtext':
                     // loop keyvalue
-                    foreach($val as $v){
+                    foreach ($val as $v) {
                         // set whether $label
                         $returns[] = $label ? array_get($options, $v) : $v;
                     }
                     break;
             }
-            if($multiple){
+            if ($multiple) {
                 return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
-            }else{
+            } else {
                 return $returns[0];
             }
-            
         }
 
         // get value as select_table
@@ -765,7 +780,7 @@ if (!function_exists('getValueUseTable')) {
             $target_table_key = null;
             if ($column_type == 'select_table') {
                 $target_table_key = array_get($column_array, 'options.select_target_table');
-            }else if(in_array($column_type, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
+            } elseif (in_array($column_type, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
                 $target_table_key = $column_type;
             }
             $target_table = CustomTable::getEloquent($target_table_key);
@@ -778,75 +793,72 @@ if (!function_exists('getValueUseTable')) {
                 return $model;
             }
             
-            // if $model is array multiple, set as array 
-            if(!($model instanceof \Illuminate\Database\Eloquent\Collection)){
+            // if $model is array multiple, set as array
+            if (!($model instanceof \Illuminate\Database\Eloquent\Collection)) {
                 $model = [$model];
             }
 
             $labels = [];
-            foreach($model as $m){
+            foreach ($model as $m) {
                 if (is_null($column)) {
                     continue;
                 }
                  
                 // get label column
                 // if label is true, return getLabel
-                if($label === true){
+                if ($label === true) {
                     $labels[] = $m->label;
                 }
                 // if label is selecting column name, get target label
-                elseif(is_string($label)){
+                elseif (is_string($label)) {
                     $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
                 }
             }
             return implode(exmtrans('common.separate_word'), $labels);
-        }
-        elseif(in_array($column_type, ['file', 'image'])){
+        } elseif (in_array($column_type, ['file', 'image'])) {
             // Whether multiple file.
             $multiple_enabled = boolval(array_get($column_array, 'options.multiple_enabled'));
 
-            if($multiple_enabled){
+            if ($multiple_enabled) {
                 // todo:return multiple files;
-                
-            }else{
+            } else {
                 // get file
-                if($label !== true){
+                if ($label !== true) {
                     $file = File::getFile($val);
-                    return $file;            
+                    return $file;
                 }
                 return $val;
             }
         }
         // yesno
-        elseif(in_array($column_type, ['yesno'])){
-            if($label !== true){
+        elseif (in_array($column_type, ['yesno'])) {
+            if ($label !== true) {
                 return $val;
             }
             // convert label
             return boolval($val) ? 'YES' : 'NO';
         }
         // boolean
-        elseif(in_array($column_type, ['yesno'])){
-            if($label !== true){
+        elseif (in_array($column_type, ['yesno'])) {
+            if ($label !== true) {
                 return $val;
             }
             // convert label
             // check matched true and false value
-            if(array_get($column_array, 'options.true_value') == $val){
+            if (array_get($column_array, 'options.true_value') == $val) {
                 return array_get($column_array, 'options.true_label');
-            }
-            elseif(array_get($column_array, 'options.false_value') == $val){
+            } elseif (array_get($column_array, 'options.false_value') == $val) {
                 return array_get($column_array, 'options.false_label');
             }
             return null;
         }
         // currency
-        elseif(in_array($column_type, ['currency'])){
-            // if not label, return 
-            if($label !== true){
+        elseif (in_array($column_type, ['currency'])) {
+            // if not label, return
+            if ($label !== true) {
                 return $val;
             }
-            if(boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)){
+            if (boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)) {
                 $val = number_format($val);
             }
             // get symbol
@@ -854,20 +866,19 @@ if (!function_exists('getValueUseTable')) {
             return getCurrencySymbolLabel($symbol, $val);
         }
         // datetime, date
-        elseif(in_array($column_type, ['datetime', 'date'])){
+        elseif (in_array($column_type, ['datetime', 'date'])) {
             // if not empty format, using carbon
-            if(!is_nullorempty($format)){
+            if (!is_nullorempty($format)) {
                 return (new \Carbon\Carbon($val))->format($format) ?? null;
             }
             // else, return
             return $val;
-        }
-        else{
-            // if not label, return 
-            if($label !== true){
+        } else {
+            // if not label, return
+            if ($label !== true) {
                 return $val;
             }
-            if(boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)){
+            if (boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)) {
                 $val = number_format($val);
             }
             return $val;
@@ -884,7 +895,9 @@ if (!function_exists('getLabel')) {
      */
     function getLabel($custom_value)
     {
-        if(is_null($custom_value)){return null;}
+        if (is_null($custom_value)) {
+            return null;
+        }
         $custom_table = $custom_value->getCustomTable();
         return getLabelUseTable($custom_table, array_get($custom_value, 'value'));
     }
@@ -899,7 +912,9 @@ if (!function_exists('getLabelUseTable')) {
      */
     function getLabelUseTable($custom_table, $value)
     {
-        if(is_null($value)){return null;}
+        if (is_null($value)) {
+            return null;
+        }
         $columns = $custom_table->custom_columns()
             ->whereNotIn('options->use_label_flg', [0, "0"])
             ->orderBy('options->use_label_flg')
@@ -910,10 +925,14 @@ if (!function_exists('getLabelUseTable')) {
 
         // loop for columns and get value
         $labels = [];
-        foreach($columns as $column){
-            if(!isset($column)){continue;}
+        foreach ($columns as $column) {
+            if (!isset($column)) {
+                continue;
+            }
             $label = getValueUseTable($custom_table, $value, $column, true);
-            if(!isset($label)){continue;}
+            if (!isset($label)) {
+                continue;
+            }
             $labels[] = $label;
         }
 
@@ -930,7 +949,7 @@ if (!function_exists('getParentValue')) {
     {
         $model = getModelName($custom_value->parent_type)::find($custom_value->parent_id);
         
-        if(!$isonly_label){
+        if (!$isonly_label) {
             return $model;
         }
         return $model->label;
@@ -963,10 +982,10 @@ if (!function_exists('getCurrencySymbolLabel')) {
     function getCurrencySymbolLabel($symbol, $value = '123,456.00')
     {
         $symbol_item = array_get(Define::CUSTOM_COLUMN_CURRENCYLIST, $symbol);
-        if(isset($symbol_item)){
-            if(array_get($symbol_item, 'type') == 'before'){
+        if (isset($symbol_item)) {
+            if (array_get($symbol_item, 'type') == 'before') {
                 $text = "$symbol$value";
-            }else{
+            } else {
                 $text = "$value$symbol";
             }
             return $text;
@@ -1007,20 +1026,24 @@ if (!function_exists('getUrl')) {
      */
     function getUrl($custom_value, $column, $tag = false)
     {
-        if(is_null($custom_value)){return null;}
+        if (is_null($custom_value)) {
+            return null;
+        }
         $url = null;
         $value = $custom_value->getValue($column, true);
-        switch($column->column_type){
+        switch ($column->column_type) {
             case 'url':
                 $url = $custom_value->getValue($column);
-                if(!$tag){
+                if (!$tag) {
                     return $url;
                 }
                 return "<a href='{$url}' target='_blank'>$value</a>";
             case 'select_table':
                 $target_value = $custom_value->getValue($column);
                 $id =  $target_value->id ?? null;
-                if(!isset($id)){return null;}
+                if (!isset($id)) {
+                    return null;
+                }
                 // create url
                 return $target_value->getUrl($tag);
         }
@@ -1040,13 +1063,15 @@ if (!function_exists('createTable')) {
     {
         $table_name = getDBTableName($obj);
         // if not null
-        if(!isset($table_name)){
+        if (!isset($table_name)) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
 
-        // check already execute 
+        // check already execute
         $key = getRequestSession('create_table.'.$table_name);
-        if(boolval($key)){return;}
+        if (boolval($key)) {
+            return;
+        }
 
         // CREATE TABLE from custom value table.
         $db = DB::connection();
@@ -1095,7 +1120,7 @@ if (!function_exists('alterColumn')) {
         $index_name = "index_$db_column_name";
         //  if search_enabled = false, and exists, then drop index
         // if column exists and (search_enabled = false or forceDropIndex)
-        if($exists && ($forceDropIndex || (!boolval($search_enabled)))){
+        if ($exists && ($forceDropIndex || (!boolval($search_enabled)))) {
             DB::beginTransaction();
             try {
                 // ALTER TABLE
@@ -1108,7 +1133,7 @@ if (!function_exists('alterColumn')) {
             }
         }
         // if search_enabled = true, not exists, then create index
-        elseif($search_enabled && !$exists){
+        elseif ($search_enabled && !$exists) {
             DB::beginTransaction();
             try {
                 // ALTER TABLE
@@ -1130,7 +1155,7 @@ if (!function_exists('getEndpointTable')) {
      */
     function getEndpointTable($endpoint = null)
     {
-        if(!isset($endpoint)){
+        if (!isset($endpoint)) {
             $endpoint = url()->current();
         }
         $urls = array_reverse(explode("/", $endpoint));
@@ -1203,7 +1228,7 @@ if (!function_exists('disableFormFooter')) {
             $footer->disableEditingCheck();
             // disable `Continue Creating` checkbox
             $footer->disableCreatingCheck();
-        });  
+        });
     }
 }
 if (!function_exists('isGetOptions')) {
@@ -1233,25 +1258,29 @@ if (!function_exists('getOptions')) {
      */
     function getOptions($table, $selected_value = null)
     {
-        if(is_null($table)){return [];}
+        if (is_null($table)) {
+            return [];
+        }
         // get count table.
         $count = getOptionsQuery($table)::count();
         // when count > 0, create option only value.
-        if($count > 100){
-            if(!isset($selected_value)){return [];}
+        if ($count > 100) {
+            if (!isset($selected_value)) {
+                return [];
+            }
             $item = getOptionsQuery($table)::find($selected_value);
 
             if ($item) {
                 // check whether $item is multiple value.
-                if($item instanceof Collection){
+                if ($item instanceof Collection) {
                     $ret = [];
-                    foreach($item as $i){
+                    foreach ($item as $i) {
                         $ret[$i->id] = $i->label;
                     }
                     return $ret;
                 }
                 return [$item->id => $item->label];
-            }else{
+            } else {
                 return [];
             }
         }
@@ -1268,7 +1297,9 @@ if (!function_exists('getOptionAjaxUrl')) {
      */
     function getOptionAjaxUrl($table)
     {
-        if(is_null($table)){return null;}
+        if (is_null($table)) {
+            return null;
+        }
         $table = CustomTable::getEloquent($table);
         // get count table.
         $count = getOptionsQuery($table)::count();
@@ -1280,9 +1311,9 @@ if (!function_exists('getOptionAjaxUrl')) {
     }
 }
 
-if(!function_exists('getOptionsQuery')){
+if (!function_exists('getOptionsQuery')) {
     /**
-     * getOptionsQuery. this function uses for count, get, ... 
+     * getOptionsQuery. this function uses for count, get, ...
      */
     function getOptionsQuery($table)
     {
@@ -1293,7 +1324,7 @@ if(!function_exists('getOptionsQuery')){
         // filter model
         $model = Admin::user()->filterModel($model, $table);
         return $model;
-    }   
+    }
 }
 
 
@@ -1370,9 +1401,9 @@ if (!function_exists('getColumnsSelectOptions')) {
         $options = [];
         
         ///// get system columns
-        foreach(Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option){
+        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option) {
             // not header, continue
-            if(!boolval(array_get($option, 'header'))){
+            if (!boolval(array_get($option, 'header'))) {
                 continue;
             }
             $options[array_get($option, 'name')] = exmtrans('custom_column.system_columns.'.array_get($option, 'name'));
@@ -1380,23 +1411,23 @@ if (!function_exists('getColumnsSelectOptions')) {
 
         ///// if this table is child relation(1:n), add parent table
         $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table->id)->first();
-        if(isset($relation)){
+        if (isset($relation)) {
             $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
         }
 
         ///// get table columns
         $custom_columns = $table->custom_columns;
-        foreach($custom_columns as $option){
+        foreach ($custom_columns as $option) {
             // if $search_enabled_only = true and options.search_enabled is false, continue
-            if($search_enabled_only && !boolval(array_get($option, 'options.search_enabled'))){
+            if ($search_enabled_only && !boolval(array_get($option, 'options.search_enabled'))) {
                 continue;
             }
             $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
         }
         ///// get system columns
-        foreach(Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option){
+        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option) {
             // not footer, continue
-            if(!boolval(array_get($option, 'footer'))){
+            if (!boolval(array_get($option, 'footer'))) {
                 continue;
             }
             $options[array_get($option, 'name')] = exmtrans('custom_column.system_columns.'.array_get($option, 'name'));
@@ -1434,11 +1465,12 @@ if (!function_exists('getAjaxResponse')) {
      * get ajax response.
      * using plugin, copy, data import/export
      */
-    function getAjaxResponse($results){
-        if($results instanceof \Illuminate\Http\Response){
+    function getAjaxResponse($results)
+    {
+        if ($results instanceof \Illuminate\Http\Response) {
             return $results;
         }
-        if(is_bool($results)){
+        if (is_bool($results)) {
             $results = ['result' => $results];
         }
         $results = array_merge([
@@ -1457,31 +1489,34 @@ if (!function_exists('getDataFromSheet')) {
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false){
+    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false)
+    {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
             // if index < $skip_excel_row_no, conitnue
-            if($row_no <= $skip_excel_row_no){continue;}
+            if ($row_no <= $skip_excel_row_no) {
+                continue;
+            }
 
             $cellIterator = $row->getCellIterator();
-            $cellIterator->setIterateOnlyExistingCells(FALSE); // This loops through all cells,
+            $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
             $cells = [];
             foreach ($cellIterator as $column_no => $cell) {
                 $value = getCellValue($cell, $sheet);
 
                 // if keyvalue, set array as key value
-                if($keyvalue){
+                if ($keyvalue) {
                     $key = getCellValue($column_no."1", $sheet);
                     $cells[$key] = mbTrim($value);
                 }
                 // if false, set as array
-                else{
-                    $cells[] = mbTrim($value);                    
+                else {
+                    $cells[] = mbTrim($value);
                 }
             }
-            if(collect($cells)->filter(function($v){
+            if (collect($cells)->filter(function ($v) {
                 return !is_nullorempty($v);
-            })->count() == 0){
+            })->count() == 0) {
                 break;
             }
             $data[] = $cells;
@@ -1495,13 +1530,14 @@ if (!function_exists('getCellValue')) {
     /**
      * get cell value
      */
-    function getCellValue($cell, $sheet){
-        if(is_string($cell)){
+    function getCellValue($cell, $sheet)
+    {
+        if (is_string($cell)) {
             $cell = $sheet->getCell($cell);
         }
         $value = $cell->getCalculatedValue();
         // is datetime, convert to date string
-        if(\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)){
+        if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
             $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
             $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
         }

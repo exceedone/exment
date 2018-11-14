@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Form\Field;
+
 use Encore\Admin\Form\Field;
 
 class Header extends Field\Display
@@ -11,7 +12,8 @@ class Header extends Field\Display
 
     protected $hr;
 
-    public function __construct($label){
+    public function __construct($label)
+    {
         $this->no = 4;
         $this->hr = false;
 

@@ -67,7 +67,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // 'web' => [
         //     'web.initialize',
-        //     'web.morph',      
+        //     'web.morph',
         // ]
     ];
 
@@ -84,7 +84,9 @@ class ExmentServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../resources/views/vendor/admin' => resource_path('views/vendor/admin')], 'views_admin');
         
         $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php', 'exment'
+            __DIR__.'/../config/exment.php',
+        
+            'exment'
         );
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
@@ -99,7 +101,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSetting();
 
         // $this->bootPlugin();
-
     }
 
     /**
@@ -128,23 +129,24 @@ class ExmentServiceProvider extends ServiceProvider
     /**
      * Check URI after '/admin/' then get plugin satisfying conditions and execute this plugin
      */
-    protected function bootPlugin(){
+    protected function bootPlugin()
+    {
         $pattern = '@plugins/([^/\?]+)@';
         preg_match($pattern, Request::url(), $matches);
 
-        if(!isset($matches) || count($matches) <= 1){
+        if (!isset($matches) || count($matches) <= 1) {
             return;
         }
         $pluginName = $matches[1];
         
         $plugin = $this->getPluginActivate($pluginName);
-        if(!isset($plugin)){
+        if (!isset($plugin)) {
             return;
         }
         $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
         if (! $this->app->routesAreCached()) {
             $config_path = path_join($base_path, 'config.json');
-            if(file_exists($config_path)) {
+            if (file_exists($config_path)) {
                 $json = json_decode(File::get($config_path), true);
                 PluginInstaller::route($plugin, $json);
             }
@@ -155,8 +157,9 @@ class ExmentServiceProvider extends ServiceProvider
     /**
      * Check plugin satisfying conditions
      */
-    protected function getPluginActivate($pluginName){
-        if(!Schema::hasTable(Plugin::getTableName())){
+    protected function getPluginActivate($pluginName)
+    {
+        if (!Schema::hasTable(Plugin::getTableName())) {
             return false;
         }
 
@@ -167,7 +170,7 @@ class ExmentServiceProvider extends ServiceProvider
             ->where('options->uri', '=', $pluginName)
             ->first();
 
-        if($plugin !== null){
+        if ($plugin !== null) {
             return $plugin;
         }
 
@@ -189,7 +192,7 @@ class ExmentServiceProvider extends ServiceProvider
                 'table' => 'password_resets',
                 'expire' => 720,
             ]);
-        }        
+        }
         // add for exment_admins
         if (!Config::has('auth.providers.exment-auth')) {
             Config::set('auth.providers.exment-auth', [
@@ -199,7 +202,7 @@ class ExmentServiceProvider extends ServiceProvider
         }
         
         // set config
-        if(!Config::has('filesystems.disks.admin')){
+        if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [
                 'driver' => 'admin-local',
                 'root' => storage_path('app/admin'),
@@ -218,6 +221,5 @@ class ExmentServiceProvider extends ServiceProvider
         \Validator::resolver(function ($translator, $data, $rules, $messages) {
             return new UniqueInTableValidator($translator, $data, $rules, $messages);
         });
-
     }
 }

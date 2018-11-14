@@ -22,7 +22,8 @@ class SearchController extends AdminControllerBase
     /**
      * Rendering search header for adminLTE header
      */
-    public static function renderSearchHeader(){
+    public static function renderSearchHeader()
+    {
         // create searching javascript
         $ajax_url = admin_base_path("search/header");
         $list_url = admin_base_path("search");
@@ -94,28 +95,31 @@ EOT;
      * @param Request $request
      * @return array
      */
-    public function header(Request $request){
+    public function header(Request $request)
+    {
         $q = $request->input('query');
-        if(!isset($q)){return [];}
+        if (!isset($q)) {
+            return [];
+        }
 
         $results = [];
         // Get table list
         $tables = CustomTable::where('search_enabled', true)->get();
-        foreach ($tables as $table)
-        {
-            if(count($results) >= 10){break;}
+        foreach ($tables as $table) {
+            if (count($results) >= 10) {
+                break;
+            }
 
             // Get search enabled columns.
             $search_columns = getSearchEnabledColumns(array_get($table, 'table_name'));
-            if(count($search_columns) == 0){
+            if (count($search_columns) == 0) {
                 continue;
             }
 
             // search all data using index --------------------------------------------------
             $data = $this->searchValue($q, $table, $search_columns, 10);
 
-            foreach ($data as $d)
-            {
+            foreach ($data as $d) {
                 // get label
                 $label = $d->label;
                 array_push($results, [
@@ -127,7 +131,9 @@ EOT;
                     , 'value_id' => array_get($d, 'id')
                     , 'color' =>array_get($d, 'color') ?? "#3c8dbc"
                     ]);
-                if(count($results) >= 10){break;}
+                if (count($results) >= 10) {
+                    break;
+                }
             }
         }
 
@@ -137,10 +143,11 @@ EOT;
     /**
      * Show search result page.
      */
-    public function index(Request $request, Content $content){
-        if($request->has('table_name') && $request->has('value_id')){
+    public function index(Request $request, Content $content)
+    {
+        if ($request->has('table_name') && $request->has('value_id')) {
             return $this->getRelationSearch($request, $content);
-        }else{
+        } else {
             return $this->getFreeWord($request, $content);
         }
     }
@@ -150,14 +157,15 @@ EOT;
      * @param Request $request
      * @return Content
      */
-    protected function getFreeWord(Request $request, Content $content){
-            $this->AdminContent($content);
-            $content->header(exmtrans('search.header_freeword'));
-            $content->description(exmtrans('search.description_freeword'));
+    protected function getFreeWord(Request $request, Content $content)
+    {
+        $this->AdminContent($content);
+        $content->header(exmtrans('search.header_freeword'));
+        $content->description(exmtrans('search.description_freeword'));
 
-            // create searching javascript
-            $list_url = admin_base_path("search/list");
-            $script = <<<EOT
+        // create searching javascript
+        $list_url = admin_base_path("search/list");
+        $script = <<<EOT
     var searchIndex = 0;
     $(function () {
         getNaviData();
@@ -193,66 +201,66 @@ EOT;
     }
 
 EOT;
-            Admin::script($script);
+        Admin::script($script);
 
-            // add header and description        
-            $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
-            $this->setPageInfo($title, $title, exmtrans("plugin.description"));
+        // add header and description
+        $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
+        $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
-            $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $this->getSearchTargetTable()]));
-            return $content;
+        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $this->getSearchTargetTable()]));
+        return $content;
     }
 
     /**
      * Get Search enabled table list
      */
-    protected function getSearchTargetTable($value_table = null){
+    protected function getSearchTargetTable($value_table = null)
+    {
         $results = [];
         $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get()->toArray();
-        foreach ($tables as $table)
-        {
+        foreach ($tables as $table) {
             // if not authority, continue
-            if(System::authority_available() && !Admin::user()->hasPermissionTable(array_get($table, 'table_name'), Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)){
+            if (System::authority_available() && !Admin::user()->hasPermissionTable(array_get($table, 'table_name'), Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
 
             // search using column
-            $result = collect($table['custom_columns'])->first(function($custom_column){
+            $result = collect($table['custom_columns'])->first(function ($custom_column) {
                 // this column is search_enabled, add array.
-                if(!boolval(array_get($custom_column['options'], 'search_enabled'))){
+                if (!boolval(array_get($custom_column['options'], 'search_enabled'))) {
                     return false;
                 }
 
                 // only set $value_table (for relation search)
-                if(isset($value_table)){
+                if (isset($value_table)) {
                     // get only table as below
                     // - $table equal self target table
                     // - $table is child table for $value_table
                     // $custom_column->column_type is "select_target_table" and $custom_column->options->select_target_table is target_table
 
                     $result = false;
-                    if($table['id'] == $value_table->id){
+                    if ($table['id'] == $value_table->id) {
                         $result = true;
                     }
                     
-                    if(!$result){
+                    if (!$result) {
                         // get custom relation.
-                        if(!is_null(CustomRelation
+                        if (!is_null(CustomRelation
                             ::where('parent_custom_table_id', $value_table->id)
                             ->where('child_custom_table_id', $table['id'])
-                            ->first())){
-                                $result = true;
-                            }
+                            ->first())) {
+                            $result = true;
+                        }
                     }
 
-                    if(!$result){
+                    if (!$result) {
                         return false;
                     }
                 }
 
                 return true;
             });
-            if(!is_null($result)){
+            if (!is_null($result)) {
                 array_push($results, [
                     'id' => array_get($table, 'id'),
                     'table_name' => array_get($table, 'table_name'),
@@ -268,13 +276,14 @@ EOT;
     /**
      * Get search results using query
      */
-    public function getList(Request $request){
+    public function getList(Request $request)
+    {
         $q = $request->input('query');
         $table = CustomTable::findByName($request->input('table_name'), true);
         // Get search enabled columns.
         $search_columns = getSearchEnabledColumns(array_get($table, 'table_name'));
 
-        if(count($search_columns) == 0){
+        if (count($search_columns) == 0) {
             return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
 
@@ -282,7 +291,7 @@ EOT;
         $datalist = $this->searchValue($q, $table, $search_columns, 5);
         
         // Get result HTML.
-        if(count($datalist) == 0){
+        if (count($datalist) == 0) {
             return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
 
@@ -293,13 +302,14 @@ EOT;
         return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];
     }
     
-    // For relation search  --------------------------------------------------    
+    // For relation search  --------------------------------------------------
     /**
      * Get relation search result page. this function is called when user select suggest.
      * @param Request $request
      * @return Content
      */
-    protected function getRelationSearch(Request $request, Content $content){
+    protected function getRelationSearch(Request $request, Content $content)
+    {
         $this->AdminContent($content);
 
         $content->header(exmtrans('search.header_relation'));
@@ -357,7 +367,7 @@ function getNaviData() {
 EOT;
         Admin::script($script);
 
-        // add header and description        
+        // add header and description
         $title = sprintf(exmtrans("search.result_label"), $value);
         $this->setPageInfo($title);
         return $content;
@@ -366,7 +376,8 @@ EOT;
     /**
      * get query relation value
      */
-    public function getRelationList(Request $request){
+    public function getRelationList(Request $request)
+    {
         // value_id is the id user selected.
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
@@ -378,19 +389,19 @@ EOT;
         // Get search enabled columns.
         $search_columns = getSearchEnabledColumns($search_table->table_name);
 
-        switch($search_type){
+        switch ($search_type) {
             // self table
             case 'self':
                 $data = [getModelName($search_table)::find($value_id)];
-                break;   
-            // select_table(select box)             
+                break;
+            // select_table(select box)
             case 'select_table':
                 // Retrieve the record list whose value is "value_id" in the column "options.select_target_table" of the table "custom column"
                 $selecttable_columns = CustomColumn::where('column_type', 'select_table')
                     ->where('options->select_target_table', $value_table->id)
                     ->get();
 
-                if(count($search_columns) == 0){
+                if (count($search_columns) == 0) {
                     return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
                 }
 
@@ -412,11 +423,11 @@ EOT;
                     ->where("$relation_name.parent_id", $value_id)
                     ->take(5)
                     ->get();
-                break;            
+                break;
         }
 
         // Get search result HTML.
-        if(count($data) == 0){
+        if (count($data) == 0) {
             return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
         
@@ -431,7 +442,8 @@ EOT;
      * Get Search enabled relation table list.
      * It contains search_type(self, select_table, one_to_many, many_to_many)
      */
-    protected function getSearchTargetRelationTable($value_table){
+    protected function getSearchTargetRelationTable($value_table)
+    {
         $results = [];
 
         // 1. For self-table
@@ -447,7 +459,7 @@ EOT;
         // * table_column > options > search_enabled is true.
         // * table_column > options > select_target_table is table id user selected.
         $tables = CustomTable
-        ::whereHas('custom_columns', function($query) use($value_table){
+        ::whereHas('custom_columns', function ($query) use ($value_table) {
             $query->whereIn('options->search_enabled', [1, "1"])
             ->where('options->select_target_table', $value_table->id);
         })
@@ -475,7 +487,7 @@ EOT;
         $tables = CustomTable
         ::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
         ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
-            ->whereHas('custom_relations', function($query) use($value_table){
+            ->whereHas('custom_relations', function ($query) use ($value_table) {
                 $query->where('parent_custom_table_id', $value_table->id);
             })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
@@ -499,25 +511,27 @@ EOT;
     /**
      * search value using search-enabld column
      */
-    protected function searchValue($q, $table, $search_columns, $max_count, $isLike = true){
+    protected function searchValue($q, $table, $search_columns, $max_count, $isLike = true)
+    {
         $data = [];
         $query = $q . ($isLike ? '%' : '');
         $mark = ($isLike ? 'LIKE' : '=');
-        foreach ($search_columns as $search_column)
-        {
+        foreach ($search_columns as $search_column) {
             // get data
             $foodata = getModelName($table)
                 ::where(getColumnName($search_column), $mark, $query)
                 ->take($max_count - count($data))
                 ->get();
             
-            foreach($foodata as $foo){
-                if(count($data) >= $max_count){break;}
+            foreach ($foodata as $foo) {
+                if (count($data) >= $max_count) {
+                    break;
+                }
 
                 // if exists id, continue
-                if(!is_null(collect($data)->first(function($value, $key) use($foo){
+                if (!is_null(collect($data)->first(function ($value, $key) use ($foo) {
                     return array_get($value, 'id') == array_get($foo, 'id');
-                }))){
+                }))) {
                     continue;
                 }
 

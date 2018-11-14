@@ -9,6 +9,7 @@
  */
 
 namespace Exceedone\Exment\Services;
+
 use setasign\Fpdi;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -16,7 +17,6 @@ use Exceedone\Exment\Model\CustomTable;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-
 
 /**
  * Class CreatePdfService.
@@ -62,7 +62,7 @@ class DocumentExcelService
         // output table
         $this->lfTable($sheet);
 
-        // output excel 
+        // output excel
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($this->getFullPath());
 
@@ -76,7 +76,7 @@ class DocumentExcelService
     {
         // first time, define loop value
         $loops = [];
-        $this->callbackSheetCell($sheet, function($cell, $val, $matches) use(&$loops){
+        $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use (&$loops) {
             foreach ($matches[1] as $m) {
                 // split ":"
                 $splits = explode(":", $m);
@@ -108,14 +108,18 @@ class DocumentExcelService
                 $cell->setValue('');
             }
         });
-        if(count($loops) == 0){return;}
+        if (count($loops) == 0) {
+            return;
+        }
 
         // looping item
-        foreach($loops as $table => $loop_item){
-            if(!array_has($loop_item, 'start') 
+        foreach ($loops as $table => $loop_item) {
+            if (!array_has($loop_item, 'start')
                 || !array_has($loop_item, 'items')
-            ){continue;}
-            if(!array_has($loop_item, 'end')){
+            ) {
+                continue;
+            }
+            if (!array_has($loop_item, 'end')) {
                 $loop_item['end'] = intval($loop_item['start']) + 100;
             }
             // get children value
@@ -126,9 +130,9 @@ class DocumentExcelService
             $end = intval(array_get($loop_item, 'end'));
 
             // looping $children
-            foreach($children as $child){
+            foreach ($children as $child) {
                 // loop items
-                foreach($loop_item['items'] as $column_name => $sheet_column_no){
+                foreach ($loop_item['items'] as $column_name => $sheet_column_no) {
                     // output sheet
                     $text = $this->replaceText($child->getValue($column_name, false), []);
                     $sheet->setCellValue($sheet_column_no . $row, $text);
@@ -144,7 +148,9 @@ class DocumentExcelService
                 }
 
                 $row++;
-                if($row > $end){break;}
+                if ($row > $end) {
+                    break;
+                }
             }
         }
     }
@@ -155,13 +161,14 @@ class DocumentExcelService
     protected function lfValue($sheet)
     {
         // first time, define loop value
-        $this->callbackSheetCell($sheet, function($cell, $val, $matches) use($sheet){
+        $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use ($sheet) {
             $text = $this->getText($val);
             $sheet->setCellValue($cell->getColumn() . $cell->getRow(), $text);
         });
     }
 
-    protected function callbackSheetCell($sheet, $callback){
+    protected function callbackSheetCell($sheet, $callback)
+    {
         foreach ($sheet->getRowIterator() as $row) {
             foreach ($row->getCellIterator() as $cell) {
                 $cellValue = $cell->getValue() ?? null;
@@ -171,12 +178,14 @@ class DocumentExcelService
                 }
                 // if match value
                 preg_match_all('/\${(.*?)\}/', $cellValue, $matches);
-                if(count($matches) == 0){
+                if (count($matches) == 0) {
                     continue;
                 }
 
                 // split ":"
-                if(is_null($matches[1]) || count($matches[1]) == 0){continue;}
+                if (is_null($matches[1]) || count($matches[1]) == 0) {
+                    continue;
+                }
 
                 // execute callback
                 $callback($cell, $cellValue, $matches);
@@ -187,13 +196,14 @@ class DocumentExcelService
     /**
      * get output text from document item
      */
-    protected function getText($text, $documentItem = []){
+    protected function getText($text, $documentItem = [])
+    {
         // check string
         preg_match_all('/\${(.*?)\}/', $text, $matches);
         if (isset($matches)) {
             // loop for matches. because we want to get inner {}, loop $matches[1].
             for ($i = 0; $i < count($matches[1]); $i++) {
-                try{
+                try {
                     $match = strtolower($matches[1][$i]);
                 
                     // get column
@@ -207,8 +217,7 @@ class DocumentExcelService
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';
-                        }
-                        else{
+                        } else {
                             // get comma string from index 1.
                             $length_array = array_slice($length_array, 1);
                             $str = getValue($this->model, implode(',', $length_array), false, array_get($documentItem, 'format'));
@@ -222,12 +231,12 @@ class DocumentExcelService
                             $str = '';
                         }
                         //else, getting value using cihldren
-                        else{
+                        else {
                             // get children values
                             $children = getChildrenValues($this->model, $length_array[1]);
                             // looping
                             $sum = 0;
-                            foreach($children as $child){
+                            foreach ($children as $child) {
                                 // get value
                                 $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
                             }
@@ -236,37 +245,37 @@ class DocumentExcelService
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
                     // base_info
-                    elseif($length_array[0] == "base_info"){
+                    elseif ($length_array[0] == "base_info") {
                         $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';
-                        }else{
+                        } else {
                             $str = getValue($base_info, $length_array[1], false, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
                     // suuid
-                    elseif($length_array[0] == "suuid"){
+                    elseif ($length_array[0] == "suuid") {
                         $text = str_replace($matches[0][$i], short_uuid(), $text);
                     }
                     // uuid
-                    elseif($length_array[0] == "uuid"){
+                    elseif ($length_array[0] == "uuid") {
                         $text = str_replace($matches[0][$i], make_uuid(), $text);
                     }
                     // ymdhms
-                    elseif($length_array[0] == "ymdhms"){
+                    elseif ($length_array[0] == "ymdhms") {
                         $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHis'), $text);
                     }
                     // ymdhm
-                    elseif($length_array[0] == "ymdhm"){
+                    elseif ($length_array[0] == "ymdhm") {
                         $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHi'), $text);
                     }
                     // ymd
-                    elseif($length_array[0] == "ymd"){
+                    elseif ($length_array[0] == "ymd") {
                         $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('Ymd'), $text);
                     }
-                } catch(Exception $e) {
+                } catch (Exception $e) {
                 }
             }
         }
@@ -277,15 +286,16 @@ class DocumentExcelService
     /**
      * replace text. ex.comma, &yen, etc...
      */
-    protected function replaceText($text, $documentItem = []){
+    protected function replaceText($text, $documentItem = [])
+    {
         // add comma if number_format
-        if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)){
+        if (array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)) {
             $text = number_format($text);
         }
 
         // replace <br/> or \r\n, \n, \r to new line
         $text = preg_replace("/\\\\r\\\\n|\\\\r|\\\\n/", "\n", $text);
-        // &yen; to 
+        // &yen; to
         $text = str_replace("&yen;", "¥", $text);
 
         return $text;
@@ -296,7 +306,7 @@ class DocumentExcelService
      */
     public function getFileName()
     {
-        if(!isset($this->filename)){
+        if (!isset($this->filename)) {
             // get template file name
             $this->filename = $this->getText($this->outputfilename) ?? make_uuid();
         }
@@ -320,7 +330,7 @@ class DocumentExcelService
     {
         // create directory
         $dir_fullpath = getFullpath('document', config('admin.upload.disk'));
-        if(!\File::exists($dir_fullpath)){
+        if (!\File::exists($dir_fullpath)) {
             \File::makeDirectory($dir_fullpath);
         }
         //return getFullpath('document', config('admin.upload.disk'));
@@ -337,5 +347,3 @@ class DocumentExcelService
         return getFullpath($filepath, config('admin.upload.disk'));
     }
 }
-
-?>

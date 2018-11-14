@@ -1,12 +1,12 @@
 <?php
- 
+
 namespace Exceedone\Exment\Providers;
- 
+
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
- 
+
 class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
 {
     /**
@@ -30,27 +30,27 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
  
     public function retrieveByToken($identifier, $token)
     {
- 
     }
  
     public function updateRememberToken(Authenticatable $user, $token)
     {
- 
     }
  
     public function retrieveByCredentials(array $credentials)
     {
         $login_user = null;
-        foreach(['email', 'user_code'] as $key){
+        foreach (['email', 'user_code'] as $key) {
             $login_user = LoginUser
-            ::whereHas('base_user', function($query) use ($key, $credentials){
+            ::whereHas('base_user', function ($query) use ($key, $credentials) {
                 $query->where(getColumnNameByTable(Define::SYSTEM_TABLE_NAME_USER, $key), array_get($credentials, 'username'));
             })->first();
 
-            if(isset($login_user)){break;}
+            if (isset($login_user)) {
+                break;
+            }
         }
         
-        if(isset($login_user)){
+        if (isset($login_user)) {
             return $login_user;
         }
         return null;
@@ -58,7 +58,9 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
  
     public function validateCredentials(Authenticatable $login_user, array $credentials)
     {
-        if(is_null($login_user)){return false;}
+        if (is_null($login_user)) {
+            return false;
+        }
         $password = $login_user->password;
         $credential_password = array_get($credentials, 'password');
         // Verify the user with the username password in $ credentials, return `true` or `false`

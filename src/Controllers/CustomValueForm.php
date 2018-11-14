@@ -52,20 +52,20 @@ trait CustomValueForm
             ->where('child_custom_table_id', $this->custom_table->id)
             ->where('relation_type', Define::RELATION_TYPE_ONE_TO_MANY)
             ->first();
-        if(isset($relation)){
+        if (isset($relation)) {
             $parent_custom_table = $relation->parent_custom_table;
             $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
             // set select options
-            if(isGetOptions($parent_custom_table)){
+            if (isGetOptions($parent_custom_table)) {
                 $form->select('parent_id', $parent_custom_table->table_view_name)
-                ->options(function($value) use($parent_custom_table){
+                ->options(function ($value) use ($parent_custom_table) {
                     return getOptions($parent_custom_table, $value);
                 })
                 ->required();
-            }else{
+            } else {
                 $form->select('parent_id', $parent_custom_table->table_view_name)
-                ->options(function($value) use($parent_custom_table){
+                ->options(function ($value) use ($parent_custom_table) {
                     return getOptions($parent_custom_table, $value);
                 })
                 ->ajax(getOptionAjaxUrl($parent_custom_table))
@@ -83,13 +83,13 @@ trait CustomValueForm
             if ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
                 $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $id))
                     ->disableHeader();
-            } 
+            }
             // one_to_many or manytomany
-            else{
+            else {
                 list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                 $target_table = $custom_form_block->target_table;
                 // 1:n
-                if($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY){
+                if ($custom_form_block->form_block_type == Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY) {
                     // get form columns count
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable
@@ -105,7 +105,7 @@ trait CustomValueForm
                         )->setTableWidth(12, 0);
                     }
                     // default,hasmany
-                    else{           
+                    else {
                         $form->hasMany(
                             $relation_name,
                             $block_label,
@@ -113,11 +113,11 @@ trait CustomValueForm
                                 $form->nestedEmbeds('value', $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $id))
                                 ->disableHeader();
                             }
-                        );         
+                        );
                     }
                 }
                 // n:n
-                else{
+                else {
                     $field = new Field\Listbox(
                         getRelationNamebyObjs($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
@@ -132,7 +132,7 @@ trait CustomValueForm
                     $field->help(exmtrans('custom_value.bootstrap_duallistbox_container.help'));
                     $form->pushField($field);
                 }
-            } 
+            }
         }
 
         $calc_formula_array = [];
@@ -166,7 +166,7 @@ EOT;
             Admin::script($script);
         }
 
-        // add authority form 
+        // add authority form
         $this->setAuthorityForm($form);
 
         // add form saving and saved event
@@ -187,7 +187,8 @@ EOT;
      * setAuthorityForm.
      * if table is user, org, etc...., not set authority
      */
-    protected function setAuthorityForm($form){
+    protected function setAuthorityForm($form)
+    {
         // if ignore user and org, return
         if (in_array($this->custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
             return;
@@ -217,8 +218,10 @@ EOT;
                     break;
                 case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
                     // id is null, as create, so continue
-                    if(!isset($id)){break;}
-                    $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($option) use($form_column){
+                    if (!isset($id)) {
+                        break;
+                    }
+                    $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($option) use ($form_column) {
                         return array_get($option, 'id') == array_get($form_column, 'form_column_target_id');
                     }) ?? [];
                     // get form column name
@@ -253,10 +256,9 @@ EOT;
                     }
                 break;
             }
-
         }
 
-        foreach($fields as $field){
+        foreach ($fields as $field) {
             // push field to form
             $form->pushField($field);
         }
@@ -279,8 +281,10 @@ EOT;
                     break;
                 case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
                     // id is null, as create, so continue
-                    if(!isset($id)){break;}
-                    $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($option) use($form_column){
+                    if (!isset($id)) {
+                        break;
+                    }
+                    $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($option) use ($form_column) {
                         return array_get($option, 'id') == array_get($form_column, 'form_column_target_id');
                     }) ?? [];
                     // get form column name
@@ -323,18 +327,18 @@ EOT;
             }
         }
 
-        // if $closures[1] count is 0, return closure function 
-        if(count($closures[1]) == 0){
-            return function($form) use ($closures){
-                foreach($closures[0] as $field){
+        // if $closures[1] count is 0, return closure function
+        if (count($closures[1]) == 0) {
+            return function ($form) use ($closures) {
+                foreach ($closures[0] as $field) {
                     // push field to form
                     $form->pushField($field);
                 }
             };
         }
-        return collect($closures)->map(function($closure){
-            return function($form) use ($closure){
-                foreach($closure as $field){
+        return collect($closures)->map(function ($closure) {
+            return function ($form) use ($closure) {
+                foreach ($closure as $field) {
                     // push field to form
                     $field->setWidth(8, 3);
                     $form->pushField($field);
@@ -402,7 +406,7 @@ EOT;
             }
 
             // if user only view, disable delete and view
-            else if (!Admin::user()->hasPermissionEditData($id, $custom_table->table_name)) {
+            elseif (!Admin::user()->hasPermissionEditData($id, $custom_table->table_name)) {
                 $tools->disableDelete();
                 $tools->disableView();
                 disableFormFooter($form);
@@ -422,42 +426,49 @@ EOT;
     /**
      * Create calc formula info.
      */
-    protected function setCalcFormulaArray($column, $options, &$calc_formula_array){
-        if(is_null($calc_formula_array)){$calc_formula_array = [];}
+    protected function setCalcFormulaArray($column, $options, &$calc_formula_array)
+    {
+        if (is_null($calc_formula_array)) {
+            $calc_formula_array = [];
+        }
         // get format for calc formula
         $option_calc_formulas = array_get($options, "calc_formula");
-        if($option_calc_formulas == "null"){return;} //TODO:why???
-        if(!is_array($option_calc_formulas) && is_json($option_calc_formulas)){
+        if ($option_calc_formulas == "null") {
+            return;
+        } //TODO:why???
+        if (!is_array($option_calc_formulas) && is_json($option_calc_formulas)) {
             $option_calc_formulas = json_decode($option_calc_formulas, true);
         }
 
         // keys for calc trigger on display
         $keys = [];
         // loop $option_calc_formulas and get column_name
-        foreach($option_calc_formulas as &$option_calc_formula){
-            if(!in_array(array_get($option_calc_formula, 'type'), ['dynamic', 'select_table'])){
+        foreach ($option_calc_formulas as &$option_calc_formula) {
+            if (!in_array(array_get($option_calc_formula, 'type'), ['dynamic', 'select_table'])) {
                 continue;
             }
             // set column name
             $formula_column = CustomColumn::find(array_get($option_calc_formula, 'val'));
             // get column name as key
             $key = $formula_column->column_name ?? null;
-            if(!isset($key)){continue;}
+            if (!isset($key)) {
+                continue;
+            }
             $keys[] = $key;
             // set $option_calc_formula val using key
             $option_calc_formula['val'] = $key;
 
             // if select table, set from value
-            if($option_calc_formula['type'] == 'select_table'){
+            if ($option_calc_formula['type'] == 'select_table') {
                 $column_from = CustomColumn::find(array_get($option_calc_formula, 'from'));
                 $option_calc_formula['from'] = $column_from->column_name ?? null;
             }
         }
 
         // loop for $keys and set $calc_formula_array
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             // if not exists $key in $calc_formula_array, set as array
-            if(!array_has($calc_formula_array, $key)){
+            if (!array_has($calc_formula_array, $key)) {
                 $calc_formula_array[$key] = [];
             }
             // set $calc_formula_array
@@ -472,7 +483,8 @@ EOT;
      * set change data array.
      * "change data": When selecting a list, paste the value of that item into another form item.
      */
-    protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array){
+    protected function setChangeDataArray($column, $form_column_options, $options, &$changedata_array)
+    {
         // get this table
         $column_table = $column->custom_table;
 
@@ -486,21 +498,21 @@ EOT;
         $changedata_column = CustomColumn::find($changedata_column_id);
         $changedata_table = $changedata_column->custom_table;
 
-        // get select target table 
+        // get select target table
         $select_target_table = CustomTable::find(array_get($changedata_target_column, 'options.select_target_table'));
 
         // if different $column_table and changedata_target_table, get to_target block name using relation
-        if($column_table->id != $changedata_target_table->id){
+        if ($column_table->id != $changedata_target_table->id) {
             $to_block_name = getRelationNameByObjs($changedata_target_table, $column_table);
-        }else{
+        } else {
             $to_block_name = null;
         }
 
         // if not exists $changedata_target_column->column_name in $changedata_array
-        if(!array_has($changedata_array, $changedata_target_column->column_name)){
+        if (!array_has($changedata_array, $changedata_target_column->column_name)) {
             $changedata_array[$changedata_target_column->column_name] = [];
         }
-        if(!array_has($changedata_array[$changedata_target_column->column_name], $select_target_table->table_name)){
+        if (!array_has($changedata_array[$changedata_target_column->column_name], $select_target_table->table_name)) {
             $changedata_array[$changedata_target_column->column_name][$select_target_table->table_name] = [];
         }
         // push changedata column from and to column name
@@ -516,7 +528,8 @@ EOT;
      * set related linkage array.
      * "related linkage": When selecting a value, change the choices of other list. It's for 1:n relation.
      */
-    protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array){
+    protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
+    {
         // set target_table columns
         $columns = [];
         // if available is false, continue
@@ -527,7 +540,7 @@ EOT;
             $column = $form_column->custom_column;
 
             // if column_type is not select_table, continue
-            if(array_get($column, 'column_type') != 'select_table'){
+            if (array_get($column, 'column_type') != 'select_table') {
                 continue;
             }
             // set columns
@@ -539,18 +552,18 @@ EOT;
             // get relation
             $relations = CustomRelation::where('parent_custom_table_id', array_get($column, 'options.select_target_table'))->get();
             // if not exists, continue
-            if(!$relations){
+            if (!$relations) {
                 continue;
             }
-            foreach($relations as $relation){
-                // add $relatedlinkage_array if contains 
+            foreach ($relations as $relation) {
+                // add $relatedlinkage_array if contains
                 $child_custom_table_id = array_get($relation, 'child_custom_table_id');
-                collect($columns)->filter(function($c) use($child_custom_table_id){
+                collect($columns)->filter(function ($c) use ($child_custom_table_id) {
                     return array_get($c, 'options.select_target_table') == $child_custom_table_id;
-                })->each(function($c) use($column, $relation, &$relatedlinkage_array){
+                })->each(function ($c) use ($column, $relation, &$relatedlinkage_array) {
                     $column_name = array_get($column, 'column_name');
                     // if not exists $column_name in $relatedlinkage_array
-                    if(!array_has($relatedlinkage_array, $column_name)){
+                    if (!array_has($relatedlinkage_array, $column_name)) {
                         $relatedlinkage_array[$column_name] = [];
                     }
                     // add array. key is column name.
@@ -558,7 +571,7 @@ EOT;
                         'url' => admin_base_path(url_join('api', $relation->parent_custom_table->table_name, 'relatedLinkage')),
                         'expand' => ['child_table_id' => $relation->child_custom_table_id],
                         'to' => array_get($c, 'column_name'),
-                    ];                   
+                    ];
                 });
             }
         }

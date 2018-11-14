@@ -28,10 +28,10 @@ class Checkboxone extends Field
      */
     public function option($option = array())
     {
-        if(count($option) == 0){
+        if (count($option) == 0) {
             return $this;
         }
-        foreach($option as $k => $v){
+        foreach ($option as $k => $v) {
             $this->check_value = $k;
             $this->check_label = $v;
             break;

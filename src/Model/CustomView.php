@@ -7,29 +7,33 @@ use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request as Req;
 
 class CustomView extends ModelBase
-{    
+{
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $guarded = ['id', 'suuid'];
 
-    public function custom_table(){
+    public function custom_table()
+    {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
-    public function custom_view_columns(){
+    public function custom_view_columns()
+    {
         return $this->hasMany(CustomViewColumn::class, 'custom_view_id')->orderBy('order');
     }
 
-    public function custom_view_filters(){
+    public function custom_view_filters()
+    {
         return $this->hasMany(CustomViewFilter::class, 'custom_view_id');
     }
 
     /**
      * set laravel-admin grid using custom_view
      */
-    public function setGrid($grid){
+    public function setGrid($grid)
+    {
         $custom_table = $this->custom_table;
         // get view columns
         $custom_view_columns = $this->custom_view_columns;
@@ -43,41 +47,47 @@ class CustomView extends ModelBase
                 $column_view_name = array_get($column, 'column_view_name');
 
                 //$grid->column($column_name, $column_view_name)->sortable();
-                $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function($v) use($column){
-                    if(is_null($this)){return '';}
+                $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function ($v) use ($column) {
+                    if (is_null($this)) {
+                        return '';
+                    }
                     $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
-                    if($isUrl){
+                    if ($isUrl) {
                         return getUrl($this, $column, true);
                     }
                     return $this->getValue($column, true);
                 });
             }
             // parent_id
-            elseif($view_column_target == 'parent_id'){
+            elseif ($view_column_target == 'parent_id') {
                 // get parent data
                 $relation = CustomRelation
                     ::with('parent_custom_table')
                     ->where('child_custom_table_id', $this->custom_table->id)
                     ->first();
-                if(isset($relation)){
+                if (isset($relation)) {
                     $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
                         ->sortable()
-                        ->display(function($value){
+                        ->display(function ($value) {
                             // get parent_type
                             $parent_type = $this->parent_type;
-                            if(is_null($parent_type)){return null;}
+                            if (is_null($parent_type)) {
+                                return null;
+                            }
                             // get value
                             $custom_value = getModelName($parent_type)::find($value);
                             return $custom_value->getUrl(true);
-                    });
+                        });
                 }
             }
             // system column
             else {
                 // get column name
                 $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable()
-                    ->display(function($value) use($view_column_target){
-                        if(!is_null($value)){return $value;}
+                    ->display(function ($value) use ($view_column_target) {
+                        if (!is_null($value)) {
+                            return $value;
+                        }
                         // if cannnot get value, return array_get from this
                         return array_get($this, $view_column_target);
                     });
@@ -89,36 +99,37 @@ class CustomView extends ModelBase
      * set DataTable using custom_view
      * @return list(array, array) headers, bodies
      */
-    public function getDataTable($datalist){
+    public function getDataTable($datalist)
+    {
         $custom_table = $this->custom_table;
         // get custom view columns
         $custom_view_columns = $this->custom_view_columns;
         
         // create headers
         $headers = [];
-        foreach($custom_view_columns as $custom_view_column){
+        foreach ($custom_view_columns as $custom_view_column) {
             // get column --------------------------------------------------
             // if number, get custom column
-            if(is_numeric($custom_view_column->view_column_target)){
+            if (is_numeric($custom_view_column->view_column_target)) {
                 $custom_column = $custom_view_column->custom_column;
-                if(isset($custom_column)){
+                if (isset($custom_column)) {
                     $headers[] = $custom_column->column_view_name;
                 }
-            }elseif($custom_view_column->view_column_target == 'parent_id'){
+            } elseif ($custom_view_column->view_column_target == 'parent_id') {
                 // get parent data
                 $relation = CustomRelation
                     ::with('parent_custom_table')
                     ->where('child_custom_table_id', $custom_table->id)
                     ->first();
-                if(isset($relation)){
+                if (isset($relation)) {
                     $headers[] = $relation->parent_custom_table->table_view_name;
                 }
-            }else{
+            } else {
                 // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($value) use($custom_view_column){
+                $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($value) use ($custom_view_column) {
                     return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
                 })['name'] ?? null;
-                // add headers transaction 
+                // add headers transaction
                 $headers[] = exmtrans('custom_column.system_columns.'.$name);
             }
         }
@@ -126,40 +137,39 @@ class CustomView extends ModelBase
 
         // get table bodies
         $bodies = [];
-        if(isset($datalist)){
-            foreach($datalist as $data){
+        if (isset($datalist)) {
+            foreach ($datalist as $data) {
                 $body_items = [];
-                foreach($custom_view_columns as $custom_view_column){
+                foreach ($custom_view_columns as $custom_view_column) {
                     // get column --------------------------------------------------
                     // if number, get custom column
-                    if(is_numeric($custom_view_column->view_column_target)){
+                    if (is_numeric($custom_view_column->view_column_target)) {
                         $custom_column = $custom_view_column->custom_column;
-                        if(isset($custom_column)){
+                        if (isset($custom_column)) {
                             $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
-                            if($isUrl){
+                            if ($isUrl) {
                                 $body_items[] = getUrl($data, $custom_column, true);
-                            }
-                            else{
+                            } else {
                                 $body_items[] = $data->getValue($custom_column, true);
                             }
                         }
                     }
                     // parent id
-                    elseif($custom_view_column->view_column_target == 'parent_id'){
+                    elseif ($custom_view_column->view_column_target == 'parent_id') {
                         // get parent data
                         $relation = CustomRelation
                             ::with('parent_custom_table')
                             ->where('child_custom_table_id', $custom_table->id)
                             ->first();
-                        if(isset($relation)){
+                        if (isset($relation)) {
                             $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getUrl(true) ?? null;
                         }
-                    }else{
+                    } else {
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                        $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($value) use($custom_view_column){
+                        $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($value) use ($custom_view_column) {
                             return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
                         })['name'] ?? null;
-                        if(isset($name)){
+                        if (isset($name)) {
                             $body_items[] = array_get($data, $name);
                         }
                     }
@@ -168,7 +178,7 @@ class CustomView extends ModelBase
                 ///// add show and edit link
                 // using authority
                 $link = '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'))).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
-                if(Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)){
+                if (Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)) {
                     $link .= '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit')).'"><i class="fa fa-edit"></i></a>';
                 }
                 // add hidden item about data id
@@ -187,7 +197,8 @@ class CustomView extends ModelBase
     /**
      * get default view using table
      */
-    public static function getDefault($tableObj){
+    public static function getDefault($tableObj)
+    {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
 
@@ -195,7 +206,7 @@ class CustomView extends ModelBase
         $request = Req::capture();
 
         // get view using query
-        if(!is_null($request->input('view'))){
+        if (!is_null($request->input('view'))) {
             $suuid = $request->input('view');
             // if query has view id, set view.
             $view = static::findBySuuid($suuid);
@@ -206,7 +217,7 @@ class CustomView extends ModelBase
             }
         }
         // if url doesn't contain view query, get view user setting.
-        if(!isset($view) && !is_null($user)){
+        if (!isset($view) && !is_null($user)) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [Define::USER_SETTING_VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
@@ -219,12 +230,12 @@ class CustomView extends ModelBase
             $view = $tableObj->custom_views()->first();
         }
         // if form doesn't contain for target table, create view.
-        if(!isset($view)){
+        if (!isset($view)) {
             $view = static::createDefaultView($tableObj);
         }
 
         // if target form doesn't have columns, add columns for search_enabled columns.
-        if(is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0){
+        if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
             // get view id for after
             $view->createDefaultViewColumns();
 
@@ -235,22 +246,24 @@ class CustomView extends ModelBase
         return $view;
     }
     
-    protected static function createDefaultView($tableObj){
+    protected static function createDefaultView($tableObj)
+    {
         $view = new CustomView;
         $view->custom_table_id = $tableObj->id;
         $view->view_type = 'system';
         $view->view_view_name = exmtrans('custom_view.default_view_name');
-        $view->saveOrFail();  
+        $view->saveOrFail();
         
         return $view;
     }
 
-    protected function createDefaultViewColumns(){
+    protected function createDefaultViewColumns()
+    {
         $view_columns = [];
         // set default view_column
-        foreach(Define::VIEW_COLUMN_SYSTEM_OPTIONS as $view_column_system){
+        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $view_column_system) {
             // if not default, continue
-            if(!boolval(array_get($view_column_system, 'default'))){
+            if (!boolval(array_get($view_column_system, 'default'))) {
                 continue;
             }
             $view_column = new CustomViewColumn;
@@ -263,26 +276,27 @@ class CustomView extends ModelBase
         return $view_columns;
     }
     
-    public function deletingChildren(){
+    public function deletingChildren()
+    {
         $this->custom_view_columns()->delete();
         $this->custom_view_filters()->delete();
     }
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
         
-        static::creating(function($model) {
+        static::creating(function ($model) {
             $model->setDefaultFlgInTable();
         });
-        static::updating(function($model) {
+        static::updating(function ($model) {
             $model->setDefaultFlgInTable();
         });
 
         // delete event
-        static::deleting(function($model) {
+        static::deleting(function ($model) {
             // Delete items
             $model->deletingChildren();
         });
     }
-
 }

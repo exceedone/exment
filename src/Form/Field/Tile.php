@@ -12,7 +12,8 @@ class Tile extends Field
 
     protected $multipled;
 
-    public function __construct($column, $arguments = array()){
+    public function __construct($column, $arguments = array())
+    {
         parent::__construct($column, $arguments);
 
         $this->multiple = false;
@@ -45,7 +46,8 @@ class Tile extends Field
         return $this;
     }
 
-    public function multiple(){
+    public function multiple()
+    {
         $this->multipled = true;
         return $this;
     }

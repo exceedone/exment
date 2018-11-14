@@ -17,7 +17,8 @@ class CustomTableController extends AdminControllerBase
 {
     use ModelForm, AuthorityForm;
 
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
         $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"));
     }
 
@@ -58,12 +59,12 @@ class CustomTableController extends AdminControllerBase
     protected function form($id = null)
     {
         $form = new Form(new CustomTable);
-        if(!isset($id)){
+        if (!isset($id)) {
             $form->text('table_name', exmtrans("custom_table.table_name"))
                 ->required()
                 ->rules("unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(exmtrans('common.help_code'));
-        }else{
+        } else {
             $form->display('table_name', exmtrans("custom_table.table_name"));
         }
         $form->text('table_view_name', exmtrans("custom_table.table_view_name"))->required();
@@ -76,10 +77,10 @@ class CustomTableController extends AdminControllerBase
         // Authority setting --------------------------------------------------
         $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_TABLE);
         disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) use($id, $form) {
+        $form->tools(function (Form\Tools $tools) use ($id, $form) {
             $tools->disableView();
             // if edit mode
-            if($id != null){
+            if ($id != null) {
                 $model = CustomTable::findOrFail($id);
                 $tools->add((new Tools\GridChangePageMenu('table', $model, false))->render());
             }
@@ -96,7 +97,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if(!$this->validateTable($id, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($id, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);

@@ -14,19 +14,20 @@ class CopyMenuButton
     protected $custom_table;
     protected $id;
     
-    public function __construct($copy, $custom_table, $id = null){
+    public function __construct($copy, $custom_table, $id = null)
+    {
         $this->copy = $copy;
         $this->custom_table = $custom_table;
-        $this->id = $id;        
+        $this->id = $id;
     }
 
     protected function script($uuid)
     {
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
-        if(isset($this->id)){
+        if (isset($this->id)) {
             $url = admin_base_path(url_join("data", $table_name, $this->id, "copyClick"));
-        }else{
+        } else {
             $url = admin_base_path(url_join("data", $table_name, "copyClick"));
         }
         $confirm = trans('admin.confirm');
@@ -70,7 +71,8 @@ class CopyMenuButton
 EOT;
     }
 
-    protected function copyModalForm($copy_input_columns, $label, $uuid){
+    protected function copyModalForm($copy_input_columns, $label, $uuid)
+    {
         $from_table_view_name = $this->custom_table->table_view_name;
         $to_table_view_name = $this->copy->to_custom_table->table_view_name;
         $path = admin_base_path(url_join('data', $this->custom_table->table_name, $this->id, 'copyClick'));
@@ -83,7 +85,7 @@ EOT;
 
         // add form
         $form->description("この{$from_table_view_name}のデータをもとに、{$to_table_view_name}を作成します。<br/>作成する{$to_table_view_name}のデータに登録する、値を記入してください。");
-        foreach($copy_input_columns as $copy_input_column){
+        foreach ($copy_input_columns as $copy_input_column) {
             $field = FormHelper::getFormField($this->custom_table, $copy_input_column->to_custom_column, null);
             $form->push_Field($field);
         }
@@ -100,19 +102,19 @@ EOT;
 
         // get button_class
         $button_class = array_get($this->copy, 'button_class');
-        if(!isset($button_class)){
+        if (!isset($button_class)) {
             $button_class = 'btn-default';
         }
 
         // get label
-        if(!is_null(array_get($this->copy, 'options.label'))){
+        if (!is_null(array_get($this->copy, 'options.label'))) {
             $label = array_get($this->copy, 'options.label');
         }
 
         // get copy input fields
         $copy_input_columns = $this->copy->custom_copy_input_columns ?? [];
         // if has, create modalform
-        if(count($copy_input_columns) > 0){
+        if (count($copy_input_columns) > 0) {
             $form_html = $this->copyModalForm($copy_input_columns, $label, $uuid);
         }
 

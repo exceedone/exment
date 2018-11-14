@@ -1,13 +1,15 @@
 <?php
 
 namespace Exceedone\Exment\Form\Field;
+
 use Encore\Admin\Form\Field;
 
 class Description extends Field\Display
 {
     protected $view = 'exment::form.field.description';
 
-    public function __construct($label){
+    public function __construct($label)
+    {
         $this->label = $label;
     }
 

@@ -11,7 +11,8 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 {
     protected $table_name;
 
-    public function __construct($table_name, Grid $grid){
+    public function __construct($table_name, Grid $grid)
+    {
         $this->table_name = $table_name;
         parent::__construct($grid);
     }
@@ -47,18 +48,18 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         $buttons = [];
         // output formats
         $formats = [
-            'csv'  => 'CSV', 
+            'csv'  => 'CSV',
             'excel' => 'Excel',
         ];
 
-        foreach($formats as $format => $format_text){
+        foreach ($formats as $format => $format_text) {
             $buttons[$format] = [
                 'format_text' => $format_text,
                 'menulist' => [
                     ///// export
                     [
                         'action' => 'export',
-                        'label' => trans('admin.export'), 
+                        'label' => trans('admin.export'),
                         'items' =>[
                             ['href' => $this->grid->getExportUrl('all'), 'text' => $all, 'target' => '_blank'],
                             ['href' => $this->grid->getExportUrl('page', $page), 'text' => $currentPage, 'target' => '_blank'],
@@ -68,7 +69,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
                     ///// import
                     [
                         'action' => 'import',
-                        'label' => exmtrans('common.import'), 
+                        'label' => exmtrans('common.import'),
                         'items' =>[
                             ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
                             ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal'],
@@ -79,7 +80,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         }
 
         return view('exment::tools.exportimport-button', [
-            'buttons' => $buttons, 
+            'buttons' => $buttons,
         ]);
     }
 }

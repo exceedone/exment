@@ -14,7 +14,8 @@ class TemplateController extends AdminControllerBase
 {
     use InitializeForm;
         
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
         $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"));
     }
 
@@ -34,7 +35,8 @@ class TemplateController extends AdminControllerBase
     /**
      * create export box
      */
-    protected function exportBox(Content $content){
+    protected function exportBox(Content $content)
+    {
         $form = new \Encore\Admin\Widgets\Form();
         $form->disablePjax();
         $form->disableReset();
@@ -65,7 +67,8 @@ class TemplateController extends AdminControllerBase
     /**
      * create import box
      */
-    protected function importBox(Content $content){
+    protected function importBox(Content $content)
+    {
         $form = new \Encore\Admin\Widgets\Form();
         $form->disableReset();
         $form->action(admin_base_path('template/import'));
@@ -114,7 +117,7 @@ class TemplateController extends AdminControllerBase
      */
     public function import(Request $request)
     {
-        // upload template file and install 
+        // upload template file and install
         $this->uploadTemplate($request);
 
         // install templates selected tiles.
@@ -123,7 +126,6 @@ class TemplateController extends AdminControllerBase
         }
 
         admin_toastr(trans('admin.save_succeeded'));
-        return back();    
+        return back();
     }
-
 }

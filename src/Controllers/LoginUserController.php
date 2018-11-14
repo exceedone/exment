@@ -18,8 +18,9 @@ class LoginUserController extends AdminControllerBase
 {
     use ModelForm;
 
-    public function __construct(Request $request){
-        $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"));  
+    public function __construct(Request $request)
+    {
+        $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"));
     }
     
     /**
@@ -107,7 +108,7 @@ class LoginUserController extends AdminControllerBase
                     ])]);
 
         $form->disableReset();
-        $form->tools(function (Form\Tools $tools){
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
             $tools->disableDelete();
         });
@@ -179,7 +180,7 @@ class LoginUserController extends AdminControllerBase
                 $prms['user'] = $user->toArray()['value'];
                 $prms['user']['password'] = $password;
                 //if($is_newuser){
-                    MailSender::make('system_create_user', $user->value['email'])
+                MailSender::make('system_create_user', $user->value['email'])
                         ->prms($prms)
                         ->send();
                 //}

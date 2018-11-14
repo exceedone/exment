@@ -5,12 +5,12 @@ namespace Exceedone\Exment\Form\Widgets;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Facades\Admin;
 
-
 class ModalForm extends WidgetForm
-{    
+{
     use ModalTrait;
 
-    protected function script(){
+    protected function script()
+    {
         $formurl = $this->attributes['action']; // from url
         $id = $this->modalAttributes['id'];  // modal id
         $method = $this->attributes['method'];
@@ -131,7 +131,7 @@ EOT;
 
         // if has submit button, remove default submit, and add js submit button
         $submit = false;
-        if(in_array('submit', $this->buttons)){
+        if (in_array('submit', $this->buttons)) {
             $this->disableSubmit();
             $submit = true;
             $this->script();
@@ -140,8 +140,8 @@ EOT;
         // get form render
         $form_render = parent::render();
 
-        // get view 
-        return view('exment::widgets.modal',[
+        // get view
+        return view('exment::widgets.modal', [
             'header' => $this->modalHeader,
             'body' => $form_render,
             'submit' => $submit,

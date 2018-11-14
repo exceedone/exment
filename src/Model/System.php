@@ -72,8 +72,9 @@ class System extends ModelBase
 
     protected static function get_system_value($name, $setting)
     {
-        $config_key = static::getConfigKey($name);;
-        if(!is_null(getRequestSession($config_key))){
+        $config_key = static::getConfigKey($name);
+        ;
+        if (!is_null(getRequestSession($config_key))) {
             return getRequestSession($config_key);
         }
         $system = System::find($name);
@@ -139,7 +140,8 @@ class System extends ModelBase
         setRequestSession($config_key, $system->system_value);
     }
 
-    protected static function getConfigKey($name){
+    protected static function getConfigKey($name)
+    {
         return "setting.$name";
     }
 }

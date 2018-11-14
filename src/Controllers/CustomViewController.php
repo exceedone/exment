@@ -46,7 +46,7 @@ class CustomViewController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
@@ -64,7 +64,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -99,7 +99,7 @@ class CustomViewController extends AdminControllerTableBase
             $tools->append(new Tools\GridChangePageMenu('view', $this->custom_table, false));
         });
         return $grid;
-        }
+    }
 
     /**
      * Make a form builder.
@@ -121,32 +121,34 @@ class CustomViewController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         // columns setting
-        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function($form) use($custom_table){
+        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options(getColumnsSelectOptions($this->custom_table));
             $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-        })->setTableColumnWidth(6,4,2)
+        })->setTableColumnWidth(6, 4, 2)
         ->description(exmtrans("custom_view.description_custom_view_columns"));
 
         // filter setting
-        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function($form) use($custom_table){
+        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
             $form->select('view_filter_target', exmtrans("custom_view.view_filter_target"))->required()
                 ->options(getColumnsSelectOptions($this->custom_table, true))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_path(url_join('view', $custom_table->table_name, 'filter-condition'))])]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
-                ->options(function($val){
+                ->options(function ($val) {
                     // if null, return empty array.
-                    if(!isset($val)){return [];}
+                    if (!isset($val)) {
+                        return [];
+                    }
 
                     ///// To find filter condition array group, filter id
-                    foreach(Define::VIEW_COLUMN_FILTER_OPTIONS as $key => $filter_option_blocks){
+                    foreach (Define::VIEW_COLUMN_FILTER_OPTIONS as $key => $filter_option_blocks) {
                         // if match id, return $filter_option_blocks;
-                        if(!is_null(collect($filter_option_blocks)->first(function($array) use($val){
+                        if (!is_null(collect($filter_option_blocks)->first(function ($array) use ($val) {
                             return array_get($array, 'id') == $val;
-                        }))){
+                        }))) {
                             $options = collect($filter_option_blocks)->pluck('name', 'id');
-                            return collect($options)->map(function($name){
+                            return collect($options)->map(function ($name) {
                                 return exmtrans('custom_view.filter_condition_options.'.$name);
                             });
                         }
@@ -154,7 +156,7 @@ class CustomViewController extends AdminControllerTableBase
                     return [];
                 });
             $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"));
-        })->setTableColumnWidth(3,4,4,1)
+        })->setTableColumnWidth(3, 4, 4, 1)
         ->description(exmtrans("custom_view.description_custom_view_filters"));
 
         if (!isset($id)) {
@@ -177,15 +179,17 @@ class CustomViewController extends AdminControllerTableBase
     public function getFilterCondition(Request $request)
     {
         $view_filter_target = $request->get('q');
-        if(!isset($view_filter_target)){return [];}
+        if (!isset($view_filter_target)) {
+            return [];
+        }
 
         ///// get column_type
         $column_type = null;
         // if $view_filter_target is number, get database_column_type
-        if(is_numeric($view_filter_target)){
+        if (is_numeric($view_filter_target)) {
             // get column_type
             $database_column_type = CustomColumn::find($view_filter_target)->column_type;
-            switch($database_column_type){
+            switch ($database_column_type) {
                 case 'date':
                 case 'datetime':
                     $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DAY;
@@ -196,7 +200,7 @@ class CustomViewController extends AdminControllerTableBase
                 default:
                     $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DEFAULT;
             }
-        }else{
+        } else {
             switch ($view_filter_target) {
                 case 'id':
                 case 'suuid':
@@ -210,11 +214,13 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // if null, return []
-        if(!isset($column_type)){return [];}
+        if (!isset($column_type)) {
+            return [];
+        }
 
         // get target array
         $options = array_get(Define::VIEW_COLUMN_FILTER_OPTIONS, $column_type);
-        return collect($options)->map(function($array){
+        return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.filter_condition_options.'.array_get($array, 'name'))];
         });
     }

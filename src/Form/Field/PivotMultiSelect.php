@@ -10,8 +10,8 @@ class PivotMultiSelect extends MultipleSelect
     protected $view = 'admin::form.multipleselect';
     protected $pivot;
 
-    public function __construct($column, $arguments = array()){
-
+    public function __construct($column, $arguments = array())
+    {
         parent::__construct($column, $arguments);
         $this->pivot = [];
     }
@@ -43,8 +43,7 @@ class PivotMultiSelect extends MultipleSelect
         $value = parent::prepare($value);
 
         $newValue = [];
-        foreach ($value as $v)
-        {
+        foreach ($value as $v) {
             $newValue[$v] = $this->pivot;
         }
 

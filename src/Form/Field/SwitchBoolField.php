@@ -42,10 +42,9 @@ class SwitchBoolField extends Field
 
     public function render()
     {
-        if(is_null($this->value())){
+        if (is_null($this->value())) {
             $this->value = 0;
-        }
-        else{
+        } else {
             foreach ($this->states as $state => $option) {
                 if (boolval($this->value()) == boolval($option['value'])) {
                     $this->value = $state;

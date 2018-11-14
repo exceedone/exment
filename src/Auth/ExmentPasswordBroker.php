@@ -28,7 +28,7 @@ class ExmentPasswordBroker extends PasswordBroker
 
         $user = LoginUser
             ::with('base_user')
-            ->whereHas('base_user', function($query) use($credentials){
+            ->whereHas('base_user', function ($query) use ($credentials) {
                 $query->where('value->email', array_get($credentials, 'email'));
             })->first();
 
@@ -38,5 +38,4 @@ class ExmentPasswordBroker extends PasswordBroker
 
         return $user;
     }
-    
 }

@@ -13,8 +13,9 @@ class MailTemplateController extends AdminControllerBase
 {
     use ModelForm;
 
-    public function __construct(Request $request){
-        $this->setPageInfo(exmtrans("mail_template.header"), exmtrans("mail_template.header"), exmtrans("mail_template.description"));  
+    public function __construct(Request $request)
+    {
+        $this->setPageInfo(exmtrans("mail_template.header"), exmtrans("mail_template.header"), exmtrans("mail_template.description"));
     }
 
     /**
@@ -72,7 +73,7 @@ class MailTemplateController extends AdminControllerBase
         $form->textarea('mail_body', exmtrans("mail_template.mail_body"))->rows(10)
             ->help(exmtrans("mail_template.help.mail_body"));
         disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools){
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
         });
         return $form;

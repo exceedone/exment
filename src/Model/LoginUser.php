@@ -25,13 +25,16 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         return $this->belongsTo(getModelName(Define::SYSTEM_TABLE_NAME_USER), 'base_user_id');
     }
 
-    public function getUserNameAttribute(){
+    public function getUserNameAttribute()
+    {
         return $this->base_user->value['user_name'] ?? null;
     }
-    public function getUserCodeAttribute(){
+    public function getUserCodeAttribute()
+    {
         return $this->base_user->value['user_code'] ?? null;
     }
-    public function getEmailAttribute(){
+    public function getEmailAttribute()
+    {
         return $this->base_user->value['email'] ?? null;
     }
 }

@@ -9,7 +9,8 @@ class ExcelImporter extends DataImporterBase
 {
     protected $accept_extension = 'xlsx';
 
-    protected function getDataTable($request){
+    protected function getDataTable($request)
+    {
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($request->file('custom_table_file')->getRealPath());
         $sheet = $spreadsheet->getActiveSheet();
@@ -17,5 +18,5 @@ class ExcelImporter extends DataImporterBase
         // read cell
         //$sheet = $reader->getSheet();
         return getDataFromSheet($sheet);
-    }    
+    }
 }

@@ -11,19 +11,27 @@ trait ExmentControllerTrait
     protected $header;
     protected $description;
     
-    protected function setPageInfo($title = null, $header = null, $description = null){
-        if(isset($header)){ $this->header = $header; }
-        if(isset($description)){ $this->description = $description; }
-        if(isset($title)){ $this->title = $title; }
+    protected function setPageInfo($title = null, $header = null, $description = null)
+    {
+        if (isset($header)) {
+            $this->header = $header;
+        }
+        if (isset($description)) {
+            $this->description = $description;
+        }
+        if (isset($title)) {
+            $this->title = $title;
+        }
 
         // set admin.config
-        if(isset($this->title)){
+        if (isset($this->title)) {
             Config::set('admin.title', $this->title);
         }
     }
 
-    protected function AdminContent($content){
-        if(isset($this->header)){
+    protected function AdminContent($content)
+    {
+        if (isset($this->header)) {
             $content->header($this->header);
         }
         if (isset($this->description)) {
@@ -31,5 +39,4 @@ trait ExmentControllerTrait
         }
         return $content;
     }
-    
 }

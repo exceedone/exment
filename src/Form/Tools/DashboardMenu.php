@@ -10,7 +10,8 @@ class DashboardMenu
 {
     protected $current_dashboard;
 
-    public function __construct($current_dashboard){
+    public function __construct($current_dashboard)
+    {
         $this->current_dashboard = $current_dashboard;
     }
 
@@ -22,10 +23,10 @@ class DashboardMenu
         // get dashboard list
         $dashboards = Dashboard::all();
 
-        foreach($dashboards as $d){
+        foreach ($dashboards as $d) {
             if ($d->dashboard_type == Define::VIEW_COLUMN_TYPE_SYSTEM) {
                 $systemdashboards[] = $d->toArray();
-            }else{
+            } else {
                 $userdashboards[] = $d->toArray();
             }
         }
@@ -40,7 +41,7 @@ class DashboardMenu
         }
         return view('exment::dashboard.header', [
             'current_dashboard' => $this->current_dashboard,
-            'systemdashboards' => $systemdashboards, 
+            'systemdashboards' => $systemdashboards,
             'userdashboards' => $userdashboards,
             'settings' => $settings,
             'base_uri' => admin_base_path('')

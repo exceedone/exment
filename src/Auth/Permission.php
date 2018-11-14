@@ -36,15 +36,18 @@ class Permission
         $this->authorities = array_get($attributes, 'authorities');
     }
 
-    public function getAuthorityType(){
+    public function getAuthorityType()
+    {
         return $this->authority_type;
     }
 
-    public function getTableName(){
+    public function getTableName()
+    {
         return $this->table_name;
     }
 
-    public function getAuthorities(){
+    public function getAuthorities()
+    {
         return $this->authorities;
     }
 
@@ -73,14 +76,14 @@ class Permission
     public function shouldPass($endpoint) : bool
     {
         // if system doesn't use authority, return true
-        if(!System::authority_available()){
+        if (!System::authority_available()) {
             return true;
         }
 
-        if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM && array_key_exists(Define::AUTHORITY_TYPE_SYSTEM, $this->authorities)){
+        if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM && array_key_exists(Define::AUTHORITY_TYPE_SYSTEM, $this->authorities)) {
             return true;
         }
-        switch($endpoint){
+        switch ($endpoint) {
             case "":
             case "/":
             case "index":
@@ -98,68 +101,68 @@ class Permission
             case "loginuser":
             case "auth/menu":
             case "notify":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_key_exists('system', $this->authorities);
                 }
                 return false;
             case "table":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_key_exists('custom_table', $this->authorities);
                 }
                 return array_key_exists('custom_table', $this->authorities);
             case "column":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_key_exists('custom_table', $this->authorities);
                 }
                 // check endpoint name and checking table_name.
-                if(!$this->matchEndPointTable(null)){
+                if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
                 return array_key_exists('custom_table', $this->authorities);
             case "relation":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_key_exists('custom_table', $this->authorities);
                 }
                 // check endpoint name and checking table_name.
-                if(!$this->matchEndPointTable(null)){
+                if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
                 return array_key_exists('custom_table', $this->authorities);
             case "form":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_key_exists('custom_form', $this->authorities);
                 }
                 // check endpoint name and checking table_name.
-                if(!$this->matchEndPointTable(null)){
+                if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
                 return array_key_exists('custom_form', $this->authorities);
             case "view":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
                 }
                 // check endpoint name and checking table_name.
-                if(!$this->matchEndPointTable()){
+                if (!$this->matchEndPointTable()) {
                     return false;
                 }
                return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
             case "data":
-                if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                     return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);
                 }
                 // check endpoint name and checking table_name.
-                if(!$this->matchEndPointTable($endpoint)){
+                if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
                 return array_keys_exists(Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
         }
         // if find endpoint "data/", check as data
-        if(strpos($endpoint, 'data/') !== false){
-            if($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM){
+        if (strpos($endpoint, 'data/') !== false) {
+            if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
                 return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);
             }
             // check endpoint name and checking table_name.
-            if(!$this->matchEndPointTable($endpoint)){
+            if (!$this->matchEndPointTable($endpoint)) {
                 return false;
             }
             return array_keys_exists(Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
@@ -173,33 +176,31 @@ class Permission
      * @param Request $request
      * @return mixed
      */
-    protected function getEndPoint(Request $request){
+    protected function getEndPoint(Request $request)
+    {
         // remove admin url from request url.
         $url = str_replace(admin_url(), '', $request->url());
         
         ///// get last url.
         $uris = explode("/", $url);
-        foreach ($uris as $k => $uri)
-        {
-            if(!isset($uri) || mb_strlen($uri) == 0){
+        foreach ($uris as $k => $uri) {
+            if (!isset($uri) || mb_strlen($uri) == 0) {
                 continue;
             }
 
             // if $uri is "auth", get next uri.
-            if(in_array($uri, ['data', 'auth'])){
+            if (in_array($uri, ['data', 'auth'])) {
                 // but url is last item, return $uri.
-                if(count($uris) <= $k+1){
+                if (count($uris) <= $k+1) {
                     return $uri;
                 }
                 // return $uri adding next item.
                 return url_join($uri, $uris[$k+1]);
-            }
-            else{
+            } else {
                 return $uri;
             }
         }
         return "";
-
     }
 
     /**
@@ -207,10 +208,13 @@ class Permission
      * @param Request $request
      * @return mixed
      */
-    protected function matchEndPointTable($endpoint){
+    protected function matchEndPointTable($endpoint)
+    {
         // Get Endpoint
         $table = getEndpointTable($endpoint);
-        if(!isset($table)){return false;}
+        if (!isset($table)) {
+            return false;
+        }
         // check endpoint name and checking table_name.
         return $this->table_name == $table->table_name;
     }

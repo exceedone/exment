@@ -70,9 +70,9 @@ class AuthorityController extends AdminControllerBase
     {
         $form = new Form(new Authority);
         // get authority_type query or post value
-        if(isset($id)){
-            $authority_type = Authority::find($id)->authority_type;    
-        }else{
+        if (isset($id)) {
+            $authority_type = Authority::find($id)->authority_type;
+        } else {
             $authority_type = \Illuminate\Support\Facades\Request::get('authority_type');
             if (!isset($authority_type)) {
                 $authority_type = \Illuminate\Support\Facades\Request::query('authority_type');
@@ -103,7 +103,7 @@ class AuthorityController extends AdminControllerBase
             }
         });
         disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools){
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
         });
         return $form;

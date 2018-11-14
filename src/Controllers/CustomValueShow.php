@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
-
 trait CustomValueShow
 {
     /**
@@ -43,7 +42,7 @@ trait CustomValueShow
                                     if (is_null($this)) {
                                         return '';
                                     }
-                                    if($isUrl){
+                                    if ($isUrl) {
                                         return getUrl($this, $column, true);
                                     }
                                     return $this->getValue($column, true);
@@ -66,14 +65,14 @@ trait CustomValueShow
                     }
                 }
                 ////// relation block
-                else{
+                else {
                     // if modal, dont show children
-                    if($modal){
+                    if ($modal) {
                         continue;
                     }
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function($grid) use($custom_form_block, $target_table){
+                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table) {
                         $custom_view = CustomView::getDefault($target_table);
                         $custom_view->setGrid($grid);
                         
@@ -92,14 +91,14 @@ trait CustomValueShow
             }
 
             // show document list
-            if(isset($id)){
+            if (isset($id)) {
                 $documents = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
                     ::where('parent_id', $id)
                     ->where('parent_type', $this->custom_table->table_name)
                     ->get();
                 // loop and add as link
-                foreach($documents as $index => $d){
-                    $show->field('document_'.array_get($d, 'id'), '書類')->as(function($v) use($d){
+                foreach ($documents as $index => $d) {
+                    $show->field('document_'.array_get($d, 'id'), '書類')->as(function ($v) use ($d) {
                         $link = '<a href="'.admin_base_path(url_join('files', $d->getValue('file_uuid', true))).'" target="_blank">'. $d->getValue('document_name').'</a>';
                         $comment = "<small>(作成日：".$d->created_at." 作成者：".$d->created_user.")</small>";
                         return $link.$comment;
@@ -116,7 +115,7 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            if($modal){
+            if ($modal) {
                 $show->panel()->tools(function ($tools) {
                     $tools->disableList();
                     $tools->disableDelete();

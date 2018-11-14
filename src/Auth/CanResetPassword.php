@@ -28,6 +28,6 @@ trait CanResetPassword
             ->prms([
                 'system.password_reset_url' => admin_url("auth/reset/".$token)
             ])
-            ->send();        
+            ->send();
     }
 }

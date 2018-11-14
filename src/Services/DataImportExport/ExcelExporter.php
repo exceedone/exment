@@ -27,7 +27,7 @@ class ExcelExporter extends DataExporterBase
             'Content-Type'        => 'application/vnd.ms-excel',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
-        response()->stream(function () use($writer){
+        response()->stream(function () use ($writer) {
             $writer->save('php://output');
         }, 200, $res_headers)->send();
         exit;

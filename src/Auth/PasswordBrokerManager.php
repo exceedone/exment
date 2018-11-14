@@ -20,5 +20,4 @@ class PasswordBrokerManager extends \Illuminate\Auth\Passwords\PasswordBrokerMan
             $this->app['auth']->createUserProvider($config['provider'])
         );
     }
-
 }

@@ -14,7 +14,8 @@ class SystemController extends AdminControllerBase
 {
     use InitializeForm, AuthorityForm;
     
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
         $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"));
     }
 
@@ -53,7 +54,7 @@ class SystemController extends AdminControllerBase
             authorityLoop(Define::AUTHORITY_TYPE_SYSTEM, function ($authority, $related_type) use ($request) {
                 $values = $request->input(getAuthorityName($authority, $related_type));
                 // array_filter
-                $values = array_filter($values, function($k){
+                $values = array_filter($values, function ($k) {
                     return isset($k);
                 });
                 if (!isset($values)) {
@@ -87,8 +88,8 @@ class SystemController extends AdminControllerBase
                 }
 
                 ///// Delete if not exists value
-                foreach($dbValues as $dbValue){
-                    if (!collect($values)->first(function ($value, $k) use($dbValue) {
+                foreach ($dbValues as $dbValue) {
+                    if (!collect($values)->first(function ($value, $k) use ($dbValue) {
                         return $dbValue->related_id == $value;
                     })) {
                         DB::table('system_authoritable')

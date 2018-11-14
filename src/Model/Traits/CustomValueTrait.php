@@ -1,17 +1,19 @@
 <?php
 
 namespace Exceedone\Exment\Model\Traits;
+
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
 
 trait CustomValueTrait
-{       
+{
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
-    protected static function regetOriginalData($model){
+    protected static function regetOriginalData($model)
+    {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
-        // because on value edit display, if before upload file and not upload again, don't post value. 
+        // because on value edit display, if before upload file and not upload again, don't post value.
         $value = $model->value;
         $original = json_decode($model->getOriginal('value'), true);
         // get  columns
@@ -25,14 +27,14 @@ trait CustomValueTrait
         foreach ($file_columns as $file_column) {
 
             // if not set, set from original
-            if(!array_key_value_exists($file_column, $value)) {
+            if (!array_key_value_exists($file_column, $value)) {
                 // if column has $remove_file_columns, continue.
                 // property "$remove_file_columns" uses user wants to delete file
-                if(in_array($file_column, $model->remove_file_columns())){
+                if (in_array($file_column, $model->remove_file_columns())) {
                     continue;
                 }
 
-                if(array_key_value_exists($file_column, $original)){
+                if (array_key_value_exists($file_column, $original)) {
                     $value[$file_column] = array_get($original, $file_column);
                     $update_flg = true;
                 }
@@ -45,10 +47,11 @@ trait CustomValueTrait
     }
 
     // set auto number --------------------------------------------------
-    protected static function setAutoNumber($model){
+    protected static function setAutoNumber($model)
+    {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
-        // because on value edit display, if before upload file and not upload again, don't post value. 
+        // because on value edit display, if before upload file and not upload again, don't post value.
         $value = $model->value;
         $id = $model->id;
         // get image and file columns
@@ -65,7 +68,7 @@ trait CustomValueTrait
                 // if column type is auto_number, set auto number.
                 case 'auto_number':
                     // already set value, break
-                    if(!is_null($model->getValue($column_name))){
+                    if (!is_null($model->getValue($column_name))) {
                         break;
                     }
                     $options = $custom_column->options;
@@ -101,7 +104,8 @@ trait CustomValueTrait
     /**
      * Create Auto Number value using format.
      */
-    protected static function createAutoNumberFormat($model, $id, $options){
+    protected static function createAutoNumberFormat($model, $id, $options)
+    {
         // get format
         $format = array_get($options, "auto_number_format");
         try {
@@ -110,7 +114,7 @@ trait CustomValueTrait
             if (isset($matches)) {
                 // loop for matches. because we want to get inner {}, loop $matches[1].
                 for ($i = 0; $i < count($matches[1]); $i++) {
-                    try{
+                    try {
                         $match = strtolower($matches[1][$i]);
                     
                         // get length
@@ -171,12 +175,11 @@ trait CustomValueTrait
                             }
                             $format = str_replace($matches[0][$i], $str, $format);
                         }
-                    } catch(Exception $e) {
+                    } catch (Exception $e) {
                     }
                 }
             }
-        } catch(Exception $e) {
-
+        } catch (Exception $e) {
         }
         return $format;
     }
@@ -185,12 +188,13 @@ trait CustomValueTrait
      * get Authoritable values.
      * this function selects value_authoritable, and get all values.
      */
-    public function getAuthoritable($related_type){
-        if($related_type == Define::SYSTEM_TABLE_NAME_USER){
+    public function getAuthoritable($related_type)
+    {
+        if ($related_type == Define::SYSTEM_TABLE_NAME_USER) {
             $query = $this
             ->value_authoritable_users()
             ->where('related_id', Admin::user()->base_user_id);
-        }else if($related_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION){
+        } elseif ($related_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
             $query = $this
             ->value_authoritable_organizations()
             ->whereIn('related_id', Admin::user()->getOrganizationIds());
@@ -199,20 +203,26 @@ trait CustomValueTrait
         return $query->get();
     }
 
-    public function getValue($column = null, $label = false){
+    public function getValue($column = null, $label = false)
+    {
         return getValue($this, $column, $label);
     }
-    public function setValue($key, $val = null){
-        if(!isset($key)){return;}
+    public function setValue($key, $val = null)
+    {
+        if (!isset($key)) {
+            return;
+        }
         // if key is array, loop key value
-        if(is_array($key)){
-            foreach($key as $k => $v){
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
                 $this->setValue($k, $v);
             }
             return $this;
         }
         $value = $this->value;
-        if(is_null($value)){$value = [];}
+        if (is_null($value)) {
+            $value = [];
+        }
         $value[$key] = $val;
         $this->value = $value;
 
@@ -222,15 +232,14 @@ trait CustomValueTrait
     /**
      * get target custom_value's link url
      */
-    public function getUrl($tag = false){
+    public function getUrl($tag = false)
+    {
         $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
-        if(!$tag){
+        if (!$tag) {
             return $url;
         }
         $url .= '?modal=1';
         $label = $this->getValue(null, true);
         return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
     }
-
-
 }

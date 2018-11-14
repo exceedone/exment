@@ -24,7 +24,8 @@ class DashboardBoxController extends AdminControllerBase
     protected $row_no;
     protected $column_no;
 
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
     }
 
@@ -42,39 +43,40 @@ class DashboardBoxController extends AdminControllerBase
     {
         // get suuid
         $box = DashBoardBox::findBySuuid($suuid);
-        if(isset($box)){
+        if (isset($box)) {
             $box->delete();
             return response()->json([
                 'status'  => true,
                 'message' => trans('admin.delete_succeeded'),
-            ]); 
-        }else{
+            ]);
+        } else {
             return response()->json([
                 'status'  => false,
                 'message' => trans('admin.delete_failed'),
-            ]);   
+            ]);
         }
     }
     
     /**
      * get box html from ajax
      */
-    public function getHtml($suuid){
+    public function getHtml($suuid)
+    {
         // get dashboardbox object
         $box = DashBoardBox::findBySuuid($suuid);
         
         // get box html --------------------------------------------------
         $html = null;
-        if(isset($box)){
-            // swicth dashboard_box_type 
-            switch($box->dashboard_box_type){
+        if (isset($box)) {
+            // swicth dashboard_box_type
+            switch ($box->dashboard_box_type) {
                 // system
                 case Define::DASHBOARD_BOX_TYPE_SYSTEM:
                     // get id match item
-                    $item = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function($value) use($box){
+                    $item = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($box) {
                         return array_get($value, 'id') == array_get($box, 'options.target_system_id');
                     });
-                    if(isset($item)){
+                    if (isset($item)) {
                         $html = view('exment::dashboard.system.'.array_get($item, 'name'))->render() ?? null;
                     }
                     break;
@@ -89,15 +91,15 @@ class DashboardBoxController extends AdminControllerBase
                     $view = CustomView::find($view_id);
                     
                     // if table not found, break
-                    if(!isset($table)){
+                    if (!isset($table)) {
                         break;
                     }
 
                     // if view not found, set view first data
-                    if(!isset($view)){
+                    if (!isset($view)) {
                         $view = $table->custom_views()->first();
                     }
-                    if(!isset($view)){
+                    if (!isset($view)) {
                         break;
                     }
 
@@ -121,7 +123,7 @@ class DashboardBoxController extends AdminControllerBase
                     break;
             }
         }
-        // get dashboard box 
+        // get dashboard box
         return [
             'html' => $html,
             'suuid' => $suuid,
@@ -138,11 +140,11 @@ class DashboardBoxController extends AdminControllerBase
     {
         $form = new Form(new DashboardBox);
         // set info with query --------------------------------------------------
-        // get request 
+        // get request
         $request = Request::capture();
         // get dashboard, row_no, column_no, ... from query "dashboard_suuid"
         list($dashboard, $dashboard_box_type, $row_no, $column_no) = $this->getDashboardInfo($id);
-        if(!isset($dashboard)){
+        if (!isset($dashboard)) {
             return redirect(admin_base_path(''));
         }
 
@@ -161,9 +163,9 @@ class DashboardBoxController extends AdminControllerBase
         $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->required();
         
         // Option Setting --------------------------------------------------
-        $form->embeds('options', function($form) use($dashboard_box_type){
+        $form->embeds('options', function ($form) use ($dashboard_box_type) {
             //$dashboard_box_type is list
-            switch($dashboard_box_type){
+            switch ($dashboard_box_type) {
                 case Define::DASHBOARD_BOX_TYPE_LIST:
                     $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
                         ->required()
@@ -172,8 +174,10 @@ class DashboardBoxController extends AdminControllerBase
 
                     $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
                         ->required()
-                        ->options(function($value){
-                            if(!isset($value)){return [];}
+                        ->options(function ($value) {
+                            if (!isset($value)) {
+                                return [];
+                            }
 
                             return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
                         });
@@ -183,8 +187,8 @@ class DashboardBoxController extends AdminControllerBase
                 case Define::DASHBOARD_BOX_TYPE_SYSTEM:
                     // show system item list
                     $options = [];
-                    foreach(Define::DASHBOARD_BOX_SYSTEM_PAGES as $page){
-                        $options[array_get($page, 'id')] = exmtrans('dashboard.dashboard_box_system_pages.'.array_get($page, 'name')); 
+                    foreach (Define::DASHBOARD_BOX_SYSTEM_PAGES as $page) {
+                        $options[array_get($page, 'id')] = exmtrans('dashboard.dashboard_box_system_pages.'.array_get($page, 'name'));
                     }
                     $form->select('target_system_id', exmtrans("dashboard.dashboard_box_options.target_system_id"))
                         ->required()
@@ -193,7 +197,7 @@ class DashboardBoxController extends AdminControllerBase
             }
         })->disableHeader();
         disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) use($id, $form) {
+        $form->tools(function (Form\Tools $tools) use ($id, $form) {
             $tools->disableView();
             $tools->disableList();
 
@@ -206,68 +210,72 @@ class DashboardBoxController extends AdminControllerBase
     /**
      * get dashboard info using id, or query
      */
-    protected function getDashboardInfo($id){
+    protected function getDashboardInfo($id)
+    {
         // set info with query --------------------------------------------------
-        // get request 
+        // get request
         $request = Request::capture();
-            // get dashboard_id from query "dashboard_suuid"
-            if(isset($id)){
-                $dashboard_box = DashboardBox::find($id);
-                $dashboard = $dashboard_box->dashboard;
-                return [$dashboard, $dashboard_box->dashboard_box_type, $dashboard_box->row_no, $dashboard_box->column_no];
-            }
+        // get dashboard_id from query "dashboard_suuid"
+        if (isset($id)) {
+            $dashboard_box = DashboardBox::find($id);
+            $dashboard = $dashboard_box->dashboard;
+            return [$dashboard, $dashboard_box->dashboard_box_type, $dashboard_box->row_no, $dashboard_box->column_no];
+        }
             
-            if(!is_null($request->input('dashboard_id'))){
-                $dashboard = Dashboard::find($request->input('dashboard_id'));
-            }else{
-                // get dashboard_suuid from query
-                $dashboard_suuid = $request->query('dashboard_suuid');
-                if(!isset($dashboard_suuid)){
-                    return [null, null, null, null];
-                }
-                $dashboard = Dashboard::findBySuuid($dashboard_suuid) ?? null;  
-            }
-            if(!isset($dashboard)){
+        if (!is_null($request->input('dashboard_id'))) {
+            $dashboard = Dashboard::find($request->input('dashboard_id'));
+        } else {
+            // get dashboard_suuid from query
+            $dashboard_suuid = $request->query('dashboard_suuid');
+            if (!isset($dashboard_suuid)) {
                 return [null, null, null, null];
             }
+            $dashboard = Dashboard::findBySuuid($dashboard_suuid) ?? null;
+        }
+        if (!isset($dashboard)) {
+            return [null, null, null, null];
+        }
 
-            if(!is_null($request->input('dashboard_box_type'))){
-                $dashboard_box_type = $request->input('dashboard_box_type');
-            }else{
-                // get dashboard_box_type from query
-                $dashboard_box_type = $request->query('dashboard_box_type');
-            }
+        if (!is_null($request->input('dashboard_box_type'))) {
+            $dashboard_box_type = $request->input('dashboard_box_type');
+        } else {
+            // get dashboard_box_type from query
+            $dashboard_box_type = $request->query('dashboard_box_type');
+        }
 
-            // row_no
-            if(!is_null($request->input('row_no'))){
-                $row_no = $request->input('row_no');
-            }else{
-                // get from query
-                $row_no = $request->query('row_no');
-            }
+        // row_no
+        if (!is_null($request->input('row_no'))) {
+            $row_no = $request->input('row_no');
+        } else {
+            // get from query
+            $row_no = $request->query('row_no');
+        }
 
-            // column_no
-            if(!is_null($request->input('column_no'))){
-                $column_no = $request->input('column_no');
-            }else{
-                // get from query
-                $column_no = $request->query('column_no');
-            }
-            return [$dashboard, $dashboard_box_type, $row_no, $column_no];
-    } 
+        // column_no
+        if (!is_null($request->input('column_no'))) {
+            $column_no = $request->input('column_no');
+        } else {
+            // get from query
+            $column_no = $request->query('column_no');
+        }
+        return [$dashboard, $dashboard_box_type, $row_no, $column_no];
+    }
     
     /**
      * get views using table id
      * @param mixed custon_table id
      */
-    public function tableViews(Request $request){
+    public function tableViews(Request $request)
+    {
         $id = $request->get('q');
-        if(!isset($id)){return [];}
+        if (!isset($id)) {
+            return [];
+        }
         // get custom views
         $custom_table = CustomTable::find($id);
         $views = $custom_table->custom_views()->get(['id', 'view_view_name as text']);
         // if count > 0, return value.
-        if(!is_null($views) && count($views) > 0){
+        if (!is_null($views) && count($views) > 0) {
             return $views;
         }
 

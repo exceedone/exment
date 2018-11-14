@@ -18,7 +18,8 @@ class NotifyController extends AdminControllerBase
 {
     use ModelForm;
 
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"));
     }
 
@@ -31,10 +32,10 @@ class NotifyController extends AdminControllerBase
     {
         $grid = new Grid(new Notify);
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
-        $grid->column('custom_table_id', exmtrans("notify.custom_table_id"))->sortable()->display(function($val){
+        $grid->column('custom_table_id', exmtrans("notify.custom_table_id"))->sortable()->display(function ($val) {
             return CustomTable::find($val)->table_view_name;
         });
-        $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function($val){
+        $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function ($val) {
             return array_get(getTransArrayValue(Define::NOTIFY_TRIGGER, 'notify.notify_trigger_options'), $val);
         });
 
@@ -59,13 +60,14 @@ class NotifyController extends AdminControllerBase
         $form->header(exmtrans('notify.header_trigger'))->hr();
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
         ->required()
-        ->options(function($custom_table_id){
+        ->options(function ($custom_table_id) {
             return CustomTable::filterList()->pluck('table_view_name', 'id');
         })->attribute(['data-linkage' => json_encode(
             [
                 'trigger_settings_notify_target_column' =>  admin_base_path('notify/targetcolumn'),
                 'action_settings_notify_action_target' => admin_base_path('notify/notify_action_target'),
-            ])
+            ]
+        )
         ])
         ->help(exmtrans("notify.help.custom_table_id"));
 
@@ -75,9 +77,9 @@ class NotifyController extends AdminControllerBase
             ->required()
             ->help(exmtrans("notify.help.notify_trigger"));
 
-        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form){
-            $form->select('notify_target_column', exmtrans("notify.notify_target_column"))->options(function($val){
-                if(isset($val)){
+        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) {
+            $form->select('notify_target_column', exmtrans("notify.notify_target_column"))->options(function ($val) {
+                if (isset($val)) {
                     return CustomColumn::find($val)->custom_table->custom_columns()->pluck('column_view_name', 'id');
                 }
                 return [];
@@ -104,7 +106,7 @@ class NotifyController extends AdminControllerBase
             ->help(exmtrans("notify.notify_action"))
             ;
 
-        $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form){
+        $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
             $form->select('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(getTransArray(Define::NOTIFY_ACTION_TARGET, 'notify.notify_action_target_options'))
                 ->default('1')
@@ -114,14 +116,14 @@ class NotifyController extends AdminControllerBase
             // get notify mail template
             $notify_mail_id = MailTemplate::where('mail_name', 'system_notify')->first()->id;
 
-            $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function($val){
+            $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
                 return MailTemplate::all()->pluck('mail_view_name', 'id');
             })->help(exmtrans("notify.help.mail_template_id"))
             ->default($notify_mail_id);
         })->disableHeader();
         
         disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools){
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
         });
         return $form;
@@ -142,13 +144,14 @@ class NotifyController extends AdminControllerBase
         $table_id = $request->get('q');
         $array = getTransArray(Define::NOTIFY_ACTION_TARGET, 'notify.notify_action_target_options');
         $changedatas = [];
-        foreach($array as $k => $v){
+        foreach ($array as $k => $v) {
             $changedatas[] = ['id' => $k, 'text' => $v];
         }
-        $changedatas = array_merge($changedatas,  CustomColumn
+        $changedatas = array_merge($changedatas, CustomColumn
             ::where('custom_table_id', $table_id)
             ->whereIn('column_type', [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])
-            ->get(['id', DB::raw('column_view_name as text')]
+            ->get(
+                ['id', DB::raw('column_view_name as text')]
             )->toArray());
 
         return $changedatas;

@@ -92,7 +92,9 @@ class ResetPasswordController extends Controller
         // database. Otherwise we will parse the error and return the response.
         $broker = $this->broker();
         $array = $request->only(
-            'password', 'password_confirmation', 'token'
+            'password',
+            'password_confirmation',
+            'token'
         );
         $array['email'] = $request->get('email');
         $response = $broker->reset(
@@ -102,7 +104,7 @@ class ResetPasswordController extends Controller
             }
         );
 
-        if($response == Password::PASSWORD_RESET){
+        if ($response == Password::PASSWORD_RESET) {
             admin_toastr(trans('admin.update_succeeded'));
         }
         // If the password was successfully reset, we will redirect the user back to

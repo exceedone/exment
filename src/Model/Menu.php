@@ -41,12 +41,12 @@ class Menu extends AdminMenu
         // get all menu, custom table, plugin table.
         $query = DB::table("{$this->getTable()} as m")
             // join table
-            ->leftJoin(CustomTable::getTableName()." as c", function($join){
+            ->leftJoin(CustomTable::getTableName()." as c", function ($join) {
                 $join->where("m.menu_type", Define::MENU_TYPE_TABLE);
                 $join->on("m.menu_target", "c.id");
             })
             // join plugin
-            ->leftJoin(Plugin::getTableName()." as p", function($join){
+            ->leftJoin(Plugin::getTableName()." as p", function ($join) {
                 $join->where("m.menu_type", Define::MENU_TYPE_PLUGIN);
                 $join->on("m.menu_target", "p.id");
             })
@@ -64,26 +64,25 @@ class Menu extends AdminMenu
                 'c.icon AS table_icon',
                 'p.id AS plugin_id',
                 'p.plugin_name'])->map(function ($item, $key) {
-            return (array) $item;
-        })
+                    return (array) $item;
+                })
         ->all();
 
-        foreach ($rows as &$row)
-        {
-            switch($row['menu_type']){
-                case Define::MENU_TYPE_PLUGIN;
+        foreach ($rows as &$row) {
+            switch ($row['menu_type']) {
+                case Define::MENU_TYPE_PLUGIN:
                     //$row['icon'] = null;
                     $row['uri'] = 'plugins/'.$row['uri'];;
                     break;
-                case Define::MENU_TYPE_TABLE;
-                    $row['icon'] = array_get($row,'table_icon');
+                case Define::MENU_TYPE_TABLE:
+                    $row['icon'] = array_get($row, 'table_icon');
                     $row['uri'] = 'data/'.$row['table_name'];
                     break;
-                case Define::MENU_TYPE_SYSTEM;
+                case Define::MENU_TYPE_SYSTEM:
                     $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_name']);
                     // if not set menu icon, set Define's default icon.
-                    if(is_nullorempty($row['icon'])){
-                        $row['icon'] = array_get($defines,'icon');
+                    if (is_nullorempty($row['icon'])) {
+                        $row['icon'] = array_get($defines, 'icon');
                     }
                     $row['uri'] = array_get($defines, "uri");
                     break;

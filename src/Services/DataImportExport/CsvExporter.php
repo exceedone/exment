@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
-
 class CsvExporter extends DataExporterBase
 {
     /**
@@ -20,7 +19,7 @@ class CsvExporter extends DataExporterBase
         // get output table
         $outputs = $this->getDataTable();
 
-        response()->stream(function () use($outputs){
+        response()->stream(function () use ($outputs) {
             // create csv
             $handle = fopen('php://output', 'w');
             foreach ($outputs as $output) {

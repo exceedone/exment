@@ -1,17 +1,19 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Encore\Admin\Facades\Admin;
 
 class CustomValue extends ModelBase
-{        
+{
     use Traits\CustomValueTrait;
     use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
 
-    public function getLabelAttribute(){
+    public function getLabelAttribute()
+    {
         return getLabel($this);
     }
 
@@ -22,7 +24,8 @@ class CustomValue extends ModelBase
     protected $remove_file_columns = [];
 
     // user value_authoritable. it's all authority data. only filter  morph_type
-    public function value_authoritable_users(){
+    public function value_authoritable_users()
+    {
         return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
             ->withPivot('related_id', 'related_type')
             ->wherePivot('related_type', Define::SYSTEM_TABLE_NAME_USER)
@@ -30,26 +33,30 @@ class CustomValue extends ModelBase
     }
 
     // user value_authoritable. it's all authority data. only filter  morph_type
-    public function value_authoritable_organizations(){
+    public function value_authoritable_organizations()
+    {
         return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
             ->withPivot('related_id', 'related_type')
             ->wherePivot('related_type', Define::SYSTEM_TABLE_NAME_ORGANIZATION)
             ;
     }
 
-    public function getCustomTable(){
+    public function getCustomTable()
+    {
         return CustomTable::findByDBTableName($this->getTable());
     }
 
-    public function parent_custom_value(){
+    public function parent_custom_value()
+    {
         return $this->morphTo();
     }
     /**
      * get or set remove_file_columns
      */
-    public function remove_file_columns($key = null){
+    public function remove_file_columns($key = null)
+    {
         // get
-        if(!isset($key)){
+        if (!isset($key)) {
             return $this->remove_file_columns;
         }
 
@@ -58,7 +65,8 @@ class CustomValue extends ModelBase
         return $this;
     }
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
 
         static::saving(function ($model) {
@@ -70,7 +78,7 @@ class CustomValue extends ModelBase
             static::setAutoNumber($model);
         });
         
-        static::deleting(function($model) {
+        static::deleting(function ($model) {
             $parent_table = $model->getCustomTable();
             // delete custom relation is 1:n value
             $relations = CustomRelation
@@ -78,7 +86,7 @@ class CustomValue extends ModelBase
                 ->where('relation_type', Define::RELATION_TYPE_ONE_TO_MANY)
                 ->get();
             // loop relations
-            foreach($relations as $relation){
+            foreach ($relations as $relation) {
                 $child_table = CustomTable::find($relation->child_custom_table_id);
                 // find keys
                 getModelName($child_table)

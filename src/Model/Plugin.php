@@ -18,8 +18,8 @@ class Plugin extends ModelBase
     /**
      * Get namespace path
      */
-    public function getNameSpace(){
+    public function getNameSpace()
+    {
         return namespace_join("App", "Plugins", pascalize($this->plugin_name));
     }
-
 }

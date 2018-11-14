@@ -13,7 +13,8 @@ class GridChangePageMenu extends AbstractTool
     protected $custom_table;
     protected $isselect_row;
     
-    public function __construct($page_name, $custom_table, $isselect_row){
+    public function __construct($page_name, $custom_table, $isselect_row)
+    {
         $this->page_name = $page_name;
         $this->custom_table = $custom_table;
         $this->isselect_row = $isselect_row;
@@ -64,23 +65,22 @@ EOT;
 
     public function render()
     {
-
         $menulist = [];
-        foreach(Define::GRID_CHANGE_PAGE_MENULIST as $menu){
+        foreach (Define::GRID_CHANGE_PAGE_MENULIST as $menu) {
             // if same page, skip
-            if($this->page_name == array_get($menu, 'url')){
+            if ($this->page_name == array_get($menu, 'url')) {
                 continue;
             }
             // check menu using authority
             // if this page_name is table and grid, check authority
-            if($this->page_name == 'table' && !isset($this->custom_table)){
+            if ($this->page_name == 'table' && !isset($this->custom_table)) {
                 // if user dont't has authority system
-                if(!Admin::user()->hasPermission(array_get($menu, 'authorities'))){
+                if (!Admin::user()->hasPermission(array_get($menu, 'authorities'))) {
                     continue;
                 }
-            }else{
+            } else {
                 // if user dont't has authority as table
-                if(!Admin::user()->hasPermissionTable($this->custom_table, array_get($menu, 'authorities'))){
+                if (!Admin::user()->hasPermissionTable($this->custom_table, array_get($menu, 'authorities'))) {
                     continue;
                 }
             }
@@ -88,7 +88,9 @@ EOT;
         }
 
         // if no menu, return
-        if(count($menulist) == 0){return null;}
+        if (count($menulist) == 0) {
+            return null;
+        }
 
         Admin::script($this->script());
 

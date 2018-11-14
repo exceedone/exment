@@ -49,7 +49,7 @@ trait InitializeForm
             ->help(exmtrans("system.help.system_mail_from"));
 
         // template list
-        if($add_template){
+        if ($add_template) {
             $this->addTemplateTile($form);
         }
 
@@ -113,7 +113,8 @@ trait InitializeForm
         return collect($templates);
     }
      
-    protected function addTemplateTile($form){
+    protected function addTemplateTile($form)
+    {
         $form->header(exmtrans('template.header'))->hr();
 
         // template list
@@ -126,9 +127,9 @@ trait InitializeForm
                 $options = [];
                 foreach ($array as $a) {
                     // get thumbnail_path
-                    if(isset($a['thumbnail_fullpath'])){
+                    if (isset($a['thumbnail_fullpath'])) {
                         $thumbnail_path = $a['thumbnail_fullpath'];
-                    }else{
+                    } else {
                         $thumbnail_path = base_path() . '/vendor/exceedone/exment/templates/noimage.png';
                     }
                     array_push($options, [
@@ -156,10 +157,11 @@ trait InitializeForm
     /**
      * Upload Template
      */
-    protected function uploadTemplate(Request $request){
+    protected function uploadTemplate(Request $request)
+    {
         // upload zip file
         $upload_template = null;
-        if($request->has('upload_template')){
+        if ($request->has('upload_template')) {
             // get upload file
             $file = $request->file('upload_template');
             $upload_template = TemplateImportExport\TemplateImporter::uploadTemplate($file);
@@ -167,7 +169,7 @@ trait InitializeForm
         }
         
         // upload excel file
-        if($request->has('upload_template_excel')){
+        if ($request->has('upload_template_excel')) {
             // get upload file
             $file = $request->file('upload_template_excel');
             $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);

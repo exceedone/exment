@@ -27,9 +27,9 @@ class MailSender
         $this->bcc = [];
 
         // get mail template
-        if(is_numeric($mail_name)){
-            $this->mail_template = MailTemplate::find($mail_name);    
-        }else{
+        if (is_numeric($mail_name)) {
+            $this->mail_template = MailTemplate::find($mail_name);
+        } else {
             $this->mail_template = MailTemplate::where('mail_name', $mail_name)->first();
         }
         // if not found, return exception

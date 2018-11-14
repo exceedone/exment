@@ -34,7 +34,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -51,7 +51,7 @@ class CustomColumnController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
@@ -69,7 +69,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -87,7 +87,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
-        $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function($val){
+        $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return array_get(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"), $val);
         });
 
@@ -109,13 +109,13 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         // filter
-        $grid->filter(function($filter){
+        $grid->filter(function ($filter) {
             // Remove the default id filter
             $filter->disableIdFilter();
             // Add a column filter
             $filter->equal('column_name', exmtrans("custom_column.column_name"));
             $filter->equal('column_view_name', exmtrans("custom_column.column_view_name"));
-            $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function($val){
+            $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
                 return array_get(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"), $val);
             });
         });
@@ -128,8 +128,8 @@ class CustomColumnController extends AdminControllerTableBase
      * @return Form
      */
     protected function form($id = null)
-    {              
-        $form = new Form(new CustomColumn);  
+    {
+        $form = new Form(new CustomColumn);
         // set script
         //TODO: call using pjax
         $date = \Carbon\Carbon::now()->format('YmdHis');
@@ -187,7 +187,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
                     
-            // number            
+            // number
             //if(in_array($column_type, ['integer','decimal'])){
             $form->number('number_min', exmtrans("custom_column.options.number_min"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal', 'currency']])])
@@ -216,16 +216,16 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
                 ->help(exmtrans("custom_column.help.currency_symbol"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['currency']])])
-                ->options(function($option){
+                ->options(function ($option) {
                     // create options
                     $options = [];
-                    foreach(Define::CUSTOM_COLUMN_CURRENCYLIST as $symbol => $l){
+                    foreach (Define::CUSTOM_COLUMN_CURRENCYLIST as $symbol => $l) {
                         // make text
                         $options[$symbol] = getCurrencySymbolLabel($symbol);
                     }
                     return $options;
                 });
-                //}
+            //}
 
             // select
             // define select-item
@@ -294,11 +294,13 @@ class CustomColumnController extends AdminControllerTableBase
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => Define::TABLE_COLUMN_TYPE_CALC])])
                 ->help(exmtrans("custom_column.help.calc_formula"))
-                ->text(function($value){
+                ->text(function ($value) {
                     /////TODO:copy and paste
-                    if(!isset($value)){return null;}
+                    if (!isset($value)) {
+                        return null;
+                    }
                     // convert json to array
-                    if(!is_array($value) && is_json($value)){
+                    if (!is_array($value) && is_json($value)) {
                         $value = json_decode($value, true);
                     }
 
@@ -312,9 +314,9 @@ class CustomColumnController extends AdminControllerTableBase
 
                     ///// get text
                     $texts = [];
-                    foreach($value as &$v){
+                    foreach ($value as &$v) {
                         $val = array_get($v, 'val');
-                        switch(array_get($v, 'type')){
+                        switch (array_get($v, 'type')) {
                             case 'dynamic':
                                 $texts[] = CustomColumn::find(array_get($v, 'val'))->column_view_name ?? null;
                                 break;
@@ -328,18 +330,20 @@ class CustomColumnController extends AdminControllerTableBase
                     }
                     return implode(" ", $texts);
                 })
-                ->modalbody(function($value) use($id, $custom_table){
+                ->modalbody(function ($value) use ($id, $custom_table) {
                     /////TODO:copy and paste
                     // get other columns
                     // return $id is null(calling create fuction) or not match $id and row id.
-                    $custom_columns = $custom_table->custom_columns->filter(function($column) use($id){
-                        return (!isset($id) || $id != array_get($column, 'id')) 
+                    $custom_columns = $custom_table->custom_columns->filter(function ($column) use ($id) {
+                        return (!isset($id) || $id != array_get($column, 'id'))
                             && in_array(array_get($column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC);
                     })->toArray();
                     
-                    if(!isset($value)){$value = [];}
+                    if (!isset($value)) {
+                        $value = [];
+                    }
                     // convert json to array
-                    if(!is_array($value) && is_json($value)){
+                    if (!is_array($value) && is_json($value)) {
                         $value = json_decode($value, true);
                     }
 
@@ -352,9 +356,9 @@ class CustomColumnController extends AdminControllerTableBase
                     ];
 
                     ///// get text
-                    foreach($value as &$v){
+                    foreach ($value as &$v) {
                         $val = array_get($v, 'val');
-                        switch(array_get($v, 'type')){
+                        switch (array_get($v, 'type')) {
                             case 'dynamic':
                                 $v['text'] = CustomColumn::find(array_get($v, 'val'))->column_view_name ?? null;
                                 break;

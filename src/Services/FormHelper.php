@@ -16,7 +16,8 @@ class FormHelper
     /**
      * Get form field. be called by value form, importer.
      */
-    public static function getFormField($custom_table, $column, $id = null, $form_column = null, $column_name_prefix = null){
+    public static function getFormField($custom_table, $column, $id = null, $form_column = null, $column_name_prefix = null)
+    {
         $form_column_options = $form_column->options ?? null;
         $options = $column->options;
         $column_name = $column->column_name;
@@ -26,10 +27,9 @@ class FormHelper
         $form_column_name = $column_name_prefix.$column_name;
     
         // if hidden setting, add hidden field and continue
-        if(isset($form_column_options) && boolval(array_get($form_column_options, 'hidden'))){
+        if (isset($form_column_options) && boolval(array_get($form_column_options, 'hidden'))) {
             $field = new Field\Hidden($form_column_name);
-        }
-        else{
+        } else {
             switch ($column->column_type) {
             case 'text':
                 $field = new Field\Text($form_column_name, [$column_view_name]);
@@ -337,7 +337,8 @@ class FormHelper
         return $validates;
     }
 
-    protected static function getFileOptions($custom_table, $custom_column, $id){
+    protected static function getFileOptions($custom_table, $custom_column, $id)
+    {
         return [
             'deleteUrl' => admin_url(url_join('data', $custom_table->table_name, $id, 'filedelete')),
             'deleteExtraData'      => [

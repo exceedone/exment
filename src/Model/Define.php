@@ -87,31 +87,31 @@ class Define
     ];
 
     public const TABLE_COLUMN_TYPE = [
-        "text", 
-        "textarea", 
-        "url", 
-        "email", 
-        "integer", 
+        "text",
+        "textarea",
+        "url",
+        "email",
+        "integer",
         "decimal",
         "currency",
-        "date", 
-        "time", 
-        "datetime", 
-        "select", 
-        "select_valtext", 
-        "select_table", 
-        "yesno", 
-        "boolean", 
-        "auto_number", 
-        "image", 
-        "file", 
-        "user", 
+        "date",
+        "time",
+        "datetime",
+        "select",
+        "select_valtext",
+        "select_table",
+        "yesno",
+        "boolean",
+        "auto_number",
+        "image",
+        "file",
+        "user",
         "organization",
     ];
     
     public const TABLE_COLUMN_TYPE_CALC = [
-        "integer", 
-        "decimal", 
+        "integer",
+        "decimal",
         "currency",
     ];
     
@@ -374,8 +374,8 @@ class Define
     public const VIEW_COLUMN_FILTER_TYPE_DAY = 'day';
     public const VIEW_COLUMN_FILTER_TYPE_USER = 'user';
     
-    public const VIEW_COLUMN_FILTER_OPTION_EQ = 1; 
-    public const VIEW_COLUMN_FILTER_OPTION_NE = 2; 
+    public const VIEW_COLUMN_FILTER_OPTION_EQ = 1;
+    public const VIEW_COLUMN_FILTER_OPTION_NE = 2;
     public const VIEW_COLUMN_FILTER_OPTION_NOT_NULL = 3;
     public const VIEW_COLUMN_FILTER_OPTION_NULL = 4;
 
@@ -401,12 +401,12 @@ class Define
     public const VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER = 1043;
     public const VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE = 1044;
     
-    public const VIEW_COLUMN_FILTER_OPTION_USER_EQ = 2001; 
-    public const VIEW_COLUMN_FILTER_OPTION_USER_NE = 2002; 
+    public const VIEW_COLUMN_FILTER_OPTION_USER_EQ = 2001;
+    public const VIEW_COLUMN_FILTER_OPTION_USER_NE = 2002;
     public const VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL = 2003;
     public const VIEW_COLUMN_FILTER_OPTION_USER_NULL = 2004;
-    public const VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER = 2011; 
-    public const VIEW_COLUMN_FILTER_OPTION_USER_NE_USER = 2012; 
+    public const VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER = 2011;
+    public const VIEW_COLUMN_FILTER_OPTION_USER_NE_USER = 2012;
 
 
     public const VIEW_COLUMN_FILTER_OPTIONS = [
@@ -449,5 +449,4 @@ class Define
             ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_NULL, 'name' => 'null'],
         ],
     ];
-
 }

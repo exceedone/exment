@@ -9,13 +9,16 @@ class ModelBase extends Model
 {
     protected $guarded = ['id'];
     
-    public function getCreatedUserAttribute(){
+    public function getCreatedUserAttribute()
+    {
         return $this->getUser('created_user_id');
     }
-    public function getUpdatedUserAttribute(){
+    public function getUpdatedUserAttribute()
+    {
         return $this->getUser('updated_user_id');
     }
-    public function getDeletedUserAttribute(){
+    public function getDeletedUserAttribute()
+    {
         return $this->getUser('deleted_user_id');
     }
 
@@ -24,10 +27,10 @@ class ModelBase extends Model
         return with(new static)->getTable();
     }
 
-     /**
-     *
-     * @return void
-     */
+    /**
+    *
+    * @return void
+    */
     protected static function boot()
     {
         parent::boot();
@@ -47,23 +50,33 @@ class ModelBase extends Model
     /**
      * set id to $columns
      */
-    protected static function setUser($model, $columns = []){
+    protected static function setUser($model, $columns = [])
+    {
         $user = Admin::user() ?? null;
-        if(!isset($user)){return;}
+        if (!isset($user)) {
+            return;
+        }
         $base_user = $user->base_user;
-        if(!isset($base_user)){return;}
+        if (!isset($base_user)) {
+            return;
+        }
         $id = $base_user->id ?? null;
-        if(!isset($id)){return;}
-        foreach($columns as $column){
+        if (!isset($id)) {
+            return;
+        }
+        foreach ($columns as $column) {
             $model->{$column} = $id;
         }
     }
     /**
      * get user from id
      */
-    protected function getUser($column){
+    protected function getUser($column)
+    {
         $value = getModelName(Define::SYSTEM_TABLE_NAME_USER)::find($this->{$column});
-        if(!isset($value)){return;}
+        if (!isset($value)) {
+            return;
+        }
         return $value->getValue();
     }
 }

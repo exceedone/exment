@@ -39,12 +39,13 @@ class HasMany extends AdminHasMany
      * TODO: I don't know the best way
      * set html and script. It has bug about nested
      */
-    protected function getTemplateHtmlAndScript($form){
+    protected function getTemplateHtmlAndScript($form)
+    {
         list($template, $script) = $form->getTemplateHtmlAndScript();
 
         // re-set $script
         $scripts = [];
-        foreach($form->fields() as $field){
+        foreach ($form->fields() as $field) {
             // when NestedEmbeds item, get NestedEmbeds's getScript()
             if (method_exists($field, 'getScript')) {
                 $scripts[] = $field->getScript();

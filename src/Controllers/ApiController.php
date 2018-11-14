@@ -10,7 +10,8 @@ use Exceedone\Exment\Model\CustomColumn;
 
 class ApiController extends AdminControllerBase
 {
-    public function __construct(Request $request){
+    public function __construct(Request $request)
+    {
     }
 
     /**
@@ -18,9 +19,10 @@ class ApiController extends AdminControllerBase
      * @param mixed $id
      * @return mixed
      */
-    public function table($id, Request $request){
+    public function table($id, Request $request)
+    {
         $table = CustomTable::find($id);
-        if(!Admin::user()->hasPermissionTable($table,Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!Admin::user()->hasPermissionTable($table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             abort(403);
         }
         return $result;
@@ -33,20 +35,23 @@ class ApiController extends AdminControllerBase
      * 3. get columns that belongs to target table
      * @param mixed select_table custon_column id
      */
-    public function targetBelongsColumns($id){
-        if(!isset($id)){return [];}
+    public function targetBelongsColumns($id)
+    {
+        if (!isset($id)) {
+            return [];
+        }
         // get custom column
         $custom_column = CustomColumn::find($id);
 
         // if column_type is not select_table, return []
-        if(!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
+        if (!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
             return [];
         }
         // get select_target_table
         $select_target_table = array_get($custom_column, 'options.select_target_table');
-        if(!isset($select_target_table)){return [];}
+        if (!isset($select_target_table)) {
+            return [];
+        }
         return CustomTable::find($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
-
 }
-

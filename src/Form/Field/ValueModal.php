@@ -79,7 +79,8 @@ class ValueModal extends Field
         return $this;
     }
 
-    protected function script(){
+    protected function script()
+    {
         $classname = $this->getElementClassString();
         $post_names = collect($this->post_names)->toJson();
         $script = <<<EOT
@@ -90,7 +91,6 @@ $('.{$classname}-block').on('click', '.btn-valuemodal', function () {
 EOT;
 
         Admin::script($script);
-
     }
 
 
@@ -128,7 +128,7 @@ EOT;
         }
 
         // set button label
-        if(is_null($this->buttonlabel)){
+        if (is_null($this->buttonlabel)) {
             $this->buttonlabel = exmtrans('common.change');
         }
 

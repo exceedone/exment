@@ -45,10 +45,11 @@ class AdminControllerBase extends Controller
      * validation table
      * @param mixed $table id or customtable
      */
-    protected function validateTable($table, $authority_name){
-        if(is_numeric($table)){
+    protected function validateTable($table, $authority_name)
+    {
+        if (is_numeric($table)) {
             $table = CustomTable::find($table);
-        }elseif($table instanceof CustomTable){
+        } elseif ($table instanceof CustomTable) {
             // nothing
         }
 
@@ -80,9 +81,9 @@ class AdminControllerBase extends Controller
      */
     public function show(Request $request, $id, Content $content)
     {
-        if(method_exists($this, 'detail')){
+        if (method_exists($this, 'detail')) {
             $render = $this->detail($id);
-        }else{
+        } else {
             $render = $this->form($id);
         }
         return $this->AdminContent($content)->body($render);

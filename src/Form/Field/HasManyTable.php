@@ -13,7 +13,6 @@ use Encore\Admin\Form\NestedForm;
  */
 class HasManyTable extends HasMany
 {
-
     protected $tablecolumnwidths = [];
 
     /**
@@ -34,7 +33,8 @@ class HasManyTable extends HasMany
     /**
      * set bootstrap table width
      */
-    public function setTableWidth($width = 8, $offset = 2){
+    public function setTableWidth($width = 8, $offset = 2)
+    {
         $this->tablewidth['width'] = $width;
         $this->tablewidth['offset'] = $offset;
 
@@ -44,12 +44,14 @@ class HasManyTable extends HasMany
     /**
      * set bootstrap table Column width
      */
-    public function setTableColumnWidth(...$width){
+    public function setTableColumnWidth(...$width)
+    {
         $this->tablecolumnwidths = $width;
         return $this;
     }
 
-    public function description($description){
+    public function description($description)
+    {
         $this->description = $description;
         return $this;
     }
@@ -67,19 +69,19 @@ class HasManyTable extends HasMany
     /**
      * set table header and body from fields
      */
-    protected function getTableItem(&$form){
-        
+    protected function getTableItem(&$form)
+    {
         $tableitems = [];
         $hiddens = [];
         
         foreach ($form->fields() as &$field) {
-            // when embeds item, 
-            if($field instanceof NestedEmbeds){
+            // when embeds item,
+            if ($field instanceof NestedEmbeds) {
                 $embedfields = $field->fields();
-                foreach($embedfields as &$embedfield){
+                foreach ($embedfields as &$embedfield) {
                     $this->setTableFieldItem($embedfield, $tableitems, $hiddens);
                 }
-            }else{
+            } else {
                 $this->setTableFieldItem($field, $tableitems, $hiddens);
             }
         }
@@ -90,11 +92,12 @@ class HasManyTable extends HasMany
     /**
      * set table field item to header, body, hidden
      */
-    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens){
+    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens)
+    {
         // if hidden, set $hiddens
-        if($field instanceof Hidden){
+        if ($field instanceof Hidden) {
             $hiddens[] = $field;
-        }else{
+        } else {
             $tableitems[] = $field;
         }
 
@@ -220,7 +223,7 @@ EOT;
         // set related forms
         $relatedforms = [];
         // set labelclass hidden
-        foreach($this->buildRelatedForms() as $k => &$relatedform){
+        foreach ($this->buildRelatedForms() as $k => &$relatedform) {
             list($relatedtableitems, $relatedhiddens) = $this->getTableItem($relatedform);
 
             $relatedforms[$k] = [
@@ -231,7 +234,7 @@ EOT;
 
         $this->setupScript($script);
 
-        // get field class 
+        // get field class
         $grandParent = get_parent_class(get_parent_class(get_parent_class($this)));
         return $grandParent::render()->with([
             'forms'        => $relatedforms,

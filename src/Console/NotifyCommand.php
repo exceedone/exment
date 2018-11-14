@@ -44,7 +44,7 @@ class NotifyCommand extends CommandBase
             ->get();
 
         // loop for $notifies
-        foreach($notifies as $notify){
+        foreach ($notifies as $notify) {
             // get target date number.
             $before_after_number = intval(array_get($notify->trigger_settings, 'notify_beforeafter'));
             $notify_day = intval(array_get($notify->trigger_settings, 'notify_day'));
@@ -64,22 +64,22 @@ class NotifyCommand extends CommandBase
                 ->get();
 
             // send mail
-            foreach($datalist as $data){
+            foreach ($datalist as $data) {
                 // get user list
                 $value_authoritable_users = $data->value_authoritable_users->toArray();
                 
-                // get organization 
+                // get organization
                 if (System::organization_available()) {
                     $value_authoritable_organizations = System::organization_available() ? $data->value_authoritable_organizations : [];
-                    foreach($value_authoritable_organizations as $value_authoritable_organization){
+                    foreach ($value_authoritable_organizations as $value_authoritable_organization) {
                         $children_users = getChildrenValues($value_authoritable_organization, Define::SYSTEM_TABLE_NAME_USER)->toArray();
-                        //$value_authoritable_users[] = 
+                        //$value_authoritable_users[] =
 
                         $value_authoritable_users = array_merge($value_authoritable_users, $children_users);
                     }
                 }
                 
-                foreach($value_authoritable_users as $user){
+                foreach ($value_authoritable_users as $user) {
                     $notify_target_table = CustomTable::find($notify->custom_table_id);
                     $notify_target_column = CustomColumn::find(array_get($notify->toArray(), 'trigger_settings.notify_target_column'));
                     $prms = [

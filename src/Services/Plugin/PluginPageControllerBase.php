@@ -11,5 +11,4 @@ use App\Http\Controllers\Controller;
 
 abstract class PluginPageControllerBase extends Controller
 {
-    
 }

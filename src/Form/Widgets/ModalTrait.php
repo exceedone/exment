@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Form\Widgets;
 use Encore\Admin\Facades\Admin;
 
 trait ModalTrait
-{    
+{
     /**
      * @var array
      */

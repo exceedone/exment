@@ -63,5 +63,4 @@ class NestedEmbeddedForm extends EmbeddedForm
 
         return implode("\r\n", $scripts);
     }
-
 }

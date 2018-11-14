@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 
-
 abstract class CommandBase extends Command
 {   /**
      * Execute the console command.

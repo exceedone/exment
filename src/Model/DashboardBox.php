@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-
 class DashboardBox extends ModelBase
 {
     use Traits\AutoSUuidTrait;
@@ -11,7 +10,8 @@ class DashboardBox extends ModelBase
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
     
-    public function dashboard(){
+    public function dashboard()
+    {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');
     }
 }

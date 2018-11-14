@@ -9,6 +9,7 @@
  */
 
 namespace Exceedone\Exment\Services;
+
 use setasign\Fpdi;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
@@ -85,10 +86,9 @@ class DocumentPdfService extends AbstractFPDIService
     public function makePdf()
     {
         // Add Document Item using $documentItems array
-        foreach($this->documentItems as $documentItem)
-        {
+        foreach ($this->documentItems as $documentItem) {
             //tables
-            if(array_get($documentItem, 'document_item_type') == 'table'){
+            if (array_get($documentItem, 'document_item_type') == 'table') {
                 // get children
                 $children = getChildrenValues($this->model, array_get($documentItem, 'target_table'));
                 $this->lfTable($children, $documentItem);
@@ -133,7 +133,9 @@ class DocumentPdfService extends AbstractFPDIService
                     }
                 }
 
-                if(!isset($image)){continue;}
+                if (!isset($image)) {
+                    continue;
+                }
                 // write image
                 $this->lfImage($image, $documentItem);
                 continue;
@@ -166,7 +168,7 @@ class DocumentPdfService extends AbstractFPDIService
     {
         // get document file name
         $filename = $this->getText(array_get($this->documentInfo, 'filename'));
-        if(!isset($filename)){
+        if (!isset($filename)) {
             $filename = make_uuid();
         }
         // set from document_type
@@ -206,14 +208,16 @@ class DocumentPdfService extends AbstractFPDIService
     protected function lfText($text, $options = [])
     {
         // remove null value
-        array_filter($options, function($value) { return $value !== ''; });
+        array_filter($options, function ($value) {
+            return $value !== '';
+        });
 
         // merge options to default
         $options = array_merge($this->getDefaultOptions(), $options);
 
         // get x and y
         $x = array_get($options, 'x');
-        $y = array_get($options, 'y');     
+        $y = array_get($options, 'y');
 
         // Escape Font
         $bakFontStyle = $this->FontStyle;
@@ -221,7 +225,7 @@ class DocumentPdfService extends AbstractFPDIService
         $this->SetFont(self::FONT_GOTHIC, $options['style'], $options['font_size']);
 
         // if fix width, get content width
-        if(boolval($options['fixWidth'])){
+        if (boolval($options['fixWidth'])) {
             $width = $this->getContentWidth();
             $x = 0;
         }
@@ -245,19 +249,22 @@ class DocumentPdfService extends AbstractFPDIService
     protected function lfImage($image, $options)
     {
         // remove null value
-        array_filter($options, function($value) { return $value !== ''; });
+        array_filter($options, function ($value) {
+            return $value !== '';
+        });
         // merge options to default
         $options = array_merge($this->getDefaultOptions(), $options);
         
         // get x and y
         $x = array_get($options, 'x');
-        $y = array_get($options, 'y');     
+        $y = array_get($options, 'y');
 
         $path = getFullpath($image, 'admin');
-        $this->Image($path, 
+        $this->Image(
+            $path,
             $this->getOutputX($x, $options),
             $this->getOutputY($y, $options),
-            $options['width'], 
+            $options['width'],
             $options['height'],
             '',  //$type
             '',  //$link
@@ -272,7 +279,9 @@ class DocumentPdfService extends AbstractFPDIService
     protected function lfTable($children, $options = [])
     {
         // remove null value
-        array_filter($options, function($value) { return $value !== ''; });
+        array_filter($options, function ($value) {
+            return $value !== '';
+        });
         // merge options to default
         $options = array_merge(
             $this->getDefaultOptions(),
@@ -303,7 +312,7 @@ class DocumentPdfService extends AbstractFPDIService
         // get content width
         $contentWidth = $this->getContentWidth();
         // set header info.
-        foreach($target_columns as &$target_column){
+        foreach ($target_columns as &$target_column) {
             // set header name using table
             if (!array_key_value_exists('label', $target_column)) {
                 $target_column['label'] =
@@ -324,8 +333,11 @@ class DocumentPdfService extends AbstractFPDIService
             );
 
             // set table header
-            $this->setMultiCell($target_column['label'], '', '', 
-                array_set($table_header,'real_width', $target_column['real_width'])
+            $this->setMultiCell(
+                $target_column['label'],
+                '',
+                '',
+                array_set($table_header, 'real_width', $target_column['real_width'])
             );
         }
 
@@ -333,9 +345,9 @@ class DocumentPdfService extends AbstractFPDIService
         $this->SetFillColor(245, 245, 245);
         $this->Ln();
         $fill = false;
-        for ($i=0; $i < $options['table_count']; $i++) { 
+        for ($i=0; $i < $options['table_count']; $i++) {
             // if param fixed_table_count is true, and end of $children, break
-            if($i >= count($children) && boolval(array_get($options, 'fixed_table_count'))){
+            if ($i >= count($children) && boolval(array_get($options, 'fixed_table_count'))) {
                 break;
             }
             $child = $children[$i] ?? null;
@@ -343,20 +355,17 @@ class DocumentPdfService extends AbstractFPDIService
             $this->SetX($x0);
             $y0 = $this->GetY();
 
-            foreach($target_columns as $index => &$target_column){
+            foreach ($target_columns as $index => &$target_column) {
                 ///// get text
                 // has column_name
-                if(array_key_value_exists('column_name', $target_column)){
+                if (array_key_value_exists('column_name', $target_column)) {
                     $text = getValue($child, array_get($target_column, 'column_name'), true, array_get($target_column, 'format'));
                     $text = $this->replaceText($text, $target_column);
-                }
-                elseif(array_key_value_exists('loop_index', $target_column)){
+                } elseif (array_key_value_exists('loop_index', $target_column)) {
                     $text = $index;
-                }
-                elseif(array_key_value_exists('loop_no', $target_column)){
+                } elseif (array_key_value_exists('loop_no', $target_column)) {
                     $text = ($index + 1);
-                }
-                else{
+                } else {
                     continue;
                 }
                     
@@ -378,7 +387,7 @@ class DocumentPdfService extends AbstractFPDIService
 
         // set table footer --------------------------------------------------
         $footers = array_get($options, 'table_footers', []);
-        foreach($footers as &$footer){
+        foreach ($footers as &$footer) {
             // set default options to $target_columns
             $footer_array = [array_get($footer, 'header', []), array_get($footer, 'body', [])];
             $this->setItemProps($footer_array);
@@ -415,22 +424,23 @@ class DocumentPdfService extends AbstractFPDIService
         $this->SetFont('', $bakFontStyle, $bakFontSize);
     }
 
-    protected function setMultiCell($text, $x, $y, $options){
+    protected function setMultiCell($text, $x, $y, $options)
+    {
         // set fillColor
-        if(array_key_value_exists('fillColor', $options)){
+        if (array_key_value_exists('fillColor', $options)) {
             $rgb = hex2rgb(array_get($options, 'fillColor'));
             $this->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
             $fill = true;
-        }else{
+        } else {
             $fill = false;
         }
         // set Color
-        if(array_key_value_exists('color', $options)){
+        if (array_key_value_exists('color', $options)) {
             $rgb = hex2rgb(array_get($options, 'color'));
             $this->SetTextColor($rgb[0], $rgb[1], $rgb[2]);
         }
         // default
-        else{
+        else {
             $this->SetTextColor(0, 0, 0);
         }
 
@@ -438,18 +448,18 @@ class DocumentPdfService extends AbstractFPDIService
             array_get($options, 'real_width', array_get($options, 'width', 0)),
             array_get($options, 'real_height', array_get($options, 'height', 0)),
             trim($text),
-            array_get($options, 'border', 0), 
-            array_get($options, 'align', 'L'), 
-            $fill, //fill 
+            array_get($options, 'border', 0),
+            array_get($options, 'align', 'L'),
+            $fill, //fill
             array_get($options, 'ln', 1),  // ln
             $x,
-            $y, 
-            $reseth = true, 
-            $strech = 0, 
-            $ishtml = false, 
-            $autopadding = true, 
-            $maxh=0, 
-            array_get($options, 'valign', ''), 
+            $y,
+            $reseth = true,
+            $strech = 0,
+            $ishtml = false,
+            $autopadding = true,
+            $maxh=0,
+            array_get($options, 'valign', ''),
             true
         );
     }
@@ -457,14 +467,15 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * set real width, default prop, ...
      */
-    protected function setItemProps(&$items){
+    protected function setItemProps(&$items)
+    {
         $contentWidth = $this->getContentWidth();
-        if(!is_array($items)){
+        if (!is_array($items)) {
             $items = [$items];
         }
 
         // looping items
-        foreach($items as &$item){
+        foreach ($items as &$item) {
             // set default options
             $item = array_merge($this->getDefaultOptions(), $item);
 
@@ -480,9 +491,9 @@ class DocumentPdfService extends AbstractFPDIService
         }
 
         // re-loop
-        foreach($items as &$item){
+        foreach ($items as &$item) {
             // if width is *, calc real_width
-            if(array_get($item, 'width') == '*'){
+            if (array_get($item, 'width') == '*') {
                 $item['real_width'] = $contentWidth - collect($items)->sum('real_width');
             }
         }
@@ -491,13 +502,14 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * get output text from document item
      */
-    protected function getText($text, $documentItem = []){
+    protected function getText($text, $documentItem = [])
+    {
         // check string
         preg_match_all('/\${(.*?)\}/', $text, $matches);
         if (isset($matches)) {
             // loop for matches. because we want to get inner {}, loop $matches[1].
             for ($i = 0; $i < count($matches[1]); $i++) {
-                try{
+                try {
                     $match = strtolower($matches[1][$i]);
                 
                     // get column
@@ -508,8 +520,7 @@ class DocumentPdfService extends AbstractFPDIService
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';
-                        }
-                        else{
+                        } else {
                             // get comma string from index 1.
                             $length_array = array_slice($length_array, 1);
                             $str = getValue($this->model, implode(',', $length_array), true, array_get($documentItem, 'format'));
@@ -523,12 +534,12 @@ class DocumentPdfService extends AbstractFPDIService
                             $str = '';
                         }
                         //else, getting value using cihldren
-                        else{
+                        else {
                             // get children values
                             $children = getChildrenValues($this->model, $length_array[1]);
                             // looping
                             $sum = 0;
-                            foreach($children as $child){
+                            foreach ($children as $child) {
                                 // get value
                                 $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
                             }
@@ -537,17 +548,17 @@ class DocumentPdfService extends AbstractFPDIService
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
                     // base_info
-                    elseif(strpos($match, "base_info") !== false){
+                    elseif (strpos($match, "base_info") !== false) {
                         $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';
-                        }else{
+                        } else {
                             $str = getValue($base_info, $length_array[1], true, array_get($documentItem, 'format'));
                         }
                         $text = str_replace($matches[0][$i], $str, $text);
                     }
-                } catch(Exception $e) {
+                } catch (Exception $e) {
                 }
             }
         }
@@ -558,15 +569,16 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * replace text. ex.comma, &yen, etc...
      */
-    protected function replaceText($text, $documentItem){
+    protected function replaceText($text, $documentItem)
+    {
         // add comma if number_format
-        if(array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)){
+        if (array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)) {
             $text = number_format($text);
         }
 
         // replace <br/> or \r\n, \n, \r to new line
         $text = preg_replace("/\\\\r\\\\n|\\\\r|\\\\n/", "\n", $text);
-        // &yen; to 
+        // &yen; to
         $text = str_replace("&yen;", "¥", $text);
 
         return $text;
@@ -575,7 +587,8 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * Get Content Width
      */
-    protected function getContentWidth(){
+    protected function getContentWidth()
+    {
         $margins = $this->getMargins();
         return $this->GetPageWidth() - $margins['left'] - $margins['right'];
     }
@@ -583,7 +596,8 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * Get Content Height
      */
-    protected function getContentHeight(){
+    protected function getContentHeight()
+    {
         $margins = $this->getMargins();
         return $this->getPageHeight() - $margins['top'] - $margins['bottom'];
     }
@@ -591,13 +605,14 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * get output x for text or image
      */
-    protected function getOutputX($x, $options){
+    protected function getOutputX($x, $options)
+    {
         // if option->position Contains 'R', calc for document right
-        if(str_contains(array_get($options, 'position'), 'R')){
+        if (str_contains(array_get($options, 'position'), 'R')) {
             return $this->GetPageWidth() - ($x + $this->baseOffsetX + array_get($options, 'width'));
         }
         // if center
-        elseif(str_contains(array_get($options, 'position'), 'C')){
+        elseif (str_contains(array_get($options, 'position'), 'C')) {
             return ($this->GetPageWidth() - array_get($options, 'width')) / 2;
         }
 
@@ -608,9 +623,10 @@ class DocumentPdfService extends AbstractFPDIService
     /**
      * get output y for text or image
      */
-    protected function getOutputY($y, $options){
+    protected function getOutputY($y, $options)
+    {
         // if option->position Contains 'B', calc for document right
-        if(str_contains(array_get($options, 'position'), 'B')){
+        if (str_contains(array_get($options, 'position'), 'B')) {
             return $this->getContentHeight() - ($y + $this->baseOffsetY + array_get($options, 'height'));
         }
 
@@ -635,7 +651,8 @@ class DocumentPdfService extends AbstractFPDIService
         $this->SetY($actualY);
     }
 
-    protected function getDefaultOptions(){
+    protected function getDefaultOptions()
+    {
         return [
             'width' => 0,
             'height' => 0,
@@ -656,5 +673,3 @@ class DocumentPdfService extends AbstractFPDIService
         ];
     }
 }
-
-?>

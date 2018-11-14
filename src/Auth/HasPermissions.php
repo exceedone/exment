@@ -17,8 +17,8 @@ use Carbon\Carbon;
 
 trait HasPermissions
 {
-   use Authenticatable;
-   use CanResetPassword;
+    use Authenticatable;
+    use CanResetPassword;
 
     // public function login_user()
     // {
@@ -42,12 +42,11 @@ trait HasPermissions
         return $this->get_avatar($avatar);
     }
     
-    protected function get_avatar($avatar = null){
+    protected function get_avatar($avatar = null)
+    {
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
-        }
-
-        else if($this->login_user && !is_nullorempty($this->avatar)){
+        } elseif ($this->login_user && !is_nullorempty($this->avatar)) {
             return Storage::disk(config('admin.upload.disk'))->url($this->avatar);
         }
 
@@ -163,8 +162,8 @@ trait HasPermissions
         // get tables
         $custom_tables = CustomTable::all();
         // loop for table
-        foreach($custom_tables as $custom_table){
-            if($this->hasPermissionTable($custom_table->table_name, $authority_key)){
+        foreach ($custom_tables as $custom_table) {
+            if ($this->hasPermissionTable($custom_table->table_name, $authority_key)) {
                 $results[] = $custom_table;
             }
         }
@@ -195,11 +194,11 @@ trait HasPermissions
         }
 
         // if has target tables.
-        if(count($target_tables) > 0){
+        if (count($target_tables) > 0) {
             // if $item->menu_name is not contains $target_tables, return false
-            if(!collect($target_tables)->first(function($target_table) use($item){
+            if (!collect($target_tables)->first(function ($target_table) use ($item) {
                 return array_get($item, 'table_name') == $target_table;
-            })){
+            })) {
                 return false;
             }
         }
@@ -277,7 +276,7 @@ trait HasPermissions
         }
 
         // if id is null(for create), return true
-        if(!isset($id)){
+        if (!isset($id)) {
             return true;
         }
 
@@ -305,20 +304,21 @@ trait HasPermissions
     /**
      * filter target model
      */
-    public function filterModel($model, $table_name, $custom_view = null){
+    public function filterModel($model, $table_name, $custom_view = null)
+    {
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
-        if(isset($custom_view)){
-            foreach($custom_view->custom_view_filters as $filter){
+        if (isset($custom_view)) {
+            foreach ($custom_view->custom_view_filters as $filter) {
                 // get filter target column
                 $view_filter_target = $filter->view_filter_target;
-                if(is_numeric($view_filter_target)){
+                if (is_numeric($view_filter_target)) {
                     $view_filter_target = getColumnName(CustomColumn::find($view_filter_target));
                 }
                 $condition_value_text = $filter->view_filter_condition_value_text;
                 $view_filter_condition = $filter->view_filter_condition;
                 // get filter condition
-                switch($view_filter_condition){
+                switch ($view_filter_condition) {
                     // equal
                     case Define::VIEW_COLUMN_FILTER_OPTION_EQ:
                         $model = $model->where($view_filter_target, $condition_value_text);
@@ -329,14 +329,14 @@ trait HasPermissions
                         break;
                     // not null
                     case Define::VIEW_COLUMN_FILTER_OPTION_NOT_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL;
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL;
+                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL:
+                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL:
                         $model = $model->whereNotNull($view_filter_target);
                         break;
                     // null
                     case Define::VIEW_COLUMN_FILTER_OPTION_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NULL;
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NULL;
+                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NULL:
+                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NULL:
                         $model = $model->whereNull($view_filter_target);
                         break;
                     
@@ -452,11 +452,11 @@ trait HasPermissions
             // get only has authority
             $model = $model
                  ->whereHas('value_authoritable_users', function ($q) {
-                    $q->where('related_id', $this->base_user_id);
-                })->orWhereHas('value_authoritable_organizations', function ($q) {
-                    $q->whereIn('related_id', $this->getOrganizationIds())
+                     $q->where('related_id', $this->base_user_id);
+                 })->orWhereHas('value_authoritable_organizations', function ($q) {
+                     $q->whereIn('related_id', $this->getOrganizationIds())
                     ;
-                });
+                 });
         }
         return $model;
     }
@@ -519,20 +519,20 @@ trait HasPermissions
 
         // get authorities for all tables. --------------------------------------------------
         $authorities = [];
-        for($i = 0; $i < 2; $i++){
+        for ($i = 0; $i < 2; $i++) {
             $query = DB::table('authorities as a')
                 ->join('system_authoritable AS sa', 'a.id', 'sa.authority_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
                 ->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
                 ;
             // if $i == 0, then search as user
-            if($i == 0){
+            if ($i == 0) {
                 $query = $query->where('related_type', Define::SYSTEM_TABLE_NAME_USER)
                     ->where('related_id', Admin::user()->base_user_id);
             }
             // else then search as org.
-            else{
-                if(!System::organization_available()){
+            else {
+                if (!System::organization_available()) {
                     continue;
                 }
                 $query = $query->where('related_type', 'organization')
@@ -561,10 +561,10 @@ trait HasPermissions
                 $permission_tables = &$permissions[$table_name];
             }
             $authority_details = array_get($authority, 'permissions');
-            if(is_string($authority_details)){
+            if (is_string($authority_details)) {
                 $authority_details = json_decode($authority_details, true);
             }
-            foreach ($authority_details as $key => $value) {                
+            foreach ($authority_details as $key => $value) {
                 // if permission value is 1, add permission.
                 if (boolval($value) && !array_key_exists($key, $permission_tables)) {
                     $permission_tables[$key] = $value;
@@ -608,13 +608,13 @@ trait HasPermissions
                 continue;
             }
             $authority_details = json_decode($authority->permissions, true);
-            if(is_string($authority_details)){
+            if (is_string($authority_details)) {
                 $authority_details = json_decode($authority_details, true);
             }
             foreach ($authority_details as $key => $value) {
-                    // if permission value is 1, add permission.
-                    // $key = key($kv);
-                    // $value = $kv[$key];
+                // if permission value is 1, add permission.
+                // $key = key($kv);
+                // $value = $kv[$key];
                 if (boolval($value) && !array_key_exists($key, $permissions)) {
                     $permissions[$key] = $value;
                 }
@@ -631,24 +631,32 @@ trait HasPermissions
     /**
      * get value from user setting table
      */
-    public function getSettingValue($key){
-        if(is_null($this->base_user)){return null;}
+    public function getSettingValue($key)
+    {
+        if (is_null($this->base_user)) {
+            return null;
+        }
         // get settings from settion
         $settings = Session::get("user_setting.$key");
         // if empty, get User Setting table
-        if(!isset($settings)){
+        if (!isset($settings)) {
             $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
             $settings = $usersetting->settings ?? [];
         }
         return array_get($settings, $key) ?? null;
     }
-    public function setSettingValue($key, $value){
-        if(is_null($this->base_user)){return null;}
+    public function setSettingValue($key, $value)
+    {
+        if (is_null($this->base_user)) {
+            return null;
+        }
         // set User Setting table
         $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
         $settings = $usersetting->settings;
-        if(!isset($settings)){$settings = [];}
-        // set value 
+        if (!isset($settings)) {
+            $settings = [];
+        }
+        // set value
         array_set($settings, $key, $value);
         $usersetting->settings = $settings;
         $usersetting->saveOrFail();

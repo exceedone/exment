@@ -9,23 +9,25 @@ class Number extends \Encore\Admin\Form\Field\Number
     protected $disableUpdown = false;
     protected $defaultEmpty = false;
 
-    public function disableUpdown(){
+    public function disableUpdown()
+    {
         $this->disableUpdown = true;
         return $this;
     }
 
-    public function defaultEmpty(){
+    public function defaultEmpty()
+    {
         $this->defaultEmpty = true;
         return $this;
     }
 
     public function render()
     {
-        if(!$this->defaultEmpty){
+        if (!$this->defaultEmpty) {
             $this->default((int) $this->default);
         }
 
-        if(array_has($this->attributes, 'readonly')){
+        if (array_has($this->attributes, 'readonly')) {
             $this->disableUpdown = true;
         }
 
@@ -44,7 +46,7 @@ $('{$this->getElementClassSelector()}:not(.initialized)')
 
 EOT;
             $this->prepend('')->defaultAttribute('style', 'width: 100px');
-        }else{
+        } else {
             $this->defaultAttribute('style', 'max-width: 200px;');
         }
 

@@ -44,7 +44,8 @@ abstract class DataExporterBase extends AbstractExporter
     /**
      * get export table. contains header and body.
      */
-    protected function getDataTable(){
+    protected function getDataTable()
+    {
         // get header info
         list($firstColumns, $custom_columns, $lastColumns) = $this->getColumnDefines();
         // get header and body
@@ -52,9 +53,9 @@ abstract class DataExporterBase extends AbstractExporter
 
         // if only template, output only headers
         $isTepmlate = boolval(\Request::capture()->query('temp'));
-        if($isTepmlate){
+        if ($isTepmlate) {
             $bodies = [];
-        }else{
+        } else {
             $bodies = $this->getBodies($this->getRecords(), $firstColumns, $custom_columns, $lastColumns);
         }
         // get output items
@@ -67,7 +68,8 @@ abstract class DataExporterBase extends AbstractExporter
      * get column info
      * @return mixed list. first:fixed column id, suuid, parent_id, parent_type. second: custom columns: third: created_at, updated_at, deleted_at
      */
-    protected function getColumnDefines(){
+    protected function getColumnDefines()
+    {
         $firstColumns = ['id','suuid','parent_id','parent_type'];
         $lastColumns = ['created_at','updated_at','deleted_at'];
 
@@ -79,10 +81,11 @@ abstract class DataExporterBase extends AbstractExporter
     /**
      * get target chunk records
      */
-    protected function getRecords(){
+    protected function getRecords()
+    {
         // get target records
-        //return target 
-        $this->chunk(function ($data) use(&$records){
+        //return target
+        $this->chunk(function ($data) use (&$records) {
             $records = $data;
         }) ?? [];
 
@@ -91,30 +94,31 @@ abstract class DataExporterBase extends AbstractExporter
 
     /**
      * get export headers
-     * contains custom column name, column view name 
+     * contains custom column name, column view name
      */
-    protected function getHeaders($firstColumns, $custom_columns, $lastColumns){
+    protected function getHeaders($firstColumns, $custom_columns, $lastColumns)
+    {
         // create 2 rows.
         $rows = [];
         
         // 1st row, column name
         $rows[] = array_merge(
-            $firstColumns, 
-            collect($custom_columns)->map(function($value){
+            $firstColumns,
+            collect($custom_columns)->map(function ($value) {
                 return "value.".array_get($value, 'column_name');
-            })->toArray(), 
+            })->toArray(),
             $lastColumns
         );
 
         // 2st row, column view name
         $rows[] = array_merge(
-            collect($firstColumns)->map(function($value){
+            collect($firstColumns)->map(function ($value) {
                 return exmtrans("custom_column.system_columns.$value");
             })->toArray(),
-            collect($custom_columns)->map(function($value){
+            collect($custom_columns)->map(function ($value) {
                 return array_get($value, 'column_view_name');
             })->toArray(),
-            collect($lastColumns)->map(function($value){
+            collect($lastColumns)->map(function ($value) {
                 return exmtrans("custom_column.system_columns.$value");
             })->toArray()
         );
@@ -125,12 +129,13 @@ abstract class DataExporterBase extends AbstractExporter
     /**
      * get export bodies
      */
-    protected function getBodies($records, $firstColumns, $custom_columns, $lastColumns){
+    protected function getBodies($records, $firstColumns, $custom_columns, $lastColumns)
+    {
         // convert $custom_columns to pluck column_name array
         $custom_column_names = collect($custom_columns)->pluck('column_name')->toArray();
         
         $bodies = [];
-        foreach($records as $record){
+        foreach ($records as $record) {
             $body_items = [];
             // add items
             $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
@@ -142,10 +147,11 @@ abstract class DataExporterBase extends AbstractExporter
         return $bodies;
     }
 
-    protected function getBodyItems($record, $columns, $array_header_key = null){
+    protected function getBodyItems($record, $columns, $array_header_key = null)
+    {
         $body_items = [];
-        foreach($columns as $column){
-            // get key. 
+        foreach ($columns as $column) {
+            // get key.
             $key = (isset($array_header_key) ? $array_header_key : "").$column;
             $body_items[] = array_get($record, $key);
         }
@@ -158,7 +164,7 @@ abstract class DataExporterBase extends AbstractExporter
     public static function getModel(Grid $grid = null, $table = null, $search_enabled_columns = null)
     {
         $format = \Request::capture()->input('format');
-        switch($format){
+        switch ($format) {
             case 'excel':
                 return new ExcelExporter($grid, $table, $search_enabled_columns);
             default:

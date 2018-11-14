@@ -21,8 +21,9 @@ class PluginController extends AdminControllerBase
 {
     use ModelForm, AuthorityForm;
 
-    public function __construct(Request $request){
-        $this->setPageInfo(exmtrans("plugin.header"), exmtrans("plugin.header"), exmtrans("plugin.description"));  
+    public function __construct(Request $request)
+    {
+        $this->setPageInfo(exmtrans("plugin.header"), exmtrans("plugin.header"), exmtrans("plugin.description"));
     }
 
     /**
@@ -60,7 +61,9 @@ class PluginController extends AdminControllerBase
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
         $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
         $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($value) {
-            if(is_null($value)){return '';}
+            if (is_null($value)) {
+                return '';
+            }
             return exmtrans("plugin.plugin_type_options.$value");
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
@@ -214,7 +217,7 @@ class PluginController extends AdminControllerBase
     //Check request when edit record to delete null values in event_triggers
     protected function update(Request $request, $id)
     {
-        if(isset($request->get('options')['event_triggers']) === true){
+        if (isset($request->get('options')['event_triggers']) === true) {
             $event_triggers = $request->get('options')['event_triggers'];
             $options = $request->get('options');
             $event_triggers = array_filter($event_triggers, 'strlen');
@@ -239,8 +242,10 @@ class PluginController extends AdminControllerBase
         $form->display('plugin_name', exmtrans("plugin.plugin_name"));
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
         // create as label
-        $form->display('plugin_type_label', exmtrans("plugin.plugin_type"))->default(function($value) use($plugin){
-            if(is_null($plugin)){return '';}
+        $form->display('plugin_type_label', exmtrans("plugin.plugin_type"))->default(function ($value) use ($plugin) {
+            if (is_null($plugin)) {
+                return '';
+            }
             return exmtrans("plugin.plugin_type_options.{$plugin->plugin_type}");
         });
         $form->display('author', exmtrans("plugin.author"));

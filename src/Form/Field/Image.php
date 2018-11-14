@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Form\Field;
+
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class Image extends \Encore\Admin\Form\Field\Image

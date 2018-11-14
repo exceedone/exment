@@ -13,7 +13,8 @@ class PluginMenuButton
     protected $custom_table;
     protected $id;
     
-    public function __construct($plugin, $custom_table, $id = null){
+    public function __construct($plugin, $custom_table, $id = null)
+    {
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
         $this->id = $id;
@@ -23,9 +24,9 @@ class PluginMenuButton
     {
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
-        if(isset($this->id)){
+        if (isset($this->id)) {
             $url = admin_base_path(url_join("data", $table_name, $this->id, "pluginClick"));
-        }else{
+        } else {
             $url = admin_base_path(url_join("data", $table_name, "pluginClick"));
         }
         $confirm = trans('admin.confirm');
@@ -81,14 +82,14 @@ EOT;
 
         // get button_class
         $button_class = array_get($this->plugin, 'button_class');
-        if(!isset($button_class)){
+        if (!isset($button_class)) {
             $button_class = 'btn-default';
         }
 
         // get label
-        if(!is_null(array_get($this->plugin, 'options.label'))){
+        if (!is_null(array_get($this->plugin, 'options.label'))) {
             $label = array_get($this->plugin, 'options.label');
-        }elseif(isset($this->plugin->plugin_view_name)){
+        } elseif (isset($this->plugin->plugin_view_name)) {
             $label = $this->plugin->plugin_view_name;
         }
 

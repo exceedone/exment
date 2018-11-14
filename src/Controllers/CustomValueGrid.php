@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Controllers;
+
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -70,14 +71,14 @@ trait CustomValueGrid
                     ::with('parent_custom_table')
                     ->where('child_custom_table_id', $this->custom_table->id)
                     ->first();
-                // if set, create select 
-                if(isset($relation)){
+                // if set, create select
+                if (isset($relation)) {
                     // get options and ajax url
                     $options = getOptions($relation->parent_custom_table);
                     $ajax = getOptionAjaxUrl($relation->parent_custom_table);
                     if (isset($ajax)) {
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');
-                    }else{
+                    } else {
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select($options);
                     }
                 }
@@ -87,7 +88,7 @@ trait CustomValueGrid
                     $column_view_name = array_get($search_column, 'column_view_name');
                     // filter type
                     $column_type = array_get($search_column, 'column_type');
-                    switch($column_type){
+                    switch ($column_type) {
                         case 'select':
                         case 'select_valtext':
                             $filter->equal($column_name, $column_view_name)->select(createSelectOptions($search_column));
@@ -114,7 +115,7 @@ trait CustomValueGrid
                             $ajax = getOptionAjaxUrl($select_target_table);
                             if (isset($ajax)) {
                                 $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
-                            }else{
+                            } else {
                                 $filter->equal($column_name, $column_view_name)->select($options);
                             }
                             break;
@@ -205,7 +206,7 @@ trait CustomValueGrid
 
                 // if user does't edit permission disable edit row.
                 if (!Admin::user()->hasPermissionEditData($actions->getKey(), $table_name)) {
-                    $actions->disableEdit();      
+                    $actions->disableEdit();
                     $actions->disableDelete();
                 }
             });

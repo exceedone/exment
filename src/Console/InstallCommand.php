@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
+
 class InstallCommand extends AdminInstallCommand
 {
     /**

@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\System;
 
-
 class InitializeController extends Controller
 {
     use InitializeForm;

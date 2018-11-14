@@ -13,14 +13,16 @@ class Embeds extends AdminField\Embeds
 
     protected $gridFields = [];
 
-    public function disableHeader(){
+    public function disableHeader()
+    {
         $this->header = false;
     }
 
     /**
      * get fields in NestedEmbeddedForm
      */
-    public function fields(){
+    public function fields()
+    {
         return $this->buildEmbeddedForm()->fields();
     }
     
@@ -35,28 +37,29 @@ class Embeds extends AdminField\Embeds
         return $this->setFormField($form);
     }
 
-    protected function setFormField($form){
+    protected function setFormField($form)
+    {
         // reset
         $this->gridFields = [];
         $form->setParent($this->form);
 
         // call builder.
         // if builder is array, loop setting
-        if(is_array($this->builder)){
-            foreach($this->builder as $index => $build){
+        if (is_array($this->builder)) {
+            foreach ($this->builder as $index => $build) {
                 // get fields count
                 $prependFieldsCount = count($form->fields());
                 call_user_func($build, $form);
 
                 $fields = [];
-                for($i = $prependFieldsCount; $i < count($form->fields()); $i++){
+                for ($i = $prependFieldsCount; $i < count($form->fields()); $i++) {
                     $fields[] = $form->fields()[$i];
                 }
                 $this->gridFields[] = $fields;
             }
         }
         // not array(default), call_user_func $this->builder
-        else{
+        else {
             call_user_func($this->builder, $form);
         }
 
@@ -73,7 +76,7 @@ class Embeds extends AdminField\Embeds
     public function render()
     {
         $form = $this->buildEmbeddedForm();
-        if(count($this->gridFields) == 0){
+        if (count($this->gridFields) == 0) {
             return parent::render()->with(['form' => $form, 'header' => $this->header]);
         }
 

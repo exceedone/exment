@@ -94,13 +94,13 @@ class PluginInstaller
         // store uploaded file and get tmp path
         $filename = $uploadFile->store('upload_tmp', 'local');
         $fullpath = getFullpath($filename, 'local');
-        // tmpfolderpath is the folder path uploaded. 
+        // tmpfolderpath is the folder path uploaded.
         $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
         $tmpPluginFolderPath = null;
 
         //Folder to move file uploaded
         $pluginBasePath = path_join(app_path(), 'Plugins');
-        if(!\File::exists($pluginBasePath)){
+        if (!\File::exists($pluginBasePath)) {
             \File::makeDirectory($pluginBasePath, 0775);
         }
 
@@ -135,8 +135,7 @@ class PluginInstaller
             //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.jsonファイルが不正です'
             if ($json == null) {
                 $response = back()->with('errorMess', 'config.jsonファイルが不正です');
-            }
-            else{
+            } else {
                 //Validate json file with fields require
                 $checkRuleConfig = static::checkRuleConfigFile($json);
                 if ($checkRuleConfig) {
@@ -174,7 +173,7 @@ class PluginInstaller
                         $response = back()->with('errorMess', 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。');
                     }
                     //rename folder without Uppercase, space, tab, ...
-                    else{
+                    else {
                         $response = back();
                     }
                 } else {
@@ -189,7 +188,7 @@ class PluginInstaller
         // delete zip
         unlink($fullpath);
         //return response
-        if(isset($response)){
+        if (isset($response)) {
             return $response;
         }
     }
@@ -227,21 +226,21 @@ class PluginInstaller
         $plugin->description = array_get($json, 'description');
         $plugin->active_flg = true;
 
-        // set options 
+        // set options
         $options = array_get($plugin, 'options', []);
         // set if exists
-        if(array_key_value_exists('target_tables', $json)){
+        if (array_key_value_exists('target_tables', $json)) {
             $target_tables = array_get($json, 'target_tables');
             // if is_string $target_tables
-            if(is_string($target_tables)){
+            if (is_string($target_tables)) {
                 $target_tables = [$target_tables];
             }
             $options['target_tables'] = $target_tables;
         }
-        if(array_key_value_exists('label', $json)){
+        if (array_key_value_exists('label', $json)) {
             $options['label'] = array_get($json, 'label');
         }
-        if(array_key_value_exists('icon', $json)){
+        if (array_key_value_exists('icon', $json)) {
             $options['icon'] = array_get($json, 'icon');
         }
         $plugin->options = $options;
@@ -351,7 +350,8 @@ class PluginInstaller
         return static::form()->update($id);
     }
 
-    public static function route($plugin, $json) {
+    public static function route($plugin, $json)
+    {
         $namespace = $plugin->getNameSpace();
         Route::group([
             'prefix'        => config('admin.route.prefix').'/plugins',
@@ -359,15 +359,15 @@ class PluginInstaller
             'middleware'    => config('admin.route.middleware'),
             'module'        => $namespace,
         ], function (Router $router) use ($plugin, $namespace, $json) {
-            foreach($json['route'] as $route){
+            foreach ($json['route'] as $route) {
                 $methods = is_string($route['method']) ? [$route['method']] : $route['method'];
-                foreach($methods as $method){
-                    if($method === ""){
+                foreach ($methods as $method) {
+                    if ($method === "") {
                         $method = 'get';
                     }
                     $method = strtolower($method);
                     // call method in these http method
-                    if(in_array($method, ['get', 'post', 'put', 'patch', 'delete'])){
+                    if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
                         //Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), $json['controller'].'@'.$route['function'].'');
                         Route::{$method}(url_join(array_get($plugin->options, 'uri'), $route['uri']), 'Office365UserController@'.$route['function']);
                     }
@@ -390,7 +390,7 @@ class PluginInstaller
                 // get plugin_type
                 $plugin_type = array_get($plugin, 'plugin_type');
                 // if $plugin_type is not trigger, continue
-                if($plugin_type != Define::PLUGIN_TYPE_TRIGGER){
+                if ($plugin_type != Define::PLUGIN_TYPE_TRIGGER) {
                     continue;
                 }
                 $event_triggers = array_get($plugin, 'options.event_triggers');
@@ -421,7 +421,7 @@ class PluginInstaller
             foreach ($plugins as $plugin) {
                 // get plugin_type
                 $plugin_type = array_get($plugin, 'plugin_type');
-                switch($plugin_type){
+                switch ($plugin_type) {
                     case Define::PLUGIN_TYPE_DOCUMENT:
                         $event_triggers_button = ['form_menubutton_show'];
                         if (in_array($event, $event_triggers_button)) {

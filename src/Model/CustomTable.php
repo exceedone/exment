@@ -6,7 +6,7 @@ getCustomTableTrait();
 
 class CustomTable extends ModelBase
 {
-    use Traits\CustomTableTrait; 
+    use Traits\CustomTableTrait;
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -15,55 +15,64 @@ class CustomTable extends ModelBase
 
     protected $guarded = ['id', 'suuid', 'system_flg'];
 
-    public function custom_columns(){
+    public function custom_columns()
+    {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
-    public function custom_views(){
+    public function custom_views()
+    {
         return $this->hasMany(CustomView::class, 'custom_table_id')
             ->orderBy('view_type')
             ->orderBy('id');
     }
-    public function custom_forms(){
+    public function custom_forms()
+    {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
     }
-    public function custom_relations(){
+    public function custom_relations()
+    {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
     }
     
-    public function child_custom_relations(){
+    public function child_custom_relations()
+    {
         return $this->hasMany(CustomRelation::class, 'child_custom_table_id');
     }
     
-    public function from_custom_copies(){
+    public function from_custom_copies()
+    {
         return $this->hasMany(CustomCopy::class, 'from_custom_table_id');
     }
     
-    public function custom_form_block_target_tables(){
+    public function custom_form_block_target_tables()
+    {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
     
     /**
      * Delete children items
      */
-    public function deletingChildren(){
-        foreach($this->custom_columns as $item){
+    public function deletingChildren()
+    {
+        foreach ($this->custom_columns as $item) {
             $item->deletingChildren();
         }
-        foreach($this->custom_forms as $item){
+        foreach ($this->custom_forms as $item) {
             $item->deletingChildren();
         }
-        foreach($this->custom_form_block_target_tables as $item){
+        foreach ($this->custom_form_block_target_tables as $item) {
             $item->deletingChildren();
         }
     }
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
         
         // delete event
-        static::deleting(function($model) {
+        static::deleting(function ($model) {
             // Delete items
-            $model->deletingChildren();            
+            $model->deletingChildren();
             
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
@@ -72,7 +81,7 @@ class CustomTable extends ModelBase
             $model->custom_relations()->delete();
 
             // delete menu
-            Menu::where('menu_type', Define::MENU_TYPE_TABLE)->where('menu_target', $model->id)->delete(); 
+            Menu::where('menu_type', Define::MENU_TYPE_TABLE)->where('menu_target', $model->id)->delete();
         });
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Form\Field;
+
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\NestedEmbeddedForm;
 
@@ -23,13 +24,6 @@ class NestedEmbeds extends Embeds
     {
         $form = new NestedEmbeddedForm($this->elementName);
         return $this->setFormField($form);
-        // $form->setParent($this->form);
-
-        // call_user_func($this->builder, $form);
-
-        // $form->fill($this->getEmbeddedData());
-
-        // return $form;
     }
 
     /**
@@ -41,7 +35,7 @@ class NestedEmbeds extends Embeds
     {
         $render = parent::render();
         $script = $this->buildEmbeddedForm()->getScripts();
-        if(isset($script)){
+        if (isset($script)) {
             $this->script = $script;
         }
 

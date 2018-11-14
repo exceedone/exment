@@ -19,18 +19,18 @@ class Morph
 
     /**
      * define morph map. this called from command.
-     * 
+     *
      */
-    public static function defineMorphMap(){
+    public static function defineMorphMap()
+    {
         // morphMap
-        if(Schema::hasTable(CustomTable::getTableName())){
+        if (Schema::hasTable(CustomTable::getTableName())) {
             $table_names = CustomTable::all(['table_name'])->pluck('table_name');
             $morphMaps = [
                 "authorities" => Model\Authority::class,
                 "table" => CustomTable::class
             ];
-            foreach ($table_names as $table_name)
-            {
+            foreach ($table_names as $table_name) {
                 // morphmap
                 $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
             }
@@ -40,7 +40,7 @@ class Morph
         // Define Modelname user and org.
         $tables = [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION];
         //$tables = CustomTable::all();
-        foreach($tables as $table){
+        foreach ($tables as $table) {
             getModelName($table);
         }
     }

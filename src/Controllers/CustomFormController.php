@@ -29,7 +29,7 @@ class CustomFormController extends AdminControllerTableBase
 
     public function __construct(Request $request)
     {
-        parent::__construct($request);        
+        parent::__construct($request);
         $this->setPageInfo(exmtrans("custom_form.header"), exmtrans("custom_form.header"), exmtrans("custom_form.description"));
     }
 
@@ -42,7 +42,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -59,7 +59,7 @@ class CustomFormController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
 
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomForm::class, $id, 'form')) {
@@ -79,7 +79,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if(!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)){
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
             return;
         }
         $this->AdminContent($content);
@@ -202,7 +202,7 @@ class CustomFormController extends AdminControllerTableBase
             ]);
             foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
                 $custom_form_column_array = $custom_form_column->toArray();
-                if(!isset($custom_form_column_array['column_no'])){
+                if (!isset($custom_form_column_array['column_no'])) {
                     $custom_form_column_array['column_no'] = 1;
                 }
 
@@ -210,7 +210,7 @@ class CustomFormController extends AdminControllerTableBase
                 switch ($custom_form_column->form_column_type) {
                     case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
                         $custom_column = $custom_form_column->custom_column;
-                        if(!isset($custom_column)){
+                        if (!isset($custom_column)) {
                             break 2; // break switch and Loop.
                         }
                         $column_view_name = $custom_column->column_view_name;
@@ -218,7 +218,7 @@ class CustomFormController extends AdminControllerTableBase
                         
                     case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
                         // get column name
-                        $column_form_column_array = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function($option) use($custom_form_column){
+                        $column_form_column_array = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($option) use ($custom_form_column) {
                             return array_get($option, 'id') == array_get($custom_form_column, 'form_column_target_id');
                         }) ?? [];
                         $column_form_column_name = array_get($column_form_column_array, 'name');
@@ -298,24 +298,24 @@ class CustomFormController extends AdminControllerTableBase
             $custom_columns = CustomTable::find($form_block_target_table_id)->custom_columns->toArray();
             
             // if form block type is 1:n or n:n, get parent tables columns too. use parent_table_id.
-            if(in_array(array_get($custom_form_block, 'form_block_type'), [Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY, Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY])){
+            if (in_array(array_get($custom_form_block, 'form_block_type'), [Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY, Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY])) {
                 $custom_columns = array_merge(
-                    CustomTable::find($parent_table_id)->custom_columns->toArray(), 
+                    CustomTable::find($parent_table_id)->custom_columns->toArray(),
                     $custom_columns
                 );
             }
             // else, get form_block_target_table_id as parent_table_id
-            else{
+            else {
                 $parent_table_id = $form_block_target_table_id;
             }
             
             foreach ($custom_columns as $custom_column) {
                 // if column_type is not select_table, return []
-                if(!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
+                if (!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
                     continue;
                 }
                 // if not have array_get($custom_column, 'options.select_target_table'), conitnue
-                if(is_null(array_get($custom_column, 'options.select_target_table'))){
+                if (is_null(array_get($custom_column, 'options.select_target_table'))) {
                     continue;
                 }
                 // get select_table, user, organization columns
@@ -340,8 +340,12 @@ class CustomFormController extends AdminControllerTableBase
             $custom_form_columns = [];
             
             // set VIEW_COLUMN_SYSTEM_OPTIONS as header and footer
-            $system_columns_header = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->filter(function($option){return array_key_value_exists('header', $option); });
-            $system_columns_footer = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->filter(function($option){return array_key_value_exists('footer', $option); });
+            $system_columns_header = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->filter(function ($option) {
+                return array_key_value_exists('header', $option);
+            });
+            $system_columns_footer = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->filter(function ($option) {
+                return array_key_value_exists('footer', $option);
+            });
             
             $loops = [
                 ['form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM , 'columns' => $system_columns_header],
@@ -415,13 +419,13 @@ class CustomFormController extends AdminControllerTableBase
 
         // set free html
         $custom_form_columns  = [];
-        foreach(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE as $id => $type){
+        foreach (Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE as $id => $type) {
             $header_column_name = '[custom_form_columns][NEW__'.make_uuid().']';
             array_push($custom_form_columns, [
                 'id' => null,
-                'column_view_name' => exmtrans("custom_form.form_column_type_other_options.".array_get($type, 'column_name')), 
-                'form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_OTHER, 
-                'form_column_target_id' => $id, 
+                'column_view_name' => exmtrans("custom_form.form_column_type_other_options.".array_get($type, 'column_name')),
+                'form_column_type' => Define::CUSTOM_FORM_COLUMN_TYPE_OTHER,
+                'form_column_target_id' => $id,
                 'header_column_name' =>$header_column_name
             ]);
         }
@@ -475,7 +479,7 @@ class CustomFormController extends AdminControllerTableBase
                     continue;
                 }
                 foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
-                    if(!isset($column_value['form_column_type'])){
+                    if (!isset($column_value['form_column_type'])) {
                         continue;
                     }
                     // if key is "NEW_", create new column
@@ -489,11 +493,11 @@ class CustomFormController extends AdminControllerTableBase
                         $column = new CustomFormColumn;
                         $column->custom_form_block_id = $block->id;
                         $column->form_column_type = array_get($column_value, 'form_column_type');
-                        if(is_null(array_get($column_value, 'form_column_target_id'))){
+                        if (is_null(array_get($column_value, 'form_column_target_id'))) {
                             continue;
                         }
                         $column->form_column_target_id = array_get($column_value, 'form_column_target_id');
-                        } else {
+                    } else {
                         $column = CustomFormColumn::findOrFail($column_key);
                     }
                     $column->column_no = array_get($column_value, 'column_no', 1);
@@ -513,8 +517,9 @@ class CustomFormController extends AdminControllerTableBase
     }
 
     // create form because we need for delete
-    protected function form(){
-        return Admin::form(CustomForm::class, function (Form $form){
+    protected function form()
+    {
+        return Admin::form(CustomForm::class, function (Form $form) {
         });
     }
 }

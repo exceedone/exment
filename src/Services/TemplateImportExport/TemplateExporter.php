@@ -39,19 +39,19 @@ class TemplateExporter
         $config['description'] = $description;
 
         ///// set config info
-        if(in_array(Define::TEMPLATE_EXPORT_TARGET_TABLE, $options['export_target'])){
+        if (in_array(Define::TEMPLATE_EXPORT_TARGET_TABLE, $options['export_target'])) {
             static::setTemplateTable($config, $options['target_tables']);
         }
-        if(in_array(Define::TEMPLATE_EXPORT_TARGET_MENU, $options['export_target'])){
+        if (in_array(Define::TEMPLATE_EXPORT_TARGET_MENU, $options['export_target'])) {
             static::setTemplateMenu($config, $options['target_tables']);
         }
-        if(in_array(Define::TEMPLATE_EXPORT_TARGET_DASHBOARD, $options['export_target'])){
+        if (in_array(Define::TEMPLATE_EXPORT_TARGET_DASHBOARD, $options['export_target'])) {
             static::setTemplateDashboard($config);
         }
-        if(in_array(Define::TEMPLATE_EXPORT_TARGET_AUTHORITY, $options['export_target'])){
+        if (in_array(Define::TEMPLATE_EXPORT_TARGET_AUTHORITY, $options['export_target'])) {
             static::setTemplateAuthority($config);
         }
-        if(in_array(Define::TEMPLATE_EXPORT_TARGET_MAIL_TEMPLATE, $options['export_target'])){
+        if (in_array(Define::TEMPLATE_EXPORT_TARGET_MAIL_TEMPLATE, $options['export_target'])) {
             static::setTemplateMailTemplate($config);
         }
 
@@ -98,13 +98,14 @@ class TemplateExporter
     /**
      * set table info to config
      */
-    protected static function setTemplateTable(&$config, $target_tables){
+    protected static function setTemplateTable(&$config, $target_tables)
+    {
         // get customtables --------------------------------------------------
         $tables = CustomTable::with('custom_columns')->get()->toArray();
         $configTables = [];
         foreach ($tables as &$table) {
             // if table contains $options->target_tables, continue
-            if(count($target_tables) > 0 && !in_array(array_get($table, 'table_name'), $target_tables)){
+            if (count($target_tables) > 0 && !in_array(array_get($table, 'table_name'), $target_tables)) {
                 continue;
             }
 
@@ -123,13 +124,13 @@ class TemplateExporter
                     if (in_array(array_get($custom_column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
                         $calc_formula = array_get($custom_column['options'], 'calc_formula');
                         // if $calc_formula is string, convert to json
-                        if(is_string($calc_formula)){
+                        if (is_string($calc_formula)) {
                             $calc_formula = json_decode($calc_formula, true);
                         }
-                        if(is_array($calc_formula)){
-                            foreach($calc_formula as &$c){
+                        if (is_array($calc_formula)) {
+                            foreach ($calc_formula as &$c) {
                                 // if not dynamic, continue
-                                if(array_get($c, 'type') != 'dynamic'){
+                                if (array_get($c, 'type') != 'dynamic') {
                                     continue;
                                 }
                                 // get custom column name
@@ -185,7 +186,7 @@ class TemplateExporter
             // add table name
             $form['table_name'] = array_get($form, 'custom_table.table_name');
             // if table contains $options->target_tables, continue
-            if(count($target_tables) > 0 && !in_array($form['table_name'], $target_tables)){
+            if (count($target_tables) > 0 && !in_array($form['table_name'], $target_tables)) {
                 continue;
             }
 
@@ -206,11 +207,11 @@ class TemplateExporter
                                 $custom_form_column['form_column_target_name'] = isset($form_column_target_name) ? array_get($form_column_target_name, 'column_name') : null;
                             }
                             
-                            if(is_null($custom_form_column['options'])){
+                            if (is_null($custom_form_column['options'])) {
                                 $custom_form_column['options'] = [];
                             }
                             // set as changedata_column_id to changedata_column_name
-                            if(array_key_value_exists('changedata_column_id', $custom_form_column['options'])){
+                            if (array_key_value_exists('changedata_column_id', $custom_form_column['options'])) {
                                 $changedata_column = CustomColumn::find($custom_form_column['options']['changedata_column_id']);
                                 $custom_form_column['options']['changedata_column_name'] = $changedata_column->column_name ?? null;
                                 // set changedata_column table name
@@ -218,7 +219,7 @@ class TemplateExporter
                             }
                             array_forget($custom_form_column['options'], 'changedata_column_id');
                             // set as changedata_target_column_id to changedata_target_column_name
-                            if(array_key_value_exists('changedata_target_column_id', $custom_form_column['options'])){
+                            if (array_key_value_exists('changedata_target_column_id', $custom_form_column['options'])) {
                                 $custom_form_column['options']['changedata_target_column_name'] = CustomColumn::find($custom_form_column['options']['changedata_target_column_id'])->column_name ?? null;
                             }
                             array_forget($custom_form_column['options'], 'changedata_target_column_id');
@@ -271,7 +272,7 @@ class TemplateExporter
             // add table name
             $view['table_name'] = array_get($view, 'custom_table.table_name');
             // if table contains $options->target_tables, continue
-            if(count($target_tables) > 0 && !in_array($view['table_name'], $target_tables)){
+            if (count($target_tables) > 0 && !in_array($view['table_name'], $target_tables)) {
                 continue;
             }
 
@@ -355,7 +356,7 @@ class TemplateExporter
             $relation['parent_custom_table_name'] = array_get($relation, 'parent_custom_table.table_name');
             $relation['child_custom_table_name'] = array_get($relation, 'child_custom_table.table_name');
             // if table contains $options->target_tables, continue
-            if(count($target_tables) > 0 && !in_array($relation['parent_custom_table_name'], $target_tables)){
+            if (count($target_tables) > 0 && !in_array($relation['parent_custom_table_name'], $target_tables)) {
                 continue;
             }
             
@@ -369,7 +370,8 @@ class TemplateExporter
     /**
      * set menu info to config
      */
-    protected static function setTemplateMenu(&$config, $target_tables){
+    protected static function setTemplateMenu(&$config, $target_tables)
+    {
         // get menu --------------------------------------------------
         $menuTree = (new Menu)->toTree(); // menutree:hierarchy
         $menulist = (new Menu)->allNodes(); // allNodes:dimensional
@@ -388,10 +390,11 @@ class TemplateExporter
         $config['admin_menu'] = $menus;
     }
 
-    protected static function getTemplateMenuItems($menu, $target_tables, $menulist){
+    protected static function getTemplateMenuItems($menu, $target_tables, $menulist)
+    {
         // checking target table visible. if false, return empty array
         $menus = [];
-        if(count($target_tables) > 0 && !Admin::user()->visible($menu, $target_tables)){
+        if (count($target_tables) > 0 && !Admin::user()->visible($menu, $target_tables)) {
             return [];
         }
 
@@ -415,7 +418,7 @@ class TemplateExporter
             $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
         } elseif ($menu['menu_type'] == Define::MENU_TYPE_SYSTEM) {
             $menu['menu_target_name'] = $menu['menu_name'];
-        } 
+        }
         // custom, parent_node
         else {
             $menu['menu_target_name'] = $menu['menu_target'];
@@ -423,7 +426,7 @@ class TemplateExporter
 
         //// url
         // menu type is table, remove uri "data/"
-        if($menu['menu_type'] == Define::MENU_TYPE_TABLE){
+        if ($menu['menu_type'] == Define::MENU_TYPE_TABLE) {
             $menu['uri'] = preg_replace('/^data\//', '', $menu['uri']);
         }
 
@@ -431,8 +434,8 @@ class TemplateExporter
         $menus[] = $menu;
 
         // if has children, loop
-        if(array_key_value_exists('children', $menu)){
-            foreach(array_get($menu, 'children') as $child){
+        if (array_key_value_exists('children', $menu)) {
+            foreach (array_get($menu, 'children') as $child) {
                 // set children menu item recursively to $menus.
                 $menus = array_merge($menus, static::getTemplateMenuItems($child, $target_tables, $menulist));
             }
@@ -443,7 +446,8 @@ class TemplateExporter
     /**
      * set dashboard info to config
      */
-    protected static function setTemplateDashboard(&$config){
+    protected static function setTemplateDashboard(&$config)
+    {
         // get dashboards --------------------------------------------------
         $dashboards = Dashboard
             ::with('dashboard_boxes')
@@ -509,7 +513,8 @@ class TemplateExporter
     /**
      * set Authority info to config
      */
-    protected static function setTemplateAuthority(&$config){
+    protected static function setTemplateAuthority(&$config)
+    {
         // Get Authorities --------------------------------------------------
         $authorities = Authority::all()->toArray();
         foreach ($authorities as &$authority) {
@@ -535,7 +540,8 @@ class TemplateExporter
     /**
      * set MailTemplate info to config
      */
-    protected static function setTemplateMailTemplate(&$config){
+    protected static function setTemplateMailTemplate(&$config)
+    {
         // get mail_templates --------------------------------------------------
         $mail_templates = MailTemplate::all()->toArray();
         foreach ($mail_templates as &$mail_template) {

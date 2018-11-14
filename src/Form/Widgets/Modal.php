@@ -4,17 +4,18 @@ namespace Exceedone\Exment\Form\Widgets;
 
 use Encore\Admin\Facades\Admin;
 
-
 class Modal
-{    
+{
     use ModalTrait;
     protected $modalBody;
 
-    public function body($modalBody){
+    public function body($modalBody)
+    {
         $this->modalBody = $modalBody;
     }
 
-    protected function script(){
+    protected function script()
+    {
         // modal id
         $id = $this->modalAttributes['id'];
         // Add script
@@ -44,7 +45,8 @@ EOT;
         Admin::script($script);
     }
 
-    public static function widgetModalRender(){
+    public static function widgetModalRender()
+    {
         // add modal for showmodal
         $modal = new Modal();
         $modal->modalHeader('データ確認'); //TODO:trans
@@ -64,8 +66,8 @@ EOT;
 
         $this->script();
 
-        // get view 
-        return view('exment::widgets.modal',[
+        // get view
+        return view('exment::widgets.modal', [
             'header' => $this->modalHeader,
             'body' => $this->modalBody,
             'submit' => false,
