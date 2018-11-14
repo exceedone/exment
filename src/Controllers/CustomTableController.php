@@ -46,18 +46,6 @@ class CustomTableController extends AdminControllerBase
 
         // filter table --------------------------------------------------
         CustomTable::filterList($grid->model(), ['getModel' => false]);
-        // $grid->model()->where('showlist_flg', true);
-
-        // // if not exists, filter model using permission
-        // if (!Admin::user()->hasPermission(Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
-        //     // get tables has custom_table permission.
-        //     $permission_tables = Admin::user()->allHasPermissionTables(Define::AUTHORITY_VALUE_CUSTOM_TABLE);
-        //     $permission_table_ids = $permission_tables->map(function($permission_table){
-        //         return array_get($permission_table, 'id');
-        //     });
-        //     // filter id;
-        //     $grid->model()->whereIn('id', $permission_table_ids);
-        // }
 
         return $grid;
     }
