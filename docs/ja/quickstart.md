@@ -17,7 +17,7 @@ cd (プロジェクト名)
 - 以下のコマンドを実行します。
 
 ~~~
-composer require exceedone/exment=dev-master
+composer require exceedone/exment
 php artisan vendor:publish --provider="Encore\Admin\AdminServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=public --force

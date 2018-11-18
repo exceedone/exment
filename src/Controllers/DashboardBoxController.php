@@ -169,7 +169,7 @@ class DashboardBoxController extends AdminControllerBase
                 case Define::DASHBOARD_BOX_TYPE_LIST:
                     $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
                         ->required()
-                        ->options(CustomTable::get(['id', 'table_view_name'])->pluck('table_view_name', 'id'))
+                        ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
                         ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
 
                     $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))

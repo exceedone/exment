@@ -121,7 +121,7 @@ class DashboardController extends AdminControllerBase
                             });
                         });
                     }
-                  });
+                });
             });
             
             ///// reload click event
