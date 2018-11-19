@@ -48,6 +48,17 @@ if (!function_exists('mbTrim')) {
     }
 }
 
+if (!function_exists('esc_html')) {
+    /**
+     * escape html
+     */
+    function esc_html($str)
+    {
+        return htmlspecialchars($str, ENT_QUOTES|ENT_HTML5);
+    }
+}
+
+
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)
     {
@@ -1030,7 +1041,7 @@ if (!function_exists('getUrl')) {
             return null;
         }
         $url = null;
-        $value = $custom_value->getValue($column, true);
+        $value = esc_html($custom_value->getValue($column, true));
         switch ($column->column_type) {
             case 'url':
                 $url = $custom_value->getValue($column);

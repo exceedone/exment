@@ -36,6 +36,8 @@ trait ExmentControllerTrait
         }
         if (isset($this->description)) {
             $content->description($this->description);
+        }else{
+            $content->description(' ');
         }
         return $content;
     }

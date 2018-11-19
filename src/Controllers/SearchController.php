@@ -193,7 +193,7 @@ EOT;
                     var box = $('.table_' + data.table_name);
                     box.find('.box-body').html(data.html);
                     box.find('.overlay').remove();
-
+                    Exment.CommonEvent.tableHoverLink();
                 })
                 .always((data) => {
                 });
@@ -299,7 +299,7 @@ EOT;
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist);
 
-        return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];
+        return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->class('table table-hover')->render()];
     }
     
     // For relation search  --------------------------------------------------
@@ -357,7 +357,7 @@ function getNaviData() {
                 var box = $('.table_' + data.table_name);
                 box.find('.box-body').html(data.html);
                 box.find('.overlay').remove();
-
+                Exment.CommonEvent.tableHoverLink();
             })
             .always((data) => {
             });
@@ -435,7 +435,7 @@ EOT;
         $view = CustomView::getDefault($search_table);
         list($headers, $bodies) = $view->getDataTable($data);
 
-        return ['table_name' => array_get($search_table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->render()];
+        return ['table_name' => array_get($search_table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->class('table table-hover')->render()];
     }
 
     /**

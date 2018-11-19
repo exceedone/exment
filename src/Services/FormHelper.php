@@ -232,7 +232,7 @@ class FormHelper
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
             }
             if (isset($help)) {
-                $field->help($help);
+                $field->help(esc_html($help));
             }
         }
 

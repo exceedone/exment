@@ -55,7 +55,7 @@ class CustomView extends ModelBase
                     if ($isUrl) {
                         return getUrl($this, $column, true);
                     }
-                    return $this->getValue($column, true);
+                    return esc_html($this->getValue($column, true));
                 });
             }
             // parent_id
@@ -86,10 +86,10 @@ class CustomView extends ModelBase
                 $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable()
                     ->display(function ($value) use ($view_column_target) {
                         if (!is_null($value)) {
-                            return $value;
+                            return esc_html($value);
                         }
                         // if cannnot get value, return array_get from this
-                        return array_get($this, $view_column_target);
+                        return esc_html(array_get($this, $view_column_target));
                     });
             }
         }
@@ -150,7 +150,7 @@ class CustomView extends ModelBase
                             if ($isUrl) {
                                 $body_items[] = getUrl($data, $custom_column, true);
                             } else {
-                                $body_items[] = $data->getValue($custom_column, true);
+                                $body_items[] = esc_html($data->getValue($custom_column, true));
                             }
                         }
                     }
@@ -170,7 +170,7 @@ class CustomView extends ModelBase
                             return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
                         })['name'] ?? null;
                         if (isset($name)) {
-                            $body_items[] = array_get($data, $name);
+                            $body_items[] = esc_html(array_get($data, $name));
                         }
                     }
                 }

@@ -39,7 +39,7 @@ class Initialize
         } else {
             $val = System::site_name();
             if (isset($val)) {
-                Config::set('admin.logo', $val);
+                Config::set('admin.logo', esc_html($val));
             }
         }
 
@@ -50,14 +50,14 @@ class Initialize
         } else {
             $val = System::site_name_short();
             if (isset($val)) {
-                Config::set('admin.logo-mini', $val);
+                Config::set('admin.logo-mini', esc_html($val));
             }
         }
 
         // Site Skin
         $val = System::site_skin();
         if (isset($val)) {
-            Config::set('admin.skin', $val);
+            Config::set('admin.skin', esc_html($val));
         }
         // Site layout
         $val = System::site_layout();

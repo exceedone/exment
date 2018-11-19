@@ -102,6 +102,9 @@ class MenuController extends AdminControllerBase
                         $uri = null;
                         break;
                 }
+
+                // escape html
+                $branch['title'] = esc_html($branch['title']);
                 $payload = "<i class='fa {$icon}'></i>&nbsp;<strong>{$branch['title']}</strong>";
 
                 if (!isset($branch['children'])) {
@@ -109,7 +112,8 @@ class MenuController extends AdminControllerBase
                         $uri = admin_base_path($uri);
                     }
 
-                    $payload .= "&nbsp;&nbsp;&nbsp;<a href=\"$uri\" class=\"dd-nodrag\">$uri</a>";
+                    $esc_uri = esc_html($uri);
+                    $payload .= "&nbsp;&nbsp;&nbsp;<a href=\"$uri\" class=\"dd-nodrag\">$esc_uri</a>";
                 }
 
                 return $payload;

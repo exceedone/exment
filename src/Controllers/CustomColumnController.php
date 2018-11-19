@@ -88,7 +88,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
-            return array_get(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"), $val);
+            return esc_html(array_get(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"), $val));
         });
 
         if (isset($this->custom_table)) {

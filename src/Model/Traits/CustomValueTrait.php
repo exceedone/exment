@@ -239,7 +239,7 @@ trait CustomValueTrait
             return $url;
         }
         $url .= '?modal=1';
-        $label = $this->getValue(null, true);
+        $label = esc_html($this->getValue(null, true));
         return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
     }
 }

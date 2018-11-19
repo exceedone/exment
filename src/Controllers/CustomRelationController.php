@@ -89,7 +89,7 @@ class CustomRelationController extends AdminControllerTableBase
         $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table_view_name"))->sortable();
         $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function ($relation_type) {
             $relation_type_options = getTransArray(Define::RELATION_TYPE, "custom_relation.relation_type_options");
-            return array_get($relation_type_options, $relation_type);
+            return esc_html(array_get($relation_type_options, $relation_type));
         });
 
         if (isset($this->custom_table)) {
