@@ -139,8 +139,10 @@ $('#has-many-table-{$this->column}').on('click', '.add', function () {
 });
 
 $('#has-many-table-{$this->column}').on('click', '.remove', function () {
-    $(this).closest('.has-many-table-{$this->column}-row').hide();
-    $(this).closest('.has-many-table-{$this->column}-row').find('.$removeClass').val(1);
+    var row = $(this).closest('.has-many-table-{$this->column}-row');
+    row.hide();
+    row.find('.$removeClass').val(1);
+    row.find('input textarea select').removeAttr('required max min maxlength pattern');
 });
 
 EOT;

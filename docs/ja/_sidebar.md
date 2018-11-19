@@ -14,6 +14,7 @@
 * 【ユーザー向け】
   * [データ](/ja/data.md)
   * [データ一覧](/ja/data_grid.md)
+  * [データフォーム(データ詳細)](/ja/data_form.md)
 * 【開発者向け】
   * [関数リファレンス](/ja/func_reference.md)
   * [プラグイン開発方法](/ja/plugin_quickstart.md)

@@ -27,7 +27,7 @@ if (!function_exists('exmtrans')) {
 }
 
 if (!function_exists('getManualUrl')) {
-    function getManualUrl($uri)
+    function getManualUrl($uri = null)
     {
         $manual_url_base = config('exment.manual_url');
         // if ja, set

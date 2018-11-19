@@ -22,6 +22,7 @@ abstract class DataImporterBase
      */
     public function import($request)
     {
+        set_time_limit(240);
         // validate request
         $validateRequest = $this->validateRequest($request);
         if ($validateRequest !== true) {
