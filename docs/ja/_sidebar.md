@@ -6,6 +6,8 @@
   * [カスタムテーブル](/ja/table.md)
   * [カスタム列](/ja/column.md)
   * [関連テーブル](/ja/relation.md)
+  * [カスタムフォーム](/ja/form.md)
+  * [カスタムビュー](/ja/view.md)
   * [ユーザー・ログインユーザー](/ja/user.md)
   * [メニュー](/ja/menu.md)
   * [テンプレート](/ja/template.md)

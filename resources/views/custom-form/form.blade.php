@@ -68,10 +68,17 @@
                     </div>
                 </div>
 
+                <div class="col-xs-12 col-md-12" style="margin-top:2em;">
+                    <h4>{{ exmtrans('custom_form.items') }}</h4>
+                    <span class="help-block">
+                        <i class="fa fa-info-circle"></i>&nbsp;{!! exmtrans('custom_form.help.items') !!}
+                    </span>
+                </div>
+
                 <div class="col-xs-12 col-md-4 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="1">
 
-                    <h5>{{ exmtrans('custom_form.items') }} 列1</h5>
+                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}1</h5>
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 1) @continue @endif
@@ -82,7 +89,7 @@
                 <div class="col-xs-12 col-md-4 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="2">
 
-                    <h5>{{ exmtrans('custom_form.items') }} 列2</h5>
+                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}2</h5>
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 2) @continue @endif
@@ -95,6 +102,7 @@
                 </div>
                 <div id="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" class="col-xs-12 col-md-3 custom_form_column_block"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}">
+                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('custom_form.suggest_items') }}</h5>
                     @foreach($custom_form_block['suggests'] as $suggest)
                     <div class="custom_form_column_block_inner">
                         <h5>{{$suggest['label']}}
@@ -150,6 +158,11 @@
                     <h4 class="modal-title" id="modal-label">{{exmtrans('custom_form.changedata')}}</h4>
                 </div>
                 <div class="modal-body" id="modal-body">
+                    <div class="col-sm-12">
+                        <span class="help-block">
+                            <i class="fa fa-info-circle"></i>&nbsp;{!! sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))) !!}
+                        </span>
+                    </div>    
                     <div class="col-sm-12">
                         <select data-add-select2="{{exmtrans('custom_form.changedata_target_column')}}" class="form-control select2 changedata_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
                         </select>

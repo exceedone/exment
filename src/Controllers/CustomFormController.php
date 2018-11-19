@@ -196,8 +196,9 @@ class CustomFormController extends AdminControllerTableBase
         $custom_form_blocks = [];
         foreach ($form->custom_form_blocks as $custom_form_block) {
             $column_blocks = $custom_form_block->toArray();
+            // get label header.
             $column_blocks = array_merge($column_blocks, [
-                'label' => exmtrans('custom_form.table_default_label'),
+                'label' => $this->getBlockLabelHeader(array_get($column_blocks, 'form_block_type')) . $custom_form_block->target_table->table_view_name ?? null,
                 'custom_form_columns' => [],
             ]);
             foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
@@ -254,8 +255,8 @@ class CustomFormController extends AdminControllerTableBase
             $block->id = null;
             $block->form_block_type = Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT;
             $block->form_block_target_table_id = $this->custom_table->id;
-            $block->label = exmtrans('custom_form.table_default_label');
-            $block->form_block_view_name = exmtrans('custom_form.table_default_label');
+            $block->label = $this->getBlockLabelHeader(Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) . $this->custom_table->table_view_name;
+            $block->form_block_view_name = $block->label;
             $block->available = 1;
             $block->options = [];
             $block->custom_form_columns = [];
@@ -272,8 +273,7 @@ class CustomFormController extends AdminControllerTableBase
                 $block->id = null;
                 $block->form_block_type = $relation->relation_type;
                 $block->form_block_target_table_id = $relation->child_custom_table_id;
-                $block->label = ($relation->relation_type == Define::RELATION_TYPE_ONE_TO_MANY ? exmtrans('custom_form.table_one_to_many_label') : exmtrans('custom_form.table_many_to_many_label'))
-                            .$relation->child_custom_table->table_view_name;
+                $block->label = $this->getBlockLabelHeader($relation->relation_type).$relation->child_custom_table->table_view_name;
                 $block->form_block_view_name = $block->label;
                 $block->available = 0;
                 $block->options = [
@@ -521,5 +521,18 @@ class CustomFormController extends AdminControllerTableBase
     {
         return Admin::form(CustomForm::class, function (Form $form) {
         });
+    }
+
+    /**
+     * get form block label header
+     */
+    protected function getBlockLabelHeader($form_block_type){
+        switch($form_block_type){
+            case Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY:
+                return exmtrans('custom_form.table_one_to_many_label');
+            case Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY:
+                return exmtrans('custom_form.table_many_to_many_label');
+        }
+        return exmtrans('custom_form.table_default_label');
     }
 }

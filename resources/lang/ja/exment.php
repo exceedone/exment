@@ -18,6 +18,8 @@ return [
         'separate_word' => '、',
         'yes' => 'はい',
         'no' => 'いいえ',
+        'row' => '行',
+        'column' => '列',
         'message' => [
             'import_success' => 'インポート完了しました！',
             'import_error' => 'インポート失敗しました。CSVファイルをご確認ください。',
@@ -27,7 +29,7 @@ return [
 
         'help' =>[
             'input_available_characters' => '%sで記入してください。',
-        ]
+        ],
     ],
 
     'system' => [
@@ -395,9 +397,9 @@ return [
     'custom_form' => [
         'default_form_name' => 'フォーム',
         'header' => 'カスタムフォーム設定',
-        'description' => 'ユーザーが入力できるフォーム画面を定義します。権限やユーザーごとに切り替える事ができます。',
+        'description' => 'ユーザーが入力できるフォーム画面を定義します。このページで設定した内容が、データフォーム画面に反映されます。',
         'form_view_name' => 'フォーム表示名',
-        'table_default_label' => 'テーブル',
+        'table_default_label' => 'テーブル - ',
         'table_one_to_many_label' => '子テーブル - ',
         'table_many_to_many_label' => '関連テーブル - ',
         'suggest_column_label' => 'テーブル列',
@@ -411,7 +413,8 @@ return [
         'hasmany_type' => 'フォームをテーブル形式にする',
         'header_basic_setting' => 'ヘッダー基本設定',
         'changedata' => 'データ連動設定',
-        'items' => '項目',
+        'items' => 'フォーム項目',
+        'suggest_items' => '候補一覧',
         'add_all_items' => 'すべて項目に追加',
         'changedata_target_column' => '列を選択',
         'changedata_target_column_available' => '設定済',
@@ -423,6 +426,11 @@ return [
             'header' => '見出し',
             'html' => 'HTML',
             'explain' => '説明文',
+        ],
+
+        'help'=> [
+            'items' => 'データフォームに表示する項目を設定します。<br />「フォーム項目 候補一覧」の中から、フォームに表示したい項目を、「フォーム項目 列1」「フォーム項目 列2」にドラッグ＆ドロップで設定してください。',
+            'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら</a>をご参照ください。',
         ],
     ],
 
@@ -549,7 +557,6 @@ return [
         'child_custom_table_name' => '子テーブル名',
         'child_custom_table_view_name' => '子テーブル表示名',
     ],
-
 
     'custom_copy' => [
         'header' => 'データコピー設定',

@@ -7,7 +7,7 @@ class HelpNav
     public function __toString()
     {
         // get manual url
-        $manual_url = getManualUrl();
+        $manual_url = htmlspecialchars(getManualUrl());
         return <<<HTML
 
 <li>

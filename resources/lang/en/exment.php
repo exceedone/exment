@@ -5,8 +5,10 @@ return [
         'home' => 'HOME',
         'error' => 'Error',
         'import' => 'Import',
+        'copy' => 'Copy',
         'change' => 'Change',
         'reqired' => 'Required',
+        'default' => 'Default',
         'input' => 'Input',
         'available_true' => 'Available',
         'available_false' => 'Not Available',
@@ -16,6 +18,8 @@ return [
         'separate_word' => ',',
         'yes' => 'Yes',
         'no' => 'No',
+        'row' => 'Row',
+        'column' => 'Column',
         'message' => [
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check csv file.',
@@ -217,6 +221,7 @@ return [
         'custom_view' => 'View Setting',
         'custom_form' => 'Form Setting',
         'custom_relation' => 'Relation Setting',
+        'custom_copy' => 'Data Copy Setting',
         'custom_value' => 'Data List',
         'error_select' => 'Please select only one record.',
     ],
@@ -392,9 +397,9 @@ return [
     'custom_form' => [
         'default_form_name' => 'Form',
         'header' => 'Custom Form Setting',
-        'description' => 'Define the form display that the user can enter. You can switch between authority and users.',
+        'description' => 'Define the form display that the user can enter. The content set on this page will be reflected on the data form screen.',
         'form_view_name' => 'Form View Name',
-        'table_default_label' => 'Table',
+        'table_default_label' => 'Table - ',
         'table_one_to_many_label' => 'Child Table - ',
         'table_many_to_many_label' => 'Relation Table - ',
         'suggest_column_label' => 'Table Column',
@@ -408,7 +413,8 @@ return [
         'hasmany_type' => 'Make the form in table form.',
         'header_basic_setting' => 'Form Basic Setting',
         'changedata' => 'Data Linkage Setting',
-        'items' => 'Items',
+        'items' => 'Form Items',
+        'suggest_items' => 'Suggest Items',
         'add_all_items' => 'Add All Items',
         'changedata_target_column' => 'Select Column',
         'changedata_target_column_available' => 'Already Setting',
@@ -420,6 +426,10 @@ return [
             'header' => 'Label',
             'html' => 'HTML',
             'explain' => 'Explain',
+        ],
+
+        'help'=> [
+            'items' => 'Set the items to be displayed on the data form. <br /> From the "form item candidate list", drag & drop the item you want to display on the form to "form item column 1" "form item column 2".',
         ],
     ],
 
@@ -547,6 +557,20 @@ return [
         'child_custom_table_view_name' => 'Child Table View Name',
     ],
 
+    'custom_copy' => [
+        'header' => 'Data Copy Setting',
+        'description' => 'Define settings for copying data from table to table.',
+        'from_custom_table_view_name' => 'Source Table',
+        'to_custom_table_view_name' => 'Copy Target Table',
+        'custom_copy_columns' => 'Copy Column Setting',
+        'from_custom_column' => 'Source Table Column',
+        'to_custom_column' => 'Copy Target Table Column',
+        'custom_copy_input_columns' => 'Input Dialog Setting',
+        'input_custom_column' => 'Target Table Column',
+        'column_description' => 'Please select the copy source column and copy target column from the list respectively.',
+        'input_column_description' => 'When copying is done, you can display a form (dialog) to change the value after copying. Please set the target column to be input to the form when copying.',
+    ],
+
     'search' => [
         'placeholder' => 'Search Data',
         'header_freeword' => 'Search All Data',
@@ -669,6 +693,12 @@ return [
                 'stop' => 'Do not capture all data.',
                 'skip' => 'Normal data is captured, but error data is not imported.',
             ],
+        ],
+
+        'bootstrap_duallistbox_container' => [
+            'nonSelectedListLabel' => 'Suggest Data List',
+            'selectedListLabel' => 'Selected Data List',
+            'help' => 'Please select From the left column and move to the right column.',
         ]
     ],
 
