@@ -140,9 +140,9 @@ $('#has-many-table-{$this->column}').on('click', '.add', function () {
 
 $('#has-many-table-{$this->column}').on('click', '.remove', function () {
     var row = $(this).closest('.has-many-table-{$this->column}-row');
+    row.find('input,textarea,select').removeAttr('required max min maxlength pattern');
     row.hide();
     row.find('.$removeClass').val(1);
-    row.find('input textarea select').removeAttr('required max min maxlength pattern');
 });
 
 EOT;

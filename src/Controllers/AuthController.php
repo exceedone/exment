@@ -40,7 +40,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return $user::form(function (Form $form) {
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
             $form->text('base_user.value.user_name', exmtrans('user.user_name'));
-            $form->text('base_user.value.email', exmtrans('user.email'));
+            $form->email('base_user.value.email', exmtrans('user.email'));
             $form->image('avatar', exmtrans('user.avatar'));
             $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
             $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
