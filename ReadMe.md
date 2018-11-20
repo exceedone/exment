@@ -55,6 +55,7 @@ Exment uses the following plug-in service etc.
 + [FPDI](https://www.setasign.com/products/fpdi/about)
 + [TCPDF](https://tcpdf.org/)
 + [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
++ [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
 
 ## Screenshots
 ------------

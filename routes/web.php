@@ -59,28 +59,29 @@ Route::group([
     $router->resource('notify', 'NotifyController', ['except' => ['show']]);
 
     // set static name. because this function is called composer install.
-   // if(Schema::hasTable(CustomTable::getTableName())){
-    if(Schema::hasTable(Define::SYSTEM_TABLE_NAME_CUSTOM_TABLE)){
-        foreach (CustomTable::all()->pluck('table_name') as $value)
-        {
-            $router->post("data/{$value}/import", 'CustomValueController@import');
-            $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
-            $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
-            $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
-            $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
-            $router->resource("data/{$value}", 'CustomValueController');
-            $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
-            $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
-            $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
-            $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
-            $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
-            $router->resource("copy/{$value}", 'CustomCopyController', ['except' => ['show']]);
-            $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
-            $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
-            $router->get("api/{$value}/query", 'ApiTableController@query');
-            $router->get("api/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
-            $router->post("api/{$value}/{id}", 'ApiTableController@find');
+    try {
+        if (Schema::hasTable(Define::SYSTEM_TABLE_NAME_CUSTOM_TABLE)) {
+            foreach (CustomTable::all()->pluck('table_name') as $value) {
+                $router->post("data/{$value}/import", 'CustomValueController@import');
+                $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
+                $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
+                $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
+                $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
+                $router->resource("data/{$value}", 'CustomValueController');
+                $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
+                $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
+                $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
+                $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
+                $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
+                $router->resource("copy/{$value}", 'CustomCopyController', ['except' => ['show']]);
+                $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
+                $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
+                $router->get("api/{$value}/query", 'ApiTableController@query');
+                $router->get("api/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
+                $router->post("api/{$value}/{id}", 'ApiTableController@find');
+            }
         }
+    }catch(\Exception $e){
     }
 
     $router->get('search', 'SearchController@index');

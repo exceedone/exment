@@ -1117,16 +1117,8 @@ if (!function_exists('alterColumn')) {
         // get whether search_enabled column
         $search_enabled = array_get($column, 'options.search_enabled');
         
-        // create INFORMATION_SCHEMA config
-        $mysql_config = config('database.connections.mysql');
-        $mysql_config['database'] = 'INFORMATION_SCHEMA';
-        Config::set('database.connections.mysql_information', $mysql_config);
         // check table column field exists.
-        $exists = DB::connection('mysql_information')->table('COLUMNS')
-                ->where('table_name', $db_table_name)
-                ->where('column_name', $db_column_name)
-                ->where('table_schema', DB::getDatabaseName())
-                ->first();
+        $exists = Schema::hasColumn($db_table_name, $db_column_name);
 
         $index_name = "index_$db_column_name";
         //  if search_enabled = false, and exists, then drop index

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Document</title>
@@ -9,6 +10,7 @@
   <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css">
   <link rel="stylesheet" href="./docs.css">
 </head>
+
 <body>
   <nav>
     <a href="#/">EN</a>
@@ -22,24 +24,26 @@
       homepage: 'README.md',
       repo: 'https://github.com/exceedone/exment.git',
       loadSidebar: true,
+      auto2top: true,
       subMaxLevel: 2,
       search: {
-              noData: {
-                  '/ja/': '結果がありませんでした',
-                  '/en/': 'No results!',
-                  '/': 'No results!'
-              },
-              paths: 'auto',
-              placeholder: {
-                  '/ja/': '検索',
-                  '/en/': 'Search',
-                  '/': 'Search'
-              }
-          },
+        noData: {
+          '/ja/': '結果がありませんでした',
+          '/en/': 'No results!',
+          '/': 'No results!'
+        },
+        paths: 'auto',
+        placeholder: {
+          '/ja/': '検索',
+          '/en/': 'Search',
+          '/': 'Search'
+        }
+      },
     };
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
   <script src="//unpkg.com/docsify/lib/plugins/search.js"></script>
   <script src="//unpkg.com/docsify/lib/plugins/zoom-image.min.js"></script>
 </body>
+
 </html>
