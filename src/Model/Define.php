@@ -19,6 +19,8 @@ class Define
     public const SYSTEM_TABLE_NAME_BASEINFO = 'base_info';
     public const SYSTEM_TABLE_NAME_DOCUMENT = 'document';
     public const SYSTEM_TABLE_NAME_CUSTOM_TABLE = 'custom_tables';
+    public const SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE = 'system_authoritable';
+    public const SYSTEM_TABLE_NAME_VALUE_AUTHORITABLE = 'value_authoritable';
 
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],

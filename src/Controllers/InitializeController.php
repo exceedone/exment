@@ -71,7 +71,7 @@ class InitializeController extends Controller
             $loginuser->saveOrFail();
 
             // add system authority
-            DB::table('system_authoritable')->insert(
+            DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)->insert(
                 [
                     'related_id' => $user->id,
                     'related_type' => Define::SYSTEM_TABLE_NAME_USER,

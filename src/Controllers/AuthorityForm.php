@@ -42,7 +42,7 @@ trait AuthorityForm
         }
 
         // Add Authority --------------------------------------------------
-        authorityLoop($authority_type, function ($authority, $related_type) use ($form) {
+        Authority::authorityLoop($authority_type, function ($authority, $related_type) use ($authority_type, $form) {
             switch ($related_type) {
                 case Define::SYSTEM_TABLE_NAME_USER:
                 $related_types = ['column_name' => 'user_name', 'view_name' => exmtrans('user.default_table_name'), 'suffix' => 'userable'];
@@ -59,14 +59,20 @@ trait AuthorityForm
             
             if (isGetOptions($related_type)) {
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
-                    ->options(function ($options) use ($related_type, $related_types) {
+                    ->options(function ($options) use ($authority_type, $related_type, $related_types) {
+                        if($authority_type == Define::AUTHORITY_TYPE_VALUE){
+                            return getOptionsAuthority($this->getCustomTable(), $related_type, $options);
+                        }
                         return getOptions($related_type, $options);
                     })
                     ->pivot($pivots)
                     ;
             } else {
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
-                ->options(function ($options) use ($related_type, $related_types) {
+                ->options(function ($options) use ($authority_type, $related_type, $related_types) {
+                    if($authority_type == Define::AUTHORITY_TYPE_VALUE){
+                        return getOptionsAuthority($this->getCustomTable(), $related_type, $options);
+                    }
                     return getOptions($related_type, $options);
                 })
                 ->ajax(getOptionAjaxUrl($related_type))

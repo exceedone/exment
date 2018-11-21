@@ -214,7 +214,7 @@ class ClassBuilder
         }
             
         // add authority --------------------------------------------------
-        authorityLoop(Define::AUTHORITY_TYPE_VALUE, function ($authority, $related_type) use ($builder, $obj) {
+        Authority::authorityLoop(Define::AUTHORITY_TYPE_VALUE, function ($authority, $related_type) use ($builder, $obj) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",
@@ -244,7 +244,7 @@ class ClassBuilder
                 ->addTrait()
                 ;
         // Ad Authority. for system, table --------------------------------------------------
-        authorityLoop(Define::AUTHORITY_TYPE_TABLE, function ($authority, $related_type) use ($builder) {
+        Authority::authorityLoop(Define::AUTHORITY_TYPE_TABLE, function ($authority, $related_type) use ($builder) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",

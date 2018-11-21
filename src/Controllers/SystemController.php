@@ -51,7 +51,7 @@ class SystemController extends AdminControllerBase
             }
 
             // Set Authority
-            authorityLoop(Define::AUTHORITY_TYPE_SYSTEM, function ($authority, $related_type) use ($request) {
+            Authority::authorityLoop(Define::AUTHORITY_TYPE_SYSTEM, function ($authority, $related_type) use ($request) {
                 $values = $request->input(getAuthorityName($authority, $related_type));
                 // array_filter
                 $values = array_filter($values, function ($k) {
@@ -62,7 +62,7 @@ class SystemController extends AdminControllerBase
                 }
 
                 // get DB system_authoritable values
-                $dbValues = DB::table('system_authoritable')
+                $dbValues = DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)
                     ->where('related_type', $related_type)
                     ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
                     ->where('authority_id', $authority->id)
@@ -75,7 +75,7 @@ class SystemController extends AdminControllerBase
                     if (!$dbValues->first(function ($dbValue, $k) use ($value) {
                         return $dbValue->related_id == $value;
                     })) {
-                        DB::table('system_authoritable')->insert(
+                        DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)->insert(
                         [
                             'related_id' => $value,
                             'related_type' => $related_type,
@@ -92,7 +92,7 @@ class SystemController extends AdminControllerBase
                     if (!collect($values)->first(function ($value, $k) use ($dbValue) {
                         return $dbValue->related_id == $value;
                     })) {
-                        DB::table('system_authoritable')
+                        DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)
                         ->where('related_id', $dbValue->related_id)
                         ->where('related_type', $related_type)
                         ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)

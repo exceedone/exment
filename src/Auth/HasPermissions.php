@@ -20,15 +20,10 @@ trait HasPermissions
     use Authenticatable;
     use CanResetPassword;
 
-    // public function login_user()
-    // {
-    //     return $this->hasOne(\Exceedone\Exment\Model\LoginUser::class, "base_user_id");
-    // }
     public function getNameAttribute()
     {
         return array_get($this->base_user->value, "user_name");
     }
-    // hsato add---e
 
     /**
      * Get avatar attribute.
@@ -521,7 +516,7 @@ trait HasPermissions
         $authorities = [];
         for ($i = 0; $i < 2; $i++) {
             $query = DB::table('authorities as a')
-                ->join('system_authoritable AS sa', 'a.id', 'sa.authority_id')
+                ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
                 ->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
                 ;
@@ -584,7 +579,7 @@ trait HasPermissions
 
         // get all permissons for system. --------------------------------------------------
         $authorities = DB::table('authorities as a')
-            ->join('system_authoritable AS sa', 'a.id', 'sa.authority_id')
+            ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
             ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {

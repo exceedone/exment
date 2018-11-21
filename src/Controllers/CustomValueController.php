@@ -82,17 +82,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
-        //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return;
-        }
-        // if user doesn't have permission creating data, throw admin.dany error.
-        if (!Admin::user()->hasPermissionTable($this->custom_table->table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            $response = response($this->AdminContent()->withError(trans('admin.deny')));
-            Pjax::respond($response);
-        }
-
+        $this->firstFlow($request);
         $this->AdminContent($content);
         PluginInstaller::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form(null));
@@ -108,22 +98,13 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        $this->setFormViewInfo($request);
-        //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return;
-        }
-        // if user doesn't have authority for target id data, show deny error.
-        if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
-            Checker::error();
-            return false;
-        }
+        $this->firstFlow($request, $id);
+
         // if user doesn't have edit permission, redirect to show
         $redirect = $this->redirectShow($id);
         if (isset($redirect)) {
             return $redirect;
         }
-
         $this->AdminContent($content);
         PluginInstaller::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form($id)->edit($id));
@@ -153,16 +134,8 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function show(Request $request, $id, Content $content)
     {
-        $this->setFormViewInfo($request);
-        //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return;
-        }
-        // if user doesn't have authority for target id data, show deny error.
-        if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
-            Checker::error();
-            return false;
-        }
+        $this->firstFlow($request, $id);
+
         if (boolval($request->get('modal'))) {
             return $this->createShowForm($id, true);
         }
@@ -176,20 +149,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function filedelete(Request $request, $id)
     {
-        //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return;
-        }
-        // if user doesn't have authority for target id data, show deny error.
-        if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
-            Checker::error();
-            return false;
-        }
-        // if user doesn't have edit permission, redirect to show
-        $redirect = $this->redirectShow($id);
-        if (isset($redirect)) {
-            return $redirect;
-        }
+        $this->firstFlow($request, $id);
 
         // get file delete flg column name
         $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
@@ -229,21 +189,8 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function fileupload(Request $request, $id)
     {
-        //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return;
-        }
-        // if user doesn't have authority for target id data, show deny error.
-        if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
-            Checker::error();
-            return false;
-        }
-        // if user doesn't have edit permission, redirect to show
-        $redirect = $this->redirectShow($id);
-        if (isset($redirect)) {
-            return $redirect;
-        }
-
+        $this->firstFlow($request, $id);
+        
         $httpfile = $request->file('file_data');
         // file put(store)
         $filename = $httpfile->getClientOriginalName();
@@ -356,5 +303,29 @@ class CustomValueController extends AdminControllerTableBase
         $relation_name = getRelationNamebyObjs($this->custom_table, $target_table);
 
         return [$relation_name, $block_label];
+    }
+
+    /**
+     * First flow. check authority and set form and view id etc.
+     * different logic for new or update
+     */
+    protected function firstFlow(Request $request, $id = null)
+    {
+        $this->setFormViewInfo($request);
+        //Validation table value
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return false;
+        }
+            
+        // id set, checking as update.
+        if(isset($id)){
+            // if user doesn't have authority for target id data, show deny error.
+            if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
+                Checker::error();
+                return false;
+            }
+        }
+
+        return true;
     }
 }

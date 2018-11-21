@@ -574,34 +574,6 @@ if (!function_exists('getAuthorityName')) {
     }
 }
 
-if (!function_exists('authorityLoop')) {
-    /**
-     * @return string
-     */
-    function authorityLoop($related_type, $callback)
-    {
-        if (!Schema::hasTable(System::getTableName()) || !Schema::hasTable(Authority::getTableName())) {
-            return;
-        }
-        if (!System::authority_available()) {
-            return;
-        }
-        
-        // get Authority setting
-        $authorities = Authority::where('authority_type', $related_type)->get();
-        foreach ($authorities as $authority) {
-            $related_types = [Define::SYSTEM_TABLE_NAME_USER];
-            // if use organization, add
-            if (System::organization_available()) {
-                $related_types[] = Define::SYSTEM_TABLE_NAME_ORGANIZATION;
-            }
-            foreach ($related_types as $related_type) {
-                $callback($authority, $related_type);
-            }
-        }
-    }
-}
-
 if (!function_exists('getValue')) {
     /**
      * Get custom value
@@ -1079,6 +1051,38 @@ if (!function_exists('getUrl')) {
     }
 }
 
+if (!function_exists('getAuthorityUser')) {
+    /**
+     * get users who has authorities.
+     */
+    function getAuthorityUser($target_table, $related_type)
+    {
+        if (is_null($target_table)) {
+            return [];
+        }
+        $target_table = CustomTable::getEloquent($target_table);
+
+        // get user or organiztion ids
+        $target_ids = DB::table('authorities as a')
+            ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+            ->whereIn('related_type', $related_type)
+            ->where(function ($query) use ($target_table) {
+                $query->orWhere(function ($query) {
+                    $query->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM);
+                });
+                $query->orWhere(function ($query) use ($target_table) {
+                    $query->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                    ->where('morph_id', $target_table->id);
+                });
+            })->get(['related_id'])->pluck('related_id');
+        
+        // return target values
+        return getModelName($related_type)::whereIn('id', $target_ids);
+    }
+}
+
+
+
 if (!function_exists('createTable')) {
     /**
      * Create Table in Database.
@@ -1273,7 +1277,7 @@ if (!function_exists('getOptions')) {
      * But if options count > 100, use ajax, so only one record.
      *
      * @param array|CustomTable $table
-     * @param $selected_value
+     * @param $selected_value the value that already selected.
      */
     function getOptions($table, $selected_value = null)
     {
@@ -1304,6 +1308,43 @@ if (!function_exists('getOptions')) {
             }
         }
         return getOptionsQuery($table)::get()->pluck("label", "id");
+    }
+}
+if (!function_exists('getOptionsAuthority')) {
+    /**
+     * get options for autority multipleselect.
+     * But if options count > 100, use ajax, so only one record.
+     *
+     */
+    function getOptionsAuthority($target_table, $related_type, $selected_value = null)
+    {
+        if (is_null($target_table)) {
+            return [];
+        }
+        // get count table.
+        $count = Authority::getAuthorityUserOrOrg($target_table, $related_type, true);
+        // when count > 0, create option only value.
+        if ($count > 100) {
+            if (!isset($selected_value)) {
+                return [];
+            }
+            $item = Authority::getAuthorityUserOrOrg($target_table, $related_type);
+
+            if ($item) {
+                // check whether $item is multiple value.
+                if ($item instanceof Collection) {
+                    $ret = [];
+                    foreach ($item as $i) {
+                        $ret[$i->id] = $i->label;
+                    }
+                    return $ret;
+                }
+                return [$item->id => $item->label];
+            } else {
+                return [];
+            }
+        }
+        return Authority::getAuthorityUserOrOrg($target_table, $related_type)->pluck("label", "id");
     }
 }
 
