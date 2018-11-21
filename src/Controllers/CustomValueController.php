@@ -6,7 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Middleware\Pjax;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use ModelForm, AuthorityForm, CustomValueGrid, CustomValueForm, CustomValueShow;
+    use HasResourceActions, AuthorityForm, CustomValueGrid, CustomValueForm, CustomValueShow;
     protected $plugins = [];
 
     /**
@@ -145,7 +145,7 @@ class CustomValueController extends AdminControllerTableBase
     }
         
     /**
-     * for file delete function.
+     * file delete custom column.
      */
     public function filedelete(Request $request, $id)
     {
@@ -194,9 +194,10 @@ class CustomValueController extends AdminControllerTableBase
         $httpfile = $request->file('file_data');
         // file put(store)
         $filename = $httpfile->getClientOriginalName();
-        $filepath = path_join($this->custom_table->table_name, $filename);
-        $file = ExmentFile::store($httpfile, 'admin', $filepath);
-        
+        $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
+        // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
+        $file = ExmentFile::storeAs($httpfile, Define::SYSTEM_TABLE_NAME_DOCUMENT, $filename, $uniqueFileName);
+
         // save document model
         $custom_value = $this->getModelNameDV()::find($id);
         $document_model = $file->saveDocumentModel($custom_value, $filename);

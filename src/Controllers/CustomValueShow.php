@@ -43,7 +43,7 @@ trait CustomValueShow
                                         return '';
                                     }
                                     if ($isUrl) {
-                                        return getUrl($this, $column, true);
+                                        return $this->getUrl($column, true);
                                     }
                                     return $this->getValue($column, true);
                                 })->setEscape(!$isUrl);
@@ -54,7 +54,7 @@ trait CustomValueShow
                                 });
                                 // get form column name
                                 $form_column_name = array_get($form_column_obj, 'name');
-                                $column_view_name =  exmtrans("custom_column.system_columns.".$form_column_name);
+                                $column_view_name =  exmtrans("common.".$form_column_name);
                                 $show->field($form_column_name, $column_view_name)->as(function ($v) use ($form_column_name) {
                                     return array_get($this, $form_column_name);
                                 });
@@ -97,13 +97,16 @@ trait CustomValueShow
                     ->where('parent_type', $this->custom_table->table_name)
                     ->get();
                 // loop and add as link
-                foreach ($documents as $index => $d) {
-                    $show->field('document_'.array_get($d, 'id'), '書類')->as(function ($v) use ($d) {
-                        $link = '<a href="'.admin_base_path(url_join('files', $d->getValue('file_uuid', true))).'" target="_blank">'. esc_html($d->getValue('document_name')).'</a>';
-                        $comment = "<small>(作成日：".$d->created_at." 作成者：".$d->created_user.")</small>";
-                        return $link.$comment;
-                    })->unescape();
-                }
+                    $show->field('document_'.short_uuid(), exmtrans("common.attachment"))
+                        ->as(function ($v) use ($documents) {
+                            $html = [];
+                            foreach ($documents as $index => $d) {
+                                $html[] = "<p>" . view('exment::form.field.documentlink', [
+                                    'document' => $d
+                                ])->render() . "</p>";
+                            }
+                            return implode("", $html);
+                        })->unescape();
 
                 // add file uploader
                 $this->setFileUploadField($show, $id);
@@ -161,6 +164,7 @@ trait CustomValueShow
 $("#$input_id").fileinput({$options})
 .on('fileuploaded', function(e, params) {
     console.log('file uploaded', e, params);
+    $.pjax.reload('#pjax-container');
 });
 
 EOT;

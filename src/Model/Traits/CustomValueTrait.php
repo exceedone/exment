@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
+use Exceedone\Exment\Model\Define;
 
 trait CustomValueTrait
 {
@@ -234,6 +235,16 @@ trait CustomValueTrait
      */
     public function getUrl($tag = false)
     {
+        // if this table is document, create target blank link
+        if($this->getCustomTable()->table_name == Define::SYSTEM_TABLE_NAME_DOCUMENT){
+            $url = admin_url(url_join('files', $this->getValue('file_uuid', true)));
+            if (!$tag) {
+                return $url;
+            }
+            $label = esc_html($this->getValue('document_name'));
+            return "<a href='$url' target='_blank'>$label</a>";
+        }
+
         $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
         if (!$tag) {
             return $url;

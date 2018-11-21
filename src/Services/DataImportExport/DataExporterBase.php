@@ -113,13 +113,13 @@ abstract class DataExporterBase extends AbstractExporter
         // 2st row, column view name
         $rows[] = array_merge(
             collect($firstColumns)->map(function ($value) {
-                return exmtrans("custom_column.system_columns.$value");
+                return exmtrans("common.$value");
             })->toArray(),
             collect($custom_columns)->map(function ($value) {
                 return array_get($value, 'column_view_name');
             })->toArray(),
             collect($lastColumns)->map(function ($value) {
-                return exmtrans("custom_column.system_columns.$value");
+                return exmtrans("common.$value");
             })->toArray()
         );
 

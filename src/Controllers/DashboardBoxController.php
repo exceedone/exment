@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Table as WidgetTable;
 //use Encore\Admin\Widgets\Form;
@@ -18,7 +18,7 @@ use Exceedone\Exment\Model\CustomView;
 
 class DashboardBoxController extends AdminControllerBase
 {
-    use ModelForm;
+    use HasResourceActions;
     protected $dashboard;
     protected $dashboard_box_type;
     protected $row_no;

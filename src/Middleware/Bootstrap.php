@@ -57,6 +57,12 @@ class Bootstrap
         // add admin_base_path and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
+
+        // delete object
+        $delete_confirm = trans('admin.delete_confirm');
+        $confirm = trans('admin.confirm');
+        $cancel = trans('admin.cancel');
+        
         $script = <<<EOT
 $('body').append($('<input/>', {
     'type':'hidden',
@@ -70,6 +76,45 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
     }
     return abort; // you can also send any data/object that you can receive on `filecustomerror` event
 });
+
+    ///// delete click event
+    $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
+        // get url
+        var url = $(ev.target).closest('[data-exment-delete]').data('exment-delete');
+        swal({
+            title: "$delete_confirm",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "$confirm",
+            closeOnConfirm: false,
+            cancelButtonText: "$cancel",
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    $.ajax({
+                        method: 'post',
+                        url: url,
+                        data: {
+                            _method:'delete',
+                            _token:LA.token
+                        },
+                        success: function (data) {
+                            $.pjax.reload('#pjax-container');
+            
+                            if (typeof data === 'object') {
+                                if (data.status) {
+                                    swal(data.message, '', 'success');
+                                } else {
+                                    swal(data.message, '', 'error');
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+        });
+    });
+    
 
 EOT;
         Ad::script($script);

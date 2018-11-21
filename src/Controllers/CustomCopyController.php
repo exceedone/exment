@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Request as Req;
 
 class CustomCopyController extends AdminControllerTableBase
 {
-    use ModelForm;
+    use HasResourceActions;
 
     public function __construct(Request $request)
     {

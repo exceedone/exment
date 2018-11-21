@@ -98,6 +98,9 @@ Route::group([
     $router->get('files/{uuid}', function($uuid){
         return File::download($uuid);
     });
+    $router->delete('files/{uuid}', function($uuid){
+        return File::deleteFile($uuid);
+    });
 });
 
 Route::group([

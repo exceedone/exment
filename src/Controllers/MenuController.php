@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Auth\Database\Role;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
@@ -20,7 +20,7 @@ use Illuminate\Validation\Rule;
 
 class MenuController extends AdminControllerBase
 {
-    use ModelForm, ExmentControllerTrait;
+    use HasResourceActions, ExmentControllerTrait;
 
     public function __construct(Request $request)
     {

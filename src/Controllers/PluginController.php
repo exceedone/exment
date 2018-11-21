@@ -6,7 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Table;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
@@ -19,7 +19,7 @@ use Validator;
 
 class PluginController extends AdminControllerBase
 {
-    use ModelForm, AuthorityForm;
+    use HasResourceActions, AuthorityForm;
 
     public function __construct(Request $request)
     {

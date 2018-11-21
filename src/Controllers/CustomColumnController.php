@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
@@ -16,7 +16,7 @@ use Exceedone\Exment\Form\Tools;
 
 class CustomColumnController extends AdminControllerTableBase
 {
-    use ModelForm;
+    use HasResourceActions;
 
     public function __construct(Request $request)
     {
@@ -382,7 +382,7 @@ class CustomColumnController extends AdminControllerTableBase
             // image, file, select
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['file','image', 'select_table', 'select', 'select_valtext', 'user', 'organization']])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['select_table', 'select', 'select_valtext', 'user', 'organization']])]);
         })->disableHeader();
 
         $form->saved(function (Form $form) {

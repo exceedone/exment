@@ -53,7 +53,7 @@ class CustomView extends ModelBase
                     }
                     $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
                     if ($isUrl) {
-                        return getUrl($this, $column, true);
+                        return $this->getUrl($column, true);
                     }
                     return esc_html($this->getValue($column, true));
                 });
@@ -83,7 +83,7 @@ class CustomView extends ModelBase
             // system column
             else {
                 // get column name
-                $grid->column($view_column_target, exmtrans("custom_column.system_columns.$view_column_target"))->sortable()
+                $grid->column($view_column_target, exmtrans("common.$view_column_target"))->sortable()
                     ->display(function ($value) use ($view_column_target) {
                         if (!is_null($value)) {
                             return esc_html($value);
@@ -130,7 +130,7 @@ class CustomView extends ModelBase
                     return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
                 })['name'] ?? null;
                 // add headers transaction
-                $headers[] = exmtrans('custom_column.system_columns.'.$name);
+                $headers[] = exmtrans('common.'.$name);
             }
         }
         $headers[] = trans('admin.action');
@@ -148,7 +148,7 @@ class CustomView extends ModelBase
                         if (isset($custom_column)) {
                             $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
                             if ($isUrl) {
-                                $body_items[] = getUrl($data, $custom_column, true);
+                                $body_items[] = $data->getUrl($custom_column, true);
                             } else {
                                 $body_items[] = esc_html($data->getValue($custom_column, true));
                             }

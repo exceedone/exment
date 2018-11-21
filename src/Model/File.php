@@ -37,7 +37,7 @@ class File extends ModelBase
         $document_model->parent_type = $custom_value->getCustomTable()->table_name;
         $document_model->setValue([
             'file_uuid' => $this->uuid,
-            'document_name' => $filename,
+            'document_name' => $document_name,
         ]);
         $document_model->save();
         return $document_model;
@@ -62,7 +62,7 @@ class File extends ModelBase
      * @param string $fileName
      * @return File saved file path
      */
-    public static function saveFileInfo(string $dirname, string $filename = null)
+    public static function saveFileInfo(string $dirname, string $filename = null, $local_filename = null)
     {
         $uuid = make_uuid();
 
@@ -70,16 +70,8 @@ class File extends ModelBase
             list($dirname, $filename) = static::getDirAndFileName($dirname);
         }
 
-        // create file name.
-        // get ymdhis string
-        $path = url_join($dirname, $filename);
-
-        // check file exists
-        // if exists, use uuid
-        if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
-            $local_filename = make_uuid() . '.'.file_ext($filename);
-        }else{
-            $local_filename = $filename;
+        if(!isset($local_filename)){
+            $local_filename = static::getUniqueFileName($dirname, $filename);
         }
 
         $file = new self;
@@ -138,6 +130,37 @@ class File extends ModelBase
     }
 
     /**
+     * Delete file
+     */
+    public static function deleteFile($uuid)
+    {
+        $data = static::getData($uuid);
+        if (!$data) {
+            abort(404);
+        }
+        $path = $data->path;
+        $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
+        
+        // if exists, delete file
+        if ($exists) {
+            Storage::disk(config('admin.upload.disk'))->delete($path);
+        }
+
+        // if has document, remove document info
+        $column_name = getColumnNameByTable(Define::SYSTEM_TABLE_NAME_DOCUMENT, 'file_uuid');
+        
+        // delete
+        getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
+            ::where($column_name, $uuid)
+            ->delete();
+    
+        return response([
+            'status'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+
+    /**
      * get file object(laravel)
      */
     public static function getFile($uuid, Closure $authCallback = null)
@@ -160,33 +183,23 @@ class File extends ModelBase
     }
 
     /**
-     * Save file table on db and store the uploaded file on a filesystem disk.
-     *
-     * @param  string  $disk disk name
-     * @param  string  $path directory path
-     * @param  array|string  $options
-     * @return string|false
+     * get unique file name
      */
-    public static function put($disk, $path, $content, $options = [])
-    {
-        $path = Storage::disk($disk)->put($path, $content, $options);
-        $file = static::saveFileInfo($path);
-        return $file;
-    }
-    
-    /**
-     * Save file table on db and store the uploaded file on a filesystem disk.
-     *
-     * @param  string  $disk disk name
-     * @param  string  $path directory path
-     * @param  array|string  $options
-     * @return string|false
-     */
-    public static function putAs($disk, $path, $content, $options = [])
-    {
-        $path = Storage::disk($disk)->put($path, $content, $options);
-        $file = static::saveFileInfo($path);
-        return $file;
+    public static function getUniqueFileName($dirname, $filename = null){
+        if(!isset($filename)){
+            list($dirname, $filename) = static::getDirAndFileName($dirname);
+        }
+
+        // create file name.
+        // get ymdhis string
+        $path = url_join($dirname, $filename);
+
+        // check file exists
+        // if exists, use uuid
+        if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
+            return make_uuid() . '.'.file_ext($filename);
+        }   
+        return $filename;
     }
 
     /**
@@ -197,9 +210,9 @@ class File extends ModelBase
      * @param  array|string  $options
      * @return string|false
      */
-    public static function store($content, $disk, $path, $options = [])
+    public static function put($path, $content, $options = [])
     {
-        $path = $content->store($path, $disk, $options);
+        $path = Storage::disk(config('admin.upload.disk'))->put($path, $content, $options);
         $file = static::saveFileInfo($path);
         return $file;
     }
@@ -212,10 +225,42 @@ class File extends ModelBase
      * @param  array|string  $options
      * @return string|false
      */
-    public static function storeAs($content, $disk, $path, $name, $options = [])
+    public static function putAs($path, $content, $options = [])
     {
-        $path = $content->storeAs($path, $disk, $name, $options);
-        $file = static::saveFileInfo($path, $name);
+        $path = Storage::disk(config('admin.upload.disk'))->put($path, $content, $options);
+        $file = static::saveFileInfo($path);
+        return $file;
+    }
+
+    /**
+     * Save file table on db and store the uploaded file on a filesystem disk.
+     *
+     * @param  string  $content file content
+     * @param  string  $disk disk name
+     * @param  string  $path directory path
+     * @return string|false
+     */
+    public static function store($content, $path)
+    {
+        $content->store($path, config('admin.upload.disk'));
+        $file = static::saveFileInfo($path);
+        return $file;
+    }
+    
+    /**
+     * Save file table on db and store the uploaded file on a filesystem disk.
+     *
+     * @param  string  $content file content
+     * @param  string  $disk disk name
+     * @param  string  $path directory path
+     * @param  string  $name file name
+     * @return string|false
+     */
+    public static function storeAs($content, $path, $name, $local_filename = null)
+    {
+        if(!isset($local_filename)){$local_filename = $name;}
+        $content->storeAs($path, $local_filename, config('admin.upload.disk'));
+        $file = static::saveFileInfo($path, $name, $local_filename);
         return $file;
     }
 

@@ -226,7 +226,7 @@ EOT;
                     }) ?? [];
                     // get form column name
                     $form_column_name = array_get($form_column_obj, 'name');
-                    $column_view_name =  exmtrans("custom_column.system_columns.".$form_column_name);
+                    $column_view_name =  exmtrans("common.".$form_column_name);
                     // get model. we can get model is id almost has.
                     $model = $this->getModelNameDV()::find($id);
                     $field = new ExmentField\Display($form_column_name, [$column_view_name]);
@@ -289,7 +289,7 @@ EOT;
                     }) ?? [];
                     // get form column name
                     $form_column_name = array_get($form_column_obj, 'name');
-                    $column_view_name =  exmtrans("custom_column.system_columns.".$form_column_name);
+                    $column_view_name =  exmtrans("common.".$form_column_name);
                     // get model. we can get model is id almost has.
                     $model = $this->getModelNameDV()::find($id);
                     $field = new ExmentField\Display($form_column_name, [$column_view_name]);

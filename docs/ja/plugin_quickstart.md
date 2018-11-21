@@ -157,13 +157,13 @@ use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use App\Http\Controllers\Controller;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Exceedone\Exment\Model\PluginPage;
 use Illuminate\Http\Request;
 
 class PluginManagementController extends Controller
 {
-    use ModelForm;
+    use HasResourceActions;
     /**
      * Display a listing of the resource.
      *

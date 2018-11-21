@@ -16,13 +16,18 @@
                     "column_name": "document_name",
                     "column_type": "text",
                     "description": null,
-                    "options": []
+                    "options": {
+                        "use_label_flg": "1",
+                        "search_enabled": "1"
+                    }
                 },
                 {
                     "column_name": "file_uuid",
                     "column_type": "text",
                     "description": null,
-                    "options": []
+                    "options": {
+                        "search_enabled": "1"
+                    }
                 }
             ]
         },

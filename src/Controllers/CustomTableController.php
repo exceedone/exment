@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ use Exceedone\Exment\Form\Tools;
 
 class CustomTableController extends AdminControllerBase
 {
-    use ModelForm, AuthorityForm;
+    use HasResourceActions, AuthorityForm;
 
     public function __construct(Request $request)
     {

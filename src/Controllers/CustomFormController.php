@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use App\Http\Controllers\Controller;
-use Encore\Admin\Controllers\ModelForm;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  */
 class CustomFormController extends AdminControllerTableBase
 {
-    use ModelForm;
+    use HasResourceActions;
 
     public function __construct(Request $request)
     {
@@ -223,7 +223,7 @@ class CustomFormController extends AdminControllerTableBase
                             return array_get($option, 'id') == array_get($custom_form_column, 'form_column_target_id');
                         }) ?? [];
                         $column_form_column_name = array_get($column_form_column_array, 'name');
-                        $column_view_name =  exmtrans("custom_column.system_columns.".array_get($column_form_column_array, 'name'));
+                        $column_view_name =  exmtrans("common.".array_get($column_form_column_array, 'name'));
                         break;
                     default:
                         // get column name
@@ -380,7 +380,7 @@ class CustomFormController extends AdminControllerTableBase
                     if ($form_column_type == Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM) {
                         $custom_column = [
                             'column_name' => array_get($custom_column, 'name'),
-                            'column_view_name' => exmtrans("custom_column.system_columns.".array_get($custom_column, 'name')),
+                            'column_view_name' => exmtrans("common.".array_get($custom_column, 'name')),
                             //'column_type' => null,
                             'form_column_type' => $form_column_type,
                             'form_column_target_id' => array_get($custom_column, 'id'),
