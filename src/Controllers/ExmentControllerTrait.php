@@ -24,9 +24,9 @@ trait ExmentControllerTrait
         }
 
         // set admin.config
-        if (isset($this->title)) {
-            Config::set('admin.title', $this->title);
-        }
+        // if (isset($this->title)) {
+        //     Config::set('admin.title', $this->title);
+        // }
     }
 
     protected function AdminContent($content)

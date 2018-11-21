@@ -30,6 +30,7 @@ class Initialize
         $val = System::site_name();
         if (isset($val)) {
             Config::set('admin.name', $val);
+            Config::set('admin.title', $val);
         }
 
         // Logo
