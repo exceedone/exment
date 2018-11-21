@@ -41,25 +41,9 @@ class Authority extends ModelBase
     }
     
     /**
-     * get users who has authorities.
-     */
-    public static function getAuthorityUser($target_table, $isCount = false)
-    {
-        return static::getAuthorityUserOrOrg($target_table, Define::SYSTEM_TABLE_NAME_USER);
-    }
-    
-    /**
-     * get users who has authorities.
-     */
-    public static function getAuthorityOrganization($target_table, $isCount = false)
-    {
-        return static::getAuthorityUserOrOrg($target_table, Define::SYSTEM_TABLE_NAME_ORGANIZATION);
-    }
-
-    /**
      * get users or organiztions who has authorities.
      */
-    protected static function getAuthorityUserOrOrg($target_table, $related_type, $isCount = false)
+    protected static function getAuthorityUserOrgQuery($target_table, $related_type)
     {
         if (is_null($target_table)) {
             return [];
@@ -81,10 +65,8 @@ class Authority extends ModelBase
                 })->get(['related_id'])->pluck('related_id');
             
         // return target values
-        $query = getModelName($related_type)::whereIn('id', $target_ids);
-
-        return $isCount ? $query->count() : $query->get();
-    }
-
-    
+        $query = getModelName($related_type)::query();
+        $query =  $query->whereIn('id', $target_ids);
+        return $query;
+    }    
 }

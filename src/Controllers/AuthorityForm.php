@@ -61,7 +61,7 @@ trait AuthorityForm
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
                     ->options(function ($options) use ($authority_type, $related_type, $related_types) {
                         if($authority_type == Define::AUTHORITY_TYPE_VALUE){
-                            return getOptionsAuthority($this->getCustomTable(), $related_type, $options);
+                            return getOptions($related_type, $options, $this->getCustomTable());
                         }
                         return getOptions($related_type, $options);
                     })
@@ -71,7 +71,7 @@ trait AuthorityForm
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
                 ->options(function ($options) use ($authority_type, $related_type, $related_types) {
                     if($authority_type == Define::AUTHORITY_TYPE_VALUE){
-                        return getOptionsAuthority($this->getCustomTable(), $related_type, $options);
+                        return getOptions($related_type, $options, $this->getCustomTable());
                     }
                     return getOptions($related_type, $options);
                 })

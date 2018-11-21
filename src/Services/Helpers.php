@@ -1279,19 +1279,31 @@ if (!function_exists('getOptions')) {
      * @param array|CustomTable $table
      * @param $selected_value the value that already selected.
      */
-    function getOptions($table, $selected_value = null)
+    function getOptions($table, $selected_value = null, $target_table = null)
     {
         if (is_null($table)) {
             return [];
         }
+        if(is_null($target_table)){
+            $target_table = $table;
+        }
+        
+        // get query.
+        // if user or organization, get from getAuthorityUserOrOrg
+        if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
+            $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
+        }else{
+            $query = getOptionsQuery($table);
+        }
+
         // get count table.
-        $count = getOptionsQuery($table)::count();
+        $count = $query->count();
         // when count > 0, create option only value.
         if ($count > 100) {
             if (!isset($selected_value)) {
                 return [];
             }
-            $item = getOptionsQuery($table)::find($selected_value);
+            $item = getModelName($table)::find($selected_value);
 
             if ($item) {
                 // check whether $item is multiple value.
@@ -1307,44 +1319,7 @@ if (!function_exists('getOptions')) {
                 return [];
             }
         }
-        return getOptionsQuery($table)::get()->pluck("label", "id");
-    }
-}
-if (!function_exists('getOptionsAuthority')) {
-    /**
-     * get options for autority multipleselect.
-     * But if options count > 100, use ajax, so only one record.
-     *
-     */
-    function getOptionsAuthority($target_table, $related_type, $selected_value = null)
-    {
-        if (is_null($target_table)) {
-            return [];
-        }
-        // get count table.
-        $count = Authority::getAuthorityUserOrOrg($target_table, $related_type, true);
-        // when count > 0, create option only value.
-        if ($count > 100) {
-            if (!isset($selected_value)) {
-                return [];
-            }
-            $item = Authority::getAuthorityUserOrOrg($target_table, $related_type);
-
-            if ($item) {
-                // check whether $item is multiple value.
-                if ($item instanceof Collection) {
-                    $ret = [];
-                    foreach ($item as $i) {
-                        $ret[$i->id] = $i->label;
-                    }
-                    return $ret;
-                }
-                return [$item->id => $item->label];
-            } else {
-                return [];
-            }
-        }
-        return Authority::getAuthorityUserOrOrg($target_table, $related_type)->pluck("label", "id");
+        return $query->get()->pluck("label", "id");
     }
 }
 
