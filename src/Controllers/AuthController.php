@@ -8,6 +8,7 @@ use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request as Req;
+use Exceedone\Exment\Model\File as ExmentFile;
 
 /**
  * For login controller
@@ -41,7 +42,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
             $form->text('base_user.value.user_name', exmtrans('user.user_name'));
             $form->email('base_user.value.email', exmtrans('user.email'));
-            $form->image('avatar', exmtrans('user.avatar'));
+            $form->image('avatar', exmtrans('user.avatar'))
+                ->move('avatar')
+                ->name(function($file){
+                    $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
+                    return $exmentfile->filename;
+                });
             $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
             $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
 

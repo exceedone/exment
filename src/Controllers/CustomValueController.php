@@ -14,6 +14,7 @@ use Illuminate\Http\Response as HttpResponse;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
@@ -217,6 +218,42 @@ class CustomValueController extends AdminControllerTableBase
             });
         });
 
+        return response([
+            'status'  => true,
+            'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+ 
+    /**
+     * for file upload function.
+     */
+    public function fileupload(Request $request, $id)
+    {
+        //Validation table value
+        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return;
+        }
+        // if user doesn't have authority for target id data, show deny error.
+        if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
+            Checker::error();
+            return false;
+        }
+        // if user doesn't have edit permission, redirect to show
+        $redirect = $this->redirectShow($id);
+        if (isset($redirect)) {
+            return $redirect;
+        }
+
+        $httpfile = $request->file('file_data');
+        // file put(store)
+        $filename = $httpfile->getClientOriginalName();
+        $filepath = path_join($this->custom_table->table_name, $filename);
+        $file = ExmentFile::store($httpfile, 'admin', $filepath);
+        
+        // save document model
+        $custom_value = $this->getModelNameDV()::find($id);
+        $document_model = $file->saveDocumentModel($custom_value, $filename);
+        
         return response([
             'status'  => true,
             'message' => trans('admin.update_succeeded'),

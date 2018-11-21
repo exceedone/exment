@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 
@@ -148,6 +149,14 @@ class FormHelper
                 $field->options(
                     static::getFileOptions($custom_table, $column, $id)
                 )->removable();
+
+                // set filename rule
+                $field->move($custom_table->table_name);
+                $field->name(function($file){
+                    // set fileinfo
+                    $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
+                    return $exmentfile->filename;
+                });
                 break;
             case 'file':
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
@@ -162,6 +171,14 @@ class FormHelper
                     //, ['showPreview' => false]
                     )
                 )->removable();
+                
+                // set filename rule
+                $field->move($custom_table->table_name);
+                $field->name(function($file){
+                    // set fileinfo
+                    $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
+                    return $exmentfile->filename;
+                });
                 break;
             default:
                 $field = new Field\Text($form_column_name, [$column_view_name]);

@@ -39,19 +39,9 @@ abstract class PluginDocumentBase
         // set path and file info
         $path = $service->getFilePath();
         $file = ExmentFile::saveFileInfo($path);
-        $file = ExmentFile::getData($file);
 
         // save Document Model
-        $modelname = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT);
-        $document_model = new $modelname;
-        $document_model->parent_id = $this->custom_value->id;
-        $document_model->parent_type = $this->custom_table->table_name;
-        $document_model->setValue([
-            'file_uuid' => $file->uuid,
-            'document_name' => $service->getFileName(),
-        ]);
-        $document_model->save();
-
+        $document_model = $file->saveDocumentModel($this->custom_value, $service->getFileName());
         // set document value
         $this->document_value = $document_model;
 
@@ -74,19 +64,6 @@ abstract class PluginDocumentBase
         return $json;
     }
 
-    /**
-     * save pdf and get pdf fullpath
-     * @param $response
-     * @param $service
-     */
-    protected function savePdfInServer($path, $service)
-    {
-        $path = ExmentFile::put('admin', $path, $service->outputPdf());
-        // save file
-        $file = ExmentFile::getData($path);
-        return $file;
-    }
-    
     /**
      * get response message
      */

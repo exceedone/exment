@@ -121,9 +121,9 @@ class System extends ModelBase
                 //TODO: how to check whether file is deleting by user.
                 //$system->system_value = null;
             } else {
-                $path = array_get($setting, 'move');
-                $putpath = File::store($value, config('admin.upload.disk'), $path);
-                $system->system_value = $putpath;
+                $move = array_get($setting, 'move');
+                $exmentfile = File::store($value, config('admin.upload.disk'), $move);
+                $system->system_value = url_join($move, $exmentfile->filename);
             }
 
             // remove old file

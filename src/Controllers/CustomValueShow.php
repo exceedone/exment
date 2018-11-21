@@ -99,11 +99,14 @@ trait CustomValueShow
                 // loop and add as link
                 foreach ($documents as $index => $d) {
                     $show->field('document_'.array_get($d, 'id'), '書類')->as(function ($v) use ($d) {
-                        $link = '<a href="'.admin_base_path(url_join('files', $d->getValue('file_uuid', true))).'" target="_blank">'. $d->getValue('document_name').'</a>';
+                        $link = '<a href="'.admin_base_path(url_join('files', $d->getValue('file_uuid', true))).'" target="_blank">'. esc_html($d->getValue('document_name')).'</a>';
                         $comment = "<small>(作成日：".$d->created_at." 作成者：".$d->created_user.")</small>";
                         return $link.$comment;
                     })->unescape();
                 }
+
+                // add file uploader
+                $this->setFileUploadField($show, $id);
             }
 
             // if user only view permission, disable delete and view
@@ -138,5 +141,30 @@ trait CustomValueShow
                 });
             }
         });
+    }
+
+    protected function setFileUploadField($show, $id){
+        // create file upload option
+        $input_id = 'document_uploader'. short_uuid();
+        $show->field($input_id, 'ファイルアップロード')->as(function ($v) use($input_id){
+            return '<input type="file" id="'.$input_id.'" />';
+        })->unescape();
+        $options = json_encode([
+            'showPreview' => false,
+            'uploadUrl' => admin_base_path(url_join('data', $this->custom_table->table_name, $id, 'fileupload')),
+            'uploadExtraData'=> [
+                '_token' => csrf_token()
+            ],
+        ]);
+
+        $script = <<<EOT
+$("#$input_id").fileinput({$options})
+.on('fileuploaded', function(e, params) {
+    console.log('file uploaded', e, params);
+});
+
+EOT;
+        Admin::script($script);
+
     }
 }

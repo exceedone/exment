@@ -209,8 +209,24 @@ if (!function_exists('mb_basename')) {
         return $res;
     }
 }
-
-
+if (!function_exists('file_ext')) {
+    /**
+     * get file extension
+     */
+    function file_ext($filename)
+    {
+        return preg_match('/\./', $filename) ? preg_replace('/^.*\./', '', $filename) : '';
+    }
+}
+if (!function_exists('file_ext_strip')) {
+    /**
+     * Returns the file name, less the extension.
+     */ 
+    function file_ext_strip($filename)
+    {
+        return preg_replace('/.[^.]*$/', '', $filename);
+    }
+}
 
 
 

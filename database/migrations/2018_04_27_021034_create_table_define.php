@@ -36,9 +36,10 @@ class CreateTableDefine extends Migration
 
         $schema->create('files', function (ExtendedBlueprint $table) {
             $table->uuid('uuid')->primary();
-            $table->string('path')->index();
+            $table->string('local_dirname')->index();
+            $table->string('local_filename')->index();
+            $table->string('filename')->index();
             $table->timestamps();
-            $table->softDeletes();
             $table->timeusers();
         });
 

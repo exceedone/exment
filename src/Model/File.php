@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Response;
 
+/**
+ * Exment file model.
+ * uuid: primary key. it uses as url.
+ * path: local file path. it often sets "folder"/"uuid".
+ * filename: for download or display name
+ */
 class File extends ModelBase
 {
     use Uuids;
@@ -16,10 +22,25 @@ class File extends ModelBase
     // increment disable
     public $incrementing = false;
 
-    public function getFileNameAttribute()
-    {
-        // get pathinfo
-        return mb_basename($this->path);
+    public function getPathAttribute(){
+        return path_join($this->local_dirname, $this->local_filename);
+    }
+
+    /**
+     * save document model
+     */
+    public function saveDocumentModel($custom_value, $document_name){
+        // save Document Model
+        $modelname = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT);
+        $document_model = new $modelname;
+        $document_model->parent_id = $custom_value->id;
+        $document_model->parent_type = $custom_value->getCustomTable()->table_name;
+        $document_model->setValue([
+            'file_uuid' => $this->uuid,
+            'document_name' => $filename,
+        ]);
+        $document_model->save();
+        return $document_model;
     }
 
     /**
@@ -32,21 +53,43 @@ class File extends ModelBase
         if (is_null($file)) {
             return null;
         }
-
-        return $file->uuid;
+        return admin_url("files/".$file->uuid);
     }
 
     /**
-     * Save file info to database and get file path
+     * Save file info to database.
+     * path is dir + $filename + ymdhis + extension
      * @param string $fileName
      * @return File saved file path
      */
-    public static function saveFileInfo(string $path)
+    public static function saveFileInfo(string $dirname, string $filename = null)
     {
-        $file = static::firstOrNew(['path' => $path]);
-        $file->uuid = Uuid::generate()->string;
+        $uuid = make_uuid();
+
+        if(!isset($filename)){
+            list($dirname, $filename) = static::getDirAndFileName($dirname);
+        }
+
+        // create file name.
+        // get ymdhis string
+        $path = url_join($dirname, $filename);
+
+        // check file exists
+        // if exists, use uuid
+        if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
+            $local_filename = make_uuid() . '.'.file_ext($filename);
+        }else{
+            $local_filename = $filename;
+        }
+
+        $file = new self;
+        $file->uuid = $uuid;
+        $file->local_dirname = $dirname;
+        $file->local_filename = $local_filename;
+        $file->filename = $filename;
+
         $file->save();
-        return $path;
+        return $file;
     }
 
     /**
@@ -54,7 +97,7 @@ class File extends ModelBase
      * @param string $fileName
      * @return void
      */
-    public static function deleteFileInfo(string $path)
+    public static function deleteFileInfo(string $pathOrUuid)
     {
         $file = static::getData($path);
         if (is_null($file)) {
@@ -95,7 +138,7 @@ class File extends ModelBase
     }
 
     /**
-     * get file
+     * get file object(laravel)
      */
     public static function getFile($uuid, Closure $authCallback = null)
     {
@@ -126,9 +169,9 @@ class File extends ModelBase
      */
     public static function put($disk, $path, $content, $options = [])
     {
-        Storage::disk($disk)->put($path, $content, $options);
-        $path = static::saveFileInfo($path);
-        return $path;
+        $path = Storage::disk($disk)->put($path, $content, $options);
+        $file = static::saveFileInfo($path);
+        return $file;
     }
     
     /**
@@ -141,9 +184,9 @@ class File extends ModelBase
      */
     public static function putAs($disk, $path, $content, $options = [])
     {
-        Storage::disk($disk)->put($path, $content, $options);
-        $path = static::saveFileInfo($path);
-        return $path;
+        $path = Storage::disk($disk)->put($path, $content, $options);
+        $file = static::saveFileInfo($path);
+        return $file;
     }
 
     /**
@@ -157,8 +200,8 @@ class File extends ModelBase
     public static function store($content, $disk, $path, $options = [])
     {
         $path = $content->store($path, $disk, $options);
-        $path = static::saveFileInfo($path);
-        return $path;
+        $file = static::saveFileInfo($path);
+        return $file;
     }
     
     /**
@@ -172,19 +215,36 @@ class File extends ModelBase
     public static function storeAs($content, $disk, $path, $name, $options = [])
     {
         $path = $content->storeAs($path, $disk, $name, $options);
-        $path = static::saveFileInfo($path);
-        return $path;
+        $file = static::saveFileInfo($path, $name);
+        return $file;
     }
 
-    public static function getData($pathOrUuid)
+    /**
+     * Get file model using path or uuid 
+     */
+    protected static function getData($pathOrUuid)
     {
-        $file = static::where(function ($query) use ($pathOrUuid) {
-            $query->orWhere('path', $pathOrUuid);
-            $query->orWhere('uuid', $pathOrUuid);
-        })->first();
+        // get by uuid
+        $file = static::where('uuid', $pathOrUuid)->first();
         if (is_null($file)) {
-            return null;
+            // get by $dirname, $filename
+            list($dirname, $filename) = static::getDirAndFileName($pathOrUuid);
+            $file = static::where('local_dirname', $dirname)
+                ->where('local_filename', $filename)
+                ->first();
+            if (is_null($file)) {
+                return null;
+            }
         }
         return $file;
+    }
+    
+    /**
+     * get directory and filename from path
+     */
+    protected static function getDirAndFileName($path){
+        $dirname = dirname($path);
+        $filename = mb_basename($path);
+        return [$dirname, $filename];
     }
 }

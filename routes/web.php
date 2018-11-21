@@ -67,6 +67,7 @@ Route::group([
                 $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
                 $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
                 $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
+                $router->post("data/{$value}/{id}/fileupload", 'CustomValueController@fileupload');
                 $router->resource("data/{$value}", 'CustomValueController');
                 $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
                 $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
