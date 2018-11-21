@@ -155,13 +155,15 @@ class CreateTableDefine extends Migration
             $table->string('suuid', 20)->unique();
             $table->string('table_name', 256)->unique();
             $table->string('table_view_name', 256);
-            $table->string('icon', 128)->nullable();
-            $table->string('color')->nullable();
+            // $table->string('icon', 128)->nullable();
+            // $table->string('color')->nullable();
             $table->string('description', 1000)->nullable();
             $table->boolean('search_enabled')->default(true);
-            $table->boolean('one_record_flg')->default(false);
+            //$table->boolean('one_record_flg')->default(false);
             $table->boolean('system_flg')->default(false);
             $table->boolean('showlist_flg')->default(true);
+            $table->json('options')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

@@ -11,7 +11,7 @@ class CustomTable extends ModelBase
     use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
-    protected $casts = ['authority' => 'json'];
+    protected $casts = ['options' => 'json'];
 
     protected $guarded = ['id', 'suuid', 'system_flg'];
 

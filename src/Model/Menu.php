@@ -61,7 +61,7 @@ class Menu extends AdminMenu
                 'c.id AS custom_table_id',
                 'c.table_name',
                 'c.table_view_name',
-                'c.icon AS table_icon',
+                'c.options AS table_options',
                 'p.id AS plugin_id',
                 'p.plugin_name'])->map(function ($item, $key) {
                     return (array) $item;
@@ -75,7 +75,10 @@ class Menu extends AdminMenu
                     $row['uri'] = 'plugins/'.$row['uri'];;
                     break;
                 case Define::MENU_TYPE_TABLE:
-                    $row['icon'] = array_get($row, 'table_icon');
+                    if (is_nullorempty($row['icon'])) {
+                        $table_options = json_decode(array_get($row, 'table_options'), true);
+                        $row['icon'] = array_get($table_options, 'icon');
+                    }
                     $row['uri'] = 'data/'.$row['table_name'];
                     break;
                 case Define::MENU_TYPE_SYSTEM:

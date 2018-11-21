@@ -5,12 +5,15 @@
     "custom_tables": [
         {
             "table_name": "document",
-            "icon": "fa-file",
-            "color": null,
             "description": null,
             "search_enabled": "0",
-            "one_record_flg": "0",
             "showlist_flg": "0",
+            "options": {
+                "icon": "fa-file",
+                "color": null,
+                "attachment_flg": "0",
+                "one_record_flg": "0"
+            },
             "custom_columns": [
                 {
                     "column_name": "document_name",
@@ -33,11 +36,14 @@
         },
         {
             "table_name": "base_info",
-            "icon": "fa-building",
-            "color": null,
             "description": null,
             "search_enabled": "0",
             "one_record_flg": "1",
+            "options": {
+                "icon": "fa-building",
+                "color": null,
+                "attachment_flg": "0"
+            },
             "custom_columns": [
                 {
                     "column_name": "company_name",
@@ -194,11 +200,14 @@
         },
         {
             "table_name": "user",
-            "icon": "fa-user",
-            "color": null,
             "description": null,
             "search_enabled": "1",
-            "one_record_flg": "0",
+            "options": {
+                "icon": "fa-user",
+                "color": null,
+                "one_record_flg": "0",
+                "attachment_flg": "0"
+            },
             "custom_columns": [
                 {
                     "column_name": "user_code",
@@ -235,11 +244,14 @@
         },
         {
             "table_name": "organization",
-            "icon": "fa-sitemap",
-            "color": null,
             "description": null,
             "search_enabled": "1",
-            "one_record_flg": "0",
+            "options": {
+                "icon": "fa-sitemap",
+                "color": null,
+                "one_record_flg": "0",
+                "attachment_flg": "0"
+            },
             "custom_columns": [
                 {
                     "column_name": "organization_code",

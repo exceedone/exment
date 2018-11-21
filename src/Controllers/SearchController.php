@@ -64,11 +64,11 @@ class SearchController extends AdminControllerBase
                         'class': 'search-item-icon',
                         'html': [
                             $('<i/>', {
-                                'class': 'fa ' + item.icon
+                                'class': 'fa ' + item.options.icon
                             }),
                             $('<span/>', {
                                 'text': item.table_view_name,
-                                'style': 'background-color:' + item.color,
+                                'style': 'background-color:' + item.options.color,
                             }),
                         ]
                     });
@@ -125,11 +125,11 @@ EOT;
                 array_push($results, [
                     'label' => $label
                     , 'value' => $label
-                    , 'icon' =>array_get($table, 'icon')
+                    , 'icon' =>array_get($table, 'options.icon')
                     , 'table_view_name' => array_get($table, 'table_view_name')
                     , 'table_name' => array_get($table, 'table_name')
                     , 'value_id' => array_get($d, 'id')
-                    , 'color' =>array_get($d, 'color') ?? "#3c8dbc"
+                    , 'color' =>array_get($d, 'options.color') ?? "#3c8dbc"
                     ]);
                 if (count($results) >= 10) {
                     break;

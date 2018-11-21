@@ -194,7 +194,7 @@ EOT;
             return;
         }
         // if table setting is "one_record_flg" (can save only one record), return
-        if (boolval($this->custom_table->one_record_flg)) {
+        if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
             return;
         }
 
@@ -399,7 +399,7 @@ EOT;
     {
         $form->tools(function (Form\Tools $tools) use ($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton) {        // Disable back btn.
             // if one_record_flg, disable list
-            if ($custom_table->one_record_flg) {
+            if (array_get($custom_table->options, 'one_record_flg')) {
                 $tools->disableListButton();
                 $tools->disableDelete();
                 $tools->disableView();

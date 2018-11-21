@@ -185,6 +185,12 @@ class TemplateImporter
             $settings[$sheetname] = $data;
         }
 
+        if (array_key_value_exists('custom_tables', $settings)) {
+            foreach ($settings['custom_tables'] as &$custom_table) {
+                $custom_table = array_dot_reverse($custom_table);
+            }
+        }
+
         // convert custom_columns to custom_tables->custom_columns
         if (array_key_exists('custom_columns', $settings) && array_key_exists('custom_tables', $settings)) {
             $custom_columns = array_get($settings, 'custom_columns');
@@ -420,9 +426,6 @@ class TemplateImporter
                 $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
                 $obj_table->table_name = $table_name;
                 $obj_table->description = array_get($table, 'description');
-                $obj_table->icon = array_get($table, 'icon');
-                $obj_table->color = array_get($table, 'color');
-                $obj_table->one_record_flg = boolval(array_get($table, 'one_record_flg'));
                 $obj_table->search_enabled = boolval(array_get($table, 'search_enabled'));
                 $obj_table->system_flg = $system_flg;
 
@@ -443,6 +446,26 @@ class TemplateImporter
                 else {
                     $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
                 }
+
+                ///// set options
+                $options = array_get($table, 'options', []);
+                if (is_null($options)) {
+                    $options = [];
+                }
+                if(!is_null($value = array_get($options, 'icon'))){
+                    $options['icon'] = $value;
+                }
+                if(!is_null($value = array_get($options, 'color'))){
+                    $options['color'] = $value;
+                }
+                if(!is_null($value = array_get($options, 'one_record_flg', "0"))){
+                    $options['one_record_flg'] = $value;
+                }
+                if(!is_null($value = array_get($options, 'attachment_flg', "1"))){
+                    $options['attachment_flg'] = $value;
+                }
+                $obj_table->options = $options;
+
                 $obj_table->saveOrFail();
 
                 // Create database table.

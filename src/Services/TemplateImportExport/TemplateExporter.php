@@ -164,11 +164,8 @@ class TemplateExporter
                 'table_view_name',
                 'description',
                 'search_enabled',
-                'one_record_flg',
-                //'system_flg',
                 'showlist_flg',
-                'icon',
-                'color',
+                'options',
                 'custom_columns',
             ]);
             $configTables[] = $table;

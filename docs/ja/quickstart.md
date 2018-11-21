@@ -56,7 +56,6 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~
 
-
 - "config\admin.php"を開き、 キー "auth.providers.admin" を以下のように修正します。
 
 ~~~ php
@@ -72,32 +71,6 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
         ],  
     ],
 ~~~
-
-
-- "config\app.php"を開き、 キー "providers" に以下の行を追加します。
-
-~~~ php
-
-'providers' => [
-    ...
-    // Exment Add------s
-    Collective\Html\HtmlServiceProvider::class,
-    Exceedone\Exment\ExmentServiceProvider::class,
-    Exceedone\Exment\Providers\PasswordResetServiceProvider::class,
-    // Exment Edit------e
-]
-
-'aliases' => [
-    ...
-    // Exment Add------s
-    'Uuid' => Webpatser\Uuid\Uuid::class,
-    'Form' => Collective\Html\FormFacade::class,
-    'Html' => Collective\Html\HtmlFacade::class,
-    // Exment Edit------e
-]
-
-~~~
-
 
 - 言語とタイムゾーンを変更したい場合、"config\app.php"を開き、 以下の行を修正します。
 
