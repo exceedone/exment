@@ -96,6 +96,7 @@ trait CustomValueShow
                     ::where('parent_id', $id)
                     ->where('parent_type', $this->custom_table->table_name)
                     ->get();
+                if (count($documents) > 0) {
                     // loop and add as link
                     $show->field('document_'.short_uuid(), exmtrans("common.attachment"))
                         ->as(function ($v) use ($documents) {
@@ -107,7 +108,7 @@ trait CustomValueShow
                             }
                             return implode("", $html);
                         })->unescape();
-
+                }
                 // add file uploader
                 if (!$modal && boolval($this->custom_table->getOption('attachment_flg'))) {
                     $this->setFileUploadField($show, $id);
@@ -148,10 +149,11 @@ trait CustomValueShow
         });
     }
 
-    protected function setFileUploadField($show, $id){
+    protected function setFileUploadField($show, $id)
+    {
         // create file upload option
         $input_id = 'document_uploader'. short_uuid();
-        $show->field($input_id, 'ファイルアップロード')->as(function ($v) use($input_id){
+        $show->field($input_id, 'ファイルアップロード')->as(function ($v) use ($input_id) {
             return '<input type="file" id="'.$input_id.'" />';
         })->unescape();
         $options = json_encode([
@@ -171,6 +173,5 @@ $("#$input_id").fileinput({$options})
 
 EOT;
         Admin::script($script);
-
     }
 }

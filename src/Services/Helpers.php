@@ -1080,8 +1080,6 @@ if (!function_exists('getAuthorityUser')) {
     }
 }
 
-
-
 if (!function_exists('createTable')) {
     /**
      * Create Table in Database.

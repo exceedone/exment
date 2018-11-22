@@ -136,15 +136,6 @@ class DocumentExcelService
                     // output sheet
                     $text = $this->replaceText($child->getValue($column_name, false), []);
                     $sheet->setCellValue($sheet_column_no . $row, $text);
-
-                    // $child_value = $this->replaceText($child->getValue($column_name, true));
-                    // // get replace_key
-                    // $replace_key = '${loop-item:'.$table.':'.$column_name.'}';
-                    // // replace text
-                    // $celltext = getCellValue($sheet_column_no . $row, $sheet);
-                    // // replace
-                    // $celltext = str_replace($replace_key, $child_value, $celltext);
-                    // $sheet->setCellValue($sheet_column_no . $row, $celltext);
                 }
 
                 $row++;
