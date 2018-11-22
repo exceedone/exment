@@ -154,8 +154,7 @@ class FormHelper
                 $field->move($custom_table->table_name);
                 $field->name(function($file){
                     // set fileinfo
-                    $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
-                    return $exmentfile->filename;
+                    return FormHelper::setFileInfo($this, $file);
                 });
                 break;
             case 'file':
@@ -175,9 +174,7 @@ class FormHelper
                 // set filename rule
                 $field->move($custom_table->table_name);
                 $field->name(function($file){
-                    // set fileinfo
-                    $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
-                    return $exmentfile->filename;
+                    return FormHelper::setFileInfo($this, $file);
                 });
                 break;
             default:
@@ -364,5 +361,19 @@ class FormHelper
                 '_method'                        => 'PUT',
             ],
         ];
+    }
+
+    /**
+     * 
+     */
+    public static function setFileInfo($field, $file){
+        // get local filename
+        $dirname = $field->getDirectory();
+        $filename = $file->getClientOriginalName();
+        $local_filename = ExmentFile::getUniqueFileName($dirname, $filename);
+        // save file info
+        $exmentfile = ExmentFile::saveFileInfo($dirname, $filename, $local_filename);
+        // return filename
+        return $exmentfile->local_filename;
     }
 }

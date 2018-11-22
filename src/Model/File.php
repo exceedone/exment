@@ -202,26 +202,6 @@ class File extends ModelBase
     }
 
     /**
-     * get unique file name
-     */
-    public static function getUniqueFileName($dirname, $filename = null){
-        if(!isset($filename)){
-            list($dirname, $filename) = static::getDirAndFileName($dirname);
-        }
-
-        // create file name.
-        // get ymdhis string
-        $path = url_join($dirname, $filename);
-
-        // check file exists
-        // if exists, use uuid
-        if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
-            return make_uuid() . '.'.file_ext($filename);
-        }   
-        return $filename;
-    }
-
-    /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
      * @param  string  $disk disk name
@@ -287,6 +267,26 @@ class File extends ModelBase
         return $file;
     }
     
+    /**
+     * get unique file name
+     */
+    public static function getUniqueFileName($dirname, $filename = null){
+        if(!isset($filename)){
+            list($dirname, $filename) = static::getDirAndFileName($dirname);
+        }
+
+        // create file name.
+        // get ymdhis string
+        $path = url_join($dirname, $filename);
+
+        // check file exists
+        // if exists, use uuid
+        if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
+            return make_uuid() . '.'.file_ext($filename);
+        }   
+        return $filename;
+    }
+
     /**
      * get directory and filename from path
      */
