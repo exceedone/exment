@@ -58,7 +58,7 @@ class File extends ModelBase
 
     /**
      * Save file info to database.
-     * path is dir + $filename + ymdhis + extension
+     * *Please call this function before store file.
      * @param string $fileName
      * @return File saved file path
      */
@@ -71,7 +71,8 @@ class File extends ModelBase
         }
 
         if(!isset($local_filename)){
-            $local_filename = static::getUniqueFileName($dirname, $filename);
+            //$local_filename = static::getUniqueFileName($dirname, $filename);
+            $local_filename = $filename;
         }
 
         $file = new self;
@@ -86,12 +87,15 @@ class File extends ModelBase
 
     /**
      * delete file info to database
-     * @param string $fileName
+     * @param string|File $file
      * @return void
      */
-    public static function deleteFileInfo(string $pathOrUuid)
+    public static function deleteFileInfo($file)
     {
-        $file = static::getData($path);
+        if (is_string($file)) {
+            $file = static::getData($file);
+        }
+
         if (is_null($file)) {
             return;
         }
@@ -101,7 +105,7 @@ class File extends ModelBase
     /**
      * Download file
      */
-    public static function download($uuid, Closure $authCallback = null)
+    public static function downloadFile($uuid, Closure $authCallback = null)
     {
         $data = static::getData($uuid);
         if (!$data) {
@@ -130,10 +134,17 @@ class File extends ModelBase
     }
 
     /**
-     * Delete file
+     * Delete file and document info
      */
-    public static function deleteFile($uuid)
+    public static function deleteFile($uuid, $options = [])
     {
+        $options = array_merge(
+            [
+                'removeDocumentInfo' => true,
+                'removeFileInfo' => true,
+            ],
+            $options
+        );
         $data = static::getData($uuid);
         if (!$data) {
             abort(404);
@@ -147,13 +158,21 @@ class File extends ModelBase
         }
 
         // if has document, remove document info
-        $column_name = getColumnNameByTable(Define::SYSTEM_TABLE_NAME_DOCUMENT, 'file_uuid');
+        if (boolval($options['removeDocumentInfo'])) {
+            $column_name = getColumnNameByTable(Define::SYSTEM_TABLE_NAME_DOCUMENT, 'file_uuid');
         
-        // delete
-        getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
+            // delete document info
+            getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
             ::where($column_name, $uuid)
             ->delete();
-    
+        }
+        
+        // delete file info
+        if(boolval($options['removeFileInfo'])){
+            $file = static::getData($uuid);
+            $file->deleteFileInfo();
+        }
+
         return response([
             'status'  => true,
             'message' => trans('admin.delete_succeeded'),
@@ -212,26 +231,11 @@ class File extends ModelBase
      */
     public static function put($path, $content, $options = [])
     {
-        $path = Storage::disk(config('admin.upload.disk'))->put($path, $content, $options);
         $file = static::saveFileInfo($path);
+        Storage::disk(config('admin.upload.disk'))->put($file->path, $content, $options);
         return $file;
     }
     
-    /**
-     * Save file table on db and store the uploaded file on a filesystem disk.
-     *
-     * @param  string  $disk disk name
-     * @param  string  $path directory path
-     * @param  array|string  $options
-     * @return string|false
-     */
-    public static function putAs($path, $content, $options = [])
-    {
-        $path = Storage::disk(config('admin.upload.disk'))->put($path, $content, $options);
-        $file = static::saveFileInfo($path);
-        return $file;
-    }
-
     /**
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
@@ -242,8 +246,8 @@ class File extends ModelBase
      */
     public static function store($content, $path)
     {
-        $content->store($path, config('admin.upload.disk'));
         $file = static::saveFileInfo($path);
+        $content->store($file->path, config('admin.upload.disk'));
         return $file;
     }
     
@@ -251,7 +255,6 @@ class File extends ModelBase
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
      * @param  string  $content file content
-     * @param  string  $disk disk name
      * @param  string  $path directory path
      * @param  string  $name file name
      * @return string|false
@@ -259,8 +262,8 @@ class File extends ModelBase
     public static function storeAs($content, $path, $name, $local_filename = null)
     {
         if(!isset($local_filename)){$local_filename = $name;}
-        $content->storeAs($path, $local_filename, config('admin.upload.disk'));
         $file = static::saveFileInfo($path, $name, $local_filename);
+        $content->storeAs($path, $local_filename, config('admin.upload.disk'));
         return $file;
     }
 
@@ -287,7 +290,7 @@ class File extends ModelBase
     /**
      * get directory and filename from path
      */
-    protected static function getDirAndFileName($path){
+    public static function getDirAndFileName($path){
         $dirname = dirname($path);
         $filename = mb_basename($path);
         return [$dirname, $filename];

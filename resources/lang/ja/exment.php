@@ -245,12 +245,14 @@ return [
         'icon' => 'アイコン',
         'search_enabled' => '検索可能',
         'one_record_flg' => '1件のみ登録可能',
+        'attachment_flg' => '添付ファイル使用',
         'custom_columns' => '列一覧',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
             'search_enabled' => 'YESにした場合、検索画面から検索可能になります。',
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
+            'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
         ],
         
         'system_definitions' => [

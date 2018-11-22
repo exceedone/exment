@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Storage;
 use DB;
 
@@ -122,8 +123,8 @@ class System extends ModelBase
                 //$system->system_value = null;
             } else {
                 $move = array_get($setting, 'move');
-                $exmentfile = File::store($value, config('admin.upload.disk'), $move);
-                $system->system_value = url_join($move, $exmentfile->filename);
+                $exmentfile = ExmentFile::storeAs($value, $move, $value->getClientOriginalName());
+                $system->system_value = $exmentfile->path;
             }
 
             // remove old file

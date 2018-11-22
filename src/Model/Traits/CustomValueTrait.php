@@ -214,7 +214,7 @@ trait CustomValueTrait
     }
     
     /**
-     * get target custom_value's link url
+     * get target custom_value's self link url
      */
     public function getUrl($tag = false)
     {

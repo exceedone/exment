@@ -43,7 +43,7 @@ trait CustomValueShow
                                         return '';
                                     }
                                     if ($isUrl) {
-                                        return $this->getUrl($column, true);
+                                        return getUrl($this, $column, true);
                                     }
                                     return $this->getValue($column, true);
                                 })->setEscape(!$isUrl);
@@ -96,7 +96,7 @@ trait CustomValueShow
                     ::where('parent_id', $id)
                     ->where('parent_type', $this->custom_table->table_name)
                     ->get();
-                // loop and add as link
+                    // loop and add as link
                     $show->field('document_'.short_uuid(), exmtrans("common.attachment"))
                         ->as(function ($v) use ($documents) {
                             $html = [];
@@ -109,7 +109,9 @@ trait CustomValueShow
                         })->unescape();
 
                 // add file uploader
-                $this->setFileUploadField($show, $id);
+                if (!$modal && boolval($this->custom_table->getOption('attachment_flg'))) {
+                    $this->setFileUploadField($show, $id);
+                }
             }
 
             // if user only view permission, disable delete and view

@@ -10,7 +10,7 @@ trait DatabaseJsonTrait
     protected function getJson($dbcolumnname, $key)
     {
         $json = $this->{$dbcolumnname};
-        if(!is_null($json)){return null;}
+        if(!isset($json)){return null;}
         return array_get($json, $key);
     }
 

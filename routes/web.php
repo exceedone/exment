@@ -96,7 +96,7 @@ Route::group([
     $router->post('api/menu/menutargetvalue', 'MenuController@menutargetvalue');
 
     $router->get('files/{uuid}', function($uuid){
-        return File::download($uuid);
+        return File::downloadFile($uuid);
     });
     $router->delete('files/{uuid}', function($uuid){
         return File::deleteFile($uuid);
