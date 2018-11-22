@@ -175,7 +175,7 @@ Therefore, please use this function when acquiring the database.
 | string | table name of custom table |
 
 
-#### getColumnName
+#### getIndexColumnName
 ---
 Gets column name of custom column.  
 * This column name is used for "Searchable" field.  

@@ -42,7 +42,7 @@ class CustomView extends ModelBase
             // if tagret is number, column type is column.
             if (is_numeric($view_column_target)) {
                 $column = $custom_view_column->custom_column;
-                $column_name = getColumnName($column, true);
+                $column_name = getIndexColumnName($column, true);
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 

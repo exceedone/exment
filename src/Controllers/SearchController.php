@@ -519,7 +519,7 @@ EOT;
         foreach ($search_columns as $search_column) {
             // get data
             $foodata = getModelName($table)
-                ::where(getColumnName($search_column), $mark, $query)
+                ::where(getIndexColumnName($search_column), $mark, $query)
                 ->take($max_count - count($data))
                 ->get();
             

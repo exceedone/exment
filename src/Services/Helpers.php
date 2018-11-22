@@ -503,14 +503,14 @@ if (!function_exists('getEndpointName')) {
     }
 }
 
-if (!function_exists('getColumnName')) {
+if (!function_exists('getIndexColumnName')) {
     /**
      * Get column name. This function uses only search-enabled column.
      * @param CustomColumn|array $obj
      * @param boolean $label if get the columnname only get column label.
      * @return string
      */
-    function getColumnName($column_obj, $label = false)
+    function getIndexColumnName($column_obj, $label = false)
     {
         $column_obj = CustomColumn::getEloquent($column_obj);
         return 'column_'.array_get($column_obj, 'suuid').($label ? '_label' : '');
@@ -528,7 +528,7 @@ if (!function_exists('getColumnNameByTable')) {
         // get column eloquent
         $column_obj = CustomColumn::getEloquent($column_name, $table_obj);
         // return column name
-        return getColumnName($column_obj);
+        return getIndexColumnName($column_obj);
     }
 }
 
@@ -1123,12 +1123,12 @@ if (!function_exists('alterColumn')) {
     function alterColumn($table_name, $column_name, $forceDropIndex = false)
     {
         // Create index --------------------------------------------------
-        $table = CustomTable::findByName($table_name);
+        $table = CustomTable::getEloquent($table_name);
         $column = $table->custom_columns()->where('column_name', $column_name)->first();
 
         //DB table name
         $db_table_name = getDBTableName($table);
-        $db_column_name = getColumnName($column);
+        $db_column_name = getIndexColumnName($column);
 
         // Create table
         createTable($table);
