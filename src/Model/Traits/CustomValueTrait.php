@@ -210,24 +210,7 @@ trait CustomValueTrait
     }
     public function setValue($key, $val = null)
     {
-        if (!isset($key)) {
-            return;
-        }
-        // if key is array, loop key value
-        if (is_array($key)) {
-            foreach ($key as $k => $v) {
-                $this->setValue($k, $v);
-            }
-            return $this;
-        }
-        $value = $this->value;
-        if (is_null($value)) {
-            $value = [];
-        }
-        $value[$key] = $val;
-        $this->value = $value;
-
-        return $this;
+        return $this->setJson('value', $key, $val);
     }
     
     /**

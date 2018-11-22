@@ -53,7 +53,7 @@ class CustomView extends ModelBase
                     }
                     $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
                     if ($isUrl) {
-                        return $this->getUrl($column, true);
+                        return getUrl($this, $column, true);
                     }
                     return esc_html($this->getValue($column, true));
                 });
@@ -148,7 +148,7 @@ class CustomView extends ModelBase
                         if (isset($custom_column)) {
                             $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
                             if ($isUrl) {
-                                $body_items[] = $data->getUrl($custom_column, true);
+                                $body_items[] = getUrl($data, $custom_column, true);
                             } else {
                                 $body_items[] = esc_html($data->getValue($custom_column, true));
                             }

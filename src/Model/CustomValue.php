@@ -8,6 +8,7 @@ class CustomValue extends ModelBase
 {
     use Traits\CustomValueTrait;
     use Traits\AutoSUuidTrait;
+    use Traits\DatabaseJsonTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];

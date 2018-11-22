@@ -280,7 +280,7 @@ class MenuController extends AdminControllerBase
                 return [
                     'menu_name' => array_get($item, 'table_name'),
                     'title' => array_get($item, 'table_view_name'),
-                    'icon' => array_get($item, 'icon'),
+                    'icon' => array_get($item, 'options.icon'),
                     'uri' => array_get($item, 'table_name'),
                 ];
             case Define::MENU_TYPE_CUSTOM:

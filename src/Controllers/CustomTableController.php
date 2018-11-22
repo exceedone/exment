@@ -71,11 +71,14 @@ class CustomTableController extends AdminControllerBase
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1");
         
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
-            $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))->help(exmtrans("custom_table.help.one_record_flg"));
-            $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"));
+            $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))
+                ->help(exmtrans("custom_table.help.one_record_flg"))
+                ->default("0");
+            $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
+                ->default("1");
             //$form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))->help(exmtrans("custom_table.help.comment_flg"));
         })->disableHeader();
 

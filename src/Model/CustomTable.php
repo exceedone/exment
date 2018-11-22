@@ -7,6 +7,7 @@ getCustomTableTrait();
 class CustomTable extends ModelBase
 {
     use Traits\CustomTableTrait;
+    use Traits\DatabaseJsonTrait;
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -48,6 +49,20 @@ class CustomTable extends ModelBase
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
+    
+    public function getOption($key)
+    {
+        return $this->getJson('options', $key);
+    }
+    public function setOption($key, $val = null)
+    {
+        return $this->setJson('options', $key, $val);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    
     
     /**
      * Delete children items

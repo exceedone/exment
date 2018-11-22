@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 class CustomFormColumn extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\DatabaseJsonTrait;
     
     protected $casts = ['options' => 'json'];
 
@@ -19,6 +20,21 @@ class CustomFormColumn extends ModelBase
     {
         return $this->belongsTo(CustomColumn::class, 'form_column_target_id');
     }
+    
+    public function getOption($key)
+    {
+        return $this->getJson('options', $key);
+    }
+    public function setOption($key, $val = null)
+    {
+        return $this->setJson('options', $key, $val);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    
+    
 
     protected static function boot()
     {

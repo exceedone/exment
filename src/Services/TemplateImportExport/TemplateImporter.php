@@ -449,22 +449,10 @@ class TemplateImporter
 
                 ///// set options
                 $options = array_get($table, 'options', []);
-                if (is_null($options)) {
-                    $options = [];
-                }
-                if(!is_null($value = array_get($options, 'icon'))){
-                    $options['icon'] = $value;
-                }
-                if(!is_null($value = array_get($options, 'color'))){
-                    $options['color'] = $value;
-                }
-                if(!is_null($value = array_get($options, 'one_record_flg', "0"))){
-                    $options['one_record_flg'] = $value;
-                }
-                if(!is_null($value = array_get($options, 'attachment_flg', "1"))){
-                    $options['attachment_flg'] = $value;
-                }
-                $obj_table->options = $options;
+                $obj_table->setOption('icon', array_get($options, 'icon'));
+                $obj_table->setOption('color', array_get($options, 'color'));
+                $obj_table->setOption('one_record_flg', array_get($options, 'one_record_flg', "0"));
+                $obj_table->setOption('attachment_flg', array_get($options, 'attachment_flg', "1"));
 
                 $obj_table->saveOrFail();
 
@@ -565,12 +553,7 @@ class TemplateImporter
                         $column_name = array_get($column, 'column_name');
                         $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
                         
-                        ///// set options
-                        $options = array_get($column, 'options', []);
-                        if (is_null($options)) {
-                            $options = [];
-                        }
-                        
+                        ///// set options                        
                         // check need update
                         $update_flg = false;
                         // if column type is calc, set dynamic val
@@ -603,7 +586,7 @@ class TemplateImporter
                                 }
                             }
                             // set as json string
-                            $options['calc_formula'] = json_encode($calc_formula);
+                            $obj_column->setOption('calc_formula', $calc_formula);
                             $update_flg = true;
                         }
 
@@ -695,8 +678,9 @@ class TemplateImporter
                             $options = array_get($form_block, 'options', []);
                             $options = collect($options)->filter(function ($option) {
                                 return isset($option);
-                            })->toArray();
-                            $obj_form_block->options = $options;
+                            })->each(function($value, $key) use($obj_form_block){
+                                $obj_form_block->setOption($key, $value);
+                            });
 
                             $obj_form_block->saveOrFail();
 
@@ -761,16 +745,11 @@ class TemplateImporter
                                     })->toArray();
                                     // if has changedata_column_name and changedata_target_column_name, set id
                                     if (array_key_value_exists('changedata_column_name', $options) && array_key_value_exists('changedata_column_table_name', $options)) {
-                                        //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
-                                        //$options['changedata_column_id'] = CustomColumn::where('column_name', $options['changedata_column_name'])->first()->id?? null;
                                         // get using changedata_column_table_name
                                         $options['changedata_column_id'] = CustomTable::findByName($options['changedata_column_table_name'])->custom_columns()->where('column_name', $options['changedata_column_name'])->first()->id?? null;
                                         array_forget($options, 'changedata_column_name');
                                     }
                                     if (array_key_value_exists('changedata_target_column_name', $options)) {
-                                        //*caution!! Don't use where 'column_name' because if same name but other table, wrong match.
-                                        //$options['changedata_target_column_id'] = CustomColumn::where('column_name', $options['changedata_target_column_name'])->first()->id?? null;
-                                    
                                         // get changedata target table name and column
                                         // if changedata_target_column_name value has dotted, get parent table name
                                         if (str_contains($options['changedata_target_column_name'], ".")) {
@@ -783,7 +762,9 @@ class TemplateImporter
                                         $options['changedata_target_column_id'] = $changedata_target_table->custom_columns()->where('column_name', $changedata_target_column_name)->first()->id?? null;
                                         array_forget($options, 'changedata_target_column_name');
                                     }
-                                    $obj_form_column->options = $options;
+                                    foreach($options as $key => $option){
+                                        $obj_form_column->setOption($key, $option);
+                                    }
                                 
                                     $obj_form_column->saveOrFail();
                                 }

@@ -8,6 +8,7 @@ class CustomCopy extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\AutoSUuidTrait;
+    use Traits\DatabaseJsonTrait;
     
     protected $casts = ['options' => 'json'];
 
@@ -33,6 +34,19 @@ class CustomCopy extends ModelBase
         ->where('custom_copy_column_type', 'input');
     }
 
+    public function getOption($key)
+    {
+        return $this->getJson('options', $key);
+    }
+    public function setOption($key, $val = null)
+    {
+        return $this->setJson('options', $key, $val);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    
     /**
      * execute data copy
      */

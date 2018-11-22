@@ -16,7 +16,6 @@ class ExcelImporter extends DataImporterBase
         $sheet = $spreadsheet->getActiveSheet();
 
         // read cell
-        //$sheet = $reader->getSheet();
         return getDataFromSheet($sheet);
     }
 }

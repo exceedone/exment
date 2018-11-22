@@ -6,6 +6,7 @@ namespace Exceedone\Exment\Model;
 class CustomFormBlock extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\DatabaseJsonTrait;
     
     protected $casts = ['options' => 'json'];
 
@@ -20,6 +21,20 @@ class CustomFormBlock extends ModelBase
     public function target_table(){
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
+    
+    public function getOption($key)
+    {
+        return $this->getJson('options', $key);
+    }
+    public function setOption($key, $val = null)
+    {
+        return $this->setJson('options', $key, $val);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    
     
     public function deletingChildren(){
         $this->custom_form_columns()->delete();

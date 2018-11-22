@@ -902,6 +902,41 @@ if (!function_exists('getLabel')) {
     }
 }
 
+if (!function_exists('getUrl')) {
+    /**
+     * Get url for column_type is url, select_table.
+     * @param CustomValue $custom_value
+     * @param CustomColumn $column
+     * @return string
+     */
+    function getUrl($custom_value, $column, $tag = false)
+    {
+        if (is_null($custom_value)) {
+            return null;
+        }
+        $url = null;
+        $value = esc_html($custom_value->getValue($column, true));
+        switch ($column->column_type) {
+            case 'url':
+                $url = $custom_value->getValue($column);
+                if (!$tag) {
+                    return $url;
+                }
+                return "<a href='{$url}' target='_blank'>$value</a>";
+            case 'select_table':
+                $target_value = $custom_value->getValue($column);
+                $id =  $target_value->id ?? null;
+                if (!isset($id)) {
+                    return null;
+                }
+                // create url
+                return $target_value->getUrl($tag);
+        }
+ 
+        return null;
+    }
+}
+
 if (!function_exists('getLabelUseTable')) {
     /**
      * Get label text

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 class CustomColumn extends ModelBase
 {
     use Traits\AutoSUuidTrait;
+    use Traits\DatabaseJsonTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
@@ -60,6 +61,19 @@ class CustomColumn extends ModelBase
         return null;
     }
 
+    public function getOption($key)
+    {
+        return $this->getJson('options', $key);
+    }
+    public function setOption($key, $val = null)
+    {
+        return $this->setJson('options', $key, $val);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    
     public function deletingChildren()
     {
         $this->custom_form_columns()->delete();
