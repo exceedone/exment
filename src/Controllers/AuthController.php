@@ -109,9 +109,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      * get Socialite Provider
      */
     protected function getSocialiteProvider(string $login_provider){
-        //config(["services.$login_provider.redirect" => admin_url(url_join("auth", "login", $login_provider, "callback"))]);
-        config(["services.$login_provider.redirect" => "https://local-exment/admin/auth/login/graph/callback"]);
-
+        config(["services.$login_provider.redirect" => admin_url(url_join("auth", "login", $login_provider, "callback"))]);
+        
         return \Socialite::with($login_provider)->stateless();
     }
     
