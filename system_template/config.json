@@ -38,11 +38,11 @@
             "table_name": "base_info",
             "description": null,
             "search_enabled": "0",
-            "one_record_flg": "1",
             "options": {
                 "icon": "fa-building",
                 "color": null,
-                "attachment_flg": "0"
+                "attachment_flg": "0",
+                "one_record_flg": "1"
             },
             "custom_columns": [
                 {
