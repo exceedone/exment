@@ -27,6 +27,7 @@ class CreateTableDefine extends Migration
         $schema->create('login_users', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('base_user_id')->unsigned()->index();
+            $table->string('login_provider', 32)->nullable();
             $table->string('password', 1000);
             $table->string('avatar', 512)->nullable();
             $table->timestamps();

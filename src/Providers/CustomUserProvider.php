@@ -38,12 +38,28 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
  
     public function retrieveByCredentials(array $credentials)
     {
+        return static::RetrieveByCredential($credentials);
+    }
+ 
+    public function validateCredentials(Authenticatable $login_user, array $credentials)
+    {
+        return static::ValidateCredential($login_user, $credentials);
+    }
+    
+    public static function RetrieveByCredential(array $credentials)
+    {
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
-            $login_user = LoginUser
-            ::whereHas('base_user', function ($query) use ($key, $credentials) {
+            $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
                 $query->where(getColumnNameByTable(Define::SYSTEM_TABLE_NAME_USER, $key), array_get($credentials, 'username'));
-            })->first();
+            });
+
+            // has login provider
+            if(array_has($credentials, 'login_provider')){
+                $query = $query->where('login_provider', array_get($credentials, 'login_provider'));
+            }
+
+            $login_user = $query->first();
 
             if (isset($login_user)) {
                 break;
@@ -55,8 +71,8 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
         }
         return null;
     }
- 
-    public function validateCredentials(Authenticatable $login_user, array $credentials)
+    
+    public static function ValidateCredential(Authenticatable $login_user, array $credentials)
     {
         if (is_null($login_user)) {
             return false;

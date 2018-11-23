@@ -103,6 +103,10 @@ Route::group([
     });
 });
 
+
+/**
+ * anonymous endpoint
+ */
 Route::group([
     'prefix'        => config('admin.route.prefix'),
     'namespace'     => 'Exceedone\Exment\Controllers',
@@ -115,4 +119,11 @@ Route::group([
     $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
     $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
     $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
+
+    // get config about login provider
+    $login_providers = config('exment.login_providers');
+    if(!is_nullorempty($login_providers)){
+        $router->get('auth/login/{provider}', 'AuthController@getLoginProvider');
+        $router->get('auth/login/{provider}/callback', 'AuthController@callbackLoginProvider');
+    }
 });
