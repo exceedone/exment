@@ -68,24 +68,26 @@ class LoginUserController extends AdminControllerBase
         $form->display('value.user_name', exmtrans('user.user_name'));
         $form->display('value.email', exmtrans('user.email'));
 
-        $has_loginuser = !is_null($classname::find($id)->login_user ?? null);
+        $login_user = $classname::find($id)->login_user ?? null;
+        $has_loginuser = !is_null($login_user);
 
-        $form->header(exmtrans('user.login'))->hr();
-        $form->checkboxone('use_loginuser', exmtrans('user.use_loginuser'))->option(['1' => exmtrans('common.yes') ])
+        if (!useLoginProvider()) {
+            $form->header(exmtrans('user.login'))->hr();
+            $form->checkboxone('use_loginuser', exmtrans('user.use_loginuser'))->option(['1' => exmtrans('common.yes') ])
                     ->help(exmtrans('user.help.use_loginuser'))
                     ->default($has_loginuser)
                     ->attribute(['data-filtertrigger' => true]);
 
-        if ($has_loginuser) {
-            $form->checkboxone('reset_password', exmtrans('user.reset_password'))->option(['1' => exmtrans('common.yes')])
+            if ($has_loginuser) {
+                $form->checkboxone('reset_password', exmtrans('user.reset_password'))->option(['1' => exmtrans('common.yes')])
                             ->default(!$has_loginuser)
                             ->help(exmtrans('user.help.reset_password'))
                             ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
-        } else {
-            $form->hidden('reset_password')->default("1");
-        }
+            } else {
+                $form->hidden('reset_password')->default("1");
+            }
 
-        $form->checkboxone('create_password_auto', exmtrans('user.create_password_auto'))->option(['1' => exmtrans('common.yes')])
+            $form->checkboxone('create_password_auto', exmtrans('user.create_password_auto'))->option(['1' => exmtrans('common.yes')])
                 ->default(!$has_loginuser)
                 ->help(exmtrans('user.help.create_password_auto'))
                 ->attribute(['data-filter' => json_encode([
@@ -93,20 +95,24 @@ class LoginUserController extends AdminControllerBase
                     , ['key' => 'reset_password', 'value' => "1"]
                     ])]);
 
-        $form->password('password', exmtrans('user.password'))->default('')
+            $form->password('password', exmtrans('user.password'))->default('')
                     ->help(exmtrans('user.help.password'))
                     ->attribute(['data-filter' => json_encode([
                         ['key' => 'use_loginuser', 'value' => '1']
                         , ['key' => 'reset_password', 'value' => "1"]
                         , ['key' => 'create_password_auto', 'nullValue' => true]
                         ])]);
-        $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
+            $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
                     , ['key' => 'create_password_auto', 'nullValue' => true]
                     ])]);
+        }
 
+        if(useLoginProvider()){
+            $form->disableSubmit();
+        }
         $form->disableReset();
         $form->tools(function (Form\Tools $tools) {
             $tools->disableView();

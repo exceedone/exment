@@ -1580,3 +1580,14 @@ if (!function_exists('getCellValue')) {
         return $value;
     }
 }
+
+if (!function_exists('useLoginProvider')) {
+    /**
+     * use login provider
+     */
+    function useLoginProvider()
+    {
+        return !is_nullorempty(config('exment.login_providers'));
+    }
+}
+

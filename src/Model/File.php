@@ -62,7 +62,7 @@ class File extends ModelBase
      * @param string $fileName
      * @return File saved file path
      */
-    public static function saveFileInfo(string $dirname, string $filename = null, $local_filename = null)
+    public static function saveFileInfo(string $dirname, string $filename = null, $local_filename = null, $override = false)
     {
         $uuid = make_uuid();
 
@@ -73,6 +73,12 @@ class File extends ModelBase
         if(!isset($local_filename)){
             //$local_filename = static::getUniqueFileName($dirname, $filename);
             $local_filename = $filename;
+        }
+        
+        // get unique name. if different and not override, change name
+        $unique_filename = static::getUniqueFileName($dirname, $filename);
+        if(!$override && $local_filename != $unique_filename){
+            $local_filename = $unique_filename;
         }
 
         $file = new self;
@@ -206,13 +212,12 @@ class File extends ModelBase
      *
      * @param  string  $disk disk name
      * @param  string  $path directory path
-     * @param  array|string  $options
      * @return string|false
      */
-    public static function put($path, $content, $options = [])
+    public static function put($path, $content, $override = false)
     {
-        $file = static::saveFileInfo($path);
-        Storage::disk(config('admin.upload.disk'))->put($file->path, $content, $options);
+        $file = static::saveFileInfo($path, null, null, $override);
+        Storage::disk(config('admin.upload.disk'))->put($file->path, $content);
         return $file;
     }
     
@@ -224,10 +229,10 @@ class File extends ModelBase
      * @param  string  $path directory path
      * @return string|false
      */
-    public static function store($content, $path)
+    public static function store($content, $dirname)
     {
-        $file = static::saveFileInfo($path);
-        $content->store($file->path, config('admin.upload.disk'));
+        $file = static::saveFileInfo($dirname);
+        $content->store($file->local_dirname, config('admin.upload.disk'));
         return $file;
     }
     
@@ -235,15 +240,16 @@ class File extends ModelBase
      * Save file table on db and store the uploaded file on a filesystem disk.
      *
      * @param  string  $content file content
-     * @param  string  $path directory path
-     * @param  string  $name file name
+     * @param  string  $dirname directory path
+     * @param  string  $name file name. the name is shown by display
+     * @param  string  $local_filename local file name.
+     * @param  bool  $override if file already exists, override 
      * @return string|false
      */
-    public static function storeAs($content, $path, $name, $local_filename = null)
+    public static function storeAs($content, $dirname, $name, $local_filename = null, $override = false)
     {
-        if(!isset($local_filename)){$local_filename = $name;}
-        $file = static::saveFileInfo($path, $name, $local_filename);
-        $content->storeAs($path, $local_filename, config('admin.upload.disk'));
+        $file = static::saveFileInfo($dirname, $name, $local_filename, $override);
+        $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
         return $file;
     }
 
@@ -282,7 +288,8 @@ class File extends ModelBase
         // check file exists
         // if exists, use uuid
         if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
-            return make_uuid() . '.'.file_ext($filename);
+            $ext = file_ext($filename);
+            return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
         }   
         return $filename;
     }

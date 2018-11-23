@@ -4,13 +4,15 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
+use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request as Req;
 use Illuminate\Support\Facades\Auth;
-use Exceedone\Exment\Model\File as ExmentFile;
 
 /**
  * For login controller
@@ -64,32 +66,31 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         if ($this->guard()->check()) {
             return redirect($this->redirectPath());
         }
+
+        $error_url = admin_base_path('auth/login');
         
         $socialiteProvider = $this->getSocialiteProvider($login_provider);
-        $provider_user = $socialiteProvider->user();
+
+        // get provider user
+        $provider_user = null;
+        try {
+            $provider_user = $socialiteProvider->user();
+        }
+        catch(\Exception $ex){
+            return redirect($error_url)->withInput()->withErrors(
+                [$this->username() => exmtrnas('login.sso_provider_error')]
+            );   
+        }
 
         // check exment user
-        $exment_user = getModelName(Define::SYSTEM_TABLE_NAME_USER)
-            ::where('value->email', $provider_user->email)
-            ->first();
-        if(!isset($exment_user) && config("services.$login_provider.create_user", false) !== true){
-            return back()->withInput()->withErrors([
-                $this->username() => $this->getFailedLoginMessage(),
-            ]);
-        }
-        if(!isset($exment_user)){
-            return redirect(admin_base_path('auth/login'))->withInput()->withErrors([
-                $this->username() => $this->getFailedLoginMessage(),
-            ]);
+        $exment_user = $this->getExmentUser($provider_user);
+        if($exment_user === false){
+            return redirect($error_url)->withInput()->withErrors(
+                [$this->username() => exmtrnas('login.noexists_user')]
+            );
         }
 
-        // update user info
-        $exment_user->setValue([
-            'user_name' => $provider_user->name
-        ]);
-        $exment_user->save();
-
-        $login_user = $this->getLoginUser($login_provider, $exment_user, $provider_user);
+        $login_user = $this->getLoginUser($socialiteProvider, $login_provider, $exment_user, $provider_user);
         
         if ($this->guard()->attempt(
             [
@@ -101,11 +102,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             return $this->sendLoginResponse($request);
         }
 
-        return back()->withInput()->withErrors([
-            $this->username() => $this->getFailedLoginMessage(),
-        ]);
+        return redirect($error_url)->withInput()->withErrors([$this->username() => $this->getFailedLoginMessage()]);
     }
 
+    /**
+     * get Socialite Provider
+     */
     protected function getSocialiteProvider(string $login_provider){
         //config(["services.$login_provider.redirect" => admin_url(url_join("auth", "login", $login_provider, "callback"))]);
         config(["services.$login_provider.redirect" => "https://local-exment/admin/auth/login/graph/callback"]);
@@ -113,8 +115,32 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return \Socialite::with($login_provider)->stateless();
     }
     
-    protected function getLoginUser($login_provider, $exment_user, $provider_user){
+    /**
+     * get exment user from users table
+     */
+    protected function getExmentUser($provider_user){
         
+        $exment_user = getModelName(Define::SYSTEM_TABLE_NAME_USER)
+            ::where('value->email', $provider_user->email)
+            ->first();
+        if(!isset($exment_user)){
+            return false;
+        }
+
+        // update user info
+        $exment_user->setValue([
+            'user_name' => $provider_user->name
+        ]);
+        $exment_user->save();
+
+        return $exment_user;
+    }
+
+    /**
+     * get login_user from login_users table
+     */
+    protected function getLoginUser($socialiteProvider, $login_provider, $exment_user, $provider_user){
+        $hasLoginUser = false;
         // get login_user
         $login_user = CustomUserProvider::RetrieveByCredential(
             [
@@ -127,19 +153,49 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             if(CustomUserProvider::ValidateCredential($login_user, [
                 'password' => $provider_user->id
             ])){
-                return $login_user;
+                $hasLoginUser = true;
             }
         }
 
+        // get avatar
+        $avatar  = $this->getAvatar($socialiteProvider, $provider_user);
+
         // if don't has, create loginuser
-        $login_user = new LoginUser;
-        $login_user->base_user_id = $exment_user->id;
-        $login_user->login_provider = $login_provider;
-        $login_user->password = bcrypt($provider_user->id);
+        if (!$hasLoginUser) {
+            $login_user = new LoginUser;
+            $login_user->base_user_id = $exment_user->id;
+            $login_user->login_provider = $login_provider;
+            $login_user->password = bcrypt($provider_user->id);
+        }
+        if(isset($avatar)){
+            $login_user->avatar = $avatar;
+        }
         $login_user->save();
         return $login_user;
     }
 
+    protected function getAvatar($socialiteProvider, $provider_user){
+        try{
+            // if socialiteProvider implements ProviderAvatar, call getAvatar
+            if(is_subclass_of($socialiteProvider, ProviderAvatar::class)){
+                $stream = $socialiteProvider->getAvatar($provider_user->token);
+            }
+            // if user obj has avatar, download avatar.
+            else if(isset($provider_user)){
+                $client = new \GuzzleHttp\Client();
+                $response = $client->request('GET', $avatar);
+                $stream = $response->getBody()->getContents();
+            }
+            // file upload.
+            if($stream != null){
+                $file = ExmentFile::put(path_join("avatar", $provider_user->id), $stream, true);
+                return $file->path;
+            }
+        }finally{
+
+        }
+        return null;
+    }
 
     /**
      * Model-form for user setting.
@@ -155,12 +211,15 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $form->email('base_user.value.email', exmtrans('user.email'));
             $form->image('avatar', exmtrans('user.avatar'))
                 ->move('avatar')
-                ->name(function($file){
+                ->name(function ($file) {
                     $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
                     return $exmentfile->filename;
                 });
-            $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
-            $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
+
+            if (!useLoginProvider()) {
+                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
+                $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
+            }
 
             $form->setAction(admin_base_path('auth/setting'));
             $form->ignore(['password_confirmation']);

@@ -53,6 +53,15 @@
         <a href="{{ admin_base_path('auth/login/'.$login_provider_name) }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
             <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> Sign in using {{ $login_provider['display_name'] }}</a>
         @endforeach
+        
+        @if($errors->has('username'))
+        <div class="has-error">
+        @foreach($errors->get('username') as $message)
+        <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
+        @endforeach 
+        </div>
+        @endif
+
         @endif
 
 <!-- /.login-box -->

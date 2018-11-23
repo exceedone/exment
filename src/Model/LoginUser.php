@@ -37,4 +37,8 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     {
         return $this->base_user->value['email'] ?? null;
     }
+
+    public function isLoginProvider(){
+        return !is_nullorempty($this->login_provider);
+    }
 }
