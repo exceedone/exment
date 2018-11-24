@@ -57,6 +57,8 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
             // has login provider
             if(array_has($credentials, 'login_provider')){
                 $query = $query->where('login_provider', array_get($credentials, 'login_provider'));
+            }else{
+                $query = $query->whereNull('login_provider');
             }
 
             $login_user = $query->first();

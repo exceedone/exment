@@ -78,7 +78,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
         catch(\Exception $ex){
             return redirect($error_url)->withInput()->withErrors(
-                [$this->username() => exmtrnas('login.sso_provider_error')]
+                [$this->username() => exmtrans('login.sso_provider_error')]
             );   
         }
 
@@ -86,7 +86,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $exment_user = $this->getExmentUser($provider_user);
         if($exment_user === false){
             return redirect($error_url)->withInput()->withErrors(
-                [$this->username() => exmtrnas('login.noexists_user')]
+                [$this->username() => exmtrans('login.noexists_user')]
             );
         }
 
@@ -159,13 +159,17 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         // get avatar
         $avatar  = $this->getAvatar($socialiteProvider, $provider_user);
 
-        // if don't has, create loginuser
+        // if don't has, create loginuser or match email
         if (!$hasLoginUser) {
-            $login_user = new LoginUser;
+            $login_user = LoginUser::firstOrNew([
+                'base_user_id' => $exment_user->id,
+                'login_provider' => $login_provider,
+                ]);
             $login_user->base_user_id = $exment_user->id;
             $login_user->login_provider = $login_provider;
             $login_user->password = bcrypt($provider_user->id);
         }
+
         if(isset($avatar)){
             $login_user->avatar = $avatar;
         }

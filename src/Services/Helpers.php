@@ -481,6 +481,9 @@ if (!function_exists('getDBTableName')) {
     function getDBTableName($obj)
     {
         $obj = CustomTable::getEloquent($obj);
+        if (!isset($obj)) {
+            throw new Exception('table name is not found. please tell system administrator.');
+        }
         return 'exm__'.array_get($obj, 'suuid');
     }
 }
@@ -1287,11 +1290,11 @@ if (!function_exists('getOptions')) {
         
         // get query.
         // if user or organization, get from getAuthorityUserOrOrg
-        if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
-            $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
-        }else{
+        //if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
+        //    $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
+        //}else{
             $query = getOptionsQuery($table);
-        }
+        //}
 
         // get count table.
         $count = $query->count();
