@@ -198,11 +198,6 @@ class Define
         'has_authorities',
     ];
  
-    // User Setting --------------------------------------------------
-    public const USER_SETTING_DASHBOARD = 'user_setting_dashboard';
-    public const USER_SETTING_FORM = 'user_setting_form';
-    public const USER_SETTING_VIEW = 'user_setting_view';
-    
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',

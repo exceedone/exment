@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
 class CustomView extends ModelBase
@@ -214,13 +215,13 @@ class CustomView extends ModelBase
 
             // set user_setting
             if (!is_null($user)) {
-                $user->setSettingValue(implode(".", [Define::USER_SETTING_VIEW, $tableObj->table_name]), $suuid);
+                $user->setSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]), $suuid);
             }
         }
         // if url doesn't contain view query, get view user setting.
         if (!isset($view) && !is_null($user)) {
             // get suuid
-            $suuid = $user->getSettingValue(implode(".", [Define::USER_SETTING_VIEW, $tableObj->table_name]));
+            $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
         }
         // if url doesn't contain view query, get custom view. first

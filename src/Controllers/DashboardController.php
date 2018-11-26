@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\UserSetting;
 
 
 class DashboardController extends AdminControllerBase
@@ -226,7 +227,7 @@ EOT;
             $model = $form->model();
             if (isset($model)) {
                 // set setting value
-                Admin::user()->setSettingValue(Define::USER_SETTING_DASHBOARD, array_get($model, 'suuid'));
+                Admin::user()->setSettingValue(UserSetting::DASHBOARD, array_get($model, 'suuid'));
             }
         });
 

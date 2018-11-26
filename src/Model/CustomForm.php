@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\CustomFormBlockType;
+use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\CustomFormColumnType;
 use Illuminate\Http\Request as Req;
 
@@ -47,13 +48,13 @@ class CustomForm extends ModelBase
 
             // set suuid
             if (!is_null($user)) {
-                $user->setSettingValue(implode(".", [Define::USER_SETTING_FORM, $tableObj->table_name]), $suuid);
+                $user->setSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]), $suuid);
             }
         }
         // if url doesn't contain form query, get form user setting.
         if (!isset($form) && !is_null($user)) {
             // get suuid
-            $suuid = $user->getSettingValue(implode(".", [Define::USER_SETTING_FORM, $tableObj->table_name]));
+            $suuid = $user->getSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]));
             $form = CustomForm::findBySuuid($suuid);
         }
 

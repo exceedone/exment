@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
 class Dashboard extends ModelBase
@@ -52,13 +53,13 @@ class Dashboard extends ModelBase
             $dashboard = static::findBySuuid($suuid);
             // set suuid
             if (isset($user)) {
-                $user->setSettingValue(Define::USER_SETTING_DASHBOARD, $suuid);
+                $user->setSettingValue(UserSetting::DASHBOARD, $suuid);
             }
         }
         // if url doesn't contain dashboard query, get dashboard user setting.
         if (!isset($dashboard) && isset($user)) {
             // get suuid
-            $suuid = $user->getSettingValue(Define::USER_SETTING_DASHBOARD);
+            $suuid = $user->getSettingValue(UserSetting::DASHBOARD);
             $dashboard = static::findBySuuid($suuid);
         }
         // if null, get dashboard first.
