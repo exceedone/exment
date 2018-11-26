@@ -63,7 +63,7 @@ trait AuthorityForm
                         if($authority_type == Define::AUTHORITY_TYPE_VALUE){
                             return getOptions($related_type, $options, $this->getCustomTable());
                         }
-                        return getOptions($related_type, $options);
+                        return getOptions($related_type, $options, null, true);
                     })
                     ->pivot($pivots)
                     ;
@@ -73,7 +73,7 @@ trait AuthorityForm
                     if($authority_type == Define::AUTHORITY_TYPE_VALUE){
                         return getOptions($related_type, $options, $this->getCustomTable());
                     }
-                    return getOptions($related_type, $options);
+                    return getOptions($related_type, $options, null, true);
                 })
                 ->ajax(getOptionAjaxUrl($related_type))
                 ->pivot($pivots)

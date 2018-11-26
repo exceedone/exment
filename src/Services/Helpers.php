@@ -1272,10 +1272,12 @@ if (!function_exists('getOptions')) {
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
      *
-     * @param array|CustomTable $table
+     * @param array|CustomTable $table to get table object
      * @param $selected_value the value that already selected.
+     * @param array|CustomTable $target_table Information on the table displayed on the screen
+     * @param boolean $all is show all data. for system authority, it's true.
      */
-    function getOptions($table, $selected_value = null, $target_table = null)
+    function getOptions($table, $selected_value = null, $target_table = null, $all = false)
     {
         if (is_null($table)) {
             return [];
@@ -1286,11 +1288,11 @@ if (!function_exists('getOptions')) {
         
         // get query.
         // if user or organization, get from getAuthorityUserOrOrg
-        //if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])){
-        //    $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
-        //}else{
+        if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION]) && !$all){
+           $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
+        }else{
             $query = getOptionsQuery($table);
-        //}
+        }
 
         // get count table.
         $count = $query->count();
