@@ -56,7 +56,6 @@ class ForgetPasswordController extends Controller
         // need to show to the user. Finally, we'll send out a proper response.
         $broker = $this->broker();
         $array = [
-            //getColumnNameByTable(Define::SYSTEM_TABLE_NAME_USER, 'email') => $request->input('email')
             'email' => $request->input('email')
         ];
         $response = $broker->sendResetLink($array);

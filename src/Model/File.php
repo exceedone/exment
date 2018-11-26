@@ -165,7 +165,7 @@ class File extends ModelBase
 
         // if has document, remove document info
         if (boolval($options['removeDocumentInfo'])) {
-            $column_name = getColumnNameByTable(Define::SYSTEM_TABLE_NAME_DOCUMENT, 'file_uuid');
+            $column_name = getIndexColumnNameByTable(Define::SYSTEM_TABLE_NAME_DOCUMENT, 'file_uuid');
         
             // delete document info
             getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)

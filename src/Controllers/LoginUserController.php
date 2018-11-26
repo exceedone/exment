@@ -33,9 +33,9 @@ class LoginUserController extends AdminControllerBase
         $classname = getModelName(Define::SYSTEM_TABLE_NAME_USER);
         $grid = new Grid(new $classname);
         $table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER);
-        $grid->column(getColumnNameByTable($table, 'user_code'), exmtrans('user.user_code'));
-        $grid->column(getColumnNameByTable($table, 'user_name'), exmtrans('user.user_name'));
-        $grid->column(getColumnNameByTable($table, 'email'), exmtrans('user.email'));
+        $grid->column(getIndexColumnNameByTable($table, 'user_code'), exmtrans('user.user_code'));
+        $grid->column(getIndexColumnNameByTable($table, 'user_name'), exmtrans('user.user_name'));
+        $grid->column(getIndexColumnNameByTable($table, 'email'), exmtrans('user.email'));
         $grid->column('login_user.id', exmtrans('user.login_user'))->display(function ($login_user_id) {
             return !is_null($login_user_id) ? 'YES' : '';
         });

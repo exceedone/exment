@@ -221,7 +221,7 @@ if (!function_exists('file_ext')) {
 if (!function_exists('file_ext_strip')) {
     /**
      * Returns the file name, less the extension.
-     */ 
+     */
     function file_ext_strip($filename)
     {
         return preg_replace('/.[^.]*$/', '', $filename);
@@ -520,13 +520,13 @@ if (!function_exists('getIndexColumnName')) {
     }
 }
 
-if (!function_exists('getColumnNameByTable')) {
+if (!function_exists('getIndexColumnNameByTable')) {
     /**
      * Get column name using table model.
      * @param string|CustomTable|array $obj
      * @return string
      */
-    function getColumnNameByTable($table_obj, $column_name)
+    function getIndexColumnNameByTable($table_obj, $column_name)
     {
         // get column eloquent
         $column_obj = CustomColumn::getEloquent($column_name, $table_obj);
@@ -1228,9 +1228,7 @@ if (!function_exists('getTransArrayValue')) {
     }
 }
 
-
 // laravel-admin --------------------------------------------------
-
 if (!function_exists('disableFormFooter')) {
     /**
      * disable form footer items
@@ -1250,6 +1248,7 @@ if (!function_exists('disableFormFooter')) {
         });
     }
 }
+
 if (!function_exists('isGetOptions')) {
     /**
      * get options for select, multipleselect.
@@ -1282,15 +1281,15 @@ if (!function_exists('getOptions')) {
         if (is_null($table)) {
             return [];
         }
-        if(is_null($target_table)){
+        if (is_null($target_table)) {
             $target_table = $table;
         }
         
         // get query.
         // if user or organization, get from getAuthorityUserOrOrg
-        if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION]) && !$all){
-           $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
-        }else{
+        if (in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION]) && !$all) {
+            $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
+        } else {
             $query = getOptionsQuery($table);
         }
 
@@ -1591,4 +1590,3 @@ if (!function_exists('useLoginProvider')) {
         return !is_nullorempty(config('exment.login_providers'));
     }
 }
-
