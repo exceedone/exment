@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model\Traits;
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomValueTrait
 {
@@ -191,11 +192,11 @@ trait CustomValueTrait
      */
     public function getAuthoritable($related_type)
     {
-        if ($related_type == Define::SYSTEM_TABLE_NAME_USER) {
+        if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
             ->where('related_id', Admin::user()->base_user_id);
-        } elseif ($related_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
+        } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $query = $this
             ->value_authoritable_organizations()
             ->whereIn('related_id', Admin::user()->getOrganizationIds());
@@ -219,7 +220,7 @@ trait CustomValueTrait
     public function getUrl($tag = false)
     {
         // if this table is document, create target blank link
-        if($this->getCustomTable()->table_name == Define::SYSTEM_TABLE_NAME_DOCUMENT){
+        if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
             $url = admin_url(url_join('files', $this->getValue('file_uuid', true)));
             if (!$tag) {
                 return $url;

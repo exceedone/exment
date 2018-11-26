@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Form;
 
 trait AuthorityForm
@@ -48,7 +49,7 @@ trait AuthorityForm
         // Add Authority --------------------------------------------------
         Authority::authorityLoop($authority_type, function ($authority, $related_type) use ($authority_type, $form) {
             switch ($related_type) {
-                case Define::SYSTEM_TABLE_NAME_USER:
+                case SystemTableName::USER:
                 $related_types = ['column_name' => 'user_name', 'view_name' => exmtrans('user.default_table_name'), 'suffix' => 'userable'];
                 break;
             default:

@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 
@@ -104,10 +105,10 @@ class FormHelper
                     } else {
                         $select_target_table = null;
                     }
-                } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_USER) {
-                    $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
-                } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
-                    $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
+                } elseif ($column->column_type == SystemTableName::USER) {
+                    $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                } elseif ($column->column_type == SystemTableName::ORGANIZATION) {
+                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
                 }
 
                 $field->options(function ($val) use ($select_target_table) {

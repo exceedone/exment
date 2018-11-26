@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\AuthorityValue;
 
@@ -196,7 +197,7 @@ class CustomViewController extends AdminControllerTableBase
                 case 'datetime':
                     $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DAY;
                     break;
-                case Define::SYSTEM_TABLE_NAME_USER:
+                case SystemTableName::USER:
                     $column_type = Define::VIEW_COLUMN_FILTER_TYPE_USER;
                     break;
                 default:

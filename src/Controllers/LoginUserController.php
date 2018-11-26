@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class LoginUserController extends AdminControllerBase
 {
@@ -30,9 +31,9 @@ class LoginUserController extends AdminControllerBase
      */
     protected function grid()
     {
-        $classname = getModelName(Define::SYSTEM_TABLE_NAME_USER);
+        $classname = getModelName(SystemTableName::USER);
         $grid = new Grid(new $classname);
-        $table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER);
+        $table = CustomTable::findByName(SystemTableName::USER);
         $grid->column(getIndexColumnNameByTable($table, 'user_code'), exmtrans('user.user_code'));
         $grid->column(getIndexColumnNameByTable($table, 'user_name'), exmtrans('user.user_name'));
         $grid->column(getIndexColumnNameByTable($table, 'email'), exmtrans('user.email'));
@@ -62,7 +63,7 @@ class LoginUserController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        $classname = getModelName(Define::SYSTEM_TABLE_NAME_USER);
+        $classname = getModelName(SystemTableName::USER);
         $form = new Form(new $classname);
         $form->display('value.user_code', exmtrans('user.user_code'));
         $form->display('value.user_name', exmtrans('user.user_name'));
@@ -131,7 +132,7 @@ class LoginUserController extends AdminControllerBase
     public function update($id)
     {
         $data = Input::all();
-        $user = getModelName(Define::SYSTEM_TABLE_NAME_USER)::findOrFail($id);
+        $user = getModelName(SystemTableName::USER)::findOrFail($id);
 
         DB::beginTransaction();
         try {

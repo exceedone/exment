@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\SystemTableName;
 use Carbon\Carbon;
 
 use Exceedone\Exment\Services\MailSender;
@@ -72,7 +73,7 @@ class NotifyCommand extends CommandBase
                 if (System::organization_available()) {
                     $value_authoritable_organizations = System::organization_available() ? $data->value_authoritable_organizations : [];
                     foreach ($value_authoritable_organizations as $value_authoritable_organization) {
-                        $children_users = getChildrenValues($value_authoritable_organization, Define::SYSTEM_TABLE_NAME_USER)->toArray();
+                        $children_users = getChildrenValues($value_authoritable_organization, SystemTableName::USER)->toArray();
                         //$value_authoritable_users[] =
 
                         $value_authoritable_users = array_merge($value_authoritable_users, $children_users);

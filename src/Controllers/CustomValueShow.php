@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
@@ -92,7 +93,7 @@ trait CustomValueShow
 
             // show document list
             if (isset($id)) {
-                $documents = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
+                $documents = getModelName(SystemTableName::DOCUMENT)
                     ::where('parent_id', $id)
                     ->where('parent_type', $this->custom_table->table_name)
                     ->get();

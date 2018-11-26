@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
 
@@ -105,10 +106,10 @@ trait CustomValueGrid
                                 } else {
                                     $select_target_table = null;
                                 }
-                            } elseif ($column_type == Define::SYSTEM_TABLE_NAME_USER) {
-                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
-                            } elseif ($column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
+                            } elseif ($column_type == SystemTableName::USER) {
+                                $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                            } elseif ($column_type == SystemTableName::ORGANIZATION) {
+                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
                             }
 
                             // get options and ajax url

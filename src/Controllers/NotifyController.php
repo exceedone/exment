@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\MailTemplate;
+use Exceedone\Exment\Enums\SystemTableName;
 use DB;
 
 class NotifyController extends AdminControllerBase
@@ -149,7 +150,7 @@ class NotifyController extends AdminControllerBase
         }
         $changedatas = array_merge($changedatas, CustomColumn
             ::where('custom_table_id', $table_id)
-            ->whereIn('column_type', [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])
+            ->whereIn('column_type', [SystemTableName::USER, SystemTableName::ORGANIZATION])
             ->get(
                 ['id', DB::raw('column_view_name as text')]
             )->toArray());

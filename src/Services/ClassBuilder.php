@@ -7,6 +7,7 @@ use \Exceedone\Exment\Model\Authority;
 use \Exceedone\Exment\Model\CustomTable;
 use \Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\DB;
 
 class ClassBuilder
@@ -228,7 +229,7 @@ class ClassBuilder
         });
 
         // especially flow if table is user --------------------------------------------------
-        if ($table->table_name == Define::SYSTEM_TABLE_NAME_USER) {
+        if ($table->table_name == SystemTableName::USER) {
             $builder->addInUse('\Exceedone\Exment\Model\Traits\UserTrait');
         }
 

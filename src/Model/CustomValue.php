@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class CustomValue extends ModelBase
 {
@@ -27,18 +28,18 @@ class CustomValue extends ModelBase
     // user value_authoritable. it's all authority data. only filter  morph_type
     public function value_authoritable_users()
     {
-        return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
+        return $this->morphToMany(getModelName(SystemTableName::USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
             ->withPivot('related_id', 'related_type')
-            ->wherePivot('related_type', Define::SYSTEM_TABLE_NAME_USER)
+            ->wherePivot('related_type', SystemTableName::USER)
             ;
     }
 
     // user value_authoritable. it's all authority data. only filter  morph_type
     public function value_authoritable_organizations()
     {
-        return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
+        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
             ->withPivot('related_id', 'related_type')
-            ->wherePivot('related_type', Define::SYSTEM_TABLE_NAME_ORGANIZATION)
+            ->wherePivot('related_type', SystemTableName::ORGANIZATION)
             ;
     }
 

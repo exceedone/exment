@@ -4,7 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Auth\HasPermissions;
 
-use \Encore\Admin\Traits\AdminBuilder;
+use Encore\Admin\Traits\AdminBuilder;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword
 {
@@ -22,7 +23,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
      */
     public function base_user()
     {
-        return $this->belongsTo(getModelName(Define::SYSTEM_TABLE_NAME_USER), 'base_user_id');
+        return $this->belongsTo(getModelName(SystemTableName::USER), 'base_user_id');
     }
 
     public function getUserNameAttribute()

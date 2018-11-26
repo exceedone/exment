@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
@@ -119,7 +120,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      */
     protected function getExmentUser($provider_user){
         
-        $exment_user = getModelName(Define::SYSTEM_TABLE_NAME_USER)
+        $exment_user = getModelName(SystemTableName::USER)
             ::where('value->email', $provider_user->email)
             ->first();
         if(!isset($exment_user)){
@@ -252,7 +253,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     // login_user id
                     $user_id = $form->model()->base_user->id;
                     // save user name and email
-                    $user = getModelName(Define::SYSTEM_TABLE_NAME_USER)::find($user_id);
+                    $user = getModelName(SystemTableName::USER)::find($user_id);
                     $user->setValue([
                         'user_name' => array_get($req, 'base_user.value.user_name'),
                         'email' => array_get($req, 'base_user.value.email'),

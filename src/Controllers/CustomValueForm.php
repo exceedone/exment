@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomValueForm
 {
@@ -191,7 +192,7 @@ EOT;
     protected function setAuthorityForm($form)
     {
         // if ignore user and org, return
-        if (in_array($this->custom_table->table_name, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+        if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
             return;
         }
         // if table setting is "one_record_flg" (can save only one record), return

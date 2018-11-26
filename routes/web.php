@@ -7,6 +7,7 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,7 +61,7 @@ Route::group([
 
     // set static name. because this function is called composer install.
     try {
-        if (Schema::hasTable(Define::SYSTEM_TABLE_NAME_CUSTOM_TABLE)) {
+        if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
             foreach (CustomTable::all()->pluck('table_name') as $value) {
                 $router->post("data/{$value}/import", 'CustomValueController@import');
                 $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');

@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -783,7 +784,7 @@ if (!function_exists('getValueUseTable')) {
             $target_table_key = null;
             if ($column_type == 'select_table') {
                 $target_table_key = array_get($column_array, 'options.select_target_table');
-            } elseif (in_array($column_type, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+            } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
                 $target_table_key = $column_type;
             }
             $target_table = CustomTable::getEloquent($target_table_key);
@@ -1063,7 +1064,7 @@ if (!function_exists('getAuthorityUser')) {
 
         // get user or organiztion ids
         $target_ids = DB::table('authorities as a')
-            ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
             ->whereIn('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
@@ -1291,7 +1292,7 @@ if (!function_exists('getOptions')) {
         
         // get query.
         // if user or organization, get from getAuthorityUserOrOrg
-        if (in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION]) && !$all) {
+        if (in_array($table, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
             $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
         } else {
             $query = getOptionsQuery($table);

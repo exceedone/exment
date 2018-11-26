@@ -14,6 +14,7 @@ use setasign\Fpdi;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * FPDI Wrapper Class.
@@ -120,7 +121,7 @@ class DocumentPdfService extends AbstractFPDIService
                                     $image = array_get(array_get($this->model, 'value'), $length_array[1]);
                                 }
                             } elseif (strpos($match, "base_info") !== false) {
-                                $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
+                                $base_info = getModelName(SystemTableName::BASEINFO)::first();
                                 // get value from model
                                 if (count($length_array) <= 1) {
                                     $image = null;
@@ -549,7 +550,7 @@ class DocumentPdfService extends AbstractFPDIService
                     }
                     // base_info
                     elseif (strpos($match, "base_info") !== false) {
-                        $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
+                        $base_info = getModelName(SystemTableName::BASEINFO)::first();
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';

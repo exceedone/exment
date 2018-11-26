@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class InitializeController extends Controller
 {
@@ -56,7 +57,7 @@ class InitializeController extends Controller
             }
             
             // add user table
-            $user_modelname = getModelName(Define::SYSTEM_TABLE_NAME_USER);
+            $user_modelname = getModelName(SystemTableName::USER);
             $user = new $user_modelname();
             $user->value = [
                 'user_code' => $request->get('user_code'),
@@ -72,10 +73,10 @@ class InitializeController extends Controller
             $loginuser->saveOrFail();
 
             // add system authority
-            DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)->insert(
+            DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
                 [
                     'related_id' => $user->id,
-                    'related_type' => Define::SYSTEM_TABLE_NAME_USER,
+                    'related_type' => SystemTableName::USER,
                     'morph_id' => null,
                     'morph_type' =>  AuthorityType::SYSTEM,
                     'authority_id' => Authority::where('authority_type', AuthorityType::SYSTEM)->first()->id,

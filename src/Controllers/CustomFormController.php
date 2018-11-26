@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -312,7 +313,7 @@ class CustomFormController extends AdminControllerTableBase
             
             foreach ($custom_columns as $custom_column) {
                 // if column_type is not select_table, return []
-                if (!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+                if (!in_array(array_get($custom_column, 'column_type'), ['select_table', SystemTableName::USER, SystemTableName::ORGANIZATION])) {
                     continue;
                 }
                 // if not have array_get($custom_column, 'options.select_target_table'), conitnue

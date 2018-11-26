@@ -14,6 +14,7 @@ use setasign\Fpdi;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SystemTableName;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -237,7 +238,7 @@ class DocumentExcelService
                     }
                     // base_info
                     elseif ($length_array[0] == "base_info") {
-                        $base_info = getModelName(Define::SYSTEM_TABLE_NAME_BASEINFO)::first();
+                        $base_info = getModelName(SystemTableName::BASEINFO)::first();
                         // get value from model
                         if (count($length_array) <= 1) {
                             $str = '';

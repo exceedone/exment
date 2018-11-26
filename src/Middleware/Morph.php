@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class Morph
 {
@@ -38,7 +39,7 @@ class Morph
         }
 
         // Define Modelname user and org.
-        $tables = [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION];
+        $tables = [SystemTableName::USER, SystemTableName::ORGANIZATION];
         //$tables = CustomTable::all();
         foreach ($tables as $table) {
             getModelName($table);

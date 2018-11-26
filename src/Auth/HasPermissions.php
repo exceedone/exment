@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
 use Carbon\Carbon;
 
 trait HasPermissions
@@ -234,7 +235,7 @@ trait HasPermissions
         $model = getModelName($table_name)::find($id);
         // else, get model using value_authoritable.
         // if count > 0, return true.
-        $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER);
+        $rows = $model->getAuthoritable(SystemTableName::USER);
         if (isset($rows) && count($rows) > 0) {
             return true;
         }
@@ -242,7 +243,7 @@ trait HasPermissions
         // else, get model using value_authoritable. (only that system uses organization.)
         // if count > 0, return true.
         if (System::organization_available()) {
-            $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
+            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
             if (isset($rows) && count($rows) > 0) {
                 return true;
             }
@@ -280,7 +281,7 @@ trait HasPermissions
         // else, get model using value_authoritable.
         $model = getModelName($table_name)::find($id);
         // if count > 0, return true.
-        $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER);
+        $rows = $model->getAuthoritable(SystemTableName::USER);
         if (isset($rows) && count($rows) > 0) {
             return true;
         }
@@ -288,7 +289,7 @@ trait HasPermissions
         // else, get model using value_authoritable. (only that system uses organization.)
         // if count > 0, return true.
         if (System::organization_available()) {
-            $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
+            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
             if (isset($rows) && count($rows) > 0) {
                 return true;
             }
@@ -473,9 +474,9 @@ trait HasPermissions
         }
 
         // get organization ids.
-        getModelName(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
-        $db_table_name_organization = getDBTableName(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
-        $db_table_name_pivot = getRelationNamebyObjs(Define::SYSTEM_TABLE_NAME_ORGANIZATION, Define::SYSTEM_TABLE_NAME_USER);
+        getModelName(SystemTableName::ORGANIZATION);
+        $db_table_name_organization = getDBTableName(SystemTableName::ORGANIZATION);
+        $db_table_name_pivot = getRelationNamebyObjs(SystemTableName::ORGANIZATION, SystemTableName::USER);
         $ids = DB::table($db_table_name_organization.' AS o1')
            ->leftJoin($db_table_name_organization.' AS o2', 'o2.parent_id', '=', 'o1.id')
            ->leftJoin($db_table_name_organization.' AS o3', 'o3.parent_id', '=', 'o3.id')
@@ -518,13 +519,13 @@ trait HasPermissions
         $authorities = [];
         for ($i = 0; $i < 2; $i++) {
             $query = DB::table('authorities as a')
-                ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
                 ->where('morph_type', AuthorityType::TABLE())
                 ;
             // if $i == 0, then search as user
             if ($i == 0) {
-                $query = $query->where('related_type', Define::SYSTEM_TABLE_NAME_USER)
+                $query = $query->where('related_type', SystemTableName::USER)
                     ->where('related_id', Admin::user()->base_user_id);
             }
             // else then search as org.
@@ -581,15 +582,15 @@ trait HasPermissions
 
         // get all permissons for system. --------------------------------------------------
         $authorities = DB::table('authorities as a')
-            ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
             ->where('morph_type', AuthorityType::SYSTEM())
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {
-                    $query->where('related_type', Define::SYSTEM_TABLE_NAME_USER)
+                    $query->where('related_type', SystemTableName::USER)
                     ->where('related_id', Admin::user()->base_user_id);
                 });
                 $query->orWhere(function ($query) use ($organization_ids) {
-                    $query->where('related_type', Define::SYSTEM_TABLE_NAME_ORGANIZATION)
+                    $query->where('related_type', SystemTableName::ORGANIZATION)
                     ->whereIn('related_id', $organization_ids);
                 });
             })->get(['id', 'permissions'])->toArray();
