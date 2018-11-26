@@ -10,7 +10,10 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\CustomFormBlockType;
+use Exceedone\Exment\Enums\CustomFormColumnType;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
@@ -29,12 +32,12 @@ trait CustomValueShow
                     continue;
                 }
                 ////// default block(no relation block)
-                if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
+                if (array_get($custom_form_block, 'form_block_type') == CustomFormBlockType::DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         //// change value using custom form value
                         switch (array_get($form_column, 'form_column_type')) {
                             // for table column
-                            case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
+                            case CustomFormColumnType::COLUMN:
                                 $column = $form_column->custom_column;
                                 // set escape.
                                 // select_table, url is false
@@ -49,8 +52,8 @@ trait CustomValueShow
                                     return $this->getValue($column, true);
                                 })->setEscape(!$isUrl);
                                 break;
-                            case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
-                                $form_column_obj = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($form_column) {
+                            case CustomFormColumnType::SYSTEM:
+                                $form_column_obj = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column) {
                                     return $item['id'] == array_get($form_column, 'form_column_target_id');
                                 });
                                 // get form column name

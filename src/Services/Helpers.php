@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -1438,7 +1439,7 @@ if (!function_exists('getColumnsSelectOptions')) {
         $options = [];
         
         ///// get system columns
-        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option) {
+        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
             // not header, continue
             if (!boolval(array_get($option, 'header'))) {
                 continue;
@@ -1462,7 +1463,7 @@ if (!function_exists('getColumnsSelectOptions')) {
             $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
         }
         ///// get system columns
-        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option) {
+        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
             // not footer, continue
             if (!boolval(array_get($option, 'footer'))) {
                 continue;

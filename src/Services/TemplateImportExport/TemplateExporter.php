@@ -16,6 +16,10 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
+use Exceedone\Exment\Enums\CustomFormBlockType;
+use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\DashboardBoxType;
 use ZipArchive;
 
 /**
@@ -197,10 +201,10 @@ class TemplateExporter
                         foreach ($custom_form_block['custom_form_columns'] as &$custom_form_column) {
                             // replace id to name
                             $form_column_target_id = array_get($custom_form_column, 'form_column_target_id');
-                            if (array_get($custom_form_column, 'form_column_type') == Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN) {
+                            if (array_get($custom_form_column, 'form_column_type') == CustomFormColumnType::COLUMN) {
                                 $custom_form_column['form_column_target_name'] = CustomColumn::find($form_column_target_id)->column_name;
                             } else {
-                                $form_column_target_name = collect(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE)->first(function ($item) use ($form_column_target_id) {
+                                $form_column_target_name = collect(CustomFormColumnType::OTHER_TYPE)->first(function ($item) use ($form_column_target_id) {
                                     return $item['id'] == $form_column_target_id;
                                 });
                                 $custom_form_column['form_column_target_name'] = isset($form_column_target_name) ? array_get($form_column_target_name, 'column_name') : null;
@@ -232,7 +236,7 @@ class TemplateExporter
                     }
 
                     // add table
-                    if (array_get($custom_form_block, 'form_block_type') == Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT) {
+                    if (array_get($custom_form_block, 'form_block_type') == CustomFormBlockType::DEFAULT) {
                         $custom_form_block['form_block_target_table_name'] = null;
                     } else {
                         $custom_form_block['form_block_target_table_name'] = CustomTable::find(array_get($custom_form_block, 'form_block_target_table_id'))->table_name;
@@ -283,12 +287,12 @@ class TemplateExporter
                     // if number, get column_name
                     if (is_numeric($view_column_target)) {
                         $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name');
-                        $custom_view_column['view_column_target_type'] = Define::VIEW_COLUMN_TYPE_COLUMN;
+                        $custom_view_column['view_column_target_type'] = ViewColumnType::COLUMN;
                     }
                     // else, system column
                     else {
                         $custom_view_column['view_column_target_name'] = $view_column_target;
-                        $custom_view_column['view_column_target_type'] = Define::VIEW_COLUMN_TYPE_SYSTEM;
+                        $custom_view_column['view_column_target_type'] = ViewColumnType::SYSTEM;
                     }
 
                     // set $custom_view_column
@@ -308,12 +312,12 @@ class TemplateExporter
                     // if number, get column_name
                     if (is_numeric($view_filter_target)) {
                         $custom_view_filter['view_filter_target_name'] = array_get($custom_view_filter, 'custom_column.column_name');
-                        $custom_view_filter['view_filter_target_type'] = Define::VIEW_COLUMN_TYPE_COLUMN;
+                        $custom_view_filter['view_filter_target_type'] = ViewColumnType::COLUMN;
                     }
                     // else, system column
                     else {
                         $custom_view_filter['view_filter_target_name'] = $view_filter_target;
-                        $custom_view_filter['view_filter_target_type'] = Define::VIEW_COLUMN_TYPE_SYSTEM;
+                        $custom_view_filter['view_filter_target_type'] = ViewColumnType::SYSTEM;
                     }
 
                     // if has value view_filter_condition_value_table_id
@@ -459,7 +463,7 @@ class TemplateExporter
                     $options = [];
                     switch (array_get($dashboard_box, 'dashboard_box_type')) {
                         // list
-                        case Define::DASHBOARD_BOX_TYPE_LIST:
+                        case DashboardBoxType::LIST:
                             // get table name and view
                             $table_id = array_get($dashboard_box, 'options.target_table_id');
                             $table_name = CustomTable::find($table_id)->table_name ?? null;
@@ -474,7 +478,7 @@ class TemplateExporter
                             ];
                             break;
                         // system
-                        case Define::DASHBOARD_BOX_TYPE_SYSTEM:
+                        case DashboardBoxType::SYSTEM:
                             // get target system name
                             $system_id = array_get($dashboard_box, 'options.target_system_id');
                             $system_name = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($system_id) {

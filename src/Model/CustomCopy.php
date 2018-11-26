@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\DB;
+use Exceedone\Exment\Enums\RelationType;
 
 class CustomCopy extends ModelBase
 {
@@ -81,7 +82,7 @@ class CustomCopy extends ModelBase
                         }
 
                         ////// relation is 1:n
-                        if ($from_relation->relation_type == Define::RELATION_TYPE_ONE_TO_MANY) {
+                        if ($from_relation->relation_type == RelationType::ONE_TO_MANY) {
                             // get child copy object. from and to - child table
                             $child_copy = static::where('from_custom_table_id', $from_relation->child_custom_table_id)
                                 ->where('to_custom_table_id', $to_relation->child_custom_table_id)

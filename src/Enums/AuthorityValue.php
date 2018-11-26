@@ -15,5 +15,5 @@ class AuthorityValue extends EnumBase
     const PLUGIN_SETTING = 'plugin_setting';
 
     public const AVAILABLE_ACCESS_CUSTOM_VALUE = [self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_EDIT, self::CUSTOM_VALUE_VIEW]; 
-    public const AVAILABLE_EDIT_CUSTOM_VALUE = [self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT];
+    public const AVAILABLE_EDIT_CUSTOM_VALUE = [self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_EDIT];
 }

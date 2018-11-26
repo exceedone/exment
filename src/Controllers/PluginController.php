@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -254,13 +255,13 @@ class PluginController extends AdminControllerBase
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
         $plugin_type = Plugin::getFieldById($id, 'plugin_type');
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-            if (in_array($plugin_type, [Define::PLUGIN_TYPE_TRIGGER, Define::PLUGIN_TYPE_DOCUMENT])) {
+            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
                 // only trigger
-                if ($plugin_type == Define::PLUGIN_TYPE_TRIGGER) {
+                if ($plugin_type == PluginType::TRIGGER) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($value) {
                         return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
                     })->help(exmtrans("plugin.help.event_triggers"));
@@ -276,7 +277,7 @@ class PluginController extends AdminControllerBase
 
         // Authority setting --------------------------------------------------
         // TODO:error
-        //$this->addAuthorityForm($form, AuthorityType::PLUGIN());
+        //$this->addAuthorityForm($form, AuthorityType::PLUGIN);
 
         $form->disableReset();
         return $form;

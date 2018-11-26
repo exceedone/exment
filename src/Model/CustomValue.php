@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\RelationType;
 
 class CustomValue extends ModelBase
 {
@@ -85,7 +86,7 @@ class CustomValue extends ModelBase
             // delete custom relation is 1:n value
             $relations = CustomRelation
                 ::where('parent_custom_table_id', $parent_table->id)
-                ->where('relation_type', Define::RELATION_TYPE_ONE_TO_MANY)
+                ->where('relation_type', RelationType::ONE_TO_MANY)
                 ->get();
             // loop relations
             foreach ($relations as $relation) {

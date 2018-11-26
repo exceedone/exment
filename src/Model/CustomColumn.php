@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\CustomFormColumnType;
 
 class CustomColumn extends ModelBase
 {
@@ -20,7 +21,7 @@ class CustomColumn extends ModelBase
     public function custom_form_columns()
     {
         return $this->hasMany(CustomFormColumn::class, 'form_column_target_id')
-            ->where('form_column_type', Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN);
+            ->where('form_column_type', CustomFormColumnType::COLUMN);
     }
 
     /**

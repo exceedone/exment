@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Carbon\Carbon;
 
 trait HasPermissions
@@ -318,44 +319,44 @@ trait HasPermissions
                 // get filter condition
                 switch ($view_filter_condition) {
                     // equal
-                    case Define::VIEW_COLUMN_FILTER_OPTION_EQ:
+                    case ViewColumnFilterOption::EQ:
                         $model = $model->where($view_filter_target, $condition_value_text);
                         break;
                     // not equal
-                    case Define::VIEW_COLUMN_FILTER_OPTION_NE:
+                    case ViewColumnFilterOption::NE:
                         $model = $model->where($view_filter_target, '<>', $condition_value_text);
                         break;
                     // not null
-                    case Define::VIEW_COLUMN_FILTER_OPTION_NOT_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL:
+                    case ViewColumnFilterOption::NOT_NULL:
+                    case ViewColumnFilterOption::DAY_NOT_NULL:
+                    case ViewColumnFilterOption::USER_NOT_NULL:
                         $model = $model->whereNotNull($view_filter_target);
                         break;
                     // null
-                    case Define::VIEW_COLUMN_FILTER_OPTION_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NULL:
+                    case ViewColumnFilterOption::NULL:
+                    case ViewColumnFilterOption::DAY_NULL:
+                    case ViewColumnFilterOption::USER_NULL:
                         $model = $model->whereNull($view_filter_target);
                         break;
                     
                     // for date --------------------------------------------------
                     // date equal day
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_ON:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_YESTERDAY:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TOMORROW:
+                    case ViewColumnFilterOption::DAY_ON:
+                    case ViewColumnFilterOption::DAY_YESTERDAY:
+                    case ViewColumnFilterOption::DAY_TODAY:
+                    case ViewColumnFilterOption::DAY_TOMORROW:
                         // get target day
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_ON:
+                            case ViewColumnFilterOption::DAY_ON:
                                 $value_day = Carbon::parse($condition_value_text);
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_YESTERDAY:
+                            case ViewColumnFilterOption::DAY_YESTERDAY:
                                 $value_day = Carbon::yesterday();
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY:
+                            case ViewColumnFilterOption::DAY_TODAY:
                                 $value_day = Carbon::today();
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TOMORROW:
+                            case ViewColumnFilterOption::DAY_TOMORROW:
                                 $value_day = Carbon::tomorow();
                                 break;
                         }
@@ -363,18 +364,18 @@ trait HasPermissions
                         break;
                         
                     // date equal month
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_MONTH:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_MONTH:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_MONTH:
+                    case ViewColumnFilterOption::DAY_THIS_MONTH:
+                    case ViewColumnFilterOption::DAY_LAST_MONTH:
+                    case ViewColumnFilterOption::DAY_NEXT_MONTH:
                         // get target month
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_MONTH:
+                            case ViewColumnFilterOption::DAY_THIS_MONTH:
                                 $value_day = new Carbon('first day of this month');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_MONTH:
+                            case ViewColumnFilterOption::DAY_LAST_MONTH:
                                 $value_day = new Carbon('first day of last month');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_MONTH:
+                            case ViewColumnFilterOption::DAY_NEXT_MONTH:
                                 $value_day = new Carbon('first day of next month');
                                 break;
                         }
@@ -382,18 +383,18 @@ trait HasPermissions
                         break;
                         
                     // date equal year
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_YEAR:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_YEAR:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_YEAR:
+                    case ViewColumnFilterOption::DAY_THIS_YEAR:
+                    case ViewColumnFilterOption::DAY_LAST_YEAR:
+                    case ViewColumnFilterOption::DAY_NEXT_YEAR:
                         // get target year
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_YEAR:
+                            case ViewColumnFilterOption::DAY_THIS_YEAR:
                                 $value_day = new Carbon('first day of this year');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_YEAR:
+                            case ViewColumnFilterOption::DAY_LAST_YEAR:
                                 $value_day = new Carbon('first day of last year');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_YEAR:
+                            case ViewColumnFilterOption::DAY_NEXT_YEAR:
                                 $value_day = new Carbon('first day of next year');
                                 break;
                         }
@@ -401,26 +402,26 @@ trait HasPermissions
                         break;
                         
                     // date and X days before or after
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_AFTER:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_BEFORE:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE:
+                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
                         $today = Carbon::today();
                         // get target day and where mark
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_AFTER:
+                            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
                                 $target_day = $today->addDay(-1 * intval($condition_value_text));
                                 $mark = ">=";
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER:
+                            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
                                 $target_day = $today->addDay(intval($condition_value_text));
                                 $mark = ">=";
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_BEFORE:
+                            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
                                 $target_day = $today->addDay(-1 * intval($condition_value_text));
                                 $mark = "<=";
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE:
+                            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
                                 $target_day = $today->addDay(intval($condition_value_text));
                                 $mark = "<=";
                                 break;
@@ -429,10 +430,10 @@ trait HasPermissions
                         break;
                         
                     // for user --------------------------------------------------
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER:
+                    case ViewColumnFilterOption::USER_EQ_USER:
                         $model = $model->where($view_filter_target, Admin::user()->base_user()->id);
                         break;
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NE_USER:
+                    case ViewColumnFilterOption::USER_NE_USER:
                         $model = $model->where($view_filter_target, '<>', Admin::user()->base_user()->id);
                            
                 }

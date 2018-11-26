@@ -22,6 +22,10 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\CustomFormBlockType;
+use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\DashboardBoxType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
@@ -639,7 +643,7 @@ class TemplateImporter
                             } else {
                                 $self = $target_table->id == $table->id;
                                 if ($self) {
-                                    $form_block_type = Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT;
+                                    $form_block_type = CustomFormBlockType::DEFAULT;
                                 } else {
                                     // get relation
                                     $block_relation = CustomRelation
@@ -649,7 +653,7 @@ class TemplateImporter
                                     if (isset($block_relation)) {
                                         $form_block_type = $block_relation->relation_type;
                                     } else {
-                                        $form_block_type = Define::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY;
+                                        $form_block_type = CustomFormBlockType::RELATION_ONE_TO_MANY;
                                     }
                                 }
                             }
@@ -681,13 +685,13 @@ class TemplateImporter
                                     if (array_key_exists('form_column_type', $form_column)) {
                                         $form_column_type = array_get($form_column, "form_column_type");
                                     } else {
-                                        $form_column_type = Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN;
+                                        $form_column_type = CustomFormColumnType::COLUMN;
                                     }
 
                                     $form_column_name = array_get($form_column, "form_column_target_name");
                                     switch ($form_column_type) {
                                     // for table column
-                                    case Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN:
+                                    case CustomFormColumnType::COLUMN:
                                         // get column name
                                         $form_column_target = CustomColumn
                                             ::where('column_name', $form_column_name)
@@ -695,14 +699,14 @@ class TemplateImporter
                                             ->first();
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
                                         break;
-                                    case Define::CUSTOM_FORM_COLUMN_TYPE_SYSTEM:
-                                        $form_column_target = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($form_column_name) {
+                                    case CustomFormColumnType::SYSTEM:
+                                        $form_column_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column_name) {
                                             return $item['name'] == $form_column_name;
                                         });
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
                                         break;
                                     default:
-                                        $form_column_target = collect(Define::CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE)->first(function ($item) use ($form_column_name) {
+                                        $form_column_target = collect(CustomFormColumnType::OTHER_TYPE)->first(function ($item) use ($form_column_name) {
                                             return $item['column_name'] == $form_column_name;
                                         });
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
@@ -789,7 +793,7 @@ class TemplateImporter
                     $obj_view = Customview::firstOrNew($findArray);
                     $obj_view->custom_table_id = $table->id;
                     $obj_view->suuid = $findArray['suuid'];
-                    $obj_view->view_type = array_get($view, 'view_type') ?? Define::VIEW_COLUMN_TYPE_SYSTEM;
+                    $obj_view->view_type = array_get($view, 'view_type') ?? ViewColumnType::SYSTEM;
                     $obj_view->view_view_name = array_get($view, 'view_view_name');
                     $obj_view->default_flg = boolval(array_get($view, 'default_flg'));
                     $obj_view->saveOrFail();
@@ -800,13 +804,13 @@ class TemplateImporter
                             if (array_key_exists('view_column_target_type', $view_column)) {
                                 $view_column_target_type = array_get($view_column, "view_column_target_type");
                             } else {
-                                $view_column_target_type = Define::VIEW_COLUMN_TYPE_COLUMN;
+                                $view_column_target_type = ViewColumnType::COLUMN;
                             }
 
                             $view_column_name = array_get($view_column, "view_column_target_name");
                             switch ($view_column_target_type) {
                                 // for table column
-                                case Define::VIEW_COLUMN_TYPE_COLUMN:
+                                case ViewColumnType::COLUMN:
                                     // get column name
                                     $view_column_target = CustomColumn
                                         ::where('column_name', $view_column_name)
@@ -819,7 +823,7 @@ class TemplateImporter
                                     if ($view_column_name == 'parent_id') {
                                         $view_column_target = 'parent_id';
                                     } else {
-                                        $view_column_target = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($view_column_name) {
+                                        $view_column_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($view_column_name) {
                                             return $item['name'] == $view_column_name;
                                         })['name'] ?? null;
                                     }
@@ -847,13 +851,13 @@ class TemplateImporter
                             if (array_key_exists('view_filter_target_type', $view_filter)) {
                                 $view_filter_target_type = array_get($view_filter, "view_filter_target_type");
                             } else {
-                                $view_filter_target_type = Define::VIEW_COLUMN_TYPE_COLUMN;
+                                $view_filter_target_type = ViewColumnType::COLUMN;
                             }
 
                             $view_filter_name = array_get($view_filter, "view_filter_target_name");
                             switch ($view_filter_target_type) {
                                     // for table column
-                                    case Define::VIEW_COLUMN_TYPE_COLUMN:
+                                    case ViewColumnType::COLUMN:
                                         // get column id
                                         $view_filter_target = CustomColumn
                                             ::where('column_name', $view_filter_name)
@@ -862,7 +866,7 @@ class TemplateImporter
                                         break;
                                     // system column
                                     default:
-                                        $view_filter_target = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($item) use ($view_filter_name) {
+                                        $view_filter_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($view_filter_name) {
                                             return $item['name'] == $view_filter_name;
                                         })['name'] ?? null;
                                         break;
@@ -996,7 +1000,7 @@ class TemplateImporter
                             // switch dashboard_box_type
                             switch ($obj_dashboard_box->dashboard_box_type) {
                                 // system box
-                                case Define::DASHBOARD_BOX_TYPE_SYSTEM:
+                                case DashboardBoxType::SYSTEM:
                                     $id = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($dashboard_box) {
                                         return array_get($value, 'name') == array_get($dashboard_box, 'options.target_system_name');
                                     })['id'] ?? null;
@@ -1004,7 +1008,7 @@ class TemplateImporter
                                     break;
                                 
                                 // list
-                                case Define::DASHBOARD_BOX_TYPE_LIST:
+                                case DashboardBoxType::LIST:
                                     // get target table
                                     $obj_dashboard_box->setOption('target_table_id', CustomTable::findByName(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
                                     // get target view using suuid

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Encore\Admin\Facades\Admin;
 
 class DashboardMenu
@@ -25,7 +26,7 @@ class DashboardMenu
         $dashboards = Dashboard::all();
 
         foreach ($dashboards as $d) {
-            if ($d->dashboard_type == Define::VIEW_COLUMN_TYPE_SYSTEM) {
+            if ($d->dashboard_type == ViewColumnType::SYSTEM) {
                 $systemdashboards[] = $d->toArray();
             } else {
                 $userdashboards[] = $d->toArray();

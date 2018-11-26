@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -276,7 +277,7 @@ class PluginInstaller
         $table_name_escape = trim(DB::getPdo()->quote($table_name), "'");
         // execute query
         return Plugin::where('active_flg', '=', 1)
-            ->whereIn('plugin_type', [Define::PLUGIN_TYPE_TRIGGER, Define::PLUGIN_TYPE_DOCUMENT])
+            ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
             ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
             //->where('options->target_tables', $table_name)
             ->get()
@@ -390,7 +391,7 @@ class PluginInstaller
                 // get plugin_type
                 $plugin_type = array_get($plugin, 'plugin_type');
                 // if $plugin_type is not trigger, continue
-                if ($plugin_type != Define::PLUGIN_TYPE_TRIGGER) {
+                if ($plugin_type != PluginType::TRIGGER) {
                     continue;
                 }
                 $event_triggers = array_get($plugin, 'options.event_triggers');
@@ -422,13 +423,13 @@ class PluginInstaller
                 // get plugin_type
                 $plugin_type = array_get($plugin, 'plugin_type');
                 switch ($plugin_type) {
-                    case Define::PLUGIN_TYPE_DOCUMENT:
+                    case PluginType::DOCUMENT:
                         $event_triggers_button = ['form_menubutton_show'];
                         if (in_array($event, $event_triggers_button)) {
                             array_push($buttonList, $plugin);
                         }
                         break;
-                    case Define::PLUGIN_TYPE_TRIGGER:
+                    case PluginType::TRIGGER:
                         $event_triggers = $plugin->options['event_triggers'];
                         $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                         if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {

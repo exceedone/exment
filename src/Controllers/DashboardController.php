@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\DashboardBoxType;
 
 
 class DashboardController extends AdminControllerBase
@@ -253,7 +254,7 @@ EOT;
                 // new dashboadbox dropdown button list
                 $dashboardboxes_newbuttons = [];
                 if ($has_authority) {
-                    foreach (Define::DASHBOARD_BOX_TYPE_OPTIONS as $options) {
+                    foreach (DashboardBoxType::DASHBOARD_BOX_TYPE_OPTIONS() as $options) {
                         // create query
                         $query = http_build_query([
                             'dashboard_suuid' => $this->dashboard->suuid,

@@ -33,7 +33,7 @@ class SystemController extends AdminControllerBase
         $form->action('system');
 
         // Authority Setting
-        $this->addAuthorityForm($form, AuthorityType::SYSTEM());
+        $this->addAuthorityForm($form, AuthorityType::SYSTEM);
 
         $content->row(new Box(trans('admin.edit'), $form));
         return $content;

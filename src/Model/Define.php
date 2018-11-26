@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
 
 /**
  * Define short summary.
@@ -15,15 +17,6 @@ use Exceedone\Exment\Enums\AuthorityValue;
 class Define
 {
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';
-    public const SYSTEM_TABLE_NAME_LOGIN_USER = 'login_user';
-    public const SYSTEM_TABLE_NAME_USER = 'user';
-    public const SYSTEM_TABLE_NAME_ORGANIZATION = 'organization';
-    public const SYSTEM_TABLE_NAME_BASEINFO = 'base_info';
-    public const SYSTEM_TABLE_NAME_DOCUMENT = 'document';
-    public const SYSTEM_TABLE_NAME_CUSTOM_TABLE = 'custom_tables';
-    public const SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE = 'system_authoritable';
-    public const SYSTEM_TABLE_NAME_VALUE_AUTHORITABLE = 'value_authoritable';
-
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
         'site_name' => ['default' => 'Exment'],
@@ -64,22 +57,11 @@ class Define
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
 
     // Dashboard --------------------------------------------------
-    public const DASHBOARD_BOX_TYPE_SYSTEM = 'system';
-    public const DASHBOARD_BOX_TYPE_LIST = 'list';
     
-    public const DASHBOARD_BOX_TYPE_OPTIONS = [
-        ['dashboard_box_type' => self::DASHBOARD_BOX_TYPE_LIST, 'icon' => 'fa-list'],
-        ['dashboard_box_type' => self::DASHBOARD_BOX_TYPE_SYSTEM, 'icon' => 'fa-wrench'],
-    ];
-
     public const DASHBOARD_BOX_SYSTEM_PAGES = [
         ['id' => 1, 'name' => 'guideline']
     ];
 
-    public const PLUGIN_TYPE_PAGE = 'page';
-    public const PLUGIN_TYPE_TRIGGER = 'trigger';
-    public const PLUGIN_TYPE_DOCUMENT = 'document';
-    
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
         'saved',
@@ -117,62 +99,6 @@ class Define
         "integer",
         "decimal",
         "currency",
-    ];
-    
-    public const RELATION_TYPE_ONE_TO_MANY = 'one_to_many';
-    public const RELATION_TYPE_MANY_TO_MANY = 'many_to_many';
-    public const RELATION_TYPE = [
-        self::RELATION_TYPE_ONE_TO_MANY,
-        self::RELATION_TYPE_MANY_TO_MANY,
-    ];
-
-    public const CUSTOM_FORM_BLOCK_TYPE_DEFAULT = 'default';
-    public const CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY = 'one_to_many';
-    public const CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY = 'many_to_many';
-    public const CUSTOM_FORM_BLOCK_TYPE = [
-        self::CUSTOM_FORM_BLOCK_TYPE_DEFAULT,
-        self::CUSTOM_FORM_BLOCK_TYPE_RELATION_ONE_TO_MANY,
-        self::CUSTOM_FORM_BLOCK_TYPE_RELATION_MANY_TO_MANY,
-    ];
-    public const CUSTOM_FORM_COLUMN_TYPE_SYSTEM = 'system';
-    public const CUSTOM_FORM_COLUMN_TYPE_COLUMN = 'column';
-    public const CUSTOM_FORM_COLUMN_TYPE_OTHER = 'other';
-
-    public const CUSTOM_FORM_COLUMN_TYPE_OTHER_TYPE = [
-        1 => ['id' => 1, 'column_name' => 'header'],
-        2 => ['id' => 2, 'column_name' => 'explain'],
-        3 => ['id' => 3, 'column_name' => 'html'],
-    ];
-
-
-    // authority --------------------------------------------------
-    /**
-     * permission all
-     */
-    public const AUTHORITIES = [
-        AuthorityType::SYSTEM => [
-            AuthorityValue::SYSTEM,
-            AuthorityValue::CUSTOM_TABLE,
-            AuthorityValue::CUSTOM_FORM,
-            AuthorityValue::CUSTOM_VIEW,
-            AuthorityValue::CUSTOM_VALUE_EDIT_ALL,
-        ]
-        , AuthorityType::TABLE => [
-            AuthorityValue::CUSTOM_TABLE,
-            AuthorityValue::CUSTOM_FORM,
-            AuthorityValue::CUSTOM_VIEW,
-            AuthorityValue::CUSTOM_VALUE_EDIT_ALL,
-            AuthorityValue::CUSTOM_VALUE_EDIT,
-            AuthorityValue::CUSTOM_VALUE_VIEW,
-        ]
-        , AuthorityType::VALUE => [
-            AuthorityValue::CUSTOM_VALUE_EDIT,
-            AuthorityValue::CUSTOM_VALUE_VIEW,
-        ]
-        , AuthorityType::PLUGIN => [
-            AuthorityValue::PLUGIN_ACCESS,
-            AuthorityValue::PLUGIN_SETTING,
-        ]
     ];
 
     /**
@@ -290,96 +216,5 @@ class Define
         'custom_copies',
         'custom_copy_columns',
         'admin_menu',
-    ];
-
-    // VIEW --------------------------------------------------
-    public const VIEW_COLUMN_TYPE_SYSTEM = 'system';
-    public const VIEW_COLUMN_TYPE_COLUMN = 'column';
-    public const VIEW_COLUMN_SYSTEM_OPTIONS = [
-        ['id' => 1, 'name' => 'id', 'default' => true, 'order' => 1, 'header' => true],
-        ['id' => 2, 'name' => 'suuid', 'default' => false, 'order' => 2, 'header' => true],
-        ['id' => 96, 'name' => 'created_at', 'default' => true, 'order' => 96, 'footer' => true],
-        ['id' => 97, 'name' => 'updated_at', 'default' => true, 'order' => 97, 'footer' => true],
-        ['id' => 98, 'name' => 'created_user', 'default' => false, 'order' => 98, 'footer' => true],
-        ['id' => 99, 'name' => 'updated_user', 'default' => false, 'order' => 99, 'footer' => true],
-    ];
-    public const VIEW_COLUMN_FILTER_TYPE_DEFAULT = 'default';
-    public const VIEW_COLUMN_FILTER_TYPE_DAY = 'day';
-    public const VIEW_COLUMN_FILTER_TYPE_USER = 'user';
-    
-    public const VIEW_COLUMN_FILTER_OPTION_EQ = 1;
-    public const VIEW_COLUMN_FILTER_OPTION_NE = 2;
-    public const VIEW_COLUMN_FILTER_OPTION_NOT_NULL = 3;
-    public const VIEW_COLUMN_FILTER_OPTION_NULL = 4;
-
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_ON = 1001;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_ON_OR_AFTER = 1002;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_ON_OR_BEFORE = 1003;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL = 1004;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_NULL = 1005;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_TODAY = 1011;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_TODAY_OR_AFTER = 1012;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_TODAY_OR_BEFORE = 1013;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_YESTERDAY = 1014;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_TOMORROW = 1015;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_THIS_MONTH = 1021;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_LAST_MONTH = 1022;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_MONTH = 1023;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_THIS_YEAR = 1031;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_LAST_YEAR = 1032;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_YEAR = 1033;
-
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_AFTER = 1041;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_BEFORE = 1042;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER = 1043;
-    public const VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE = 1044;
-    
-    public const VIEW_COLUMN_FILTER_OPTION_USER_EQ = 2001;
-    public const VIEW_COLUMN_FILTER_OPTION_USER_NE = 2002;
-    public const VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL = 2003;
-    public const VIEW_COLUMN_FILTER_OPTION_USER_NULL = 2004;
-    public const VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER = 2011;
-    public const VIEW_COLUMN_FILTER_OPTION_USER_NE_USER = 2012;
-
-
-    public const VIEW_COLUMN_FILTER_OPTIONS = [
-        self::VIEW_COLUMN_FILTER_TYPE_DEFAULT => [
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_EQ, 'name' => 'eq'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_NE, 'name' => 'ne'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_NOT_NULL, 'name' => 'not-null'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_NULL, 'name' => 'null'],
-        ],
-        self::VIEW_COLUMN_FILTER_TYPE_DAY => [
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_ON, 'name' => 'on'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_ON_OR_AFTER, 'name' => 'on-or-after'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_ON_OR_BEFORE, 'name' => 'on-or-before'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY, 'name' => 'today'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY_OR_AFTER, 'name' => 'today-or-after'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY_OR_BEFORE, 'name' => 'today-or-before'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_YESTERDAY, 'name' => 'yesterday'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_TOMORROW, 'name' => 'tomorrow'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_MONTH, 'name' => 'this-month'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_MONTH, 'name' => 'last-month'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_MONTH, 'name' => 'next-month'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_YEAR, 'name' => 'this-year'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_YEAR, 'name' => 'last-year'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_YEAR, 'name' => 'next-year'],
-            
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_AFTER, 'name' => 'last-x-day-after'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER, 'name' => 'next-x-day-after'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_BEFORE, 'name' => 'last-x-day-or-before'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE, 'name' => 'next-x-day-or-before'],
-            
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL, 'name' => 'not-null'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_DAY_NULL, 'name' => 'null'],
-        ],
-        self::VIEW_COLUMN_FILTER_TYPE_USER => [
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER, 'name' => 'eq-user'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_NE_USER, 'name' => 'ne-user'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_EQ, 'name' => 'eq'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_NE, 'name' => 'ne'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL, 'name' => 'not-null'],
-            ['id' => self::VIEW_COLUMN_FILTER_OPTION_USER_NULL, 'name' => 'null'],
-        ],
     ];
 }
