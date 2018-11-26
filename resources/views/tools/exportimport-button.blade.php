@@ -16,8 +16,11 @@
                             {{-- loop if text, continue --}}
                             @if($attr_key == 'text')
                             @continue
-                            @elseif($attr_key == 'href')
+                            @elseif($attr_key == 'href' && array_get($item, 'format_query', true) === true)
                             href="{{$attr_value}}&format={{$button_key}}"
+                            @continue
+                            @elseif($attr_key == 'href')
+                            href="{{$attr_value}}"
                             @continue
                             @endif
 

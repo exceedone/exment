@@ -186,7 +186,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             // if user obj has avatar, download avatar.
             else if(isset($provider_user)){
                 $client = new \GuzzleHttp\Client();
-                $response = $client->request('GET', $avatar);
+                $response = $client->request('GET', $avatar, [
+                    'http_errors' => false,
+                ]);
                 $stream = $response->getBody()->getContents();
             }
             // file upload.

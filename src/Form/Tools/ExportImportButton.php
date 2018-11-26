@@ -72,7 +72,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
                         'label' => exmtrans('common.import'),
                         'items' =>[
                             ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
-                            ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal'],
+                            ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal', 'format_query' => false],
                         ]
                     ],
                 ]

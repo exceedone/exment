@@ -30,8 +30,10 @@ trait AuthTrait
             }
 
             $array['login_providers'] = $login_provider_items;
+            $array['show_default_login_provider']= config('exment.show_default_login_provider', false);
         }else{
             $array['login_providers'] = [];
+            $array['show_default_login_provider']= true;
         }
 
         $array['site_name'] = System::site_name();

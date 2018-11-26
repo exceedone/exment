@@ -591,7 +591,6 @@ class TemplateImporter
                         }
 
                         if ($update_flg) {
-                            $obj_column->options = $options;
                             $obj_column->save();
                         }
                     }

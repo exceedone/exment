@@ -34,17 +34,21 @@ namespace Exment {
          */
         public static CallbackExmentAjax(res){
             if(res.result === true){
-                $('.modal').modal('hide');
-                
-                if(hasValue(res.redirect)){
-                    $.pjax({container:'#pjax-container', url: res.redirect });
-                }else{
-                    $.pjax.reload('#pjax-container');
-                }
+                $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
+                    // put your default event here
+                    $(".modal").off("hidden.bs.modal");  
+                    if(hasValue(res.redirect)){
+                        $.pjax({container:'#pjax-container', url: res.redirect });
+                    }else{
+                        $.pjax.reload('#pjax-container');
+                    }
+                });
+            
                 // show toastr
                 if(hasValue(res.toastr)){
                     toastr.success(res.toastr);
                 }
+                $('.modal').modal('hide');
             }
             else{
                 // show toastr

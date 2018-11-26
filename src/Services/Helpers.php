@@ -818,19 +818,12 @@ if (!function_exists('getValueUseTable')) {
             }
             return implode(exmtrans('common.separate_word'), $labels);
         } elseif (in_array($column_type, ['file', 'image'])) {
-            // Whether multiple file.
-            $multiple_enabled = boolval(array_get($column_array, 'options.multiple_enabled'));
-
-            if ($multiple_enabled) {
-                // todo:return multiple files;
-            } else {
-                // get file
-                if ($label !== true) {
-                    $file = File::getFile($val);
-                    return $file;
-                }
-                return $val;
+            // get file
+            if ($label !== true) {
+                $file = File::getFile($val);
+                return $file;
             }
+            return $val;
         }
         // yesno
         elseif (in_array($column_type, ['yesno'])) {
@@ -1019,6 +1012,9 @@ if (!function_exists('getCurrencySymbolLabel')) {
     function getCurrencySymbolLabel($symbol, $value = '123,456.00')
     {
         $symbol_item = array_get(Define::CUSTOM_COLUMN_CURRENCYLIST, $symbol);
+        // replace &yen; to ¥
+        // TODO: change logic how to manage mark
+        $symbol = str_replace("&yen;", '¥', $symbol);
         if (isset($symbol_item)) {
             if (array_get($symbol_item, 'type') == 'before') {
                 $text = "$symbol$value";

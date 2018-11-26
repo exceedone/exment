@@ -2,7 +2,7 @@
 @section('content')
         <p class="login-box-msg">{{ trans('admin.login') }}</p>
 
-        @if(count($login_providers) == 0)
+        @if($show_default_login_provider)
         <form action="{{ admin_base_path('auth/login') }}" method="post">
             <div class="form-group has-feedback {!! !$errors->has('username') ?: 'has-error' !!}">
 
@@ -35,7 +35,14 @@
         <div style="margin:10px 0; text-align:center;">
             <p><a href="{{admin_base_path('auth/forget')}}">{{ exmtrans('login.forget_password') }}</a></p>
         </div>
-        @else
+        @endif
+
+        @if(count($login_providers) > 0)
+        <div class="social-auth-links text-center">
+        @if($show_default_login_provider)
+        <p>- OR -</p>
+        @endif
+
         @foreach($login_providers as $login_provider_name => $login_provider)
         <style>
         .{{ $login_provider['btn_name'] }}{
@@ -51,7 +58,8 @@
         </style>
 
         <a href="{{ admin_base_path('auth/login/'.$login_provider_name) }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
-            <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> Sign in using {{ $login_provider['display_name'] }}</a>
+            <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> Sign in using {{ $login_provider['display_name'] }}
+        </a>
         @endforeach
         
         @if($errors->has('username'))
@@ -62,6 +70,7 @@
         </div>
         @endif
 
+        </div>
         @endif
 
 <!-- /.login-box -->
