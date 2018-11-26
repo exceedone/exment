@@ -43,9 +43,9 @@ class System extends ModelBase
 
         // add system authority --------------------------------------------------
         // get system authority value
-        $system_authority = DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)->where('morph_type', AuthorityType::SYSTEM()->toString())->get();
+        $system_authority = DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)->where('morph_type', AuthorityType::SYSTEM)->get();
         // get Authority list for system.
-        $authorities = Authority::where('authority_type', AuthorityType::SYSTEM()->toString())->get(['id', 'suuid', 'authority_name']);
+        $authorities = Authority::where('authority_type', AuthorityType::SYSTEM)->get(['id', 'suuid', 'authority_name']);
         foreach ($authorities as $authority) {
             foreach ([Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION] as $related_type) {
                 // filter related_type and authority_id

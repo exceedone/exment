@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
 
 class Permission
 {
@@ -82,7 +83,7 @@ class Permission
         }
 
         $systemAuthority = AuthorityType::SYSTEM()->match($this->authority_type);
-        if ($systemAuthority && array_key_exists(AuthorityType::SYSTEM()->toString(), $this->authorities)) {
+        if ($systemAuthority && array_key_exists(AuthorityType::SYSTEM, $this->authorities)) {
             return true;
         }
         switch ($endpoint) {
@@ -141,33 +142,33 @@ class Permission
                 return array_key_exists('custom_form', $this->authorities);
             case "view":
                 if ($systemAuthority) {
-                    return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
+                    return array_keys_exists([AuthorityValue::CUSTOM_VIEW], $this->authorities);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable()) {
                     return false;
                 }
-               return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
+               return array_keys_exists([AuthorityValue::CUSTOM_VIEW], $this->authorities);
             case "data":
                 if ($systemAuthority) {
-                    return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);
+                    return array_key_exists(AuthorityValue::CUSTOM_VALUE_EDIT_ALL, $this->authorities);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
-                return array_keys_exists(Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
+                return array_keys_exists(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
         }
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
             if ($systemAuthority) {
-                return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);
+                return array_key_exists(AuthorityValue::CUSTOM_VALUE_EDIT_ALL, $this->authorities);
             }
             // check endpoint name and checking table_name.
             if (!$this->matchEndPointTable($endpoint)) {
                 return false;
             }
-            return array_keys_exists(Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
+            return array_keys_exists(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
         }
 
         return false;

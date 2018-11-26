@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\AuthorityValue;
 
 class CustomRelationController extends AdminControllerTableBase
 {
@@ -34,7 +35,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -51,7 +52,7 @@ class CustomRelationController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
@@ -69,7 +70,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);

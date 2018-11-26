@@ -43,12 +43,12 @@ class Menu extends AdminMenu
         $query = DB::table("{$this->getTable()} as m")
             // join table
             ->leftJoin(CustomTable::getTableName()." as c", function ($join) {
-                $join->where("m.menu_type", MenuType::TABLE->toString());
+                $join->where("m.menu_type", MenuType::TABLE);
                 $join->on("m.menu_target", "c.id");
             })
             // join plugin
             ->leftJoin(Plugin::getTableName()." as p", function ($join) {
-                $join->where("m.menu_type", MenuType::PLUGIN->toString());
+                $join->where("m.menu_type", MenuType::PLUGIN);
                 $join->on("m.menu_target", "p.id");
             })
             ->orderByRaw($byOrder);

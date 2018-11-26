@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\AuthorityValue;
 
 class SearchController extends AdminControllerBase
 {
@@ -220,7 +221,7 @@ EOT;
         $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get()->toArray();
         foreach ($tables as $table) {
             // if not authority, continue
-            if (System::authority_available() && !Admin::user()->hasPermissionTable(array_get($table, 'table_name'), Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (System::authority_available() && !Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
 
@@ -469,7 +470,7 @@ EOT;
 
         foreach ($tables as $table) {
             // if not authority, continue
-            if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
 
@@ -492,7 +493,7 @@ EOT;
             })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
             // if not authority, continue
-            if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
 

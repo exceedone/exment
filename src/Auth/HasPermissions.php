@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
 use Carbon\Carbon;
 
 trait HasPermissions
@@ -221,12 +222,12 @@ trait HasPermissions
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (!$this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
             return true;
         }
 
@@ -262,12 +263,12 @@ trait HasPermissions
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
             return true;
         }
 
@@ -439,12 +440,12 @@ trait HasPermissions
 
         // system filter(using system authority) --------------------------------------------------
         // if user has all edit table, return. (nothing doing)
-        if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
             return $model;
         }
 
         // if user has edit or view table
-        if (Admin::user()->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (Admin::user()->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             // get only has authority
             $model = $model
                  ->whereHas('value_authoritable_users', function ($q) {
@@ -499,8 +500,8 @@ trait HasPermissions
         $permission_tables = $this->getCustomTablePermissions();
 
         Session::put(Define::SYSTEM_KEY_SESSION_AUTHORITY, [
-            AuthorityType::SYSTEM()->toString() => $permission_system_auths,
-            AuthorityType::TABLE()->toString() => $permission_tables]);
+            AuthorityType::SYSTEM => $permission_system_auths,
+            AuthorityType::TABLE => $permission_tables]);
         Session::put(Define::SYSTEM_KEY_SESSION_INITIALIZE, true);
 
         return Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);

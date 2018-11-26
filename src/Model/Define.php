@@ -1,6 +1,8 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
 
 /**
  * Define short summary.
@@ -144,47 +146,32 @@ class Define
 
 
     // authority --------------------------------------------------
-
-    public const AUTHORITY_VALUE_SYSTEM = 'system';
-    public const AUTHORITY_VALUE_CUSTOM_TABLE = 'custom_table';
-    public const AUTHORITY_VALUE_CUSTOM_FORM = 'custom_form';
-    public const AUTHORITY_VALUE_CUSTOM_VIEW = 'custom_view';
-    public const AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL = 'custom_value_edit_all';
-    public const AUTHORITY_VALUE_CUSTOM_VALUE_EDIT = 'custom_value_edit';
-    public const AUTHORITY_VALUE_CUSTOM_VALUE_VIEW = 'custom_value_view';
-    public const AUTHORITY_VALUE_PLUGIN_ACCESS = 'plugin_access';
-    public const AUTHORITY_VALUE_PLUGIN_SETTING = 'plugin_setting';
-    // available access custom value
-    public const AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE = [self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT, self::AUTHORITY_VALUE_CUSTOM_VALUE_VIEW];
-    // available edit custom value
-    public const AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE = [self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT];
-
     /**
      * permission all
      */
     public const AUTHORITIES = [
-        self::AUTHORITY_TYPE_SYSTEM => [
-            self::AUTHORITY_VALUE_SYSTEM,
-            self::AUTHORITY_VALUE_CUSTOM_TABLE,
-            self::AUTHORITY_VALUE_CUSTOM_FORM,
-            self::AUTHORITY_VALUE_CUSTOM_VIEW,
-            self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL,
+        AuthorityType::SYSTEM => [
+            AuthorityValue::SYSTEM,
+            AuthorityValue::CUSTOM_TABLE,
+            AuthorityValue::CUSTOM_FORM,
+            AuthorityValue::CUSTOM_VIEW,
+            AuthorityValue::CUSTOM_VALUE_EDIT_ALL,
         ]
-        , self::AUTHORITY_TYPE_TABLE => [
-            self::AUTHORITY_VALUE_CUSTOM_TABLE,
-            self::AUTHORITY_VALUE_CUSTOM_FORM,
-            self::AUTHORITY_VALUE_CUSTOM_VIEW,
-            self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL,
-            self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT,
-            self::AUTHORITY_VALUE_CUSTOM_VALUE_VIEW,
+        , AuthorityType::TABLE => [
+            AuthorityValue::CUSTOM_TABLE,
+            AuthorityValue::CUSTOM_FORM,
+            AuthorityValue::CUSTOM_VIEW,
+            AuthorityValue::CUSTOM_VALUE_EDIT_ALL,
+            AuthorityValue::CUSTOM_VALUE_EDIT,
+            AuthorityValue::CUSTOM_VALUE_VIEW,
         ]
-        , self::AUTHORITY_TYPE_VALUE => [
-            self::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT,
-            self::AUTHORITY_VALUE_CUSTOM_VALUE_VIEW,
+        , AuthorityType::VALUE => [
+            AuthorityValue::CUSTOM_VALUE_EDIT,
+            AuthorityValue::CUSTOM_VALUE_VIEW,
         ]
-        , self::AUTHORITY_TYPE_PLUGIN => [
-            self::AUTHORITY_VALUE_PLUGIN_ACCESS,
-            self::AUTHORITY_VALUE_PLUGIN_SETTING,
+        , AuthorityType::PLUGIN => [
+            AuthorityValue::PLUGIN_ACCESS,
+            AuthorityValue::PLUGIN_SETTING,
         ]
     ];
 
@@ -262,13 +249,13 @@ class Define
     ];
 
     public const GRID_CHANGE_PAGE_MENULIST = [
-        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
-        ['url' => 'column', 'icon' => 'fa-list', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
-        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
-        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
-        ['url' => 'copy', 'icon' => 'fa-copy', 'authorities' => [self::AUTHORITY_VALUE_CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
-        ['url' => 'data', 'icon' => 'fa-database', 'authorities' => self::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
+        ['url' => 'column', 'icon' => 'fa-list', 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
+        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
+        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'authorities' => [AuthorityValue::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
+        ['url' => 'view', 'icon' => 'fa-th-list', 'authorities' => [AuthorityValue::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
+        ['url' => 'copy', 'icon' => 'fa-copy', 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
+        ['url' => 'data', 'icon' => 'fa-database', 'authorities' => AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
     public const NOTIFY_TRIGGER = [

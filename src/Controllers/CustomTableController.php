@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -106,7 +107,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if (!$this->validateTable($id, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($id, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);

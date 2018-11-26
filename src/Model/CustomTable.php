@@ -101,7 +101,7 @@ class CustomTable extends ModelBase
             $model->custom_relations()->delete();
 
             // delete menu
-            Menu::where('menu_type', MenuType::TABLE()->toString())->where('menu_target', $model->id)->delete();
+            Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
         });
     }
 }

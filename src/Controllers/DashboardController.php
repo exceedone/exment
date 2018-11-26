@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
+use Exceedone\Exment\Enums\AuthorityValue;
+
 
 class DashboardController extends AdminControllerBase
 {
@@ -235,7 +237,7 @@ EOT;
         $content->row(function ($row) use ($content, $row_column_count, $row_no) {
             // check authority.
             //TODO:now system admin. change if user dashboard
-            $has_authority = Admin::user()->hasPermission(Define::AUTHORITY_VALUE_SYSTEM);
+            $has_authority = Admin::user()->hasPermission(AuthorityValue::SYSTEM);
             for ($i = 1; $i <= $row_column_count; $i++) {
                 // get $boxes as $row_no
                 if ($row_no == 1) {

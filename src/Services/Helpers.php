@@ -1067,10 +1067,10 @@ if (!function_exists('getAuthorityUser')) {
             ->whereIn('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', AuthorityType::SYSTEM()->toString());
+                    $query->where('morph_type', AuthorityType::SYSTEM);
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', AuthorityType::TABLE()->toString())
+                    $query->where('morph_type', AuthorityType::TABLE)
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id');
