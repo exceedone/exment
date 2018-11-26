@@ -208,9 +208,9 @@ trait CustomValueTrait
     {
         return getValue($this, $column, $label);
     }
-    public function setValue($key, $val = null)
+    public function setValue($key, $val = null, $forgetIfNull = false)
     {
-        return $this->setJson('value', $key, $val);
+        return $this->setJson('value', $key, $val, $forgetIfNull);
     }
     
     /**

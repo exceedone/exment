@@ -25,13 +25,17 @@ class CustomFormColumn extends ModelBase
     {
         return $this->getJson('options', $key);
     }
-    public function setOption($key, $val = null)
+    public function setOption($key, $val = null, $forgetIfNull = false)
     {
-        return $this->setJson('options', $key, $val);
+        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
     public function forgetOption($key)
     {
         return $this->forgetJson('options', $key);
+    }
+    public function clearOption()
+    {
+        return $this->clearJson('options');
     }
     
     

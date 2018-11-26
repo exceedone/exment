@@ -448,11 +448,10 @@ class TemplateImporter
                 }
 
                 ///// set options
-                $options = array_get($table, 'options', []);
-                $obj_table->setOption('icon', array_get($options, 'icon'));
-                $obj_table->setOption('color', array_get($options, 'color'));
-                $obj_table->setOption('one_record_flg', array_get($options, 'one_record_flg', "0"));
-                $obj_table->setOption('attachment_flg', array_get($options, 'attachment_flg', "1"));
+                $obj_table->setOption('icon', array_get($table, 'options.icon'));
+                $obj_table->setOption('color', array_get($table, 'options.color'));
+                $obj_table->setOption('one_record_flg', array_get($table, 'options.one_record_flg', "0"));
+                $obj_table->setOption('attachment_flg', array_get($table, 'options.attachment_flg', "1"));
 
                 $obj_table->saveOrFail();
 
@@ -477,44 +476,36 @@ class TemplateImporter
                         $obj_column->system_flg = $system_flg;
 
                         ///// set options
-                        $options = array_get($column, 'options', []);
-                        // remove null value
-                        $options = collect($options)->filter(function ($option) {
-                            return isset($option);
-                        })->toArray();
+                        collect(array_get($column, 'options', []))->each(function ($option, $key) use($obj_column) {
+                            $obj_column->setOption($key, $option, true);
+                        });
 
-                        if (is_null($options)) {
-                            $options = [];
-                        }
                         // if options has select_target_table_name, get id
-                        if (array_key_exists('select_target_table_name', $options)) {
-                            if (is_nullorempty($options['select_target_table_name'])) {
-                                $options['select_target_table'] = null;
+                        if (array_key_value_exists('options.select_target_table_name', $column)) {
+                            if (is_nullorempty(array_get($column, 'options.select_target_table_name'))) {
+                                $obj_column->forgetOption('select_target_table');
                             } else {
-                                $custom_table = CustomTable::findByName(array_get($options, 'select_target_table_name'));
+                                $custom_table = CustomTable::findByName(array_get($column, 'options.select_target_table_name'));
                                 $id = $custom_table->id ?? null;
                                 // not set id, continue
                                 if (!isset($id)) {
                                     continue;
                                 }
-                                $options['select_target_table'] = $id;
+                                $obj_column->setOption('select_target_table', $id);
                             }
-                            array_forget($options, 'select_target_table_name');
+                        }else{
+                            $obj_column->forgetOption('select_target_table');
                         }
+                        $obj_column->forgetOption('select_target_table_name');
 
                         // set characters
-                        if (array_key_value_exists('available_characters', $options)) {
-                            $available_characters = array_get($options, 'available_characters');
+                        if (array_key_value_exists('options.available_characters', $column)) {
+                            $available_characters = array_get($column, 'options.available_characters');
                             // if string, convert to array
                             if (is_string($available_characters)) {
-                                $options['available_characters'] = explode(",", $available_characters);
+                                $obj_column->setOption('available_characters', explode(",", $available_characters));
                             }
                         }
-
-                        // remove calc_formula(after getting)
-                        array_forget($options, 'calc_formula');
-
-                        $obj_column->options = $options;
 
                         ///// set view name
                         // if contains column view name in config
@@ -560,6 +551,7 @@ class TemplateImporter
                         if (in_array(array_get($column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
                             $calc_formula = array_get($column, 'options.calc_formula', []);
                             if (is_null($calc_formula)) {
+                                $obj_column->forgetOption('calc_formula');
                                 continue;
                             }
                             // if $calc_formula is string, convert to json
@@ -577,7 +569,7 @@ class TemplateImporter
                                     // if select_table
                                     if (array_get($c, 'type') == 'select_table') {
                                         // get select table
-                                        $select_table_id = array_get(CustomColumn::find($c['val']), 'options.select_target_table');
+                                        $select_table_id = CustomColumn::find($c['val'])->getOption('select_target_table') ?? null;
                                         $select_table = CustomTable::find($select_table_id) ?? null;
                                         // get select from column
                                         $from_column_id = $select_table->custom_columns()->where('column_name', array_get($c, 'from'))->first()->id ?? null;
@@ -674,13 +666,9 @@ class TemplateImporter
                             }
 
                             // set option
-                            $options = array_get($form_block, 'options', []);
-                            $options = collect($options)->filter(function ($option) {
-                                return isset($option);
-                            })->each(function($value, $key) use($obj_form_block){
-                                $obj_form_block->setOption($key, $value);
+                            collect(array_get($form_block, 'options', []))->each(function ($option, $key) use($obj_form_block) {
+                                $obj_form_block->setOption($key, $option, true);
                             });
-
                             $obj_form_block->saveOrFail();
 
                             // create form colunms --------------------------------------------------
@@ -738,31 +726,42 @@ class TemplateImporter
                                     }
                                     $obj_form_column->column_no = array_get($form_column, 'column_no', 1) ?? 1;
                                 
-                                    $options = array_get($form_column, 'options', []);
-                                    $options = collect($options)->filter(function ($option) {
-                                        return isset($option);
-                                    })->toArray();
+                                    // set option
+                                    collect(array_get($form_column, 'options', []))->each(function ($option, $key) use($obj_form_column) {
+                                        $obj_form_column->setOption($key, $option, true);
+                                    });
+
                                     // if has changedata_column_name and changedata_target_column_name, set id
-                                    if (array_key_value_exists('changedata_column_name', $options) && array_key_value_exists('changedata_column_table_name', $options)) {
+                                    if (array_key_value_exists('options.changedata_column_name', $form_column) && array_key_value_exists('options.changedata_column_table_name', $form_column)) {
                                         // get using changedata_column_table_name
-                                        $options['changedata_column_id'] = CustomTable::findByName($options['changedata_column_table_name'])->custom_columns()->where('column_name', $options['changedata_column_name'])->first()->id?? null;
-                                        array_forget($options, 'changedata_column_name');
+                                        $id = CustomTable::findByName(array_get($form_column, 'options.changedata_column_table_name'))
+                                            ->custom_columns()
+                                            ->where('column_name', array_get($form_column, 'options.changedata_column_name'))
+                                            ->first()
+                                            ->id
+                                        ?? null;
+                                        $obj_form_column->setOption('changedata_column_id', $id);
+                                        $obj_form_column->forgetOption('changedata_column_name');
                                     }
-                                    if (array_key_value_exists('changedata_target_column_name', $options)) {
+                                    if (array_key_value_exists('options.changedata_target_column_name', $form_column)) {
+                                        $changedata_target_column_name = array_get($form_column, 'options.changedata_target_column_name');
                                         // get changedata target table name and column
                                         // if changedata_target_column_name value has dotted, get parent table name
-                                        if (str_contains($options['changedata_target_column_name'], ".")) {
-                                            list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $options['changedata_target_column_name']);
+                                        if (str_contains($changedata_target_column_name, ".")) {
+                                            list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
                                             $changedata_target_table = CustomTable::findByName($changedata_target_table_name);
                                         } else {
                                             $changedata_target_table = $target_table;
-                                            $changedata_target_column_name = $options['changedata_target_column_name'];
+                                            $changedata_target_column_name = $changedata_target_column_name;
                                         }
-                                        $options['changedata_target_column_id'] = $changedata_target_table->custom_columns()->where('column_name', $changedata_target_column_name)->first()->id?? null;
-                                        array_forget($options, 'changedata_target_column_name');
-                                    }
-                                    foreach($options as $key => $option){
-                                        $obj_form_column->setOption($key, $option);
+                                        $id = $changedata_target_table
+                                            ->custom_columns()
+                                            ->where('column_name', $changedata_target_column_name)
+                                            ->first()
+                                            ->id
+                                        ?? null;
+                                        $obj_form_column->setOption('changedata_target_column_id', $id);
+                                        $obj_form_column->forgetOption('changedata_target_column_name');
                                     }
                                 
                                     $obj_form_column->saveOrFail();
@@ -912,15 +911,9 @@ class TemplateImporter
                     $obj_copy->suuid = $findArray['suuid'];
                     
                     // set option
-                    $options = array_get($obj_copy, 'options', []);
-                    $options = collect($options)->filter(function ($option) {
-                        return isset($option);
-                    })->toArray();
-                    $options = array_merge(
-                        array_get($copy, 'options', []),
-                        $obj_copy->options ?? []
-                    );
-                    $obj_copy->options = $options;
+                    collect(array_get($copy, 'options', []))->each(function ($option, $key) use($obj_copy) {
+                        $obj_copy->setOption($key, $option, true);
+                    });
                     $obj_copy->saveOrFail();
                     
                     // create copy columns --------------------------------------------------
@@ -995,30 +988,29 @@ class TemplateImporter
                             $obj_dashboard_box->dashboard_box_type = array_get($dashboard_box, "dashboard_box_type");
 
                             // set options
-                            $options = $obj_dashboard_box->options;
-                            $options = collect($options)->filter(function ($option) {
-                                return isset($option);
-                            })->toArray();
+                            collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use($obj_dashboard_box) {
+                                $obj_dashboard_box->setOption($key, $option);
+                            });
                             
                             // switch dashboard_box_type
                             switch ($obj_dashboard_box->dashboard_box_type) {
                                 // system box
                                 case Define::DASHBOARD_BOX_TYPE_SYSTEM:
-                                    $options['target_system_id'] = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($dashboard_box) {
+                                    $id = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($dashboard_box) {
                                         return array_get($value, 'name') == array_get($dashboard_box, 'options.target_system_name');
                                     })['id'] ?? null;
+                                    $obj_dashboard_box->setOption('target_system_id', $id);
                                     break;
                                 
                                 // list
                                 case Define::DASHBOARD_BOX_TYPE_LIST:
                                     // get target table
-                                    $options['target_table_id'] = CustomTable::findByName(array_get($dashboard_box, 'options.target_table_name'))->id ?? null;
+                                    $obj_dashboard_box->setOption('target_table_id', CustomTable::findByName(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
                                     // get target view using suuid
-                                    $options['target_view_id'] = CustomView::findBySuuid(array_get($dashboard_box, 'options.target_view_suuid'))->id ?? null;
+                                    $obj_dashboard_box->setOption('target_view_id', CustomView::findBySuuid(array_get($dashboard_box, 'options.target_view_suuid'))->id ?? null);
                                     break;
                             }
 
-                            $obj_dashboard_box->options = $options;
                             $obj_dashboard_box->saveOrFail();
                         }
                     }
