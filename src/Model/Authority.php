@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Schema;
+use Exceedone\Exment\Enums\AuthorityType;
 
 class Authority extends ModelBase
 {
@@ -56,10 +57,10 @@ class Authority extends ModelBase
                 ->where('related_type', $related_type)
                 ->where(function ($query) use ($target_table) {
                     $query->orWhere(function ($query) {
-                        $query->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM);
+                        $query->where('morph_type', AuthorityType::SYSTEM()->toString());
                     });
                     $query->orWhere(function ($query) use ($target_table) {
-                        $query->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                        $query->where('morph_type', AuthorityType::TABLE()->toString())
                         ->where('morph_id', $target_table->id);
                     });
                 })->get(['related_id'])->pluck('related_id');

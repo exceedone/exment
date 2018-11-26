@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\UserSetting;
+use Exceedone\Exment\Enums\AuthorityType;
 use Carbon\Carbon;
 
 trait HasPermissions
@@ -67,7 +68,7 @@ trait HasPermissions
         $permissions = $this->allPermissions();
         foreach ($permissions as $permission) {
             // if authority type is system, and has key
-            if ($permission->getAuthorityType() == Define::AUTHORITY_TYPE_SYSTEM
+            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
                 && array_keys_exists($authority_key, $permission->getAuthorities())) {
                 return true;
             }
@@ -93,13 +94,13 @@ trait HasPermissions
         $permissions = $this->allPermissions();
         foreach ($permissions as $permission) {
             // if authority type is system, and has key
-            if ($permission->getAuthorityType() == Define::AUTHORITY_TYPE_SYSTEM
+            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
                 && array_keys_exists($authority_key, $permission->getAuthorities())) {
                 return true;
             }
 
             // if authority type is table, and match table name
-            elseif ($permission->getAuthorityType() == Define::AUTHORITY_TYPE_TABLE && $permission->getTableName() == $table_name) {
+            elseif (AuthorityType::TABLE()->match($permission->getAuthorityType()) && $permission->getTableName() == $table_name) {
                 // if user has authority
                 if (array_keys_exists($authority_key, $permission->getAuthorities())) {
                     return true;
@@ -126,7 +127,7 @@ trait HasPermissions
 
         $permissions = [];
         foreach ($authorities as $key => $authority) {
-            if ($key == Define::AUTHORITY_TYPE_SYSTEM) {
+            if (AuthorityType::SYSTEM()->match($key)) {
                 array_push($permissions, new Permission([
                     'authority_type' =>$key,
                     'table_name' => null,
@@ -498,8 +499,8 @@ trait HasPermissions
         $permission_tables = $this->getCustomTablePermissions();
 
         Session::put(Define::SYSTEM_KEY_SESSION_AUTHORITY, [
-            Define::AUTHORITY_TYPE_SYSTEM => $permission_system_auths,
-            Define::AUTHORITY_TYPE_TABLE => $permission_tables]);
+            AuthorityType::SYSTEM()->toString() => $permission_system_auths,
+            AuthorityType::TABLE()->toString() => $permission_tables]);
         Session::put(Define::SYSTEM_KEY_SESSION_INITIALIZE, true);
 
         return Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
@@ -518,7 +519,7 @@ trait HasPermissions
             $query = DB::table('authorities as a')
                 ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
-                ->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                ->where('morph_type', AuthorityType::TABLE())
                 ;
             // if $i == 0, then search as user
             if ($i == 0) {
@@ -580,7 +581,7 @@ trait HasPermissions
         // get all permissons for system. --------------------------------------------------
         $authorities = DB::table('authorities as a')
             ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
-            ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
+            ->where('morph_type', AuthorityType::SYSTEM())
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {
                     $query->where('related_type', Define::SYSTEM_TABLE_NAME_USER)

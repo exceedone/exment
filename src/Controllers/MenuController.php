@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
@@ -85,15 +86,15 @@ class MenuController extends AdminControllerBase
 
             $tree->branch(function ($branch) {
                 switch ($branch['menu_type']) {
-                    case Define::MENU_TYPE_PLUGIN:
+                    case MenuType::PLUGIN:
                         $icon = null;
                         $uri = null;
                         break;
-                    case Define::MENU_TYPE_TABLE:
+                    case MenuType::TABLE:
                         $icon = $branch['icon'];
                         $uri = $branch['table_name'];
                         break;
-                    case Define::MENU_TYPE_SYSTEM:
+                    case MenuType::SYSTEM:
                         $icon = $branch['icon'];
                         $uri = array_get(Define::MENU_SYSTEM_DEFINITION, "{$branch['menu_name']}.uri");
                         break;
@@ -141,7 +142,7 @@ class MenuController extends AdminControllerBase
         // set controller
         $contoller = $this;
         $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
-        $form->select('menu_type', exmtrans("menu.menu_type"))->options(getTransArray(Define::MENU_TYPES, "menu.menu_type_options"))
+        $form->select('menu_type', exmtrans("menu.menu_type"))->options(MenuType::trans("menu.menu_type_options"))
             ->load('menu_target', admin_base_path('api/menu/menutype'))
             ->required();
 
@@ -153,7 +154,7 @@ class MenuController extends AdminControllerBase
                     ]
                 ]
             ), 'data-filter' => json_encode([
-                'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_CUSTOM, Define::MENU_TYPE_PARENT_NODE]
+                'key' => 'menu_type', 'readonlyValue' => [MenuType::CUSTOM, MenuType::PARENT_NODE]
             ])])
             ->options(function ($option) use ($menu, $contoller) {
                 // get model
@@ -165,7 +166,7 @@ class MenuController extends AdminControllerBase
         ;
         $form->text('uri', trans('admin.uri'))
             ->attribute(['data-filter' => json_encode([
-                'key' => 'menu_type', 'readonlyValue' => [Define::MENU_TYPE_SYSTEM, Define::MENU_TYPE_PLUGIN, Define::MENU_TYPE_TABLE, Define::MENU_TYPE_PARENT_NODE]
+                'key' => 'menu_type', 'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
             ])]);
         $form->text('menu_name', exmtrans("menu.menu_name"))
             ->required()
@@ -227,18 +228,18 @@ class MenuController extends AdminControllerBase
     {
         $options = [];
         switch ($type) {
-            case Define::MENU_TYPE_SYSTEM:
+            case MenuType::SYSTEM:
                 foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value) {
                     array_push($options, ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ]);
                 }
                 break;
-            case Define::MENU_TYPE_PLUGIN:
+            case MenuType::PLUGIN:
                 $options = [];
                 foreach (Plugin::where('plugin_type', 'page')->get() as $value) {
                     array_push($options, ['id' => $value->id, 'text' => $value->plugin_view_name]);
                 }
                 break;
-            case Define::MENU_TYPE_TABLE:
+            case MenuType::TABLE:
                 foreach (CustomTable::where('showlist_flg', true)->get() as $value) {
                     array_push($options, ['id' => $value->id, 'text' => $value->table_view_name]);
                 }
@@ -258,7 +259,7 @@ class MenuController extends AdminControllerBase
         $type = $request->input('menu_type');
         $value = $request->input('value');
         switch ($type) {
-            case Define::MENU_TYPE_SYSTEM:
+            case MenuType::SYSTEM:
                 $item = array_get(Define::MENU_SYSTEM_DEFINITION, $value);
                 return [
                     'menu_name' => $value,
@@ -266,7 +267,7 @@ class MenuController extends AdminControllerBase
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'uri'),
                 ];
-            case Define::MENU_TYPE_PLUGIN:
+            case MenuType::PLUGIN:
                 $item = Plugin::find($value);
                 return [
                     'menu_name' => array_get($item, 'plugin_name'),
@@ -275,7 +276,7 @@ class MenuController extends AdminControllerBase
                     'uri' => array_get($item, 'options.uri'),
                 ];
                 return Plugin::find($value);
-            case Define::MENU_TYPE_TABLE:
+            case MenuType::TABLE:
                 $item = CustomTable::find($value);
                 return [
                     'menu_name' => array_get($item, 'table_name'),
@@ -283,7 +284,7 @@ class MenuController extends AdminControllerBase
                     'icon' => array_get($item, 'options.icon'),
                     'uri' => array_get($item, 'table_name'),
                 ];
-            case Define::MENU_TYPE_CUSTOM:
+            case MenuType::CUSTOM:
                 return [
                     'menu_name' => '',
                     'title' => '',
@@ -291,7 +292,7 @@ class MenuController extends AdminControllerBase
                     'uri' => '',
                 ];
                 
-            case Define::MENU_TYPE_PARENT_NODE:
+            case MenuType::PARENT_NODE:
                 return [
                     'menu_name' => '',
                     'title' => '',

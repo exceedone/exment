@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Enums\AuthorityType;
 
 trait CustomValueForm
 {
@@ -199,7 +200,7 @@ EOT;
         }
 
         // set addAuthorityForm
-        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_VALUE);
+        $this->addAuthorityForm($form, AuthorityType::VALUE());
     }
 
     /**

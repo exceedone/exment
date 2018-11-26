@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Auth;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\AuthorityType;
 
 class Permission
 {
@@ -80,7 +81,8 @@ class Permission
             return true;
         }
 
-        if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM && array_key_exists(Define::AUTHORITY_TYPE_SYSTEM, $this->authorities)) {
+        $systemAuthority = AuthorityType::SYSTEM()->match($this->authority_type);
+        if ($systemAuthority && array_key_exists(AuthorityType::SYSTEM()->toString(), $this->authorities)) {
             return true;
         }
         switch ($endpoint) {
@@ -101,17 +103,17 @@ class Permission
             case "loginuser":
             case "auth/menu":
             case "notify":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_key_exists('system', $this->authorities);
                 }
                 return false;
             case "table":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_key_exists('custom_table', $this->authorities);
                 }
                 return array_key_exists('custom_table', $this->authorities);
             case "column":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_key_exists('custom_table', $this->authorities);
                 }
                 // check endpoint name and checking table_name.
@@ -120,7 +122,7 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->authorities);
             case "relation":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_key_exists('custom_table', $this->authorities);
                 }
                 // check endpoint name and checking table_name.
@@ -129,7 +131,7 @@ class Permission
                 }
                 return array_key_exists('custom_table', $this->authorities);
             case "form":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_key_exists('custom_form', $this->authorities);
                 }
                 // check endpoint name and checking table_name.
@@ -138,7 +140,7 @@ class Permission
                 }
                 return array_key_exists('custom_form', $this->authorities);
             case "view":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
                 }
                 // check endpoint name and checking table_name.
@@ -147,7 +149,7 @@ class Permission
                 }
                return array_keys_exists([Define::AUTHORITY_VALUE_CUSTOM_VIEW], $this->authorities);
             case "data":
-                if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+                if ($systemAuthority) {
                     return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);
                 }
                 // check endpoint name and checking table_name.
@@ -158,7 +160,7 @@ class Permission
         }
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
-            if ($this->authority_type == Define::AUTHORITY_TYPE_SYSTEM) {
+            if ($systemAuthority) {
                 return array_key_exists(Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL, $this->authorities);
             }
             // check endpoint name and checking table_name.

@@ -21,6 +21,7 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
+use Exceedone\Exment\Enums\MenuType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
@@ -1071,13 +1072,13 @@ class TemplateImporter
                         elseif (isset($menu['menu_target_name'])) {
                             // case plugin or table
                             switch ($menu['menu_type']) {
-                                case Define::MENU_TYPE_PLUGIN:
+                                case MenuType::PLUGIN:
                                     $parent = Plugin::where('plugin_name', $menu['menu_target_name'])->first();
                                     if (isset($parent)) {
                                         $obj_menu->menu_target = $parent->id;
                                     }
                                     break;
-                                case Define::MENU_TYPE_TABLE:
+                                case MenuType::TABLE:
                                     $parent = CustomTable::findByName($menu['menu_target_name']);
                                     if (isset($parent)) {
                                         $obj_menu->menu_target = $parent->id;
@@ -1100,10 +1101,10 @@ class TemplateImporter
                         // else, get icon from table, system, etc
                         else {
                             switch ($obj_menu->menu_type) {
-                                case Define::MENU_TYPE_SYSTEM:
+                                case MenuType::SYSTEM:
                                     $obj_menu->icon = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
                                     break;
-                                case Define::MENU_TYPE_TABLE:
+                                case MenuType::TABLE:
                                     $obj_menu->icon = CustomTable::findByName($obj_menu->menu_name)->icon ?? null;
                                     break;
                             }
@@ -1119,13 +1120,13 @@ class TemplateImporter
                         // else, get icon from table, system, etc
                         else {
                             switch ($obj_menu->menu_type) {
-                                case Define::MENU_TYPE_SYSTEM:
+                                case MenuType::SYSTEM:
                                     $obj_menu->uri = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".uri");
                                     break;
-                                case Define::MENU_TYPE_TABLE:
+                                case MenuType::TABLE:
                                     $obj_menu->uri = $obj_menu->menu_name;
                                     break;
-                                case Define::MENU_TYPE_TABLE:
+                                case MenuType::TABLE:
                                     $obj_menu->uri = '#';
                                     break;
                             }

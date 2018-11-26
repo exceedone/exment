@@ -14,6 +14,8 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
+use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\TemplateExportTarget;
 use ZipArchive;
 
 /**
@@ -39,19 +41,19 @@ class TemplateExporter
         $config['description'] = $description;
 
         ///// set config info
-        if (in_array(Define::TEMPLATE_EXPORT_TARGET_TABLE, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::TABLE, $options['export_target'])) {
             static::setTemplateTable($config, $options['target_tables']);
         }
-        if (in_array(Define::TEMPLATE_EXPORT_TARGET_MENU, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::MENU, $options['export_target'])) {
             static::setTemplateMenu($config, $options['target_tables']);
         }
-        if (in_array(Define::TEMPLATE_EXPORT_TARGET_DASHBOARD, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::DASHBOARD, $options['export_target'])) {
             static::setTemplateDashboard($config);
         }
-        if (in_array(Define::TEMPLATE_EXPORT_TARGET_AUTHORITY, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
             static::setTemplateAuthority($config);
         }
-        if (in_array(Define::TEMPLATE_EXPORT_TARGET_MAIL_TEMPLATE, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::MAIL_TEMPLATE, $options['export_target'])) {
             static::setTemplateMailTemplate($config);
         }
 
@@ -409,11 +411,12 @@ class TemplateExporter
         }
 
         // menu_target
-        if ($menu['menu_type'] == Define::MENU_TYPE_TABLE) {
+        $menu_type = $menu['menu_type'];
+        if (MenuType::TABLE()->match($menu_type)) {
             $menu['menu_target_name'] = CustomTable::find($menu['menu_target'])->table_name ?? null;
-        } elseif ($menu['menu_type'] == Define::MENU_TYPE_PLUGIN) {
+        } elseif (MenuType::PLUGIN()->match($menu_type)) {
             $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
-        } elseif ($menu['menu_type'] == Define::MENU_TYPE_SYSTEM) {
+        } elseif (MenuType::SYSTEM()->match($menu_type)) {
             $menu['menu_target_name'] = $menu['menu_name'];
         }
         // custom, parent_node
@@ -423,7 +426,7 @@ class TemplateExporter
 
         //// url
         // menu type is table, remove uri "data/"
-        if ($menu['menu_type'] == Define::MENU_TYPE_TABLE) {
+        if (MenuType::TABLE()->match($menu_type)) {
             $menu['uri'] = preg_replace('/^data\//', '', $menu['uri']);
         }
 

@@ -76,8 +76,8 @@ class InitializeController extends Controller
                     'related_id' => $user->id,
                     'related_type' => Define::SYSTEM_TABLE_NAME_USER,
                     'morph_id' => null,
-                    'morph_type' => Define::AUTHORITY_TYPE_SYSTEM,
-                    'authority_id' => Authority::where('authority_type', Define::AUTHORITY_TYPE_SYSTEM)->first()->id,
+                    'morph_type' =>  AuthorityType::SYSTEM()->toString(),
+                    'authority_id' => Authority::where('authority_type', AuthorityType::SYSTEM()->toString())->first()->id,
                 ]
             );
 

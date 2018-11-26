@@ -1,17 +1,18 @@
 <?php
-use \Exceedone\Exment\Services\ClassBuilder;
-use \Exceedone\Exment\Model\Define;
-use \Exceedone\Exment\Model\System;
-use \Exceedone\Exment\Model\File;
-use \Exceedone\Exment\Model\Authority;
-use \Exceedone\Exment\Model\CustomTable;
-use \Exceedone\Exment\Model\CustomColumn;
-use \Exceedone\Exment\Model\CustomRelation;
-use \Exceedone\Exment\Model\CustomValue;
-use \Exceedone\Exment\Model\CustomViewColumn;
-use \Exceedone\Exment\Model\CustomView;
-use \Exceedone\Exment\Model\ModelBase;
-use \Illuminate\Support\Str;
+use Exceedone\Exment\Services\ClassBuilder;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\ModelBase;
+use Exceedone\Exment\Enums\AuthorityType;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -1066,10 +1067,10 @@ if (!function_exists('getAuthorityUser')) {
             ->whereIn('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM);
+                    $query->where('morph_type', AuthorityType::SYSTEM()->toString());
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                    $query->where('morph_type', AuthorityType::TABLE()->toString())
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id');
@@ -1206,6 +1207,9 @@ if (!function_exists('getTransArray')) {
      */
     function getTransArray($array, $base_key, $isExment = true)
     {
+        if($array instanceof \MyCLabs\Enum\Enum){
+            $array = array_flatten($array::toArray());
+        }
         $associative_array = [];
         foreach ($array as $key) {
             $associative_array[$key] = $isExment ? exmtrans("$base_key.$key") : trans("$base_key.$key");

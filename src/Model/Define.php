@@ -144,18 +144,6 @@ class Define
 
 
     // authority --------------------------------------------------
-    public const AUTHORITY_TYPE_SYSTEM = 'system';
-    public const AUTHORITY_TYPE_TABLE = 'table';
-    public const AUTHORITY_TYPE_VIEW = 'view';
-    public const AUTHORITY_TYPE_VALUE = 'value';
-    public const AUTHORITY_TYPE_PLUGIN = 'plugin';
-    public const AUTHORITY_TYPES = [
-        self::AUTHORITY_TYPE_SYSTEM,
-        self::AUTHORITY_TYPE_TABLE,
-        //self::AUTHORITY_TYPE_VIEW,
-        self::AUTHORITY_TYPE_VALUE,
-        self::AUTHORITY_TYPE_PLUGIN,
-    ];
 
     public const AUTHORITY_VALUE_SYSTEM = 'system';
     public const AUTHORITY_VALUE_CUSTOM_TABLE = 'custom_table';
@@ -198,20 +186,6 @@ class Define
             self::AUTHORITY_VALUE_PLUGIN_ACCESS,
             self::AUTHORITY_VALUE_PLUGIN_SETTING,
         ]
-    ];
-
-    public const MENU_TYPE_SYSTEM = 'system';
-    public const MENU_TYPE_PLUGIN = 'plugin';
-    public const MENU_TYPE_TABLE = 'table';
-    public const MENU_TYPE_PARENT_NODE = 'parent_node';
-    public const MENU_TYPE_CUSTOM = 'custom';
-
-    public const MENU_TYPES = [
-        self::MENU_TYPE_SYSTEM,
-        self::MENU_TYPE_PLUGIN,
-        self::MENU_TYPE_TABLE,
-        self::MENU_TYPE_PARENT_NODE,
-        self::MENU_TYPE_CUSTOM,
     ];
 
     /**
@@ -317,25 +291,6 @@ class Define
     public const USER_SETTING_VIEW = 'user_setting_view';
     
     // Template --------------------------------------------------
-    public const TEMPLATE_EXPORT_TARGET_TABLE = 'table';
-    public const TEMPLATE_EXPORT_TARGET_DASHBOARD = 'dashboard';
-    public const TEMPLATE_EXPORT_TARGET_MENU = 'menu';
-    public const TEMPLATE_EXPORT_TARGET_AUTHORITY = 'authority';
-    public const TEMPLATE_EXPORT_TARGET_MAIL_TEMPLATE = 'mail_template';
-    
-    public const TEMPLATE_EXPORT_TARGET = [
-        self::TEMPLATE_EXPORT_TARGET_TABLE,
-        self::TEMPLATE_EXPORT_TARGET_MENU,
-        self::TEMPLATE_EXPORT_TARGET_DASHBOARD,
-        self::TEMPLATE_EXPORT_TARGET_AUTHORITY,
-        self::TEMPLATE_EXPORT_TARGET_MAIL_TEMPLATE,
-    ];
-
-    public const TEMPLATE_EXPORT_TARGET_DEFAULT = [
-        self::TEMPLATE_EXPORT_TARGET_TABLE,
-        self::TEMPLATE_EXPORT_TARGET_MENU,
-    ];
-
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',
         'custom_columns',
@@ -348,17 +303,6 @@ class Define
         'custom_copies',
         'custom_copy_columns',
         'admin_menu',
-    ];
-
-    // Mail Template --------------------------------------------------
-
-    public const MAIL_TEMPLATE_TYPE_HEADER = 'header';
-    public const MAIL_TEMPLATE_TYPE_BODY = 'body';
-    public const MAIL_TEMPLATE_TYPE_FOOTER = 'footer';
-    public const MAIL_TEMPLATE_TYPE = [
-        self::MAIL_TEMPLATE_TYPE_HEADER,
-        self::MAIL_TEMPLATE_TYPE_BODY,
-        self::MAIL_TEMPLATE_TYPE_FOOTER,
     ];
 
     // VIEW --------------------------------------------------

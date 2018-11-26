@@ -8,6 +8,7 @@ use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Enums\AuthorityType;
 
 class AuthorityController extends AdminControllerBase
 {
@@ -48,7 +49,7 @@ class AuthorityController extends AdminControllerBase
                 </button>
                 <ul class="dropdown-menu" role="menu">';
             // loop for authority types
-            foreach (getTransArray(Define::AUTHORITY_TYPES, "authority.authority_type_options") as $authority_type => $label) {
+            foreach (AuthorityType::trans("authority.authority_type_options") as $authority_type => $label) {
                 $addNewBtn .= '<li><a href="'.$base_uri.'?authority_type='.$authority_type.'">'.$label.'</a></li>';
             }
             $addNewBtn .= '</ul></div>';

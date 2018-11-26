@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Enums\AuthorityType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -275,7 +276,7 @@ class PluginController extends AdminControllerBase
 
         // Authority setting --------------------------------------------------
         // TODO:error
-        //$this->addAuthorityForm($form, Define::AUTHORITY_TYPE_PLUGIN);
+        //$this->addAuthorityForm($form, AuthorityType::PLUGIN());
 
         $form->disableReset();
         return $form;

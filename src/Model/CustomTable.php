@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\MenuType;
 
 getCustomTableTrait();
 
@@ -100,7 +101,7 @@ class CustomTable extends ModelBase
             $model->custom_relations()->delete();
 
             // delete menu
-            Menu::where('menu_type', Define::MENU_TYPE_TABLE)->where('menu_target', $model->id)->delete();
+            Menu::where('menu_type', MenuType::TABLE()->toString())->where('menu_target', $model->id)->delete();
         });
     }
 }

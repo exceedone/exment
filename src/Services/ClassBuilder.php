@@ -6,6 +6,7 @@ use \Exceedone\Exment\Model\System;
 use \Exceedone\Exment\Model\Authority;
 use \Exceedone\Exment\Model\CustomTable;
 use \Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums\AuthorityType;
 use Illuminate\Support\Facades\DB;
 
 class ClassBuilder
@@ -214,7 +215,7 @@ class ClassBuilder
         }
             
         // add authority --------------------------------------------------
-        Authority::authorityLoop(Define::AUTHORITY_TYPE_VALUE, function ($authority, $related_type) use ($builder, $obj) {
+        Authority::authorityLoop(AuthorityType::VALUE(), function ($authority, $related_type) use ($builder, $obj) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",
@@ -244,7 +245,7 @@ class ClassBuilder
                 ->addTrait()
                 ;
         // Ad Authority. for system, table --------------------------------------------------
-        Authority::authorityLoop(Define::AUTHORITY_TYPE_TABLE, function ($authority, $related_type) use ($builder) {
+        Authority::authorityLoop(AuthorityType::TABLE(), function ($authority, $related_type) use ($builder) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\MenuType;
 use Encore\Admin\Auth\Database\Menu as AdminMenu;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -42,12 +43,12 @@ class Menu extends AdminMenu
         $query = DB::table("{$this->getTable()} as m")
             // join table
             ->leftJoin(CustomTable::getTableName()." as c", function ($join) {
-                $join->where("m.menu_type", Define::MENU_TYPE_TABLE);
+                $join->where("m.menu_type", MenuType::TABLE->toString());
                 $join->on("m.menu_target", "c.id");
             })
             // join plugin
             ->leftJoin(Plugin::getTableName()." as p", function ($join) {
-                $join->where("m.menu_type", Define::MENU_TYPE_PLUGIN);
+                $join->where("m.menu_type", MenuType::PLUGIN->toString());
                 $join->on("m.menu_target", "p.id");
             })
             ->orderByRaw($byOrder);
@@ -70,18 +71,18 @@ class Menu extends AdminMenu
 
         foreach ($rows as &$row) {
             switch ($row['menu_type']) {
-                case Define::MENU_TYPE_PLUGIN:
+                case MenuType::PLUGIN:
                     //$row['icon'] = null;
                     $row['uri'] = 'plugins/'.$row['uri'];;
                     break;
-                case Define::MENU_TYPE_TABLE:
+                case MenuType::TABLE:
                     if (is_nullorempty($row['icon'])) {
                         $table_options = json_decode(array_get($row, 'table_options'), true);
                         $row['icon'] = array_get($table_options, 'icon');
                     }
                     $row['uri'] = 'data/'.$row['table_name'];
                     break;
-                case Define::MENU_TYPE_SYSTEM:
+                case MenuType::SYSTEM:
                     $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_name']);
                     // if not set menu icon, set Define's default icon.
                     if (is_nullorempty($row['icon'])) {

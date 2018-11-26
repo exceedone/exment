@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\TemplateExportTarget;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
@@ -50,9 +51,9 @@ class TemplateController extends AdminControllerBase
 
         // export target
         $form->checkbox('export_target', exmtrans('template.export_target'))
-            ->options(getTransArray(Define::TEMPLATE_EXPORT_TARGET, 'template.export_target_options'))
+            ->options(TemplateExportTarget::trans('template.export_target_options'))
             ->help(exmtrans('template.help.export_target'))
-            ->default(Define::TEMPLATE_EXPORT_TARGET_DEFAULT)
+            ->default(TemplateExportTarget::DEFAULT)
             ;
         
         $form->listbox('target_tables', exmtrans('template.target_tables'))
