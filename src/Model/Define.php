@@ -72,35 +72,6 @@ class Define
         'form_menubutton_edit',
     ];
 
-    public const TABLE_COLUMN_TYPE = [
-        "text",
-        "textarea",
-        "url",
-        "email",
-        "integer",
-        "decimal",
-        "currency",
-        "date",
-        "time",
-        "datetime",
-        "select",
-        "select_valtext",
-        "select_table",
-        "yesno",
-        "boolean",
-        "auto_number",
-        "image",
-        "file",
-        "user",
-        "organization",
-    ];
-    
-    public const TABLE_COLUMN_TYPE_CALC = [
-        "integer",
-        "decimal",
-        "currency",
-    ];
-
     /**
      * MENU SYSTEM DIFINITION
      */

@@ -39,7 +39,7 @@ abstract class DataExporterBase extends AbstractExporter
 
     /**
      */
-    abstract public function export();
+    //abstract public function export();
 
     /**
      * get export table. contains header and body.

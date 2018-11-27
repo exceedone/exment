@@ -21,6 +21,7 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\CustomFormBlockType;
 use Exceedone\Exment\Enums\CustomFormColumnType;
@@ -553,7 +554,7 @@ class TemplateImporter
                         // check need update
                         $update_flg = false;
                         // if column type is calc, set dynamic val
-                        if (in_array(array_get($column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
+                        if (in_array(array_get($column, 'column_type'), ColumnType::COLUMN_TYPE_CALC())) {
                             $calc_formula = array_get($column, 'options.calc_formula', []);
                             if (is_null($calc_formula)) {
                                 $obj_column->forgetOption('calc_formula');

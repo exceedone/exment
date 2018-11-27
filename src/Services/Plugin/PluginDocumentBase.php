@@ -105,10 +105,10 @@ abstract class PluginDocumentBase
     /**
      * execute before creating document
      */
-    abstract protected function executing();
+    //abstract protected function executing();
     
     /**
      * execute after creating document
      */
-    abstract protected function executed();
+    //abstract protected function executed();
 }

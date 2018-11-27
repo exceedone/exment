@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
 use Exceedone\Exment\Enums\CustomFormBlockType;
 use Exceedone\Exment\Enums\CustomFormColumnType;
@@ -127,7 +128,7 @@ class TemplateExporter
                         }
                     }
                     // if column_type is calc, change value dynamic name using calc_formula property
-                    if (in_array(array_get($custom_column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC)) {
+                    if (in_array(array_get($custom_column, 'column_type'), ColumnType::COLUMN_TYPE_CALC())) {
                         $calc_formula = array_get($custom_column['options'], 'calc_formula');
                         // if $calc_formula is string, convert to json
                         if (is_string($calc_formula)) {
