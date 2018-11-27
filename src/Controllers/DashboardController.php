@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\UserSetting;
+
 
 class DashboardController extends AdminControllerBase
 {
@@ -223,7 +227,7 @@ EOT;
             $model = $form->model();
             if (isset($model)) {
                 // set setting value
-                Admin::user()->setSettingValue(Define::USER_SETTING_DASHBOARD, array_get($model, 'suuid'));
+                Admin::user()->setSettingValue(UserSetting::DASHBOARD, array_get($model, 'suuid'));
             }
         });
 
@@ -235,7 +239,7 @@ EOT;
         $content->row(function ($row) use ($content, $row_column_count, $row_no) {
             // check authority.
             //TODO:now system admin. change if user dashboard
-            $has_authority = Admin::user()->hasPermission(Define::AUTHORITY_VALUE_SYSTEM);
+            $has_authority = Admin::user()->hasPermission(AuthorityValue::SYSTEM);
             for ($i = 1; $i <= $row_column_count; $i++) {
                 // get $boxes as $row_no
                 if ($row_no == 1) {
@@ -251,7 +255,7 @@ EOT;
                 // new dashboadbox dropdown button list
                 $dashboardboxes_newbuttons = [];
                 if ($has_authority) {
-                    foreach (Define::DASHBOARD_BOX_TYPE_OPTIONS as $options) {
+                    foreach (DashboardBoxType::DASHBOARD_BOX_TYPE_OPTIONS() as $options) {
                         // create query
                         $query = http_build_query([
                             'dashboard_suuid' => $this->dashboard->suuid,

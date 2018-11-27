@@ -13,6 +13,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
 
@@ -104,10 +106,10 @@ trait CustomValueGrid
                                 } else {
                                     $select_target_table = null;
                                 }
-                            } elseif ($column_type == Define::SYSTEM_TABLE_NAME_USER) {
-                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
-                            } elseif ($column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
+                            } elseif ($column_type == SystemTableName::USER) {
+                                $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                            } elseif ($column_type == SystemTableName::ORGANIZATION) {
+                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
                             }
 
                             // get options and ajax url
@@ -158,7 +160,7 @@ trait CustomValueGrid
         $grid->disableExport();
         $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid) {
             // have edit flg
-            $edit_flg = Admin::user()->hasPermissionTable($this->custom_table->table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = Admin::user()->hasPermissionTable($this->custom_table->table_name, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid));

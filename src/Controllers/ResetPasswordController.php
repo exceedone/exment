@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -27,7 +28,7 @@ class ResetPasswordController extends Controller
     public function __construct()
     {
         $this->redirectTo = admin_base_path('');
-        $model = getModelName(Define::SYSTEM_TABLE_NAME_USER);
+        $model = getModelName(SystemTableName::USER);
         if (!Config::has('auth.providers.exment_admins')) {
             Config::set('auth.providers.exment_admins', [
                 'driver' => 'eloquent',

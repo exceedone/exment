@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
 class CustomView extends ModelBase
@@ -126,7 +128,7 @@ class CustomView extends ModelBase
                 }
             } else {
                 // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($value) use ($custom_view_column) {
+                $name = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use ($custom_view_column) {
                     return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
                 })['name'] ?? null;
                 // add headers transaction
@@ -166,7 +168,7 @@ class CustomView extends ModelBase
                         }
                     } else {
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                        $name = collect(Define::VIEW_COLUMN_SYSTEM_OPTIONS)->first(function ($value) use ($custom_view_column) {
+                        $name = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use ($custom_view_column) {
                             return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
                         })['name'] ?? null;
                         if (isset($name)) {
@@ -213,13 +215,13 @@ class CustomView extends ModelBase
 
             // set user_setting
             if (!is_null($user)) {
-                $user->setSettingValue(implode(".", [Define::USER_SETTING_VIEW, $tableObj->table_name]), $suuid);
+                $user->setSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]), $suuid);
             }
         }
         // if url doesn't contain view query, get view user setting.
         if (!isset($view) && !is_null($user)) {
             // get suuid
-            $suuid = $user->getSettingValue(implode(".", [Define::USER_SETTING_VIEW, $tableObj->table_name]));
+            $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
         }
         // if url doesn't contain view query, get custom view. first
@@ -261,7 +263,7 @@ class CustomView extends ModelBase
     {
         $view_columns = [];
         // set default view_column
-        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $view_column_system) {
+        foreach (ViewColumnType::SYSTEM_OPTIONS() as $view_column_system) {
             // if not default, continue
             if (!boolval(array_get($view_column_system, 'default'))) {
                 continue;

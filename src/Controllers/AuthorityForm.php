@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Form;
 
 trait AuthorityForm
@@ -19,23 +21,26 @@ trait AuthorityForm
         if (!System::authority_available()) {
             return;
         }
+        if($authority_type instanceof AuthorityType){
+            $authority_type = $authority_type->toString();
+        }
 
         // authority setting --------------------------------------------------
         $form->header(exmtrans('authority.header'))->hr();
         switch ($authority_type) {
-            case Define::AUTHORITY_TYPE_VALUE:
+            case AuthorityType::VALUE():
                 $form->description(exmtrans(System::organization_available() ? 'authority.description_form.custom_value' : 'authority.description_form.custom_value_disableorg'));
                 break;
                 
-            case Define::AUTHORITY_TYPE_TABLE:
+            case AuthorityType::TABLE():
                 $form->description(exmtrans(System::organization_available() ? 'authority.description_form.custom_table' : 'authority.description_form.custom_table_disableorg'));
             break;
             
-            case Define::AUTHORITY_TYPE_SYSTEM:
+            case AuthorityType::SYSTEM():
                 $form->description(exmtrans(System::organization_available() ? 'authority.description_form.system' : 'authority.description_form.system_disableorg'));
                 break;
             
-            case Define::AUTHORITY_TYPE_PLUGIN:
+            case AuthorityType::PLUGIN():
                 $form->description(exmtrans(System::organization_available() ? 'authority.description_form.plugin' : 'authority.description_form.plugin_disableorg'));
                 break;
             
@@ -44,7 +49,7 @@ trait AuthorityForm
         // Add Authority --------------------------------------------------
         Authority::authorityLoop($authority_type, function ($authority, $related_type) use ($authority_type, $form) {
             switch ($related_type) {
-                case Define::SYSTEM_TABLE_NAME_USER:
+                case SystemTableName::USER:
                 $related_types = ['column_name' => 'user_name', 'view_name' => exmtrans('user.default_table_name'), 'suffix' => 'userable'];
                 break;
             default:
@@ -60,7 +65,7 @@ trait AuthorityForm
             if (isGetOptions($related_type)) {
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
                     ->options(function ($options) use ($authority_type, $related_type, $related_types) {
-                        if($authority_type == Define::AUTHORITY_TYPE_VALUE){
+                        if(AuthorityType::VALUE()->match($authority_type)){
                             return getOptions($related_type, $options, $this->getCustomTable());
                         }
                         return getOptions($related_type, $options, null, true);
@@ -70,7 +75,7 @@ trait AuthorityForm
             } else {
                 $form->pivotMultiSelect($authority_name, $authority_view_name)
                 ->options(function ($options) use ($authority_type, $related_type, $related_types) {
-                    if($authority_type == Define::AUTHORITY_TYPE_VALUE){
+                    if(AuthorityType::VALUE()->match($authority_type)){
                         return getOptions($related_type, $options, $this->getCustomTable());
                     }
                     return getOptions($related_type, $options, null, true);

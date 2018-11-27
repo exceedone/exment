@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\CustomFormBlockType;
+use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\CustomFormColumnType;
 use Illuminate\Http\Request as Req;
 
 class CustomForm extends ModelBase
@@ -45,13 +48,13 @@ class CustomForm extends ModelBase
 
             // set suuid
             if (!is_null($user)) {
-                $user->setSettingValue(implode(".", [Define::USER_SETTING_FORM, $tableObj->table_name]), $suuid);
+                $user->setSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]), $suuid);
             }
         }
         // if url doesn't contain form query, get form user setting.
         if (!isset($form) && !is_null($user)) {
             // get suuid
-            $suuid = $user->getSettingValue(implode(".", [Define::USER_SETTING_FORM, $tableObj->table_name]));
+            $suuid = $user->getSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]));
             $form = CustomForm::findBySuuid($suuid);
         }
 
@@ -78,12 +81,12 @@ class CustomForm extends ModelBase
 
         // get form block
         $form_block = $form->custom_form_blocks()
-            ->where('form_block_type', Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT)
+            ->where('form_block_type', CustomFormBlockType::DEFAULT)
             ->first();
         if (!isset($form_block)) {
             // Create CustomFormBlock as default
             $form_block = new CustomFormBlock;
-            $form_block->form_block_type = Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT;
+            $form_block->form_block_type = CustomFormBlockType::DEFAULT;
             $form_block->form_block_target_table_id = $tableObj->id;
             $form_block->available = true;
             $form->custom_form_blocks()->save($form_block);
@@ -96,13 +99,13 @@ class CustomForm extends ModelBase
 
             // get target block as default.
             $form_block = $form->custom_form_blocks()
-                ->where('form_block_type', Define::CUSTOM_FORM_BLOCK_TYPE_DEFAULT)
+                ->where('form_block_type', CustomFormBlockType::DEFAULT)
                 ->first();
             // loop for search_enabled columns, and add form.
             foreach ($search_enabled_columns as $index => $search_enabled_column) {
                 $form_column = new CustomFormColumn;
                 $form_column->custom_form_block_id = $form_block->id;
-                $form_column->form_column_type = Define::CUSTOM_FORM_COLUMN_TYPE_COLUMN;
+                $form_column->form_column_type = CustomFormColumnType::COLUMN;
                 $form_column->form_column_target_id = array_get($search_enabled_column, 'id');
                 $form_column->order = $index+1;
                 array_push($form_columns, $form_column);

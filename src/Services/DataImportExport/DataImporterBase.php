@@ -392,7 +392,7 @@ abstract class DataImporterBase
     /**
      * get table from excel or csv.
      */
-    abstract protected function getDataTable($request);
+    //abstract protected function getDataTable($request);
 
     
     /**

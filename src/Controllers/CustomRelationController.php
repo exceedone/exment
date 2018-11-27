@@ -13,6 +13,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelationController extends AdminControllerTableBase
 {
@@ -34,7 +36,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -51,7 +53,7 @@ class CustomRelationController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
@@ -69,7 +71,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -88,7 +90,7 @@ class CustomRelationController extends AdminControllerTableBase
         $grid->column('child_custom_table.table_name', exmtrans("custom_relation.child_custom_table_name"))->sortable();
         $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table_view_name"))->sortable();
         $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function ($relation_type) {
-            $relation_type_options = getTransArray(Define::RELATION_TYPE, "custom_relation.relation_type_options");
+            $relation_type_options = RelationType::trans("custom_relation.relation_type_options");
             return esc_html(array_get($relation_type_options, $relation_type));
         });
 
@@ -130,7 +132,7 @@ class CustomRelationController extends AdminControllerTableBase
                 ->toArray();
         })->required();
 
-        $relation_type_options = getTransArray(Define::RELATION_TYPE, "custom_relation.relation_type_options");
+        $relation_type_options = RelationType::trans("custom_relation.relation_type_options");
         $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->required();
         disableFormFooter($form);
         $custom_table = $this->custom_table;

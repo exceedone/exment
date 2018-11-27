@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 
@@ -32,22 +33,19 @@ class FormHelper
             $field = new Field\Hidden($form_column_name);
         } else {
             switch ($column->column_type) {
-            case 'text':
+            case ColumnType::TEXT:
                 $field = new Field\Text($form_column_name, [$column_view_name]);
                 break;
-            case 'textarea':
+            case ColumnType::TEXTAREA:
                 $field = new Field\Textarea($form_column_name, [$column_view_name]);
                 break;
-            case 'url':
+            case ColumnType::URL:
                 $field = new Field\Url($form_column_name, [$column_view_name]);
                 break;
-            case 'email':
+            case ColumnType::EMAIL:
                 $field = new Field\Email($form_column_name, [$column_view_name]);
                 break;
-            case 'password':
-                $field = new Field\Password($form_column_name, [$column_view_name]);
-                break;
-            case 'integer':
+            case ColumnType::INTEGER:
                 $field = new ExmentField\Number($form_column_name, [$column_view_name]);
                 // if set updown button
                 if (!boolval(array_get($options, 'updown_button'))) {
@@ -55,30 +53,30 @@ class FormHelper
                     $field->defaultEmpty();
                 }
                 break;
-            case 'decimal':
+            case ColumnType::DECIMAL:
                 $field = new Field\Text($form_column_name, [$column_view_name]);
                 break;
-            case 'currency':
+            case ColumnType::CURRENCY:
                 $field = new Field\Text($form_column_name, [$column_view_name]);
                 // get symbol
                 $symbol = array_get($options, 'currency_symbol');
                 $field->prepend($symbol);
                 $field->attribute(['style' => 'max-width: 200px']);
                 break;
-            case 'date':
+            case ColumnType::DATE:
                 $field = new Field\Date($form_column_name, [$column_view_name]);
                 $field->options(['useCurrent' => false]);
                 break;
-            case 'time':
+            case ColumnType::TIME:
                 $field = new Field\Time($form_column_name, [$column_view_name]);
                 $field->options(['useCurrent' => false]);
                 break;
-            case 'datetime':
+            case ColumnType::DATETIME:
                 $field = new Field\Datetime($form_column_name, [$column_view_name]);
                 $field->options(['useCurrent' => false]);
                 break;
-            case 'select':
-            case 'select_valtext':
+            case ColumnType::SELECT:
+            case ColumnType::SELECT_VALTEXT:
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
                     $field = new Field\MultipleSelect($form_column_name, [$column_view_name]);
                 } else {
@@ -87,9 +85,9 @@ class FormHelper
                 // create select
                 $field->options(createSelectOptions($column));
                 break;
-            case 'select_table':
-            case 'user':
-            case 'organization':
+            case ColumnType::SELECT_TABLE:
+            case ColumnType::USER:
+            case ColumnType::ORGANIZATION:
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
                     $field = new Field\MultipleSelect($form_column_name, [$column_view_name]);
                 } else {
@@ -97,17 +95,17 @@ class FormHelper
                 }
 
                 // get select_target_table
-                if ($column->column_type == 'select_table') {
+                if ($column->column_type == ColumnType::SELECT_TABLE) {
                     $select_target_table_id = array_get($options, 'select_target_table');
                     if (isset($select_target_table_id)) {
                         $select_target_table = CustomTable::find($select_target_table_id)->table_name ?? null;
                     } else {
                         $select_target_table = null;
                     }
-                } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_USER) {
-                    $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_USER)->table_name;
-                } elseif ($column->column_type == Define::SYSTEM_TABLE_NAME_ORGANIZATION) {
-                    $select_target_table = CustomTable::findByName(Define::SYSTEM_TABLE_NAME_ORGANIZATION)->table_name;
+                } elseif ($column->column_type == SystemTableName::USER) {
+                    $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                } elseif ($column->column_type == SystemTableName::ORGANIZATION) {
+                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
                 }
 
                 $field->options(function ($val) use ($select_target_table) {
@@ -124,10 +122,10 @@ class FormHelper
                 // add table info
                 $field->attribute(['data-target_table_name' => $select_target_table]);
                 break;
-            case 'yesno':
+            case ColumnType::YESNO:
                 $field = new ExmentField\SwitchBoolField($form_column_name, [$column_view_name]);
                 break;
-            case 'boolean':
+            case ColumnType::BOOLEAN:
                 $field = new Field\SwitchField($form_column_name, [$column_view_name]);
                 // set options
                 $states = [
@@ -136,10 +134,10 @@ class FormHelper
                 ];
                 $field->states($states);
                 break;
-            case 'auto_number':
+            case ColumnType::AUTO_NUMBER:
                 $field = new ExmentField\Display($form_column_name, [$column_view_name]);
                 break;
-            case 'image':
+            case ColumnType::IMAGE:
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
                     $field = new Field\MultipleImage($form_column_name, [$column_view_name]);
                 } else {
@@ -152,12 +150,12 @@ class FormHelper
 
                 // set filename rule
                 $field->move($custom_table->table_name);
-                $field->name(function($file){
+                $field->name(function ($file) {
                     // set fileinfo
                     return FormHelper::setFileInfo($this, $file);
                 });
                 break;
-            case 'file':
+            case ColumnType::FILE:
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
                     $field = new Field\MultipleFile($form_column_name, [$column_view_name]);
                 } else {
@@ -173,7 +171,7 @@ class FormHelper
                 
                 // set filename rule
                 $field->move($custom_table->table_name);
-                $field->name(function($file){
+                $field->name(function ($file) {
                     return FormHelper::setFileInfo($this, $file);
                 });
                 break;
@@ -204,7 +202,7 @@ class FormHelper
             }
 
             // min, max(numeric only)
-            if (in_array($column->column_type, ['integer', 'decimal', 'currency'])) {
+            if (in_array($column->column_type, [ColumnType::INTEGER, ColumnType::DECIMAL, ColumnType::CURRENCY])) {
                 if (isset($options) && !is_null(array_get($options, 'number_min'))) {
                     $field->attribute(['min' => array_get($options, 'number_min')]);
                 }
@@ -214,7 +212,7 @@ class FormHelper
             }
         
             // decimal_digit
-            if (in_array($column->column_type, ['decimal', 'currency'])) {
+            if (in_array($column->column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
                 if (isset($options) && !is_null(array_get($options, 'decimal_digit'))) {
                     $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
                 }
@@ -327,7 +325,7 @@ class FormHelper
         }
 
         // text validate
-        if (in_array($column_type, ['text','textarea'])) {
+        if (in_array($column_type, [ColumnType::TEXT,ColumnType::TEXTAREA])) {
             // string_length
             if (array_get($options, 'string_length')) {
                 $validates[] = 'max:'.array_get($options, 'string_length');
@@ -335,7 +333,7 @@ class FormHelper
         }
 
         // number attribute
-        if (in_array($column_type, ['integer','decimal', 'currency'])) {
+        if (in_array($column_type, [ColumnType::INTEGER,ColumnType::DECIMAL, ColumnType::CURRENCY])) {
             // value size
             if (array_get($options, 'number_min')) {
                 $validates[] = 'min:'.array_get($options, 'number_min');
@@ -344,7 +342,7 @@ class FormHelper
                 $validates[] = 'max:'.array_get($options, 'number_max');
             }
         }
-        if (in_array($column_type, ['decimal', 'currency'])) {
+        if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
             $validates[] = 'numeric';
         }
 
@@ -364,9 +362,10 @@ class FormHelper
     }
 
     /**
-     * 
+     *
      */
-    public static function setFileInfo($field, $file){
+    public static function setFileInfo($field, $file)
+    {
         // get local filename
         $dirname = $field->getDirectory();
         $filename = $file->getClientOriginalName();

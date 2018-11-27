@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -83,7 +85,7 @@ class CustomTableController extends AdminControllerBase
         })->disableHeader();
 
         // Authority setting --------------------------------------------------
-        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_TABLE);
+        $this->addAuthorityForm($form, AuthorityType::TABLE);
         disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
             $tools->disableView();
@@ -105,7 +107,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if (!$this->validateTable($id, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($id, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);

@@ -5,6 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums;
 use Illuminate\Support\Facades\DB;
 
 class CreateTableDefine extends Migration
@@ -60,7 +61,7 @@ class CreateTableDefine extends Migration
             $table->string('mail_view_name', 256);
             $table->string('mail_subject', 256);
             $table->string('mail_body', 4000);
-            $table->string('mail_template_type')->default(Define::MAIL_TEMPLATE_TYPE_BODY);
+            $table->string('mail_template_type')->default(Enums\MailTemplateType::BODY);
             $table->boolean('system_flg')->default(false);
             $table->timestamps();
             $table->softDeletes();
@@ -355,9 +356,8 @@ class CreateTableDefine extends Migration
         $schema->table(config('admin.database.menu_table'), function (ExtendedBlueprint $table) {
             $table->string('menu_type');
             $table->string('menu_name')->nullable();
-            $table->integer('menu_target')->nullable();
+            $table->string('menu_target')->nullable();
         });
-
     }
 
     /**

@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\RelationType;
 
 class CustomValue extends ModelBase
 {
@@ -27,18 +29,18 @@ class CustomValue extends ModelBase
     // user value_authoritable. it's all authority data. only filter  morph_type
     public function value_authoritable_users()
     {
-        return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
+        return $this->morphToMany(getModelName(SystemTableName::USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
             ->withPivot('related_id', 'related_type')
-            ->wherePivot('related_type', Define::SYSTEM_TABLE_NAME_USER)
+            ->wherePivot('related_type', SystemTableName::USER)
             ;
     }
 
     // user value_authoritable. it's all authority data. only filter  morph_type
     public function value_authoritable_organizations()
     {
-        return $this->morphToMany(getModelName(Define::SYSTEM_TABLE_NAME_ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
+        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
             ->withPivot('related_id', 'related_type')
-            ->wherePivot('related_type', Define::SYSTEM_TABLE_NAME_ORGANIZATION)
+            ->wherePivot('related_type', SystemTableName::ORGANIZATION)
             ;
     }
 
@@ -84,7 +86,7 @@ class CustomValue extends ModelBase
             // delete custom relation is 1:n value
             $relations = CustomRelation
                 ::where('parent_custom_table_id', $parent_table->id)
-                ->where('relation_type', Define::RELATION_TYPE_ONE_TO_MANY)
+                ->where('relation_type', RelationType::ONE_TO_MANY)
                 ->get();
             // loop relations
             foreach ($relations as $relation) {

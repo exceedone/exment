@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\MenuType;
 
 getCustomTableTrait();
 
@@ -54,13 +55,17 @@ class CustomTable extends ModelBase
     {
         return $this->getJson('options', $key);
     }
-    public function setOption($key, $val = null)
+    public function setOption($key, $val = null, $forgetIfNull = false)
     {
-        return $this->setJson('options', $key, $val);
+        return $this->setJson('options', $key, $val, $forgetIfNull);
     }
     public function forgetOption($key)
     {
         return $this->forgetJson('options', $key);
+    }
+    public function clearOption()
+    {
+        return $this->clearJson('options');
     }
     
     
@@ -96,7 +101,7 @@ class CustomTable extends ModelBase
             $model->custom_relations()->delete();
 
             // delete menu
-            Menu::where('menu_type', Define::MENU_TYPE_TABLE)->where('menu_target', $model->id)->delete();
+            Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
         });
     }
 }

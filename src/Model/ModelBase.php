@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class ModelBase extends Model
 {
@@ -73,7 +74,7 @@ class ModelBase extends Model
      */
     protected function getUser($column)
     {
-        $value = getModelName(Define::SYSTEM_TABLE_NAME_USER)::find($this->{$column});
+        $value = getModelName(SystemTableName::USER)::find($this->{$column});
         if (!isset($value)) {
             return;
         }

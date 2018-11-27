@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ColumnType;
 
 class ApiController extends AdminControllerBase
 {
@@ -22,7 +25,7 @@ class ApiController extends AdminControllerBase
     public function table($id, Request $request)
     {
         $table = CustomTable::find($id);
-        if (!Admin::user()->hasPermissionTable($table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!Admin::user()->hasPermissionTable($table, AuthorityValue::CUSTOM_TABLE)) {
             abort(403);
         }
         return $result;
@@ -44,7 +47,7 @@ class ApiController extends AdminControllerBase
         $custom_column = CustomColumn::find($id);
 
         // if column_type is not select_table, return []
-        if (!in_array(array_get($custom_column, 'column_type'), ['select_table', Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+        if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
             return [];
         }
         // get select_target_table

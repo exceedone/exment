@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\AuthorityValue;
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
 
@@ -93,9 +94,9 @@ trait CustomTableTrait
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!Admin::user()->hasPermission(AuthorityValue::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(Define::AUTHORITY_VALUE_CUSTOM_TABLE);
+            $permission_tables = Admin::user()->allHasPermissionTables(AuthorityValue::CUSTOM_TABLE);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });

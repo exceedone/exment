@@ -8,6 +8,7 @@ use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\MailTemplate;
+use Exceedone\Exment\Enums\MailTemplateType;
 
 class MailTemplateController extends AdminControllerBase
 {
@@ -63,11 +64,11 @@ class MailTemplateController extends AdminControllerBase
             ->help(exmtrans("mail_template.help.mail_view_name"));
         
         $form->select('mail_template_type', exmtrans("mail_template.mail_template_type"))->required()
-            ->options(getTransArray(Define::MAIL_TEMPLATE_TYPE, 'mail_template.mail_template_type_options'))
-            ->default(Define::MAIL_TEMPLATE_TYPE_BODY);
+            ->options(MailTemplateType::trans('mail_template.mail_template_type_options'))
+            ->default(MailTemplateType::BODY);
 
         $form->text('mail_subject', exmtrans("mail_template.mail_subject"))
-            ->rules("required_if:mail_template_type,".Define::MAIL_TEMPLATE_TYPE_BODY)
+            ->rules("required_if:mail_template_type,".MailTemplateType::BODY)
             ->help(exmtrans("mail_template.help.mail_subject"));
             
         $form->textarea('mail_body', exmtrans("mail_template.mail_body"))->rows(10)

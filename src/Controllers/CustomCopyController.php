@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\AuthorityValue;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\Request as Req;
 
@@ -35,7 +36,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -50,7 +51,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomCopy::class, $id, 'copy')) {
@@ -67,7 +68,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);

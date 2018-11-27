@@ -8,6 +8,8 @@ use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\Authority as AuthorityEnum;
 
 class AuthorityController extends AdminControllerBase
 {
@@ -48,7 +50,7 @@ class AuthorityController extends AdminControllerBase
                 </button>
                 <ul class="dropdown-menu" role="menu">';
             // loop for authority types
-            foreach (getTransArray(Define::AUTHORITY_TYPES, "authority.authority_type_options") as $authority_type => $label) {
+            foreach (AuthorityType::trans("authority.authority_type_options") as $authority_type => $label) {
                 $addNewBtn .= '<li><a href="'.$base_uri.'?authority_type='.$authority_type.'">'.$label.'</a></li>';
             }
             $addNewBtn .= '</ul></div>';
@@ -97,7 +99,8 @@ class AuthorityController extends AdminControllerBase
         // create permissons looping
         $form->embeds('permissions', exmtrans('authority.permissions'), function ($form) use ($authority_type) {
             // authority define
-            foreach (Define::AUTHORITIES[$authority_type] as $authority_define) {
+            $authorities = AuthorityEnum::getAuthorityType($authority_type);
+            foreach ($authorities as $authority_define) {
                 $transArray = exmtrans("authority.authority_type_option_$authority_type.$authority_define");
                 $form->switchbool($authority_define, array_get($transArray, 'label'))->help(array_get($transArray, 'help'));
             }

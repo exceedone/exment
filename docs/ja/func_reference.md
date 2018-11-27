@@ -191,7 +191,7 @@ UUIDを作成します。
 | string | カスタム列名 |
 
 
-#### getColumnNameByTable
+#### getIndexColumnNameByTable
 ---
 テーブルも指定して、カスタム列の列名を取得します。  
 ※この列名は、「検索可能」フィールドに使用します。  

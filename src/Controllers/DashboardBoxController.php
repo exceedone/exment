@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\DashboardBoxType;
 
 class DashboardBoxController extends AdminControllerBase
 {
@@ -71,7 +72,7 @@ class DashboardBoxController extends AdminControllerBase
             // swicth dashboard_box_type
             switch ($box->dashboard_box_type) {
                 // system
-                case Define::DASHBOARD_BOX_TYPE_SYSTEM:
+                case DashboardBoxType::SYSTEM:
                     // get id match item
                     $item = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($box) {
                         return array_get($value, 'id') == array_get($box, 'options.target_system_id');
@@ -81,7 +82,7 @@ class DashboardBoxController extends AdminControllerBase
                     }
                     break;
                 // list
-                case Define::DASHBOARD_BOX_TYPE_LIST:
+                case DashboardBoxType::LIST:
                     // get target table and view
                     $table_id = array_get($box, 'options.target_table_id');
                     $view_id = array_get($box, 'options.target_view_id');
@@ -166,7 +167,7 @@ class DashboardBoxController extends AdminControllerBase
         $form->embeds('options', function ($form) use ($dashboard_box_type) {
             //$dashboard_box_type is list
             switch ($dashboard_box_type) {
-                case Define::DASHBOARD_BOX_TYPE_LIST:
+                case DashboardBoxType::LIST:
                     $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
                         ->required()
                         ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
@@ -184,7 +185,7 @@ class DashboardBoxController extends AdminControllerBase
                     break;
                 
                 // $dashboard_box_type is system
-                case Define::DASHBOARD_BOX_TYPE_SYSTEM:
+                case DashboardBoxType::SYSTEM:
                     // show system item list
                     $options = [];
                     foreach (Define::DASHBOARD_BOX_SYSTEM_PAGES as $page) {

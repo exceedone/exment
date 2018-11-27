@@ -1,17 +1,20 @@
 <?php
-use \Exceedone\Exment\Services\ClassBuilder;
-use \Exceedone\Exment\Model\Define;
-use \Exceedone\Exment\Model\System;
-use \Exceedone\Exment\Model\File;
-use \Exceedone\Exment\Model\Authority;
-use \Exceedone\Exment\Model\CustomTable;
-use \Exceedone\Exment\Model\CustomColumn;
-use \Exceedone\Exment\Model\CustomRelation;
-use \Exceedone\Exment\Model\CustomValue;
-use \Exceedone\Exment\Model\CustomViewColumn;
-use \Exceedone\Exment\Model\CustomView;
-use \Exceedone\Exment\Model\ModelBase;
-use \Illuminate\Support\Str;
+use Exceedone\Exment\Services\ClassBuilder;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\ModelBase;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -221,7 +224,7 @@ if (!function_exists('file_ext')) {
 if (!function_exists('file_ext_strip')) {
     /**
      * Returns the file name, less the extension.
-     */ 
+     */
     function file_ext_strip($filename)
     {
         return preg_replace('/.[^.]*$/', '', $filename);
@@ -520,13 +523,13 @@ if (!function_exists('getIndexColumnName')) {
     }
 }
 
-if (!function_exists('getColumnNameByTable')) {
+if (!function_exists('getIndexColumnNameByTable')) {
     /**
      * Get column name using table model.
      * @param string|CustomTable|array $obj
      * @return string
      */
-    function getColumnNameByTable($table_obj, $column_name)
+    function getIndexColumnNameByTable($table_obj, $column_name)
     {
         // get column eloquent
         $column_obj = CustomColumn::getEloquent($column_name, $table_obj);
@@ -782,7 +785,7 @@ if (!function_exists('getValueUseTable')) {
             $target_table_key = null;
             if ($column_type == 'select_table') {
                 $target_table_key = array_get($column_array, 'options.select_target_table');
-            } elseif (in_array($column_type, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION])) {
+            } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
                 $target_table_key = $column_type;
             }
             $target_table = CustomTable::getEloquent($target_table_key);
@@ -1062,14 +1065,14 @@ if (!function_exists('getAuthorityUser')) {
 
         // get user or organiztion ids
         $target_ids = DB::table('authorities as a')
-            ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
             ->whereIn('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM);
+                    $query->where('morph_type', AuthorityType::SYSTEM);
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                    $query->where('morph_type', AuthorityType::TABLE)
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id');
@@ -1206,6 +1209,9 @@ if (!function_exists('getTransArray')) {
      */
     function getTransArray($array, $base_key, $isExment = true)
     {
+        if($array instanceof \MyCLabs\Enum\Enum){
+            $array = array_flatten($array::toArray());
+        }
         $associative_array = [];
         foreach ($array as $key) {
             $associative_array[$key] = $isExment ? exmtrans("$base_key.$key") : trans("$base_key.$key");
@@ -1228,9 +1234,7 @@ if (!function_exists('getTransArrayValue')) {
     }
 }
 
-
 // laravel-admin --------------------------------------------------
-
 if (!function_exists('disableFormFooter')) {
     /**
      * disable form footer items
@@ -1250,6 +1254,7 @@ if (!function_exists('disableFormFooter')) {
         });
     }
 }
+
 if (!function_exists('isGetOptions')) {
     /**
      * get options for select, multipleselect.
@@ -1282,15 +1287,15 @@ if (!function_exists('getOptions')) {
         if (is_null($table)) {
             return [];
         }
-        if(is_null($target_table)){
+        if (is_null($target_table)) {
             $target_table = $table;
         }
         
         // get query.
         // if user or organization, get from getAuthorityUserOrOrg
-        if(in_array($table, [Define::SYSTEM_TABLE_NAME_USER, Define::SYSTEM_TABLE_NAME_ORGANIZATION]) && !$all){
-           $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
-        }else{
+        if (in_array($table, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
+            $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
+        } else {
             $query = getOptionsQuery($table);
         }
 
@@ -1434,7 +1439,7 @@ if (!function_exists('getColumnsSelectOptions')) {
         $options = [];
         
         ///// get system columns
-        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option) {
+        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
             // not header, continue
             if (!boolval(array_get($option, 'header'))) {
                 continue;
@@ -1458,7 +1463,7 @@ if (!function_exists('getColumnsSelectOptions')) {
             $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
         }
         ///// get system columns
-        foreach (Define::VIEW_COLUMN_SYSTEM_OPTIONS as $option) {
+        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
             // not footer, continue
             if (!boolval(array_get($option, 'footer'))) {
                 continue;
@@ -1591,4 +1596,3 @@ if (!function_exists('useLoginProvider')) {
         return !is_nullorempty(config('exment.login_providers'));
     }
 }
-

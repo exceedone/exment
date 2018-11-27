@@ -13,6 +13,10 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\UserSetting;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Carbon\Carbon;
 
 trait HasPermissions
@@ -67,7 +71,7 @@ trait HasPermissions
         $permissions = $this->allPermissions();
         foreach ($permissions as $permission) {
             // if authority type is system, and has key
-            if ($permission->getAuthorityType() == Define::AUTHORITY_TYPE_SYSTEM
+            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
                 && array_keys_exists($authority_key, $permission->getAuthorities())) {
                 return true;
             }
@@ -93,13 +97,13 @@ trait HasPermissions
         $permissions = $this->allPermissions();
         foreach ($permissions as $permission) {
             // if authority type is system, and has key
-            if ($permission->getAuthorityType() == Define::AUTHORITY_TYPE_SYSTEM
+            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
                 && array_keys_exists($authority_key, $permission->getAuthorities())) {
                 return true;
             }
 
             // if authority type is table, and match table name
-            elseif ($permission->getAuthorityType() == Define::AUTHORITY_TYPE_TABLE && $permission->getTableName() == $table_name) {
+            elseif (AuthorityType::TABLE()->match($permission->getAuthorityType()) && $permission->getTableName() == $table_name) {
                 // if user has authority
                 if (array_keys_exists($authority_key, $permission->getAuthorities())) {
                     return true;
@@ -126,7 +130,7 @@ trait HasPermissions
 
         $permissions = [];
         foreach ($authorities as $key => $authority) {
-            if ($key == Define::AUTHORITY_TYPE_SYSTEM) {
+            if (AuthorityType::SYSTEM()->match($key)) {
                 array_push($permissions, new Permission([
                     'authority_type' =>$key,
                     'table_name' => null,
@@ -220,19 +224,19 @@ trait HasPermissions
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (!$this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
             return true;
         }
 
         $model = getModelName($table_name)::find($id);
         // else, get model using value_authoritable.
         // if count > 0, return true.
-        $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER);
+        $rows = $model->getAuthoritable(SystemTableName::USER);
         if (isset($rows) && count($rows) > 0) {
             return true;
         }
@@ -240,7 +244,7 @@ trait HasPermissions
         // else, get model using value_authoritable. (only that system uses organization.)
         // if count > 0, return true.
         if (System::organization_available()) {
-            $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
+            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
             if (isset($rows) && count($rows) > 0) {
                 return true;
             }
@@ -261,12 +265,12 @@ trait HasPermissions
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
             return true;
         }
 
@@ -278,7 +282,7 @@ trait HasPermissions
         // else, get model using value_authoritable.
         $model = getModelName($table_name)::find($id);
         // if count > 0, return true.
-        $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_USER);
+        $rows = $model->getAuthoritable(SystemTableName::USER);
         if (isset($rows) && count($rows) > 0) {
             return true;
         }
@@ -286,7 +290,7 @@ trait HasPermissions
         // else, get model using value_authoritable. (only that system uses organization.)
         // if count > 0, return true.
         if (System::organization_available()) {
-            $rows = $model->getAuthoritable(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
+            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
             if (isset($rows) && count($rows) > 0) {
                 return true;
             }
@@ -315,44 +319,44 @@ trait HasPermissions
                 // get filter condition
                 switch ($view_filter_condition) {
                     // equal
-                    case Define::VIEW_COLUMN_FILTER_OPTION_EQ:
+                    case ViewColumnFilterOption::EQ:
                         $model = $model->where($view_filter_target, $condition_value_text);
                         break;
                     // not equal
-                    case Define::VIEW_COLUMN_FILTER_OPTION_NE:
+                    case ViewColumnFilterOption::NE:
                         $model = $model->where($view_filter_target, '<>', $condition_value_text);
                         break;
                     // not null
-                    case Define::VIEW_COLUMN_FILTER_OPTION_NOT_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NOT_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NOT_NULL:
+                    case ViewColumnFilterOption::NOT_NULL:
+                    case ViewColumnFilterOption::DAY_NOT_NULL:
+                    case ViewColumnFilterOption::USER_NOT_NULL:
                         $model = $model->whereNotNull($view_filter_target);
                         break;
                     // null
-                    case Define::VIEW_COLUMN_FILTER_OPTION_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NULL:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NULL:
+                    case ViewColumnFilterOption::NULL:
+                    case ViewColumnFilterOption::DAY_NULL:
+                    case ViewColumnFilterOption::USER_NULL:
                         $model = $model->whereNull($view_filter_target);
                         break;
                     
                     // for date --------------------------------------------------
                     // date equal day
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_ON:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_YESTERDAY:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TOMORROW:
+                    case ViewColumnFilterOption::DAY_ON:
+                    case ViewColumnFilterOption::DAY_YESTERDAY:
+                    case ViewColumnFilterOption::DAY_TODAY:
+                    case ViewColumnFilterOption::DAY_TOMORROW:
                         // get target day
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_ON:
+                            case ViewColumnFilterOption::DAY_ON:
                                 $value_day = Carbon::parse($condition_value_text);
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_YESTERDAY:
+                            case ViewColumnFilterOption::DAY_YESTERDAY:
                                 $value_day = Carbon::yesterday();
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TODAY:
+                            case ViewColumnFilterOption::DAY_TODAY:
                                 $value_day = Carbon::today();
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_TOMORROW:
+                            case ViewColumnFilterOption::DAY_TOMORROW:
                                 $value_day = Carbon::tomorow();
                                 break;
                         }
@@ -360,18 +364,18 @@ trait HasPermissions
                         break;
                         
                     // date equal month
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_MONTH:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_MONTH:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_MONTH:
+                    case ViewColumnFilterOption::DAY_THIS_MONTH:
+                    case ViewColumnFilterOption::DAY_LAST_MONTH:
+                    case ViewColumnFilterOption::DAY_NEXT_MONTH:
                         // get target month
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_MONTH:
+                            case ViewColumnFilterOption::DAY_THIS_MONTH:
                                 $value_day = new Carbon('first day of this month');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_MONTH:
+                            case ViewColumnFilterOption::DAY_LAST_MONTH:
                                 $value_day = new Carbon('first day of last month');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_MONTH:
+                            case ViewColumnFilterOption::DAY_NEXT_MONTH:
                                 $value_day = new Carbon('first day of next month');
                                 break;
                         }
@@ -379,18 +383,18 @@ trait HasPermissions
                         break;
                         
                     // date equal year
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_YEAR:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_YEAR:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_YEAR:
+                    case ViewColumnFilterOption::DAY_THIS_YEAR:
+                    case ViewColumnFilterOption::DAY_LAST_YEAR:
+                    case ViewColumnFilterOption::DAY_NEXT_YEAR:
                         // get target year
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_THIS_YEAR:
+                            case ViewColumnFilterOption::DAY_THIS_YEAR:
                                 $value_day = new Carbon('first day of this year');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_YEAR:
+                            case ViewColumnFilterOption::DAY_LAST_YEAR:
                                 $value_day = new Carbon('first day of last year');
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_YEAR:
+                            case ViewColumnFilterOption::DAY_NEXT_YEAR:
                                 $value_day = new Carbon('first day of next year');
                                 break;
                         }
@@ -398,26 +402,26 @@ trait HasPermissions
                         break;
                         
                     // date and X days before or after
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_AFTER:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_BEFORE:
-                    case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE:
+                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
                         $today = Carbon::today();
                         // get target day and where mark
                         switch ($view_filter_condition) {
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_AFTER:
+                            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
                                 $target_day = $today->addDay(-1 * intval($condition_value_text));
                                 $mark = ">=";
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_AFTER:
+                            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
                                 $target_day = $today->addDay(intval($condition_value_text));
                                 $mark = ">=";
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_LAST_X_DAY_OR_BEFORE:
+                            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
                                 $target_day = $today->addDay(-1 * intval($condition_value_text));
                                 $mark = "<=";
                                 break;
-                            case Define::VIEW_COLUMN_FILTER_OPTION_DAY_NEXT_X_DAY_OR_BEFORE:
+                            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
                                 $target_day = $today->addDay(intval($condition_value_text));
                                 $mark = "<=";
                                 break;
@@ -426,10 +430,10 @@ trait HasPermissions
                         break;
                         
                     // for user --------------------------------------------------
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_EQ_USER:
+                    case ViewColumnFilterOption::USER_EQ_USER:
                         $model = $model->where($view_filter_target, Admin::user()->base_user()->id);
                         break;
-                    case Define::VIEW_COLUMN_FILTER_OPTION_USER_NE_USER:
+                    case ViewColumnFilterOption::USER_NE_USER:
                         $model = $model->where($view_filter_target, '<>', Admin::user()->base_user()->id);
                            
                 }
@@ -438,12 +442,12 @@ trait HasPermissions
 
         // system filter(using system authority) --------------------------------------------------
         // if user has all edit table, return. (nothing doing)
-        if ($this->hasPermissionTable($table_name, Define::AUTHORITY_VALUE_CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
             return $model;
         }
 
         // if user has edit or view table
-        if (Admin::user()->hasPermissionTable($table_name, Define::AUTHORITY_VALUES_AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (Admin::user()->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             // get only has authority
             $model = $model
                  ->whereHas('value_authoritable_users', function ($q) {
@@ -471,9 +475,9 @@ trait HasPermissions
         }
 
         // get organization ids.
-        getModelName(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
-        $db_table_name_organization = getDBTableName(Define::SYSTEM_TABLE_NAME_ORGANIZATION);
-        $db_table_name_pivot = getRelationNamebyObjs(Define::SYSTEM_TABLE_NAME_ORGANIZATION, Define::SYSTEM_TABLE_NAME_USER);
+        getModelName(SystemTableName::ORGANIZATION);
+        $db_table_name_organization = getDBTableName(SystemTableName::ORGANIZATION);
+        $db_table_name_pivot = getRelationNamebyObjs(SystemTableName::ORGANIZATION, SystemTableName::USER);
         $ids = DB::table($db_table_name_organization.' AS o1')
            ->leftJoin($db_table_name_organization.' AS o2', 'o2.parent_id', '=', 'o1.id')
            ->leftJoin($db_table_name_organization.' AS o3', 'o3.parent_id', '=', 'o3.id')
@@ -498,8 +502,8 @@ trait HasPermissions
         $permission_tables = $this->getCustomTablePermissions();
 
         Session::put(Define::SYSTEM_KEY_SESSION_AUTHORITY, [
-            Define::AUTHORITY_TYPE_SYSTEM => $permission_system_auths,
-            Define::AUTHORITY_TYPE_TABLE => $permission_tables]);
+            AuthorityType::SYSTEM => $permission_system_auths,
+            AuthorityType::TABLE => $permission_tables]);
         Session::put(Define::SYSTEM_KEY_SESSION_INITIALIZE, true);
 
         return Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
@@ -516,13 +520,13 @@ trait HasPermissions
         $authorities = [];
         for ($i = 0; $i < 2; $i++) {
             $query = DB::table('authorities as a')
-                ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
-                ->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                ->where('morph_type', AuthorityType::TABLE())
                 ;
             // if $i == 0, then search as user
             if ($i == 0) {
-                $query = $query->where('related_type', Define::SYSTEM_TABLE_NAME_USER)
+                $query = $query->where('related_type', SystemTableName::USER)
                     ->where('related_id', Admin::user()->base_user_id);
             }
             // else then search as org.
@@ -579,15 +583,15 @@ trait HasPermissions
 
         // get all permissons for system. --------------------------------------------------
         $authorities = DB::table('authorities as a')
-            ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
-            ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+            ->where('morph_type', AuthorityType::SYSTEM())
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {
-                    $query->where('related_type', Define::SYSTEM_TABLE_NAME_USER)
+                    $query->where('related_type', SystemTableName::USER)
                     ->where('related_id', Admin::user()->base_user_id);
                 });
                 $query->orWhere(function ($query) use ($organization_ids) {
-                    $query->where('related_type', Define::SYSTEM_TABLE_NAME_ORGANIZATION)
+                    $query->where('related_type', SystemTableName::ORGANIZATION)
                     ->whereIn('related_id', $organization_ids);
                 });
             })->get(['id', 'permissions'])->toArray();

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Services\Uuids;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Response;
@@ -31,7 +32,7 @@ class File extends ModelBase
      */
     public function saveDocumentModel($custom_value, $document_name){
         // save Document Model
-        $modelname = getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT);
+        $modelname = getModelName(SystemTableName::DOCUMENT);
         $document_model = new $modelname;
         $document_model->parent_id = $custom_value->id;
         $document_model->parent_type = $custom_value->getCustomTable()->table_name;
@@ -165,10 +166,10 @@ class File extends ModelBase
 
         // if has document, remove document info
         if (boolval($options['removeDocumentInfo'])) {
-            $column_name = getColumnNameByTable(Define::SYSTEM_TABLE_NAME_DOCUMENT, 'file_uuid');
+            $column_name = getIndexColumnNameByTable(SystemTableName::DOCUMENT, 'file_uuid');
         
             // delete document info
-            getModelName(Define::SYSTEM_TABLE_NAME_DOCUMENT)
+            getModelName(SystemTableName::DOCUMENT)
             ::where($column_name, $uuid)
             ->delete();
         }

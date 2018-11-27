@@ -12,6 +12,11 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -46,7 +51,7 @@ class CustomViewController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
@@ -64,7 +69,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -142,7 +147,7 @@ class CustomViewController extends AdminControllerTableBase
                     }
 
                     ///// To find filter condition array group, filter id
-                    foreach (Define::VIEW_COLUMN_FILTER_OPTIONS as $key => $filter_option_blocks) {
+                    foreach (ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS() as $key => $filter_option_blocks) {
                         // if match id, return $filter_option_blocks;
                         if (!is_null(collect($filter_option_blocks)->first(function ($array) use ($val) {
                             return array_get($array, 'id') == $val;
@@ -192,27 +197,27 @@ class CustomViewController extends AdminControllerTableBase
             switch ($database_column_type) {
                 case 'date':
                 case 'datetime':
-                    $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DAY;
+                    $column_type = ViewColumnFilterType::DAY;
                     break;
-                case Define::SYSTEM_TABLE_NAME_USER:
-                    $column_type = Define::VIEW_COLUMN_FILTER_TYPE_USER;
+                case SystemTableName::USER:
+                    $column_type = ViewColumnFilterType::USER;
                     break;
                 default:
-                    $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DEFAULT;
+                    $column_type = ViewColumnFilterType::DEFAULT;
             }
         } else {
             switch ($view_filter_target) {
                 case 'id':
                 case 'suuid':
-                    $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DEFAULT;
+                    $column_type = ViewColumnFilterType::DEFAULT;
                     break;
                 case 'created_at':
                 case 'updated_at':
-                    $column_type = Define::VIEW_COLUMN_FILTER_TYPE_DAY;
+                    $column_type = ViewColumnFilterType::DAY;
                     break;
                 case 'created_user':
                 case 'updated_user':
-                    $column_type = Define::VIEW_COLUMN_FILTER_TYPE_USER;
+                    $column_type = ViewColumnFilterType::USER;
                     break;
             }
         }
@@ -223,7 +228,7 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // get target array
-        $options = array_get(Define::VIEW_COLUMN_FILTER_OPTIONS, $column_type);
+        $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.filter_condition_options.'.array_get($array, 'name'))];
         });

@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
@@ -314,7 +315,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUES_AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return false;
         }
             

@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;
 
@@ -25,7 +27,7 @@ class GridChangeView extends AbstractTool
         $custom_views = $this->custom_table->custom_views;
 
         foreach ($custom_views as $v) {
-            if ($v->view_type == Define::VIEW_COLUMN_TYPE_SYSTEM) {
+            if ($v->view_type == ViewColumnType::SYSTEM) {
                 $systemviews[] = $v->toArray();
             } else {
                 $userviews[] = $v->toArray();
@@ -35,7 +37,7 @@ class GridChangeView extends AbstractTool
         // setting menu list
         $settings = [];
         //authority check
-        if (Admin::user()->hasPermission(Define::AUTHORITY_VALUE_CUSTOM_VIEW)) {
+        if (Admin::user()->hasPermission(AuthorityValue::CUSTOM_VIEW)) {
             $settings[] = ['url' => admin_base_path(url_join('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit')), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
             $settings[] = ['url' => admin_base_path(url_join('view', $this->custom_table->table_name, 'create')), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
         }

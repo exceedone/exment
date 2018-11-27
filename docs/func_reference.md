@@ -191,7 +191,7 @@ Gets column name of custom column.
 | string | custom column name |
 
 
-#### getColumnNameByTable
+#### getIndexColumnNameByTable
 ---
 We also specify the table and get the column name of the custom column.  
 * This column name is used for "Searchable" field.  

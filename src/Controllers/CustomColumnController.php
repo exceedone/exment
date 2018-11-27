@@ -13,6 +13,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ColumnType;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -34,7 +36,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -51,7 +53,7 @@ class CustomColumnController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
@@ -69,7 +71,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Define::AUTHORITY_VALUE_CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -88,7 +90,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
-            return esc_html(array_get(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"), $val));
+            return esc_html(array_get(ColumnType::trans("custom_column.column_type_options"), $val));
         });
 
         if (isset($this->custom_table)) {
@@ -116,7 +118,7 @@ class CustomColumnController extends AdminControllerTableBase
             $filter->equal('column_name', exmtrans("custom_column.column_name"));
             $filter->equal('column_view_name', exmtrans("custom_column.column_view_name"));
             $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
-                return array_get(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"), $val);
+                return array_get(ColumnType::trans("custom_column.column_type_options"), $val);
             });
         });
         return $grid;
@@ -151,7 +153,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form->text('column_view_name', exmtrans("custom_column.column_view_name"))->required();
         $form->select('column_type', exmtrans("custom_column.column_type"))
-        ->options(getTransArray(Define::TABLE_COLUMN_TYPE, "custom_column.column_type_options"))
+        ->options(ColumnType::trans("custom_column.column_type_options"))
         ->attribute(['data-filtertrigger' =>true])
         ->required();
 
@@ -179,43 +181,43 @@ class CustomColumnController extends AdminControllerTableBase
             // string length
             $form->number('string_length', exmtrans("custom_column.options.string_length"))
                 ->default(256)
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['text','textarea']])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT, ColumnType::TEXTAREA]])]);
 
             $form->checkbox('available_characters', exmtrans("custom_column.options.available_characters"))
                 ->options(getTransArray(Define::CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS, 'custom_column.available_characters'))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['text']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
                     
             // number
-            //if(in_array($column_type, ['integer','decimal'])){
+            //if(in_array($column_type, [ColumnType::INTEGER,ColumnType::DECIMAL])){
             $form->number('number_min', exmtrans("custom_column.options.number_min"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal', 'currency']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
                 ->disableUpdown()
                 ->defaultEmpty();
             $form->number('number_max', exmtrans("custom_column.options.number_max"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal', 'currency']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
                 ->disableUpdown()
                 ->defaultEmpty();
             
             $form->switchbool('number_format', exmtrans("custom_column.options.number_format"))
                     ->help(exmtrans("custom_column.help.number_format"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer','decimal','calc', 'currency']])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])]);
 
             $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
                 ->help(exmtrans("custom_column.help.updown_button"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['integer']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::INTEGER]])])
                 ;
             
             $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['decimal', 'currency']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL, ColumnType::CURRENCY]])])
                 ->default(2)
                 ->min(0)
                 ->max(8);
 
             $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
                 ->help(exmtrans("custom_column.help.currency_symbol"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['currency']])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::CURRENCY]])])
                 ->options(function ($option) {
                     // create options
                     $options = [];
@@ -232,12 +234,12 @@ class CustomColumnController extends AdminControllerTableBase
             $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
                     //->rules('required')
                     ->help(exmtrans("custom_column.help.select_item"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'select'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT])]);
             // define select-item
             $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
                     //->rules('required')
                     ->help(exmtrans("custom_column.help.select_item_valtext"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'select_valtext'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_VALTEXT])]);
 
             // define select-target table
             $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
@@ -247,29 +249,29 @@ class CustomColumnController extends AdminControllerTableBase
                         $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
                         return $options;
                     })
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'select_table'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE])]);
 
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
                     //->rules('required')
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'boolean'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
             $form->text('true_label', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_label"))
                     //->rules('required')
                     ->default(exmtrans("custom_column.options.true_label_default"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'boolean'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
                 
             $form->text('false_value', exmtrans("custom_column.options.false_value"))
                     ->help(exmtrans("custom_column.help.false_value"))
                     //->rules('required')
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'boolean'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
             $form->text('false_label', exmtrans("custom_column.options.false_label"))
                     ->help(exmtrans("custom_column.help.false_label"))
                     //->rules('required')
                     ->default(exmtrans("custom_column.options.false_label_default"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'boolean'])]);
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
             // auto numbering
             $form->select('auto_number_type', exmtrans("custom_column.options.auto_number_type"))
@@ -280,7 +282,7 @@ class CustomColumnController extends AdminControllerTableBase
                         'random25' => exmtrans("custom_column.options.auto_number_type_random25"),
                         'random32' => exmtrans("custom_column.options.auto_number_type_random32")]
                     )
-                    ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => 'auto_number'])]);
+                    ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER])]);
 
             // set manual
             $manual_url = getManualUrl('column#自動採番フォーマットのルール');
@@ -292,7 +294,7 @@ class CustomColumnController extends AdminControllerTableBase
             // calc
             $custom_table = $this->custom_table;
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => Define::TABLE_COLUMN_TYPE_CALC])])
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
                 ->help(exmtrans("custom_column.help.calc_formula"))
                 ->text(function ($value) {
                     /////TODO:copy and paste
@@ -336,7 +338,7 @@ class CustomColumnController extends AdminControllerTableBase
                     // return $id is null(calling create fuction) or not match $id and row id.
                     $custom_columns = $custom_table->custom_columns->filter(function ($column) use ($id) {
                         return (!isset($id) || $id != array_get($column, 'id'))
-                            && in_array(array_get($column, 'column_type'), Define::TABLE_COLUMN_TYPE_CALC);
+                            && in_array(array_get($column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
                     })->toArray();
                     
                     if (!isset($value)) {
@@ -382,7 +384,7 @@ class CustomColumnController extends AdminControllerTableBase
             // image, file, select
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ['select_table', 'select', 'select_valtext', 'user', 'organization']])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::SELECT, ColumnType::SELECT_VALTEXT, 'user', 'organization']])]);
         })->disableHeader();
 
         $form->saved(function (Form $form) {

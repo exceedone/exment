@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Schema;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class Authority extends ModelBase
 {
@@ -29,10 +31,10 @@ class Authority extends ModelBase
         // get Authority setting
         $authorities = Authority::where('authority_type', $related_type)->get();
         foreach ($authorities as $authority) {
-            $related_types = [Define::SYSTEM_TABLE_NAME_USER];
+            $related_types = [SystemTableName::USER];
             // if use organization, add
             if (System::organization_available()) {
-                $related_types[] = Define::SYSTEM_TABLE_NAME_ORGANIZATION;
+                $related_types[] = SystemTableName::ORGANIZATION;
             }
             foreach ($related_types as $related_type) {
                 $callback($authority, $related_type);
@@ -52,14 +54,14 @@ class Authority extends ModelBase
     
         // get user or organiztion ids
         $target_ids = \DB::table('authorities as a')
-                ->join(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
                 ->where('related_type', $related_type)
                 ->where(function ($query) use ($target_table) {
                     $query->orWhere(function ($query) {
-                        $query->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM);
+                        $query->where('morph_type', AuthorityType::SYSTEM);
                     });
                     $query->orWhere(function ($query) use ($target_table) {
-                        $query->where('morph_type', Define::AUTHORITY_TYPE_TABLE)
+                        $query->where('morph_type', AuthorityType::TABLE)
                         ->where('morph_id', $target_table->id);
                     });
                 })->get(['related_id'])->pluck('related_id');

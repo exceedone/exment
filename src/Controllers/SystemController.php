@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
 
@@ -31,7 +33,7 @@ class SystemController extends AdminControllerBase
         $form->action('system');
 
         // Authority Setting
-        $this->addAuthorityForm($form, Define::AUTHORITY_TYPE_SYSTEM);
+        $this->addAuthorityForm($form, AuthorityType::SYSTEM);
 
         $content->row(new Box(trans('admin.edit'), $form));
         return $content;
@@ -51,7 +53,7 @@ class SystemController extends AdminControllerBase
             }
 
             // Set Authority
-            Authority::authorityLoop(Define::AUTHORITY_TYPE_SYSTEM, function ($authority, $related_type) use ($request) {
+            Authority::authorityLoop(AuthorityType::SYSTEM(), function ($authority, $related_type) use ($request) {
                 $values = $request->input(getAuthorityName($authority, $related_type));
                 // array_filter
                 $values = array_filter($values, function ($k) {
@@ -62,9 +64,9 @@ class SystemController extends AdminControllerBase
                 }
 
                 // get DB system_authoritable values
-                $dbValues = DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)
+                $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                     ->where('related_type', $related_type)
-                    ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
+                    ->where('morph_type', AuthorityType::SYSTEM())
                     ->where('authority_id', $authority->id)
                     ->get(['related_id']);
                 foreach ($values as $value) {
@@ -75,12 +77,12 @@ class SystemController extends AdminControllerBase
                     if (!$dbValues->first(function ($dbValue, $k) use ($value) {
                         return $dbValue->related_id == $value;
                     })) {
-                        DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)->insert(
+                        DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
                         [
                             'related_id' => $value,
                             'related_type' => $related_type,
                             'morph_id' => null,
-                            'morph_type' => Define::AUTHORITY_TYPE_SYSTEM,
+                            'morph_type' => AuthorityType::SYSTEM(),
                             'authority_id' => $authority->id,
                         ]
                     );
@@ -92,10 +94,10 @@ class SystemController extends AdminControllerBase
                     if (!collect($values)->first(function ($value, $k) use ($dbValue) {
                         return $dbValue->related_id == $value;
                     })) {
-                        DB::table(Define::SYSTEM_TABLE_NAME_SYSTEM_AUTHORITABLE)
+                        DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                         ->where('related_id', $dbValue->related_id)
                         ->where('related_type', $related_type)
-                        ->where('morph_type', Define::AUTHORITY_TYPE_SYSTEM)
+                        ->where('morph_type', AuthorityType::SYSTEM())
                         ->where('authority_id', $authority->id)
                         ->delete();
                     }
