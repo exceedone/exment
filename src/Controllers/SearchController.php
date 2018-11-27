@@ -65,7 +65,7 @@ class SearchController extends AdminControllerBase
                         'class': 'search-item-icon',
                         'html': [
                             $('<i/>', {
-                                'class': 'fa ' + item.options.icon
+                                'class': 'fa ' + item.icon
                             }),
                             $('<span/>', {
                                 'text': item.table_view_name,
