@@ -99,12 +99,6 @@ class PluginInstaller
         $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
         $tmpPluginFolderPath = null;
 
-        //Folder to move file uploaded
-        $pluginBasePath = path_join(app_path(), 'Plugins');
-        if (!\File::exists($pluginBasePath)) {
-            \File::makeDirectory($pluginBasePath, 0775);
-        }
-
         // open zip file
         $zip = new ZipArchive;
         //Define variable like flag to check exitsed file config (config.json) before extract zip file
@@ -144,11 +138,12 @@ class PluginInstaller
                     $plugineExistByName = static::checkPluginNameExisted(array_get($json, 'plugin_name'));
                     //Check if the uuid of the plugin has existed
                     $plugineExistByUUID = static::checkPluginUUIDExisted(array_get($json, 'uuid'));
-                    //Make path of folder where contain plugin with name is plugin's name
-                    $pluginFolder = path_join($pluginBasePath, pascalize(preg_replace('/\s+/', '', array_get($json, 'plugin_name'))));
-
+                    
                     //If json pass validation, prepare data to do continue
                     $plugin = static::prepareData($json);
+                    //Make path of folder where contain plugin with name is plugin's name
+                    $pluginFolder = $plugin->getFullPath();
+
                     //If both name and uuid existed, update data for this plugin
                     if ($plugineExistByName > 0 && $plugineExistByUUID > 0) {
                         $pluginUpdated = $plugin->saveOrFail();
@@ -397,7 +392,7 @@ class PluginInstaller
                 $event_triggers = array_get($plugin, 'options.event_triggers');
                 $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
-                $classname = getPluginNamespace($plugin->plugin_name, 'Plugin');
+                $classname = $plugin->getNameSpace('Plugin');
                 if (in_array($event, $event_triggers) && !in_array($event, $event_triggers_button) && class_exists($classname)) {
                     //$reponse = app('\App\Plugin\\'.$plugin->plugin_name.'\Plugin')->execute($event);
                     $pluginCalled = app($classname)->execute();

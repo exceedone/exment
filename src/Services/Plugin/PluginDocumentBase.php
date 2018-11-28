@@ -15,8 +15,9 @@ abstract class PluginDocumentBase
     protected $custom_value;
     protected $document_value;
 
-    public function __construct($custom_table, $custom_value_id)
+    public function __construct($plugin, $custom_table, $custom_value_id)
     {
+        $this->plugin = $plugin;
         $this->custom_table = $custom_table;
         $this->custom_value = getModelName($custom_table)::find($custom_value_id);
     }
@@ -38,7 +39,7 @@ abstract class PluginDocumentBase
 
         // set path and file info
         $path = $service->getFilePath();
-        $file = ExmentFile::saveFileInfo($path);
+        $file = ExmentFile::saveFileInfo($path, null, null, true);
 
         // save Document Model
         $document_model = $file->saveDocumentModel($this->custom_value, $service->getFileName());
@@ -72,12 +73,12 @@ abstract class PluginDocumentBase
         if ($result) {
             return ([
                 'result'  => true,
-                'message' => 'Create Document Success!!', //TODO:trans
+                'toastr' => 'Create Document Success!!', //TODO:trans
             ]);
         }
         return ([
             'result'  => false,
-            'message' => 'Create Document failure', //TODO:trans
+            'toastr' => 'Create Document failure', //TODO:trans
         ]);
     }
 
@@ -88,17 +89,21 @@ abstract class PluginDocumentBase
      */
     protected function getDocumentInfo()
     {
-        $reflector = new \ReflectionClass(get_class($this));
-        $dir_path = dirname($reflector->getFileName());
+        $default_document_name = "document".\Carbon\Carbon::now()->format('YmdHis');
+        $dir_path = $this->plugin->getFullPath();
         // read config.json
-        $document_json_path = path_join($dir_path, 'config.json');
-        $json = json_decode(File::get($document_json_path), true);
-
+        $document_json_path = $this->plugin->getFullPath('config.json');
+        if(!File::exists($document_json_path)){
+            $filename = $default_document_name;
+        }else{
+            $json = json_decode(File::get($document_json_path), true);
+            $filename = array_get($json, "filename", $default_document_name);   
+        }
         // return "filename" value
         // if not exists, document and date time
         return [
             path_join($dir_path, 'document.xlsx'),
-            array_get($json, "filename", "document".\Carbon\Carbon::now()->format('YmdHis'))
+            $filename
         ];
     }
     

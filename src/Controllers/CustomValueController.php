@@ -179,9 +179,9 @@ class CustomValueController extends AdminControllerTableBase
             });
         });
 
-        return response([
-            'status'  => true,
-            'message' => trans('admin.update_succeeded'),
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
         ]);
     }
  
@@ -203,8 +203,8 @@ class CustomValueController extends AdminControllerTableBase
         $custom_value = $this->getModelNameDV()::find($id);
         $document_model = $file->saveDocumentModel($custom_value, $filename);
         
-        return response([
-            'status'  => true,
+        return getAjaxResponse([
+            'result'  => true,
             'message' => trans('admin.update_succeeded'),
         ]);
     }
@@ -225,16 +225,17 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         
-        $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
-        if (class_exists($classname)) {
+        $classname = $plugin->getNameSpace('Plugin');
+        $fuleFullPath = $plugin->getFullPath('Plugin.php');
+        if (\File::exists($fuleFullPath) && class_exists($classname)) {
             switch (array_get($plugin, 'plugin_type')) {
                 case 'document':
-                    $class = new $classname($this->custom_table, $id);
+                    $class = new $classname($plugin, $this->custom_table, $id);
                     break;
             }
         } else {
             // set default class
-            $class = new PluginDocumentDefault($this->custom_table, $id);
+            $class = new PluginDocumentDefault($plugin, $this->custom_table, $id);
         }
         $response = $class->execute();
         if (isset($response)) {

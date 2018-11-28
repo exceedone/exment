@@ -182,24 +182,6 @@ if (!function_exists('getFullpath')) {
     }
 }
 
-
-if (!function_exists('getPluginNamespace')) {
-    function getPluginNamespace(...$pass_array)
-    {
-        $basename = 'App\Plugins';
-        if (isset($pass_array) && count($pass_array) > 0) {
-            // convert to pascal case
-            $pass_array = collect($pass_array)->map(function ($p) {
-                return pascalize($p);
-            })->toArray();
-
-            $pass_array = array_prepend($pass_array, $basename);
-            $basename = namespace_join($pass_array);
-        }
-        return $basename;
-    }
-}
-
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)
     {

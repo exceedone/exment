@@ -140,8 +140,8 @@ class PluginController extends AdminControllerBase
     //Check existed plugin uuid
     protected function checkPluginUUIDExisted($uuid)
     {
-        $plugin = DB::table('plugins')
-            ->where('uuid', '=', $uuid)
+        $plugin = Plugin
+            ::where('uuid', '=', $uuid)
             ->get();
         return count($plugin);
     }
@@ -149,8 +149,7 @@ class PluginController extends AdminControllerBase
     //Update record if existed both name and uuid
     protected function updateExistedPlugin($plugin)
     {
-        $pluginUpdate = DB::table('plugins')
-            ->where('plugin_name', '=', $plugin->plugin_name)
+        $pluginUpdate = Plugin::where('plugin_name', '=', $plugin->plugin_name)
             ->where('uuid', '=', $plugin->uuid)
             ->update(['author' => $plugin->author, 'version' => $plugin->version, 'plugin_type' => $plugin->plugin_type, 'description' => $plugin->description, 'plugin_view_name' => $plugin->plugin_view_name]);
         if ($pluginUpdate >= 0) {
@@ -192,26 +191,15 @@ class PluginController extends AdminControllerBase
     //Delete one or multi folder corresponds to the plugins
     protected function deleteFolder($id)
     {
-        $arrPlugin = array();
-        $appPath = app_path();
-        if (strpos($id, ',') !== false) {
-            $arrPlugin = explode(',', $id);
-            foreach ($arrPlugin as $item) {
-                $plugin = DB::table('plugins')
-                    ->where('id', '=', $item)
-                    ->first();
-                $pluginFolder = $appPath . '/plugins/' . strtolower(preg_replace('/\s+/', '', $plugin->plugin_name));
-                if (File::isDirectory($pluginFolder)) {
-                    File::deleteDirectory($pluginFolder);
-                }
+        $idlist = explode(",", $id);
+        foreach($idlist as $id){
+            $plugin = Plugin::find($id);
+            if(!isset($plugin)){
+                continue;
             }
-        } else {
-            $plugin = DB::table('plugins')
-                ->where('id', '=', $id)
-                ->first();
-            $pluginFolder = $appPath . '/plugins/' . strtolower(preg_replace('/\s+/', '', $plugin->plugin_name));
-            if (File::isDirectory($pluginFolder)) {
-                File::deleteDirectory($pluginFolder);
+            $folder = $plugin->getFullPath();
+            if (File::isDirectory($folder)) {
+                File::deleteDirectory($folder);
             }
         }
     }

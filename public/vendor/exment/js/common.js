@@ -37,16 +37,26 @@ var Exment;
          */
         static CallbackExmentAjax(res) {
             if (res.result === true) {
-                $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
-                    // put your default event here
-                    $(".modal").off("hidden.bs.modal");
+                if ($(".modal:visible").length > 0) {
+                    $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
+                        // put your default event here
+                        $(".modal").off("hidden.bs.modal");
+                        if (hasValue(res.redirect)) {
+                            $.pjax({ container: '#pjax-container', url: res.redirect });
+                        }
+                        else {
+                            $.pjax.reload('#pjax-container');
+                        }
+                    });
+                }
+                else {
                     if (hasValue(res.redirect)) {
                         $.pjax({ container: '#pjax-container', url: res.redirect });
                     }
                     else {
                         $.pjax.reload('#pjax-container');
                     }
-                });
+                }
                 // show toastr
                 if (hasValue(res.toastr)) {
                     toastr.success(res.toastr);
