@@ -3,10 +3,8 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Encore\Admin\Facades\Admin;
-use Carbon\Carbon;
 
 trait CustomTableTrait
 {

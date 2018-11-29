@@ -8,7 +8,6 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\HasResourceActions;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;

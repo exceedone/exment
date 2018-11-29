@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use \Exceedone\Exment\Model\Define;
 use \Exceedone\Exment\Model\System;
 use \Exceedone\Exment\Model\Authority;
 use \Exceedone\Exment\Model\CustomTable;

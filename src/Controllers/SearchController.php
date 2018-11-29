@@ -8,7 +8,6 @@ use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;

@@ -8,8 +8,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\CustomViewColumn;
-use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;

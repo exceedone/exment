@@ -1,10 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
-use Exceedone\Exment\Enums\ViewColumnFilterType;
 
 /**
  * Define short summary.

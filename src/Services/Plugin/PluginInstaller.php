@@ -6,7 +6,6 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\PluginType;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Router;
@@ -212,7 +211,7 @@ class PluginInstaller
     protected static function prepareData($json)
     {
         // find or new $plugin
-        $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
+        $plugin = Plugin::withTrashed()->firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
         $plugin->plugin_name = array_get($json, 'plugin_name');
         $plugin->plugin_type = array_get($json, 'plugin_type');
         $plugin->author = array_get($json, 'author');
@@ -248,7 +247,7 @@ class PluginInstaller
     protected static function checkPluginNameExisted($name)
     {
         return Plugin
-            ::where('plugin_name', '=', $name)
+            ::withTrashed()->where('plugin_name', '=', $name)
             ->count();
     }
 
@@ -256,7 +255,7 @@ class PluginInstaller
     protected static function checkPluginUUIDExisted($uuid)
     {
         return Plugin
-            ::where('uuid', '=', $uuid)
+            ::withTrashed()->where('uuid', '=', $uuid)
             ->count();
     }
 
@@ -287,63 +286,6 @@ class PluginInstaller
         }
         // copy folder
         File::copyDirectory($tmpPluginFolderPath, $pluginFolderPath);
-    }
-
-    //Delete record from database (one or multi records)
-    protected static function destroy($id)
-    {
-        static::deleteFolder($id);
-        if (static::form()->destroy($id)) {
-            return response()->json([
-                'status' => true,
-                'message' => trans('admin.delete_succeeded'),
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => trans('admin.delete_failed'),
-            ]);
-        }
-    }
-
-    //Delete one or multi folder corresponds to the plugins
-    protected static function deleteFolder($id)
-    {
-        $arrPlugin = array();
-        $appPath = app_path();
-        if (strpos($id, ',') !== false) {
-            $arrPlugin = explode(',', $id);
-            foreach ($arrPlugin as $item) {
-                $plugin = DB::table('plugins')
-                    ->where('id', '=', $item)
-                    ->first();
-                $pluginFolder = $appPath . '/plugins/' . strtolower(preg_replace('/\s+/', '', $plugin->plugin_name));
-                if (File::isDirectory($pluginFolder)) {
-                    File::deleteDirectory($pluginFolder);
-                }
-            }
-        } else {
-            $plugin = DB::table('plugins')
-                ->where('id', '=', $id)
-                ->first();
-            $pluginFolder = $appPath . '/plugins/' . strtolower(preg_replace('/\s+/', '', $plugin->plugin_name));
-            if (File::isDirectory($pluginFolder)) {
-                File::deleteDirectory($pluginFolder);
-            }
-        }
-    }
-
-    //Check request when edit record to delete null values in event_triggers
-    public static function update(Request $request, $id)
-    {
-        if (isset($request->get('options')['event_triggers']) === true) {
-            $event_triggers = $request->get('options')['event_triggers'];
-            $options = $request->get('options');
-            $event_triggers = array_filter($event_triggers, 'strlen');
-            $options['event_triggers'] = $event_triggers;
-            $request->merge(['options' => $options]);
-        }
-        return static::form()->update($id);
     }
 
     public static function route($plugin, $json)

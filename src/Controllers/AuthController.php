@@ -2,18 +2,15 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
-use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request as Req;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * For login controller

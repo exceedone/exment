@@ -1,9 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
-use Exceedone\Exment\Services\DocumentPdfService;
 use Exceedone\Exment\Services\DocumentExcelService;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Illuminate\Support\Facades\File;
 

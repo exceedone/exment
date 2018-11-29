@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;

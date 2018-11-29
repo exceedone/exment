@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 

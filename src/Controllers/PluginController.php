@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Widgets\Table;
 use Encore\Admin\Controllers\HasResourceActions;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
@@ -14,10 +13,8 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use File;
-use Validator;
 
 class PluginController extends AdminControllerBase
 {
@@ -92,83 +89,6 @@ class PluginController extends AdminControllerBase
         }
         // if not exists, return back and message
         return back()->with('errorMess', exmtrans("plugin.help.errorMess"));
-    }
-
-    //Function validate config.json file with field required
-    public function checkRuleConfigFile($json)
-    {
-        $rules = [
-            'plugin_name' => 'required',
-            'plugin_type' => 'required|in:trigger,page,dashboard,batch',
-            'plugin_view_name' => 'required',
-            'uuid' => 'required'
-        ];
-
-        //If pass validation return true, else return false
-        $validator = Validator::make($json, $rules);
-        if ($validator->passes()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    //Function prepare data to do continue
-    protected function prepareData($json, $plugin)
-    {
-        $plugin->plugin_name = $json['plugin_name'];
-        $plugin->plugin_type = $json['plugin_type'];
-        $plugin->author = $json['author'] ?? '';
-        $plugin->version = $json['version'] ?? '';
-        $plugin->uuid = $json['uuid'];
-        $plugin->plugin_view_name = $json['plugin_view_name'];
-        $plugin->description = $json['description'] ?? '';
-        $plugin->active_flg = true;
-
-        return $plugin;
-    }
-
-    //Check existed plugin name
-    protected function checkPluginNameExisted($name)
-    {
-        $plugin = DB::table('plugins')
-            ->where('plugin_name', '=', $name)
-            ->get();
-        return count($plugin);
-    }
-
-    //Check existed plugin uuid
-    protected function checkPluginUUIDExisted($uuid)
-    {
-        $plugin = Plugin
-            ::where('uuid', '=', $uuid)
-            ->get();
-        return count($plugin);
-    }
-
-    //Update record if existed both name and uuid
-    protected function updateExistedPlugin($plugin)
-    {
-        $pluginUpdate = Plugin::where('plugin_name', '=', $plugin->plugin_name)
-            ->where('uuid', '=', $plugin->uuid)
-            ->update(['author' => $plugin->author, 'version' => $plugin->version, 'plugin_type' => $plugin->plugin_type, 'description' => $plugin->description, 'plugin_view_name' => $plugin->plugin_view_name]);
-        if ($pluginUpdate >= 0) {
-            return true;
-        }
-        return false;
-    }
-
-    //Change folder name with plugin name get from config file
-    protected function changePluginNameFolder($json, $appPath, $shortPath, $fileNameOnly, $pluginFolder)
-    {
-        if ($json['plugin_name'] !== $fileNameOnly) {
-            // check existed folder then delete
-            if (is_dir($pluginFolder)) {
-                File::deleteDirectory($pluginFolder);
-            }
-            rename($shortPath, $pluginFolder);
-            return $shortPath = $appPath . '/plugins/' . $json['plugin_name'];
-        }
     }
 
     //Delete record from database (one or multi records)

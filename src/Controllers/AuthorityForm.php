@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;

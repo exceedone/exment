@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityType;

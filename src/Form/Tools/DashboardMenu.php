@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\ViewColumnType;

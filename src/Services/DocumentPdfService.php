@@ -12,7 +12,6 @@ namespace Exceedone\Exment\Services;
 
 use setasign\Fpdi;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 

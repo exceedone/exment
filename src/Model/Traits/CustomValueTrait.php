@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomValueTrait
