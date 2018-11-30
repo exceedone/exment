@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Encore\Admin\Facades\Admin;
 
@@ -106,5 +107,15 @@ trait CustomTableTrait
             return $model->get();
         }
         return $model;
+    }
+    
+    /**
+     * Get search-enabled columns.
+     */
+    public function getSearchEnabledColumns()
+    {
+        return $this->custom_columns()
+            ->whereIn('options->search_enabled', [1, "1"])
+            ->get();
     }
 }

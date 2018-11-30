@@ -90,7 +90,7 @@ class DocumentPdfService extends AbstractFPDIService
             //tables
             if (array_get($documentItem, 'document_item_type') == 'table') {
                 // get children
-                $children = getChildrenValues($this->model, array_get($documentItem, 'target_table'));
+                $children = $this->model->getChildrenValues(array_get($documentItem, 'target_table')) ?? [];
                 $this->lfTable($children, $documentItem);
                 continue;
             }
@@ -536,7 +536,7 @@ class DocumentPdfService extends AbstractFPDIService
                         //else, getting value using cihldren
                         else {
                             // get children values
-                            $children = getChildrenValues($this->model, $length_array[1]);
+                            $children = $this->model->getChildrenValues($length_array[1]) ?? [];
                             // looping
                             $sum = 0;
                             foreach ($children as $child) {

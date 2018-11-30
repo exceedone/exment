@@ -274,7 +274,7 @@ class FormHelper
         // setting options --------------------------------------------------
         
         // unique
-        if (boolval(array_get($options, 'unique'))) {
+        if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
             // add unique field
             $unique_table_name = getDBTableName($table_obj); // database table name
             $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name

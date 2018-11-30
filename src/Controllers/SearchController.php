@@ -68,7 +68,7 @@ class SearchController extends AdminControllerBase
                             }),
                             $('<span/>', {
                                 'text': item.table_view_name,
-                                'style': 'background-color:' + item.options.color,
+                                'style': 'background-color:' + item.color,
                             }),
                         ]
                     });
@@ -111,7 +111,7 @@ EOT;
             }
 
             // Get search enabled columns.
-            $search_columns = getSearchEnabledColumns(array_get($table, 'table_name'));
+            $search_columns = $table->getSearchEnabledColumns();
             if (count($search_columns) == 0) {
                 continue;
             }
@@ -281,7 +281,7 @@ EOT;
         $q = $request->input('query');
         $table = CustomTable::findByName($request->input('table_name'), true);
         // Get search enabled columns.
-        $search_columns = getSearchEnabledColumns(array_get($table, 'table_name'));
+        $search_columns = $table->getSearchEnabledColumns();
 
         if (count($search_columns) == 0) {
             return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
@@ -387,7 +387,7 @@ EOT;
         $search_type = $request->input('search_type');
 
         // Get search enabled columns.
-        $search_columns = getSearchEnabledColumns($search_table->table_name);
+        $search_columns = $search_table->getSearchEnabledColumns($search_table);
 
         switch ($search_type) {
             // self table
@@ -451,7 +451,8 @@ EOT;
             'id' => array_get($value_table, 'id'),
             'table_name' => array_get($value_table, 'table_name'),
             'table_view_name' => array_get($value_table, 'table_view_name'),
-            'icon' => array_get($value_table, 'icon'),
+            'icon' => array_get($value_table, 'options.icon'),
+            'color' => array_get($value_table, 'options.color'),
             'search_type' => 'self',
         ]);
 
@@ -477,7 +478,8 @@ EOT;
                 'id' => array_get($table, 'id'),
                 'table_name' => array_get($table, 'table_name'),
                 'table_view_name' => array_get($table, 'table_view_name'),
-                'icon' => array_get($table, 'icon'),
+                'icon' => array_get($table, 'options.icon'),
+                'color' => array_get($table, 'options.color'),
                 'search_type' => 'select_table',
             ]);
         }
@@ -500,7 +502,8 @@ EOT;
                 'id' => array_get($table, 'id'),
                 'table_name' => array_get($table, 'table_name'),
                 'table_view_name' => array_get($table, 'table_view_name'),
-                'icon' => array_get($table, 'icon'),
+                'icon' => array_get($table, 'options.icon'),
+                'color' => array_get($table, 'options.color'),
                 'search_type' => array_get($table, 'relation_type'),
             ]);
         }

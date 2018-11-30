@@ -72,9 +72,7 @@ class NotifyCommand extends CommandBase
                 if (System::organization_available()) {
                     $value_authoritable_organizations = System::organization_available() ? $data->value_authoritable_organizations : [];
                     foreach ($value_authoritable_organizations as $value_authoritable_organization) {
-                        $children_users = getChildrenValues($value_authoritable_organization, SystemTableName::USER)->toArray();
-                        //$value_authoritable_users[] =
-
+                        $children_users = $value_authoritable_organization->getChildrenValues(SystemTableName::USER)->toArray() ?? [];
                         $value_authoritable_users = array_merge($value_authoritable_users, $children_users);
                     }
                 }
@@ -86,9 +84,9 @@ class NotifyCommand extends CommandBase
                         'user' => $user,
                         'notify' => $notify->toArray(),
                         'target_table' => $notify_target_table->table_view_name,
-                        'target_value' => getValue($data, null, true),
+                        'target_value' => $data->getLabel(),
                         'notify_target_column_key' => $notify_target_column->column_view_name,
-                        'notify_target_column_value' => getValue($data, $notify_target_column->column_name),
+                        'notify_target_column_value' => $data->getValue($notify_target_column),
                         'data_url' => admin_url(url_join("data", $notify_target_table->table_name, $data->id)),
                     ];
 

@@ -74,7 +74,7 @@ class CustomCopy extends ModelBase
             if (isset($from_relations) && isset($to_relations)) {
                 foreach ($from_relations as $from_relation) {
                     // get from-children values
-                    $from_child_custom_values = getChildrenValues($from_custom_value, $from_relation->child_custom_table);
+                    $from_child_custom_values = $from_custom_value->getChildrenValues($from_relation->child_custom_table) ?? [];
                     foreach ($to_relations as $to_relation) {
                         // if not match relation_type, continue
                         if ($from_relation->relation_type != $to_relation->relation_type) {

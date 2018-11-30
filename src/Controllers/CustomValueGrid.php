@@ -30,7 +30,7 @@ trait CustomValueGrid
         PluginInstaller::pluginPreparing($this->plugins, 'loading');
         
         // get search_enabled_columns and loop
-        $search_enabled_columns = getSearchEnabledColumns($this->custom_table->table_name);
+        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
     
         // create grid
         $this->custom_view->setGrid($grid);

@@ -137,7 +137,7 @@ class DocumentExcelService
                 $loop_item['end'] = intval($loop_item['start']) + 100;
             }
             // get children value
-            $children = getChildrenValues($this->model, $table);
+            $children = $this->model->getChildrenValues($table) ?? [];
 
             // get excel row using $loop_item['start']
             $row = intval(array_get($loop_item, 'start'));

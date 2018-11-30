@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomValueTrait
@@ -204,74 +206,236 @@ trait CustomValueTrait
         return $query->get();
     }
 
-    public function getValue($column = null, $label = false)
-    {
-        return getValue($this, $column, $label);
-    }
     public function setValue($key, $val = null, $forgetIfNull = false)
     {
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
     
-    
-    /**
-     * get target custom_value's self link url
-     */
-    public function getUrl($tag = false)
+    public function getValue($column, $label = false, $options = [])
     {
-        // if this table is document, create target blank link
-        if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
-            $url = admin_url(url_join('files', $this->getValue('file_uuid', true)));
-            if (!$tag) {
-                return $url;
-            }
-            $label = esc_html($this->getValue('document_name'));
-            return "<a href='$url' target='_blank'>$label</a>";
-        }
-
-        $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
-        if (!$tag) {
-            return $url;
-        }
-        $url .= '?modal=1';
-        $label = esc_html($this->getValue(null, true));
-        return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
-    }
-
-    /**
-     * Get url for column_type is url, select_table.
-     * @param CustomValue $custom_value
-     * @param CustomColumn $column
-     * @return string
-     */
-    public function getColumnUrl($column, $tag = false)
-    {
-        if (is_null($custom_value)) {
+        $options = array_merge(
+            [
+                'format' => null,
+            ], $options
+        );
+        $custom_table = $this->getCustomTable();
+        if (is_null($column)) {
             return null;
         }
-        $url = null;
-        $value = esc_html($custom_value->getValue($column, true));
-        switch ($column->column_type) {
-            case 'url':
-                $url = $custom_value->getValue($column);
-                if (!$tag) {
-                    return $url;
-                }
-                return "<a href='{$url}' target='_blank'>$value</a>";
-            case 'select_table':
-                $target_value = $custom_value->getValue($column);
-                $id =  $target_value->id ?? null;
-                if (!isset($id)) {
-                    return null;
-                }
-                // create url
-                return $target_value->getUrl($tag);
-        }
- 
-        return null;
-    }
 
-    
+        // if $column is string and  and contains comma
+        if (is_string($column) && str_contains($column, ',')) {
+            ///// getting value Recursively
+            // split comma
+            $columns = explode(",", $column);
+            // if $columns count >= 2, loop columns
+            if (count($columns) >= 2) {
+                $loop_value = $this;
+                foreach ($columns as $k => $c) {
+                    $lastIndex = ($k == count($columns) - 1);
+                    // if $k is not last index, $loop_label is false(because using CustomValue Object)
+                    if (!$lastIndex) {
+                        $loop_label = false;
+                    }
+                    // if last index, $loop_label is called $label
+                    else {
+                        $loop_label = $label;
+                    }
+                    // get value using $c
+                    $loop_value = $loop_value->getValue($c, $loop_label);
+                    // if null, return
+                    if (is_null($loop_value)) {
+                        return null;
+                    }
+                    // get custom table. if CustomValue
+                    if (!($loop_value instanceof CustomValue)) {
+                        return null;
+                    }
+
+                    // if last index, return value
+                    if ($lastIndex) {
+                        return $loop_value;
+                    }
+                }
+                return $loop_value;
+            }
+            // if length <= 1, set normal getValueUseTable flow, so $column = $columns[0]
+            else {
+                $column = $columns[0];
+            }
+        }
+
+        ///// get custom column
+        // if string
+        if (is_string($column)) {
+            $column = CustomColumn
+                ::where('column_name', $column)
+                ->where('custom_table_id', array_get($custom_table, 'id'))
+                ->first();
+        }        
+        if (is_null($column)) {
+            return null;
+        }
+
+        // get database value
+        $val = array_get($this, "value.{$column->column_name}");
+        if (is_null($val)) {
+            return null;
+        }
+
+        $column_type = array_get($column, 'column_type');
+        // calcurate  --------------------------------------------------
+        if (in_array($column_type, ['decimal', 'currency'])) {
+            $val = parseFloat($val);
+            if (array_has($column, 'options.decimal_digit')) {
+                $digit = intval(array_get($column, 'options.decimal_digit'));
+                $val = floor($val * pow(10, $digit)) / pow(10, $digit);
+            }
+        }
+
+        // return finally value --------------------------------------------------
+        // get value as select
+        // get value as select_valtext
+        if (in_array($column_type, ['select', 'select_valtext'])) {
+            $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
+            $select_item = array_get($column, $array_get_key);
+            $options = createSelectOptions(CustomColumn::getEloquent($column, $custom_table));
+            if (!array_keys_exists($val, $options)) {
+                return null;
+            }
+
+            // if $val is array
+            $multiple = true;
+            if (!is_array($val)) {
+                $val = [$val];
+                $multiple = false;
+            }
+            // switch column_type and get return value
+            $returns = [];
+            switch ($column_type) {
+                case 'select':
+                    $returns = $val;
+                    break;
+                case 'select_valtext':
+                    // loop keyvalue
+                    foreach ($val as $v) {
+                        // set whether $label
+                        $returns[] = $label ? array_get($options, $v) : $v;
+                    }
+                    break;
+            }
+            if ($multiple) {
+                return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
+            } else {
+                return $returns[0];
+            }
+        }
+
+        // get value as select_table
+        elseif (in_array($column_type, ['select_table', 'user', 'organization'])) {
+            // get target table
+            $target_table_key = null;
+            if ($column_type == 'select_table') {
+                $target_table_key = array_get($column, 'options.select_target_table');
+            } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
+                $target_table_key = $column_type;
+            }
+            $target_table = CustomTable::getEloquent($target_table_key);
+
+            $model = getModelName(array_get($target_table, 'table_name'))::find($val);
+            if (is_null($model)) {
+                return null;
+            }
+            if ($label === false) {
+                return $model;
+            }
+            
+            // if $model is array multiple, set as array
+            if (!($model instanceof \Illuminate\Database\Eloquent\Collection)) {
+                $model = [$model];
+            }
+
+            $labels = [];
+            foreach ($model as $m) {
+                if (is_null($column)) {
+                    continue;
+                }
+                 
+                // get label column
+                // if label is true, return getLabel
+                if ($label === true) {
+                    $labels[] = $m->label;
+                }
+                // if label is selecting column name, get target label
+                elseif (is_string($label)) {
+                    $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
+                }
+            }
+            return implode(exmtrans('common.separate_word'), $labels);
+        } elseif (in_array($column_type, ['file', 'image'])) {
+            // get file
+            if ($label !== true) {
+                $file = File::getFile($val);
+                return $file;
+            }
+            return $val;
+        }
+        // yesno
+        elseif (in_array($column_type, ['yesno'])) {
+            if ($label !== true) {
+                return $val;
+            }
+            // convert label
+            return boolval($val) ? 'YES' : 'NO';
+        }
+        // boolean
+        elseif (in_array($column_type, ['yesno'])) {
+            if ($label !== true) {
+                return $val;
+            }
+            // convert label
+            // check matched true and false value
+            if (array_get($column, 'options.true_value') == $val) {
+                return array_get($column, 'options.true_label');
+            } elseif (array_get($column, 'options.false_value') == $val) {
+                return array_get($column, 'options.false_label');
+            }
+            return null;
+        }
+        // currency
+        elseif (in_array($column_type, ['currency'])) {
+            // if not label, return
+            if ($label !== true) {
+                return $val;
+            }
+            if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
+                $val = number_format($val);
+            }
+            // get symbol
+            $symbol = array_get($column, 'options.currency_symbol');
+            return getCurrencySymbolLabel($symbol, $val);
+        }
+        // datetime, date
+        elseif (in_array($column_type, ['datetime', 'date'])) {
+            // if not empty format, using carbon
+            $format = array_get($options, 'format');
+            if (!is_nullorempty($format)) {
+                return (new \Carbon\Carbon($val))->format($format) ?? null;
+            }
+            // else, return
+            return $val;
+        } else {
+            // if not label, return
+            if ($label !== true) {
+                return $val;
+            }
+            if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
+                $val = number_format($val);
+            }
+            return $val;
+        }
+    }
+        
     /**
      * Get vustom_value's label 
      * @param CustomValue $custom_value
@@ -280,10 +444,6 @@ trait CustomValueTrait
     function getLabel()
     {
         $custom_table = $this->getCustomTable();
-        if (is_null($value)) {
-            return null;
-        }
-
         $columns = $custom_table->custom_columns()
             ->whereNotIn('options->use_label_flg', [0, "0"])
             ->orderBy('options->use_label_flg')
@@ -305,5 +465,86 @@ trait CustomValueTrait
             $labels[] = $label;
         }
         return implode(' ', $labels);
+    }
+
+    /**
+     * get target custom_value's self link url
+     */
+    public function getUrl($tag = false)
+    {
+        // if this table is document, create target blank link
+        if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
+            $url = admin_url(url_join('files', $this->getValue('file_uuid', true)));
+            if (!$tag) {
+                return $url;
+            }
+            $label = esc_html($this->getValue('document_name'));
+            return "<a href='$url' target='_blank'>$label</a>";
+        }
+
+        $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
+        if (!$tag) {
+            return $url;
+        }
+        $url .= '?modal=1';
+        $label = esc_html($this->getLabel());
+        return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
+    }
+
+    /**
+     * Get url for column_type is url, select_table.
+     * @param CustomValue $custom_value
+     * @param CustomColumn $column
+     * @return string
+     */
+    public function getColumnUrl($column, $tag = false)
+    {
+        $url = null;
+        $value = esc_html($this->getValue($column, true));
+        switch ($column->column_type) {
+            case 'url':
+                $url = $this->getValue($column);
+                if (!$tag) {
+                    return $url;
+                }
+                return "<a href='{$url}' target='_blank'>$value</a>";
+            case 'select_table':
+                $target_value = $this->getValue($column);
+                $id =  $target_value->id ?? null;
+                if (!isset($id)) {
+                    return null;
+                }
+                // create url
+                return $target_value->getUrl($tag);
+        }
+ 
+        return null;
+    }
+
+    /**
+     * get parent value
+     */
+    public function getParentValue($isonly_label = false)
+    {
+        $model = getModelName($this->parent_type)::find($this->parent_id);
+        if (!$isonly_label) {
+            return $model ?? null;
+        }
+        return $model->label ?? null;
+    }
+    
+    /**
+     * Get Custom children Value
+     */
+    public function getChildrenValues($relation_table)
+    {
+        $parent_table = $this->getCustomTable();
+
+        // get custom column as array
+        $child_table = CustomTable::getEloquent($relation_table);
+        $pivot_table_name = getRelationNameByObjs($parent_table, $child_table);
+
+        // get relation item list
+        return $custom_value->{$pivot_table_name};
     }
 }
