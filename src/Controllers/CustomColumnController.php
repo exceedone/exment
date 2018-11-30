@@ -390,7 +390,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
-            alterColumn($model->custom_table->table_name, $model->column_name);
+            $model->alterColumn();
         });
         disableFormFooter($form);
         $custom_table = $this->custom_table;

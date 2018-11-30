@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\CustomFormColumnType;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase
 {
@@ -66,6 +68,61 @@ class CustomColumn extends ModelBase
         }
         return null;
     }
+    
+    /**
+     * Alter table column
+     * For add table virtual column
+     * @param bool $forceDropIndex drop index. calling when remove column.
+     */
+    function alterColumn($forceDropIndex = false)
+    {
+        // Create index --------------------------------------------------
+        $table = $this->custom_table;
+        $column_name = $this->column_name;
+
+        //DB table name
+        $db_table_name = getDBTableName($table);
+        $db_column_name = getIndexColumnName($this);
+
+        // Create table
+        $table->createTable();
+
+        // get whether search_enabled column
+        $search_enabled = boolval(array_get($this, 'options.search_enabled'));
+        
+        // check table column field exists.
+        $exists = Schema::hasColumn($db_table_name, $db_column_name);
+
+        $index_name = "index_$db_column_name";
+        //  if search_enabled = false, and exists, then drop index
+        // if column exists and (search_enabled = false or forceDropIndex)
+        if ($exists && ($forceDropIndex || (!boolval($search_enabled)))) {
+            DB::beginTransaction();
+            try {
+                // ALTER TABLE
+                DB::statement("ALTER TABLE $db_table_name DROP INDEX $index_name;");
+                DB::statement("ALTER TABLE $db_table_name DROP COLUMN $db_column_name;");
+                DB::commit();
+            } catch (Exception $exception) {
+                DB::rollback();
+                throw $exception;
+            }
+        }
+        // if search_enabled = true, not exists, then create index
+        elseif ($search_enabled && !$exists) {
+            DB::beginTransaction();
+            try {
+                // ALTER TABLE
+                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS (json_unquote(json_extract(`value`,'$.$column_name'))) VIRTUAL;");
+                DB::statement("ALTER TABLE $db_table_name ADD index $index_name($db_column_name)");
+    
+                DB::commit();
+            } catch (Exception $exception) {
+                DB::rollback();
+                throw $exception;
+            }
+        }
+    }
 
     public function getOption($key)
     {
@@ -100,7 +157,7 @@ class CustomColumn extends ModelBase
             $model->deletingChildren();
 
             // execute alter column
-            alterColumn($model->custom_table->table_name, $model->column_name, true);
+            $model->alterColumn(true);
         });
     }
 }

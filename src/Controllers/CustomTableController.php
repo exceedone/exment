@@ -94,6 +94,13 @@ class CustomTableController extends AdminControllerBase
                 $tools->add((new Tools\GridChangePageMenu('table', $model, false))->render());
             }
         });
+        
+        $form->saved(function (Form $form) {
+            // create or drop index --------------------------------------------------
+            $model = $form->model();
+            $model->createTable();
+        });
+
         return $form;
     }
     

@@ -428,7 +428,7 @@ if (!function_exists('getModelName')) {
         if (!$get_name_only && !class_exists($fillpath)) {
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            createTable($table);
+            $table->createTable();
             ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
         }
 
@@ -813,65 +813,6 @@ if (!function_exists('createTable')) {
     }
 }
 
-
-if (!function_exists('alterColumn')) {
-    /**
-     * Alter table column
-     * For add table virtual column
-     * @param mixed $table_name
-     * @param mixed $column_name
-     * @param bool $forceDropIndex drop index. calling when remove column.
-     */
-    function alterColumn($table_name, $column_name, $forceDropIndex = false)
-    {
-        // Create index --------------------------------------------------
-        $table = CustomTable::getEloquent($table_name);
-        $column = $table->custom_columns()->where('column_name', $column_name)->first();
-
-        //DB table name
-        $db_table_name = getDBTableName($table);
-        $db_column_name = getIndexColumnName($column);
-
-        // Create table
-        createTable($table);
-
-        // get whether search_enabled column
-        $search_enabled = array_get($column, 'options.search_enabled');
-        
-        // check table column field exists.
-        $exists = Schema::hasColumn($db_table_name, $db_column_name);
-
-        $index_name = "index_$db_column_name";
-        //  if search_enabled = false, and exists, then drop index
-        // if column exists and (search_enabled = false or forceDropIndex)
-        if ($exists && ($forceDropIndex || (!boolval($search_enabled)))) {
-            DB::beginTransaction();
-            try {
-                // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name DROP INDEX $index_name;");
-                DB::statement("ALTER TABLE $db_table_name DROP COLUMN $db_column_name;");
-                DB::commit();
-            } catch (Exception $exception) {
-                DB::rollback();
-                throw $exception;
-            }
-        }
-        // if search_enabled = true, not exists, then create index
-        elseif ($search_enabled && !$exists) {
-            DB::beginTransaction();
-            try {
-                // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS (json_unquote(json_extract(`value`,'$.$column_name'))) VIRTUAL;");
-                DB::statement("ALTER TABLE $db_table_name ADD index $index_name($db_column_name)");
-    
-                DB::commit();
-            } catch (Exception $exception) {
-                DB::rollback();
-                throw $exception;
-            }
-        }
-    }
-}
 
 if (!function_exists('getEndpointTable')) {
     /**

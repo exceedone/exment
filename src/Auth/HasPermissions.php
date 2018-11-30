@@ -475,7 +475,6 @@ trait HasPermissions
         }
 
         // get organization ids.
-        getModelName(SystemTableName::ORGANIZATION);
         $db_table_name_organization = getDBTableName(SystemTableName::ORGANIZATION);
         $db_table_name_pivot = getRelationNamebyObjs(SystemTableName::ORGANIZATION, SystemTableName::USER);
         $ids = DB::table($db_table_name_organization.' AS o1')

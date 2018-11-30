@@ -6,6 +6,8 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Encore\Admin\Facades\Admin;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 trait CustomTableTrait
 {
@@ -117,5 +119,31 @@ trait CustomTableTrait
         return $this->custom_columns()
             ->whereIn('options->search_enabled', [1, "1"])
             ->get();
+    }
+
+    /**
+     * Create Table on Database.
+     *
+     * @return void
+     */
+    public function createTable()
+    {
+        $table_name = getDBTableName($this);
+        // if not null
+        if (!isset($table_name)) {
+            throw new Exception('table name is not found. please tell system administrator.');
+        }
+
+        // check already execute
+        $key = getRequestSession('create_table.'.$table_name);
+        if (boolval($key)) {
+            return;
+        }
+
+        // CREATE TABLE from custom value table.
+        $db = DB::connection();
+        $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
+        
+        setRequestSession($key, 1);
     }
 }
