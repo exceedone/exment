@@ -45,7 +45,7 @@ trait CustomValueShow
                                         return '';
                                     }
                                     if ($isUrl) {
-                                        return getUrl($this, $column, true);
+                                        return $this->getColumnUrl($column, true);
                                     }
                                     return $this->getValue($column, true);
                                 })->setEscape(!$isUrl);

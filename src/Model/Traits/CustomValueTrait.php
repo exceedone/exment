@@ -213,6 +213,7 @@ trait CustomValueTrait
         return $this->setJson('value', $key, $val, $forgetIfNull);
     }
     
+    
     /**
      * get target custom_value's self link url
      */
@@ -235,5 +236,74 @@ trait CustomValueTrait
         $url .= '?modal=1';
         $label = esc_html($this->getValue(null, true));
         return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
+    }
+
+    /**
+     * Get url for column_type is url, select_table.
+     * @param CustomValue $custom_value
+     * @param CustomColumn $column
+     * @return string
+     */
+    public function getColumnUrl($column, $tag = false)
+    {
+        if (is_null($custom_value)) {
+            return null;
+        }
+        $url = null;
+        $value = esc_html($custom_value->getValue($column, true));
+        switch ($column->column_type) {
+            case 'url':
+                $url = $custom_value->getValue($column);
+                if (!$tag) {
+                    return $url;
+                }
+                return "<a href='{$url}' target='_blank'>$value</a>";
+            case 'select_table':
+                $target_value = $custom_value->getValue($column);
+                $id =  $target_value->id ?? null;
+                if (!isset($id)) {
+                    return null;
+                }
+                // create url
+                return $target_value->getUrl($tag);
+        }
+ 
+        return null;
+    }
+
+    
+    /**
+     * Get vustom_value's label 
+     * @param CustomValue $custom_value
+     * @return string
+     */
+    function getLabel()
+    {
+        $custom_table = $this->getCustomTable();
+        if (is_null($value)) {
+            return null;
+        }
+
+        $columns = $custom_table->custom_columns()
+            ->whereNotIn('options->use_label_flg', [0, "0"])
+            ->orderBy('options->use_label_flg')
+            ->get();
+        if (!isset($columns)) {
+            $columns = collect($custom_table->custom_columns()->first());
+        }
+
+        // loop for columns and get value
+        $labels = [];
+        foreach ($columns as $column) {
+            if (!isset($column)) {
+                continue;
+            }
+            $label = $this->getValue($column, true);
+            if (!isset($label)) {
+                continue;
+            }
+            $labels[] = $label;
+        }
+        return implode(' ', $labels);
     }
 }

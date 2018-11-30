@@ -16,7 +16,7 @@ class CustomValue extends ModelBase
 
     public function getLabelAttribute()
     {
-        return getLabel($this);
+        return $this->getLabel();
     }
 
     /**
