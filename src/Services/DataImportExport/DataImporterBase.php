@@ -130,7 +130,7 @@ abstract class DataImporterBase
             $value_custom = array_combine($headers, $value);
 
             // get model
-            $modelName = getModelName($this->custom_table->table_name);
+            $modelName = getModelName($this->custom_table);
             // select $model using primary key and value
             $primary_value = array_get($value_custom, $primary_key);
             // if not exists, new instance

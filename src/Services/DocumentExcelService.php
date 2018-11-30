@@ -151,7 +151,9 @@ class DocumentExcelService
                     // loop formats
                     foreach($column_item['formats'] as $format){
                         // replace using format
-                        $column_item['text'] = str_replace($format['format_text'], $child->getValue($format['column_name'], true), $column_item['text']);
+                        $column_item['text'] = str_replace($format['format_text'], $child->getValue($format['column_name'], true, [
+                            'disable_currency_symbol' => true,
+                        ]), $column_item['text']);
                     }
                     // set again to cell
                     $sheet->setCellValue($cell_column . $row, $column_item['text']);
@@ -187,7 +189,7 @@ class DocumentExcelService
                     continue;
                 }
                 // if match value
-                preg_match_all('/\${(.*?)\}/', $cellValue, $matches);
+                preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $cellValue, $matches);
                 if (count($matches) == 0) {
                     continue;
                 }
@@ -202,12 +204,13 @@ class DocumentExcelService
     /**
      * get output text from document item
      */
-    protected function getText($text, $documentItem = [])
+    protected function getText($text, $options = [])
     {
-        $documentItem['afterCallback'] = function($text, $custom_value, $option){
+        $options['disable_currency_symbol'] = true;
+        $options['afterCallback'] = function($text, $custom_value, $options){
             return $this->replaceText($text, $option);
         };
-        return replaceTextFromFormat($text, $this->model, $documentItem);
+        return replaceTextFromFormat($text, $this->model, $options);
     }
 
     /**

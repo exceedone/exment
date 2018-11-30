@@ -74,8 +74,8 @@ trait CustomValueGrid
                 // if set, create select
                 if (isset($relation)) {
                     // get options and ajax url
-                    $options = getOptions($relation->parent_custom_table);
-                    $ajax = getOptionAjaxUrl($relation->parent_custom_table);
+                    $options = $relation->parent_custom_table->getOptions();
+                    $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
                     if (isset($ajax)) {
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');
                     } else {
@@ -91,7 +91,7 @@ trait CustomValueGrid
                     switch ($column_type) {
                         case 'select':
                         case 'select_valtext':
-                            $filter->equal($column_name, $column_view_name)->select(createSelectOptions($search_column));
+                            $filter->equal($column_name, $column_view_name)->select($search_column->createSelectOptions());
                             break;
                         case 'select_table':
                         case 'user':
@@ -100,19 +100,19 @@ trait CustomValueGrid
                             if ($column_type == 'select_table') {
                                 $select_target_table_id = array_get($search_column, 'options.select_target_table');
                                 if (isset($select_target_table_id)) {
-                                    $select_target_table = CustomTable::find($select_target_table_id)->table_name;
+                                    $select_target_table = CustomTable::find($select_target_table_id);
                                 } else {
                                     $select_target_table = null;
                                 }
                             } elseif ($column_type == SystemTableName::USER) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                                $select_target_table = CustomTable::findByName(SystemTableName::USER);
                             } elseif ($column_type == SystemTableName::ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
+                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
                             }
 
                             // get options and ajax url
-                            $options = getOptions($select_target_table);
-                            $ajax = getOptionAjaxUrl($select_target_table);
+                            $options = $select_target_table->getOptions();
+                            $ajax = $select_target_table->getOptionAjaxUrl();
                             if (isset($ajax)) {
                                 $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
                             } else {

@@ -111,7 +111,7 @@ class CustomCopy extends ModelBase
                                 continue;
                             }
                             // insert new pivot table value
-                            $pivot_name = getRelationName($relation);
+                            $pivot_name = $relation->getRelationName();
                             // insert value. child_id is save value
                             foreach ($from_child_custom_values as $from_child_custom_value) {
                                 DB::table($pivot_name)->insert([

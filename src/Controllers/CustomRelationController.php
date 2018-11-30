@@ -122,11 +122,8 @@ class CustomRelationController extends AdminControllerTableBase
 
         $custom_table_id = $this->custom_table->id;
         $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {
-            //TODO:autority
-            return CustomTable
-                // ignore self table id
-                ::where('id', '<>', $custom_table_id)
-                ->get(['id', 'table_view_name'])
+            return CustomTable::filterList()
+                ->where('id', '<>', $custom_table_id)
                 ->pluck('table_view_name', 'id')
                 ->toArray();
         })->required();

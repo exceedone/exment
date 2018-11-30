@@ -14,6 +14,15 @@ class Authority extends ModelBase
     protected $casts = ['permissions' => 'json'];
 
     protected $guarded = ['id'];
+    
+    /**
+     * Get atuhority name.
+     * @return string
+     */
+    public function getAuthorityName($related_type)
+    {
+        return "authority_{$this->suuid}_{$related_type}";
+    }
 
     /**
      * get authority loop function and execute callback

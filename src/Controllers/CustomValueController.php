@@ -11,6 +11,7 @@ use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
@@ -300,7 +301,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         // get form columns count
         $form_block_options = array_get($custom_form_block, 'options', []);
-        $relation_name = getRelationNamebyObjs($this->custom_table, $target_table);
+        $relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $target_table);
 
         return [$relation_name, $block_label];
     }

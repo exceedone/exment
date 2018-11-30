@@ -127,7 +127,7 @@ class CustomViewController extends AdminControllerTableBase
         // columns setting
         $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options(getColumnsSelectOptions($this->custom_table));
+                ->options($this->custom_table->getColumnsSelectOptions());
             $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
         })->setTableColumnWidth(6, 4, 2)
         ->description(exmtrans("custom_view.description_custom_view_columns"));
@@ -135,7 +135,7 @@ class CustomViewController extends AdminControllerTableBase
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
             $form->select('view_filter_target', exmtrans("custom_view.view_filter_target"))->required()
-                ->options(getColumnsSelectOptions($this->custom_table, true))
+                ->options($this->custom_table->getColumnsSelectOptions(true))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_path(url_join('view', $custom_table->table_name, 'filter-condition'))])]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()

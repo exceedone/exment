@@ -484,50 +484,7 @@ if (!function_exists('getEndpointName')) {
             $ref = new \ReflectionClass(get_class($obj));
             return snake_case($ref->getShortName());
         }
-
         return null;
-    }
-}
-
-if (!function_exists('getRelationName')) {
-    /**
-     * Get relation name.
-     * @param CustomRelation $relation_obj
-     * @return string
-     */
-    function getRelationName($relation_obj)
-    {
-        return getRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
-    }
-}
-
-if (!function_exists('getRelationNamebyObjs')) {
-    /**
-     * Get relation name using parent and child table.
-     * @param $parent
-     * @param $child
-     * @return string
-     */
-    function getRelationNamebyObjs($parent, $child)
-    {
-        $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
-        $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
-        if (is_null($parent_suuid) || is_null($child_suuid)) {
-            return null;
-        }
-        return "pivot_{$parent_suuid}_{$child_suuid}";
-    }
-}
-
-if (!function_exists('getAuthorityName')) {
-    /**
-     * Get atuhority name.
-     * @param Authority $obj
-     * @return string
-     */
-    function getAuthorityName($obj, $related_type)
-    {
-        return "authority_{$obj->suuid}_{$related_type}";
     }
 }
 
@@ -603,7 +560,7 @@ if (!function_exists('replaceTextFromFormat')) {
 
         try {
             // check string
-            preg_match_all('/\${(.*?)\}/', $format, $matches);
+            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
             if (isset($matches)) {
                 // loop for matches. because we want to get inner {}, loop $matches[1].
                 for ($i = 0; $i < count($matches[1]); $i++) {
@@ -666,7 +623,7 @@ if (!function_exists('replaceTextFromFormat')) {
                             } else {
                                 // get comma string from index 1.
                                 $length_array = array_slice($length_array, 1);
-                                $str = $custom_value->getValue(implode(',', $length_array), true, array_get($options, 'format'));
+                                $str = $custom_value->getValue(implode(',', $length_array), true, $options, 'format');
                             }
                         }
                         // base_info
@@ -755,36 +712,6 @@ if (!function_exists('replaceTextFromFormat')) {
 
 // Database Difinition --------------------------------------------------
 
-if (!function_exists('createTable')) {
-    /**
-     * Create Table in Database.
-     *
-     * @param string|CustomTable $obj
-     * @return void
-     */
-    function createTable($obj)
-    {
-        $table_name = getDBTableName($obj);
-        // if not null
-        if (!isset($table_name)) {
-            throw new Exception('table name is not found. please tell system administrator.');
-        }
-
-        // check already execute
-        $key = getRequestSession('create_table.'.$table_name);
-        if (boolval($key)) {
-            return;
-        }
-
-        // CREATE TABLE from custom value table.
-        $db = DB::connection();
-        $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
-        
-        setRequestSession($key, 1);
-    }
-}
-
-
 if (!function_exists('getEndpointTable')) {
     /**
      * Get table object using endpoint name.
@@ -866,226 +793,6 @@ if (!function_exists('disableFormFooter')) {
             // disable `Continue Creating` checkbox
             $footer->disableCreatingCheck();
         });
-    }
-}
-
-if (!function_exists('isGetOptions')) {
-    /**
-     * get options for select, multipleselect.
-     * But if options count > 100, use ajax, so only one record.
-     *
-     * @param array|CustomTable $table
-     * @param $selected_value
-     */
-    function isGetOptions($table)
-    {
-        // get count table.
-        $count = getOptionsQuery($table)::count();
-        // when count > 0, create option only value.
-        return $count <= 100;
-    }
-}
-
-if (!function_exists('getOptions')) {
-    /**
-     * get options for select, multipleselect.
-     * But if options count > 100, use ajax, so only one record.
-     *
-     * @param array|CustomTable $table to get table object
-     * @param $selected_value the value that already selected.
-     * @param array|CustomTable $target_table Information on the table displayed on the screen
-     * @param boolean $all is show all data. for system authority, it's true.
-     */
-    function getOptions($table, $selected_value = null, $target_table = null, $all = false)
-    {
-        if (is_null($table)) {
-            return [];
-        }
-        if (is_null($target_table)) {
-            $target_table = $table;
-        }
-        
-        // get query.
-        // if user or organization, get from getAuthorityUserOrOrg
-        if (in_array($table, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
-            $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
-        } else {
-            $query = getOptionsQuery($table);
-        }
-
-        // get count table.
-        $count = $query->count();
-        // when count > 0, create option only value.
-        if ($count > 100) {
-            if (!isset($selected_value)) {
-                return [];
-            }
-            $item = getModelName($table)::find($selected_value);
-
-            if ($item) {
-                // check whether $item is multiple value.
-                if ($item instanceof Collection) {
-                    $ret = [];
-                    foreach ($item as $i) {
-                        $ret[$i->id] = $i->label;
-                    }
-                    return $ret;
-                }
-                return [$item->id => $item->label];
-            } else {
-                return [];
-            }
-        }
-        return $query->get()->pluck("label", "id");
-    }
-}
-
-if (!function_exists('getOptionAjaxUrl')) {
-    /**
-     * get ajax url for options for select, multipleselect.
-     *
-     * @param array|CustomTable $table
-     * @param $value
-     */
-    function getOptionAjaxUrl($table)
-    {
-        if (is_null($table)) {
-            return null;
-        }
-        $table = CustomTable::getEloquent($table);
-        // get count table.
-        $count = getOptionsQuery($table)::count();
-        // when count > 0, create option only value.
-        if ($count <= 100) {
-            return null;
-        }
-        return admin_base_path(url_join("api", array_get($table, 'table_name'), "query"));
-    }
-}
-
-if (!function_exists('getOptionsQuery')) {
-    /**
-     * getOptionsQuery. this function uses for count, get, ...
-     */
-    function getOptionsQuery($table)
-    {
-        // get model
-        $modelname = getModelName($table);
-        $model = new $modelname;
-
-        // filter model
-        $model = Admin::user()->filterModel($model, $table);
-        return $model;
-    }
-}
-
-
-if (!function_exists('createSelectOptions')) {
-    /**
-     * Create laravel-admin select box options. for column_type "select", "select_valtext"
-     */
-    function createSelectOptions($column)
-    {
-        // get value
-        $column_type = array_get($column, 'column_type');
-        $column_options = array_get($column, 'options');
-
-        // get select item string
-        $array_get_key = $column_type == 'select' ? 'select_item' : 'select_item_valtext';
-        $select_item = array_get($column_options, $array_get_key);
-        $isValueText = ($column_type == 'select_valtext');
-        
-        $options = [];
-        if (is_null($select_item)) {
-            return $options;
-        }
-
-        if (is_string($select_item)) {
-            $str = str_replace(array("\r\n","\r","\n"), "\n", $select_item);
-            if (isset($str) && mb_strlen($str) > 0) {
-                // loop for split new line
-                $array = explode("\n", $str);
-                foreach ($array as $a) {
-                    setSelectOptionItem($a, $options, $isValueText);
-                }
-            }
-        } elseif (is_array($select_item)) {
-            foreach ($select_item as $key => $value) {
-                setSelectOptionItem($value, $options, $isValueText);
-            }
-        }
-
-        return $options;
-    }
-}
-
-if (!function_exists('setSelectOptionItem')) {
-    /**
-     * Create laravel-admin select box option item.
-     */
-    function setSelectOptionItem($item, &$options, $isValueText)
-    {
-        if (is_string($item)) {
-            // $isValueText is true(split comma)
-            if ($isValueText) {
-                $splits = explode(',', $item);
-                if (count($splits) > 1) {
-                    $options[mbTrim($splits[0])] = mbTrim($splits[1]);
-                } else {
-                    $options[mbTrim($splits[0])] = mbTrim($splits[0]);
-                }
-            } else {
-                $options[mbTrim($item)] = mbTrim($item);
-            }
-        }
-    }
-}
-
-if (!function_exists('getColumnsSelectOptions')) {
-    /**
-     * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param array|CustomTable $table
-     * @param $selected_value
-     */
-    function getColumnsSelectOptions($table, $search_enabled_only = false)
-    {
-        $table = CustomTable::getEloquent($table);
-        $options = [];
-        
-        ///// get system columns
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
-            // not header, continue
-            if (!boolval(array_get($option, 'header'))) {
-                continue;
-            }
-            $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
-        }
-
-        ///// if this table is child relation(1:n), add parent table
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table->id)->first();
-        if (isset($relation)) {
-            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
-        }
-
-        ///// get table columns
-        $custom_columns = $table->custom_columns;
-        foreach ($custom_columns as $option) {
-            // if $search_enabled_only = true and options.search_enabled is false, continue
-            if ($search_enabled_only && !boolval(array_get($option, 'options.search_enabled'))) {
-                continue;
-            }
-            $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
-        }
-        ///// get system columns
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
-            // not footer, continue
-            if (!boolval(array_get($option, 'footer'))) {
-                continue;
-            }
-            $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
-        }
-    
-        return $options;
     }
 }
 

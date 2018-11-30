@@ -53,7 +53,7 @@ class SystemController extends AdminControllerBase
 
             // Set Authority
             Authority::authorityLoop(AuthorityType::SYSTEM(), function ($authority, $related_type) use ($request) {
-                $values = $request->input(getAuthorityName($authority, $related_type));
+                $values = $request->input($authority->getAuthorityName($related_type));
                 // array_filter
                 $values = array_filter($values, function ($k) {
                     return isset($k);

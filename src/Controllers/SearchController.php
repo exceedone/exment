@@ -414,7 +414,7 @@ EOT;
                 break;
             // many_to_many
             case 'many_to_many':
-                $relation_name = getRelationNamebyObjs($value_table, $search_table);
+                $relation_name = CustomRelation::getRelationNameByTables($value_table, $search_table);
 
                 // get search_table value
                 // where: parent_id is value_id

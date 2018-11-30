@@ -143,6 +143,63 @@ class CustomColumn extends ModelBase
         return $name;
     }
 
+    /**
+     * Create laravel-admin select box options. for column_type "select", "select_valtext"
+     */
+    public function createSelectOptions()
+    {
+        // get value
+        $column_type = array_get($this, 'column_type');
+        $column_options = array_get($this, 'options');
+
+        // get select item string
+        $array_get_key = $column_type == 'select' ? 'select_item' : 'select_item_valtext';
+        $select_item = array_get($column_options, $array_get_key);
+        $isValueText = ($column_type == 'select_valtext');
+        
+        $options = [];
+        if (is_null($select_item)) {
+            return $options;
+        }
+
+        if (is_string($select_item)) {
+            $str = str_replace(array("\r\n","\r","\n"), "\n", $select_item);
+            if (isset($str) && mb_strlen($str) > 0) {
+                // loop for split new line
+                $array = explode("\n", $str);
+                foreach ($array as $a) {
+                    $this->setSelectOptionItem($a, $options, $isValueText);
+                }
+            }
+        } elseif (is_array($select_item)) {
+            foreach ($select_item as $key => $value) {
+                $this->setSelectOptionItem($value, $options, $isValueText);
+            }
+        }
+
+        return $options;
+    }
+    
+    /**
+     * Create laravel-admin select box option item.
+     */
+    protected function setSelectOptionItem($item, &$options, $isValueText)
+    {
+        if (is_string($item)) {
+            // $isValueText is true(split comma)
+            if ($isValueText) {
+                $splits = explode(',', $item);
+                if (count($splits) > 1) {
+                    $options[mbTrim($splits[0])] = mbTrim($splits[1]);
+                } else {
+                    $options[mbTrim($splits[0])] = mbTrim($splits[0]);
+                }
+            } else {
+                $options[mbTrim($item)] = mbTrim($item);
+            }
+        }
+    }
+
 
     public function getOption($key)
     {

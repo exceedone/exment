@@ -375,7 +375,7 @@ class CreateTableDefine extends Migration
         if (Schema::hasTable('custom_relations')) {
             $relations = CustomRelation::where('relation_type', 'many_to_many')->get();
             foreach ($relations as $relation) {
-                Schema::dropIfExists(getRelationName($relation));
+                Schema::dropIfExists($relation->getRelationName());
             }
         }
 

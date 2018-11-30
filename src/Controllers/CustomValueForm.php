@@ -62,18 +62,18 @@ trait CustomValueForm
             $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
             // set select options
-            if (isGetOptions($parent_custom_table)) {
+            if ($parent_custom_table->isGetOptions()) {
                 $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return getOptions($parent_custom_table, $value);
+                    return $parent_custom_table->getOptions($value);
                 })
                 ->required();
             } else {
                 $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return getOptions($parent_custom_table, $value);
+                    return $parent_custom_table->getOptions($value);
                 })
-                ->ajax(getOptionAjaxUrl($parent_custom_table))
+                ->ajax($parent_custom_table->getOptionAjaxUrl())
                 ->required();
             }
         }
@@ -124,14 +124,14 @@ trait CustomValueForm
                 // n:n
                 else {
                     $field = new Field\Listbox(
-                        getRelationNamebyObjs($this->custom_table, $target_table),
+                        CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
                     );
                     $field->options(function ($select) use ($target_table) {
-                        return getOptions($target_table, $select);
+                        return $target_table->getOptions($select);
                     });
-                    if (getModelName($target_table)::count() > 100) {
-                        $field->ajax(getOptionAjaxUrl($target_table));
+                    if (!$target_table->isGetOptions()) {
+                        $field->ajax($target_table->getOptionAjaxUrl());
                     }
                     $field->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
                     $field->help(exmtrans('custom_value.bootstrap_duallistbox_container.help'));
@@ -508,7 +508,7 @@ EOT;
 
         // if different $column_table and changedata_target_table, get to_target block name using relation
         if ($column_table->id != $changedata_target_table->id) {
-            $to_block_name = getRelationNameByObjs($changedata_target_table, $column_table);
+            $to_block_name = CustomRelation::getRelationNameByTables($changedata_target_table, $column_table);
         } else {
             $to_block_name = null;
         }

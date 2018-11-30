@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
@@ -476,7 +477,7 @@ trait HasPermissions
 
         // get organization ids.
         $db_table_name_organization = getDBTableName(SystemTableName::ORGANIZATION);
-        $db_table_name_pivot = getRelationNamebyObjs(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
         $ids = DB::table($db_table_name_organization.' AS o1')
            ->leftJoin($db_table_name_organization.' AS o2', 'o2.parent_id', '=', 'o1.id')
            ->leftJoin($db_table_name_organization.' AS o3', 'o3.parent_id', '=', 'o3.id')

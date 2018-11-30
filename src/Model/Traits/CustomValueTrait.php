@@ -4,8 +4,10 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomValueTrait
@@ -113,7 +115,7 @@ trait CustomValueTrait
         $format = array_get($options, "auto_number_format");
         try {
             // check string
-            preg_match_all('/\${(.*?)\}/', $format, $matches);
+            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
             if (isset($matches)) {
                 // loop for matches. because we want to get inner {}, loop $matches[1].
                 for ($i = 0; $i < count($matches[1]); $i++) {
@@ -216,6 +218,7 @@ trait CustomValueTrait
         $options = array_merge(
             [
                 'format' => null,
+                'disable_currency_symbol' => false,
             ], $options
         );
         $custom_table = $this->getCustomTable();
@@ -299,8 +302,8 @@ trait CustomValueTrait
         if (in_array($column_type, ['select', 'select_valtext'])) {
             $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
             $select_item = array_get($column, $array_get_key);
-            $options = createSelectOptions(CustomColumn::getEloquent($column, $custom_table));
-            if (!array_keys_exists($val, $options)) {
+            $select_options = CustomColumn::getEloquent($column, $custom_table)->createSelectOptions();
+            if (!array_keys_exists($val, $select_options)) {
                 return null;
             }
 
@@ -320,7 +323,7 @@ trait CustomValueTrait
                     // loop keyvalue
                     foreach ($val as $v) {
                         // set whether $label
-                        $returns[] = $label ? array_get($options, $v) : $v;
+                        $returns[] = $label ? array_get($select_options, $v) : $v;
                     }
                     break;
             }
@@ -410,6 +413,9 @@ trait CustomValueTrait
             }
             if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
                 $val = number_format($val);
+            }
+            if(boolval(array_get($options, 'disable_currency_symbol'))){
+                return $val;
             }
             // get symbol
             $symbol = array_get($column, 'options.currency_symbol');
@@ -542,9 +548,9 @@ trait CustomValueTrait
 
         // get custom column as array
         $child_table = CustomTable::getEloquent($relation_table);
-        $pivot_table_name = getRelationNameByObjs($parent_table, $child_table);
+        $pivot_table_name = CustomRelation::getRelationNameByTables($parent_table, $child_table);
 
         // get relation item list
-        return $custom_value->{$pivot_table_name};
+        return $this->{$pivot_table_name};
     }
 }
