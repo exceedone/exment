@@ -27,7 +27,6 @@ use Exceedone\Exment\Enums\CustomFormBlockType;
 use Exceedone\Exment\Enums\CustomFormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardBoxType;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
@@ -535,7 +534,8 @@ class TemplateImporter
                 $table_name = array_get($table, 'table_name');
                 
                 // alter table
-                foreach (getSearchEnabledColumns($table_name) as $column) {
+                $columns = $obj_table->getSearchEnabledColumns();
+                foreach ($columns as $column) {
                     alterColumn($table_name, array_get($column, 'column_name'));
                 }
             }

@@ -7,13 +7,11 @@ use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\HasResourceActions;
-use Encore\Admin\Middleware\Pjax;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
@@ -179,9 +177,9 @@ class CustomValueController extends AdminControllerTableBase
             });
         });
 
-        return response([
-            'status'  => true,
-            'message' => trans('admin.update_succeeded'),
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
         ]);
     }
  
@@ -203,8 +201,8 @@ class CustomValueController extends AdminControllerTableBase
         $custom_value = $this->getModelNameDV()::find($id);
         $document_model = $file->saveDocumentModel($custom_value, $filename);
         
-        return response([
-            'status'  => true,
+        return getAjaxResponse([
+            'result'  => true,
             'message' => trans('admin.update_succeeded'),
         ]);
     }
@@ -225,16 +223,17 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         
-        $classname = getPluginNamespace(array_get($plugin, 'plugin_name'), 'Plugin');
-        if (class_exists($classname)) {
+        $classname = $plugin->getNameSpace('Plugin');
+        $fuleFullPath = $plugin->getFullPath('Plugin.php');
+        if (\File::exists($fuleFullPath) && class_exists($classname)) {
             switch (array_get($plugin, 'plugin_type')) {
                 case 'document':
-                    $class = new $classname($this->custom_table, $id);
+                    $class = new $classname($plugin, $this->custom_table, $id);
                     break;
             }
         } else {
             // set default class
-            $class = new PluginDocumentDefault($this->custom_table, $id);
+            $class = new PluginDocumentDefault($plugin, $this->custom_table, $id);
         }
         $response = $class->execute();
         if (isset($response)) {
@@ -302,7 +301,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         // get form columns count
         $form_block_options = array_get($custom_form_block, 'options', []);
-        $relation_name = getRelationNamebyObjs($this->custom_table, $target_table);
+        $relation_name = CustomRelation::getRelationNameByTables($this->custom_table, $target_table);
 
         return [$relation_name, $block_label];
     }

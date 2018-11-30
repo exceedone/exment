@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Services;
 use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -84,7 +83,7 @@ class FormHelper
                     $field = new Field\Select($form_column_name, [$column_view_name]);
                 }
                 // create select
-                $field->options(createSelectOptions($column));
+                $field->options($column->createSelectOptions());
                 break;
             case ColumnType::SELECT_TABLE:
             case ColumnType::USER:
@@ -99,21 +98,21 @@ class FormHelper
                 if ($column->column_type == ColumnType::SELECT_TABLE) {
                     $select_target_table_id = array_get($options, 'select_target_table');
                     if (isset($select_target_table_id)) {
-                        $select_target_table = CustomTable::find($select_target_table_id)->table_name ?? null;
+                        $select_target_table = CustomTable::find($select_target_table_id) ?? null;
                     } else {
                         $select_target_table = null;
                     }
                 } elseif ($column->column_type == SystemTableName::USER) {
-                    $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                    $select_target_table = CustomTable::findByName(SystemTableName::USER);
                 } elseif ($column->column_type == SystemTableName::ORGANIZATION) {
-                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
+                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
                 }
 
                 $field->options(function ($val) use ($select_target_table) {
                     // get DB option value
-                    return getOptions($select_target_table, $val);
+                    return $select_target_table->getOptions($val);
                 });
-                $ajax = getOptionAjaxUrl($select_target_table);
+                $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
                 if (isset($ajax)) {
                     $field->attribute([
                         'data-add-select2' => $column_view_name,
@@ -121,7 +120,7 @@ class FormHelper
                     ]);
                 }
                 // add table info
-                $field->attribute(['data-target_table_name' => $select_target_table]);
+                $field->attribute(['data-target_table_name' => array_get($select_target_table, 'table_name')]);
                 break;
             case ColumnType::YESNO:
                 $field = new ExmentField\SwitchBoolField($form_column_name, [$column_view_name]);
@@ -275,7 +274,7 @@ class FormHelper
         // setting options --------------------------------------------------
         
         // unique
-        if (boolval(array_get($options, 'unique'))) {
+        if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
             // add unique field
             $unique_table_name = getDBTableName($table_obj); // database table name
             $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name

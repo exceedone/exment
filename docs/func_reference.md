@@ -239,7 +239,7 @@ Gets the relation name of the related table.
 | string | relation name |
 
 
-#### getRelationNamebyObjs
+#### getRelationNameByTables
 ---
 Specify the parent table and child table to obtain the relation name of the related table.  
 

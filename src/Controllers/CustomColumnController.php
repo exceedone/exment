@@ -145,7 +145,7 @@ class CustomColumnController extends AdminControllerTableBase
             $classname = CustomColumn::class;
             $form->text('column_name', exmtrans("custom_column.column_name"))
                 ->required()
-                ->rules("regex:/^[a-zA-Z0-9\-_]*$/|uniqueInTable:{$classname},{$this->custom_table->id}")
+                ->rules("regex:/".Define::RULES_REGEX_SYSTEM_NAME."/|uniqueInTable:{$classname},{$this->custom_table->id}")
                 ->help(exmtrans('common.help_code'));
         } else {
             $form->display('column_name', exmtrans("custom_column.column_name"));
@@ -390,7 +390,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
-            alterColumn($model->custom_table->table_name, $model->column_name);
+            $model->alterColumn();
         });
         disableFormFooter($form);
         $custom_table = $this->custom_table;

@@ -17,8 +17,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\AuthorityValue;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\CustomFormBlockType;
@@ -425,7 +425,7 @@ class CustomFormController extends AdminControllerTableBase
 
         // set free html
         $custom_form_columns  = [];
-        foreach (CustomFormColumnType::OTHER_TYPE as $id => $type) {
+        foreach (CustomFormColumnType::OTHER_TYPE() as $id => $type) {
             $header_column_name = '[custom_form_columns][NEW__'.make_uuid().']';
             array_push($custom_form_columns, [
                 'id' => null,

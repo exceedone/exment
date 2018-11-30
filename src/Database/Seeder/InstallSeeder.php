@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Database\Seeder;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\TemplateImportExport;
 
 class InstallSeeder extends Seeder

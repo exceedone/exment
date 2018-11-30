@@ -130,7 +130,7 @@ abstract class DataImporterBase
             $value_custom = array_combine($headers, $value);
 
             // get model
-            $modelName = getModelName($this->custom_table->table_name);
+            $modelName = getModelName($this->custom_table);
             // select $model using primary key and value
             $primary_value = array_get($value_custom, $primary_key);
             // if not exists, new instance
@@ -322,7 +322,7 @@ abstract class DataImporterBase
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset();
         $form->modalAttribute('id', 'data_import_modal');
-        $form->modalHeader(exmtrans('common.import'));
+        $form->modalHeader(exmtrans('common.import') . ' - ' . $this->custom_table->table_view_name);
 
         $form->action(admin_base_path('data/'.$table_name.'/import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
@@ -338,12 +338,13 @@ abstract class DataImporterBase
             ->addElementClass('select_primary_key')
             ->help(exmtrans('custom_value.import.help.primary_key'));
 
-        $form->select('select_action', exmtrans('custom_value.import.error_flow'))
-            ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_ERROR, "custom_value.import.error_options"))
-            ->default('stop')
-            ->setWidth(8, 3)
-            ->addElementClass('select_action')
-            ->help(exmtrans('custom_value.import.help.error_flow'));
+        $form->hidden('select_action')->default('stop');
+        // $form->select('select_action', exmtrans('custom_value.import.error_flow'))
+        //     ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_ERROR, "custom_value.import.error_options"))
+        //     ->default('stop')
+        //     ->setWidth(8, 3)
+        //     ->addElementClass('select_action')
+        //     ->help(exmtrans('custom_value.import.help.error_flow'));
     
         $form->textarea('import_error_message', exmtrans('custom_value.import.import_error_message'))
             ->attribute(['readonly' => true])

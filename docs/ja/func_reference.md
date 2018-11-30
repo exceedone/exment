@@ -239,7 +239,7 @@ UUIDを作成します。
 | string | リレーション名 |
 
 
-#### getRelationNamebyObjs
+#### getRelationNameByTables
 ---
 親テーブル・子テーブルを指定して、関連テーブルのリレーション名を取得します。  
 

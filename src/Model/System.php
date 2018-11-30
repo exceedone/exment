@@ -57,7 +57,7 @@ class System extends ModelBase
                     continue;
                 }
 
-                $array[getAuthorityName($authority, $related_type)] = $filter->pluck('related_id')->toArray();
+                $array[$authority->getAuthorityName($related_type)] = $filter->pluck('related_id')->toArray();
             }
         }
         return $array;

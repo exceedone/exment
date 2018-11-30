@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ExcelImporter extends DataImporterBase

@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Controllers\HasResourceActions;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
@@ -64,7 +63,7 @@ class CustomTableController extends AdminControllerBase
         if (!isset($id)) {
             $form->text('table_name', exmtrans("custom_table.table_name"))
                 ->required()
-                ->rules("unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+                ->rules("unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
                 ->help(exmtrans('common.help_code'));
         } else {
             $form->display('table_name', exmtrans("custom_table.table_name"));
@@ -95,6 +94,13 @@ class CustomTableController extends AdminControllerBase
                 $tools->add((new Tools\GridChangePageMenu('table', $model, false))->render());
             }
         });
+        
+        $form->saved(function (Form $form) {
+            // create or drop index --------------------------------------------------
+            $model = $form->model();
+            $model->createTable();
+        });
+
         return $form;
     }
     

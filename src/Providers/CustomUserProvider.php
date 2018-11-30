@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Providers;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -52,7 +51,8 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
             $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
-                $query->where(getIndexColumnNameByTable(SystemTableName::USER, $key), array_get($credentials, 'username'));
+                $user = CustomTable::findByName(SystemTableName::USER);
+                $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));
             });
 
             // has login provider

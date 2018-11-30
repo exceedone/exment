@@ -6,10 +6,8 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Show;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\CustomFormBlockType;
@@ -47,7 +45,7 @@ trait CustomValueShow
                                         return '';
                                     }
                                     if ($isUrl) {
-                                        return getUrl($this, $column, true);
+                                        return $this->getColumnUrl($column, true);
                                     }
                                     return $this->getValue($column, true);
                                 })->setEscape(!$isUrl);

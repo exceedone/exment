@@ -61,15 +61,7 @@ class PluginMenuButton
                         });
                     });
                 }
-            }).then(function(data) {
-                var value = data.value;
-                if (value.result) {
-                    swal(value.message, '', 'success');
-                } else {
-                    swal(value.message, '', 'error');
-                }
-            });
-    
+            });    
         });
 EOT;
     }

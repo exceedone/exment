@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 
@@ -17,7 +16,7 @@ class CustomValue extends ModelBase
 
     public function getLabelAttribute()
     {
-        return getLabel($this);
+        return $this->getLabel();
     }
 
     /**

@@ -11,11 +11,8 @@ use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\AuthorityValue;
-use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Facades\Request as Req;
 
 class CustomCopyController extends AdminControllerTableBase
 {

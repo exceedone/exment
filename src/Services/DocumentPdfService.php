@@ -91,7 +91,7 @@ class DocumentPdfService extends AbstractFPDIService
             //tables
             if (array_get($documentItem, 'document_item_type') == 'table') {
                 // get children
-                $children = getChildrenValues($this->model, array_get($documentItem, 'target_table'));
+                $children = $this->model->getChildrenValues(array_get($documentItem, 'target_table')) ?? [];
                 $this->lfTable($children, $documentItem);
                 continue;
             }
@@ -101,7 +101,7 @@ class DocumentPdfService extends AbstractFPDIService
             $image = array_get($documentItem, 'image');
             if (isset($image)) {
                 // check string
-                preg_match_all('/\${(.*?)\}/', $image, $matches);
+                preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $image, $matches);
                 if (isset($matches)) {
                     // loop for matches. because we want to get inner {}, loop $matches[1].
                     for ($i = 0; $i < count($matches[1]); $i++) {
@@ -506,7 +506,7 @@ class DocumentPdfService extends AbstractFPDIService
     protected function getText($text, $documentItem = [])
     {
         // check string
-        preg_match_all('/\${(.*?)\}/', $text, $matches);
+        preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $text, $matches);
         if (isset($matches)) {
             // loop for matches. because we want to get inner {}, loop $matches[1].
             for ($i = 0; $i < count($matches[1]); $i++) {
@@ -537,7 +537,7 @@ class DocumentPdfService extends AbstractFPDIService
                         //else, getting value using cihldren
                         else {
                             // get children values
-                            $children = getChildrenValues($this->model, $length_array[1]);
+                            $children = $this->model->getChildrenValues($length_array[1]) ?? [];
                             // looping
                             $sum = 0;
                             foreach ($children as $child) {

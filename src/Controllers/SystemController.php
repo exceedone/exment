@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityType;
@@ -54,7 +53,7 @@ class SystemController extends AdminControllerBase
 
             // Set Authority
             Authority::authorityLoop(AuthorityType::SYSTEM(), function ($authority, $related_type) use ($request) {
-                $values = $request->input(getAuthorityName($authority, $related_type));
+                $values = $request->input($authority->getAuthorityName($related_type));
                 // array_filter
                 $values = array_filter($values, function ($k) {
                     return isset($k);

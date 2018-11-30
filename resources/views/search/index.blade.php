@@ -6,7 +6,7 @@
 
     <div class="box-body">
         @foreach($tables as $table)
-        <div class="box box-search table_{{ $table['table_name'] }}">
+        <div class="box box-search table_{{ $table['table_name'] }}" style="{{ $table['box_sytle'] }}">
             <div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>
             <div class="box-header with-border">
                 <h3 class="box-title">

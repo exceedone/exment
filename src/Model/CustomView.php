@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ViewColumnSystem;
 use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
@@ -44,7 +45,7 @@ class CustomView extends ModelBase
             // if tagret is number, column type is column.
             if (is_numeric($view_column_target)) {
                 $column = $custom_view_column->custom_column;
-                $column_name = getIndexColumnName($column, true);
+                if(!isset($column)){continue;}
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
@@ -55,20 +56,20 @@ class CustomView extends ModelBase
                     }
                     $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
                     if ($isUrl) {
-                        return getUrl($this, $column, true);
+                        return $this->getColumnUrl($column, true);
                     }
                     return esc_html($this->getValue($column, true));
                 });
             }
             // parent_id
-            elseif ($view_column_target == 'parent_id') {
+            elseif ($view_column_target == ViewColumnSystem::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation
                     ::with('parent_custom_table')
                     ->where('child_custom_table_id', $this->custom_table->id)
                     ->first();
                 if (isset($relation)) {
-                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
+                    $grid->column(ViewColumnSystem::PARENT_ID, $relation->parent_custom_table->table_view_name)
                         ->sortable()
                         ->display(function ($value) {
                             // get parent_type
@@ -101,8 +102,14 @@ class CustomView extends ModelBase
      * set DataTable using custom_view
      * @return list(array, array) headers, bodies
      */
-    public function getDataTable($datalist)
+    public function getDataTable($datalist, $options = [])
     {
+        $options = array_merge(
+            [
+                'action_callback' => null,
+            ],
+            $options
+        );
         $custom_table = $this->custom_table;
         // get custom view columns
         $custom_view_columns = $this->custom_view_columns;
@@ -117,7 +124,7 @@ class CustomView extends ModelBase
                 if (isset($custom_column)) {
                     $headers[] = $custom_column->column_view_name;
                 }
-            } elseif ($custom_view_column->view_column_target == 'parent_id') {
+            } elseif ($custom_view_column->view_column_target == ViewColumnSystem::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation
                     ::with('parent_custom_table')
@@ -150,7 +157,7 @@ class CustomView extends ModelBase
                         if (isset($custom_column)) {
                             $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
                             if ($isUrl) {
-                                $body_items[] = getUrl($data, $custom_column, true);
+                                $body_items[] = $data->getColumnUrl($custom_column, true);
                             } else {
                                 $body_items[] = esc_html($data->getValue($custom_column, true));
                             }
@@ -182,6 +189,9 @@ class CustomView extends ModelBase
                 $link = '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'))).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
                 if (Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)) {
                     $link .= '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit')).'"><i class="fa fa-edit"></i></a>';
+                }
+                if(isset($options['action_callback'])){
+                    $options['action_callback']($link, $custom_table, $data);
                 }
                 // add hidden item about data id
                 $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';

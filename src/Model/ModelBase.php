@@ -78,6 +78,6 @@ class ModelBase extends Model
         if (!isset($value)) {
             return;
         }
-        return $value->getValue();
+        return $value->getLabel();
     }
 }

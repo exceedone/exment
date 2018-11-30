@@ -8,8 +8,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomValue;
-use Exceedone\Exment\Model\CustomViewColumn;
-use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -179,24 +177,6 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk)
     {
         return Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-    }
-}
-
-
-if (!function_exists('getPluginNamespace')) {
-    function getPluginNamespace(...$pass_array)
-    {
-        $basename = 'App\Plugins';
-        if (isset($pass_array) && count($pass_array) > 0) {
-            // convert to pascal case
-            $pass_array = collect($pass_array)->map(function ($p) {
-                return pascalize($p);
-            })->toArray();
-
-            $pass_array = array_prepend($pass_array, $basename);
-            $basename = namespace_join($pass_array);
-        }
-        return $basename;
     }
 }
 
@@ -448,7 +428,7 @@ if (!function_exists('getModelName')) {
         if (!$get_name_only && !class_exists($fillpath)) {
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            createTable($table);
+            $table->createTable();
             ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
         }
 
@@ -504,513 +484,13 @@ if (!function_exists('getEndpointName')) {
             $ref = new \ReflectionClass(get_class($obj));
             return snake_case($ref->getShortName());
         }
-
         return null;
-    }
-}
-
-if (!function_exists('getIndexColumnName')) {
-    /**
-     * Get column name. This function uses only search-enabled column.
-     * @param CustomColumn|array $obj
-     * @param boolean $label if get the columnname only get column label.
-     * @return string
-     */
-    function getIndexColumnName($column_obj, $label = false)
-    {
-        $column_obj = CustomColumn::getEloquent($column_obj);
-        return 'column_'.array_get($column_obj, 'suuid').($label ? '_label' : '');
-    }
-}
-
-if (!function_exists('getIndexColumnNameByTable')) {
-    /**
-     * Get column name using table model.
-     * @param string|CustomTable|array $obj
-     * @return string
-     */
-    function getIndexColumnNameByTable($table_obj, $column_name)
-    {
-        // get column eloquent
-        $column_obj = CustomColumn::getEloquent($column_name, $table_obj);
-        // return column name
-        return getIndexColumnName($column_obj);
-    }
-}
-
-if (!function_exists('getRelationName')) {
-    /**
-     * Get relation name.
-     * @param CustomRelation $relation_obj
-     * @return string
-     */
-    function getRelationName($relation_obj)
-    {
-        return getRelationNamebyObjs($relation_obj->parent_custom_table, $relation_obj->child_custom_table);
-    }
-}
-
-if (!function_exists('getRelationNamebyObjs')) {
-    /**
-     * Get relation name using parent and child table.
-     * @param $parent
-     * @param $child
-     * @return string
-     */
-    function getRelationNamebyObjs($parent, $child)
-    {
-        $parent_suuid = CustomTable::getEloquent($parent)->suuid ?? null;
-        $child_suuid = CustomTable::getEloquent($child)->suuid ?? null;
-        if (is_null($parent_suuid) || is_null($child_suuid)) {
-            return null;
-        }
-        return "pivot_{$parent_suuid}_{$child_suuid}";
-    }
-}
-
-if (!function_exists('getAuthorityName')) {
-    /**
-     * Get atuhority name.
-     * @param Authority $obj
-     * @return string
-     */
-    function getAuthorityName($obj, $related_type)
-    {
-        return "authority_{$obj->suuid}_{$related_type}";
-    }
-}
-
-if (!function_exists('getValue')) {
-    /**
-     * Get custom value
-     * @param CustomValue $custom_value
-     * @param string|array|CustomColumn $column
-     * @param bool $isonly_label if column_type is select_table or select_valtext, only get label
-     * @return string
-     */
-    function getValue($custom_value, $column = null, $isonly_label = false, $format = '')
-    {
-        if (is_null($custom_value)) {
-            return $isonly_label ? '' : null;
-        }
-
-        $isCollection = $custom_value instanceof \Illuminate\Database\Eloquent\Collection;
-        // if multible data, set collection, so set as array
-        if (!$isCollection) {
-            $custom_value = [$custom_value];
-        }
-
-        $custom_table = $custom_value[0]->getCustomTable();
-
-        // get value
-        $values = [];
-        foreach ($custom_value as $v) {
-            $value = $v->value;
-            if (is_null($value)) {
-                continue;
-            }
-            
-            $values[] = getValueUseTable($custom_table, $value, $column, $isonly_label, $format);
-        }
-
-        // if is collection
-        if ($isCollection) {
-            // if isonly label, return comma string
-            if ($isonly_label) {
-                return implode(exmtrans('common.separate_word'), $values);
-            }
-            return collect($values);
-        }
-        if (count($values) == 0) {
-            return null;
-        }
-        return $values[0];
-    }
-}
-
-if (!function_exists('getValueUseTable')) {
-    /**
-     * Get Custom Value
-     * @param array|CustomValue $value trget value
-     * @param string|array|CustomColumn $column target column_name or CustomColumn object. If null, it's label column
-     * @param mixin $label if column_type is select_table or select_valtext, only get label.
-     * @return string
-     */
-    function getValueUseTable($custom_table, $value, $column = null, $label = false, $format = '')
-    {
-        if (is_null($value)) {
-            return null;
-        }
-        $custom_table = CustomTable::getEloquent($custom_table);
-        if (is_null($column)) {
-            return getLabelUseTable($custom_table, $value);
-        }
-
-        // if $column is string and  and contains comma
-        if (is_string($column) && str_contains($column, ',')) {
-            ///// getting value Recursively
-            // split comma
-            $columns = explode(",", $column);
-            // if $columns count >= 2, loop columns
-            if (count($columns) >= 2) {
-                $loop_value = $value;
-                $loop_custom_table = $custom_table;
-                foreach ($columns as $k => $c) {
-                    $lastIndex = ($k == count($columns) - 1);
-                    // if $k is not last index, $loop_label is false(because using CustomValue Object)
-                    if (!$lastIndex) {
-                        $loop_label = false;
-                    }
-                    // if last index, $loop_label is called $label
-                    else {
-                        $loop_label = $label;
-                    }
-                    // get value using $c
-                    $loop_value = getValueUseTable($loop_custom_table, $loop_value, $c, $loop_label);
-                    // if null, return
-                    if (is_null($loop_value)) {
-                        return null;
-                    }
-
-                    // if last index, return value
-                    if ($lastIndex) {
-                        return $loop_value;
-                    }
-
-                    // get custom table. if CustomValue
-                    if ($loop_value instanceof CustomValue) {
-                        $loop_custom_table = $loop_value->getCustomTable();
-                    }
-                    // else, something wrong, so return null
-                    else {
-                        return null;
-                    }
-                }
-                return $loop_value;
-            }
-            // if length <= 1, set normal getValueUseTable flow, so $column = $columns[0]
-            else {
-                $column = $columns[0];
-            }
-        }
-
-        ///// get custom column as array
-        // if string
-        if (is_string($column)) {
-            $column_first = CustomColumn
-                ::where('column_name', $column)
-                ->where('custom_table_id', array_get($custom_table, 'id'))
-                ->first();
-            if (is_null($column_first)) {
-                return null;
-            }
-            $column_array = $column_first->toArray() ?? null;
-        }
-        // if $column is CustomColumn, convert to array.
-        elseif ($column instanceof CustomColumn) {
-            $column_array = $column->toArray();
-        } else {
-            $column_array = $column;
-        }
-
-        if (is_null($column_array)) {
-            return null;
-        }
-
-        if (is_array($value)) {
-            $key = array_get($column_array, 'column_name');
-            $val = array_get($value, $key);
-        } elseif ($value instanceof CustomValue) {
-            $key = array_get($column_array, 'column_name');
-            $val = array_get($value->value, $key);
-        } else {
-            $val = $value;
-        }
-
-        if (is_null($val)) {
-            return null;
-        }
-        $column_type = array_get($column_array, 'column_type');
-
-        // calcurate  --------------------------------------------------
-        if (in_array($column_type, ['decimal', 'currency'])) {
-            $val = parseFloat($val);
-            if (array_has($column_array, 'options.decimal_digit')) {
-                $digit = intval(array_get($column_array, 'options.decimal_digit'));
-                $val = floor($val * pow(10, $digit)) / pow(10, $digit);
-            }
-        }
-
-        // return finally value --------------------------------------------------
-        // get value as select
-        // get value as select_valtext
-        if (in_array($column_type, ['select', 'select_valtext'])) {
-            $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
-            $select_item = array_get($column_array, $array_get_key);
-            $options = createSelectOptions(CustomColumn::getEloquent($column, $custom_table));
-            if (!array_keys_exists($val, $options)) {
-                return null;
-            }
-
-            // if $val is array
-            $multiple = true;
-            if (!is_array($val)) {
-                $val = [$val];
-                $multiple = false;
-            }
-            // switch column_type and get return value
-            $returns = [];
-            switch ($column_type) {
-                case 'select':
-                    $returns = $val;
-                    break;
-                case 'select_valtext':
-                    // loop keyvalue
-                    foreach ($val as $v) {
-                        // set whether $label
-                        $returns[] = $label ? array_get($options, $v) : $v;
-                    }
-                    break;
-            }
-            if ($multiple) {
-                return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
-            } else {
-                return $returns[0];
-            }
-        }
-
-        // get value as select_table
-        elseif (in_array($column_type, ['select_table', 'user', 'organization'])) {
-            // get target table
-            $target_table_key = null;
-            if ($column_type == 'select_table') {
-                $target_table_key = array_get($column_array, 'options.select_target_table');
-            } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-                $target_table_key = $column_type;
-            }
-            $target_table = CustomTable::getEloquent($target_table_key);
-
-            $model = getModelName(array_get($target_table, 'table_name'))::find($val);
-            if (is_null($model)) {
-                return null;
-            }
-            if ($label === false) {
-                return $model;
-            }
-            
-            // if $model is array multiple, set as array
-            if (!($model instanceof \Illuminate\Database\Eloquent\Collection)) {
-                $model = [$model];
-            }
-
-            $labels = [];
-            foreach ($model as $m) {
-                if (is_null($column)) {
-                    continue;
-                }
-                 
-                // get label column
-                // if label is true, return getLabel
-                if ($label === true) {
-                    $labels[] = $m->label;
-                }
-                // if label is selecting column name, get target label
-                elseif (is_string($label)) {
-                    $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
-                }
-            }
-            return implode(exmtrans('common.separate_word'), $labels);
-        } elseif (in_array($column_type, ['file', 'image'])) {
-            // get file
-            if ($label !== true) {
-                $file = File::getFile($val);
-                return $file;
-            }
-            return $val;
-        }
-        // yesno
-        elseif (in_array($column_type, ['yesno'])) {
-            if ($label !== true) {
-                return $val;
-            }
-            // convert label
-            return boolval($val) ? 'YES' : 'NO';
-        }
-        // boolean
-        elseif (in_array($column_type, ['yesno'])) {
-            if ($label !== true) {
-                return $val;
-            }
-            // convert label
-            // check matched true and false value
-            if (array_get($column_array, 'options.true_value') == $val) {
-                return array_get($column_array, 'options.true_label');
-            } elseif (array_get($column_array, 'options.false_value') == $val) {
-                return array_get($column_array, 'options.false_label');
-            }
-            return null;
-        }
-        // currency
-        elseif (in_array($column_type, ['currency'])) {
-            // if not label, return
-            if ($label !== true) {
-                return $val;
-            }
-            if (boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)) {
-                $val = number_format($val);
-            }
-            // get symbol
-            $symbol = array_get($column_array, 'options.currency_symbol');
-            return getCurrencySymbolLabel($symbol, $val);
-        }
-        // datetime, date
-        elseif (in_array($column_type, ['datetime', 'date'])) {
-            // if not empty format, using carbon
-            if (!is_nullorempty($format)) {
-                return (new \Carbon\Carbon($val))->format($format) ?? null;
-            }
-            // else, return
-            return $val;
-        } else {
-            // if not label, return
-            if ($label !== true) {
-                return $val;
-            }
-            if (boolval(array_get($column_array, 'options.number_format')) && is_numeric($val)) {
-                $val = number_format($val);
-            }
-            return $val;
-        }
-    }
-}
-
-if (!function_exists('getLabel')) {
-    /**
-     * Get label text
-     * @param CustomValue|array $custom_value
-     * @param CustomTable|array $obj
-     * @return string
-     */
-    function getLabel($custom_value)
-    {
-        if (is_null($custom_value)) {
-            return null;
-        }
-        $custom_table = $custom_value->getCustomTable();
-        return getLabelUseTable($custom_table, array_get($custom_value, 'value'));
-    }
-}
-
-if (!function_exists('getUrl')) {
-    /**
-     * Get url for column_type is url, select_table.
-     * @param CustomValue $custom_value
-     * @param CustomColumn $column
-     * @return string
-     */
-    function getUrl($custom_value, $column, $tag = false)
-    {
-        if (is_null($custom_value)) {
-            return null;
-        }
-        $url = null;
-        $value = esc_html($custom_value->getValue($column, true));
-        switch ($column->column_type) {
-            case 'url':
-                $url = $custom_value->getValue($column);
-                if (!$tag) {
-                    return $url;
-                }
-                return "<a href='{$url}' target='_blank'>$value</a>";
-            case 'select_table':
-                $target_value = $custom_value->getValue($column);
-                $id =  $target_value->id ?? null;
-                if (!isset($id)) {
-                    return null;
-                }
-                // create url
-                return $target_value->getUrl($tag);
-        }
- 
-        return null;
-    }
-}
-
-if (!function_exists('getLabelUseTable')) {
-    /**
-     * Get label text
-     * @param CustomTable $custom_table
-     * @param CustomValue|array $custom_value
-     * @return string
-     */
-    function getLabelUseTable($custom_table, $value)
-    {
-        if (is_null($value)) {
-            return null;
-        }
-        $columns = $custom_table->custom_columns()
-            ->whereNotIn('options->use_label_flg', [0, "0"])
-            ->orderBy('options->use_label_flg')
-            ->get();
-        if (!isset($columns)) {
-            $columns = collect($custom_table->custom_columns()->first());
-        }
-
-        // loop for columns and get value
-        $labels = [];
-        foreach ($columns as $column) {
-            if (!isset($column)) {
-                continue;
-            }
-            $label = getValueUseTable($custom_table, $value, $column, true);
-            if (!isset($label)) {
-                continue;
-            }
-            $labels[] = $label;
-        }
-
-        return implode(' ', $labels);
-    }
-}
-
-
-if (!function_exists('getParentValue')) {
-    /**
-     * get parent value
-     */
-    function getParentValue($custom_value, $isonly_label = false)
-    {
-        $model = getModelName($custom_value->parent_type)::find($custom_value->parent_id);
-        
-        if (!$isonly_label) {
-            return $model;
-        }
-        return $model->label;
-    }
-}
-
-if (!function_exists('getChildrenValues')) {
-    /**
-     * Get Custom children Value
-     */
-    function getChildrenValues($custom_value, $relation_table)
-    {
-        if (is_null($custom_value)) {
-            return null;
-        }
-        $parent_table = $custom_value->getCustomTable();
-
-        // get custom column as array
-        $child_table = CustomTable::getEloquent($relation_table);
-        $pivot_table_name = getRelationNameByObjs($parent_table, $child_table);
-
-        // get relation item list
-        return $custom_value->{$pivot_table_name};
     }
 }
 
 if (!function_exists('getCurrencySymbolLabel')) {
     /**
+     * Get Currency Sybmol. ex. $, ￥, ...
      */
     function getCurrencySymbolLabel($symbol, $value = '123,456.00')
     {
@@ -1027,28 +507,6 @@ if (!function_exists('getCurrencySymbolLabel')) {
             return $text;
         }
         return null;
-    }
-}
-
-if (!function_exists('getSearchEnabledColumns')) {
-    /**
-     * Get search-enabled columns array.
-     * @param mixed $table_name
-     * @param mixed $column_name
-     * @return array search-enabled columns array
-     */
-    function getSearchEnabledColumns($table_name)
-    {
-        $table = CustomTable::findByName($table_name, true)->toArray();
-        $column_arrays = [];
-        // loop for custom_columns.
-        foreach ($table['custom_columns'] as $custom_column) {
-            // if custom_column is search_enabled column, add $column_arrays.
-            if (boolval(array_get($custom_column, 'options.search_enabled'))) {
-                array_push($column_arrays, $custom_column);
-            }
-        }
-        return $column_arrays;
     }
 }
 
@@ -1082,94 +540,177 @@ if (!function_exists('getAuthorityUser')) {
     }
 }
 
-if (!function_exists('createTable')) {
+if (!function_exists('replaceTextFromFormat')) {
     /**
-     * Create Table in Database.
-     *
-     * @param string|CustomTable $obj
-     * @return void
+     * Replace value from format. ex. ${value:user_name} to user_name's value
      */
-    function createTable($obj)
+    function replaceTextFromFormat($format, $custom_value = null, $options = [])
     {
-        $table_name = getDBTableName($obj);
-        // if not null
-        if (!isset($table_name)) {
-            throw new Exception('table name is not found. please tell system administrator.');
+        if (is_null($format)) {
+            return null;
         }
 
-        // check already execute
-        $key = getRequestSession('create_table.'.$table_name);
-        if (boolval($key)) {
-            return;
+        $options = array_merge(
+            [
+                'matchBeforeCallback' => null,
+                'afterCallBack' => null,
+            ]
+            , $options
+        );
+
+        try {
+            // check string
+            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
+            if (isset($matches)) {
+                // loop for matches. because we want to get inner {}, loop $matches[1].
+                for ($i = 0; $i < count($matches[1]); $i++) {
+                    $str = null;
+                    $matchString = null;
+                    try {
+                        $match = strtolower($matches[1][$i]);
+                        $matchString = $matches[0][$i];
+                    
+                        // get length
+                        $length_array = explode(":", $match);
+                        $key = $length_array[0];
+                        
+                        // define date array
+                        $dateStrings = [
+                            'ymdhms' => 'YmdHis',
+                            'ymdhm' => 'YmdHi',
+                            'ymdh' => 'YmdH',
+                            'ymd' => 'Ymd',
+                            'ym' => 'Ym',
+                            'hms' => 'His',
+                            'hm' => 'Hi',
+                        ];
+                        $dateValues = [
+                            'year',
+                            'month',
+                            'day',
+                            'hour',
+                            'monute',
+                            'second',
+                        ];
+
+                        if(array_key_value_exists('matchBeforeCallback', $options)){
+                            // execute callback
+                            $callbackFunc = $options['matchBeforeCallback'];
+                            $result = $callbackFunc->call($length_array, $match, $format, $custom_value, $options);
+                            if($result){
+                                $format = $result;
+                                continue;
+                            }
+                        }
+
+                        ///// id
+                        if ($key == "id") {
+                            // replace add zero using id.
+                            if (count($length_array) > 1) {
+                                $str = sprintf('%0'.$length_array[1].'d', $id);
+                            } else {
+                                $str = $id;
+                            }
+                        }
+                        ///// value
+                        elseif ($key == "value") {
+                            if(!isset($custom_value)){
+                                $str = $id_string;
+                            }
+                            // get value from model
+                            elseif (count($length_array) <= 1) {
+                                $str = '';
+                            } else {
+                                // get comma string from index 1.
+                                $length_array = array_slice($length_array, 1);
+                                $str = $custom_value->getValue(implode(',', $length_array), true, $options, 'format');
+                            }
+                        }
+                        // base_info
+                        elseif ($key == "base_info") {
+                            $base_info = getModelName(SystemTableName::BASEINFO)::first();
+                            if(!isset($base_info)){
+                                $str = '';
+                            }
+                            // get value from model
+                            elseif (count($length_array) <= 1) {
+                                $str = '';
+                            } else {
+                                $str = $base_info->getValue($length_array[1], true, array_get($options, 'format'));
+                            }
+                        }
+                        ///// sum
+                        elseif ($key == "sum") {
+                            if(!isset($custom_value)){
+                                $str = '';
+                            }
+
+                            // get sum value from children model
+                            elseif (count($length_array) <= 2) {
+                                $str = '';
+                            }
+                            //else, getting value using cihldren
+                            else {
+                                // get children values
+                                $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
+                                // looping
+                                $sum = 0;
+                                foreach ($children as $child) {
+                                    // get value
+                                    $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
+                                }
+                                $str = strval($sum);
+                            }
+                        }
+
+                        // suuid
+                        elseif ($key == "suuid") {
+                            $str = short_uuid();
+                        }
+                        // uuid
+                        elseif ($key == "uuid") {
+                            $str = make_uuid();
+                        }
+                        // if has $datestrings, conbert using date string
+                        elseif(array_key_exists($key, $dateStrings)){
+                            $str = \Carbon\Carbon::now()->format($dateStrings[$key]);
+                        }
+                        // if has $datestrings, conbert using date value
+                        elseif(array_has($dateValues, $key)){
+                            $str = Carbon::now()->{$dateValues->$key};
+                            // if user input length
+                            if (count($length_array) > 1) {
+                                $length = $length_array[1];
+                            }
+                            // default 2
+                            else {
+                                $length = 1;
+                            }
+                            $str = sprintf('%0'.$length.'d', $str);
+                        }
+                    } catch (\Exception $e) {
+                        $str = '';
+                    }
+
+                    // replace 
+                    $format = str_replace($matchString, $str, $format);
+                }
+            }
+        } catch (\Exception $e) {
+
         }
 
-        // CREATE TABLE from custom value table.
-        $db = DB::connection();
-        $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
-        
-        setRequestSession($key, 1);
+        if(array_key_value_exists('afterCallback', $options)){
+            // execute callback
+            $callbackFunc = $options['afterCallback'];
+            $format = $callbackFunc($format, $custom_value, $options);
+        }
+        return $format;
     }
 }
 
 
-if (!function_exists('alterColumn')) {
-    /**
-     * Alter table column
-     * For add table virtual column
-     * @param mixed $table_name
-     * @param mixed $column_name
-     * @param bool $forceDropIndex drop index. calling when remove column.
-     */
-    function alterColumn($table_name, $column_name, $forceDropIndex = false)
-    {
-        // Create index --------------------------------------------------
-        $table = CustomTable::getEloquent($table_name);
-        $column = $table->custom_columns()->where('column_name', $column_name)->first();
-
-        //DB table name
-        $db_table_name = getDBTableName($table);
-        $db_column_name = getIndexColumnName($column);
-
-        // Create table
-        createTable($table);
-
-        // get whether search_enabled column
-        $search_enabled = array_get($column, 'options.search_enabled');
-        
-        // check table column field exists.
-        $exists = Schema::hasColumn($db_table_name, $db_column_name);
-
-        $index_name = "index_$db_column_name";
-        //  if search_enabled = false, and exists, then drop index
-        // if column exists and (search_enabled = false or forceDropIndex)
-        if ($exists && ($forceDropIndex || (!boolval($search_enabled)))) {
-            DB::beginTransaction();
-            try {
-                // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name DROP INDEX $index_name;");
-                DB::statement("ALTER TABLE $db_table_name DROP COLUMN $db_column_name;");
-                DB::commit();
-            } catch (Exception $exception) {
-                DB::rollback();
-                throw $exception;
-            }
-        }
-        // if search_enabled = true, not exists, then create index
-        elseif ($search_enabled && !$exists) {
-            DB::beginTransaction();
-            try {
-                // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS (json_unquote(json_extract(`value`,'$.$column_name'))) VIRTUAL;");
-                DB::statement("ALTER TABLE $db_table_name ADD index $index_name($db_column_name)");
-    
-                DB::commit();
-            } catch (Exception $exception) {
-                DB::rollback();
-                throw $exception;
-            }
-        }
-    }
-}
+// Database Difinition --------------------------------------------------
 
 if (!function_exists('getEndpointTable')) {
     /**
@@ -1252,226 +793,6 @@ if (!function_exists('disableFormFooter')) {
             // disable `Continue Creating` checkbox
             $footer->disableCreatingCheck();
         });
-    }
-}
-
-if (!function_exists('isGetOptions')) {
-    /**
-     * get options for select, multipleselect.
-     * But if options count > 100, use ajax, so only one record.
-     *
-     * @param array|CustomTable $table
-     * @param $selected_value
-     */
-    function isGetOptions($table)
-    {
-        // get count table.
-        $count = getOptionsQuery($table)::count();
-        // when count > 0, create option only value.
-        return $count <= 100;
-    }
-}
-
-if (!function_exists('getOptions')) {
-    /**
-     * get options for select, multipleselect.
-     * But if options count > 100, use ajax, so only one record.
-     *
-     * @param array|CustomTable $table to get table object
-     * @param $selected_value the value that already selected.
-     * @param array|CustomTable $target_table Information on the table displayed on the screen
-     * @param boolean $all is show all data. for system authority, it's true.
-     */
-    function getOptions($table, $selected_value = null, $target_table = null, $all = false)
-    {
-        if (is_null($table)) {
-            return [];
-        }
-        if (is_null($target_table)) {
-            $target_table = $table;
-        }
-        
-        // get query.
-        // if user or organization, get from getAuthorityUserOrOrg
-        if (in_array($table, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
-            $query = Authority::getAuthorityUserOrgQuery($target_table, $table);
-        } else {
-            $query = getOptionsQuery($table);
-        }
-
-        // get count table.
-        $count = $query->count();
-        // when count > 0, create option only value.
-        if ($count > 100) {
-            if (!isset($selected_value)) {
-                return [];
-            }
-            $item = getModelName($table)::find($selected_value);
-
-            if ($item) {
-                // check whether $item is multiple value.
-                if ($item instanceof Collection) {
-                    $ret = [];
-                    foreach ($item as $i) {
-                        $ret[$i->id] = $i->label;
-                    }
-                    return $ret;
-                }
-                return [$item->id => $item->label];
-            } else {
-                return [];
-            }
-        }
-        return $query->get()->pluck("label", "id");
-    }
-}
-
-if (!function_exists('getOptionAjaxUrl')) {
-    /**
-     * get ajax url for options for select, multipleselect.
-     *
-     * @param array|CustomTable $table
-     * @param $value
-     */
-    function getOptionAjaxUrl($table)
-    {
-        if (is_null($table)) {
-            return null;
-        }
-        $table = CustomTable::getEloquent($table);
-        // get count table.
-        $count = getOptionsQuery($table)::count();
-        // when count > 0, create option only value.
-        if ($count <= 100) {
-            return null;
-        }
-        return admin_base_path(url_join("api", array_get($table, 'table_name'), "query"));
-    }
-}
-
-if (!function_exists('getOptionsQuery')) {
-    /**
-     * getOptionsQuery. this function uses for count, get, ...
-     */
-    function getOptionsQuery($table)
-    {
-        // get model
-        $modelname = getModelName($table);
-        $model = new $modelname;
-
-        // filter model
-        $model = Admin::user()->filterModel($model, $table);
-        return $model;
-    }
-}
-
-
-if (!function_exists('createSelectOptions')) {
-    /**
-     * Create laravel-admin select box options. for column_type "select", "select_valtext"
-     */
-    function createSelectOptions($column)
-    {
-        // get value
-        $column_type = array_get($column, 'column_type');
-        $column_options = array_get($column, 'options');
-
-        // get select item string
-        $array_get_key = $column_type == 'select' ? 'select_item' : 'select_item_valtext';
-        $select_item = array_get($column_options, $array_get_key);
-        $isValueText = ($column_type == 'select_valtext');
-        
-        $options = [];
-        if (is_null($select_item)) {
-            return $options;
-        }
-
-        if (is_string($select_item)) {
-            $str = str_replace(array("\r\n","\r","\n"), "\n", $select_item);
-            if (isset($str) && mb_strlen($str) > 0) {
-                // loop for split new line
-                $array = explode("\n", $str);
-                foreach ($array as $a) {
-                    setSelectOptionItem($a, $options, $isValueText);
-                }
-            }
-        } elseif (is_array($select_item)) {
-            foreach ($select_item as $key => $value) {
-                setSelectOptionItem($value, $options, $isValueText);
-            }
-        }
-
-        return $options;
-    }
-}
-
-if (!function_exists('setSelectOptionItem')) {
-    /**
-     * Create laravel-admin select box option item.
-     */
-    function setSelectOptionItem($item, &$options, $isValueText)
-    {
-        if (is_string($item)) {
-            // $isValueText is true(split comma)
-            if ($isValueText) {
-                $splits = explode(',', $item);
-                if (count($splits) > 1) {
-                    $options[mbTrim($splits[0])] = mbTrim($splits[1]);
-                } else {
-                    $options[mbTrim($splits[0])] = mbTrim($splits[0]);
-                }
-            } else {
-                $options[mbTrim($item)] = mbTrim($item);
-            }
-        }
-    }
-}
-
-if (!function_exists('getColumnsSelectOptions')) {
-    /**
-     * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param array|CustomTable $table
-     * @param $selected_value
-     */
-    function getColumnsSelectOptions($table, $search_enabled_only = false)
-    {
-        $table = CustomTable::getEloquent($table);
-        $options = [];
-        
-        ///// get system columns
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
-            // not header, continue
-            if (!boolval(array_get($option, 'header'))) {
-                continue;
-            }
-            $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
-        }
-
-        ///// if this table is child relation(1:n), add parent table
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table->id)->first();
-        if (isset($relation)) {
-            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
-        }
-
-        ///// get table columns
-        $custom_columns = $table->custom_columns;
-        foreach ($custom_columns as $option) {
-            // if $search_enabled_only = true and options.search_enabled is false, continue
-            if ($search_enabled_only && !boolval(array_get($option, 'options.search_enabled'))) {
-                continue;
-            }
-            $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
-        }
-        ///// get system columns
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
-            // not footer, continue
-            if (!boolval(array_get($option, 'footer'))) {
-                continue;
-            }
-            $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
-        }
-    
-        return $options;
     }
 }
 

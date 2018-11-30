@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use \Exceedone\Exment\Model\Define;
 use \Exceedone\Exment\Model\System;
 use \Exceedone\Exment\Model\Authority;
 use \Exceedone\Exment\Model\CustomTable;
@@ -198,7 +197,7 @@ class ClassBuilder
             
         // loop children tables
         foreach ($relations as $relation) {
-            $pivot_table_name = getRelationName($relation);
+            $pivot_table_name = $relation->getRelationName();
             // Get Parent and child table Name.
             // case 1 to many
             if ($relation->relation_type == 'one_to_many') {
@@ -220,7 +219,7 @@ class ClassBuilder
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",
-                    getAuthorityName($authority, $related_type)."()",
+                    $authority->getAuthorityName($related_type)."()",
                         "return \$this->morphToMany('$target_model', 'morph', 'value_authoritable', 'morph_id', 'related_id')
                         ->withPivot('related_id', 'related_type', 'authority_id')
                         ->wherePivot('related_type', '".$related_type."')
@@ -250,7 +249,7 @@ class ClassBuilder
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",
-                    getAuthorityName($authority, $related_type)."()",
+                    $authority->getAuthorityName($related_type)."()",
                         "return \$this->morphToMany('$target_model', 'morph', 'system_authoritable', 'morph_id', 'related_id')
                         ->withPivot('related_id', 'related_type', 'authority_id')
                         ->wherePivot('related_type', '".$related_type."')

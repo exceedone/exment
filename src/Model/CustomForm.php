@@ -95,7 +95,7 @@ class CustomForm extends ModelBase
         // if target form doesn't have columns, add columns for search_enabled columns.
         if (!isset($form->custom_form_columns) || count($form->custom_form_columns) == 0) {
             $form_columns = [];
-            $search_enabled_columns = getSearchEnabledColumns($tableObj->table_name);
+            $search_enabled_columns = $tableObj->getSearchEnabledColumns();
 
             // get target block as default.
             $form_block = $form->custom_form_blocks()

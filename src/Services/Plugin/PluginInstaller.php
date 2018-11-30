@@ -6,7 +6,6 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\PluginType;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Router;
@@ -99,12 +98,6 @@ class PluginInstaller
         $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
         $tmpPluginFolderPath = null;
 
-        //Folder to move file uploaded
-        $pluginBasePath = path_join(app_path(), 'Plugins');
-        if (!\File::exists($pluginBasePath)) {
-            \File::makeDirectory($pluginBasePath, 0775);
-        }
-
         // open zip file
         $zip = new ZipArchive;
         //Define variable like flag to check exitsed file config (config.json) before extract zip file
@@ -144,11 +137,12 @@ class PluginInstaller
                     $plugineExistByName = static::checkPluginNameExisted(array_get($json, 'plugin_name'));
                     //Check if the uuid of the plugin has existed
                     $plugineExistByUUID = static::checkPluginUUIDExisted(array_get($json, 'uuid'));
-                    //Make path of folder where contain plugin with name is plugin's name
-                    $pluginFolder = path_join($pluginBasePath, pascalize(preg_replace('/\s+/', '', array_get($json, 'plugin_name'))));
-
+                    
                     //If json pass validation, prepare data to do continue
                     $plugin = static::prepareData($json);
+                    //Make path of folder where contain plugin with name is plugin's name
+                    $pluginFolder = $plugin->getFullPath();
+
                     //If both name and uuid existed, update data for this plugin
                     if ($plugineExistByName > 0 && $plugineExistByUUID > 0) {
                         $pluginUpdated = $plugin->saveOrFail();
@@ -217,7 +211,7 @@ class PluginInstaller
     protected static function prepareData($json)
     {
         // find or new $plugin
-        $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
+        $plugin = Plugin::withTrashed()->firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
         $plugin->plugin_name = array_get($json, 'plugin_name');
         $plugin->plugin_type = array_get($json, 'plugin_type');
         $plugin->author = array_get($json, 'author');
@@ -226,7 +220,9 @@ class PluginInstaller
         $plugin->plugin_view_name = array_get($json, 'plugin_view_name');
         $plugin->description = array_get($json, 'description');
         $plugin->active_flg = true;
-
+        // remove deleted at
+        $plugin->deleted_at = null;
+        
         // set options
         $options = array_get($plugin, 'options', []);
         // set if exists
@@ -253,7 +249,7 @@ class PluginInstaller
     protected static function checkPluginNameExisted($name)
     {
         return Plugin
-            ::where('plugin_name', '=', $name)
+            ::withTrashed()->where('plugin_name', '=', $name)
             ->count();
     }
 
@@ -261,7 +257,7 @@ class PluginInstaller
     protected static function checkPluginUUIDExisted($uuid)
     {
         return Plugin
-            ::where('uuid', '=', $uuid)
+            ::withTrashed()->where('uuid', '=', $uuid)
             ->count();
     }
 
@@ -292,63 +288,6 @@ class PluginInstaller
         }
         // copy folder
         File::copyDirectory($tmpPluginFolderPath, $pluginFolderPath);
-    }
-
-    //Delete record from database (one or multi records)
-    protected static function destroy($id)
-    {
-        static::deleteFolder($id);
-        if (static::form()->destroy($id)) {
-            return response()->json([
-                'status' => true,
-                'message' => trans('admin.delete_succeeded'),
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => trans('admin.delete_failed'),
-            ]);
-        }
-    }
-
-    //Delete one or multi folder corresponds to the plugins
-    protected static function deleteFolder($id)
-    {
-        $arrPlugin = array();
-        $appPath = app_path();
-        if (strpos($id, ',') !== false) {
-            $arrPlugin = explode(',', $id);
-            foreach ($arrPlugin as $item) {
-                $plugin = DB::table('plugins')
-                    ->where('id', '=', $item)
-                    ->first();
-                $pluginFolder = $appPath . '/plugins/' . strtolower(preg_replace('/\s+/', '', $plugin->plugin_name));
-                if (File::isDirectory($pluginFolder)) {
-                    File::deleteDirectory($pluginFolder);
-                }
-            }
-        } else {
-            $plugin = DB::table('plugins')
-                ->where('id', '=', $id)
-                ->first();
-            $pluginFolder = $appPath . '/plugins/' . strtolower(preg_replace('/\s+/', '', $plugin->plugin_name));
-            if (File::isDirectory($pluginFolder)) {
-                File::deleteDirectory($pluginFolder);
-            }
-        }
-    }
-
-    //Check request when edit record to delete null values in event_triggers
-    public static function update(Request $request, $id)
-    {
-        if (isset($request->get('options')['event_triggers']) === true) {
-            $event_triggers = $request->get('options')['event_triggers'];
-            $options = $request->get('options');
-            $event_triggers = array_filter($event_triggers, 'strlen');
-            $options['event_triggers'] = $event_triggers;
-            $request->merge(['options' => $options]);
-        }
-        return static::form()->update($id);
     }
 
     public static function route($plugin, $json)
@@ -397,7 +336,7 @@ class PluginInstaller
                 $event_triggers = array_get($plugin, 'options.event_triggers');
                 $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
-                $classname = getPluginNamespace($plugin->plugin_name, 'Plugin');
+                $classname = $plugin->getNameSpace('Plugin');
                 if (in_array($event, $event_triggers) && !in_array($event, $event_triggers_button) && class_exists($classname)) {
                     //$reponse = app('\App\Plugin\\'.$plugin->plugin_name.'\Plugin')->execute($event);
                     $pluginCalled = app($classname)->execute();

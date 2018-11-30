@@ -6,10 +6,8 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -32,7 +30,7 @@ trait CustomValueGrid
         PluginInstaller::pluginPreparing($this->plugins, 'loading');
         
         // get search_enabled_columns and loop
-        $search_enabled_columns = getSearchEnabledColumns($this->custom_table->table_name);
+        $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
     
         // create grid
         $this->custom_view->setGrid($grid);
@@ -76,8 +74,8 @@ trait CustomValueGrid
                 // if set, create select
                 if (isset($relation)) {
                     // get options and ajax url
-                    $options = getOptions($relation->parent_custom_table);
-                    $ajax = getOptionAjaxUrl($relation->parent_custom_table);
+                    $options = $relation->parent_custom_table->getOptions();
+                    $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
                     if (isset($ajax)) {
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');
                     } else {
@@ -86,14 +84,14 @@ trait CustomValueGrid
                 }
 
                 foreach ($search_enabled_columns as $search_column) {
-                    $column_name = getIndexColumnName($search_column);
+                    $column_name = $search_column->getIndexColumnName();
                     $column_view_name = array_get($search_column, 'column_view_name');
                     // filter type
                     $column_type = array_get($search_column, 'column_type');
                     switch ($column_type) {
                         case 'select':
                         case 'select_valtext':
-                            $filter->equal($column_name, $column_view_name)->select(createSelectOptions($search_column));
+                            $filter->equal($column_name, $column_view_name)->select($search_column->createSelectOptions());
                             break;
                         case 'select_table':
                         case 'user':
@@ -102,19 +100,19 @@ trait CustomValueGrid
                             if ($column_type == 'select_table') {
                                 $select_target_table_id = array_get($search_column, 'options.select_target_table');
                                 if (isset($select_target_table_id)) {
-                                    $select_target_table = CustomTable::find($select_target_table_id)->table_name;
+                                    $select_target_table = CustomTable::find($select_target_table_id);
                                 } else {
                                     $select_target_table = null;
                                 }
                             } elseif ($column_type == SystemTableName::USER) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::USER)->table_name;
+                                $select_target_table = CustomTable::findByName(SystemTableName::USER);
                             } elseif ($column_type == SystemTableName::ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION)->table_name;
+                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
                             }
 
                             // get options and ajax url
-                            $options = getOptions($select_target_table);
-                            $ajax = getOptionAjaxUrl($select_target_table);
+                            $options = $select_target_table->getOptions();
+                            $ajax = $select_target_table->getOptionAjaxUrl();
                             if (isset($ajax)) {
                                 $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
                             } else {
