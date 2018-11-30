@@ -312,7 +312,7 @@ trait HasPermissions
                 // get filter target column
                 $view_filter_target = $filter->view_filter_target;
                 if (is_numeric($view_filter_target)) {
-                    $view_filter_target = getIndexColumnName(CustomColumn::find($view_filter_target));
+                    $view_filter_target = CustomColumn::find($view_filter_target)->getIndexColumnName() ?? null;
                 }
                 $condition_value_text = $filter->view_filter_condition_value_text;
                 $view_filter_condition = $filter->view_filter_condition;

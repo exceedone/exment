@@ -489,35 +489,6 @@ if (!function_exists('getEndpointName')) {
     }
 }
 
-if (!function_exists('getIndexColumnName')) {
-    /**
-     * Get column name. This function uses only search-enabled column.
-     * @param CustomColumn|array $obj
-     * @param boolean $label if get the columnname only get column label.
-     * @return string
-     */
-    function getIndexColumnName($column_obj, $label = false)
-    {
-        $column_obj = CustomColumn::getEloquent($column_obj);
-        return 'column_'.array_get($column_obj, 'suuid').($label ? '_label' : '');
-    }
-}
-
-if (!function_exists('getIndexColumnNameByTable')) {
-    /**
-     * Get column name using table model.
-     * @param string|CustomTable|array $obj
-     * @return string
-     */
-    function getIndexColumnNameByTable($table_obj, $column_name)
-    {
-        // get column eloquent
-        $column_obj = CustomColumn::getEloquent($column_name, $table_obj);
-        // return column name
-        return getIndexColumnName($column_obj);
-    }
-}
-
 if (!function_exists('getRelationName')) {
     /**
      * Get relation name.

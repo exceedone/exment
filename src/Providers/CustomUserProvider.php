@@ -51,7 +51,8 @@ class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
         $login_user = null;
         foreach (['email', 'user_code'] as $key) {
             $query = LoginUser::whereHas('base_user', function ($query) use ($key, $credentials) {
-                $query->where(getIndexColumnNameByTable(SystemTableName::USER, $key), array_get($credentials, 'username'));
+                $user = CustomTable::findByName(SystemTableName::USER);
+                $query->where($user->getIndexColumnName($key), array_get($credentials, 'username'));
             });
 
             // has login provider

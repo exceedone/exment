@@ -146,4 +146,18 @@ trait CustomTableTrait
         
         setRequestSession($key, 1);
     }
+    
+    /**
+     * Get index column name
+     * @param string|CustomTable|array $obj
+     * @return string
+     */
+    function getIndexColumnName($column_name)
+    {
+        // get column eloquent
+        $column = CustomColumn::getEloquent($column_name, $this);
+        // return column name
+        return $column->getIndexColumnName();
+    }
+
 }

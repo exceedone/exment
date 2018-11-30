@@ -82,7 +82,7 @@ class CustomColumn extends ModelBase
 
         //DB table name
         $db_table_name = getDBTableName($table);
-        $db_column_name = getIndexColumnName($this);
+        $db_column_name = $this->getIndexColumnName(false, false);
 
         // Create table
         $table->createTable();
@@ -123,6 +123,26 @@ class CustomColumn extends ModelBase
             }
         }
     }
+    
+    /**
+     * Get index column column name. This function uses only search-enabled column.
+     * @param CustomColumn|array $obj
+     * @param boolean $label if get the columnname only get column label.
+     * @param boolean $alterColumn if not exists column on db, execute alter column. if false, only get name
+     * @return string
+     */
+    public function getIndexColumnName($label = false, $alterColumn = true)
+    {
+        $name = 'column_'.array_get($this, 'suuid').($label ? '_label' : '');
+        $db_table_name = getDBTableName($this->custom_table);
+
+        // if not exists, execute alter column
+        if($alterColumn && !Schema::hasColumn($db_table_name, $name)){
+            $this->alterColumn();
+        }
+        return $name;
+    }
+
 
     public function getOption($key)
     {

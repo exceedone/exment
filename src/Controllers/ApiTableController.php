@@ -57,7 +57,7 @@ class ApiTableController extends AdminControllerTableBase
         // get search target columns
         $columns = $this->custom_table->getSearchEnabledColumns();
         foreach ($columns as $column) {
-            $column_name = getIndexColumnName($column);
+            $column_name = $column->getIndexColumnName();
             $model = $model->orWhere($column_name, 'like', "%$q%");
         }
         $paginate = $model->paginate(null);

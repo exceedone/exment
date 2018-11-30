@@ -217,7 +217,7 @@ EOT;
     protected function getSearchTargetTable($value_table = null)
     {
         $results = [];
-        $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get()->toArray();
+        $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get();
         foreach ($tables as $table) {
             // if not authority, continue
             if (System::authority_available() && !Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
@@ -225,7 +225,7 @@ EOT;
             }
 
             // search using column
-            $result = collect($table['custom_columns'])->first(function ($custom_column) {
+            $result = array_get($table, 'custom_columns')->first(function ($custom_column) {
                 // this column is search_enabled, add array.
                 if (!boolval(array_get($custom_column['options'], 'search_enabled'))) {
                     return false;
@@ -237,9 +237,8 @@ EOT;
                     // - $table equal self target table
                     // - $table is child table for $value_table
                     // $custom_column->column_type is "select_target_table" and $custom_column->options->select_target_table is target_table
-
                     $result = false;
-                    if ($table['id'] == $value_table->id) {
+                    if (array_get($table, 'id') == $value_table->id) {
                         $result = true;
                     }
                     
@@ -261,12 +260,7 @@ EOT;
                 return true;
             });
             if (!is_null($result)) {
-                array_push($results, [
-                    'id' => array_get($table, 'id'),
-                    'table_name' => array_get($table, 'table_name'),
-                    'table_view_name' => array_get($table, 'table_view_name'),
-                    'icon' => array_get($table, 'icon')
-                ]);
+                array_push($results, $this->getTableArray($table));
             }
         }
 
@@ -297,7 +291,11 @@ EOT;
 
         // get headers and bodies
         $view = CustomView::getDefault($table);
-        list($headers, $bodies) = $view->getDataTable($datalist);
+        list($headers, $bodies) = $view->getDataTable($datalist, [
+            'action_callback' => function(&$link, $custom_table, $data){
+                $link .= '<a href="'.admin_base_path('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')).'"><i class="fa fa-compress"></i></a>';
+            }
+        ]);
 
         return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->class('table table-hover')->render()];
     }
@@ -382,12 +380,13 @@ EOT;
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
         $value_table = CustomTable::findByName($request->input('value_table_name'), true);
+        $value_table_id = $value_table->id;
         /// $search_table is the table for search. it's ex. select_table, relation, ...
         $search_table = CustomTable::findByName($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
         // Get search enabled columns.
-        $search_columns = $search_table->getSearchEnabledColumns($search_table);
+        $search_columns = $search_table->getSearchEnabledColumns();
 
         switch ($search_type) {
             // self table
@@ -397,8 +396,9 @@ EOT;
             // select_table(select box)
             case 'select_table':
                 // Retrieve the record list whose value is "value_id" in the column "options.select_target_table" of the table "custom column"
-                $selecttable_columns = CustomColumn::where('column_type', 'select_table')
-                    ->where('options->select_target_table', $value_table->id)
+                $selecttable_columns = $search_table->custom_columns()
+                    ->where('column_type', 'select_table')
+                    ->whereIn('options->select_target_table', [$value_table_id, strval($value_table_id)])
                     ->get();
 
                 if (count($search_columns) == 0) {
@@ -447,14 +447,7 @@ EOT;
         $results = [];
 
         // 1. For self-table
-        array_push($results, [
-            'id' => array_get($value_table, 'id'),
-            'table_name' => array_get($value_table, 'table_name'),
-            'table_view_name' => array_get($value_table, 'table_view_name'),
-            'icon' => array_get($value_table, 'options.icon'),
-            'color' => array_get($value_table, 'options.color'),
-            'search_type' => 'self',
-        ]);
+        array_push($results, $this->getTableArray($value_table, 'self'));
 
         // 2. Get tables as "select_table". They contains these columns matching them.
         // * table_column > options > search_enabled is true.
@@ -473,15 +466,7 @@ EOT;
             if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
-
-            array_push($results, [
-                'id' => array_get($table, 'id'),
-                'table_name' => array_get($table, 'table_name'),
-                'table_view_name' => array_get($table, 'table_view_name'),
-                'icon' => array_get($table, 'options.icon'),
-                'color' => array_get($table, 'options.color'),
-                'search_type' => 'select_table',
-            ]);
+            array_push($results, $this->getTableArray($table, 'select_table'));
         }
 
         // 3. Get relation tables.
@@ -497,15 +482,7 @@ EOT;
             if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
-
-            array_push($results, [
-                'id' => array_get($table, 'id'),
-                'table_name' => array_get($table, 'table_name'),
-                'table_view_name' => array_get($table, 'table_view_name'),
-                'icon' => array_get($table, 'options.icon'),
-                'color' => array_get($table, 'options.color'),
-                'search_type' => array_get($table, 'relation_type'),
-            ]);
+            array_push($results, $this->getTableArray($table, 'relation_type'));
         }
 
         return $results;
@@ -522,7 +499,7 @@ EOT;
         foreach ($search_columns as $search_column) {
             // get data
             $foodata = getModelName($table)
-                ::where(getIndexColumnName($search_column), $mark, $query)
+                ::where($search_column->getIndexColumnName(), $mark, $query)
                 ->take($max_count - count($data))
                 ->get();
             
@@ -544,4 +521,19 @@ EOT;
 
         return $data;
     }
+
+    protected function getTableArray($table, $search_type = null){
+        $array = [
+            'id' => array_get($table, 'id'),
+            'table_name' => array_get($table, 'table_name'),
+            'table_view_name' => array_get($table, 'table_view_name'),
+            'icon' => array_get($table, 'options.icon'),
+            'color' => array_get($table, 'options.color'),
+            'box_sytle' => array_has($table, 'options.color') ? 'border-top-color:'.esc_html(array_get($table, 'options.color')).';' : null,
+        ];
+        if(isset($search_type)){
+            $array['search_type'] = $search_type;
+        }
+        return $array;
+    }   
 }

@@ -46,7 +46,6 @@ class CustomView extends ModelBase
             if (is_numeric($view_column_target)) {
                 $column = $custom_view_column->custom_column;
                 if(!isset($column)){continue;}
-                $column_name = getIndexColumnName($column, true);
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
@@ -103,8 +102,14 @@ class CustomView extends ModelBase
      * set DataTable using custom_view
      * @return list(array, array) headers, bodies
      */
-    public function getDataTable($datalist)
+    public function getDataTable($datalist, $options = [])
     {
+        $options = array_merge(
+            [
+                'action_callback' => null,
+            ],
+            $options
+        );
         $custom_table = $this->custom_table;
         // get custom view columns
         $custom_view_columns = $this->custom_view_columns;
@@ -184,6 +189,9 @@ class CustomView extends ModelBase
                 $link = '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'))).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
                 if (Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)) {
                     $link .= '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit')).'"><i class="fa fa-edit"></i></a>';
+                }
+                if(isset($options['action_callback'])){
+                    $options['action_callback']($link, $custom_table, $data);
                 }
                 // add hidden item about data id
                 $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';

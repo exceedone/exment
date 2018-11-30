@@ -84,7 +84,7 @@ trait CustomValueGrid
                 }
 
                 foreach ($search_enabled_columns as $search_column) {
-                    $column_name = getIndexColumnName($search_column);
+                    $column_name = $search_column->getIndexColumnName();
                     $column_view_name = array_get($search_column, 'column_view_name');
                     // filter type
                     $column_type = array_get($search_column, 'column_type');
