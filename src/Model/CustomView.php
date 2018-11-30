@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ViewColumnSystem;
 use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
@@ -44,6 +45,7 @@ class CustomView extends ModelBase
             // if tagret is number, column type is column.
             if (is_numeric($view_column_target)) {
                 $column = $custom_view_column->custom_column;
+                if(!isset($column)){continue;}
                 $column_name = getIndexColumnName($column, true);
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
@@ -61,14 +63,14 @@ class CustomView extends ModelBase
                 });
             }
             // parent_id
-            elseif ($view_column_target == 'parent_id') {
+            elseif ($view_column_target == ViewColumnSystem::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation
                     ::with('parent_custom_table')
                     ->where('child_custom_table_id', $this->custom_table->id)
                     ->first();
                 if (isset($relation)) {
-                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
+                    $grid->column(ViewColumnSystem::PARENT_ID, $relation->parent_custom_table->table_view_name)
                         ->sortable()
                         ->display(function ($value) {
                             // get parent_type
@@ -117,7 +119,7 @@ class CustomView extends ModelBase
                 if (isset($custom_column)) {
                     $headers[] = $custom_column->column_view_name;
                 }
-            } elseif ($custom_view_column->view_column_target == 'parent_id') {
+            } elseif ($custom_view_column->view_column_target == ViewColumnSystem::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation
                     ::with('parent_custom_table')

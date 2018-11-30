@@ -24,6 +24,11 @@ class CustomColumn extends ModelBase
             ->where('form_column_type', CustomFormColumnType::COLUMN);
     }
 
+    public function custom_view_columns()
+    {
+        return $this->hasMany(CustomViewColumn::class, 'view_column_target');
+    }
+
     /**
      * get custom column eloquent. (use table)
      */
@@ -82,6 +87,7 @@ class CustomColumn extends ModelBase
     public function deletingChildren()
     {
         $this->custom_form_columns()->delete();
+        $this->custom_view_columns()->delete();
     }
 
     protected static function boot()
