@@ -220,7 +220,9 @@ class PluginInstaller
         $plugin->plugin_view_name = array_get($json, 'plugin_view_name');
         $plugin->description = array_get($json, 'description');
         $plugin->active_flg = true;
-
+        // remove deleted at
+        $plugin->deleted_at = null;
+        
         // set options
         $options = array_get($plugin, 'options', []);
         // set if exists

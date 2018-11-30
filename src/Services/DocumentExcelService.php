@@ -54,11 +54,11 @@ class DocumentExcelService
         $spreadsheet = $reader->load($this->tempfilename);
         $sheet = $spreadsheet->getActiveSheet();
 
-        // outputvalue
-        $this->lfValue($sheet);
-
         // output table
         $this->lfTable($sheet);
+
+        // outputvalue
+        $this->lfValue($sheet);
 
         // output excel
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
@@ -74,37 +74,53 @@ class DocumentExcelService
     {
         // first time, define loop value
         $loops = [];
-        $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use (&$loops) {
-            foreach ($matches[1] as $m) {
+        $this->callbackSheetCell($sheet, function ($cell, $val, $matches) use (&$loops, $sheet) {
+            foreach ($matches[1] as $index => $m) {
                 // split ":"
                 $splits = explode(":", $m);
                 if (count($splits) < 3) {
                     continue;
                 }
-                // not $splits[0] is not "loop", continue
-                if (!in_array($splits[0], ['loop', 'loop-item'])) {
+                list($format_key, $table_name, $column_name) = $splits;
+
+                // not $format_key is not "loop", continue
+                if (!in_array($format_key, ['loop', 'loop-item'])) {
                     continue;
                 }
             
                 // set loops array
-                if (!array_has($loops, $splits[1])) {
-                    $loops[$splits[1]] = [];
-                }
-                if (!array_has($loops[$splits[1]], 'items')) {
-                    $loops[$splits[1]]['items'] = [];
-                }
-                // if loop, get (start or end) row no.
-                if ($splits[0] == 'loop') {
-                    $loops[$splits[1]][$splits[2]] = $cell->getRow();
-                }
-                // if loop-item, get outputing column no.
-                elseif ($splits[0] == 'loop-item') {
-                    $loops[$splits[1]]['items'][$splits[2]] = $cell->getColumn();
+                if (!array_has($loops, $table_name)) {
+                    $loops[$table_name] = [
+                        'start' => null,
+                        'end' => null,
+                        'columns' => [],
+                    ];
                 }
 
-                // remove value
-                $cell->setValue('');
+                $cell_column = $cell->getColumn();
+                // if loop, get (start or end) row no.
+                if ($format_key == 'loop') {
+                    $loops[$table_name][$column_name] = $cell->getRow();
+                }
+                // if loop-item, get outputing column no.
+                elseif ($format_key == 'loop-item') {
+                    $key = "$table_name.columns.$cell_column";
+                    if (!array_has($loops, $key)) {
+                        array_set($loops, $key, [
+                            'text' => null,
+                            'formats' => [], 
+                        ]);
+                    }
+                    $loops[$table_name]['columns'][$cell_column]['text'] = getCellValue($cell, $sheet);
+                    $loops[$splits[1]]['columns'][$cell_column]['formats'][] = [
+                        'format_text' => $matches[0][$index],
+                        'column_name' => $column_name,
+                    ];
+                }
             }
+
+            // remove value
+            // $cell->setValue('');
         });
         if (count($loops) == 0) {
             return;
@@ -113,7 +129,7 @@ class DocumentExcelService
         // looping item
         foreach ($loops as $table => $loop_item) {
             if (!array_has($loop_item, 'start')
-                || !array_has($loop_item, 'items')
+                || !array_has($loop_item, 'columns')
             ) {
                 continue;
             }
@@ -129,11 +145,16 @@ class DocumentExcelService
 
             // looping $children
             foreach ($children as $child) {
-                // loop items
-                foreach ($loop_item['items'] as $column_name => $sheet_column_no) {
-                    // output sheet
-                    $text = $this->replaceText($child->getValue($column_name, false), []);
-                    $sheet->setCellValue($sheet_column_no . $row, $text);
+                // loop columns
+                foreach ($loop_item['columns'] as $cell_column => &$column_item) {
+                    $text = $column_item['text'];
+                    // loop formats
+                    foreach($column_item['formats'] as $format){
+                        // replace using format
+                        $column_item['text'] = str_replace($format['format_text'], $child->getValue($format['column_name'], true), $column_item['text']);
+                    }
+                    // set again to cell
+                    $sheet->setCellValue($cell_column . $row, $column_item['text']);
                 }
 
                 $row++;
@@ -160,7 +181,7 @@ class DocumentExcelService
     {
         foreach ($sheet->getRowIterator() as $row) {
             foreach ($row->getCellIterator() as $cell) {
-                $cellValue = $cell->getValue() ?? null;
+                $cellValue = getCellValue($cell, $sheet) ?? null;
 
                 if (is_nullorempty($cellValue)) {
                     continue;
@@ -170,13 +191,9 @@ class DocumentExcelService
                 if (count($matches) == 0) {
                     continue;
                 }
-
-                // split ":"
                 if (is_null($matches[1]) || count($matches[1]) == 0) {
                     continue;
                 }
-
-                // execute callback
                 $callback($cell, $cellValue, $matches);
             }
         }
@@ -187,89 +204,10 @@ class DocumentExcelService
      */
     protected function getText($text, $documentItem = [])
     {
-        // check string
-        preg_match_all('/\${(.*?)\}/', $text, $matches);
-        if (isset($matches)) {
-            // loop for matches. because we want to get inner {}, loop $matches[1].
-            for ($i = 0; $i < count($matches[1]); $i++) {
-                try {
-                    $match = strtolower($matches[1][$i]);
-                
-                    // get column
-                    $length_array = explode(":", $match);
-                    
-                    if (in_array($length_array[0], ['loop', 'loop-item'])) {
-                        continue;
-                    }
-                    ///// value
-                    elseif ($length_array[0] == "value") {
-                        // get value from model
-                        if (count($length_array) <= 1) {
-                            $str = '';
-                        } else {
-                            // get comma string from index 1.
-                            $length_array = array_slice($length_array, 1);
-                            $str = getValue($this->model, implode(',', $length_array), false, array_get($documentItem, 'format'));
-                        }
-                        $text = str_replace($matches[0][$i], $str, $text);
-                    }
-                    ///// sum
-                    elseif ($length_array[0] == "sum") {
-                        // get sum value from children model
-                        if (count($length_array) <= 2) {
-                            $str = '';
-                        }
-                        //else, getting value using cihldren
-                        else {
-                            // get children values
-                            $children = getChildrenValues($this->model, $length_array[1]);
-                            // looping
-                            $sum = 0;
-                            foreach ($children as $child) {
-                                // get value
-                                $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
-                            }
-                            $str = strval($sum);
-                        }
-                        $text = str_replace($matches[0][$i], $str, $text);
-                    }
-                    // base_info
-                    elseif ($length_array[0] == "base_info") {
-                        $base_info = getModelName(SystemTableName::BASEINFO)::first();
-                        // get value from model
-                        if (count($length_array) <= 1) {
-                            $str = '';
-                        } else {
-                            $str = getValue($base_info, $length_array[1], false, array_get($documentItem, 'format'));
-                        }
-                        $text = str_replace($matches[0][$i], $str, $text);
-                    }
-                    // suuid
-                    elseif ($length_array[0] == "suuid") {
-                        $text = str_replace($matches[0][$i], short_uuid(), $text);
-                    }
-                    // uuid
-                    elseif ($length_array[0] == "uuid") {
-                        $text = str_replace($matches[0][$i], make_uuid(), $text);
-                    }
-                    // ymdhms
-                    elseif ($length_array[0] == "ymdhms") {
-                        $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHis'), $text);
-                    }
-                    // ymdhm
-                    elseif ($length_array[0] == "ymdhm") {
-                        $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('YmdHi'), $text);
-                    }
-                    // ymd
-                    elseif ($length_array[0] == "ymd") {
-                        $text = str_replace($matches[0][$i], \Carbon\Carbon::now()->format('Ymd'), $text);
-                    }
-                } catch (Exception $e) {
-                }
-            }
-        }
-
-        return $this->replaceText($text, $documentItem);
+        $documentItem['afterCallback'] = function($text, $custom_value, $option){
+            return $this->replaceText($text, $option);
+        };
+        return replaceTextFromFormat($text, $this->model, $documentItem);
     }
 
     /**

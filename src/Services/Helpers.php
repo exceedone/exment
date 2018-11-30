@@ -991,6 +991,7 @@ if (!function_exists('getChildrenValues')) {
 
 if (!function_exists('getCurrencySymbolLabel')) {
     /**
+     * Get Currency Sybmol. ex. $, ￥, ...
      */
     function getCurrencySymbolLabel($symbol, $value = '123,456.00')
     {
@@ -1061,6 +1062,178 @@ if (!function_exists('getAuthorityUser')) {
         return getModelName($related_type)::whereIn('id', $target_ids);
     }
 }
+
+if (!function_exists('replaceTextFromFormat')) {
+    /**
+     * Replace value from format. ex. ${value:user_name} to user_name's value
+     */
+    function replaceTextFromFormat($format, $custom_value = null, $options = [])
+    {
+        if (is_null($format)) {
+            return null;
+        }
+
+        $options = array_merge(
+            [
+                'matchBeforeCallback' => null,
+                'afterCallBack' => null,
+            ]
+            , $options
+        );
+
+        try {
+            // check string
+            preg_match_all('/\${(.*?)\}/', $format, $matches);
+            if (isset($matches)) {
+                // loop for matches. because we want to get inner {}, loop $matches[1].
+                for ($i = 0; $i < count($matches[1]); $i++) {
+                    $str = null;
+                    $matchString = null;
+                    try {
+                        $match = strtolower($matches[1][$i]);
+                        $matchString = $matches[0][$i];
+                    
+                        // get length
+                        $length_array = explode(":", $match);
+                        $key = $length_array[0];
+                        
+                        // define date array
+                        $dateStrings = [
+                            'ymdhms' => 'YmdHis',
+                            'ymdhm' => 'YmdHi',
+                            'ymdh' => 'YmdH',
+                            'ymd' => 'Ymd',
+                            'ym' => 'Ym',
+                            'hms' => 'His',
+                            'hm' => 'Hi',
+                        ];
+                        $dateValues = [
+                            'year',
+                            'month',
+                            'day',
+                            'hour',
+                            'monute',
+                            'second',
+                        ];
+
+                        if(array_key_value_exists('matchBeforeCallback', $options)){
+                            // execute callback
+                            $callbackFunc = $options['matchBeforeCallback'];
+                            $result = $callbackFunc->call($length_array, $match, $format, $custom_value, $options);
+                            if($result){
+                                $format = $result;
+                                continue;
+                            }
+                        }
+
+                        ///// id
+                        if ($key == "id") {
+                            // replace add zero using id.
+                            if (count($length_array) > 1) {
+                                $str = sprintf('%0'.$length_array[1].'d', $id);
+                            } else {
+                                $str = $id;
+                            }
+                        }
+                        ///// value
+                        elseif ($key == "value") {
+                            if(!isset($custom_value)){
+                                $str = $id_string;
+                            }
+                            // get value from model
+                            elseif (count($length_array) <= 1) {
+                                $str = '';
+                            } else {
+                                // get comma string from index 1.
+                                $length_array = array_slice($length_array, 1);
+                                $str = $custom_value->getValue(implode(',', $length_array), true, array_get($options, 'format'));
+                            }
+                        }
+                        // base_info
+                        elseif ($key == "base_info") {
+                            $base_info = getModelName(SystemTableName::BASEINFO)::first();
+                            if(!isset($base_info)){
+                                $str = '';
+                            }
+                            // get value from model
+                            elseif (count($length_array) <= 1) {
+                                $str = '';
+                            } else {
+                                $str = $base_info->getValue($length_array[1], true, array_get($options, 'format'));
+                            }
+                        }
+                        ///// sum
+                        elseif ($key == "sum") {
+                            if(!isset($custom_value)){
+                                $str = '';
+                            }
+
+                            // get sum value from children model
+                            elseif (count($length_array) <= 2) {
+                                $str = '';
+                            }
+                            //else, getting value using cihldren
+                            else {
+                                // get children values
+                                $children = getChildrenValues($custom_value, $length_array[1]);
+                                // looping
+                                $sum = 0;
+                                foreach ($children as $child) {
+                                    // get value
+                                    $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
+                                }
+                                $str = strval($sum);
+                            }
+                        }
+
+                        // suuid
+                        elseif ($key == "suuid") {
+                            $str = short_uuid();
+                        }
+                        // uuid
+                        elseif ($key == "uuid") {
+                            $str = make_uuid();
+                        }
+                        // if has $datestrings, conbert using date string
+                        elseif(array_key_exists($key, $dateStrings)){
+                            $str = \Carbon\Carbon::now()->format($dateStrings[$key]);
+                        }
+                        // if has $datestrings, conbert using date value
+                        elseif(array_has($dateValues, $key)){
+                            $str = Carbon::now()->{$dateValues->$key};
+                            // if user input length
+                            if (count($length_array) > 1) {
+                                $length = $length_array[1];
+                            }
+                            // default 2
+                            else {
+                                $length = 1;
+                            }
+                            $str = sprintf('%0'.$length.'d', $str);
+                        }
+                    } catch (\Exception $e) {
+                        $str = '';
+                    }
+
+                    // replace 
+                    $format = str_replace($matchString, $str, $format);
+                }
+            }
+        } catch (\Exception $e) {
+
+        }
+
+        if(array_key_value_exists('afterCallback', $options)){
+            // execute callback
+            $callbackFunc = $options['afterCallback'];
+            $format = $callbackFunc($format, $custom_value, $options);
+        }
+        return $format;
+    }
+}
+
+
+// Database Difinition --------------------------------------------------
 
 if (!function_exists('createTable')) {
     /**
