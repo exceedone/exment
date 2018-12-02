@@ -56,7 +56,9 @@
           @endif
         }
         </style>
+        @endforeach
 
+        @foreach($login_providers as $login_provider_name => $login_provider)
         <a href="{{ admin_base_path('auth/login/'.$login_provider_name) }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
             <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> Sign in using {{ $login_provider['display_name'] }}
         </a>

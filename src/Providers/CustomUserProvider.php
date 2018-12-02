@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Providers;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class CustomUserProvider extends \Illuminate\Auth\EloquentUserProvider
