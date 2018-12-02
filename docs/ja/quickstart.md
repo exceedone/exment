@@ -1,6 +1,7 @@
 # クイックスタート
 Exmentを開始するために必要となる手順です。  
 ※composerの導入が必要です。
+※MySQLは、json型に対応している5.7以上でのみご利用可能です。
 
 ## Laravelインストール(プロジェクト作成)
 - コマンドラインで、以下のコマンドを実行します。
@@ -10,8 +11,40 @@ composer create-project "laravel/laravel=5.5.*" (プロジェクト名)
 cd (プロジェクト名)
 ~~~
 
-- ".env" を開き、データベース文字列を、ご自身のもつMySQLの設定値に変更します。  
-※MySQLは、json型に対応している5.7以上でのみご利用可能です。
+## データベース作成
+- Exment用のデータベースを、MySQLで作成してください。
+
+
+## .env変更
+
+- ".env" を開き、以下の内容を追加・変更します。  
+
+~~~
+# 以下、データベースの設定値変更
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1 #MySQLのホスト名
+DB_PORT=3306 #MySQLのポート番号
+DB_DATABASE=homestead #MySQLのExment用データベース名
+DB_USERNAME=homestead #MySQLのExment用データベースのユーザー名
+DB_PASSWORD=secret #MySQLのExment用データベースの1パスワード
+
+# 以下、メール送信用の設定値変更
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.mailtrap.io #メールサーバー用のホスト名
+MAIL_PORT=2525 #メールサーバー用のポート番号
+MAIL_USERNAME=null  #メールサーバーのユーザー名
+MAIL_PASSWORD=null #メールサーバーのパスワード
+MAIL_ENCRYPTION=null #ssl使用の場合"ssl"と記入
+
+# 以下、特定の場合に追加
+ADMIN_HTTPS=true #https通信の場合に追加
+LOGIN_PROVIDERS=graph,google #SSOログインを実施する場合に追加。プロバイダをカンマ区切りで記入
+SHOW_DEFAULT_LOGIN_PROVIDER=false #SSOログインを実施する場合で、通常のログインフォームを表示しない場合に追加
+
+
+~~~
+
+
 
 ## コマンド実行
 - 以下のコマンドを実行します。

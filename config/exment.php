@@ -9,4 +9,7 @@ return [
     ],
 
     'manual_url' => env('EXMENT_MANUAL_URL', 'https://exment.net/docs/#/'),
+
+    'show_default_login_provider' => env('SHOW_DEFAULT_LOGIN_PROVIDER', true),
+    'login_providers' => env('LOGIN_PROVIDERS', []),
 ];

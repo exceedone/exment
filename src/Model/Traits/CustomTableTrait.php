@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;

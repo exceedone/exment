@@ -27,7 +27,7 @@ class PivotMultiSelect extends MultipleSelect
      */
     public function pivot($pivot)
     {
-        $this->pivot =$pivot;
+        $this->pivot = $pivot;
         return $this;
     }
 

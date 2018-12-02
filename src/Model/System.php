@@ -49,7 +49,7 @@ class System extends ModelBase
         $authorities = Authority::where('authority_type', AuthorityType::SYSTEM)->get(['id', 'suuid', 'authority_name']);
         foreach ($authorities as $authority) {
             foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $related_type) {
-                // filter related_type and authority_id
+                // filter related_type and authority_id. convert to string
                 $filter = $system_authority->filter(function ($value, $key) use ($authority, $related_type) {
                     return $value->related_type  == $related_type && $value->authority_id  == $authority->id;
                 });
@@ -57,7 +57,9 @@ class System extends ModelBase
                     continue;
                 }
 
-                $array[$authority->getAuthorityName($related_type)] = $filter->pluck('related_id')->toArray();
+                $array[$authority->getAuthorityName($related_type)] = $filter->pluck('related_id')->map(function($value){
+                    return strval($value);
+                })->toArray();
             }
         }
         return $array;

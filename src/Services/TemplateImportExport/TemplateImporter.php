@@ -462,7 +462,7 @@ class TemplateImporter
 
                 // Create database table.
                 $table_name = array_get($table, 'table_name');
-                createTable($table_name);
+                $obj_table->createTable();
             }
 
             // Re-Loop by tables and create columns
@@ -536,7 +536,7 @@ class TemplateImporter
                 // alter table
                 $columns = $obj_table->getSearchEnabledColumns();
                 foreach ($columns as $column) {
-                    alterColumn($table_name, array_get($column, 'column_name'));
+                    $column->alterColumn();
                 }
             }
 
