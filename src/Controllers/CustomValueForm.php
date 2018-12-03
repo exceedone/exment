@@ -127,8 +127,9 @@ trait CustomValueForm
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
                     );
-                    $field->options(function ($select) use ($target_table) {
-                        return $target_table->getOptions($select);
+                    $custom_table = $this->custom_table;
+                    $field->options(function ($select) use ($custom_table, $target_table) {
+                        return $target_table->getOptions($select, $custom_table);
                     });
                     if (!$target_table->isGetOptions()) {
                         $field->ajax($target_table->getOptionAjaxUrl());

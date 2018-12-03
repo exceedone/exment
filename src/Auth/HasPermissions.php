@@ -380,7 +380,9 @@ trait HasPermissions
                                 $value_day = new Carbon('first day of next month');
                                 break;
                         }
-                        $model = $model->whereMonth($view_filter_target, $value_day);
+                        $model = $model
+                            ->whereYear($view_filter_target, $value_day->year)
+                            ->whereMonth($view_filter_target, $value_day->month);
                         break;
                         
                     // date equal year
@@ -399,7 +401,7 @@ trait HasPermissions
                                 $value_day = new Carbon('first day of next year');
                                 break;
                         }
-                        $model = $model->whereYear($view_filter_target, $value_day);
+                        $model = $model->whereYear($view_filter_target, $value_day->year);
                         break;
                         
                     // date and X days before or after

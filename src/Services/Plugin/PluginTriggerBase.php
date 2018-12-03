@@ -16,6 +16,13 @@ class PluginTriggerBase {
     public $custom_column;
     public $isCreate;
 
+    public function __construct($plugin, $custom_table, $custom_value_id)
+    {
+        $this->plugin = $plugin;
+        $this->custom_table = $custom_table;
+        $this->custom_value = getModelName($custom_table)::find($custom_value_id);
+    }
+
     public function execute(){
 
     }

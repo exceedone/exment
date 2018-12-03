@@ -29,9 +29,17 @@ class FormHelper
         $form_column_name = $column_name_prefix.$column_name;
     
         // if hidden setting, add hidden field and continue
-        if (isset($form_column_options) && boolval(array_get($form_column_options, 'hidden'))) {
+        if (boolval(array_get($form_column_options, 'hidden'))) {
             $field = new Field\Hidden($form_column_name);
-        } else {
+        }
+        // readonly
+        // elseif (boolval(array_get($form_column_options, 'view_only'))) {
+        //     $field = new ExmentField\Display($form_column_name, [$column_view_name]);
+        //     $field->display(function($value){
+        //         return $value;
+        //     });
+        // }
+        else {
             switch ($column->column_type) {
             case ColumnType::TEXT:
                 $field = new Field\Text($form_column_name, [$column_view_name]);
@@ -196,7 +204,7 @@ class FormHelper
                 $field->attribute(['number_format' => true]);
             }
 
-            // readonly
+            // // readonly
             if (boolval(array_get($form_column_options, 'view_only'))) {
                 $field->attribute(['readonly' => true]);
             }

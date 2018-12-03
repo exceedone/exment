@@ -230,6 +230,9 @@ class CustomValueController extends AdminControllerTableBase
                 case 'document':
                     $class = new $classname($plugin, $this->custom_table, $id);
                     break;
+                case 'trigger':
+                    $class = new $classname($plugin, $this->custom_table, $id);
+                    break;
             }
         } else {
             // set default class

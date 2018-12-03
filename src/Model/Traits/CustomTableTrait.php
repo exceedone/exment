@@ -6,8 +6,10 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -195,9 +197,13 @@ trait CustomTableTrait
         $table_name = $this->table_name;
 
         // get query.
-        // if user or organization, get from getAuthorityUserOrOrg
-        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
-            $query = Authority::getAuthorityUserOrgQuery($display_table, $this);
+        // if org
+        if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+            $query = $this->getValueModel();
+        }
+        // if $table_name is user or organization, get from getAuthorityUserOrOrg
+        elseif (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
+            $query = Authority::getAuthorityUserOrgQuery($display_table, $table_name);
         } else {
             $query = $this->getOptionsQuery();
         }
