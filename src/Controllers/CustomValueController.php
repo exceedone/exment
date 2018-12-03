@@ -50,7 +50,8 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
-        if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+        $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
+        if ($one_record_flg) {
             // get record list
             $record = $this->getModelNameDV()::first();
             // has record, execute

@@ -186,9 +186,9 @@ class CustomView extends ModelBase
 
                 ///// add show and edit link
                 // using authority
-                $link = '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'))).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
+                $link = '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id')).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
                 if (Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)) {
-                    $link .= '<a href="'.admin_base_path(url_join('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit')).'"><i class="fa fa-edit"></i></a>';
+                    $link .= '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit').'"><i class="fa fa-edit"></i></a>';
                 }
                 if(isset($options['action_callback'])){
                     $options['action_callback']($link, $custom_table, $data);

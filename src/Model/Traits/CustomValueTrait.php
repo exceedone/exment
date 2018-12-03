@@ -447,15 +447,15 @@ trait CustomValueTrait
      * @param CustomValue $custom_value
      * @return string
      */
-    function getLabel()
+    public function getLabel()
     {
         $custom_table = $this->getCustomTable();
         $columns = $custom_table->custom_columns()
             ->whereNotIn('options->use_label_flg', [0, "0"])
             ->orderBy('options->use_label_flg')
             ->get();
-        if (!isset($columns)) {
-            $columns = collect($custom_table->custom_columns()->first());
+        if (!isset($columns) || count($columns) == 0) {
+            $columns = [$custom_table->custom_columns->first()];
         }
 
         // loop for columns and get value
@@ -480,7 +480,7 @@ trait CustomValueTrait
     {
         // if this table is document, create target blank link
         if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
-            $url = admin_url(url_join('files', $this->getValue('file_uuid', true)));
+            $url = admin_urls('files', $this->getValue('file_uuid', true));
             if (!$tag) {
                 return $url;
             }
@@ -488,7 +488,7 @@ trait CustomValueTrait
             return "<a href='$url' target='_blank'>$label</a>";
         }
 
-        $url = admin_url(url_join('data', $this->getCustomTable()->table_name, $this->id));
+        $url = admin_urls('data', $this->getCustomTable()->table_name, $this->id);
         if (!$tag) {
             return $url;
         }

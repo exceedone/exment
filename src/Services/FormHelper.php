@@ -116,9 +116,9 @@ class FormHelper
                     $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
                 }
 
-                $field->options(function ($val) use ($select_target_table) {
+                $field->options(function ($val) use ($select_target_table, $custom_table) {
                     // get DB option value
-                    return $select_target_table->getOptions($val);
+                    return $select_target_table->getOptions($val, $custom_table);
                 });
                 $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
                 if (isset($ajax)) {
@@ -360,7 +360,7 @@ class FormHelper
     protected static function getFileOptions($custom_table, $custom_column, $id)
     {
         return [
-            'deleteUrl' => admin_url(url_join('data', $custom_table->table_name, $id, 'filedelete')),
+            'deleteUrl' => admin_urls('data', $custom_table->table_name, $id, 'filedelete'),
             'deleteExtraData'      => [
                 Field::FILE_DELETE_FLAG         => $custom_column->column_name,
                 '_token'                         => csrf_token(),

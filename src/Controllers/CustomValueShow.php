@@ -160,7 +160,7 @@ trait CustomValueShow
         })->unescape();
         $options = json_encode([
             'showPreview' => false,
-            'uploadUrl' => admin_base_path(url_join('data', $this->custom_table->table_name, $id, 'fileupload')),
+            'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
             'uploadExtraData'=> [
                 '_token' => csrf_token()
             ],

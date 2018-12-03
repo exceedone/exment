@@ -317,7 +317,7 @@ abstract class DataImporterBase
     public function importModal()
     {
         $table_name = $this->custom_table->table_name;
-        $import_path = admin_base_path(url_join('data', $table_name, 'import'));
+        $import_path = admin_base_paths('data', $table_name, 'import');
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset();

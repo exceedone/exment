@@ -246,7 +246,7 @@ trait CustomTableTrait
         if ($count <= 100) {
             return null;
         }
-        return admin_base_path(url_join("api", array_get($this, 'table_name'), "query"));
+        return admin_base_paths("api", array_get($this, 'table_name'), "query");
     }
 
     /**
