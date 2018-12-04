@@ -90,15 +90,19 @@ class MenuController extends AdminControllerBase
                         break;
                     case MenuType::TABLE:
                         $icon = $branch['icon'];
-                        $uri = $branch['table_name'];
+                        $uri = isset($branch['uri']) ? $branch['uri'] : url_join('data', $branch['table_name']);
                         break;
                     case MenuType::SYSTEM:
                         $icon = $branch['icon'];
                         $uri = array_get(Define::MENU_SYSTEM_DEFINITION, "{$branch['menu_name']}.uri");
                         break;
-                    default:
-                        $icon = null;
+                    case MenuType::PARENT_NODE:
+                        $icon = $branch['icon'] ?? null;
                         $uri = null;
+                        break;
+                    default:
+                        $icon = $branch['icon'] ?? null;
+                        $uri = $branch['uri'] ?? null;
                         break;
                 }
 
@@ -206,6 +210,7 @@ class MenuController extends AdminControllerBase
                 $form->order = $count + 1;
             }
         });
+        disableFormFooter($form);
     }
 
     // menu_type and menutargetvalue --------------------------------------------------

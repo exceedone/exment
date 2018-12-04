@@ -90,8 +90,10 @@ class Menu extends AdminMenu
                     }
                     $row['uri'] = array_get($defines, "uri");
                     break;
-                default:
+                case MenuType::PARENT_NODE:
                     $row['uri'] = null;
+                    break;
+                default:
                     break;
 
                 // database-row has icon column, set icon
