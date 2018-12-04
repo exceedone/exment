@@ -131,7 +131,7 @@ class CustomCopy extends ModelBase
             'result'  => true,
             'toastr' => 'Copy Success!!', //TODO:trans
             // set redirect url
-            'redirect' => admin_base_path(url_join('data', $this->to_custom_table->table_name, $to_custom_value->id))
+            'redirect' => admin_base_paths('data', $this->to_custom_table->table_name, $to_custom_value->id)
         ];
     }
 

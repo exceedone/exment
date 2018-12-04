@@ -37,8 +37,8 @@ class GridChangeView extends AbstractTool
         $settings = [];
         //authority check
         if (Admin::user()->hasPermission(AuthorityValue::CUSTOM_VIEW)) {
-            $settings[] = ['url' => admin_base_path(url_join('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit')), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
-            $settings[] = ['url' => admin_base_path(url_join('view', $this->custom_table->table_name, 'create')), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
+            $settings[] = ['url' => admin_base_paths('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
+            $settings[] = ['url' => admin_base_paths('view', $this->custom_table->table_name, 'create'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
         }
 
         return view('exment::tools.view-button', [
@@ -46,7 +46,7 @@ class GridChangeView extends AbstractTool
             'systemviews' => $systemviews,
             'userviews' => $userviews,
             'settings' => $settings,
-            'base_uri' => admin_base_path(url_join('data', $this->custom_table->table_name))
+            'base_uri' => admin_base_paths('data', $this->custom_table->table_name)
             ]);
     }
 }

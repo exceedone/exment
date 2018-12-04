@@ -127,8 +127,9 @@ trait CustomValueForm
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
                     );
-                    $field->options(function ($select) use ($target_table) {
-                        return $target_table->getOptions($select);
+                    $custom_table = $this->custom_table;
+                    $field->options(function ($select) use ($custom_table, $target_table) {
+                        return $target_table->getOptions($select, $custom_table);
                     });
                     if (!$target_table->isGetOptions()) {
                         $field->ajax($target_table->getOptionAjaxUrl());
@@ -397,6 +398,13 @@ EOT;
         // after saving
         $form->saved(function ($form) {
             PluginInstaller::pluginPreparing($this->plugins, 'saved');
+
+            // if $one_record_flg, redirect
+            $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
+            if($one_record_flg){
+                admin_toastr(trans('admin.save_succeeded'));
+                return redirect(admin_base_paths('data', $this->custom_table->table_name));
+            }
         });
     }
 
@@ -573,7 +581,7 @@ EOT;
                     }
                     // add array. key is column name.
                     $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_base_path(url_join('api', $relation->parent_custom_table->table_name, 'relatedLinkage')),
+                        'url' => admin_base_paths('api', $relation->parent_custom_table->table_name, 'relatedLinkage'),
                         'expand' => ['child_table_id' => $relation->child_custom_table_id],
                         'to' => array_get($c, 'column_name'),
                     ];

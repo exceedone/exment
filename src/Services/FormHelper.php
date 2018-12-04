@@ -29,9 +29,17 @@ class FormHelper
         $form_column_name = $column_name_prefix.$column_name;
     
         // if hidden setting, add hidden field and continue
-        if (isset($form_column_options) && boolval(array_get($form_column_options, 'hidden'))) {
+        if (boolval(array_get($form_column_options, 'hidden'))) {
             $field = new Field\Hidden($form_column_name);
-        } else {
+        }
+        // readonly
+        // elseif (boolval(array_get($form_column_options, 'view_only'))) {
+        //     $field = new ExmentField\Display($form_column_name, [$column_view_name]);
+        //     $field->display(function($value){
+        //         return $value;
+        //     });
+        // }
+        else {
             switch ($column->column_type) {
             case ColumnType::TEXT:
                 $field = new Field\Text($form_column_name, [$column_view_name]);
@@ -108,9 +116,9 @@ class FormHelper
                     $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
                 }
 
-                $field->options(function ($val) use ($select_target_table) {
+                $field->options(function ($val) use ($select_target_table, $custom_table) {
                     // get DB option value
-                    return $select_target_table->getOptions($val);
+                    return $select_target_table->getOptions($val, $custom_table);
                 });
                 $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
                 if (isset($ajax)) {
@@ -196,7 +204,7 @@ class FormHelper
                 $field->attribute(['number_format' => true]);
             }
 
-            // readonly
+            // // readonly
             if (boolval(array_get($form_column_options, 'view_only'))) {
                 $field->attribute(['readonly' => true]);
             }
@@ -352,7 +360,7 @@ class FormHelper
     protected static function getFileOptions($custom_table, $custom_column, $id)
     {
         return [
-            'deleteUrl' => admin_url(url_join('data', $custom_table->table_name, $id, 'filedelete')),
+            'deleteUrl' => admin_urls('data', $custom_table->table_name, $id, 'filedelete'),
             'deleteExtraData'      => [
                 Field::FILE_DELETE_FLAG         => $custom_column->column_name,
                 '_token'                         => csrf_token(),

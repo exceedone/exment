@@ -118,6 +118,26 @@ if (!function_exists('hex2rgb')) {
 }
 
 // File, path  --------------------------------------------------
+if (!function_exists('admin_urls')) {
+    /**
+     * Join admin url paths.
+     */
+    function admin_urls(...$pass_array)
+    {
+        return admin_url(url_join($pass_array));
+    }
+}
+
+if (!function_exists('admin_base_paths')) {
+    /**
+     * Join admin base paths.
+     */
+    function admin_base_paths(...$pass_array)
+    {
+        return admin_base_path(url_join($pass_array));
+    }
+}
+
 if (!function_exists('namespace_join')) {
     /**
      * Join NameSpace.

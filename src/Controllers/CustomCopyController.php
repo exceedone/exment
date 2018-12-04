@@ -176,7 +176,7 @@ class CustomCopyController extends AdminControllerTableBase
     protected function createNewModal()
     {
         $table_name = $this->custom_table->table_name;
-        $path = admin_base_path(url_join('copy', $table_name, 'create'));
+        $path = admin_base_paths('copy', $table_name, 'create');
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->action($path);

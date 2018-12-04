@@ -333,7 +333,7 @@ class PluginInstaller
                 if ($plugin_type != PluginType::TRIGGER) {
                     continue;
                 }
-                $event_triggers = array_get($plugin, 'options.event_triggers');
+                $event_triggers = array_get($plugin, 'options.event_triggers', []);
                 $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
                 $classname = $plugin->getNameSpace('Plugin');

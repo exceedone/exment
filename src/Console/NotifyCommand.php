@@ -87,7 +87,7 @@ class NotifyCommand extends CommandBase
                         'target_value' => $data->getLabel(),
                         'notify_target_column_key' => $notify_target_column->column_view_name,
                         'notify_target_column_value' => $data->getValue($notify_target_column),
-                        'data_url' => admin_url(url_join("data", $notify_target_table->table_name, $data->id)),
+                        'data_url' => admin_urls("data", $notify_target_table->table_name, $data->id),
                     ];
 
                     // send mail

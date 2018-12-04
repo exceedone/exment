@@ -201,7 +201,7 @@ trait CustomValueGrid
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-                    $actions->prepend('<a href="'.admin_base_path(url_join('data', $table_name, $actions->getKey(), 'edit')).'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
+                    $actions->prepend('<a href="'.admin_base_paths('data', $table_name, $actions->getKey(), 'edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
 
                 // if user does't edit permission disable edit row.
