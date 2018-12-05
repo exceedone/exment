@@ -20,6 +20,9 @@ var Exment;
             $(document).on('click', '.add,.remove', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
+            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev, state) => {
+                CommonEvent.setFormFilter($(ev.target));
+            });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
@@ -27,7 +30,6 @@ var Exment;
         }
         static AddEvent() {
             CommonEvent.addSelect2();
-            // 表示・非表示は読み込み時に全レコード実行する
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
             $.numberformat('[number_format]');
@@ -569,7 +571,12 @@ var Exment;
         static getFilterVal($parent, a) {
             // get filter object
             var $filterObj = $parent.find(CommonEvent.getClassKey(a.key)).filter(':last');
+            // if checkbox
             if ($filterObj.is(':checkbox')) {
+                // if bootstrap-checkbox object, get state
+                if ($filterObj.parent('.bootstrap-switch-container').length > 0) {
+                    return $filterObj.bootstrapSwitch('state');
+                }
                 return $filterObj.is(':checked') ? $filterObj.val() : null;
             }
             return $filterObj.val();

@@ -80,7 +80,17 @@ class CustomTableController extends AdminControllerBase
                 ->default("0");
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
                 ->default("1");
-            //$form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))->help(exmtrans("custom_table.help.comment_flg"));
+            $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
+                ->default("1")
+                ->attribute(['data-filtertrigger' =>true])
+                ;
+            $form->number('revision_count', exmtrans("custom_table.revision_count"))->help(exmtrans("custom_table.help.revision_count"))
+                ->min(0)
+                ->max(500)
+                ->default(100)
+                ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
+                ;
+                //$form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))->help(exmtrans("custom_table.help.comment_flg"));
         })->disableHeader();
 
         // Authority setting --------------------------------------------------

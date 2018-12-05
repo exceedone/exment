@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Show;
+use Encore\Admin\Widgets\Box;
+use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
@@ -92,31 +94,6 @@ trait CustomValueShow
                 }
             }
 
-            // show document list
-            if (isset($id)) {
-                $documents = getModelName(SystemTableName::DOCUMENT)
-                    ::where('parent_id', $id)
-                    ->where('parent_type', $this->custom_table->table_name)
-                    ->get();
-                if (count($documents) > 0) {
-                    // loop and add as link
-                    $show->field('document_'.short_uuid(), exmtrans("common.attachment"))
-                        ->as(function ($v) use ($documents) {
-                            $html = [];
-                            foreach ($documents as $index => $d) {
-                                $html[] = "<p>" . view('exment::form.field.documentlink', [
-                                    'document' => $d
-                                ])->render() . "</p>";
-                            }
-                            return implode("", $html);
-                        })->unescape();
-                }
-                // add file uploader
-                if (!$modal && boolval($this->custom_table->getOption('attachment_flg'))) {
-                    $this->setFileUploadField($show, $id);
-                }
-            }
-
             // if user only view permission, disable delete and view
             if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
                 $show->panel()->tools(function ($tools) {
@@ -151,29 +128,123 @@ trait CustomValueShow
         });
     }
 
-    protected function setFileUploadField($show, $id)
+    /**
+     * set option boxes.
+     * contains file uploads, revisions
+     */
+    protected function setOptionBoxes($row, $id, $modal = false)
     {
-        // create file upload option
-        $input_id = 'document_uploader'. short_uuid();
-        $show->field($input_id, 'ファイルアップロード')->as(function ($v) use ($input_id) {
-            return '<input type="file" id="'.$input_id.'" />';
-        })->unescape();
-        $options = json_encode([
-            'showPreview' => false,
-            'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
-            'uploadExtraData'=> [
-                '_token' => csrf_token()
-            ],
-        ]);
+        $documents = $this->getDocuments($id, $modal);
+        $useFileUpload = $this->useFileUpload($modal);
+ 
+        $revisions = $this->getRevisions($id, $modal);
 
-        $script = <<<EOT
-$("#$input_id").fileinput({$options})
-.on('fileuploaded', function(e, params) {
-    console.log('file uploaded', e, params);
-    $.pjax.reload('#pjax-container');
-});
+        if(count($documents) > 0 || $useFileUpload){
+                
+            $form = new WidgetForm;
+            $form->disableReset();
+            $form->disableSubmit();
+
+            // show document list
+            if (isset($id)) {
+                if (count($documents) > 0) {
+                    $html = [];
+                    foreach ($documents as $index => $d) {
+                        $html[] = "<p>" . view('exment::form.field.documentlink', [
+                            'document' => $d
+                        ])->render() . "</p>";
+                    }
+                    // loop and add as link
+                    $form->html(implode("", $html))
+                        ->plain()
+                        ->setWidth(8,3);
+                }
+            }
+
+            // add file uploader
+            if ($useFileUpload) {
+                $options = [
+                    'showUpload' => true,
+                    'showUpload' => true,
+                    'showPreview' => false,
+                    'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
+                    'uploadExtraData'=> [
+                        '_token' => csrf_token()
+                    ],
+                ];
+                $options_json = json_encode($options);
+
+                $input_id = 'file_data';
+                $form->file($input_id, trans('admin.upload'))
+                ->options($options)
+                ->setWidth(8,3);
+                // // create file upload option
+                // $show->field($input_id, trans('admin.upload'))->as(function ($v) use ($input_id) {
+                //     return '<input type="file" id="'.$input_id.'" />';
+                // })->unescape();
+                // $options = json_encode([
+                //     'showPreview' => false,
+                //     'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
+                //     'uploadExtraData'=> [
+                //         '_token' => csrf_token()
+                //     ],
+                // ]);
+
+                $script = <<<EOT
+    $("#$input_id").fileinput({$options_json})
+    .on('fileuploaded', function(e, params) {
+        console.log('file uploaded', e, params);
+        $.pjax.reload('#pjax-container');
+    });
 
 EOT;
-        Admin::script($script);
+                Admin::script($script);
+            }
+            $row->column(6, (new Box(exmtrans("common.attachment"), $form))->style('info'));        
+        }
+
+        if(count($revisions) > 0){
+            $form = new WidgetForm;
+            $form->disableReset();
+            $form->disableSubmit();
+    
+            foreach ($revisions as $index => $revision) {
+                $form->html(
+                    view('exment::form.field.revisionlink', [
+                        'revision' => $revision,
+                    ])->render()
+                    , 'No.'.(count($revisions) - $index)
+                )->setWidth(9,2);
+            }
+            $row->column(6, (new Box('更新履歴', $form))->style('info'));        
+        }
     }
+    
+    /**
+     * whether file upload field
+     */
+    protected function useFileUpload($modal = false){
+        return !$modal && boolval($this->custom_table->getOption('attachment_flg'));
+    }
+    
+    protected function getDocuments($id, $modal = false){
+        if ($modal) {
+            return [];
+        }
+        return getModelName(SystemTableName::DOCUMENT)
+            ::where('parent_id', $id)
+            ->where('parent_type', $this->custom_table->table_name)
+            ->get();
+    }
+    
+    protected function getRevisions($id, $modal = false){
+        if ($modal && boolval($this->custom_table->getOption('revision_flg'))) {
+            return [];
+        }
+        return $this->getModelNameDV()::find($id)
+            ->revisionHistory()
+            ->orderby('id', 'desc')
+            ->get() ?? [];
+    }
+
 }
