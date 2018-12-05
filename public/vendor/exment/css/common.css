@@ -3360,6 +3360,10 @@
   }
 }
 
+.form-revision .form-group {
+  margin-bottom: 0;
+}
+
 .table-hover > tbody > tr:hover {
   background-color: #DFDFDF;
   cursor: pointer;

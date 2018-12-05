@@ -148,7 +148,7 @@ class CustomValueController extends AdminControllerTableBase
         });
         return $content;
     }
-        
+      
     /**
      * file delete custom column.
      */

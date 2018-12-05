@@ -2,9 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Show;
+use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Form\Tools;
@@ -207,11 +209,13 @@ EOT;
             $form = new WidgetForm;
             $form->disableReset();
             $form->disableSubmit();
+            $form->attribute(['class' => 'form-horizontal form-revision']);
     
             foreach ($revisions as $index => $revision) {
                 $form->html(
                     view('exment::form.field.revisionlink', [
                         'revision' => $revision,
+                        'link' => admin_base_paths('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid)
                     ])->render()
                     , 'No.'.(count($revisions) - $index)
                 )->setWidth(9,2);
@@ -220,6 +224,98 @@ EOT;
         }
     }
     
+    /**
+     * compare
+     */
+    public function compare(Request $request, $id, Content $content)
+    {
+        $this->firstFlow($request, $id);
+        $this->AdminContent($content);
+        $content->body($this->getRevisionCompare($id, $request->get('revision')));
+        return $content;
+    }
+   
+    /**
+     * get compare item for pjax
+     */
+    public function compareitem(Request $request, $id, Content $content)
+    {
+        $this->firstFlow($request, $id);
+        return $this->getRevisionCompare($id, $request->get('revision'), true);
+    }
+   
+    /**
+     * restore data
+     */
+    public function restoreRevision(Request $request, $id)
+    {
+        $this->firstFlow($request, $id);
+        
+        $revision_suuid = $request->get('revision');
+        $custom_value = $this->getModelNameDV()::find($id);
+        $custom_value->setRevision($revision_suuid)->save();
+        return redirect($custom_value->getUrl());
+    }
+  
+    /**
+     * gt revision compare.
+     */
+    protected function getRevisionCompare($id, $revision_suuid = null, $pjax = false)
+    {
+        $table_name = $this->custom_table->table_name;
+        // get all revisions
+        $revisions = $this->getRevisions($id, false, true);
+        $newest_revision_suuid = $revisions->first()->suuid;
+        if(!isset($revision_suuid)){
+            $revision_suuid = $newest_revision_suuid ?? null;
+        }
+
+        // create revision value
+        $revision_value = $this->getModelNameDV()::find($id)->setRevision($revision_suuid);
+        $custom_value = $this->getModelNameDV()::find($id);
+
+        // set table columns
+        $table_columns = [];
+        foreach($this->custom_table->custom_columns as $custom_column){
+            $revision_value_column = $revision_value->getValue($custom_column, true);
+            $custom_value_column = $custom_value->getValue($custom_column, true);
+
+            $table_columns[] = [
+                'old_value' => $revision_value_column,
+                'new_value' => $custom_value_column,
+                'diff' => $revision_value_column != $custom_value_column,
+                'label' => $custom_column->column_view_name,
+            ];
+        }
+
+        $prms = [
+            'change_page_menu' => (new Tools\GridChangePageMenu('data', $this->custom_table, false))->render(),
+            'revisions' => $revisions,
+            'table_columns' => $table_columns,
+            'newest_revision_suuid' => $newest_revision_suuid,
+            'revision_suuid' => $revision_suuid,
+            'form_url' => admin_base_paths('data', $table_name, $id, 'compare')
+        ];
+
+        if($pjax){
+            return view("exment::custom-value.revision-compare-inner", $prms);    
+        }
+        
+        $script = <<<EOT
+        $("#revisions").off('change').on('change', function(e, params) {
+            var url = admin_base_path(URLJoin('data', '$table_name', '$id', 'compare'));
+            var query = {'revision': $(e.target).val()};
+
+            $.pjax({container:'#pjax-container-revision', url: url +'?' + $.param(query) });
+        });
+    
+EOT;
+        Admin::script($script);
+        
+        return view("exment::custom-value.revision-compare", $prms);
+    }
+    
+
     /**
      * whether file upload field
      */
@@ -237,14 +333,22 @@ EOT;
             ->get();
     }
     
-    protected function getRevisions($id, $modal = false){
+    /**
+     * get target data revisions
+     */
+    protected function getRevisions($id, $modal = false, $all = false){
         if ($modal && boolval($this->custom_table->getOption('revision_flg'))) {
             return [];
         }
-        return $this->getModelNameDV()::find($id)
-            ->revisionHistory()
-            ->orderby('id', 'desc')
-            ->get() ?? [];
-    }
 
+        $query = $this->getModelNameDV()::find($id)
+            ->revisionHistory()
+            ->orderby('id', 'desc');
+        
+        // if not all
+        if(!$all){
+            $query = $query->take(10);
+        }
+        return $query->get() ?? [];
+    }
 }

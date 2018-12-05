@@ -29,8 +29,7 @@
         "tecnickcom/tcpdf": "^6.2",
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
-        "myclabs/php-enum": "^1.6.0",
-        "exceedone/revisionable": "~2.0.0"
+        "myclabs/php-enum": "^1.6.0"
     },
     "autoload": {
         "psr-4": {

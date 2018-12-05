@@ -553,4 +553,16 @@ trait CustomValueTrait
         // get relation item list
         return $this->{$pivot_table_name};
     }
+
+    /**
+     * set revision data
+     */
+    public function setRevision($revision_suuid){
+        $revision_value = $this->revisionHistory()->where('suuid', $revision_suuid)->first()->new_value;
+        if(is_json($revision_value)){
+            $revision_value = \json_decode($revision_value, true);
+        }
+        $this->value = $revision_value;
+        return $this;
+    }
 }

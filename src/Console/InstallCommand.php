@@ -47,7 +47,6 @@ class InstallCommand extends AdminInstallCommand
     public function initDatabase()
     {
         $this->call('migrate');
-        $this->call('migrate', ['--path' => 'vendor/exceedone/revisionable/src/migrations']);
 
         $this->call('db:seed', ['--class' => \Exceedone\Exment\Database\Seeder\InstallSeeder::class]);
     }

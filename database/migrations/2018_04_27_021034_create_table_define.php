@@ -36,6 +36,21 @@ class CreateTableDefine extends Migration
             $table->timeusers();
         });
 
+        $schema->create('revisions', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->string('suuid', 20)->unique();
+            $table->string('revisionable_type');
+            $table->integer('revisionable_id');
+            $table->integer('revision_no')->unsigned()->default(0);
+            $table->string('key')->index();
+            $table->text('old_value')->nullable();
+            $table->text('new_value')->nullable();
+            $table->timestamps();
+            $table->integer('create_user_id')->nullable();
+
+            $table->index(array('revisionable_id', 'revisionable_type'));
+        });
+
         $schema->create('files', function (ExtendedBlueprint $table) {
             $table->uuid('uuid')->primary();
             $table->string('local_dirname')->index();
@@ -417,6 +432,7 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('notifies');
         Schema::dropIfExists('mail_templates');
         Schema::dropIfExists('systems');
+        Schema::dropIfExists('revisions');
         Schema::dropIfExists('files');
     }
 }

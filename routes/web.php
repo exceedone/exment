@@ -65,6 +65,9 @@ Route::group([
             foreach (CustomTable::all()->pluck('table_name') as $value) {
                 $router->post("data/{$value}/import", 'CustomValueController@import');
                 $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
+                $router->get("data/{$value}/{id}/compare", 'CustomValueController@compare');
+                $router->get("data/{$value}/{id}/compareitem", 'CustomValueController@compareitem');
+                $router->post("data/{$value}/{id}/compare", 'CustomValueController@restoreRevision');
                 $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
                 $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
                 $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
