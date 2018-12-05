@@ -1,4 +1,5 @@
 <?php namespace Exceedone\Exment\Revisionable;
+use Exceedone\Exment\Model\CustomValue;
 
 /*
  * This file is part of the Revisionable package by Venture Craft
@@ -167,7 +168,16 @@ trait RevisionableTrait
      */
     public function postSave()
     {
-        if (isset($this->historyLimit) && $this->revisionHistory()->count() >= $this->historyLimit) {
+        // get historyLimit
+        if(isset($this->historyLimit)){
+            $historyLimit = $this->historyLimit;
+        }
+        elseif($this instanceof CustomValue){
+            $revision_count = $this->getCustomTable()->getOption("revision_count") ?? null;
+            $historyLimit = isset($revision_count) ? intval($revision_count) : null;
+        }
+
+        if (isset($historyLimit) && $this->revisionHistory()->count() >= $historyLimit) {
             $LimitReached = true;
         } else {
             $LimitReached = false;

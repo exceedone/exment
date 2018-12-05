@@ -9,6 +9,7 @@ use Encore\Admin\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
@@ -265,12 +266,14 @@ EOT;
         $table_name = $this->custom_table->table_name;
         // get all revisions
         $revisions = $this->getRevisions($id, false, true);
-        $newest_revision_suuid = $revisions->first()->suuid;
+        $newest_revision = $revisions->first();
+        $newest_revision_suuid = $newest_revision->suuid;
         if(!isset($revision_suuid)){
             $revision_suuid = $newest_revision_suuid ?? null;
         }
 
         // create revision value
+        $old_revision = Revision::findBySuuid($revision_suuid);
         $revision_value = $this->getModelNameDV()::find($id)->setRevision($revision_suuid);
         $custom_value = $this->getModelNameDV()::find($id);
 
@@ -291,10 +294,16 @@ EOT;
         $prms = [
             'change_page_menu' => (new Tools\GridChangePageMenu('data', $this->custom_table, false))->render(),
             'revisions' => $revisions,
+            'custom_value' => $custom_value,
             'table_columns' => $table_columns,
+            'newest_revision' => $newest_revision,
             'newest_revision_suuid' => $newest_revision_suuid,
+            'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
-            'form_url' => admin_base_paths('data', $table_name, $id, 'compare')
+            'form_url' => admin_base_paths('data', $table_name, $id, 'compare'),
+            'has_diff' => collect($table_columns)->filter(function($table_column){
+                return array_get($table_column, 'diff', false);
+            })->count() > 0
         ];
 
         if($pjax){

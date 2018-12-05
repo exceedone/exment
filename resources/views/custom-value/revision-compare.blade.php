@@ -4,17 +4,17 @@
             リビジョン比較
         </h3>
         <div class="btn-group pull-right" style="margin-right: 5px">
-            <a href="/admin/data/user/1/edit" class="btn btn-sm btn-primary" title="編集">
+            <a href="{{$custom_value->getUrl(false, ['uri' => 'edit'])}}" class="btn btn-sm btn-primary" title="編集">
                 <i class="fa fa-edit"></i><span class="hidden-xs"> 編集</span>
             </a>
         </div>
         <div class="btn-group pull-right" style="margin-right: 5px">
-            <a href="/admin/data/user/1" class="btn btn-sm btn-default" title="表示">
+            <a href="{{$custom_value->getUrl()}}" class="btn btn-sm btn-default" title="表示">
                 <i class="fa fa-eye"></i><span class="hidden-xs"> 表示</span>
             </a>
         </div>
         <div class="btn-group pull-right" style="margin-right: 5px">
-            <a href="/admin/data/user" class="btn btn-sm btn-default" title="一覧">
+            <a href="{{$custom_value->getUrl(false, ['list' => true])}}" class="btn btn-sm btn-default" title="一覧">
                 <i class="fa fa-list"></i><span class="hidden-xs"> 一覧</span>
             </a>
         </div>

@@ -476,8 +476,15 @@ trait CustomValueTrait
     /**
      * get target custom_value's self link url
      */
-    public function getUrl($tag = false)
+    public function getUrl($tag = false, $options = [])
     {
+        $options = array_merge(
+            [
+                'uri' => null,
+                'list' => false
+             ]
+            , $options
+        );
         // if this table is document, create target blank link
         if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
             $url = admin_urls('files', $this->getValue('file_uuid', true));
@@ -487,8 +494,14 @@ trait CustomValueTrait
             $label = esc_html($this->getValue('document_name'));
             return "<a href='$url' target='_blank'>$label</a>";
         }
-
-        $url = admin_urls('data', $this->getCustomTable()->table_name, $this->id);
+        $url = admin_urls('data', $this->getCustomTable()->table_name);
+        if(!boolval($options['list'])){
+            $url = url_join($url, $this->id);
+        }
+        
+        if(isset($options['uri'])){
+            $url = url_join($url, $options['uri']);
+        }
         if (!$tag) {
             return $url;
         }
