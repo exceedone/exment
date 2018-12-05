@@ -51,9 +51,9 @@ class CustomTable extends ModelBase
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
     
-    public function getOption($key)
+    public function getOption($key, $default = null)
     {
-        return $this->getJson('options', $key);
+        return $this->getJson('options', $key, $default);
     }
     public function setOption($key, $val = null, $forgetIfNull = false)
     {

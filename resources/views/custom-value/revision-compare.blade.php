@@ -1,7 +1,7 @@
 <div class="box box-revision-compare">
     <div class="box-header with-border">
         <h3 class="box-title">
-            リビジョン比較
+            リビジョン
         </h3>
         <div class="btn-group pull-right" style="margin-right: 5px">
             <a href="{{$custom_value->getUrl(false, ['uri' => 'edit'])}}" class="btn btn-sm btn-primary" title="編集">
@@ -24,8 +24,7 @@
         <div class="form-horizontal">
             <div class="box-body">
                 <div class="fields-group">
-                
-                    <div class="form-group " style="margin-bottom:3em;">
+                    <div class="form-group" style="margin-bottom:2em;">
                         <label class="col-sm-2 control-label">リビジョン選択</label>
                         <div class="col-sm-5">
                             <select id="revisions" data-add-select2>
@@ -44,6 +43,14 @@
                         </div>
                     </div>
                     
+                    <div class="row">
+                        <div class="col-sm-2 ">
+                            <h4 class="pull-right">データ比較</h4>
+                        </div>
+                        <div class="col-sm-8"></div>
+                    </div>
+                    <hr style="margin-top: 0px;" />
+                    
                     <div id="pjax-container-revision">
                         @include('exment::custom-value.revision-compare-inner') 
                     </div>
@@ -56,15 +63,6 @@
 
 
 <style>
-    .box-revision-compare .form-horizontal .form-group{
-        display: flex;
-        flex-wrap: wrap;
-    }
-    
-    .box-revision-compare .box.box-solid.box-default.box-show, .box-revision-compare .box.box-solid.box-default.box-show .box-body{
-        height: 100%;
-    }
-
     .old-col .box-diff .box-body{
         background-color: #ffe9e9;
     }

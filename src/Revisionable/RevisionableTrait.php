@@ -172,11 +172,6 @@ trait RevisionableTrait
         if(isset($this->historyLimit)){
             $historyLimit = $this->historyLimit;
         }
-        elseif($this instanceof CustomValue){
-            $revision_count = $this->getCustomTable()->getOption("revision_count") ?? null;
-            $historyLimit = isset($revision_count) ? intval($revision_count) : null;
-        }
-
         if (isset($historyLimit) && $this->revisionHistory()->count() >= $historyLimit) {
             $LimitReached = true;
         } else {

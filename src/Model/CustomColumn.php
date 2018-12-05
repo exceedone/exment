@@ -213,9 +213,9 @@ class CustomColumn extends ModelBase
     }
 
 
-    public function getOption($key)
+    public function getOption($key, $default = null)
     {
-        return $this->getJson('options', $key);
+        return $this->getJson('options', $key, $default);
     }
     public function setOption($key, $val = null, $forgetIfNull = false)
     {

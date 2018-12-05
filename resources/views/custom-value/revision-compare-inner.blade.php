@@ -17,20 +17,20 @@
     
 @foreach($table_columns as $table_column)
 
-<div class="form-group ">
+<div class="form-group flexheight">
     <label class="col-sm-2 control-label">{{ $table_column['label'] }}</label>
     <div class="col-sm-5 old-col">
-        <div class="box box-solid box-default no-margin box-show {{$table_column['diff'] ? 'box-diff' : ''}}">
+        <div class="box box-solid box-default no-margin box-show flexheight-inner {{$table_column['diff'] ? 'box-diff' : ''}}">
             <!-- /.box-header -->
-            <div class="box-body">{{ $table_column['old_value'] }} </div>
+            <div class="box-body flexheight-inner">{{ $table_column['old_value'] }} </div>
             <!-- /.box-body -->
         </div>
     </div>
     
     <div class="col-sm-5 new-col">
-        <div class="box box-solid box-default no-margin box-show {{$table_column['diff'] ? 'box-diff' : ''}}">
+        <div class="box box-solid box-default no-margin box-show flexheight-inner {{$table_column['diff'] ? 'box-diff' : ''}}">
             <!-- /.box-header -->
-            <div class="box-body">{{ $table_column['new_value'] }} </div>
+            <div class="box-body flexheight-inner">{{ $table_column['new_value'] }} </div>
             <!-- /.box-body -->
         </div>
     </div>

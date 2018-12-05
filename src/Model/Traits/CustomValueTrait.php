@@ -476,15 +476,22 @@ trait CustomValueTrait
     /**
      * get target custom_value's self link url
      */
-    public function getUrl($tag = false, $options = [])
+    public function getUrl($options = [])
     {
+        // options is boolean, tag is true
+        if(is_bool($options)){
+            $options = ['tag' => true];
+        }
         $options = array_merge(
             [
+                'tag' => false,
                 'uri' => null,
                 'list' => false
-             ]
+            ]
             , $options
         );
+        $tag = boolval($options['tag']);
+
         // if this table is document, create target blank link
         if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
             $url = admin_urls('files', $this->getValue('file_uuid', true));

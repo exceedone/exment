@@ -111,6 +111,10 @@ trait CustomValueShow
                     $tools->disableList();
                     $tools->disableDelete();
                 });
+            }else{
+                $show->panel()->tools(function ($tools) {
+                    $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
+                });
             }
 
             // show plugin button and copy button
@@ -137,6 +141,7 @@ trait CustomValueShow
      */
     protected function setOptionBoxes($row, $id, $modal = false)
     {
+        $custom_value = $this->getModelNameDV()::find($id);
         $documents = $this->getDocuments($id, $modal);
         $useFileUpload = $this->useFileUpload($modal);
  
@@ -146,6 +151,7 @@ trait CustomValueShow
                 
             $form = new WidgetForm;
             $form->disableReset();
+            //$form->action($custom_value->getUrl(['uri' => 'fileupload']));
             $form->disableSubmit();
 
             // show document list
@@ -168,7 +174,6 @@ trait CustomValueShow
             if ($useFileUpload) {
                 $options = [
                     'showUpload' => true,
-                    'showUpload' => true,
                     'showPreview' => false,
                     'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
                     'uploadExtraData'=> [
@@ -180,22 +185,12 @@ trait CustomValueShow
                 $input_id = 'file_data';
                 $form->file($input_id, trans('admin.upload'))
                 ->options($options)
-                ->setWidth(8,3);
+                ->setLabelClass(['d-none'])
+                ->setWidth(12,0);
                 // // create file upload option
-                // $show->field($input_id, trans('admin.upload'))->as(function ($v) use ($input_id) {
-                //     return '<input type="file" id="'.$input_id.'" />';
-                // })->unescape();
-                // $options = json_encode([
-                //     'showPreview' => false,
-                //     'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
-                //     'uploadExtraData'=> [
-                //         '_token' => csrf_token()
-                //     ],
-                // ]);
-
+    //             $form->html('<input type="file" id="'.$input_id.'" />')->plain();
                 $script = <<<EOT
-    $("#$input_id").fileinput({$options_json})
-    .on('fileuploaded', function(e, params) {
+    $(".$input_id").on('fileuploaded', function(e, params) {
         console.log('file uploaded', e, params);
         $.pjax.reload('#pjax-container');
     });
@@ -329,7 +324,7 @@ EOT;
      * whether file upload field
      */
     protected function useFileUpload($modal = false){
-        return !$modal && boolval($this->custom_table->getOption('attachment_flg'));
+        return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
     
     protected function getDocuments($id, $modal = false){

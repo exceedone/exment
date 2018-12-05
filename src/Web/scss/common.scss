@@ -153,3 +153,16 @@
 .bootstrap-duallistbox-container label{
     font-size: 0.9em;
 }
+.d-none{
+    display: none !important;
+}
+
+/* flexheight */
+.flexheight{
+    display: flex;
+    flex-wrap: wrap;
+    
+    .flexheight-inner{
+        height: 100%;
+    }
+}
