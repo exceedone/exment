@@ -33,7 +33,7 @@
                                     No.{{$revision->revision_no}}
                                     &nbsp;
                                     {{$revision->updated_at}}
-                                    &nbsp;({{ exmtrans("common.created_user") }}：{{ $revision->user }})
+                                    &nbsp;({{ exmtrans("common.updated_user") }}：{{ $revision->user }})
                                     @if($revision->suuid == $newest_revision_suuid)
                                     &nbsp;最新
                                     @endif

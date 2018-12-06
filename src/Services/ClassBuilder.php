@@ -191,11 +191,11 @@ class ClassBuilder
                 ;
 
         // set revision property
-        $revisionEnabled = boolval($table->getOption('revision_enabled', true));
+        $revisionEnabled = boolval($table->getOption('revision_flg', true));
         if(!$revisionEnabled){
             $builder->addProperty("protected", 'revisionEnabled', "false");
         }else{
-            $historyLimit = intval($table->getOption('revision_enabled', 100));
+            $historyLimit = intval($table->getOption('revision_count', 100));
             $builder->addProperty("protected", 'historyLimit', "$historyLimit");
         }
 

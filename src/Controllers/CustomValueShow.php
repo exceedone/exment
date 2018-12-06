@@ -211,9 +211,10 @@ EOT;
                 $form->html(
                     view('exment::form.field.revisionlink', [
                         'revision' => $revision,
-                        'link' => admin_base_paths('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid)
+                        'link' => admin_base_paths('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
+                        'index' => $index,
                     ])->render()
-                    , 'No.'.(count($revisions) - $index)
+                    , 'No.'.($revision->revision_no)
                 )->setWidth(9,2);
             }
             $row->column(6, (new Box('更新履歴', $form))->style('info'));        

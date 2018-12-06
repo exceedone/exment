@@ -31,8 +31,8 @@ trait CustomValueTrait
         $update_flg = false;
         foreach ($file_columns as $file_column) {
 
-            // if not set, set from original
-            if (!array_key_value_exists($file_column, $value)) {
+            // if not key, set from original
+            if (!array_key_exists($file_column, $value)) {
                 // if column has $remove_file_columns, continue.
                 // property "$remove_file_columns" uses user wants to delete file
                 if (in_array($file_column, $model->remove_file_columns())) {

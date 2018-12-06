@@ -300,6 +300,7 @@ trait RevisionableTrait
             // get revision_no
             $exists_revision_no = Revision
                 ::where('revisionable_type', array_get($revision, 'revisionable_type'))
+                ->where('revisionable_id', array_get($revision, 'revisionable_id'))
                 ->count() + 1;
             $obj_revision = new Revision;
             $obj_revision->revision_no = $exists_revision_no;

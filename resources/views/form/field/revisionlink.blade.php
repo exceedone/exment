@@ -3,6 +3,7 @@
     {{$revision->updated_at}}
 </a>
     <small>
-        &nbsp;({{ exmtrans("common.created_user") }}：{{ $revision->user }})
+        &nbsp;({{ exmtrans("common.updated_user") }}：{{ $revision->user }})
+        &nbsp;{{$index == 0 ? '最新' : ''}}
     </small>
 </p>
