@@ -136,14 +136,19 @@ class CustomValueController extends AdminControllerTableBase
     {
         $this->firstFlow($request, $id);
 
-        if (boolval($request->get('modal'))) {
-            return $this->createShowForm($id, true);
+        $modal = boolval($request->get('modal'));
+        if ($modal) {
+            return $this->createShowForm($id, $modal);
         }
+
         $this->AdminContent($content);
-        $content->body($this->createShowForm($id));
+        $content->row($this->createShowForm($id));
+        $content->row(function($row) use($id){
+            $this->setOptionBoxes($row, $id, false);
+        });
         return $content;
     }
-        
+      
     /**
      * file delete custom column.
      */

@@ -12,4 +12,5 @@ return [
 
     'show_default_login_provider' => env('SHOW_DEFAULT_LOGIN_PROVIDER', true),
     'login_providers' => env('LOGIN_PROVIDERS', []),
+    'revision_count_default' => env('REVISION_COUNT', 100),
 ];

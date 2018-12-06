@@ -36,6 +36,7 @@ class GridChangePageMenu extends AbstractTool
             var table_id = '$custom_table_id';
             var table_name = '$custom_table_name';
             var uri = $(ev.target).data('url');
+            var url = null;
             // get select row
             if(isselect){
                 var rows = selectedRows();
@@ -46,17 +47,20 @@ class GridChangePageMenu extends AbstractTool
                 else{
                     for(var key in tables){
                         if(key == rows[0]){
-                            location.href = admin_base_path(URLJoin(uri, tables[key]));
+                            url = admin_base_path(URLJoin(uri, tables[key]));
                             break;
                         }
                     }
                 }
             }else{
                 if($(ev.target).data('edit') == 1){
-                    location.href = admin_base_path(URLJoin(uri, table_id, 'edit'));
+                    url = admin_base_path(URLJoin(uri, table_id, 'edit'));
                 }else{
-                    location.href = admin_base_path(URLJoin(uri, table_name));
+                    url = admin_base_path(URLJoin(uri, table_name));
                 }
+            }
+            if(url){
+                $.pjax({ container: '#pjax-container', url: url });
             }
         });
 

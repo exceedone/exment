@@ -2,9 +2,14 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Show;
+use Encore\Admin\Layout\Content;
+use Encore\Admin\Widgets\Box;
+use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
@@ -92,31 +97,6 @@ trait CustomValueShow
                 }
             }
 
-            // show document list
-            if (isset($id)) {
-                $documents = getModelName(SystemTableName::DOCUMENT)
-                    ::where('parent_id', $id)
-                    ->where('parent_type', $this->custom_table->table_name)
-                    ->get();
-                if (count($documents) > 0) {
-                    // loop and add as link
-                    $show->field('document_'.short_uuid(), exmtrans("common.attachment"))
-                        ->as(function ($v) use ($documents) {
-                            $html = [];
-                            foreach ($documents as $index => $d) {
-                                $html[] = "<p>" . view('exment::form.field.documentlink', [
-                                    'document' => $d
-                                ])->render() . "</p>";
-                            }
-                            return implode("", $html);
-                        })->unescape();
-                }
-                // add file uploader
-                if (!$modal && boolval($this->custom_table->getOption('attachment_flg'))) {
-                    $this->setFileUploadField($show, $id);
-                }
-            }
-
             // if user only view permission, disable delete and view
             if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
                 $show->panel()->tools(function ($tools) {
@@ -130,6 +110,10 @@ trait CustomValueShow
                 $show->panel()->tools(function ($tools) {
                     $tools->disableList();
                     $tools->disableDelete();
+                });
+            }else{
+                $show->panel()->tools(function ($tools) {
+                    $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
                 });
             }
 
@@ -151,29 +135,224 @@ trait CustomValueShow
         });
     }
 
-    protected function setFileUploadField($show, $id)
+    /**
+     * set option boxes.
+     * contains file uploads, revisions
+     */
+    protected function setOptionBoxes($row, $id, $modal = false)
     {
-        // create file upload option
-        $input_id = 'document_uploader'. short_uuid();
-        $show->field($input_id, 'ファイルアップロード')->as(function ($v) use ($input_id) {
-            return '<input type="file" id="'.$input_id.'" />';
-        })->unescape();
-        $options = json_encode([
-            'showPreview' => false,
-            'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
-            'uploadExtraData'=> [
-                '_token' => csrf_token()
-            ],
-        ]);
+        $custom_value = $this->getModelNameDV()::find($id);
+        $documents = $this->getDocuments($id, $modal);
+        $useFileUpload = $this->useFileUpload($modal);
+ 
+        $revisions = $this->getRevisions($id, $modal);
 
-        $script = <<<EOT
-$("#$input_id").fileinput({$options})
-.on('fileuploaded', function(e, params) {
-    console.log('file uploaded', e, params);
-    $.pjax.reload('#pjax-container');
-});
+        if(count($documents) > 0 || $useFileUpload){
+                
+            $form = new WidgetForm;
+            $form->disableReset();
+            //$form->action($custom_value->getUrl(['uri' => 'fileupload']));
+            $form->disableSubmit();
+
+            // show document list
+            if (isset($id)) {
+                if (count($documents) > 0) {
+                    $html = [];
+                    foreach ($documents as $index => $d) {
+                        $html[] = "<p>" . view('exment::form.field.documentlink', [
+                            'document' => $d
+                        ])->render() . "</p>";
+                    }
+                    // loop and add as link
+                    $form->html(implode("", $html))
+                        ->plain()
+                        ->setWidth(8,3);
+                }
+            }
+
+            // add file uploader
+            if ($useFileUpload) {
+                $options = [
+                    'showUpload' => true,
+                    'showPreview' => false,
+                    'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
+                    'uploadExtraData'=> [
+                        '_token' => csrf_token()
+                    ],
+                ];
+                $options_json = json_encode($options);
+
+                $input_id = 'file_data';
+                $form->file($input_id, trans('admin.upload'))
+                ->options($options)
+                ->setLabelClass(['d-none'])
+                ->setWidth(12,0);
+                // // create file upload option
+    //             $form->html('<input type="file" id="'.$input_id.'" />')->plain();
+                $script = <<<EOT
+    $(".$input_id").on('fileuploaded', function(e, params) {
+        console.log('file uploaded', e, params);
+        $.pjax.reload('#pjax-container');
+    });
 
 EOT;
+                Admin::script($script);
+            }
+            $row->column(6, (new Box(exmtrans("common.attachment"), $form))->style('info'));        
+        }
+
+        if(count($revisions) > 0){
+            $form = new WidgetForm;
+            $form->disableReset();
+            $form->disableSubmit();
+            $form->attribute(['class' => 'form-horizontal form-revision']);
+    
+            foreach ($revisions as $index => $revision) {
+                $form->html(
+                    view('exment::form.field.revisionlink', [
+                        'revision' => $revision,
+                        'link' => admin_base_paths('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid)
+                    ])->render()
+                    , 'No.'.(count($revisions) - $index)
+                )->setWidth(9,2);
+            }
+            $row->column(6, (new Box('更新履歴', $form))->style('info'));        
+        }
+    }
+    
+    /**
+     * compare
+     */
+    public function compare(Request $request, $id, Content $content)
+    {
+        $this->firstFlow($request, $id);
+        $this->AdminContent($content);
+        $content->body($this->getRevisionCompare($id, $request->get('revision')));
+        return $content;
+    }
+   
+    /**
+     * get compare item for pjax
+     */
+    public function compareitem(Request $request, $id, Content $content)
+    {
+        $this->firstFlow($request, $id);
+        return $this->getRevisionCompare($id, $request->get('revision'), true);
+    }
+   
+    /**
+     * restore data
+     */
+    public function restoreRevision(Request $request, $id)
+    {
+        $this->firstFlow($request, $id);
+        
+        $revision_suuid = $request->get('revision');
+        $custom_value = $this->getModelNameDV()::find($id);
+        $custom_value->setRevision($revision_suuid)->save();
+        return redirect($custom_value->getUrl());
+    }
+  
+    /**
+     * gt revision compare.
+     */
+    protected function getRevisionCompare($id, $revision_suuid = null, $pjax = false)
+    {
+        $table_name = $this->custom_table->table_name;
+        // get all revisions
+        $revisions = $this->getRevisions($id, false, true);
+        $newest_revision = $revisions->first();
+        $newest_revision_suuid = $newest_revision->suuid;
+        if(!isset($revision_suuid)){
+            $revision_suuid = $newest_revision_suuid ?? null;
+        }
+
+        // create revision value
+        $old_revision = Revision::findBySuuid($revision_suuid);
+        $revision_value = $this->getModelNameDV()::find($id)->setRevision($revision_suuid);
+        $custom_value = $this->getModelNameDV()::find($id);
+
+        // set table columns
+        $table_columns = [];
+        foreach($this->custom_table->custom_columns as $custom_column){
+            $revision_value_column = $revision_value->getValue($custom_column, true);
+            $custom_value_column = $custom_value->getValue($custom_column, true);
+
+            $table_columns[] = [
+                'old_value' => $revision_value_column,
+                'new_value' => $custom_value_column,
+                'diff' => $revision_value_column != $custom_value_column,
+                'label' => $custom_column->column_view_name,
+            ];
+        }
+
+        $prms = [
+            'change_page_menu' => (new Tools\GridChangePageMenu('data', $this->custom_table, false))->render(),
+            'revisions' => $revisions,
+            'custom_value' => $custom_value,
+            'table_columns' => $table_columns,
+            'newest_revision' => $newest_revision,
+            'newest_revision_suuid' => $newest_revision_suuid,
+            'old_revision' => $old_revision,
+            'revision_suuid' => $revision_suuid,
+            'form_url' => admin_base_paths('data', $table_name, $id, 'compare'),
+            'has_diff' => collect($table_columns)->filter(function($table_column){
+                return array_get($table_column, 'diff', false);
+            })->count() > 0
+        ];
+
+        if($pjax){
+            return view("exment::custom-value.revision-compare-inner", $prms);    
+        }
+        
+        $script = <<<EOT
+        $("#revisions").off('change').on('change', function(e, params) {
+            var url = admin_base_path(URLJoin('data', '$table_name', '$id', 'compare'));
+            var query = {'revision': $(e.target).val()};
+
+            $.pjax({container:'#pjax-container-revision', url: url +'?' + $.param(query) });
+        });
+    
+EOT;
         Admin::script($script);
+        
+        return view("exment::custom-value.revision-compare", $prms);
+    }
+    
+
+    /**
+     * whether file upload field
+     */
+    protected function useFileUpload($modal = false){
+        return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
+    }
+    
+    protected function getDocuments($id, $modal = false){
+        if ($modal) {
+            return [];
+        }
+        return getModelName(SystemTableName::DOCUMENT)
+            ::where('parent_id', $id)
+            ->where('parent_type', $this->custom_table->table_name)
+            ->get();
+    }
+    
+    /**
+     * get target data revisions
+     */
+    protected function getRevisions($id, $modal = false, $all = false){
+        if ($modal && boolval($this->custom_table->getOption('revision_flg'))) {
+            return [];
+        }
+
+        $query = $this->getModelNameDV()::find($id)
+            ->revisionHistory()
+            ->orderby('id', 'desc');
+        
+        // if not all
+        if(!$all){
+            $query = $query->take(10);
+        }
+        return $query->get() ?? [];
     }
 }

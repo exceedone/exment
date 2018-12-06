@@ -10,4 +10,10 @@ class AutoSUuidObserver
             $model->suuid = short_uuid();
         }
     }
+    public function updating($model)
+    {
+        if (is_nullorempty($model->suuid)) {
+            $model->suuid = short_uuid();
+        }
+    }
 }

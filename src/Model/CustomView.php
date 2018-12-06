@@ -3,11 +3,30 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Grid;
+use Encore\Admin\Grid\Column as GridColumn;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSystem;
+use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Auth\Authenticatable;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Carbon\Carbon;
+
 
 class CustomView extends ModelBase
 {
@@ -32,6 +51,38 @@ class CustomView extends ModelBase
         return $this->hasMany(CustomViewFilter::class, 'custom_view_id');
     }
 
+    public function custom_view_sorts()
+    {
+        return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
+    }
+
+    
+    public function deletingChildren()
+    {
+        $this->custom_view_columns()->delete();
+        $this->custom_view_filters()->delete();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            $model->setDefaultFlgInTable();
+        });
+        static::updating(function ($model) {
+            $model->setDefaultFlgInTable();
+        });
+
+        // delete event
+        static::deleting(function ($model) {
+            // Delete items
+            $model->deletingChildren();
+        });
+    }
+
+    // custom function --------------------------------------------------
+
     /**
      * set laravel-admin grid using custom_view
      */
@@ -46,11 +97,12 @@ class CustomView extends ModelBase
             if (is_numeric($view_column_target)) {
                 $column = $custom_view_column->custom_column;
                 if(!isset($column)){continue;}
+                //$column_name = $column->getIndexColumnName();
+                $column_name = array_get($column, 'column_name');
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                //$grid->column($column_name, $column_view_name)->sortable();
-                $grid->column(array_get($column, 'column_name'), $column_view_name)->sortable()->display(function ($v) use ($column) {
+                $grid->column($column_name, $column_view_name)->display(function ($v) use ($column) {
                     if (is_null($this)) {
                         return '';
                     }
@@ -287,28 +339,165 @@ class CustomView extends ModelBase
         $this->custom_view_columns()->saveMany($view_columns);
         return $view_columns;
     }
-    
-    public function deletingChildren()
-    {
-        $this->custom_view_columns()->delete();
-        $this->custom_view_filters()->delete();
+
+    /**
+     * set value filter 
+     */
+    public function setValueFilter($model){
+        foreach ($this->custom_view_filters as $filter) {
+            // get filter target column
+            $view_filter_target = $filter->view_filter_target;
+            if (is_numeric($view_filter_target)) {
+                $view_filter_target = CustomColumn::find($view_filter_target)->getIndexColumnName() ?? null;
+            }
+            $condition_value_text = $filter->view_filter_condition_value_text;
+            $view_filter_condition = $filter->view_filter_condition;
+            // get filter condition
+            switch ($view_filter_condition) {
+                // equal
+                case ViewColumnFilterOption::EQ:
+                    $model = $model->where($view_filter_target, $condition_value_text);
+                    break;
+                // not equal
+                case ViewColumnFilterOption::NE:
+                    $model = $model->where($view_filter_target, '<>', $condition_value_text);
+                    break;
+                // not null
+                case ViewColumnFilterOption::NOT_NULL:
+                case ViewColumnFilterOption::DAY_NOT_NULL:
+                case ViewColumnFilterOption::USER_NOT_NULL:
+                    $model = $model->whereNotNull($view_filter_target);
+                    break;
+                // null
+                case ViewColumnFilterOption::NULL:
+                case ViewColumnFilterOption::DAY_NULL:
+                case ViewColumnFilterOption::USER_NULL:
+                    $model = $model->whereNull($view_filter_target);
+                    break;
+                
+                // for date --------------------------------------------------
+                // date equal day
+                case ViewColumnFilterOption::DAY_ON:
+                case ViewColumnFilterOption::DAY_YESTERDAY:
+                case ViewColumnFilterOption::DAY_TODAY:
+                case ViewColumnFilterOption::DAY_TOMORROW:
+                    // get target day
+                    switch ($view_filter_condition) {
+                        case ViewColumnFilterOption::DAY_ON:
+                            $value_day = Carbon::parse($condition_value_text);
+                            break;
+                        case ViewColumnFilterOption::DAY_YESTERDAY:
+                            $value_day = Carbon::yesterday();
+                            break;
+                        case ViewColumnFilterOption::DAY_TODAY:
+                            $value_day = Carbon::today();
+                            break;
+                        case ViewColumnFilterOption::DAY_TOMORROW:
+                            $value_day = Carbon::tomorow();
+                            break;
+                    }
+                    $model = $model->whereDate($view_filter_target, $value_day);
+                    break;
+                    
+                // date equal month
+                case ViewColumnFilterOption::DAY_THIS_MONTH:
+                case ViewColumnFilterOption::DAY_LAST_MONTH:
+                case ViewColumnFilterOption::DAY_NEXT_MONTH:
+                    // get target month
+                    switch ($view_filter_condition) {
+                        case ViewColumnFilterOption::DAY_THIS_MONTH:
+                            $value_day = new Carbon('first day of this month');
+                            break;
+                        case ViewColumnFilterOption::DAY_LAST_MONTH:
+                            $value_day = new Carbon('first day of last month');
+                            break;
+                        case ViewColumnFilterOption::DAY_NEXT_MONTH:
+                            $value_day = new Carbon('first day of next month');
+                            break;
+                    }
+                    $model = $model
+                        ->whereYear($view_filter_target, $value_day->year)
+                        ->whereMonth($view_filter_target, $value_day->month);
+                    break;
+                    
+                // date equal year
+                case ViewColumnFilterOption::DAY_THIS_YEAR:
+                case ViewColumnFilterOption::DAY_LAST_YEAR:
+                case ViewColumnFilterOption::DAY_NEXT_YEAR:
+                    // get target year
+                    switch ($view_filter_condition) {
+                        case ViewColumnFilterOption::DAY_THIS_YEAR:
+                            $value_day = new Carbon('first day of this year');
+                            break;
+                        case ViewColumnFilterOption::DAY_LAST_YEAR:
+                            $value_day = new Carbon('first day of last year');
+                            break;
+                        case ViewColumnFilterOption::DAY_NEXT_YEAR:
+                            $value_day = new Carbon('first day of next year');
+                            break;
+                    }
+                    $model = $model->whereYear($view_filter_target, $value_day->year);
+                    break;
+                    
+                // date and X days before or after
+                case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+                case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+                case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+                case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
+                    $today = Carbon::today();
+                    // get target day and where mark
+                    switch ($view_filter_condition) {
+                        case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+                            $target_day = $today->addDay(-1 * intval($condition_value_text));
+                            $mark = ">=";
+                            break;
+                        case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+                            $target_day = $today->addDay(intval($condition_value_text));
+                            $mark = ">=";
+                            break;
+                        case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+                            $target_day = $today->addDay(-1 * intval($condition_value_text));
+                            $mark = "<=";
+                            break;
+                        case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
+                            $target_day = $today->addDay(intval($condition_value_text));
+                            $mark = "<=";
+                            break;
+                    }
+                    $model = $model->whereDate($view_filter_target, $mark, $target_day);
+                    break;
+                    
+                // for user --------------------------------------------------
+                case ViewColumnFilterOption::USER_EQ_USER:
+                    $model = $model->where($view_filter_target, Admin::user()->base_user()->id);
+                    break;
+                case ViewColumnFilterOption::USER_NE_USER:
+                    $model = $model->where($view_filter_target, '<>', Admin::user()->base_user()->id);
+                       
+            }
+        }
+
+        return $model;
     }
+    
+    /**
+     * set value sort 
+     */
+    public function setValueSort($model){
+        // if request has "_sort", not executing
+        if(\Request::capture()->has('_sort')){
+            return $model;
+        }
+        foreach ($this->custom_view_sorts as $custom_view_sort) {
+            // get column target column
+            $view_column_target = $custom_view_sort->view_column_target;
+            if (is_numeric($view_column_target)) {
+                $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
+            }
+            //set order
+            $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
+        }
 
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::creating(function ($model) {
-            $model->setDefaultFlgInTable();
-        });
-        static::updating(function ($model) {
-            $model->setDefaultFlgInTable();
-        });
-
-        // delete event
-        static::deleting(function ($model) {
-            // Delete items
-            $model->deletingChildren();
-        });
+        return $model;
     }
 }

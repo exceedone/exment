@@ -22,9 +22,9 @@ class CustomFormBlock extends ModelBase
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
     
-    public function getOption($key)
+    public function getOption($key, $default = null)
     {
-        return $this->getJson('options', $key);
+        return $this->getJson('options', $key, $default);
     }
     public function setOption($key, $val = null, $forgetIfNull = false)
     {

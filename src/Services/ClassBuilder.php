@@ -181,6 +181,8 @@ class ClassBuilder
      */
     public static function createCustomValue($namespace, $className, $fillpath, $table, $obj)
     {
+        $table = CustomTable::getEloquent($table);
+
         $builder = static::startBuild($className)
                 ->addNamespace($namespace)
                 ->addUse("\Exceedone\Exment\Model\CustomValue")
@@ -188,8 +190,17 @@ class ClassBuilder
                 ->addProperty("protected", 'table', "'".getDBTableName($table)."'")
                 ;
 
+        // set revision property
+        $revisionEnabled = boolval($table->getOption('revision_enabled', true));
+        if(!$revisionEnabled){
+            $builder->addProperty("protected", 'revisionEnabled', "false");
+        }else{
+            $historyLimit = intval($table->getOption('revision_enabled', 100));
+            $builder->addProperty("protected", 'historyLimit', "$historyLimit");
+        }
+
+
         // Create Relationship --------------------------------------------------
-        $table = CustomTable::getEloquent($table);
         $relations = CustomRelation
             ::with('child_custom_table')
             ->where('parent_custom_table_id', $table->id)

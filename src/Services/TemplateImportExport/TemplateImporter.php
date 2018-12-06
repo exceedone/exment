@@ -457,6 +457,8 @@ class TemplateImporter
                 $obj_table->setOption('color', array_get($table, 'options.color'));
                 $obj_table->setOption('one_record_flg', array_get($table, 'options.one_record_flg', "0"));
                 $obj_table->setOption('attachment_flg', array_get($table, 'options.attachment_flg', "1"));
+                $obj_table->setOption('revision_flg', array_get($table, 'options.revision_flg', "1"));
+                $obj_table->setOption('revision_count', array_get($table, 'options.revision_count', config('exment.revision_count', 100)));
 
                 $obj_table->saveOrFail();
 

@@ -164,7 +164,6 @@ trait CustomTableTrait
         // return column name
         return $column->getIndexColumnName();
     }
-
     
     /**
      * get options for select, multipleselect.

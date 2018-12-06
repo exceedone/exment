@@ -79,6 +79,10 @@
     }
 }
 
+.form-revision .form-group{
+    margin-bottom: 0;
+}
+
 .table-hover > tbody > tr:hover {
     background-color: #DFDFDF;
     cursor:pointer;
@@ -148,4 +152,17 @@
 }
 .bootstrap-duallistbox-container label{
     font-size: 0.9em;
+}
+.d-none{
+    display: none !important;
+}
+
+/* flexheight */
+.flexheight{
+    display: flex;
+    flex-wrap: wrap;
+    
+    .flexheight-inner{
+        height: 100%;
+    }
 }

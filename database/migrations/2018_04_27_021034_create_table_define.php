@@ -36,6 +36,21 @@ class CreateTableDefine extends Migration
             $table->timeusers();
         });
 
+        $schema->create('revisions', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->string('suuid', 20)->unique();
+            $table->string('revisionable_type');
+            $table->integer('revisionable_id');
+            $table->integer('revision_no')->unsigned()->default(0);
+            $table->string('key')->index();
+            $table->text('old_value')->nullable();
+            $table->text('new_value')->nullable();
+            $table->timestamps();
+            $table->integer('create_user_id')->nullable();
+
+            $table->index(array('revisionable_id', 'revisionable_type'));
+        });
+
         $schema->create('files', function (ExtendedBlueprint $table) {
             $table->uuid('uuid')->primary();
             $table->string('local_dirname')->index();
@@ -157,11 +172,8 @@ class CreateTableDefine extends Migration
             $table->string('suuid', 20)->unique();
             $table->string('table_name', 256)->unique();
             $table->string('table_view_name', 256);
-            // $table->string('icon', 128)->nullable();
-            // $table->string('color')->nullable();
             $table->string('description', 1000)->nullable();
             $table->boolean('search_enabled')->default(true);
-            //$table->boolean('one_record_flg')->default(false);
             $table->boolean('system_flg')->default(false);
             $table->boolean('showlist_flg')->default(true);
             $table->json('options')->nullable();
@@ -244,7 +256,6 @@ class CreateTableDefine extends Migration
             $table->timeusers();
 
             $table->foreign('custom_form_block_id')->references('id')->on('custom_form_blocks');
-            //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
         });
         
         $schema->create('custom_views', function (ExtendedBlueprint $table) {
@@ -271,7 +282,6 @@ class CreateTableDefine extends Migration
             $table->timeusers();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
-            //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
         });
 
         $schema->create('custom_view_filters', function (ExtendedBlueprint $table) {
@@ -287,7 +297,19 @@ class CreateTableDefine extends Migration
             $table->timeusers();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
-            //$table->foreign('custom_column_id')->references('id')->on('custom_columns');
+        });
+
+        $schema->create('custom_view_sorts', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('custom_view_id')->unsigned();
+            $table->string('view_column_target');
+            $table->integer('sort')->default(1);
+            $table->integer('priority')->unsigned()->default(0);
+            $table->timestamps();
+            $table->softDeletes();
+            $table->timeusers();
+
+            $table->foreign('custom_view_id')->references('id')->on('custom_views');
         });
 
         $schema->create('custom_copies', function (ExtendedBlueprint $table) {
@@ -392,6 +414,7 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('custom_relations');
         Schema::dropIfExists('custom_copy_columns');
         Schema::dropIfExists('custom_copies');
+        Schema::dropIfExists('custom_view_sorts');
         Schema::dropIfExists('custom_view_filters');
         Schema::dropIfExists('custom_view_columns');
         Schema::dropIfExists('custom_views');
@@ -409,6 +432,7 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('notifies');
         Schema::dropIfExists('mail_templates');
         Schema::dropIfExists('systems');
+        Schema::dropIfExists('revisions');
         Schema::dropIfExists('files');
     }
 }

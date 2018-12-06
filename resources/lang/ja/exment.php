@@ -240,6 +240,7 @@ return [
     'custom_table' => [
         'header' => 'カスタムテーブル設定',
         'description' => '独自に変更できるカスタムテーブルの設定を行います。',
+        'table' => 'テーブル',
         'table_name' => 'テーブル名',
         'table_view_name' => 'テーブル表示名',
         'field_description' => '説明',
@@ -248,6 +249,8 @@ return [
         'search_enabled' => '検索可能',
         'one_record_flg' => '1件のみ登録可能',
         'attachment_flg' => '添付ファイル使用',
+        'revision_flg' => 'データ変更履歴使用',
+        'revision_count' => '変更履歴バージョン数',
         'custom_columns' => '列一覧',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
@@ -255,6 +258,8 @@ return [
             'search_enabled' => 'YESにした場合、検索画面から検索可能になります。',
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
             'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
+            'revision_flg' => 'YESにした場合、各データの保存時、データの変更履歴を保存します。また、各データ画面で、以前の保存情報を復元することができます。',
+            'revision_count' => 'データの変更履歴を保存する最大件数です。それ以上の履歴を保存する場合、過去の履歴は削除されます。',
         ],
         
         'system_definitions' => [
@@ -440,14 +445,18 @@ return [
         'description' => 'カスタムビューの設定を行います。',
         'view_view_name' => 'ビュー表示名',
         'custom_view_columns' => '表示列選択',
+        'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
         'order' => '表示順',
+        'sort' => '並べ替え',
+        'priority' => '優先順位',
         'custom_view_filters' => '表示条件',
         'view_filter_target' => '対象列',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
+        'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。',
 
         'filter_condition_options' => [
@@ -552,11 +561,8 @@ return [
             'one_to_many'  => '1対多',
             'many_to_many'  => '多対多',
         ],
-        'parent_custom_table_name' => '親テーブル名',
-        'parent_custom_table_view_name' => '親テーブル表示名',
+        'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
-        'child_custom_table_name' => '子テーブル名',
-        'child_custom_table_view_name' => '子テーブル表示名',
     ],
 
     'custom_copy' => [

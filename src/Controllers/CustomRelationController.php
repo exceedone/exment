@@ -84,10 +84,8 @@ class CustomRelationController extends AdminControllerTableBase
     protected function grid()
     {
         $grid = new Grid(new CustomRelation);
-        $grid->column('parent_custom_table.table_name', exmtrans("custom_relation.parent_custom_table_name"))->sortable();
-        $grid->column('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table_view_name"))->sortable();
-        $grid->column('child_custom_table.table_name', exmtrans("custom_relation.child_custom_table_name"))->sortable();
-        $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table_view_name"))->sortable();
+        $grid->column('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table"))->sortable();
+        $grid->column('child_custom_table.table_view_name', exmtrans("custom_relation.child_custom_table"))->sortable();
         $grid->column('relation_type', exmtrans("custom_relation.relation_type"))->sortable()->display(function ($relation_type) {
             $relation_type_options = RelationType::trans("custom_relation.relation_type_options");
             return esc_html(array_get($relation_type_options, $relation_type));
@@ -117,8 +115,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $form = new Form(new CustomRelation);
         $form->hidden('parent_custom_table_id')->default($this->custom_table->id);
-        $form->display('parent_custom_table.table_name', exmtrans("custom_relation.parent_custom_table_name"))->default($this->custom_table->table_name);
-        $form->display('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table_view_name"))->default($this->custom_table->table_view_name);
+        $form->display('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table"))->default($this->custom_table->table_view_name);
 
         $custom_table_id = $this->custom_table->id;
         $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {

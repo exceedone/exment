@@ -11,8 +11,11 @@ class CustomValue extends ModelBase
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use \Exceedone\Exment\Revisionable\RevisionableTrait;
+
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
+    protected $keepRevisionOf = ['value'];
 
     public function getLabelAttribute()
     {

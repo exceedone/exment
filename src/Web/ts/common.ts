@@ -14,6 +14,10 @@ namespace Exment {
             $(document).on('click', '.add,.remove', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
+            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject, state) => {
+                CommonEvent.setFormFilter($(ev.target));
+            });
+
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
 
             $(document).on('pjax:complete', function (event) {
@@ -22,7 +26,6 @@ namespace Exment {
         }
         public static AddEvent() {
             CommonEvent.addSelect2();
-            // 表示・非表示は読み込み時に全レコード実行する
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
 
@@ -788,6 +791,7 @@ namespace Exment {
             // get filter object
             var $filterObj = $parent.find(CommonEvent.getClassKey(a.key)).filter(':last');
 
+            // if checkbox
             if ($filterObj.is(':checkbox')) {
                 return $filterObj.is(':checked') ? $filterObj.val() : null;
             }

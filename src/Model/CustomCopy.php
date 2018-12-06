@@ -35,9 +35,9 @@ class CustomCopy extends ModelBase
         ->where('custom_copy_column_type', 'input');
     }
 
-    public function getOption($key)
+    public function getOption($key, $default = null)
     {
-        return $this->getJson('options', $key);
+        return $this->getJson('options', $key, $default);
     }
     public function setOption($key, $val = null, $forgetIfNull = false)
     {

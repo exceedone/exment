@@ -279,7 +279,6 @@ EOT;
                     array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash']);
                 }
                 
-                $box = new Box();
                 $row->column(12 / $row_column_count, view('exment::dashboard.box', [
                     'title' => $dashboard_column->dashboard_box_view_name ?? null,
                     'id' => $id,

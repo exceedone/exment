@@ -1,5 +1,5 @@
 
-<div id="has-many-table-{{$column}}">
+<div id="has-many-table-{{$column}}" class="has-many-table-div">
     <div class="row">
         <div class="{{$viewClass['label']}}"><h4 class="pull-right">{{ $label }}</h4></div>
         <div class="{{$viewClass['field']}}"></div>

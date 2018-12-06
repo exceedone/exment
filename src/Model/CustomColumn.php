@@ -74,7 +74,7 @@ class CustomColumn extends ModelBase
      * For add table virtual column
      * @param bool $forceDropIndex drop index. calling when remove column.
      */
-    function alterColumn($forceDropIndex = false)
+    public function alterColumn($forceDropIndex = false)
     {
         // Create index --------------------------------------------------
         $table = $this->custom_table;
@@ -88,7 +88,7 @@ class CustomColumn extends ModelBase
         $table->createTable();
 
         // get whether search_enabled column
-        $search_enabled = boolval(array_get($this, 'options.search_enabled'));
+        $search_enabled = $this->hasIndex();
         
         // check table column field exists.
         $exists = Schema::hasColumn($db_table_name, $db_column_name);
@@ -141,6 +141,18 @@ class CustomColumn extends ModelBase
             $this->alterColumn();
         }
         return $name;
+    }
+
+    /**
+     * Whether this column has index
+     * @param CustomColumn|array $obj
+     * @param boolean $label if get the columnname only get column label.
+     * @param boolean $alterColumn if not exists column on db, execute alter column. if false, only get name
+     * @return string
+     */
+    public function hasIndex()
+    {
+        return boolval(array_get($this, 'options.search_enabled'));
     }
 
     /**
@@ -201,9 +213,9 @@ class CustomColumn extends ModelBase
     }
 
 
-    public function getOption($key)
+    public function getOption($key, $default = null)
     {
-        return $this->getJson('options', $key);
+        return $this->getJson('options', $key, $default);
     }
     public function setOption($key, $val = null, $forgetIfNull = false)
     {

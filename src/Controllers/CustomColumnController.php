@@ -85,8 +85,7 @@ class CustomColumnController extends AdminControllerTableBase
     protected function grid()
     {
         $grid = new Grid(new CustomColumn);
-        $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
-        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
+        $grid->column('custom_table.table_view_name', exmtrans("custom_table.table"))->sortable();
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
@@ -138,8 +137,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$date).'"></script>');
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
-        $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
-        $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
+        $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
         
         if (!isset($id)) {
             $classname = CustomColumn::class;

@@ -476,8 +476,22 @@ trait CustomValueTrait
     /**
      * get target custom_value's self link url
      */
-    public function getUrl($tag = false)
+    public function getUrl($options = [])
     {
+        // options is boolean, tag is true
+        if(is_bool($options)){
+            $options = ['tag' => true];
+        }
+        $options = array_merge(
+            [
+                'tag' => false,
+                'uri' => null,
+                'list' => false
+            ]
+            , $options
+        );
+        $tag = boolval($options['tag']);
+
         // if this table is document, create target blank link
         if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
             $url = admin_urls('files', $this->getValue('file_uuid', true));
@@ -487,8 +501,14 @@ trait CustomValueTrait
             $label = esc_html($this->getValue('document_name'));
             return "<a href='$url' target='_blank'>$label</a>";
         }
-
-        $url = admin_urls('data', $this->getCustomTable()->table_name, $this->id);
+        $url = admin_urls('data', $this->getCustomTable()->table_name);
+        if(!boolval($options['list'])){
+            $url = url_join($url, $this->id);
+        }
+        
+        if(isset($options['uri'])){
+            $url = url_join($url, $options['uri']);
+        }
         if (!$tag) {
             return $url;
         }
@@ -552,5 +572,17 @@ trait CustomValueTrait
 
         // get relation item list
         return $this->{$pivot_table_name};
+    }
+
+    /**
+     * set revision data
+     */
+    public function setRevision($revision_suuid){
+        $revision_value = $this->revisionHistory()->where('suuid', $revision_suuid)->first()->new_value;
+        if(is_json($revision_value)){
+            $revision_value = \json_decode($revision_value, true);
+        }
+        $this->value = $revision_value;
+        return $this;
     }
 }
