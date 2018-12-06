@@ -208,7 +208,7 @@ class DocumentExcelService
     {
         $options['disable_currency_symbol'] = true;
         $options['afterCallback'] = function($text, $custom_value, $options){
-            return $this->replaceText($text, $option);
+            return $this->replaceText($text, $options);
         };
         return replaceTextFromFormat($text, $this->model, $options);
     }
