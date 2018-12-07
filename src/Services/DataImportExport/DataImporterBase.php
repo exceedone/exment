@@ -140,7 +140,7 @@ abstract class DataImporterBase
             // if exists, firstOrNew
             else {
                 //*Replace "." to "->" for json value
-                $model = $modelName::firstOrNew([str_replace(".", "->", $primary_key) => $primary_value]);
+                $model = $modelName::withTrashed()->firstOrNew([str_replace(".", "->", $primary_key) => $primary_value]);
             }
             if (!isset($model)) {
                 continue;
@@ -307,6 +307,12 @@ abstract class DataImporterBase
                 $model->{$dkey} = $dvalue;
             }
         }
+
+        // if not has deleted_at value, remove deleted_at value
+        if(!array_key_value_exists('deleted_at', $data)){
+            $model->deleted_at = null;
+        }
+
         // save model
         $model->save();
     }

@@ -286,8 +286,15 @@ class FormHelper
             // add unique field
             $unique_table_name = getDBTableName($table_obj); // database table name
             $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name
+            
+            $uniqueRules = [$unique_table_name, $unique_column_name];
             // create rules.if isset id, add
-            $rules = "unique:$unique_table_name,$unique_column_name" . (isset($value_id) ? ",$value_id" : "");
+            $uniqueRules[] = (isset($value_id) ? "$value_id" : "");
+            $uniqueRules[] = 'id';
+            // and ignore data deleted_at is NULL 
+            $uniqueRules[] = 'deleted_at';
+            $uniqueRules[] = 'NULL';
+            $rules = "unique:".implode(",", $uniqueRules);
             // add rules
             $validates[] = $rules;
         }
