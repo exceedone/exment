@@ -153,6 +153,7 @@ class DocumentExcelService
                         // replace using format
                         $column_item['text'] = str_replace($format['format_text'], $child->getValue($format['column_name'], true, [
                             'disable_currency_symbol' => true,
+                            'disable_number_format' => true,
                         ]), $column_item['text']);
                     }
                     // set again to cell
@@ -207,6 +208,7 @@ class DocumentExcelService
     protected function getText($text, $options = [])
     {
         $options['disable_currency_symbol'] = true;
+        $options['disable_number_format'] = true;
         $options['afterCallback'] = function($text, $custom_value, $options){
             return $this->replaceText($text, $options);
         };

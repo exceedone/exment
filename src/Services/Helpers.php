@@ -441,7 +441,7 @@ if (!function_exists('getModelName')) {
             }
         }
 
-        $namespace = "App\\CustomModel";
+        $namespace = "Exceedone\\Exment\\Model";
         $className = "Class_{$suuid}";
         $fillpath = "{$namespace}\\{$className}";
         // if the model doesn't defined, and $get_name_only is false

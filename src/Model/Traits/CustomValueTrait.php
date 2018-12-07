@@ -414,7 +414,10 @@ trait CustomValueTrait
             if ($label !== true) {
                 return $val;
             }
-            if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
+            if (boolval(array_get($column, 'options.number_format')) 
+                && is_numeric($val) 
+                && !boolval(array_get($options, 'disable_number_format')))
+            {
                 $val = number_format($val);
             }
             if(boolval(array_get($options, 'disable_currency_symbol'))){
