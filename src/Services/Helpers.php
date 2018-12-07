@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Collection;
 use Webpatser\Uuid\Uuid;
+use Carbon\Carbon;
 
 if (!function_exists('exmtrans')) {
     function exmtrans($key)
@@ -633,9 +634,15 @@ if (!function_exists('replaceTextFromFormat')) {
                             }
                         }
                         ///// value
-                        elseif ($key == "value") {
-                            if(!isset($custom_value)){
-                                $str = $id_string;
+                        ///// base_info
+                        elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
+                            if($key == "value"){
+                                $target_value = $custom_value;
+                            }else{
+                                $target_value = getModelName(SystemTableName::BASEINFO)::first();
+                            }
+                            if(!isset($target_value)){
+                                $str = '';
                             }
                             // get value from model
                             elseif (count($length_array) <= 1) {
@@ -643,20 +650,8 @@ if (!function_exists('replaceTextFromFormat')) {
                             } else {
                                 // get comma string from index 1.
                                 $length_array = array_slice($length_array, 1);
-                                $str = $custom_value->getValue(implode(',', $length_array), true, $options, 'format');
-                            }
-                        }
-                        // base_info
-                        elseif ($key == "base_info") {
-                            $base_info = getModelName(SystemTableName::BASEINFO)::first();
-                            if(!isset($base_info)){
-                                $str = '';
-                            }
-                            // get value from model
-                            elseif (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                $str = $base_info->getValue($length_array[1], true, array_get($options, 'format'));
+
+                                $str = $target_value->getValue(implode(',', $length_array), true, $options);
                             }
                         }
                         ///// sum
@@ -693,11 +688,11 @@ if (!function_exists('replaceTextFromFormat')) {
                         }
                         // if has $datestrings, conbert using date string
                         elseif(array_key_exists($key, $dateStrings)){
-                            $str = \Carbon\Carbon::now()->format($dateStrings[$key]);
+                            $str = Carbon::now()->format($dateStrings[$key]);
                         }
                         // if has $datestrings, conbert using date value
-                        elseif(array_has($dateValues, $key)){
-                            $str = Carbon::now()->{$dateValues->$key};
+                        elseif(in_array($key, $dateValues)){
+                            $str = Carbon::now()->{$key};
                             // if user input length
                             if (count($length_array) > 1) {
                                 $length = $length_array[1];

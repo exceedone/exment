@@ -4,7 +4,7 @@
             リビジョン
         </h3>
         <div class="btn-group pull-right" style="margin-right: 5px">
-            <a href="{{$custom_value->getUrl(false, ['uri' => 'edit'])}}" class="btn btn-sm btn-primary" title="編集">
+            <a href="{{$custom_value->getUrl(['uri' => 'edit'])}}" class="btn btn-sm btn-primary" title="編集">
                 <i class="fa fa-edit"></i><span class="hidden-xs"> 編集</span>
             </a>
         </div>
@@ -14,7 +14,7 @@
             </a>
         </div>
         <div class="btn-group pull-right" style="margin-right: 5px">
-            <a href="{{$custom_value->getUrl(false, ['list' => true])}}" class="btn btn-sm btn-default" title="一覧">
+            <a href="{{$custom_value->getUrl(['list' => true])}}" class="btn btn-sm btn-default" title="一覧">
                 <i class="fa fa-list"></i><span class="hidden-xs"> 一覧</span>
             </a>
         </div>

@@ -8,6 +8,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait CustomValueTrait
@@ -71,7 +73,7 @@ trait CustomValueTrait
             $column_name = array_get($custom_column, 'column_name');
             switch (array_get($custom_column, 'column_type')) {
                 // if column type is auto_number, set auto number.
-                case 'auto_number':
+                case ColumnType::AUTO_NUMBER:
                     // already set value, break
                     if (!is_null($model->getValue($column_name))) {
                         break;
@@ -250,14 +252,15 @@ trait CustomValueTrait
                     if (is_null($loop_value)) {
                         return null;
                     }
-                    // get custom table. if CustomValue
-                    if (!($loop_value instanceof CustomValue)) {
-                        return null;
-                    }
-
+                    
                     // if last index, return value
                     if ($lastIndex) {
                         return $loop_value;
+                    }
+                    
+                    // get custom table. if CustomValue
+                    if (!($loop_value instanceof CustomValue)) {
+                        return null;
                     }
                 }
                 return $loop_value;
@@ -288,7 +291,7 @@ trait CustomValueTrait
 
         $column_type = array_get($column, 'column_type');
         // calcurate  --------------------------------------------------
-        if (in_array($column_type, ['decimal', 'currency'])) {
+        if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
             $val = parseFloat($val);
             if (array_has($column, 'options.decimal_digit')) {
                 $digit = intval(array_get($column, 'options.decimal_digit'));
@@ -299,7 +302,7 @@ trait CustomValueTrait
         // return finally value --------------------------------------------------
         // get value as select
         // get value as select_valtext
-        if (in_array($column_type, ['select', 'select_valtext'])) {
+        if (in_array($column_type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT])) {
             $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
             $select_item = array_get($column, $array_get_key);
             $select_options = CustomColumn::getEloquent($column, $custom_table)->createSelectOptions();
@@ -316,10 +319,10 @@ trait CustomValueTrait
             // switch column_type and get return value
             $returns = [];
             switch ($column_type) {
-                case 'select':
+                case ColumnType::SELECT:
                     $returns = $val;
                     break;
-                case 'select_valtext':
+                case ColumnType::SELECT_VALTEXT:
                     // loop keyvalue
                     foreach ($val as $v) {
                         // set whether $label
@@ -335,10 +338,10 @@ trait CustomValueTrait
         }
 
         // get value as select_table
-        elseif (in_array($column_type, ['select_table', 'user', 'organization'])) {
+        elseif (in_array($column_type, [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
             // get target table
             $target_table_key = null;
-            if ($column_type == 'select_table') {
+            if ($column_type == ColumnType::SELECT_TABLE) {
                 $target_table_key = array_get($column, 'options.select_target_table');
             } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
                 $target_table_key = $column_type;
@@ -375,7 +378,7 @@ trait CustomValueTrait
                 }
             }
             return implode(exmtrans('common.separate_word'), $labels);
-        } elseif (in_array($column_type, ['file', 'image'])) {
+        } elseif (in_array($column_type, [ColumnType::FILE, ColumnType::IMAGE])) {
             // get file
             if ($label !== true) {
                 $file = File::getFile($val);
@@ -384,7 +387,7 @@ trait CustomValueTrait
             return $val;
         }
         // yesno
-        elseif (in_array($column_type, ['yesno'])) {
+        elseif (in_array($column_type, [ColumnType::YESNO])) {
             if ($label !== true) {
                 return $val;
             }
@@ -392,7 +395,7 @@ trait CustomValueTrait
             return boolval($val) ? 'YES' : 'NO';
         }
         // boolean
-        elseif (in_array($column_type, ['yesno'])) {
+        elseif (in_array($column_type, [ColumnType::YESNO])) {
             if ($label !== true) {
                 return $val;
             }
@@ -406,7 +409,7 @@ trait CustomValueTrait
             return null;
         }
         // currency
-        elseif (in_array($column_type, ['currency'])) {
+        elseif (in_array($column_type, [ColumnType::CURRENCY])) {
             // if not label, return
             if ($label !== true) {
                 return $val;
@@ -422,7 +425,7 @@ trait CustomValueTrait
             return getCurrencySymbolLabel($symbol, $val);
         }
         // datetime, date
-        elseif (in_array($column_type, ['datetime', 'date'])) {
+        elseif (in_array($column_type, [ColumnType::DATETIME, ColumnType::DATE])) {
             // if not empty format, using carbon
             $format = array_get($options, 'format');
             if (!is_nullorempty($format)) {
