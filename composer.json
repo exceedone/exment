@@ -29,7 +29,6 @@
         "webpatser/laravel-uuid": "^3.0",
         "phpoffice/phpspreadsheet": "^1.5.0",
         "myclabs/php-enum": "^1.6.0",
-        "paragonie/random_compat": "2.*",
         "laravel/passport": "~4.0"
     },
     "autoload": {
