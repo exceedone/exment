@@ -20,7 +20,7 @@ class Define
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
         'site_name' => ['default' => 'Exment'],
-        'site_name_short' => ['default' => 'ExM'],
+        'site_name_short' => ['default' => 'Exm'],
         'site_logo' => ['type' => 'file', 'move' => 'system'],
         'site_logo_mini' => ['type' => 'file', 'move' => 'system'],
         'site_skin' => ['config' => 'admin.skin'],

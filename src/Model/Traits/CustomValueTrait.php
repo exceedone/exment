@@ -24,7 +24,7 @@ trait CustomValueTrait
         $value = $model->value;
         $original = json_decode($model->getOriginal('value'), true);
         // get  columns
-        $file_columns = $model->getCustomTable()
+        $file_columns = $model->custom_table
             ->custom_columns
             ->pluck('column_name')
             ->toArray();
@@ -62,7 +62,7 @@ trait CustomValueTrait
         $value = $model->value;
         $id = $model->id;
         // get image and file columns
-        $columns = $model->getCustomTable()
+        $columns = $model->custom_table
             ->custom_columns
             ->all();
 
@@ -223,7 +223,7 @@ trait CustomValueTrait
                 'disable_currency_symbol' => false,
             ], $options
         );
-        $custom_table = $this->getCustomTable();
+        $custom_table = $this->custom_table;
         if (is_null($column)) {
             return null;
         }
@@ -455,7 +455,7 @@ trait CustomValueTrait
      */
     public function getLabel()
     {
-        $custom_table = $this->getCustomTable();
+        $custom_table = $this->custom_table;
         $columns = $custom_table->custom_columns()
             ->whereNotIn('options->use_label_flg', [0, "0"])
             ->orderBy('options->use_label_flg')
@@ -499,7 +499,7 @@ trait CustomValueTrait
         $tag = boolval($options['tag']);
 
         // if this table is document, create target blank link
-        if($this->getCustomTable()->table_name == SystemTableName::DOCUMENT){
+        if($this->custom_table->table_name == SystemTableName::DOCUMENT){
             $url = admin_urls('files', $this->getValue('file_uuid', true));
             if (!$tag) {
                 return $url;
@@ -507,7 +507,7 @@ trait CustomValueTrait
             $label = esc_html($this->getValue('document_name'));
             return "<a href='$url' target='_blank'>$label</a>";
         }
-        $url = admin_urls('data', $this->getCustomTable()->table_name);
+        $url = admin_urls('data', $this->custom_table->table_name);
         if(!boolval($options['list'])){
             $url = url_join($url, $this->id);
         }
@@ -570,7 +570,7 @@ trait CustomValueTrait
      */
     public function getChildrenValues($relation_table)
     {
-        $parent_table = $this->getCustomTable();
+        $parent_table = $this->custom_table;
 
         // get custom column as array
         $child_table = CustomTable::getEloquent($relation_table);

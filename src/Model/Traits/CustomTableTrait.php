@@ -75,7 +75,7 @@ trait CustomTableTrait
         } elseif ($obj instanceof CustomTable) {
             // nothing
         } elseif ($obj instanceof CustomValue) {
-            $obj = $obj->getCustomTable();
+            $obj = $obj->custom_table;
         }
         return $obj;
     }

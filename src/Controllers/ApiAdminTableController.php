@@ -11,10 +11,10 @@ use Exceedone\Exment\Enums\AuthorityValue;
 /**
  * Api about target table
  */
-class ApiTableController extends AdminControllerTableBase
+class ApiAdminTableController extends AdminControllerTableBase
 {
     use ApiTableTrait;
     protected function user(){
-        return Auth::guard('admin_api')->user();
+        return Admin::user();
     }
 }

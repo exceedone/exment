@@ -5,16 +5,14 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Illuminate\Support\Facades\Auth;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ColumnType;
 
-/**
- * Api about target table
- */
-class ApiTableController extends AdminControllerTableBase
+class ApiAdminController extends AdminControllerBase
 {
-    use ApiTableTrait;
+    use ApiTrait;
     protected function user(){
-        return Auth::guard('admin_api')->user();
+        return Admin::user();
     }
 }

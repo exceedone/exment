@@ -320,7 +320,7 @@ trait HasPermissions
         }
 
         // if user has edit or view table
-        if (Admin::user()->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if ($this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             // get only has authority
             $model = $model
                  ->whereHas('value_authoritable_users', function ($q) {
@@ -356,9 +356,9 @@ trait HasPermissions
            ->leftJoin($db_table_name_pivot.' AS ou1', 'ou1.parent_id', '=', 'o1.id')
            ->leftJoin($db_table_name_pivot.' AS ou2', 'ou2.parent_id', '=', 'o2.id')
            ->leftJoin($db_table_name_pivot.' AS ou3', 'ou3.parent_id', '=', 'o3.id')
-           ->orWhere('ou1.child_id', Admin::user()->base_user_id)
-           ->orWhere('ou2.child_id', Admin::user()->base_user_id)
-           ->orWhere('ou3.child_id', Admin::user()->base_user_id)
+           ->orWhere('ou1.child_id', $this->base_user_id)
+           ->orWhere('ou2.child_id', $this->base_user_id)
+           ->orWhere('ou3.child_id', $this->base_user_id)
            ->get(['o1.id'])->pluck('id')->toArray();
         // set session.
         Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
@@ -399,7 +399,7 @@ trait HasPermissions
             // if $i == 0, then search as user
             if ($i == 0) {
                 $query = $query->where('related_type', SystemTableName::USER)
-                    ->where('related_id', Admin::user()->base_user_id);
+                    ->where('related_id', $this->base_user_id);
             }
             // else then search as org.
             else {
@@ -460,7 +460,7 @@ trait HasPermissions
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {
                     $query->where('related_type', SystemTableName::USER)
-                    ->where('related_id', Admin::user()->base_user_id);
+                    ->where('related_id', $this->base_user_id);
                 });
                 $query->orWhere(function ($query) use ($organization_ids) {
                     $query->where('related_type', SystemTableName::ORGANIZATION)

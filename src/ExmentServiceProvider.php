@@ -18,6 +18,15 @@ use Illuminate\Support\Facades\File;
 class ExmentServiceProvider extends ServiceProvider
 {
     /**
+     * Application Policy Map
+     *
+     * @var array
+     */
+    protected $policies = [
+        'Exceedone\Exment\Model' => 'App\Policies\ModelPolicy',
+    ];
+
+    /**
      * @var array commands
      */
     protected $commands = [
@@ -35,6 +44,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
+        'admin_api.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
         // 'web.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         // 'web.morph'  => \Exceedone\Exment\Middleware\Web::class,
     ];
@@ -65,6 +75,9 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.morph',
         ],
+        'admin_api' => [
+            'admin_api.auth',
+        ],
         // 'web' => [
         //     'web.initialize',
         //     'web.morph',
@@ -85,7 +98,6 @@ class ExmentServiceProvider extends ServiceProvider
         
         $this->mergeConfigFrom(
             __DIR__.'/../config/exment.php',
-        
             'exment'
         );
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
@@ -99,6 +111,11 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootSetting();
+
+        // for api
+        if (boolval(config('exment.api'))) {
+            \Laravel\Passport\Passport::routes();
+        }
 
         // $this->bootPlugin();
     }
@@ -201,6 +218,12 @@ class ExmentServiceProvider extends ServiceProvider
             ]);
         }
         
+        // add for api passport
+        Config::set('auth.guards.admin_api', [
+            'driver' => 'passport',
+            'provider' => 'exment-auth',
+        ]);
+
         // set config
         if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [
@@ -212,6 +235,8 @@ class ExmentServiceProvider extends ServiceProvider
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
         Config::set('admin.enable_default_breadcrumb', false);
+        Config::set('admin.show_version', false);
+        Config::set('admin.show_environment', false);
 
         Auth::provider('exment-auth', function ($app, array $config) {
             // Return an instance of Illuminate\Contracts\Auth\UserProvider...
