@@ -1,6 +1,7 @@
 * [Home](/ja/)
 * 【システム管理者向け】
   * [クイックスタート](/ja/quickstart.md)
+  * [クイックスタート(ZIP版)](/ja/quickstart_zip.md)
   * [インストール](/ja/install.md)
   * [基本情報](/ja/base_info.md)
   * [カスタムテーブル](/ja/table.md)
