@@ -431,7 +431,7 @@ if (!function_exists('getModelName')) {
                 $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
                 setRequestSession('getModelName_'.$obj, $suuid);
             } elseif ($obj instanceof CustomValue) {
-                $table = $obj->getCustomTable();
+                $table = $obj->custom_table;
                 $suuid = $table->suuid;
             } elseif (is_null($obj)) {
                 return null; // TODO: It's OK???

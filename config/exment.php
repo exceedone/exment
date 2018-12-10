@@ -10,7 +10,11 @@ return [
 
     'manual_url' => env('EXMENT_MANUAL_URL', 'https://exment.net/docs/#/'),
 
-    'show_default_login_provider' => env('SHOW_DEFAULT_LOGIN_PROVIDER', true),
-    'login_providers' => env('LOGIN_PROVIDERS', []),
-    'revision_count_default' => env('REVISION_COUNT', 100),
+    'show_default_login_provider' => env('EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER', true),
+    
+    'login_providers' => env('EXMENT_LOGIN_PROVIDERS', []),
+    
+    'revision_count_default' => env('EXMENT_REVISION_COUNT', 100),
+    
+    'api' => env('EXMENT_API', false),
 ];

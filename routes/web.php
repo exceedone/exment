@@ -81,9 +81,9 @@ Route::group([
                 $router->resource("copy/{$value}", 'CustomCopyController', ['except' => ['show']]);
                 $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
                 $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
-                $router->get("api/{$value}/query", 'ApiTableController@query');
-                $router->get("api/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
-                $router->post("api/{$value}/{id}", 'ApiTableController@find');
+                $router->get("api/{$value}/query", 'ApiAdminTableController@query');
+                $router->get("api/{$value}/relatedLinkage", 'ApiAdminTableController@relatedLinkage');
+                $router->post("api/{$value}/{id}", 'ApiAdminTableController@find');
             }
         }
     }catch(\Exception $e){
@@ -130,4 +130,34 @@ Route::group([
         $router->get('auth/login/{provider}', 'AuthController@getLoginProvider');
         $router->get('auth/login/{provider}/callback', 'AuthController@callbackLoginProvider');
     }
+});
+
+
+/**
+ * api endpoint
+ */
+ Route::group([
+     'prefix' => 'adminapi',
+    'namespace'     => 'Exceedone\Exment\Controllers',
+    'middleware'    => ['admin_api', 'api'],
+], function (Router $router) {
+    // set static name. because this function is called composer install.
+    try {
+        if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+            foreach (CustomTable::all()->pluck('table_name') as $value) {
+                $router->get("data/{$value}", 'ApiTableController@list');
+                $router->post("data/{$value}", 'ApiTableController@createData');
+                $router->put("data/{$value}/{key}", 'ApiTableController@updateData');
+                $router->get("data/{$value}/query", 'ApiTableController@query');
+                $router->get("data/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
+                $router->get("data/{$value}/{id}", 'ApiTableController@find');
+                $router->post("data/{$value}/{id}", 'ApiTableController@find');
+            }
+        }
+    }catch(\Exception $e){
+    }
+
+    $router->get('api/table/{id}', 'ApiController@table');
+    $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
+
 });

@@ -35,7 +35,7 @@ class File extends ModelBase
         // save Document Model
         $document_model = CustomTable::findByName(SystemTableName::DOCUMENT)->getValueModel();
         $document_model->parent_id = $custom_value->id;
-        $document_model->parent_type = $custom_value->getCustomTable()->table_name;
+        $document_model->parent_type = $custom_value->custom_table->table_name;
         $document_model->setValue([
             'file_uuid' => $this->uuid,
             'document_name' => $document_name,

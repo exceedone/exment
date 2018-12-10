@@ -15,11 +15,29 @@ class CustomValue extends ModelBase
 
     protected $casts = ['value' => 'json'];
     protected $appends = ['label'];
+    protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
+    
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        // ignore virtual value
+        $columns = $this->custom_table->getSearchEnabledColumns();
+        foreach($columns as $custom){
+            $this->hidden[] = $custom->getIndexColumnName();
+        }
+    }
+
 
     public function getLabelAttribute()
     {
         return $this->getLabel();
+    }
+
+    public function getCustomTableAttribute()
+    {
+        return CustomTable::findByDBTableName($this->getTable());
     }
 
     /**
@@ -44,11 +62,6 @@ class CustomValue extends ModelBase
             ->withPivot('related_id', 'related_type')
             ->wherePivot('related_type', SystemTableName::ORGANIZATION)
             ;
-    }
-
-    public function getCustomTable()
-    {
-        return CustomTable::findByDBTableName($this->getTable());
     }
 
     public function parent_custom_value()
@@ -84,7 +97,7 @@ class CustomValue extends ModelBase
         });
         
         static::deleting(function ($model) {
-            $parent_table = $model->getCustomTable();
+            $parent_table = $model->custom_table;
             // delete custom relation is 1:n value
             $relations = CustomRelation
                 ::where('parent_custom_table_id', $parent_table->id)

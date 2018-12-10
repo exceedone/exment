@@ -23,7 +23,6 @@
         "php": ">=7.0.0",
         "encore/laravel-admin": "1.6.7",
         "laravel/framework": "~5.5",
-        "laravelcollective/html": "5.5.*",
         "setasign/fpdi": "^2.0",
         "setasign/fpdi-tcpdf": "^2.0",
         "tecnickcom/tcpdf": "^6.2",
