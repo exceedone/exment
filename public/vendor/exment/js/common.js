@@ -573,10 +573,6 @@ var Exment;
             var $filterObj = $parent.find(CommonEvent.getClassKey(a.key)).filter(':last');
             // if checkbox
             if ($filterObj.is(':checkbox')) {
-                // if bootstrap-checkbox object, get state
-                if ($filterObj.parent('.bootstrap-switch-container').length > 0) {
-                    return $filterObj.bootstrapSwitch('state');
-                }
                 return $filterObj.is(':checked') ? $filterObj.val() : null;
             }
             return $filterObj.val();
@@ -850,7 +846,13 @@ const selectedRows = function () {
     return rows;
 };
 const admin_base_path = function (path) {
-    var prefix = '/' + trimAny($('#admin_base_path').val(), '/');
+    var urls = [];
+    var admin_base_uri = trimAny($('#admin_base_uri').val(), '/');
+    if (admin_base_uri.length > 0) {
+        urls.push(admin_base_uri);
+    }
+    urls.push(trimAny($('#admin_base_path').val(), '/'));
+    var prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 };

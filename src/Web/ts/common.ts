@@ -876,7 +876,15 @@ const selectedRows = function () {
 }
 
 const admin_base_path = function (path) {
-    var prefix = '/' + trimAny($('#admin_base_path').val(), '/');
+    var urls = [];
+
+    var admin_base_uri = trimAny($('#admin_base_uri').val(), '/');
+    if(admin_base_uri.length > 0){
+        urls.push(admin_base_uri);
+    }
+    urls.push(trimAny($('#admin_base_path').val(), '/'));
+
+    var prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 }
