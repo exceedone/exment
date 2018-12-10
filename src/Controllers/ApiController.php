@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Auth;
 class ApiController extends AdminControllerBase
 {
     use ApiTrait;
-    public function __construct(Request $request)
-    {
-        $this->user = Auth::guard('admin_api')->user();
+    protected function user(){
+        return Auth::guard('admin_api')->user();
     }
+
 }

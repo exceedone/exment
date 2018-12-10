@@ -12,8 +12,7 @@ use Exceedone\Exment\Enums\ColumnType;
 class ApiAdminController extends AdminControllerBase
 {
     use ApiTrait;
-    public function __construct(Request $request)
-    {
-        $this->user = Admin::user();
+    protected function user(){
+        return Admin::user();
     }
 }

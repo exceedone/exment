@@ -13,8 +13,6 @@ use Exceedone\Exment\Enums\AuthorityValue;
  */
 trait ApiTrait
 {
-    protected $user;
-
     /**
      * get table data by id
      * @param mixed $id
@@ -23,7 +21,7 @@ trait ApiTrait
     public function table($id, Request $request)
     {
         $table = CustomTable::find($id);
-        if (!$this->user->hasPermissionTable($table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->user()->hasPermissionTable($table, AuthorityValue::CUSTOM_TABLE)) {
             abort(403);
         }
         return $result;

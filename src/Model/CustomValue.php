@@ -18,18 +18,6 @@ class CustomValue extends ModelBase
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
     
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-
-        // ignore virtual value
-        $columns = $this->custom_table->getSearchEnabledColumns();
-        foreach($columns as $custom){
-            $this->hidden[] = $custom->getIndexColumnName();
-        }
-    }
-
-
     public function getLabelAttribute()
     {
         return $this->getLabel();

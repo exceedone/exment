@@ -14,9 +14,7 @@ use Exceedone\Exment\Enums\AuthorityValue;
 class ApiTableController extends AdminControllerTableBase
 {
     use ApiTableTrait;
-    public function __construct(Request $request)
-    {
-        parent::__construct($request);
-        $this->user = Auth::guard('admin_api')->user();
+    protected function user(){
+        return Auth::guard('admin_api')->user();
     }
 }

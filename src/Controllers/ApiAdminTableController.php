@@ -13,10 +13,8 @@ use Exceedone\Exment\Enums\AuthorityValue;
  */
 class ApiAdminTableController extends AdminControllerTableBase
 {
-    use ApiTrait;
-    public function __construct(Request $request)
-    {
-        parent::__construct($request);
-        $this->user = Admin::user();
+    use ApiTableTrait;
+    protected function user(){
+        return Admin::user();
     }
 }

@@ -170,14 +170,14 @@ class File extends ModelBase
         
             // delete document info
             getModelName(SystemTableName::DOCUMENT)
-            ::where($column_name, $uuid)
-            ->delete();
+                ::where($column_name, $uuid)
+                ->delete();
         }
         
         // delete file info
         if(boolval($options['removeFileInfo'])){
             $file = static::getData($uuid);
-            $file->deleteFileInfo();
+            static::deleteFileInfo($file);
         }
 
         return response([

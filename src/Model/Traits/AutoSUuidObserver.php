@@ -6,12 +6,14 @@ class AutoSUuidObserver
 {
     public function creating($model)
     {
-        if (is_nullorempty($model->suuid)) {
-            $model->suuid = short_uuid();
-        }
+        $this->setSuuid($model);
     }
     public function updating($model)
     {
+        $this->setSuuid($model);
+    }
+
+    protected function setSuuid($model){
         if (is_nullorempty($model->suuid)) {
             $model->suuid = short_uuid();
         }

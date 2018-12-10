@@ -15,7 +15,6 @@ use Validator;
  */
 trait ApiTableTrait
 {
-    protected $user;
     protected $custom_table;
 
     /**
@@ -24,9 +23,16 @@ trait ApiTableTrait
      */
     public function list(Request $request)
     {
+        // get paginate
         $model = $this->custom_table->getValueModel();
-        $model = $this->user->filterModel($model, $model->custom_table);
-        return $model::paginate();
+        $model = $this->user()->filterModel($model, $model->custom_table);
+        $paginator = $model->paginate();
+
+        // execute makehidden
+        $value = $paginator->makeHidden($this->getMakeHiddenArray());
+        $paginator->value = $value;
+
+        return $paginator;
     }
 
     /**
@@ -37,10 +43,12 @@ trait ApiTableTrait
      */
     public function find($id, Request $request)
     {
-        if (!$this->user->hasPermissionData($id, $this->custom_table->table_name)) {
+        if (!$this->user()->hasPermissionData($id, $this->custom_table->table_name)) {
             abort(403);
         }
-        $result = getModelName($this->custom_table->table_name)::findOrFail($id)->toArray();
+        $result = getModelName($this->custom_table->table_name)::findOrFail($id)
+            ->makeHidden($this->getMakeHiddenArray())
+            ->toArray();
         if ($request->has('dot') && boolval($request->get('dot'))) {
             $result = array_dot($result);
         }
@@ -82,7 +90,7 @@ trait ApiTableTrait
      */
     public function createData(Request $request)
     {
-        if (!$this->user->hasPermissionTable($this->custom_table, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->user()->hasPermissionTable($this->custom_table, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
             abort(403);
         }
 
@@ -101,7 +109,7 @@ trait ApiTableTrait
         }else{
             $custom_value = getModelName($this->custom_table)::find($key);
         }
-        if (!$this->user->hasPermissionData($custom_value->id, $this->custom_table)){
+        if (!$this->user()->hasPermissionData($custom_value->id, $this->custom_table)){
             abort(403);
         }
 
@@ -146,6 +154,9 @@ trait ApiTableTrait
         return $custom_value;
     }
 
+    /**
+     * validate requested data
+     */
     protected function validateData($value, $id = null){
         // get fields for validation
         $fields = [];
@@ -178,5 +189,17 @@ trait ApiTableTrait
             return $errors;
         }
         return true;
+    }
+
+    /**
+     * get array for "makeHidden" function
+     */
+    protected function getMakeHiddenArray(){
+        return $this->custom_table->getSearchEnabledColumns()->map(function($columns){
+            return $columns->getIndexColumnName();
+        })->toArray();
+    }
+
+    protected function user(){
     }
 }
