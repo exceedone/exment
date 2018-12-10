@@ -57,6 +57,7 @@ class Bootstrap
         // add admin_base_path and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
+        $base_uri = trim(app('request')->getBaseUrl(), '/') ?? '';
 
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
@@ -64,11 +65,16 @@ class Bootstrap
         $cancel = trans('admin.cancel');
         
         $script = <<<EOT
-$('body').append($('<input/>', {
-    'type':'hidden',
-    'id': 'admin_base_path',
-    'value': '$prefix'
-}));
+        $('body').append($('<input/>', {
+            'type':'hidden',
+            'id': 'admin_base_path',
+            'value': '$prefix'
+        }));
+        $('body').append($('<input/>', {
+            'type':'hidden',
+            'id': 'admin_base_uri',
+            'value': '$base_uri'
+        }));
 $("input[type='file']").on("filepredelete", function(jqXHR) {
     var abort = true;
     if (confirm("$delete_confirm")) {
