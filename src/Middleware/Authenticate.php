@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Encore\Admin\Facades\Admin;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {
@@ -17,8 +18,12 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
+        $redirect = redirect()->guest(admin_base_path('auth/login'));
         if (Auth::guard('admin')->guest() && !$this->shouldPassThrough($request)) {
-            return redirect()->guest(admin_base_path('auth/login'));
+            return $redirect;
+        }
+        if(is_null(Admin::user()) || is_null(Admin::user()->base_user)){
+            return $redirect;
         }
 
         return $next($request);

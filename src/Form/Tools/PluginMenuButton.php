@@ -36,32 +36,14 @@ class PluginMenuButton
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
-            swal({
+            Exment.CommonEvent.ShowSwal("$url", {
                 title: "プラグインを実行します。よろしいですか？",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "$confirm",
-                showLoaderOnConfirm: true,
-                cancelButtonText: "$cancel",
-                preConfirm: function() {
-                    return new Promise(function(resolve) {
-                        $.ajax({
-                            type: "POST",
-                            url: "$url",
-                            //container: "#pjax-container",
-                            data:{ _pjax: true, _token: LA.token,uuid:"$uuid"},
-                            success:function(repsonse) {
-                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                                resolve(repsonse);
-                            },
-                            error: function(repsonse){
-                                toastr.error(repsonse.message);
-                            }
-                        });
-                    });
+                confirm:"$confirm",
+                cancel:"$cancel",
+                data: {
+                    uuid:"$uuid"
                 }
-            });    
+            });
         });
 EOT;
     }

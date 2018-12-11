@@ -229,6 +229,8 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         
+        set_time_limit(240);
+        
         $classname = $plugin->getNameSpace('Plugin');
         $fuleFullPath = $plugin->getFullPath('Plugin.php');
         if (\File::exists($fuleFullPath) && class_exists($classname)) {

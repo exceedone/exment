@@ -101,6 +101,7 @@ class DashboardController extends AdminControllerBase
                     confirmButtonColor: "#DD6B55",
                     confirmButtonText: "$confirm",
                     closeOnConfirm: false,
+                    allowOutsideClick: false,
                     cancelButtonText: "$cancel",
                     preConfirm: function() {
                         return new Promise(function(resolve) {

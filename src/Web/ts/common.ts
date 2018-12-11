@@ -7,7 +7,7 @@ namespace Exment {
          * Call only once. It's $(document).on event.
          */
         public static AddEventOnce() {
-            $(document).on('change', '[data-changedata]', {}, async (ev) => {await CommonEvent.changeModelData($(ev.target));});
+            $(document).on('change', '[data-changedata]', {}, async (ev) => { await CommonEvent.changeModelData($(ev.target)); });
             $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
@@ -35,38 +35,93 @@ namespace Exment {
         /**
          * 
          */
-        public static CallbackExmentAjax(res){
-            if(res.result === true){
-                if($(".modal:visible").length > 0){
+        public static CallbackExmentAjax(res) {
+            if (res.result === true) {
+                if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
-                        $(".modal").off("hidden.bs.modal");  
-                        if(hasValue(res.redirect)){
-                            $.pjax({container:'#pjax-container', url: res.redirect });
-                        }else{
-                            $.pjax.reload('#pjax-container');
-                        }
-                    });    
-                }else{
-                    if(hasValue(res.redirect)){
-                        $.pjax({container:'#pjax-container', url: res.redirect });
-                    }else{
-                        $.pjax.reload('#pjax-container');
-                    }
+                        $(".modal").off("hidden.bs.modal");
+                        this.redirectCallback(res);
+                    });
                 }
-            
+                else {
+                    this.redirectCallback(res);
+                }
+
                 // show toastr
-                if(hasValue(res.toastr)){
+                if (hasValue(res.toastr)) {
                     toastr.success(res.toastr);
                 }
                 $('.modal').modal('hide');
             }
-            else{
+            else {
                 // show toastr
-                if(hasValue(res.toastr)){
+                if (hasValue(res.toastr)) {
                     toastr.error(res.toastr);
+                }else{
+                    toastr.error('Undeifned Error');
                 }
             }
+        }
+
+        private static redirectCallback(res){
+
+            if (hasValue(res.redirect)) {
+                $.pjax({ container: '#pjax-container', url: res.redirect });
+            } else {
+                $.pjax.reload('#pjax-container');
+            }
+        }
+
+
+        public static ShowSwal(url:string, options = []){
+            options = $.extend(
+                {
+                    title: 'Swal',
+                    confirm: 'OK',
+                    cancel: 'Cancel',
+                    method: 'POST',
+                    data: [],
+                },
+                options
+            );
+
+            var data = $.extend(
+                {
+                    _pjax: true, 
+                    _token: LA.token,
+                }, options.data
+            );
+
+            swal({
+                title: options.title,
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: options.confirm,
+                showLoaderOnConfirm: true,
+                allowOutsideClick: false,
+                cancelButtonText: options.cancel,
+                preConfirm: function() {
+                    return new Promise(function(resolve) {
+                        $.ajax({
+                            type: options.method,
+                            url: url,
+                            //container: "#pjax-container",
+                            data:data,
+                            success:function(repsonse) {
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                resolve(repsonse);
+                            },
+                            error: function(repsonse){
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                //toastr.error(repsonse.message);
+                                //reject(repsonse);
+                            }
+                        });
+                    });
+                }
+            });  
         }
 
         /**
@@ -81,10 +136,10 @@ namespace Exment {
                 //その要素の先祖要素で一番近いtrの
                 //data-href属性の値に書かれているURLに遷移する
                 var linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                if(!hasValue(linkElem)){
+                if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }
-                if(!hasValue(linkElem)){
+                if (!hasValue(linkElem)) {
                     return;
                 }
                 linkElem.closest('a').click();
@@ -128,29 +183,29 @@ namespace Exment {
                 var data = datalist[key];
 
                 // set change event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, async (ev) =>{
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, async (ev) => {
                     await CommonEvent.changeModelData($(ev.target), ev.data.data);
                 });
 
                 // if hasvalue to_block, add event when click add button
-                for(var table_name in data){
+                for (var table_name in data) {
                     var target_table_data = data[table_name];
                     if (!hasValue(target_table_data)) {
                         continue;
                     }
 
-                    for(var i = 0; i < target_table_data.length; i++){
+                    for (var i = 0; i < target_table_data.length; i++) {
                         var d = target_table_data[i];
-                        if(!hasValue(d.to_block)){
+                        if (!hasValue(d.to_block)) {
                             continue;
                         }
-                        $(d.to_block).on('click', '.add', { key:key, data: target_table_data, index:i, table_name:table_name }, async (ev) => {
+                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, async (ev) => {
                             // get target
                             var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
                             var data = ev.data.data;
                             // set to_lastindex matched index
-                            for(var i = 0; i < data.length; i++){
-                                if(i != ev.data.index){continue;}
+                            for (var i = 0; i < data.length; i++) {
+                                if (i != ev.data.index) { continue; }
                                 data[i]['to_lastindex'] = true;
                             }
                             // create rensou array.
@@ -166,7 +221,7 @@ namespace Exment {
         /**
         * get model and change value
         */
-        private static async changeModelData($target:JQuery<TElement>, data:any = null) {
+        private static async changeModelData($target: JQuery<TElement>, data: any = null) {
             var $d = $.Deferred();
             // get parent element from the form field.
             var $parent = CommonEvent.getParentRow($target);
@@ -176,7 +231,7 @@ namespace Exment {
                 // if data is not array, set as array
                 //if(!Array.isArray(data)){data = [data];}
                 // loop for model table
-                for(var table_name in data){
+                for (var table_name in data) {
                     var target_table_data = data[table_name];
                     if (!hasValue(target_table_data)) {
                         continue;
@@ -200,21 +255,21 @@ namespace Exment {
                             data: target_table_data,
                         }
                     })
-                    .done(async function (modeldata) {
-                        await CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
-                        $d.resolve();
-                    })
-                    .fail(function (errordata) {
-                        console.log(errordata);
-                        $d.reject();
-                    });
+                        .done(async function (modeldata) {
+                            await CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
+                            $d.resolve();
+                        })
+                        .fail(function (errordata) {
+                            console.log(errordata);
+                            $d.reject();
+                        });
                 }
                 //}
             }
 
             // getItem
             var changedata_data = $target.data('changedata');
-            if(hasValue(changedata_data)){
+            if (hasValue(changedata_data)) {
                 var getitem = changedata_data.getitem;
                 if (hasValue(getitem)) {
                     var send_data = {};
@@ -239,19 +294,19 @@ namespace Exment {
                         url: getitem.uri,
                         type: 'POST',
                         data: send_data,
-                        context:{
-                            target:$target,
-                            parent:$parent,
+                        context: {
+                            target: $target,
+                            parent: $parent,
                         }
                     })
-                    .done(function (data) {
-                        CommonEvent.setModelItemKey(this.target, this.parent, data);
-                        $d.resolve();
-                    })
-                    .fail(function (data) {
-                        console.log(data);
-                        $d.reject();
-                    });
+                        .done(function (data) {
+                            CommonEvent.setModelItemKey(this.target, this.parent, data);
+                            $d.resolve();
+                        })
+                        .fail(function (data) {
+                            console.log(data);
+                            $d.reject();
+                        });
                 }
             }
 
@@ -261,15 +316,15 @@ namespace Exment {
         /**
          * set getmodel or getitem data to form
          */
-        private static async setModelItem(modeldata: any, $changedata_target: JQuery, $elem: JQuery, options:Array<any>) {
+        private static async setModelItem(modeldata: any, $changedata_target: JQuery, $elem: JQuery, options: Array<any>) {
             // loop for options
-            for(var i = 0; i < options.length; i++){
+            for (var i = 0; i < options.length; i++) {
                 var option = options[i];
                 // if has changedata_to_block, get $elem using changedata_to_block
-                if(hasValue(option.to_block)){
+                if (hasValue(option.to_block)) {
                     $changedata_target = $(option.to_block);
                     // if has to_lastindex, get last children item
-                    if(hasValue(option.to_lastindex)){
+                    if (hasValue(option.to_lastindex)) {
                         $changedata_target = $changedata_target.find(option.to_block_form).last();
                     }
                 }
@@ -291,17 +346,17 @@ namespace Exment {
             }
 
             // re-loop for options
-            for(var i = 0; i < options.length; i++){
+            for (var i = 0; i < options.length; i++) {
                 var option = options[i];
                 $elem = option['elem'];
                 ///// execute calc
-                for(var j = 0; j < CommonEvent.calcDataList.length; j++){
+                for (var j = 0; j < CommonEvent.calcDataList.length; j++) {
                     var calcData = CommonEvent.calcDataList[j];
                     // if calcData.key matches option.to, execute cals
-                    if(calcData.key == option.to){
+                    if (calcData.key == option.to) {
                         var $filterTo = $elem.filter(calcData.classKey);
-                        if(hasValue($filterTo)){
-                            await CommonEvent.setCalc($filterTo, calcData.data);                        
+                        if (hasValue($filterTo)) {
+                            await CommonEvent.setCalc($filterTo, calcData.data);
                         }
                     }
                 }
@@ -347,17 +402,17 @@ namespace Exment {
             // set relatedLinkageList for after flow.
             CommonEvent.relatedLinkageList = [];
             // loop "related Linkage" targets   
-            for(var key in datalist){
+            for (var key in datalist) {
                 var data = datalist[key];
-                
+
                 // set data to element
                 // cannot use because cannot fire new row
                 //$(CommonEvent.getClassKey(key)).data('calc_data', data);
                 // set relatedLinkageList array. key is getClassKey. data is data
-                CommonEvent.relatedLinkageList.push({"key":key, "classKey" : CommonEvent.getClassKey(key), "data": data});
+                CommonEvent.relatedLinkageList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
 
                 // set linkage event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key:key }, CommonEvent.setRelatedLinkageChangeEvent);
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
         }
 
@@ -366,7 +421,7 @@ namespace Exment {
          */
         private static setRelatedLinkageChangeEvent = (ev: JQueryEventObject) => {
             var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
-            if(!hasValue($base)){
+            if (!hasValue($base)) {
                 return;
             }
             var $parent = CommonEvent.getParentRow($base);
@@ -391,7 +446,7 @@ namespace Exment {
          */
         private static setLinkageEvent = (ev: JQueryEventObject) => {
             var $base = $(ev.target).closest('[data-linkage]');
-            if(!hasValue($base)){
+            if (!hasValue($base)) {
                 return;
             }
             var $parent = CommonEvent.getParentRow($base);
@@ -410,11 +465,11 @@ namespace Exment {
             }
         }
 
-        private static linkage($target: JQuery<Element>, url: string, val: any, expand?:any) {
+        private static linkage($target: JQuery<Element>, url: string, val: any, expand?: any) {
             var $d = $.Deferred();
 
             // create querystring
-            if(!hasValue(expand)){expand = {};}
+            if (!hasValue(expand)) { expand = {}; }
             expand['q'] = val;
             var query = $.param(expand);
             $.get(url + '?' + query, function (json) {
@@ -425,8 +480,8 @@ namespace Exment {
                         d.text = d.text;
                         return d;
                     }),
-                    "allowClear": true, 
-                    "placeholder": $target.next().find('.select2-selection__placeholder').text(), 
+                    "allowClear": true,
+                    "placeholder": $target.next().find('.select2-selection__placeholder').text(),
                 }).trigger('change');
 
                 $d.resolve();
@@ -524,7 +579,7 @@ namespace Exment {
                     }
 
                     // if selectbox, disabled
-                    var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select' 
+                    var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
                         ? 'disabled' : 'readonly';
                     if (isReadOnly) {
                         $t.prop(propName, true);
@@ -544,21 +599,21 @@ namespace Exment {
             // set datalist for after flow.
             CommonEvent.calcDataList = [];
             // loop "data-calc" targets   
-            for(var key in datalist){
+            for (var key in datalist) {
                 var data = datalist[key];
-                
+
                 // set data to element
                 // cannot use because cannot fire new row
                 //$(CommonEvent.getClassKey(key)).data('calc_data', data);
                 // set calcDataList array. key is getClassKey. data is data
-                CommonEvent.calcDataList.push({"key":key,  "classKey" : CommonEvent.getClassKey(key), "data": data});
+                CommonEvent.calcDataList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
 
                 // set calc event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key:key }, async (ev) => {
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, async (ev) => {
                     await CommonEvent.setCalc($(ev.target), ev.data.data);
                 });
                 // set event for plus minus button
-                $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key:key }, async (ev) => {
+                $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, async (ev) => {
                     await CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
                 });
             }
@@ -569,10 +624,10 @@ namespace Exment {
          * data : has "to" and "options". options has properties "val" and "type"
          * 
          */
-        public static async setCalc($target:JQuery<TElement>, data){
+        public static async setCalc($target: JQuery<TElement>, data) {
             // if not found target, return.
-            if(!hasValue($target)){return;}
-            
+            if (!hasValue($target)) { return; }
+
             var $parent = CommonEvent.getParentRow($target);
             if (!hasValue(data)) {
                 return;
@@ -581,14 +636,14 @@ namespace Exment {
             for (var i = 0; i < data.length; i++) {
                 // for creating array contains object "value0" and "calc_type" and "value1".
                 var value_itemlist = [];
-                var value_item = {values:[], calc_type:null};
+                var value_item = { values: [], calc_type: null };
                 var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
                 var isfirst = true;
-                for(var j  = 0; j < data[i].options.length; j++){
-                    var val:any = 0;
+                for (var j = 0; j < data[i].options.length; j++) {
+                    var val: any = 0;
                     // calc option
                     var option = data[i].options[j];
-                    
+
                     // when fixed value
                     if (option.type == 'fixed') {
                         value_item.values.push(rmcomma(option.val));
@@ -607,7 +662,7 @@ namespace Exment {
                         // get selected table model
                         var model = await CommonEvent.findModel(table_name, $select.val());
                         // get value
-                        if(hasValue(model)){
+                        if (hasValue(model)) {
                             val = model['value'][option.from];
                             if (!hasValue(val)) { val = 0; }
                         }
@@ -619,21 +674,21 @@ namespace Exment {
                     }
 
                     // if hasValue calc_type and values.length == 1 or first, set value_itemlist
-                    if(hasValue(value_item.calc_type) && 
-                        value_item.values.length >= 2 || (!isfirst && value_item.values.length >= 1)){
+                    if (hasValue(value_item.calc_type) &&
+                        value_item.values.length >= 2 || (!isfirst && value_item.values.length >= 1)) {
                         value_itemlist.push(value_item);
 
                         // reset
-                        value_item = {values:[], calc_type:null};
+                        value_item = { values: [], calc_type: null };
                         isfirst = false;
                     }
                 }
                 // get value useing value_itemlist
                 var bn = null;
-                for(var j = 0; j < value_itemlist.length; j++){
+                for (var j = 0; j < value_itemlist.length; j++) {
                     value_item = value_itemlist[j];
                     // if first item, new BigNumber using first item
-                    if(value_item.values.length == 2){
+                    if (value_item.values.length == 2) {
                         bn = new BigNumber(value_item.values[0]);
                     }
                     // get appended value
@@ -661,17 +716,17 @@ namespace Exment {
                 CommonEvent.setValue($to, precision);
             }
 
-            
+
             ///// re-loop after all data setting value
             for (var i = 0; i < data.length; i++) {
                 var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
                 // if $to has "calc_data" data, execute setcalc function again
                 //var to_data = $to.data('calc_data');
-                for(var key in CommonEvent.calcDataList){
+                for (var key in CommonEvent.calcDataList) {
                     var calcData = CommonEvent.calcDataList[key];
                     // filter $to obj
                     var $filterTo = $to.filter(calcData.classKey);
-                    if(hasValue($filterTo)){
+                    if (hasValue($filterTo)) {
                         await CommonEvent.setCalc($filterTo, calcData.data);
                     }
                 }
@@ -684,26 +739,26 @@ namespace Exment {
          * @param value 
          * @param context 
          */
-        private static findModel(table_name, value, context = null){
+        private static findModel(table_name, value, context = null) {
             var $d = $.Deferred();
-            if(!hasValue(value)){
+            if (!hasValue(value)) {
                 $d.resolve(null);
-            }else{
+            } else {
                 $.ajax({
                     url: admin_base_path(URLJoin('api', table_name, value)),
                     type: 'POST',
                     context: context
                 })
-                .done(function (modeldata) {
-                    $d.resolve(modeldata);
-                })
-                .fail(function (errordata) {
-                    console.log(errordata);
+                    .done(function (modeldata) {
+                        $d.resolve(modeldata);
+                    })
+                    .fail(function (errordata) {
+                        console.log(errordata);
 
-                    $d.reject();
-                });
+                        $d.reject();
+                    });
             }
-            
+
             return $d.promise();
         }
 
@@ -711,29 +766,29 @@ namespace Exment {
          * set value. check number format, column type, etc...
          * @param $target 
          */
-        private static setValue($target, value){
-            if(!hasValue($target)){return;}
+        private static setValue($target, value) {
+            if (!hasValue($target)) { return; }
             var column_type = $target.data('column_type');
             var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']);
             // if number, remove comma
-            if(isNumber){
+            if (isNumber) {
                 value = rmcomma(value);
             }
 
             // if integer, floor value
-            if(column_type == 'integer'){
+            if (column_type == 'integer') {
                 var bn = new BigNumber(value);
                 value = bn.integerValue().toPrecision();
             }
 
             // if 'decimal' or 'currency', floor 
-            if($.inArray(column_type, ['decimal', 'currency']) && hasValue($target.attr('decimal_digit'))){
+            if ($.inArray(column_type, ['decimal', 'currency']) && hasValue($target.attr('decimal_digit'))) {
                 var bn = new BigNumber(value);
                 value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
             }
 
             // if number format, add comma
-            if(isNumber && $target.attr('number_format')){
+            if (isNumber && $target.attr('number_format')) {
                 value = comma(value);
             }
 
@@ -750,31 +805,31 @@ namespace Exment {
                 var options = {
                     "allowClear": true, "placeholder": $elem.data('add-select2'), width: '100%'
                 };
-                if(hasValue($elem.data('add-select2-ajax'))){
+                if (hasValue($elem.data('add-select2-ajax'))) {
                     options['ajax'] = {
                         url: $(elem).data('add-select2-ajax'),
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                          return {
-                            q: params.term,
-                            page: params.page
-                          };
+                            return {
+                                q: params.term,
+                                page: params.page
+                            };
                         },
                         processResults: function (data, params) {
-                          if(!hasValue(data) || !hasValue(data.data)){return {results:[]};}
-                          params.page = params.page || 1;
-                    
-                          return {
-                            results: $.map(data.data, function (d) {
-                                       d.id = d.id;
-                                       d.text = d.label; // label is custom value label appended.
-                                       return d;
-                                    }),
-                            pagination: {
-                              more: data.next_page_url
-                            }
-                          };
+                            if (!hasValue(data) || !hasValue(data.data)) { return { results: [] }; }
+                            params.page = params.page || 1;
+
+                            return {
+                                results: $.map(data.data, function (d) {
+                                    d.id = d.id;
+                                    d.text = d.label; // label is custom value label appended.
+                                    return d;
+                                }),
+                                pagination: {
+                                    more: data.next_page_url
+                                }
+                            };
                         },
                         cache: true
                     };
@@ -804,7 +859,7 @@ namespace Exment {
             }
             //return $query.closest('.fields-group');
             // if hasClass ".fields-group" in $query, return parents
-            if($query.hasClass('fields-group')){
+            if ($query.hasClass('fields-group')) {
                 return $query.parents('.fields-group').eq(0);
             }
             return $query.closest('.fields-group');
@@ -853,7 +908,7 @@ const comma = (x) => {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 const rmcomma = (x) => {
-    if(x === null || x === undefined){
+    if (x === null || x === undefined) {
         return x;
     }
     return x.toString().replace(/,/g, '');
@@ -879,7 +934,7 @@ const admin_base_path = function (path) {
     var urls = [];
 
     var admin_base_uri = trimAny($('#admin_base_uri').val(), '/');
-    if(admin_base_uri.length > 0){
+    if (admin_base_uri.length > 0) {
         urls.push(admin_base_uri);
     }
     urls.push(trimAny($('#admin_base_path').val(), '/'));
@@ -889,8 +944,8 @@ const admin_base_path = function (path) {
     return prefix + '/' + trimAny(path, '/');
 }
 
-const getParamFromArray = function(array){
-    array = array.filter(function(x){
+const getParamFromArray = function (array) {
+    array = array.filter(function (x) {
         return (x.value !== (undefined || null || ''));
     });
     return $.param(array);

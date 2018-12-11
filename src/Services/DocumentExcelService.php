@@ -13,7 +13,7 @@ namespace Exceedone\Exment\Services;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
-
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
@@ -52,17 +52,41 @@ class DocumentExcelService
         //Excel::selectSheetsByIndex(0)->load($this->filename, function($reader) {
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($this->tempfilename);
-        $sheet = $spreadsheet->getActiveSheet();
 
-        // output table
-        $this->lfTable($sheet);
+        // output all sheets
+        $showGridlines = [];
+        $sheetCount = $spreadsheet->getSheetCount();
+        for ($i = 0; $i < $sheetCount; $i++) {
+            $sheet = $spreadsheet->getSheet($i);
+            $showGridlines[] = $sheet->getShowGridlines();
+            // output table
+            $this->lfTable($sheet);
 
-        // outputvalue
-        $this->lfValue($sheet);
+            // outputvalue
+            $this->lfValue($sheet);
+        }
 
         // output excel
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->setIncludeCharts(true);
+        //$writer->setPreCalculateFormulas(true);
+        $writer->save($this->getFullPathTmp());
+
+        // re-load and save again. (Because cannot calc formula)
+        $reader = IOFactory::createReader('Xlsx');
+        $spreadsheet = $reader->load($this->getFullPathTmp());
+
+        $sheetCount = $spreadsheet->getSheetCount();
+        for ($i = 0; $i < $sheetCount; $i++) {
+            $sheet = $spreadsheet->getSheet($i);
+            $sheet->setShowGridlines($showGridlines[$i]);
+        }
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save($this->getFullPath());
+
+        // remove tmpfile
+        $file = \File::delete($this->getFullPathTmp());
 
         return true;
     }
@@ -156,7 +180,6 @@ class DocumentExcelService
                             'disable_number_format' => true,
                         ]), $column_item['text']);
                     }
-                    // set again to cell
                     $sheet->setCellValue($cell_column . $row, $column_item['text']);
                 }
 
@@ -276,6 +299,16 @@ class DocumentExcelService
     public function getFullPath()
     {
         $filepath = path_join($this->getDirPath(), $this->getFileName());
+        return getFullpath($filepath, config('admin.upload.disk'));
+    }
+    
+    /**
+     * get Directory full path from root
+     * @return string File path
+     */
+    public function getFullPathTmp()
+    {
+        $filepath = path_join($this->getDirPath(), $this->getFileName().'tmp');
         return getFullpath($filepath, config('admin.upload.disk'));
     }
 }

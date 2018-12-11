@@ -590,9 +590,27 @@ if (!function_exists('replaceTextFromFormat')) {
                     try {
                         $match = strtolower($matches[1][$i]);
                         $matchString = $matches[0][$i];
-                    
+                        
+                        //split semi-coron
+                        $length_array = explode("/", $match);
+                        $matchOptions = [];
+                        if(count($length_array) > 1){
+                            $targetFormat = $length_array[0];
+                            // $item is splited comma, key=value string
+                            foreach(explode(',', $length_array[1]) as $item){
+                                $kv = explode('=', $item);
+                                if(count($kv) <= 1){
+                                    continue;
+                                }
+                                $matchOptions[$kv[0]] = $kv[1];
+                            }
+                        }else{
+                            $targetFormat = $length_array[0];
+                        }
+
+
                         // get length
-                        $length_array = explode(":", $match);
+                        $length_array = explode(":", $targetFormat);
                         $key = $length_array[0];
                         
                         // define date array
@@ -651,7 +669,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                 // get comma string from index 1.
                                 $length_array = array_slice($length_array, 1);
 
-                                $str = $target_value->getValue(implode(',', $length_array), true, $options);
+                                $str = $target_value->getValue(implode(',', $length_array), true, $matchOptions) ?? '';
                             }
                         }
                         ///// sum
@@ -672,12 +690,35 @@ if (!function_exists('replaceTextFromFormat')) {
                                 $sum = 0;
                                 foreach ($children as $child) {
                                     // get value
-                                    $sum += intval(str_replace(',', '', $child->getValue($length_array[2])));
+                                    $sum += intval(str_replace(',', '', $child->getValue($length_array[2]) ?? 0));
                                 }
                                 $str = strval($sum);
                             }
                         }
+                        ///// child
+                        elseif ($key == "child") {
+                            if(!isset($custom_value)){
+                                $str = '';
+                            }
 
+                            // get sum value from children model
+                            elseif (count($length_array) <= 3) {
+                                $str = '';
+                            }
+                            //else, getting value using cihldren
+                            else {
+                                // get children values
+                                $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
+                                // get length
+                                $index = intval($length_array[3]);
+                                // get value
+                                if(count($children) <= $index){
+                                    $str = '';
+                                }else{
+                                    $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
+                                }
+                            }
+                        }
                         // suuid
                         elseif ($key == "suuid") {
                             $str = short_uuid();

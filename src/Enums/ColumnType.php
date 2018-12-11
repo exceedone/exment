@@ -32,4 +32,8 @@ class ColumnType extends EnumBase
             "currency",
         ];
     }
+
+    public static function isCalc($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_CALC());
+    }
 }

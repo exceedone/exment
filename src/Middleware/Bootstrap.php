@@ -93,6 +93,7 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
             showCancelButton: true,
             confirmButtonColor: "#DD6B55",
             confirmButtonText: "$confirm",
+            allowOutsideClick: false,
             closeOnConfirm: false,
             cancelButtonText: "$cancel",
             preConfirm: function() {

@@ -43,21 +43,11 @@ var Exment;
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
                         $(".modal").off("hidden.bs.modal");
-                        if (hasValue(res.redirect)) {
-                            $.pjax({ container: '#pjax-container', url: res.redirect });
-                        }
-                        else {
-                            $.pjax.reload('#pjax-container');
-                        }
+                        this.redirectCallback(res);
                     });
                 }
                 else {
-                    if (hasValue(res.redirect)) {
-                        $.pjax({ container: '#pjax-container', url: res.redirect });
-                    }
-                    else {
-                        $.pjax.reload('#pjax-container');
-                    }
+                    this.redirectCallback(res);
                 }
                 // show toastr
                 if (hasValue(res.toastr)) {
@@ -70,7 +60,60 @@ var Exment;
                 if (hasValue(res.toastr)) {
                     toastr.error(res.toastr);
                 }
+                else {
+                    toastr.error('Undeifned Error');
+                }
             }
+        }
+        static redirectCallback(res) {
+            if (hasValue(res.redirect)) {
+                $.pjax({ container: '#pjax-container', url: res.redirect });
+            }
+            else {
+                $.pjax.reload('#pjax-container');
+            }
+        }
+        static ShowSwal(url, options = []) {
+            options = $.extend({
+                title: 'Swal',
+                confirm: 'OK',
+                cancel: 'Cancel',
+                method: 'POST',
+                data: [],
+            }, options);
+            var data = $.extend({
+                _pjax: true,
+                _token: LA.token,
+            }, options.data);
+            swal({
+                title: options.title,
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: options.confirm,
+                showLoaderOnConfirm: true,
+                allowOutsideClick: false,
+                cancelButtonText: options.cancel,
+                preConfirm: function () {
+                    return new Promise(function (resolve) {
+                        $.ajax({
+                            type: options.method,
+                            url: url,
+                            //container: "#pjax-container",
+                            data: data,
+                            success: function (repsonse) {
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                resolve(repsonse);
+                            },
+                            error: function (repsonse) {
+                                Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                //toastr.error(repsonse.message);
+                                //reject(repsonse);
+                            }
+                        });
+                    });
+                }
+            });
         }
         /**
          * if click grid row, move page

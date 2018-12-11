@@ -50,7 +50,11 @@ class CustomColumn extends ModelBase
         // else,call $table_obj
         else {
             // get table Eloquent
-            $table_obj = CustomTable::getEloquent($table_obj);
+            if ($table_obj instanceof CustomTable) {
+                $table_obj = CustomTable::getEloquent($table_obj);
+            }elseif($table_obj instanceof CustomValue){
+                $table_obj = $table_obj->custom_table;
+            }
             // if not exists $table_obj, return null.
             if (!isset($table_obj)) {
                 return null;

@@ -47,6 +47,7 @@ class CopyMenuButton
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
                 confirmButtonText: "$confirm",
+                allowOutsideClick: false,
                 showLoaderOnConfirm: true,
                 cancelButtonText: "$cancel",
                 preConfirm: function() {
