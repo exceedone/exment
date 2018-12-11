@@ -21,7 +21,7 @@ class CopyMenuButton
         $this->id = $id;
     }
 
-    protected function script($uuid)
+    protected function script($uuid, $label)
     {
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
@@ -33,7 +33,7 @@ class CopyMenuButton
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        // TODO:下のメッセージは要変更
+        $label = sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.copy')));
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
@@ -42,7 +42,7 @@ class CopyMenuButton
                 return;
             }
             swal({
-                title: "コピーを実行します。よろしいですか？",
+                title: "$label",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
@@ -85,7 +85,7 @@ EOT;
         $form->modalHeader($label);
 
         // add form
-        $form->description("この{$from_table_view_name}のデータをもとに、{$to_table_view_name}を作成します。<br/>作成する{$to_table_view_name}のデータに登録する、値を記入してください。");
+        $form->description(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
         foreach ($copy_input_columns as $copy_input_column) {
             $field = FormHelper::getFormField($this->custom_table, $copy_input_column->to_custom_column, null);
             $form->push_Field($field);
@@ -97,19 +97,19 @@ EOT;
 
     public function toHtml()
     {
+        // get label
+        if (!is_null(array_get($this->copy, 'options.label'))) {
+            $label = array_get($this->copy, 'options.label');
+        }
+
         // get uuid
         $uuid = array_get($this->copy, 'suuid');
-        Admin::script($this->script($uuid));
+        Admin::script($this->script($uuid, $label));
 
         // get button_class
         $button_class = array_get($this->copy, 'button_class');
         if (!isset($button_class)) {
             $button_class = 'btn-default';
-        }
-
-        // get label
-        if (!is_null(array_get($this->copy, 'options.label'))) {
-            $label = array_get($this->copy, 'options.label');
         }
 
         // get copy input fields
@@ -123,7 +123,8 @@ EOT;
         return ($form_html ?? null) . view('exment::tools.plugin-menu-button', [
             'uuid' => $uuid,
             'label' => $label ?? null,
-            'button_class' => $button_class
+            'button_class' => $button_class,
+            'icon' => array_get($this->copy, 'options.icon') ?? '',
         ])->render();
     }
     

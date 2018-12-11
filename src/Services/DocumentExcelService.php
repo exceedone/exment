@@ -25,12 +25,12 @@ class DocumentExcelService
     /**
      *
      */
-    private $baseInfo;
-    private $tempfilename;
-    private $outputfilename;
-    private $filename;
+    protected $baseInfo;
+    protected $tempfilename;
+    protected $outputfilename;
+    protected $filename;
 
-    private $model;
+    protected $model;
     /**
      * construct
      * @param Request $request
@@ -142,9 +142,6 @@ class DocumentExcelService
                     ];
                 }
             }
-
-            // remove value
-            // $cell->setValue('');
         });
         if (count($loops) == 0) {
             return;

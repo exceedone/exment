@@ -240,6 +240,9 @@ class PluginInstaller
         if (array_key_value_exists('icon', $json)) {
             $options['icon'] = array_get($json, 'icon');
         }
+        if (array_key_value_exists('button_class', $json)) {
+            $options['button_class'] = array_get($json, 'button_class');
+        }
         $plugin->options = $options;
 
         return $plugin;

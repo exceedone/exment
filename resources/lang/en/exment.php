@@ -30,6 +30,7 @@ return [
         'row' => 'Row',
         'column' => 'Column',
         'message' => [
+            'confirm_execute'        => 'Are you sure to %s ?',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check csv file.',
             'notfound' => 'Data Not Found.',
@@ -566,6 +567,7 @@ return [
         'input_custom_column' => 'Target Table Column',
         'column_description' => 'Please select the copy source column and copy target column from the list respectively.',
         'input_column_description' => 'When copying is done, you can display a form (dialog) to change the value after copying. Please set the target column to be input to the form when copying.',
+        'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value."
     ],
 
     'search' => [

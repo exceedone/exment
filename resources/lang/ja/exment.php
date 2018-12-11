@@ -5,6 +5,7 @@ return [
         'home' => 'HOME',
         'error' => 'エラー',
         'import' => 'インポート',
+        'plugin' => 'プラグイン',
         'copy' => 'コピー',
         'change' => '変更',
         'reqired' => '必須',
@@ -30,6 +31,7 @@ return [
         'row' => '行',
         'column' => '列',
         'message' => [
+            'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'import_success' => 'インポート完了しました！',
             'import_error' => 'インポート失敗しました。CSVファイルをご確認ください。',
             'notfound' => 'データが存在しません。',
@@ -577,6 +579,7 @@ return [
         'input_custom_column' => '対象テーブル列',
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
+        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。"
     ],
 
     'search' => [

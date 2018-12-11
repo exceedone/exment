@@ -20,7 +20,7 @@ class PluginMenuButton
         $this->id = $id;
     }
 
-    protected function script($uuid)
+    protected function script($uuid, $label)
     {
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
@@ -32,12 +32,13 @@ class PluginMenuButton
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
-        // TODO:下のメッセージは要変更
+        $label = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.plugin'))));
+
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
             Exment.CommonEvent.ShowSwal("$url", {
-                title: "プラグインを実行します。よろしいですか？",
+                title: "$label",
                 confirm:"$confirm",
                 cancel:"$cancel",
                 data: {
@@ -50,16 +51,6 @@ EOT;
 
     public function render()
     {
-        // get uuid
-        $uuid = array_get($this->plugin, 'uuid');
-        Admin::script($this->script($uuid));
-
-        // get button_class
-        $button_class = array_get($this->plugin, 'button_class');
-        if (!isset($button_class)) {
-            $button_class = 'btn-default';
-        }
-
         // get label
         if (!is_null(array_get($this->plugin, 'options.label'))) {
             $label = array_get($this->plugin, 'options.label');
@@ -67,10 +58,21 @@ EOT;
             $label = $this->plugin->plugin_view_name;
         }
 
+        // get uuid
+        $uuid = array_get($this->plugin, 'uuid');
+        Admin::script($this->script($uuid, $label));
+
+        // get button_class
+        $button_class = array_get($this->plugin, 'options.button_class');
+        if (!isset($button_class)) {
+            $button_class = 'btn-default';
+        }
+
         return view('exment::tools.plugin-menu-button', [
             'uuid' => $uuid,
             'label' => $label ?? null,
-            'button_class' => $button_class
+            'button_class' => $button_class,
+            'icon' => array_get($this->plugin, 'options.icon') ?? '',
         ]);
     }
     

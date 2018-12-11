@@ -588,7 +588,7 @@ if (!function_exists('replaceTextFromFormat')) {
                     $str = null;
                     $matchString = null;
                     try {
-                        $match = strtolower($matches[1][$i]);
+                        $match = $matches[1][$i];
                         $matchString = $matches[0][$i];
                         
                         //split semi-coron
@@ -608,7 +608,7 @@ if (!function_exists('replaceTextFromFormat')) {
                             $targetFormat = $length_array[0];
                         }
 
-
+                        $targetFormat = strtolower($targetFormat);
                         // get length
                         $length_array = explode(":", $targetFormat);
                         $key = $length_array[0];
