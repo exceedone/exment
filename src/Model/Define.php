@@ -179,6 +179,8 @@ class Define
         'custom_form_columns',
         'custom_views',
         'custom_view_columns',
+        'custom_view_filters',
+        'custom_view_sorts',
         'custom_copies',
         'custom_copy_columns',
         'admin_menu',

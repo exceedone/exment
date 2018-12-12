@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomCopyColumn;
 use Exceedone\Exment\Model\Authority;
@@ -326,36 +327,38 @@ class TemplateImporter
         // forget custom_blocks array
         array_forget($settings, 'custom_form_blocks');
 
-
-        // convert custom_view_columns to custom_views->custom_view_columns
-        if (array_key_exists('custom_view_columns', $settings) && array_key_exists('custom_views', $settings)) {
-            $custom_view_columns = array_get($settings, 'custom_view_columns');
-            foreach ($custom_view_columns as &$custom_view_column) {
-                // get target_view_name etc
-                $target_view_name = array_get($custom_view_column, 'target_view_name');
-                if (!isset($target_view_name)) {
-                    continue;
-                }
-                // get target views
-                foreach ($settings['custom_views'] as &$custom_view) {
-                    // if not match, continue
-                    if ($target_view_name != array_get($custom_view, 'target_view_name')) {
+        $targets = ['custom_view_columns', 'custom_view_filters', 'custom_view_sorts'];
+        foreach($targets as $multi){
+            // convert custom_view_columns to custom_views->custom_view_columns
+            if (array_key_exists($multi, $settings) && array_key_exists('custom_views', $settings)) {
+                $custom_view_columns = array_get($settings, $multi);
+                foreach ($custom_view_columns as &$custom_view_column) {
+                    // get target_view_name etc
+                    $target_view_name = array_get($custom_view_column, 'target_view_name');
+                    if (!isset($target_view_name)) {
                         continue;
                     }
+                    // get target views
+                    foreach ($settings['custom_views'] as &$custom_view) {
+                        // if not match, continue
+                        if ($target_view_name != array_get($custom_view, 'target_view_name')) {
+                            continue;
+                        }
 
-                    // set custom_view_column to $custom_view
-                    $target_custom_view_columns = array_get($custom_view, 'custom_view_columns', []);
-                    // remove custom view column view name
-                    array_forget($custom_view_column, 'target_view_name');
-                    $target_custom_view_columns[] = array_dot_reverse($custom_view_column);
-                    $custom_view['custom_view_columns'] = $target_custom_view_columns;
-                    // jump to next column
-                    break;
+                        // set custom_view_column to $custom_view
+                        $target_custom_view_columns = array_get($custom_view, $multi, []);
+                        // remove custom view column view name
+                        array_forget($custom_view_column, 'target_view_name');
+                        $target_custom_view_columns[] = array_dot_reverse($custom_view_column);
+                        $custom_view[$multi] = $target_custom_view_columns;
+                        // jump to next column
+                        break;
+                    }
                 }
             }
+            // forget custom_view_columns array
+            array_forget($settings, $multi);
         }
-        // forget custom_view_columns array
-        array_forget($settings, 'custom_view_columns');
 
         // loop custom_copies and array_dot_reverse for setting options
         if (array_key_exists('custom_copies', $settings)) {
@@ -815,10 +818,7 @@ class TemplateImporter
                                 // for table column
                                 case ViewColumnType::COLUMN:
                                     // get column name
-                                    $view_column_target = CustomColumn
-                                        ::where('column_name', $view_column_name)
-                                        ->where('custom_table_id', $table->id)
-                                        ->first()->id ?? null;
+                                    $view_column_target = CustomColumn::getEloquent($view_column_name, $table)->id ?? null;
                                     break;
                                 // system column
                                 default:
@@ -862,10 +862,15 @@ class TemplateImporter
                                     // for table column
                                     case ViewColumnType::COLUMN:
                                         // get column id
-                                        $view_filter_target = CustomColumn
-                                            ::where('column_name', $view_filter_name)
-                                            ->where('custom_table_id', $target_table->id)
-                                            ->first()->id ?? null;
+                                        $view_filter_target_obj = CustomColumn::getEloquent($view_filter_name, $table);
+                                        if(!isset($view_filter_target_obj)){
+                                            continue;
+                                        }
+                                        // if not search enabled column, conitnue.
+                                        if(!$view_filter_target_obj->hasIndex()){
+                                            continue;
+                                        }
+                                        $view_filter_target = $view_filter_target_obj->id;
                                         break;
                                     // system column
                                     default:
@@ -884,9 +889,50 @@ class TemplateImporter
                                 'custom_view_id' => $obj_view->id,
                                 'view_filter_target' => $view_filter_target,
                                 'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
-                                'view_filter_condition_value_text' => array_get($view_filter, "view_filter_condition_value_text"),
                             ]);
+                            $obj_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
                             $obj_view_filter->saveOrFail();
+                        }
+                    }
+                    
+                    // create view sorts --------------------------------------------------
+                    if (array_key_exists('custom_view_sorts', $view)) {
+                        foreach (array_get($view, "custom_view_sorts") as $view_column) {
+                            // get view_column_target_type for getting view_column_target_name
+                            if (array_key_exists('view_column_target_type', $view_column)) {
+                                $view_column_target_type = array_get($view_column, "view_column_target_type");
+                            } else {
+                                $view_column_target_type = ViewColumnType::COLUMN;
+                            }
+
+                            $view_column_name = array_get($view_column, "view_column_target_name");
+                            switch ($view_column_target_type) {
+                                    // for table column
+                                    case ViewColumnType::COLUMN:
+                                        // get column id
+                                        $view_column_target = CustomColumn::getEloquent($view_column_name, $table)->id ?? null;
+                                        break;
+                                    // system column
+                                    default:
+                                        $view_column_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($view_column_name) {
+                                            return $item['name'] == $view_column_name;
+                                        })['name'] ?? null;
+                                        break;
+                                }
+
+                            // if not set filter_target id, continue
+                            if (!isset($view_column_target)) {
+                                continue;
+                            }
+
+                            $obj_view_sort = CustomviewSort::firstOrNew([
+                                'custom_view_id' => $obj_view->id,
+                                'view_column_target' => $view_column_target,
+                            ]);
+                            
+                            $obj_view_sort->sort = array_get($view_column, "sort", 1);
+                            $obj_view_sort->priority = array_get($view_column, "priority", 0);
+                            $obj_view_sort->saveOrFail();
                         }
                     }
                 }
