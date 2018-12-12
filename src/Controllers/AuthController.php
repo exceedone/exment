@@ -32,7 +32,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         return view('exment::auth.login', $this->getLoginPageData());
     }   
-    
 
     /**
      * Login page using provider (SSO).

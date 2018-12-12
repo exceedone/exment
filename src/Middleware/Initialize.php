@@ -66,6 +66,12 @@ class Initialize
             Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
         }
 
+        //override
+        Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.enable_default_breadcrumb', false);
+        Config::set('admin.show_version', false);
+        Config::set('admin.show_environment', false);
+
         return $next($request);
     }
 

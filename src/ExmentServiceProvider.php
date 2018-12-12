@@ -4,6 +4,7 @@ namespace Exceedone\Exment;
 
 use Storage;
 use Request;
+use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
@@ -44,9 +45,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
-        'admin_api.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
-        // 'web.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
-        // 'web.morph'  => \Exceedone\Exment\Middleware\Web::class,
+        'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
     ];
 
     /**
@@ -66,7 +65,6 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.morph',
         ],
         'admin_anonymous' => [
-            //'admin.auth',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
@@ -75,13 +73,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.morph',
         ],
-        'admin_api' => [
-            'admin_api.auth',
-        ],
-        // 'web' => [
-        //     'web.initialize',
-        //     'web.morph',
-        // ]
+        'adminapi' => [
+            'adminapi.auth',
+            'throttle:60,1',
+            'bindings',
+        ]
     ];
 
     /**
@@ -91,10 +87,13 @@ class ExmentServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->app->register(ExmentProviders\RouteServiceProvider::class);
+        $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
+
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
-        $this->publishes([__DIR__.'/../resources/views/vendor/admin' => resource_path('views/vendor/admin')], 'views_admin');
+        $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
         
         $this->mergeConfigFrom(
             __DIR__.'/../config/exment.php',
@@ -104,18 +103,11 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
         
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php', 'exment');
-        
         $this->commands($this->commands);
 
         $this->registerPolicies();
 
         $this->bootSetting();
-
-        // for api
-        if (boolval(config('exment.api'))) {
-            \Laravel\Passport\Passport::routes();
-        }
 
         // $this->bootPlugin();
     }
@@ -196,12 +188,21 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootSetting()
     {
-        
         // Extend --------------------------------------------------
+        Auth::provider('exment-auth', function ($app, array $config) {
+            // Return an instance of Illuminate\Contracts\Auth\UserProvider...
+            return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
+        });
+        
+        \Validator::resolver(function ($translator, $data, $rules, $messages) {
+            return new UniqueInTableValidator($translator, $data, $rules, $messages);
+        });
+
         Storage::extend('admin-local', function ($app, $config) {
             return new Filesystem(new AdminLocal(array_get($config, 'root')));
         });
-        
+
+        ///// set config
         // add for exment_admins
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [
@@ -217,14 +218,14 @@ class ExmentServiceProvider extends ServiceProvider
                 'model' => \Exceedone\Exment\Model\LoginUser::class,
             ]);
         }
-        
-        // add for api passport
-        Config::set('auth.guards.admin_api', [
+        // set for passport
+        Config::set('auth.defaults.guard', 'admin');
+    
+        Config::set('auth.guards.adminapi', [
             'driver' => 'passport',
             'provider' => 'exment-auth',
         ]);
-
-        // set config
+    
         if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [
                 'driver' => 'admin-local',
@@ -232,19 +233,5 @@ class ExmentServiceProvider extends ServiceProvider
                 'url' => env('APP_URL').'/'.env('ADMIN_ROUTE_PREFIX'),
             ]);
         }
-        //override
-        Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
-        Config::set('admin.enable_default_breadcrumb', false);
-        Config::set('admin.show_version', false);
-        Config::set('admin.show_environment', false);
-
-        Auth::provider('exment-auth', function ($app, array $config) {
-            // Return an instance of Illuminate\Contracts\Auth\UserProvider...
-            return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
-        });
-        
-        \Validator::resolver(function ($translator, $data, $rules, $messages) {
-            return new UniqueInTableValidator($translator, $data, $rules, $messages);
-        });
     }
 }
