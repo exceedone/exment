@@ -185,6 +185,35 @@ return [
         ],
     ],
 
+    'backup' => [
+        'header' => 'バックアップ一覧',
+        'description' => 'データベースやファイルのバックアップとリストアを行います。',
+        'file_name' => 'ファイル名',
+        'file_size' => 'ファイルサイズ',
+        'created' => '作成日時',
+        'backup' => 'バックアップ',
+        'backup_all' => '全て',
+        'backup_table' => 'テーブルのみ',
+        'backup_file' => 'ファイルのみ',
+        'restore' => 'リストア',
+        'restore_upload' => 'ファイルアップロード',
+        'backuprestore' => 'バックアップ・リストア',
+        'upload_zipfile' => 'アップロード(zip)',
+        'message' => [
+            'backup_confirm' => 'バックアップを実行しますか？',
+            'backup_error' => 'バックアップに失敗しました。',
+            'download_error' => 'ダウンロードに失敗しました。',
+            'restore_confirm' => 'リストアを本当に実行しますか？（現在のデータはすべて失われます）',
+            'restore_succeeded' => 'リストアを実行しました。',
+            'restore_error' => 'リストアに失敗しました。',
+            'restore_file_error' => 'リストアに失敗しました。アップロードファイルを確認してください。',
+        ],
+        'help' =>[
+            'file_name' => 'バックアップ情報を圧縮したzipファイルの名前を指定してください。',
+            'import_error_message' => '取込ファイルに不備があった場合、この項目に、エラーメッセージを表示します。',
+        ]
+    ],
+
     'user' => [
         'header' => 'ログインユーザー設定',
         'description' => 'ユーザーの中から、このシステムにログインを行うユーザーを選択し、パスワード設定や、パスワード初期化などを行うこともできます。',
@@ -616,6 +645,7 @@ return [
             'organization' => '組織',
             'menu' => 'メニュー',
             'template' => 'テンプレート',
+            'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
             'mail' => 'メールテンプレート',
             'notify' => '通知',

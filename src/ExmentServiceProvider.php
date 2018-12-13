@@ -33,6 +33,8 @@ class ExmentServiceProvider extends ServiceProvider
     protected $commands = [
         'Exceedone\Exment\Console\InstallCommand',
         'Exceedone\Exment\Console\NotifyCommand',
+        'Exceedone\Exment\Console\CustomBackupCommand',
+        'Exceedone\Exment\Console\CustomRestoreCommand',
     ];
 
     /**
@@ -231,6 +233,12 @@ class ExmentServiceProvider extends ServiceProvider
                 'driver' => 'admin-local',
                 'root' => storage_path('app/admin'),
                 'url' => env('APP_URL').'/'.env('ADMIN_ROUTE_PREFIX'),
+            ]);
+        }
+        if (!Config::has('filesystems.disks.backup')) {
+            Config::set('filesystems.disks.backup', [
+                'driver' => 'local',
+                'root' => storage_path('app/backup'),
             ]);
         }
     }

@@ -100,6 +100,7 @@ class Permission
             case "system":
             case "authority":
             case "plugin":
+            case "database":
             case "loginuser":
             case "auth/menu":
             case "notify":

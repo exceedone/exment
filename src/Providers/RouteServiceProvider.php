@@ -50,6 +50,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views", 'DashboardBoxController@tableViews');
             $router->resource('dashboardbox', 'DashboardBoxController');
+
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
@@ -68,15 +69,30 @@ class RouteServiceProvider extends ServiceProvider
                 return redirect(admin_base_path('template'));
             });
             
+            $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
+            $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
+            $router->resource('notify', 'NotifyController', ['except' => ['show']]);
+
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('authority', 'AuthorityController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             $router->resource('mail', 'MailTemplateController', ['except' => ['show']]);
-            $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
-            $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
-            $router->resource('notify', 'NotifyController', ['except' => ['show']]);
         
+            $router->get('search', 'SearchController@index');
+            $router->post('search/list', 'SearchController@getList');
+            $router->post('search/header', 'SearchController@header');
+            $router->post('search/relation', 'SearchController@getRelationList');
+        
+            $router->get('backup', 'BackupController@index');
+            $router->delete('backup/delete', 'BackupController@delete');
+            $router->post('backup/restore', 'BackupController@restore');
+            $router->post('backup/save', 'BackupController@save');
+            $router->post('backup/import', 'BackupController@import');
+            $router->get('backup/download/{ymdhms}', function($ymdhms){
+                return BackupController::download($ymdhms);
+            });
+            
             // set static name. because this function is called composer install.
             try {
                 if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
@@ -91,26 +107,28 @@ class RouteServiceProvider extends ServiceProvider
                         $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
                         $router->post("data/{$value}/{id}/fileupload", 'CustomValueController@fileupload');
                         $router->resource("data/{$value}", 'CustomValueController');
+                        
                         $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
+                        
                         $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
+                        
                         $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
                         $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
+                        
                         $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
+                        
                         $router->resource("copy/{$value}", 'CustomCopyController', ['except' => ['show']]);
+                        
                         $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
                         $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
-                        $router->get("api/{$value}/query", 'ApiAdminTableController@query');
-                        $router->get("api/{$value}/relatedLinkage", 'ApiAdminTableController@relatedLinkage');
-                        $router->post("api/{$value}/{id}", 'ApiAdminTableController@find');
+                        
+                        // $router->get("api/{$value}/query", 'ApiAdminTableController@query');
+                        // $router->get("api/{$value}/relatedLinkage", 'ApiAdminTableController@relatedLinkage');
+                        // $router->post("api/{$value}/{id}", 'ApiAdminTableController@find');
                     }
                 }
             } catch (\Exception $e) {
             }
-        
-            $router->get('search', 'SearchController@index');
-            $router->post('search/list', 'SearchController@getList');
-            $router->post('search/header', 'SearchController@header');
-            $router->post('search/relation', 'SearchController@getRelationList');
         
             $router->get('api/table/{id}', 'ApiController@table');
             $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');

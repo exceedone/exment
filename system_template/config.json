@@ -676,33 +676,40 @@
         {
             "order": "5",
             "menu_type": "system",
+            "menu_name": "backup",
+            "parent_name": "admin",
+            "menu_target_name": "backup"
+        },
+        {
+            "order": "6",
+            "menu_type": "system",
             "menu_name": "loginuser",
             "parent_name": "admin",
             "menu_target_name": "loginuser"
         },
         {
-            "order": "6",
+            "order": "7",
             "menu_type": "system",
             "menu_name": "authority",
             "parent_name": "admin",
             "menu_target_name": "authority"
         },
         {
-            "order": "7",
+            "order": "8",
             "menu_type": "system",
             "menu_name": "plugin",
             "parent_name": "admin",
             "menu_target_name": "plugin"
         },
         {
-            "order": "8",
+            "order": "9",
             "menu_type": "system",
             "menu_name": "notify",
             "parent_name": "admin",
             "menu_target_name": "notify"
         },
         {
-            "order": "9",
+            "order": "10",
             "menu_type": "system",
             "menu_name": "mail",
             "parent_name": "admin",

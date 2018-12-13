@@ -1,0 +1,270 @@
+<?php
+
+namespace Exceedone\Exment\Console;
+
+use Illuminate\Console\Command;
+use Exceedone\Exment\Model\Define;
+
+class CustomBackupCommand extends CommandBase
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'exment:backup {type}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Backup database definition, table data, files in selected folder';
+
+    /**
+     * console command start time (YmdHis)
+     *
+     * @var string
+     */
+    protected $starttime;
+
+    /**
+     * temporary folder path store files for archive
+     *
+     * @var string
+     */
+    protected $tempdir;
+
+    /**
+     * list folder path store backup files
+     *
+     * @var string
+     */
+    protected $listdir;
+
+    /**
+     * backup type const definition
+     * 
+     */
+    protected const BACKUP_ALL = '1';
+    protected const BACKUP_TABLE = '2';
+    protected const BACKUP_FILE = '3';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
+    {
+        $this->starttime = date('YmdHis');
+
+        $type = $this->argument("type");
+
+        if (empty($type)) {
+            $type = CustomBackupCommand::BACKUP_ALL;
+        }
+
+        $this->getBackupPath();
+
+        // backup database tables
+        if ($type !== CustomBackupCommand::BACKUP_FILE) {
+            $this->backupTables();
+        }
+
+        // backup directory
+        if ($type !== CustomBackupCommand::BACKUP_TABLE) {
+            if (!$this->copyFiles()) {
+                return -1;
+            }
+        }
+
+        // archive whole folder to zip
+        $this->createZip();
+
+        // delete temporary folder
+        $success = \File::deleteDirectory($this->tempdir);
+
+        return 0;
+    }
+
+    /**
+     * export table definition and table data
+     * 
+     */
+    private function backupTables() {
+
+        // export table definition
+        $this->dumpDatabase();
+
+        // get all table list
+        $tables = \DB::select('SHOW TABLES');
+
+        // backup each table
+        foreach($tables as $table)
+        {
+            foreach ($table as $key => $name)
+            {
+                if (stripos($name, 'exm__') === 0)
+                {
+                    // backup table data which has virtual column
+                    $this->backupTable($name);
+                } else {
+                    // backup table data with mysqldump
+                    $this->dumpDatabase($name);
+                }
+            }
+        }
+    }
+
+    /**
+     * backup table data except virtual generated column.
+     * 
+     * @param string backup target table
+     */
+    private function backupTable($table)
+    {
+        // create tsv file
+        $file = new \SplFileObject($this->tempdir.$table.'.tsv', 'w');
+        $file->setCsvControl("\t");
+
+        // get column definition
+        $sql       = 'SHOW COLUMNS FROM '.$table;
+        $columns   = \DB::select($sql);
+
+        // get output field name list (not virtual column)
+        $outcols = [];
+        foreach ($columns as $column) {
+            $array = array_change_key_case(((array)$column));
+            if (strtoupper($array['extra']) != 'VIRTUAL GENERATED') {
+                $outcols[] = strtolower($array['field']);
+            }
+        }
+        // write column header
+        $file->fputcsv($outcols);
+
+        \DB::table($table)->orderBy('id')->chunk(100, function ($rows) use ($file, $outcols) {
+            foreach ($rows as $row) {
+                $array = (array)$row;
+                $row = array_map(function($key) use ($array) {
+                    return $array[$key];
+                }, $outcols);
+                // write detail data
+                $file->fputcsv($row);
+            }
+        });
+    }
+    /**
+     * get and create backup folder path
+     * 
+     */
+    private function getBackupPath()
+    {
+        $ds = DIRECTORY_SEPARATOR;
+        // edit temporary folder path for store archive file 
+        $this->tempdir = storage_path('app/backup'.$ds.'tmp'.$ds.$this->starttime.$ds);
+        // edit zip folder path 
+        $this->listdir = storage_path('app/backup'.$ds.'list'.$ds);
+        // create temporary folder if not exists
+        if (!is_dir($this->tempdir)) {
+            mkdir($this->tempdir, 0755, true);
+        }
+        // create zip folder if not exists
+        if (!is_dir($this->listdir)) {
+            mkdir($this->listdir, 0755, true);
+        }
+    }
+    /**
+     * copy folder to temp directory
+     * 
+     * @return bool true:success/false:fail
+     */
+    private function copyFiles()
+    {
+        $settings = Define::BACKUP_TARGET_DIRECTORIES;
+        $settings = array_merge(
+            config('exment.backup_info.copy_dir', []),
+            $settings
+        );
+        
+        if (is_array($settings)) {
+            foreach($settings as $setting) {
+                $from = base_path($setting);
+                $to = path_join($this->tempdir, $setting);
+                $success = \File::copyDirectory($from, $to);
+
+                if (!$success) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    /**
+     * archive whole folder(sql and tsv only) to zip.
+     * 
+     */
+    private function createZip()
+    {
+        // set last directory name to zipfile name
+        $filename = $this->starttime . '.zip';
+
+        // open new zip file
+        $zip = new \ZipArchive();
+        $res = $zip->open($this->listdir.$filename, \ZipArchive::CREATE);
+
+        if ($res === TRUE) {
+            // iterator all files in folder
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tempdir));
+            foreach ($files as $name => $file)
+            {
+                if (!$file->isDir()) {
+                    $filePath = $file->getRealPath();
+                    $relativePath = substr($filePath, strlen($this->tempdir));
+                    $zip->addFile($filePath, $relativePath);
+                }
+            }
+            $zip->close();
+        }
+    }
+    /**
+     * exec mysqldump for backup table definition or table data.
+     * 
+     * @param string backup target table (default:null)
+     */
+    private function dumpDatabase($table=null)
+    {
+
+        $ds = DIRECTORY_SEPARATOR;
+        // get table connect info
+        $host = env('DB_HOST');
+        $username = env('DB_USERNAME');
+        $password = env('DB_PASSWORD');
+        $database = env('DB_DATABASE');
+        $dbport = env('DB_PORT');
+
+        $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
+        $command = sprintf('%s -h %s -u %s --password=%s -P %s', 
+            $mysqldump, $host, $username, $password, $dbport);
+
+        if ($table == null) {
+            $file = $this->tempdir . config('exment.backup_info.def_file', 'table_definition.sql');
+            $command = sprintf('%s -d %s > %s', $command, $database, $file);
+        } else {
+            $file = sprintf('%s%s.sql', $this->tempdir, $table);
+            $command = sprintf('%s -t %s %s > %s', $command, $database, $table, $file);
+        }
+
+        exec($command);
+    }
+}

@@ -83,6 +83,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
         PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
         PDO::ATTR_STRINGIFY_FETCHES => true,
         PDO::ATTR_EMULATE_PREPARES => true,
+        PDO::MYSQL_ATTR_LOCAL_INFILE => true,
     ],
     // Exment Edit------e
     'engine' => null,

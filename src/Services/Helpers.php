@@ -232,6 +232,22 @@ if (!function_exists('file_ext_strip')) {
     }
 }
 
+if (!function_exists('bytesToHuman')) {
+    function bytesToHuman($bytes, $default = null)
+    {
+        if(is_null($bytes)){
+            return $default;
+        }
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+        for ($i = 0; $bytes > 1024; $i++) {
+            $bytes /= 1024;
+        }
+
+        return round($bytes, 2) . ' ' . $units[$i];
+    }
+}
+
 
 
 // array --------------------------------------------------

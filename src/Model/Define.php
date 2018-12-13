@@ -108,6 +108,10 @@ class Define
             'uri' => 'template',
             'icon' => 'fa-clone',
         ],
+        'backup' => [
+            'uri' => 'backup',
+            'icon' => 'fa-database',
+        ],
         'plugin' => [
             'uri' => 'plugin',
             'icon' => 'fa-plug',
@@ -167,6 +171,14 @@ class Define
     ];
     public const NOTIFY_ACTION_TARGET = [
         'has_authorities',
+    ];
+
+    public const BACKUP_TARGET_DIRECTORIES = [
+        'storage\logs',
+        'config',
+        'app\Plugins',
+        'app\Templates',
+        'storage\app\admin',
     ];
  
     // Template --------------------------------------------------

@@ -17,4 +17,14 @@ return [
     'revision_count_default' => env('EXMENT_REVISION_COUNT', 100),
     
     'api' => env('EXMENT_API', false),
+
+    'backup_info' => [
+      'mysql_dir' => env('EXMENT_MYSQL_BIN_DIR'),
+      'def_file' => 'table_definition.sql',
+      'copy_dir' => [
+        'storage\logs',
+        'config',
+      ],
+    ],
+
 ];

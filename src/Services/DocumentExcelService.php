@@ -172,15 +172,15 @@ class DocumentExcelService
                     // loop formats
                     foreach($column_item['formats'] as $format){
                         // replace using format
-                        $column_item['text'] = str_replace($format['format_text'], $child->getValue($format['column_name'], true, [
+                        $text = str_replace($format['format_text'], $child->getValue($format['column_name'], true, [
                             'disable_currency_symbol' => true,
                             'disable_number_format' => true,
-                        ]), $column_item['text']);
+                        ]), $text);
                     }
-                    $sheet->setCellValue($cell_column . $row, $column_item['text']);
+                    $sheet->setCellValue($cell_column . $row, $text);
                 }
 
-                $row++;
+                $row = $row + 1;
                 if ($row > $end) {
                     break;
                 }
