@@ -88,6 +88,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('backup/delete', 'BackupController@delete');
             $router->post('backup/restore', 'BackupController@restore');
             $router->post('backup/save', 'BackupController@save');
+            $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
             $router->get('backup/download/{ymdhms}', function($ymdhms){
                 return BackupController::download($ymdhms);
