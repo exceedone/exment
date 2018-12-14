@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment;
 
+use PDO;
 use Storage;
 use Request;
 use Exceedone\Exment\Providers as ExmentProviders;
@@ -213,16 +214,17 @@ class ExmentServiceProvider extends ServiceProvider
                 'expire' => 720,
             ]);
         }
-        // add for exment_admins
         if (!Config::has('auth.providers.exment-auth')) {
             Config::set('auth.providers.exment-auth', [
                 'driver' => 'eloquent',
                 'model' => \Exceedone\Exment\Model\LoginUser::class,
             ]);
         }
-        // set for passport
+        // set for passport        
+        // Config::set('admin.auth.guards.admin.provider', [
+        //     'driver' => 'exment-auth',
+        // ]);
         Config::set('auth.defaults.guard', 'admin');
-    
         Config::set('auth.guards.adminapi', [
             'driver' => 'passport',
             'provider' => 'exment-auth',
@@ -241,5 +243,15 @@ class ExmentServiceProvider extends ServiceProvider
                 'root' => storage_path('app/backup'),
             ]);
         }
+
+        Config::set('database.mysql.strict', false);
+        Config::set('filesystems.disks.options', [
+            PDO::ATTR_CASE => PDO::CASE_LOWER,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+            PDO::ATTR_STRINGIFY_FETCHES => true,
+            PDO::ATTR_EMULATE_PREPARES => true,
+            PDO::MYSQL_ATTR_LOCAL_INFILE => true,
+        ]);
     }
 }

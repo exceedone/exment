@@ -91,17 +91,16 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~
 
-- "config\admin.php"を開き、 キー "auth.providers.admin" を以下のように修正します。
+- "config\admin.php"を開き、 キー "auth.guards.admin.provider" を以下のように修正します。
 
 ~~~ php
     'auth' => [
-        'providers' => [
+        'guards' => [
             'admin' => [
-                // Exment Edit------s
-                // 'driver' => 'eloquent',
-                //'model'  => Encore\Admin\Auth\Database\Administrator::class,
-                'driver' => 'exment-auth',
-                // Exment Edit------e
+                'driver'   => 'session',
+                // 変更
+                // 'provider' => 'admin', 
+                'provider' => 'exment-auth', 
             ],
         ],  
     ],
