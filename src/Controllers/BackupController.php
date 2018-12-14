@@ -62,16 +62,15 @@ class BackupController extends AdminControllerBase
         $form = new WidgetForm(System::get_system_values());
         $form->action(admin_base_paths('backup/setting'));
         $form->disableReset();
+
+        $form->checkbox('backup_target', exmtrans("backup.backup_target"))
+            ->help(exmtrans("backup.help.backup_target"))
+            ->options(Enums\BackupTarget::trans('backup.backup_target_options'))
+            ;
         
         $form->switchbool('backup_enable_automatic', exmtrans("backup.enable_automatic"))
             ->help(exmtrans("backup.help.enable_automatic"))
             ->attribute(['data-filtertrigger' =>true]);
-
-        $form->checkbox('backup_automatic_target', exmtrans("backup.backup_automatic_target"))
-            ->help(exmtrans("backup.help.backup_automatic_target"))
-            ->options(Enums\BackupTarget::trans('backup.backup_target_options'))
-            ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
-            ;
 
         $form->number('backup_automatic_term', exmtrans("backup.automatic_term"))
             ->help(exmtrans("backup.help.automatic_term"))
@@ -81,7 +80,7 @@ class BackupController extends AdminControllerBase
         $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
             ->help(exmtrans("backup.help.automatic_hour"))
             ->min(0)
-            ->min(23)
+            ->max(23)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
         return new Box(exmtrans("backup.setting_header"), $form);
@@ -209,13 +208,8 @@ class BackupController extends AdminControllerBase
     {
         $data = $request->all();
 
-        $validator = Validator::make($data, [
-            'type' => 'required',
-        ]);
-
-        if ($validator->passes()) {
-            $result = \Artisan::call('exment:backup', ['type' => $data['type']]);
-        }
+        $target = System::backup_target();
+        $result = \Artisan::call('exment:backup', ['--target' => $target]);
 
         if (isset($result) && $result === 0) {
             return response()->json([

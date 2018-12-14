@@ -16,6 +16,7 @@ use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
+use Illuminate\Console\Scheduling\Schedule;
 
 class ExmentServiceProvider extends ServiceProvider
 {
@@ -33,9 +34,9 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $commands = [
         'Exceedone\Exment\Console\InstallCommand',
-        'Exceedone\Exment\Console\NotifyCommand',
-        'Exceedone\Exment\Console\CustomBackupCommand',
-        'Exceedone\Exment\Console\CustomRestoreCommand',
+        'Exceedone\Exment\Console\ScheduleCommand',
+        'Exceedone\Exment\Console\BackupCommand',
+        'Exceedone\Exment\Console\RestoreCommand',
     ];
 
     /**
@@ -90,27 +91,13 @@ class ExmentServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->register(ExmentProviders\RouteServiceProvider::class);
-        $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
+        $this->bootApp();
+        $this->bootSetting();
 
-        $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
-        $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
-        $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
-        
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php',
-            'exment'
-        );
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
-        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
-        
-        $this->commands($this->commands);
+        $this->publish();
+        $this->load();
 
         $this->registerPolicies();
-
-        $this->bootSetting();
 
         // $this->bootPlugin();
     }
@@ -135,6 +122,36 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
+
+    protected function publish(){
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/exment.php',
+            'exment'
+        );
+        
+        $this->publishes([__DIR__.'/../config' => config_path()]);
+        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
+        $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
+        $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
+    }
+
+    protected function load(){
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+    }
+
+    protected function bootApp(){
+        $this->app->register(ExmentProviders\RouteServiceProvider::class);
+        $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
+        
+        $this->commands($this->commands);
+
+        $this->app->booted(function () {
+            $schedule = $this->app->make(Schedule::class);
+            $schedule->command('exment:schedule')->hourlyAt(0);
+        });
+    }
 
     // plugin --------------------------------------------------
     
@@ -206,7 +223,6 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         ///// set config
-        // add for exment_admins
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [
                 'provider' => 'exment-auth',
@@ -220,10 +236,6 @@ class ExmentServiceProvider extends ServiceProvider
                 'model' => \Exceedone\Exment\Model\LoginUser::class,
             ]);
         }
-        // set for passport        
-        // Config::set('admin.auth.guards.admin.provider', [
-        //     'driver' => 'exment-auth',
-        // ]);
         Config::set('auth.defaults.guard', 'admin');
         Config::set('auth.guards.adminapi', [
             'driver' => 'passport',

@@ -6,8 +6,10 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Carbon\Carbon;
 use Storage;
 use DB;
+
 
 class System extends ModelBase
 {
@@ -117,13 +119,18 @@ class System extends ModelBase
             $value = Config::get(array_get($setting, 'config'));
         }
 
-        if (array_get($setting, 'type') == 'boolean') {
+        $type = array_get($setting, 'type');
+        if ($type == 'boolean') {
             $value = boolval($value);
-        } elseif (array_get($setting, 'type') == 'json') {
+        } elseif ($type == 'int') {
+            $value = is_null($value) ? null : intval($value);
+        } elseif ($type == 'datetime') {
+            $value = is_null($value) ? null : new Carbon($value);
+        } elseif ($type == 'json') {
             $value = is_null($value) ? [] : json_decode($value);
-        } elseif (array_get($setting, 'type') == 'array') {
+        } elseif ($type == 'array') {
             $value = is_null($value) ? [] : explode(',', $value);
-        } elseif (array_get($setting, 'type') == 'file') {
+        } elseif ($type == 'file') {
             $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
         }
         setRequestSession($config_key, $value);
@@ -139,13 +146,24 @@ class System extends ModelBase
         }
 
         // change set value by type
-        if (array_get($setting, 'type') == 'json') {
+        $type = array_get($setting, 'type');
+        if ($type == 'int') {
+            $system->system_value = is_null($value) ? null : intval($value);
+        }
+        elseif ($type == 'datetime') {
+            if($value instanceof Carbon){
+                $system->system_value = $value->toDateTimeString();
+            }else{
+                $system->system_value = is_null($value) ? null : $value;    
+            }
+        }
+        elseif ($type == 'json') {
             $system->system_value = is_null($value) ? null : json_encode($value);
         }
-        elseif (array_get($setting, 'type') == 'array') {
+        elseif ($type == 'array') {
             $system->system_value = is_null($value) ? null : implode(',', $value);
         } 
-        elseif (array_get($setting, 'type') == 'file') {
+        elseif ($type == 'file') {
             $old_value = $system->system_value;
             if (is_null($value)) {
                 //TODO: how to check whether file is deleting by user.

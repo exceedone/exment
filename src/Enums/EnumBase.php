@@ -21,8 +21,10 @@ class EnumBase extends Enum
      * convert trans 
      */
     public static function trans($base_key, $isExment = true){
-        return getTransArray(array_flatten(static::toArray()), $base_key, $isExment);
+        return getTransArray(static::arrays(), $base_key, $isExment);
     }
 
-
+    public static function arrays(){
+        return array_flatten(static::toArray()); 
+    }
 }

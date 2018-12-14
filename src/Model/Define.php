@@ -34,7 +34,8 @@ class Define
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],
         'backup_automatic_hour' => ['type' => 'int', 'default' => '3', 'group' => 'backup'],
-        'backup_automatic_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
+        'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
+        'backup_automatic_executed' => ['type' => 'datetime'],
     ];
 
     public const SYSTEM_SKIN = [
@@ -177,14 +178,6 @@ class Define
     ];
     public const NOTIFY_ACTION_TARGET = [
         'has_authorities',
-    ];
-
-    public const BACKUP_TARGET_DIRECTORIES = [
-        'storage\logs',
-        'config',
-        'app\Plugins',
-        'app\Templates',
-        'storage\app\admin',
     ];
  
     // Template --------------------------------------------------

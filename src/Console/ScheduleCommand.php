@@ -12,21 +12,21 @@ use Carbon\Carbon;
 
 use Exceedone\Exment\Services\MailSender;
 
-class NotifyCommand extends CommandBase
+class ScheduleCommand extends CommandBase
 {
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $signature = 'exment:notify';
+    protected $signature = 'exment:schedule';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Notify limit';
+    protected $description = 'Execute Schedule Batch';
 
     /**
      * Execute the console command.
@@ -36,7 +36,16 @@ class NotifyCommand extends CommandBase
     public function handle()
     {
         parent::handle();
-        
+
+        $this->notify();
+        $this->backup();
+    }
+
+    /**
+     * notify user flow
+     */
+    protected function notify()
+    {
         // get notifies data for notify_trigger is 1(time), and notify_hour is executed time
         $hh = Carbon::now()->format('G');
         $notifies = Notify::where('notify_trigger', '1')
@@ -56,7 +65,7 @@ class NotifyCommand extends CommandBase
             // get target table and column
             $table = CustomTable::find(array_get($notify, 'custom_table_id'));
             $column = CustomColumn::find(array_get($notify->trigger_settings, 'notify_target_column'));
-            
+    
 
             // find data. where equal target_date
             $datalist = getModelName(array_get($notify, 'custom_table_id'))
@@ -67,7 +76,7 @@ class NotifyCommand extends CommandBase
             foreach ($datalist as $data) {
                 // get user list
                 $value_authoritable_users = $data->value_authoritable_users->toArray();
-                
+        
                 // get organization
                 if (System::organization_available()) {
                     $value_authoritable_organizations = System::organization_available() ? $data->value_authoritable_organizations : [];
@@ -76,26 +85,52 @@ class NotifyCommand extends CommandBase
                         $value_authoritable_users = array_merge($value_authoritable_users, $children_users);
                     }
                 }
-                
+        
                 foreach ($value_authoritable_users as $user) {
                     $notify_target_table = CustomTable::find($notify->custom_table_id);
                     $notify_target_column = CustomColumn::find(array_get($notify->toArray(), 'trigger_settings.notify_target_column'));
                     $prms = [
-                        'user' => $user,
-                        'notify' => $notify->toArray(),
-                        'target_table' => $notify_target_table->table_view_name,
-                        'target_value' => $data->getLabel(),
-                        'notify_target_column_key' => $notify_target_column->column_view_name,
-                        'notify_target_column_value' => $data->getValue($notify_target_column),
-                        'data_url' => admin_urls("data", $notify_target_table->table_name, $data->id),
-                    ];
+                'user' => $user,
+                'notify' => $notify->toArray(),
+                'target_table' => $notify_target_table->table_view_name,
+                'target_value' => $data->getLabel(),
+                'notify_target_column_key' => $notify_target_column->column_view_name,
+                'notify_target_column_value' => $data->getValue($notify_target_column),
+                'data_url' => admin_urls("data", $notify_target_table->table_name, $data->id),
+            ];
 
                     // send mail
                     MailSender::make(array_get($notify->action_settings, 'mail_template_id'), array_get($user, 'value.email'))
-                    ->prms($prms)
-                    ->send();
+            ->prms($prms)
+            ->send();
                 }
             }
         }
+    }
+
+    protected function backup(){
+        if(!boolval(System::backup_enable_automatic())){
+            return;
+        }
+
+        $now = Carbon::now();
+        $hh = $now->hour;        
+        if($hh != System::backup_automatic_hour()){
+            return;
+        }
+
+        $last_executed = System::backup_automatic_executed();
+        if(isset($last_executed)){
+            $term = System::backup_automatic_term();
+            if($last_executed->addDay($term)->today()->gt($now->today())){
+                return;
+            }
+        }
+
+        // get target
+        $target = System::backup_target();
+        \Artisan::call('exment:backup', isset($target) ? ['--target' => $target] : []);
+
+        System::backup_automatic_executed($now);
     }
 }

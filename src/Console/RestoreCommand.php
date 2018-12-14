@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CustomRestoreCommand extends CommandBase
+class RestoreCommand extends CommandBase
 {
     /**
      * The name and signature of the console command.

@@ -3,16 +3,18 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 
-class CustomBackupCommand extends CommandBase
+class BackupCommand extends CommandBase
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'exment:backup {type}';
+    protected $signature = 'exment:backup {--target=?}';
 
     /**
      * The console command description.
@@ -43,14 +45,6 @@ class CustomBackupCommand extends CommandBase
     protected $listdir;
 
     /**
-     * backup type const definition
-     * 
-     */
-    protected const BACKUP_ALL = '1';
-    protected const BACKUP_TABLE = '2';
-    protected const BACKUP_FILE = '3';
-
-    /**
      * Create a new command instance.
      *
      * @return void
@@ -69,24 +63,24 @@ class CustomBackupCommand extends CommandBase
     {
         $this->starttime = date('YmdHis');
 
-        $type = $this->argument("type");
+        $target = $this->option("target") ?? BackupTarget::arrays();
 
-        if (empty($type)) {
-            $type = CustomBackupCommand::BACKUP_ALL;
+        if(is_string($target)){
+            $target = collect(explode(",", $target))->map(function($t){
+                return new BackupTarget($t) ?? null;
+            })->filter()->toArray();
         }
 
         $this->getBackupPath();
 
         // backup database tables
-        if ($type !== CustomBackupCommand::BACKUP_FILE) {
+        if (in_array(BackupTarget::DATABASE, $target)) {
             $this->backupTables();
         }
 
         // backup directory
-        if ($type !== CustomBackupCommand::BACKUP_TABLE) {
-            if (!$this->copyFiles()) {
-                return -1;
-            }
+        if (!$this->copyFiles($target)) {
+            return -1;
         }
 
         // archive whole folder to zip
@@ -189,9 +183,14 @@ class CustomBackupCommand extends CommandBase
      * 
      * @return bool true:success/false:fail
      */
-    private function copyFiles()
+    private function copyFiles($target)
     {
-        $settings = Define::BACKUP_TARGET_DIRECTORIES;
+        // get directory paths
+        $settings = collect($target)->map(function($val){
+            return BackupTarget::dir($val);
+        })->filter(function($val){
+            return isset($val);
+        })->toArray();
         $settings = array_merge(
             config('exment.backup_info.copy_dir', []),
             $settings
