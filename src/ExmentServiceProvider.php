@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment;
 
-use PDO;
 use Storage;
 use Request;
 use Exceedone\Exment\Providers as ExmentProviders;
@@ -222,48 +221,6 @@ class ExmentServiceProvider extends ServiceProvider
             return new Filesystem(new AdminLocal(array_get($config, 'root')));
         });
 
-        ///// set config
-        if (!Config::has('auth.passwords.exment_admins')) {
-            Config::set('auth.passwords.exment_admins', [
-                'provider' => 'exment-auth',
-                'table' => 'password_resets',
-                'expire' => 720,
-            ]);
-        }
-        if (!Config::has('auth.providers.exment-auth')) {
-            Config::set('auth.providers.exment-auth', [
-                'driver' => 'eloquent',
-                'model' => \Exceedone\Exment\Model\LoginUser::class,
-            ]);
-        }
-        Config::set('auth.defaults.guard', 'admin');
-        Config::set('auth.guards.adminapi', [
-            'driver' => 'passport',
-            'provider' => 'exment-auth',
-        ]);
-    
-        if (!Config::has('filesystems.disks.admin')) {
-            Config::set('filesystems.disks.admin', [
-                'driver' => 'admin-local',
-                'root' => storage_path('app/admin'),
-                'url' => env('APP_URL').'/'.env('ADMIN_ROUTE_PREFIX'),
-            ]);
-        }
-        if (!Config::has('filesystems.disks.backup')) {
-            Config::set('filesystems.disks.backup', [
-                'driver' => 'local',
-                'root' => storage_path('app/backup'),
-            ]);
-        }
-
-        Config::set('database.mysql.strict', false);
-        Config::set('filesystems.disks.options', [
-            PDO::ATTR_CASE => PDO::CASE_LOWER,
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
-            PDO::ATTR_STRINGIFY_FETCHES => true,
-            PDO::ATTR_EMULATE_PREPARES => true,
-            PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-        ]);
+        \Exceedone\Exment\Middleware\Initialize::initializeConfig();
     }
 }

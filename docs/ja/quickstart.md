@@ -4,7 +4,8 @@ Exmentを開始するために必要となる手順です。
 ※MySQLは、json型に対応している5.7以上でのみご利用可能です。
 
 ## Laravelインストール(プロジェクト作成)
-- コマンドラインで、以下のコマンドを実行します。
+- コマンドラインで、以下のコマンドを実行します。  
+※作成したプロジェクトのフォルダを、このマニュアルでは「ルートディレクトリ」と呼びます。
 
 ~~~
 composer create-project "laravel/laravel=5.5.*" (プロジェクト名)
@@ -95,12 +96,13 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ~~~ php
     'auth' => [
-        'guards' => [
+        'providers' => [
             'admin' => [
-                'driver'   => 'session',
-                // 変更
-                // 'provider' => 'admin', 
-                'provider' => 'exment-auth', 
+                // Exment Edit------s
+                // 'driver' => 'eloquent',
+                //'model'  => Encore\Admin\Auth\Database\Administrator::class,
+                'driver' => 'exment-auth',
+                // Exment Edit------e
             ],
         ],  
     ],
@@ -125,3 +127,9 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 ~~~
 php artisan exment:install
 ~~~
+
+## その他の初期設定
+以上の作業で、Exmentを開始することは可能ですが、一部の機能を使うために、追加で設定が必要になる場合があります。  
+以下のリンクをご確認ください。  
+- [シングルサインオン](quickstart_more.md#シングルサインオン)
+- [タスクスケジュール機能](quickstart_more.md#タスクスケジュール機能)

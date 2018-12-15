@@ -125,7 +125,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         // update user info
         $exment_user->setValue([
-            'user_name' => $provider_user->name
+            'user_name' => $provider_user->name ?: $provider_user->email
         ]);
         $exment_user->save();
 
@@ -181,15 +181,15 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 $stream = $socialiteProvider->getAvatar($provider_user->token);
             }
             // if user obj has avatar, download avatar.
-            else if(isset($provider_user)){
+            else if(isset($provider_user->avatar)){
                 $client = new \GuzzleHttp\Client();
-                $response = $client->request('GET', $avatar, [
+                $response = $client->request('GET', $provider_user->avatar, [
                     'http_errors' => false,
                 ]);
                 $stream = $response->getBody()->getContents();
             }
             // file upload.
-            if($stream != null){
+            if(isset($stream)){
                 $file = ExmentFile::put(path_join("avatar", $provider_user->id), $stream, true);
                 return $file->path;
             }

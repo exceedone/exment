@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use \Html;
+use PDO;
 
 class Initialize
 {
@@ -24,6 +25,85 @@ class Initialize
         elseif ($this->shouldPassThrough($request) && $initialized) {
             return redirect()->guest(admin_base_path('auth/login'));
         }
+
+        static::initializeConfig();
+
+        return $next($request);
+    }
+
+    /**
+     * Determine if the request has a URI that should pass through verification.
+     *
+     * @param \Illuminate\Http\Request $request
+     *
+     * @return bool
+     */
+    protected function shouldPassThrough($request)
+    {
+        $excepts = [
+            //admin_base_path('auth/login'),
+            //admin_base_path('auth/logout'),
+            admin_base_path('initialize')
+        ];
+
+        foreach ($excepts as $except) {
+            if ($except !== '/') {
+                $except = trim($except, '/');
+            }
+
+            if ($request->is($except)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static function initializeConfig()
+    {
+        ///// set config
+        if (!Config::has('auth.passwords.exment_admins')) {
+            Config::set('auth.passwords.exment_admins', [
+                'provider' => 'exment-auth',
+                'table' => 'password_resets',
+                'expire' => 720,
+            ]);
+        }
+        if (!Config::has('auth.providers.exment-auth')) {
+            Config::set('auth.providers.exment-auth', [
+                'driver' => 'eloquent',
+                'model' => \Exceedone\Exment\Model\LoginUser::class,
+            ]);
+        }
+        Config::set('auth.defaults.guard', 'admin');
+        Config::set('auth.guards.adminapi', [
+            'driver' => 'passport',
+            'provider' => 'exment-auth',
+        ]);
+    
+        if (!Config::has('filesystems.disks.admin')) {
+            Config::set('filesystems.disks.admin', [
+                'driver' => 'admin-local',
+                'root' => storage_path('app/admin'),
+                'url' => env('APP_URL').'/'.env('ADMIN_ROUTE_PREFIX'),
+            ]);
+        }
+        if (!Config::has('filesystems.disks.backup')) {
+            Config::set('filesystems.disks.backup', [
+                'driver' => 'local',
+                'root' => storage_path('app/backup'),
+            ]);
+        }
+
+        Config::set('database.mysql.strict', false);
+        Config::set('filesystems.disks.options', [
+            PDO::ATTR_CASE => PDO::CASE_LOWER,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+            PDO::ATTR_STRINGIFY_FETCHES => true,
+            PDO::ATTR_EMULATE_PREPARES => true,
+            PDO::MYSQL_ATTR_LOCAL_INFILE => true,
+        ]);
 
         // Set system setting to config --------------------------------------------------
         // Site Name
@@ -72,34 +152,5 @@ class Initialize
         Config::set('admin.show_version', false);
         Config::set('admin.show_environment', false);
 
-        return $next($request);
-    }
-
-    /**
-     * Determine if the request has a URI that should pass through verification.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return bool
-     */
-    protected function shouldPassThrough($request)
-    {
-        $excepts = [
-            //admin_base_path('auth/login'),
-            //admin_base_path('auth/logout'),
-            admin_base_path('initialize')
-        ];
-
-        foreach ($excepts as $except) {
-            if ($except !== '/') {
-                $except = trim($except, '/');
-            }
-
-            if ($request->is($except)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
