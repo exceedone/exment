@@ -59,7 +59,7 @@ class Initialize
         return false;
     }
 
-    public static function initializeConfig()
+    public static function initializeConfig($setDatabase = true)
     {
         ///// set config
         if (!Config::has('auth.passwords.exment_admins')) {
@@ -105,52 +105,53 @@ class Initialize
             PDO::MYSQL_ATTR_LOCAL_INFILE => true,
         ]);
 
-        // Set system setting to config --------------------------------------------------
-        // Site Name
-        $val = System::site_name();
-        if (isset($val)) {
-            Config::set('admin.name', $val);
-            Config::set('admin.title', $val);
-        }
-
-        // Logo
-        $val = System::site_logo();
-        if (isset($val)) {
-            Config::set('admin.logo', Html::image($val, 'header logo'));
-        } else {
-            $val = System::site_name();
-            if (isset($val)) {
-                Config::set('admin.logo', esc_html($val));
-            }
-        }
-
-        // Logo(Short)
-        $val = System::site_logo_mini();
-        if (isset($val)) {
-            Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
-        } else {
-            $val = System::site_name_short();
-            if (isset($val)) {
-                Config::set('admin.logo-mini', esc_html($val));
-            }
-        }
-
-        // Site Skin
-        $val = System::site_skin();
-        if (isset($val)) {
-            Config::set('admin.skin', esc_html($val));
-        }
-        // Site layout
-        $val = System::site_layout();
-        if (isset($val)) {
-            Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
-        }
-
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
         Config::set('admin.enable_default_breadcrumb', false);
         Config::set('admin.show_version', false);
         Config::set('admin.show_environment', false);
 
+        if ($setDatabase) {
+            // Set system setting to config --------------------------------------------------
+            // Site Name
+            $val = System::site_name();
+            if (isset($val)) {
+                Config::set('admin.name', $val);
+                Config::set('admin.title', $val);
+            }
+
+            // Logo
+            $val = System::site_logo();
+            if (isset($val)) {
+                Config::set('admin.logo', Html::image($val, 'header logo'));
+            } else {
+                $val = System::site_name();
+                if (isset($val)) {
+                    Config::set('admin.logo', esc_html($val));
+                }
+            }
+
+            // Logo(Short)
+            $val = System::site_logo_mini();
+            if (isset($val)) {
+                Config::set('admin.logo-mini', Html::image($val, 'header logo mini'));
+            } else {
+                $val = System::site_name_short();
+                if (isset($val)) {
+                    Config::set('admin.logo-mini', esc_html($val));
+                }
+            }
+
+            // Site Skin
+            $val = System::site_skin();
+            if (isset($val)) {
+                Config::set('admin.skin', esc_html($val));
+            }
+            // Site layout
+            $val = System::site_layout();
+            if (isset($val)) {
+                Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
+            }
+        }
     }
 }

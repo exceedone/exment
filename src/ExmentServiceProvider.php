@@ -221,6 +221,6 @@ class ExmentServiceProvider extends ServiceProvider
             return new Filesystem(new AdminLocal(array_get($config, 'root')));
         });
 
-        \Exceedone\Exment\Middleware\Initialize::initializeConfig();
+        \Exceedone\Exment\Middleware\Initialize::initializeConfig(false);
     }
 }
