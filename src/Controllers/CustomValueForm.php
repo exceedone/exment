@@ -581,7 +581,7 @@ EOT;
                     }
                     // add array. key is column name.
                     $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_base_paths('webapi', $relation->parent_custom_table->table_name, 'relatedLinkage'),
+                        'url' => admin_base_paths('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
                         'expand' => ['child_table_id' => $relation->child_custom_table_id],
                         'to' => array_get($c, 'column_name'),
                     ];

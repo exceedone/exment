@@ -209,7 +209,7 @@ var Exment;
                             }
                         });
                         $.ajax({
-                            url: admin_base_path(URLJoin('webapi', table_name, value)),
+                            url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
                             type: 'POST',
                             context: {
                                 data: target_table_data,
@@ -520,7 +520,7 @@ var Exment;
             }
             else {
                 $.ajax({
-                    url: admin_base_path(URLJoin('webapi', table_name, value)),
+                    url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
                     type: 'POST',
                     context: context
                 })
