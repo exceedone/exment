@@ -61,37 +61,6 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ## config変更
 
-- "config\database.php"を開き、 キー "mysql" の値を以下のように修正します。
-
-~~~ php
-'mysql' => [
-    'driver' => 'mysql',
-    'host' => env('DB_HOST', '127.0.0.1'),
-    'port' => env('DB_PORT', '3306'),
-    'database' => env('DB_DATABASE', 'forge'),
-    'username' => env('DB_USERNAME', 'forge'),
-    'password' => env('DB_PASSWORD', ''),
-    'unix_socket' => env('DB_SOCKET', ''),
-    'charset' => 'utf8mb4',
-    'collation' => 'utf8mb4_unicode_ci',
-    'prefix' => '',
-    // Exment Edit------s
-    //'strict' => true,
-    'strict'    => false,
-    'options'   => [
-        PDO::ATTR_CASE => PDO::CASE_LOWER,
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
-        PDO::ATTR_STRINGIFY_FETCHES => true,
-        PDO::ATTR_EMULATE_PREPARES => true,
-        PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-    ],
-    // Exment Edit------e
-    'engine' => null,
-],
-
-~~~
-
 - "config\admin.php"を開き、 キー "auth.guards.admin.provider" を以下のように修正します。
 
 ~~~ php
