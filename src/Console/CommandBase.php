@@ -13,5 +13,6 @@ abstract class CommandBase extends Command
     public function handle()
     {
         \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        \Exceedone\Exment\Middleware\Initialize::initializeConfig(false);
     }
 }

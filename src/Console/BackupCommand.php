@@ -14,7 +14,7 @@ class BackupCommand extends CommandBase
      *
      * @var string
      */
-    protected $signature = 'exment:backup {--target=?}';
+    protected $signature = 'exment:backup {--target=}';
 
     /**
      * The console command description.
@@ -61,8 +61,11 @@ class BackupCommand extends CommandBase
      */
     public function handle()
     {
+        parent::handle();
+
         $this->starttime = date('YmdHis');
 
+        \Log::debug($this->option("target"));
         $target = $this->option("target") ?? BackupTarget::arrays();
 
         if(is_string($target)){

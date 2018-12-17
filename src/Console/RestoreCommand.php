@@ -38,6 +38,8 @@ class RestoreCommand extends CommandBase
      */
     public function handle()
     {
+        parent::handle();
+
         $file = $this->argument("file");
 
         // unzip backup file

@@ -35,8 +35,12 @@ class InstallCommand extends AdminInstallCommand
      */
     public function handle()
     {
+        parent::handle();
+
         $this->initDatabase();
         $this->initAdminDirectory();
+
+        $this->call('passport:keys');
     }
 
     /**
