@@ -43,11 +43,11 @@ var Exment;
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
                         $(".modal").off("hidden.bs.modal");
-                        this.redirectCallback(res);
+                        CommonEvent.redirectCallback(res);
                     });
                 }
                 else {
-                    this.redirectCallback(res);
+                    CommonEvent.redirectCallback(res);
                 }
                 // show toastr
                 if (hasValue(res.toastr)) {

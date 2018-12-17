@@ -95,8 +95,8 @@ class Initialize
             ]);
         }
 
-        Config::set('database.mysql.strict', false);
-        Config::set('filesystems.disks.options', [
+        Config::set('database.connections.mysql.strict', false);
+        Config::set('database.connections.mysql.options', [
             PDO::ATTR_CASE => PDO::CASE_LOWER,
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
