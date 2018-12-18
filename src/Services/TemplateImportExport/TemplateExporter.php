@@ -205,7 +205,7 @@ class TemplateExporter
                             if (array_get($custom_form_column, 'form_column_type') == CustomFormColumnType::COLUMN) {
                                 $custom_form_column['form_column_target_name'] = CustomColumn::find($form_column_target_id)->column_name;
                             } else {
-                                $form_column_target_name = collect(CustomFormColumnType::OTHER_TYPE)->first(function ($item) use ($form_column_target_id) {
+                                $form_column_target_name = collect(CustomFormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_target_id) {
                                     return $item['id'] == $form_column_target_id;
                                 });
                                 $custom_form_column['form_column_target_name'] = isset($form_column_target_name) ? array_get($form_column_target_name, 'column_name') : null;

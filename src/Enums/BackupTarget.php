@@ -13,11 +13,11 @@ class BackupTarget extends EnumBase
     public static function dir($target){
         switch($target){
             case static::PLUGIN:
-                return "app\Plugins";
+                return path_join("app", "Plugins");
             case static::ATTACHMENT:
-                return "storage\app\admin";
+                return path_join("storage", "app", "admin");
             case static::LOG:
-                return "storage\logs";
+                return path_join("storage", "logs");
             case static::CONFIG:
                 return "config";
         }

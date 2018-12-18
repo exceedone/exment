@@ -65,7 +65,6 @@ class BackupCommand extends CommandBase
 
         $this->starttime = date('YmdHis');
 
-        \Log::debug($this->option("target"));
         $target = $this->option("target") ?? BackupTarget::arrays();
 
         if(is_string($target)){
@@ -99,8 +98,8 @@ class BackupCommand extends CommandBase
      * export table definition and table data
      * 
      */
-    private function backupTables() {
-
+    private function backupTables() 
+    {
         // export table definition
         $this->dumpDatabase();
 
@@ -132,7 +131,7 @@ class BackupCommand extends CommandBase
     private function backupTable($table)
     {
         // create tsv file
-        $file = new \SplFileObject($this->tempdir.$table.'.tsv', 'w');
+        $file = new \SplFileObject(path_join($this->tempdir, $table.'.tsv'), 'w');
         $file->setCsvControl("\t");
 
         // get column definition
@@ -167,11 +166,10 @@ class BackupCommand extends CommandBase
      */
     private function getBackupPath()
     {
-        $ds = DIRECTORY_SEPARATOR;
         // edit temporary folder path for store archive file 
-        $this->tempdir = storage_path('app/backup'.$ds.'tmp'.$ds.$this->starttime.$ds);
+        $this->tempdir = storage_paths('app','backup','tmp', $this->starttime);
         // edit zip folder path 
-        $this->listdir = storage_path('app/backup'.$ds.'list'.$ds);
+        $this->listdir = storage_paths('app', 'backup', 'list');
         // create temporary folder if not exists
         if (!is_dir($this->tempdir)) {
             mkdir($this->tempdir, 0755, true);
@@ -203,6 +201,7 @@ class BackupCommand extends CommandBase
             foreach($settings as $setting) {
                 $from = base_path($setting);
                 $to = path_join($this->tempdir, $setting);
+                
                 $success = \File::copyDirectory($from, $to);
 
                 if (!$success) {
@@ -223,7 +222,7 @@ class BackupCommand extends CommandBase
 
         // open new zip file
         $zip = new \ZipArchive();
-        $res = $zip->open($this->listdir.$filename, \ZipArchive::CREATE);
+        $res = $zip->open(path_join($this->listdir, $filename), \ZipArchive::CREATE);
 
         if ($res === TRUE) {
             // iterator all files in folder
@@ -246,24 +245,22 @@ class BackupCommand extends CommandBase
      */
     private function dumpDatabase($table=null)
     {
-
-        $ds = DIRECTORY_SEPARATOR;
         // get table connect info
-        $host = env('DB_HOST');
-        $username = env('DB_USERNAME');
-        $password = env('DB_PASSWORD');
-        $database = env('DB_DATABASE');
-        $dbport = env('DB_PORT');
+        $host = config('database.connections.mysql.host', '');
+        $username = config('database.connections.mysql.username', '');
+        $password = config('database.connections.mysql.password', '');
+        $database = config('database.connections.mysql.database', '');
+        $dbport = config('database.connections.mysql.port', '');
 
         $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
         $command = sprintf('%s -h %s -u %s --password=%s -P %s', 
             $mysqldump, $host, $username, $password, $dbport);
 
         if ($table == null) {
-            $file = $this->tempdir . config('exment.backup_info.def_file', 'table_definition.sql');
+            $file = path_join($this->tempdir , config('exment.backup_info.def_file', 'table_definition.sql'));
             $command = sprintf('%s -d %s > %s', $command, $database, $file);
         } else {
-            $file = sprintf('%s%s.sql', $this->tempdir, $table);
+            $file = sprintf('%s.sql', path_join($this->tempdir, $table));
             $command = sprintf('%s -t %s %s > %s', $command, $database, $table, $file);
         }
 

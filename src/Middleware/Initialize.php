@@ -80,6 +80,11 @@ class Initialize
             'driver' => 'passport',
             'provider' => 'exment-auth',
         ]);
+        // TODO:need.why??
+        Config::set('auth.guards.api', [
+            'driver' => 'passport',
+            'provider' => 'exment-auth',
+        ]);
     
         if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [

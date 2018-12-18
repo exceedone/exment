@@ -241,7 +241,7 @@ EOT;
                     break;
                 case CustomFormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE, $form_column->form_column_target_id);
+                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
                     switch (array_get($form_column_obj, 'column_name')) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
@@ -303,7 +303,7 @@ EOT;
                     break;
                 case CustomFormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE, $form_column->form_column_target_id);
+                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
                     switch (array_get($form_column_obj, 'column_name')) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));

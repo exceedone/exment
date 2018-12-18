@@ -476,6 +476,10 @@ trait CustomValueTrait
             }
             $labels[] = $label;
         }
+        if(count($labels) == 0){
+            return strval($this->id);
+        }
+
         return implode(' ', $labels);
     }
 

@@ -139,6 +139,8 @@ class BackupController extends AdminControllerBase
      */
     protected function import(Request $request)
     {
+        set_time_limit(240);
+
         if ($request->has('upload_zipfile')) {
             // get upload file
             $file = $request->file('upload_zipfile');
@@ -206,6 +208,7 @@ class BackupController extends AdminControllerBase
      */
     public function save(Request $request)
     {
+        set_time_limit(240);
         $data = $request->all();
 
         $target = System::backup_target();

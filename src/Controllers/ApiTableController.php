@@ -199,7 +199,4 @@ class ApiTableController extends AdminControllerTableBase
             return $columns->getIndexColumnName();
         })->toArray();
     }
-
-    protected function user(){
-    }
 }
