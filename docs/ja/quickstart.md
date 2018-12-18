@@ -8,7 +8,7 @@ Exmentを開始するために必要となる手順です。
 ※作成したプロジェクトのフォルダを、このマニュアルでは「ルートディレクトリ」と呼びます。
 
 ~~~
-composer create-project "laravel/laravel=5.5.*" (プロジェクト名)
+composer create-project "laravel/laravel=5.6.*" (プロジェクト名)
 cd (プロジェクト名)
 ~~~
 
@@ -51,7 +51,6 @@ EXMENT_API=true #外部APIを使用する場合にtrueに追加
 - 以下のコマンドを実行します。
 
 ~~~
-composer require paragonie/random_compat=^2.0
 composer require exceedone/exment
 php artisan vendor:publish --provider="Encore\Admin\AdminServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
