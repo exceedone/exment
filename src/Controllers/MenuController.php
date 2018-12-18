@@ -145,13 +145,13 @@ class MenuController extends AdminControllerBase
         $contoller = $this;
         $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
         $form->select('menu_type', exmtrans("menu.menu_type"))->options(MenuType::trans("menu.menu_type_options"))
-            ->load('menu_target', admin_base_path('api/menu/menutype'))
+            ->load('menu_target', admin_base_path('webapi/menu/menutype'))
             ->required();
 
         $form->select('menu_target', exmtrans("menu.menu_target"))
             ->attribute(['data-changedata' => json_encode(
                 ['getitem' =>
-                    [  'uri' => admin_base_path('api/menu/menutargetvalue')
+                    [  'uri' => admin_base_path('webapi/menu/menutargetvalue')
                        , 'key' => ['menu_type']
                     ]
                 ]

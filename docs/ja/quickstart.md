@@ -4,7 +4,8 @@ Exmentを開始するために必要となる手順です。
 ※MySQLは、json型に対応している5.7以上でのみご利用可能です。
 
 ## Laravelインストール(プロジェクト作成)
-- コマンドラインで、以下のコマンドを実行します。
+- コマンドラインで、以下のコマンドを実行します。  
+※作成したプロジェクトのフォルダを、このマニュアルでは「ルートディレクトリ」と呼びます。
 
 ~~~
 composer create-project "laravel/laravel=5.5.*" (プロジェクト名)
@@ -60,37 +61,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ## config変更
 
-- "config\database.php"を開き、 キー "mysql" の値を以下のように修正します。
-
-~~~ php
-'mysql' => [
-    'driver' => 'mysql',
-    'host' => env('DB_HOST', '127.0.0.1'),
-    'port' => env('DB_PORT', '3306'),
-    'database' => env('DB_DATABASE', 'forge'),
-    'username' => env('DB_USERNAME', 'forge'),
-    'password' => env('DB_PASSWORD', ''),
-    'unix_socket' => env('DB_SOCKET', ''),
-    'charset' => 'utf8mb4',
-    'collation' => 'utf8mb4_unicode_ci',
-    'prefix' => '',
-    // Exment Edit------s
-    //'strict' => true,
-    'strict'    => false,
-    'options'   => [
-        PDO::ATTR_CASE => PDO::CASE_LOWER,
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
-        PDO::ATTR_STRINGIFY_FETCHES => true,
-        PDO::ATTR_EMULATE_PREPARES => true,
-    ],
-    // Exment Edit------e
-    'engine' => null,
-],
-
-~~~
-
-- "config\admin.php"を開き、 キー "auth.providers.admin" を以下のように修正します。
+- "config\admin.php"を開き、 キー "auth.guards.admin.provider" を以下のように修正します。
 
 ~~~ php
     'auth' => [
@@ -125,3 +96,9 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 ~~~
 php artisan exment:install
 ~~~
+
+## その他の初期設定
+以上の作業で、Exmentを開始することは可能ですが、一部の機能を使うために、追加で設定が必要になる場合があります。  
+以下のリンクをご確認ください。  
+- [シングルサインオン](quickstart_more.md#シングルサインオン)
+- [タスクスケジュール機能](quickstart_more.md#タスクスケジュール機能)

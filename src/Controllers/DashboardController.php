@@ -161,6 +161,8 @@ class DashboardController extends AdminControllerBase
                     target.find('.box-body .box-body-inner').html(html);
                     target.find('.overlay').hide();
                     target.removeClass('loading');
+
+                    Exment.CommonEvent.tableHoverLink();
                 },
             });
         }

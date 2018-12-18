@@ -233,7 +233,7 @@ class CustomFormController extends AdminControllerTableBase
                         break;
                     default:
                         // get column name
-                        $column_form_column_array = array_get(CustomFormColumnType::OTHER_TYPE, array_get($custom_form_column, 'form_column_target_id'));
+                        $column_form_column_array = array_get(CustomFormColumnType::OTHER_TYPE(), array_get($custom_form_column, 'form_column_target_id'));
                         $column_form_column_name = array_get($column_form_column_array, 'column_name');
                         $column_view_name = exmtrans("custom_form.form_column_type_other_options.$column_form_column_name");
                         break;

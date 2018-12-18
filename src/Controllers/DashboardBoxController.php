@@ -115,7 +115,9 @@ class DashboardBoxController extends AdminControllerBase
 
                     // get widget table
                     list($headers, $bodies) = $view->getDataTable($datalist);
-                    $widgetTable = new WidgetTable($headers, $bodies);
+                    $table = new WidgetTable($headers, $bodies);
+                    $table->class('table table-hover');
+                    $widgetTable = $table;
 
                     $html = view('exment::dashboard.list.header', [
                         'new_url' => admin_base_path("data/{$table->table_name}/create")

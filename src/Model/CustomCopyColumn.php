@@ -13,11 +13,11 @@ class CustomCopyColumn extends ModelBase
     
     public function from_custom_column()
     {
-        return $this->belongsTo(CustomColumn::class, 'from_custom_column_id');
+        return $this->belongsTo(CustomColumn::class, 'from_custom_column_target');
     }
     
     public function to_custom_column()
     {
-        return $this->belongsTo(CustomColumn::class, 'to_custom_column_id');
+        return $this->belongsTo(CustomColumn::class, 'to_custom_column_target');
     }
 }

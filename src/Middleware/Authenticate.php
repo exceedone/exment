@@ -18,12 +18,14 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        $redirect = redirect()->guest(admin_base_path('auth/login'));
-        if (Auth::guard('admin')->guest() && !$this->shouldPassThrough($request)) {
-            return $redirect;
+        $shouldPassThrough = $this->shouldPassThrough($request);
+        if($shouldPassThrough){
+            return $next($request);
         }
-        if(is_null(Admin::user()) || is_null(Admin::user()->base_user)){
-            return $redirect;
+
+        $user = \Admin::user();
+        if(is_null($user) || is_null($user->base_user)){
+            return redirect()->guest(admin_base_path('auth/login'));
         }
 
         return $next($request);

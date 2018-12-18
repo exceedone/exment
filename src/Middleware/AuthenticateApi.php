@@ -17,22 +17,11 @@ class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        if (Auth::guard('admin_api')->guest() && !$this->shouldPassThrough($request)) {
-            abort(403);
+        $user = \Exment::user();
+        if(is_null($user) || is_null($user->base_user)){
+            abort(401);
         }
 
         return $next($request);
-    }
-
-    /**
-     * Determine if the request has a URI that should pass through verification.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return bool
-     */
-    protected function shouldPassThrough($request)
-    {
-        return false;
     }
 }

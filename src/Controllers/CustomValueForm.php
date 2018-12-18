@@ -241,7 +241,7 @@ EOT;
                     break;
                 case CustomFormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE, $form_column->form_column_target_id);
+                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
                     switch (array_get($form_column_obj, 'column_name')) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
@@ -303,7 +303,7 @@ EOT;
                     break;
                 case CustomFormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE, $form_column->form_column_target_id);
+                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
                     switch (array_get($form_column_obj, 'column_name')) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
@@ -581,7 +581,7 @@ EOT;
                     }
                     // add array. key is column name.
                     $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_base_paths('api', $relation->parent_custom_table->table_name, 'relatedLinkage'),
+                        'url' => admin_base_paths('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
                         'expand' => ['child_table_id' => $relation->child_custom_table_id],
                         'to' => array_get($c, 'column_name'),
                     ];
