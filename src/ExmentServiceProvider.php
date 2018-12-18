@@ -98,7 +98,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->registerPolicies();
 
-        // $this->bootPlugin();
+        $this->bootPlugin();
     }
 
     /**
@@ -120,7 +120,6 @@ class ExmentServiceProvider extends ServiceProvider
             app('router')->middlewareGroup($key, $middleware);
         }
     }
-
 
     protected function publish(){
         $this->mergeConfigFrom(
@@ -187,15 +186,10 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected function getPluginActivate($pluginName)
     {
-        if (!Schema::hasTable(Plugin::getTableName())) {
-            return false;
-        }
-
         $plugin = Plugin
-            ::where('active_flg', '=', 1)
-            ->where('plugin_type', '=', 'page')
-            //->where('plugin_name', '=', $pluginName)
-            ->where('options->uri', '=', $pluginName)
+            ::where('active_flg', 1)
+            ->where('plugin_type', 'page')
+            ->where('options->uri', $pluginName)
             ->first();
 
         if ($plugin !== null) {

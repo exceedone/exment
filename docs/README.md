@@ -3,6 +3,9 @@
 <img src="https://exment.net/docs/img/common/exment_logo_side.png" alt="Exment">
 </p>
 
+## CAUTION
+**Sorry, we create and update manual as Japanese version, so English version is so old.**
+
 ## What is Exment?
 Exment is open source software for managing information assets on the Web.  
 
@@ -40,9 +43,11 @@ Exment is open source software for managing information assets on the Web.
 
 ## Operating environment
 ### Server
-- PHP 7.0 or higher
-- MySQL 5.7 or later
-- Laravel 5.5
+- PHP 7.1.3 or higher
+- MySQL 5.7 or higher
+- Laravel 5.6 or higher
+
+*We updated Laravel 5.5 to 5.6, so updated PHP 7.1.3.
 
 ### Verification Browser
 - Google Chrome
