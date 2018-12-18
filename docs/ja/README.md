@@ -24,10 +24,11 @@ Exmentは、情報資産をWeb上で管理するための、オープンソー�
 - メニュー構成管理
 - 検索（フリーワード検索、情報に関連する単語の検索）
 - メールテンプレート
-
-## 機能(開発予定)
 - プラグイン（独自のページや機能を作成）
 - 資料作成(見積書や請求書を画面から作成)
+- API（他のシステムなどからデータ連携）
+
+## 機能(開発予定)
 - 集計処理
 
 ## スクリーンショット
@@ -40,9 +41,12 @@ Exmentは、情報資産をWeb上で管理するための、オープンソー�
 
 ## 動作環境
 ### サーバー
-- PHP 7.0以上
+- PHP 7.1.3以上
 - MySQL 5.7以上
-- Laravel5.5
+- Laravel5.6以上
+
+※Laravel5.5から5.6に変更を行いました。それに伴い、対象のPHPバージョンを7.1.3に変更しております。
+
 
 ### 動作確認ブラウザ
 - Google Chrome
@@ -52,6 +56,7 @@ Exmentは、情報資産をWeb上で管理するための、オープンソー�
 Exmentは、以下のプラグイン・サービスなどを利用しております。
 + [Laravel](https://laravel.com/)
 + [laravel-admin](http://laravel-admin.org/)
++ [Laravel Passport](https://github.com/laravel/passport)
 + [FPDI](https://www.setasign.com/products/fpdi/about)
 + [TCPDF](https://tcpdf.org/)
 + [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
