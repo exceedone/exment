@@ -196,4 +196,6 @@ class Define
         'custom_copy_columns',
         'admin_menu',
     ];
+
+    public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
 }

@@ -35,7 +35,8 @@ class InstallCommand extends AdminInstallCommand
      */
     public function handle()
     {
-        parent::handle();
+        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
+        \Exceedone\Exment\Middleware\Initialize::initializeConfig(false);
 
         $this->initDatabase();
         $this->initAdminDirectory();

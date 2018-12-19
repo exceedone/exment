@@ -75,9 +75,9 @@ class AuthorityController extends AdminControllerBase
         if (isset($id)) {
             $authority_type = Authority::find($id)->authority_type;
         } else {
-            $authority_type = \Illuminate\Support\Facades\Request::get('authority_type');
+            $authority_type = app('request')->get('authority_type');
             if (!isset($authority_type)) {
-                $authority_type = \Illuminate\Support\Facades\Request::query('authority_type');
+                $authority_type = app('request')->query('authority_type');
             }
         }
         $form->hidden('authority_type')->default($authority_type);

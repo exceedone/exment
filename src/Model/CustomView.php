@@ -5,9 +5,6 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Column as GridColumn;
 use Encore\Admin\Facades\Admin;
-use Exceedone\Exment\Enums\ViewColumnType;
-use Exceedone\Exment\Enums\ViewColumnSort;
-use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -25,6 +22,9 @@ use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ViewColumnSort;
+use Exceedone\Exment\Enums\UserSetting;
 use Carbon\Carbon;
 
 
@@ -96,7 +96,9 @@ class CustomView extends ModelBase
             // if tagret is number, column type is column.
             if ($view_column_type == Enums\ViewColumnType::COLUMN) {
                 $column = $custom_view_column->custom_column;
-                if(!isset($column)){continue;}
+                if(!isset($column)){
+                    continue;
+                }
                 //$column_name = $column->getIndexColumnName();
                 $column_name = array_get($column, 'column_name');
                 $column_type = array_get($column, 'column_type');
@@ -118,9 +120,12 @@ class CustomView extends ModelBase
                 // get parent data
                 $relation = CustomRelation::getRelationByChild($this->custom_table);
                 if (isset($relation)) {
-                    $grid->column(ViewColumnType::PARENT_ID, $relation->parent_custom_table->table_view_name)
+                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
                         ->sortable()
                         ->display(function ($value) {
+                            if(is_null($value)){
+                                return null;
+                            }
                             // get parent_type
                             $parent_type = $this->parent_type;
                             if (is_null($parent_type)) {
@@ -338,8 +343,11 @@ class CustomView extends ModelBase
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
-            if (is_numeric($view_column_target)) {
+            if ($filter->column_view_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
+            }elseif($filter->column_view_type == ViewColumnType::PARENT_ID) {
+                //TODO: set as 1:n. develop as n:n
+                $view_column_target = 'parent_id';
             }
             $condition_value_text = $filter->view_filter_condition_value_text;
             $view_filter_condition = $filter->view_filter_condition;
@@ -464,7 +472,6 @@ class CustomView extends ModelBase
                     break;
                 case ViewColumnFilterOption::USER_NE_USER:
                     $model = $model->where($view_column_target, '<>', Admin::user()->base_user()->id);
-                       
             }
         }
 

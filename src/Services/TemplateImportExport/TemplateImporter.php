@@ -835,9 +835,10 @@ class TemplateImporter
                         foreach (array_get($view, "custom_view_filters") as $view_filter) {
                             // if not set filter_target id, continue
                             $view_column_target = static::getColumnIdOrName(
-                                array_get($view_filter, "view_column_target_type"), 
+                                array_get($view_filter, "view_column_type"), 
                                 array_get($view_filter, "view_column_target_name"), 
-                                $table
+                                $table,
+                                true
                             );
 
                             if (!isset($view_column_target)) {
@@ -846,7 +847,8 @@ class TemplateImporter
 
                             $obj_view_filter = CustomviewFilter::firstOrNew([
                                 'custom_view_id' => $obj_view->id,
-                                'view_column_target' => $view_column_target,
+                                'view_column_type' => array_get($view_filter, "view_column_type"),
+                                'view_column_target_id' => $view_column_target,
                                 'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
                             ]);
                             $obj_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
@@ -857,7 +859,12 @@ class TemplateImporter
                     // create view sorts --------------------------------------------------
                     if (array_key_exists('custom_view_sorts', $view)) {
                         foreach (array_get($view, "custom_view_sorts") as $view_column) {
-                            $view_column_target = static::getColumnIdOrName(array_get($view_column, "view_column_type"), array_get($view_column, "view_column_target_name"), $table);
+                            $view_column_target = static::getColumnIdOrName(
+                                array_get($view_column, "view_column_type"), 
+                                array_get($view_column, "view_column_target_name"), 
+                                $table,
+                                true
+                            );
                             // if not set filter_target id, continue
                             if (!isset($view_column_target)) {
                                 continue;
@@ -865,7 +872,8 @@ class TemplateImporter
 
                             $obj_view_sort = CustomviewSort::firstOrNew([
                                 'custom_view_id' => $obj_view->id,
-                                'view_column_target' => $view_column_target,
+                                'view_column_type' => array_get($view_column, "view_column_type"),
+                                'view_column_target_id' => $view_column_target,
                             ]);
                             
                             $obj_view_sort->sort = array_get($view_column, "sort", 1);
@@ -916,14 +924,16 @@ class TemplateImporter
                             // $to_column_target = CustomColumn::getEloquent(array_get($copy_column, "to_custom_column_name"), $to_table)->id ?? null;
 
                             $from_column_target = static::getColumnIdOrName(
-                                array_get($copy_column, "from_custom_column_type"), 
-                                array_get($copy_column, "from_custom_column_name"), 
-                                $from_table
+                                array_get($copy_column, "from_column_type"), 
+                                array_get($copy_column, "from_column_name"), 
+                                $from_table,
+                                true
                             );
                             $to_column_target = static::getColumnIdOrName(
-                                array_get($copy_column, "to_custom_column_type"), 
-                                array_get($copy_column, "to_custom_column_name"), 
-                                $to_table
+                                array_get($copy_column, "to_column_type"), 
+                                array_get($copy_column, "to_column_name"), 
+                                $to_table,
+                                true
                             );
 
                             if(is_null($to_column_target)){
@@ -931,8 +941,8 @@ class TemplateImporter
                             }
                             $obj_copy_column = CustomCopyColumn::firstOrNew([
                                 'custom_copy_id' => $obj_copy->id,
-                                'from_custom_column_target' => $from_column_target ?? null,
-                                'to_custom_column_target' => $to_column_target ?? null,
+                                'from_column_target_id' => $from_column_target ?? null,
+                                'to_column_target_id' => $to_column_target ?? null,
                                 'copy_column_type' => array_get($copy_column, "copy_column_type"),
                             ]);
                             $obj_copy_column->saveOrFail();
@@ -1183,16 +1193,11 @@ class TemplateImporter
             case ViewColumnType::COLUMN:
                 // get column name
                 return CustomColumn::getEloquent($column_name, $custom_table)->id ?? null;
-            
-            // for table column
-            case ViewColumnType::PARENT_ID:
-                // get column name
-                return CustomColumn::getEloquent($column_name, $custom_table)->id ?? null;
             // system column
             default:
                 // set parent id
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
-                    return $returnNumber ? null : 'parent_id';
+                    return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
                 } 
                 return collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($column_name) {
                     return $item['name'] == $column_name;

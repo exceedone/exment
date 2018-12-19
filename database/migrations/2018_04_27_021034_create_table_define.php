@@ -332,8 +332,10 @@ class CreateTableDefine extends Migration
         $schema->create('custom_copy_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_copy_id')->unsigned();
-            $table->string('from_custom_column_target')->nullable();
-            $table->string('to_custom_column_target');
+            $table->integer('from_column_type')->nullable();
+            $table->integer('from_column_target_id')->nullable();
+            $table->integer('to_column_type')->default(0);
+            $table->integer('to_column_target_id');
             $table->integer('copy_column_type')->default(0);
             $table->timestamps();
             $table->softDeletes();

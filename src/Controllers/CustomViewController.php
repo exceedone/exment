@@ -218,6 +218,7 @@ class CustomViewController extends AdminControllerTableBase
             switch ($view_column_target) {
                 case 'id':
                 case 'suuid':
+                case 'parent_id':
                     $column_type = ViewColumnFilterType::DEFAULT;
                     break;
                 case 'created_at':
