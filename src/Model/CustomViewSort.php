@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Model;
 class CustomViewSort extends ModelBase
 {
     protected $guarded = ['id'];
+    protected $appends = ['view_column_target'];
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\CustomViewColumnTrait;
 
     public function custom_view()
     {

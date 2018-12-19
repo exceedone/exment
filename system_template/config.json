@@ -408,32 +408,32 @@
 				{
 					"order": "1",
 					"view_column_target_name": "id",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "2",
 					"view_column_target_name": "user_code",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "3",
 					"view_column_target_name": "user_name",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "4",
 					"view_column_target_name": "email",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "96",
 					"view_column_target_name": "created_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "97",
 					"view_column_target_name": "updated_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				}
 			],
 			"custom_view_filters": [],
@@ -446,27 +446,27 @@
 				{
 					"order": "1",
 					"view_column_target_name": "id",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "2",
 					"view_column_target_name": "organization_code",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "3",
 					"view_column_target_name": "organization_name",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "96",
 					"view_column_target_name": "created_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "97",
 					"view_column_target_name": "updated_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				}
 			],
 			"custom_view_filters": [],

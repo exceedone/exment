@@ -447,7 +447,6 @@ return [
         'view_column_target' => 'View Target Column',
         'order' => 'Order',
         'custom_view_filters' => 'View Filter',
-        'view_filter_target' => 'Filter Target Column',
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'default_view_name' => 'Default View',

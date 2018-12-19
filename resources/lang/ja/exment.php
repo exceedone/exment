@@ -506,7 +506,6 @@ return [
         'sort' => '並べ替え',
         'priority' => '優先順位',
         'custom_view_filters' => '表示条件',
-        'view_filter_target' => '対象列',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
         'default_view_name' => '既定のビュー',

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\DB;
+use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomCopy extends ModelBase
@@ -26,13 +27,13 @@ class CustomCopy extends ModelBase
     public function custom_copy_columns()
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
-        ->where('custom_copy_column_type', 'default');
+        ->where('copy_column_type', CopyColumnType::DEFAULT);
     }
 
     public function custom_copy_input_columns()
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
-        ->where('custom_copy_column_type', 'input');
+        ->where('copy_column_type', CopyColumnType::INPUT);
     }
 
     public function getOption($key, $default = null)

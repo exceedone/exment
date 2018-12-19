@@ -4,8 +4,9 @@ namespace Exceedone\Exment\Enums;
 
 class ViewColumnType extends EnumBase
 {
-    const SYSTEM = 'system';
-    const COLUMN = 'column';
+    const COLUMN = 0;
+    const SYSTEM = 1;
+    const PARENT_ID = 2;
 
     public static function SYSTEM_OPTIONS(){
         return [

@@ -794,7 +794,6 @@ if (!function_exists('replaceTextFromFormat')) {
     }
 }
 
-
 // Database Difinition --------------------------------------------------
 
 if (!function_exists('getEndpointTable')) {

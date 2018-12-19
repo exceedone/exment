@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
@@ -114,7 +115,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
-        $form->hidden('view_type')->default('system');
+        $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
@@ -134,7 +135,7 @@ class CustomViewController extends AdminControllerTableBase
 
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
-            $form->select('view_filter_target', exmtrans("custom_view.view_filter_target"))->required()
+            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')])]);
 
@@ -191,17 +192,17 @@ class CustomViewController extends AdminControllerTableBase
      */
     public function getFilterCondition(Request $request)
     {
-        $view_filter_target = $request->get('q');
-        if (!isset($view_filter_target)) {
+        $view_column_target = $request->get('q');
+        if (!isset($view_column_target)) {
             return [];
         }
 
         ///// get column_type
         $column_type = null;
-        // if $view_filter_target is number, get database_column_type
-        if (is_numeric($view_filter_target)) {
+        // if $view_column_target is number, get database_column_type
+        if (is_numeric($view_column_target)) {
             // get column_type
-            $database_column_type = CustomColumn::find($view_filter_target)->column_type;
+            $database_column_type = CustomColumn::find($view_column_target)->column_type;
             switch ($database_column_type) {
                 case 'date':
                 case 'datetime':
@@ -214,7 +215,7 @@ class CustomViewController extends AdminControllerTableBase
                     $column_type = ViewColumnFilterType::DEFAULT;
             }
         } else {
-            switch ($view_filter_target) {
+            switch ($view_column_target) {
                 case 'id':
                 case 'suuid':
                     $column_type = ViewColumnFilterType::DEFAULT;

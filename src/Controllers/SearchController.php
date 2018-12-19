@@ -495,7 +495,7 @@ EOT;
     protected function searchValue($q, $table, $search_columns, $max_count, $isLike = true)
     {
         $data = [];
-        $query = $q . ($isLike ? '%' : '');
+        $query = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         $mark = ($isLike ? 'LIKE' : '=');
         foreach ($search_columns as $search_column) {
             // get data

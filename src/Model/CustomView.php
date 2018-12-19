@@ -6,7 +6,6 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Column as GridColumn;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\ViewColumnType;
-use Exceedone\Exment\Enums\ViewColumnSystem;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
@@ -21,6 +20,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -56,7 +56,6 @@ class CustomView extends ModelBase
         return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
     }
 
-    
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();
@@ -92,9 +91,10 @@ class CustomView extends ModelBase
         // get view columns
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
+            $view_column_type = array_get($custom_view_column, 'view_column_type');
             $view_column_target = array_get($custom_view_column, 'view_column_target');
             // if tagret is number, column type is column.
-            if (is_numeric($view_column_target)) {
+            if ($view_column_type == Enums\ViewColumnType::COLUMN) {
                 $column = $custom_view_column->custom_column;
                 if(!isset($column)){continue;}
                 //$column_name = $column->getIndexColumnName();
@@ -114,11 +114,11 @@ class CustomView extends ModelBase
                 });
             }
             // parent_id
-            elseif ($view_column_target == ViewColumnSystem::PARENT_ID) {
+            elseif ($view_column_type == ViewColumnType::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation::getRelationByChild($this->custom_table);
                 if (isset($relation)) {
-                    $grid->column(ViewColumnSystem::PARENT_ID, $relation->parent_custom_table->table_view_name)
+                    $grid->column(ViewColumnType::PARENT_ID, $relation->parent_custom_table->table_view_name)
                         ->sortable()
                         ->display(function ($value) {
                             // get parent_type
@@ -168,12 +168,12 @@ class CustomView extends ModelBase
         foreach ($custom_view_columns as $custom_view_column) {
             // get column --------------------------------------------------
             // if number, get custom column
-            if (is_numeric($custom_view_column->view_column_target)) {
+            if ($custom_view_column->view_column_target == ViewColumnType::COLUMN) {
                 $custom_column = $custom_view_column->custom_column;
                 if (isset($custom_column)) {
                     $headers[] = $custom_column->column_view_name;
                 }
-            } elseif ($custom_view_column->view_column_target == ViewColumnSystem::PARENT_ID) {
+            } elseif ($custom_view_column->view_column_target == ViewColumnType::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation::getRelationByChild($custom_table);
                 if (isset($relation)) {
@@ -198,7 +198,7 @@ class CustomView extends ModelBase
                 foreach ($custom_view_columns as $custom_view_column) {
                     // get column --------------------------------------------------
                     // if number, get custom column
-                    if (is_numeric($custom_view_column->view_column_target)) {
+                    if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                         $custom_column = $custom_view_column->custom_column;
                         if (isset($custom_column)) {
                             $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
@@ -210,7 +210,7 @@ class CustomView extends ModelBase
                         }
                     }
                     // parent id
-                    elseif ($custom_view_column->view_column_target == 'parent_id') {
+                    elseif ($custom_view_column->view_column_type == ViewColumnType::PARENT_ID) {
                         // get parent data
                         $relation = CustomRelation::getRelationByChild($custom_table);
                         if (isset($relation)) {
@@ -305,7 +305,7 @@ class CustomView extends ModelBase
     {
         $view = new CustomView;
         $view->custom_table_id = $tableObj->id;
-        $view->view_type = 'system';
+        $view->view_type = Enums\ViewType::SYSTEM;
         $view->view_view_name = exmtrans('custom_view.default_view_name');
         $view->saveOrFail();
         
@@ -337,9 +337,9 @@ class CustomView extends ModelBase
     public function setValueFilter($model){
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
-            $view_filter_target = $filter->view_filter_target;
-            if (is_numeric($view_filter_target)) {
-                $view_filter_target = CustomColumn::find($view_filter_target)->getIndexColumnName() ?? null;
+            $view_column_target = $filter->view_column_target;
+            if (is_numeric($view_column_target)) {
+                $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
             }
             $condition_value_text = $filter->view_filter_condition_value_text;
             $view_filter_condition = $filter->view_filter_condition;
@@ -347,23 +347,23 @@ class CustomView extends ModelBase
             switch ($view_filter_condition) {
                 // equal
                 case ViewColumnFilterOption::EQ:
-                    $model = $model->where($view_filter_target, $condition_value_text);
+                    $model = $model->where($view_column_target, $condition_value_text);
                     break;
                 // not equal
                 case ViewColumnFilterOption::NE:
-                    $model = $model->where($view_filter_target, '<>', $condition_value_text);
+                    $model = $model->where($view_column_target, '<>', $condition_value_text);
                     break;
                 // not null
                 case ViewColumnFilterOption::NOT_NULL:
                 case ViewColumnFilterOption::DAY_NOT_NULL:
                 case ViewColumnFilterOption::USER_NOT_NULL:
-                    $model = $model->whereNotNull($view_filter_target);
+                    $model = $model->whereNotNull($view_column_target);
                     break;
                 // null
                 case ViewColumnFilterOption::NULL:
                 case ViewColumnFilterOption::DAY_NULL:
                 case ViewColumnFilterOption::USER_NULL:
-                    $model = $model->whereNull($view_filter_target);
+                    $model = $model->whereNull($view_column_target);
                     break;
                 
                 // for date --------------------------------------------------
@@ -387,7 +387,7 @@ class CustomView extends ModelBase
                             $value_day = Carbon::tomorow();
                             break;
                     }
-                    $model = $model->whereDate($view_filter_target, $value_day);
+                    $model = $model->whereDate($view_column_target, $value_day);
                     break;
                     
                 // date equal month
@@ -407,8 +407,8 @@ class CustomView extends ModelBase
                             break;
                     }
                     $model = $model
-                        ->whereYear($view_filter_target, $value_day->year)
-                        ->whereMonth($view_filter_target, $value_day->month);
+                        ->whereYear($view_column_target, $value_day->year)
+                        ->whereMonth($view_column_target, $value_day->month);
                     break;
                     
                 // date equal year
@@ -427,7 +427,7 @@ class CustomView extends ModelBase
                             $value_day = new Carbon('first day of next year');
                             break;
                     }
-                    $model = $model->whereYear($view_filter_target, $value_day->year);
+                    $model = $model->whereYear($view_column_target, $value_day->year);
                     break;
                     
                 // date and X days before or after
@@ -455,15 +455,15 @@ class CustomView extends ModelBase
                             $mark = "<=";
                             break;
                     }
-                    $model = $model->whereDate($view_filter_target, $mark, $target_day);
+                    $model = $model->whereDate($view_column_target, $mark, $target_day);
                     break;
                     
                 // for user --------------------------------------------------
                 case ViewColumnFilterOption::USER_EQ_USER:
-                    $model = $model->where($view_filter_target, Admin::user()->base_user()->id);
+                    $model = $model->where($view_column_target, Admin::user()->base_user()->id);
                     break;
                 case ViewColumnFilterOption::USER_NE_USER:
-                    $model = $model->where($view_filter_target, '<>', Admin::user()->base_user()->id);
+                    $model = $model->where($view_column_target, '<>', Admin::user()->base_user()->id);
                        
             }
         }
@@ -481,8 +481,7 @@ class CustomView extends ModelBase
         }
         foreach ($this->custom_view_sorts as $custom_view_sort) {
             // get column target column
-            $view_column_target = $custom_view_sort->view_column_target;
-            if (is_numeric($view_column_target)) {
+            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
             }
             //set order
