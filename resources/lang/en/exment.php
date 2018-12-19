@@ -59,6 +59,14 @@ return [
         'organization_available' => 'Use Organization Management',
         'system_mail_from' => 'System Email',
         'template' => 'Install Template',
+        'version_header' => 'System version infomation',
+        'version_progress' => 'Checking system version...',
+        'version_latest' => 'This is latest version.',
+        'version_develope' => 'This is developer version.',
+        'version_old' => 'New version is available.',
+        'version_error' => 'Checking system version is failed.',
+        'install_guide' => 'Install from here !!',
+        'current_version' => 'Current version : ',
         
         'site_skin_options' => [
             "skin-blue" => "Header:Blue&nbsp;&nbsp;&nbsp;&nbsp;SideBar:Black",

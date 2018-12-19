@@ -58,6 +58,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
             $router->get('system/update', 'SystemController@updatePackage');
+            $router->get('system/version', 'SystemController@version');
             
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

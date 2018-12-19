@@ -9,7 +9,9 @@ use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\DB;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Box;
+use Encore\Admin\Widgets\InfoBox;
 
 class SystemController extends AdminControllerBase
 {
@@ -34,8 +36,109 @@ class SystemController extends AdminControllerBase
         // Authority Setting
         $this->addAuthorityForm($form, AuthorityType::SYSTEM);
 
+        // Version infomation
+        $infoBox = new InfoBox(exmtrans("system.current_version") . '---', 
+            'refresh', 'gray', config('exment.manual_url'), 
+            exmtrans("system.version_progress"));
+        $class = $infoBox->getAttributes()['class'];
+        $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
+
         $content->row(new Box(trans('admin.edit'), $form));
+        $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+
+        Admin::script($this->getVersionScript());
         return $content;
+    }
+
+    /**
+     * get system version script
+     * 
+     * @return script
+     */
+    protected function getVersionScript() {
+        $install = exmtrans("system.install_guide");
+        $script = <<<EOT
+        $(function () {
+            $('div.box-version .small-box-footer').hide();
+            $('div.box-version div.icon > i').addClass('fa-spin');
+            $.ajax({
+                url: admin_base_path('system/version'),
+                type: "GET",
+                success: function (data) {
+                    $('div.box-version div.icon > i').removeClass('fa-spin');
+                    $('div.box-version .small-box-footer').hide();
+                    $('div.box-version div.inner > p').html(data.current);
+                    $('div.box-version div.inner > h3').html(data.message);
+                    if (data.status == 1) {
+                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-check-square');
+                        $('div.box-version').removeClass('bg-gray').addClass('bg-blue');
+                    } else if (data.status == 2) {
+                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-info-circle');
+                        $('div.box-version').removeClass('bg-gray').addClass('bg-teal');
+                        $('div.box-version a.small-box-footer').html('$install&nbsp;<i class="fa fa-arrow-circle-right"></i>');
+                        $('div.box-version a.small-box-footer').show();
+                    } else if (data.status == 3) {
+                        $('div.box-version').removeClass('bg-gray').addClass('bg-olive');
+                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-legal');
+                    } else if (data.status == -1) {
+                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-warning');
+                    }
+                },
+            });
+        });
+EOT;
+        return $script;
+    }
+    /**
+     * get exment version command.
+     *
+     * @return Content
+     */
+    public function version(Request $request)
+    {
+        $output = [];
+
+        $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
+        exec($cmd, $output, $result);
+
+        if ($result === 0) {
+            // get version from output
+            $latest = '';
+            $current = '';
+            foreach($output as $data) {
+                $items = explode(':', $data);
+                if (trim($items[0]) === 'latest') {
+                    $latest = trim($items[1]);
+                } elseif (trim($items[0]) === 'versions') {
+                    $current = trim($items[1], " *\t\n\r\0\x0B");
+                }
+            }
+            if (strpos($current, 'dev-') === 0) {
+                return response()->json([
+                    'status'  => 3,
+                    'message'  => exmtrans("system.version_develope"),
+                    'current'  => exmtrans("system.current_version") . $current,
+                ]);
+            } else if ($latest === $current) {
+                return response()->json([
+                    'status'  => 1,
+                    'message'  => exmtrans("system.version_latest"),
+                    'current'  => exmtrans("system.current_version") . $current,
+                ]);
+            } else {
+                return response()->json([
+                    'status'  => 2,
+                    'message'  => exmtrans("system.version_old") . '(' . $latest . ')',
+                    'current'  => exmtrans("system.current_version") . $current,
+                ]);
+            }
+        } else {
+            return response()->json([
+                'status'  => -1,
+                'message'  => exmtrans("system.version_error"),
+                'current'  => exmtrans("system.current_version") . '---',
+            ]);
+        }
     }
 
     /**
