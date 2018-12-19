@@ -60,6 +60,14 @@ return [
         'organization_available' => '組織管理を使用する',
         'system_mail_from' => 'システムメール送信元',
         'template' => 'インストールテンプレート',
+        'version_header' => 'システムのバージョン情報',
+        'version_progress' => 'バージョン情報を取得しています。',
+        'version_latest' => 'このシステムは最新のバージョンです。',
+        'version_develope' => 'このシステムは開発バージョンです。',
+        'version_old' => '新しいバージョンがあります。',
+        'version_error' => 'バージョンの取得に失敗しました。',
+        'install_guide' => 'インストールはこちらから',
+        'current_version' => '現在のバージョン：',
         
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
