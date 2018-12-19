@@ -366,7 +366,7 @@ trait CustomValueTrait
                 if (is_null($column)) {
                     continue;
                 }
-                 
+                
                 // get label column
                 // if label is true, return getLabel
                 if ($label === true) {
@@ -395,7 +395,7 @@ trait CustomValueTrait
             return boolval($val) ? 'YES' : 'NO';
         }
         // boolean
-        elseif (in_array($column_type, [ColumnType::YESNO])) {
+        elseif (in_array($column_type, [ColumnType::BOOLEAN])) {
             if ($label !== true) {
                 return $val;
             }
