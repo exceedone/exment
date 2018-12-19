@@ -52,11 +52,7 @@ trait CustomValueForm
         $form->hidden('laravel_admin_escape');
 
         // add parent select if this form is 1:n relation
-        $relation = CustomRelation
-            ::with('parent_custom_table')
-            ->where('child_custom_table_id', $this->custom_table->id)
-            ->where('relation_type', RelationType::ONE_TO_MANY)
-            ->first();
+        $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
         if (isset($relation)) {
             $parent_custom_table = $relation->parent_custom_table;
             $form->hidden('parent_type')->default($parent_custom_table->table_name);
@@ -563,7 +559,7 @@ EOT;
         // re-loop for relation
         foreach ($columns as $column) {
             // get relation
-            $relations = CustomRelation::where('parent_custom_table_id', array_get($column, 'options.select_target_table'))->get();
+            $relations = CustomRelation::getRelationsByParent(array_get($column, 'options.select_target_table'));
             // if not exists, continue
             if (!$relations) {
                 continue;

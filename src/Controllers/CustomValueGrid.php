@@ -67,10 +67,7 @@ trait CustomValueGrid
             // loop custom column
             $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
                 // check 1:n relation
-                $relation = CustomRelation
-                    ::with('parent_custom_table')
-                    ->where('child_custom_table_id', $this->custom_table->id)
-                    ->first();
+                $relation = CustomRelation::getRelationByChild($this->custom_table);
                 // if set, create select
                 if (isset($relation)) {
                     // get options and ajax url

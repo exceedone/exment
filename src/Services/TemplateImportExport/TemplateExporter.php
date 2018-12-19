@@ -351,9 +351,9 @@ class TemplateExporter
         
         // get relations --------------------------------------------------
         $relations = CustomRelation
-            ::with('parent_custom_table')
-            ->with('child_custom_table')
-            ->get()->toArray();
+        ::with('parent_custom_table')
+        ->with('child_custom_table')
+        ->get()->toArray();
         $configRelations = [];
         foreach ($relations as &$relation) {
             // replace id to name

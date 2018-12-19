@@ -201,10 +201,7 @@ class ClassBuilder
 
 
         // Create Relationship --------------------------------------------------
-        $relations = CustomRelation
-            ::with('child_custom_table')
-            ->where('parent_custom_table_id', $table->id)
-            ->get();
+        $relations = CustomRelation::getRelationsByParent($table);
             
         // loop children tables
         foreach ($relations as $relation) {

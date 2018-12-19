@@ -12,7 +12,6 @@ class ExcelExporter extends DataExporterBase
      */
     public function export()
     {
-        set_time_limit(240);
         $filename = $this->table->table_view_name.date('YmdHis').".xlsx";
         // get output table
         $outputs = $this->getDataTable();
@@ -41,4 +40,5 @@ class ExcelExporter extends DataExporterBase
         }, 200, $res_headers)->send();
         exit;
     }
+
 }

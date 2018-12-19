@@ -243,6 +243,7 @@ EOT;
                     }
                     
                     if (!$result) {
+                        
                         // get custom relation.
                         if (!is_null(CustomRelation
                             ::where('parent_custom_table_id', $value_table->id)

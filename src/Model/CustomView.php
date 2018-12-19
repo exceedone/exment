@@ -116,10 +116,7 @@ class CustomView extends ModelBase
             // parent_id
             elseif ($view_column_target == ViewColumnSystem::PARENT_ID) {
                 // get parent data
-                $relation = CustomRelation
-                    ::with('parent_custom_table')
-                    ->where('child_custom_table_id', $this->custom_table->id)
-                    ->first();
+                $relation = CustomRelation::getRelationByChild($this->custom_table);
                 if (isset($relation)) {
                     $grid->column(ViewColumnSystem::PARENT_ID, $relation->parent_custom_table->table_view_name)
                         ->sortable()
@@ -178,10 +175,7 @@ class CustomView extends ModelBase
                 }
             } elseif ($custom_view_column->view_column_target == ViewColumnSystem::PARENT_ID) {
                 // get parent data
-                $relation = CustomRelation
-                    ::with('parent_custom_table')
-                    ->where('child_custom_table_id', $custom_table->id)
-                    ->first();
+                $relation = CustomRelation::getRelationByChild($custom_table);
                 if (isset($relation)) {
                     $headers[] = $relation->parent_custom_table->table_view_name;
                 }
@@ -218,10 +212,7 @@ class CustomView extends ModelBase
                     // parent id
                     elseif ($custom_view_column->view_column_target == 'parent_id') {
                         // get parent data
-                        $relation = CustomRelation
-                            ::with('parent_custom_table')
-                            ->where('child_custom_table_id', $custom_table->id)
-                            ->first();
+                        $relation = CustomRelation::getRelationByChild($custom_table);
                         if (isset($relation)) {
                             $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getUrl(true) ?? null;
                         }
