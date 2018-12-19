@@ -427,7 +427,7 @@ EOT;
         }
 
         // Get search result HTML.
-        if (count($data) == 0) {
+        if (!$data || count($data) == 0) {
             return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
         }
         
