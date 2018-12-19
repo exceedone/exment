@@ -145,19 +145,19 @@ class CustomCopyController extends AdminControllerTableBase
 
         ///// get from and to columns
         $custom_table = $this->custom_table;
-        $from_custom_column_options = $this->custom_columns->pluck('column_view_name', 'id');
-        $to_custom_column_options = $to_table->custom_columns->pluck('column_view_name', 'id') ?? [];
+        $from_custom_column_options = $custom_table->getColumnsSelectOptions();
+        $to_custom_column_options = $to_table->getColumnsSelectOptions();
         $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
-            $form->select('from_custom_column_id', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
+            $form->select('from_custom_column_target', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
             $form->description('▶');
-            $form->select('to_custom_column_id', exmtrans("custom_copy.to_custom_column"))->options($to_custom_column_options);
+            $form->select('to_custom_column_target', exmtrans("custom_copy.to_custom_column"))->options($to_custom_column_options);
             $form->hidden('custom_copy_column_type')->default('default');
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.column_description"));
 
         ///// get input columns
         $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
-            $form->select('to_custom_column_id', exmtrans("custom_copy.input_custom_column"))->options($to_custom_column_options);
+            $form->select('to_custom_column_target', exmtrans("custom_copy.input_custom_column"))->options($to_custom_column_options);
             $form->hidden('custom_copy_column_type')->default('input');
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.input_column_description"));

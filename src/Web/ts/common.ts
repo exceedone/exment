@@ -41,11 +41,11 @@ namespace Exment {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
                         $(".modal").off("hidden.bs.modal");
-                        this.redirectCallback(res);
+                        CommonEvent.redirectCallback(res);
                     });
                 }
                 else {
-                    this.redirectCallback(res);
+                    CommonEvent.redirectCallback(res);
                 }
 
                 // show toastr
@@ -249,7 +249,7 @@ namespace Exment {
                         }
                     });
                     $.ajax({
-                        url: admin_base_path(URLJoin('webapi', table_name, value)),
+                        url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
                         type: 'POST',
                         context: {
                             data: target_table_data,
@@ -745,7 +745,7 @@ namespace Exment {
                 $d.resolve(null);
             } else {
                 $.ajax({
-                    url: admin_base_path(URLJoin('webapi', table_name, value)),
+                    url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
                     type: 'POST',
                     context: context
                 })

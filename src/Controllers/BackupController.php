@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums;
 use Validator;
+use DB;
 
 class BackupController extends AdminControllerBase
 {
@@ -49,50 +51,65 @@ class BackupController extends AdminControllerBase
         ));
 
         // create setting form
-        //$content->row($this->settingFormBox());
+        $content->row($this->settingFormBox());
 
         // $content->body(view('exment::backup.index', 
         //     ['files' => $rows, 'modal' => $this->importModal()]));
         return $content;
     }
 
-    // protected function settingFormBox(){
-    //     $form = new WidgetForm(System::get_system_values());
-    //     $form->disableReset();
+    protected function settingFormBox(){
+        $form = new WidgetForm(System::get_system_values());
+        $form->action(admin_base_paths('backup/setting'));
+        $form->disableReset();
+
+        $form->checkbox('backup_target', exmtrans("backup.backup_target"))
+            ->help(exmtrans("backup.help.backup_target"))
+            ->options(Enums\BackupTarget::trans('backup.backup_target_options'))
+            ;
         
-    //     $form->header(exmtrans('system.header'))->hr();
-    //     $form->text('site_name', exmtrans("system.site_name"))
-    //         ->help(exmtrans("system.help.site_name"));
+        $form->switchbool('backup_enable_automatic', exmtrans("backup.enable_automatic"))
+            ->help(exmtrans("backup.help.enable_automatic"))
+            ->attribute(['data-filtertrigger' =>true]);
 
-    //     $form->text('site_name_short', exmtrans("system.site_name_short"))
-    //         ->help(exmtrans("system.help.site_name_short"));
-            
-    //     $form->image('site_logo', exmtrans("system.site_logo"))
-    //        ->help(exmtrans("system.help.site_logo"))
-    //        ;
-    //     $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
-    //        ->help(exmtrans("system.help.site_logo_mini"))
-    //        ;
+        $form->number('backup_automatic_term', exmtrans("backup.automatic_term"))
+            ->help(exmtrans("backup.help.automatic_term"))
+            ->min(1)
+            ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-    //     $form->select('site_skin', exmtrans("system.site_skin"))
-    //        ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
-    //        ->help(exmtrans("system.help.site_skin"));
+        $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
+            ->help(exmtrans("backup.help.automatic_hour"))
+            ->min(0)
+            ->max(23)
+            ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-    //     $form->select('site_layout', exmtrans("system.site_layout"))
-    //         ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
-    //         ->help(exmtrans("system.help.site_layout"));
+        return new Box(exmtrans("backup.setting_header"), $form);
+    }
 
-    //     $form->switchbool('authority_available', exmtrans("system.authority_available"))
-    //         ->help(exmtrans("system.help.authority_available"));
+    /**
+     * submit
+     * @param Request $request
+     */
+    public function postSetting(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+                
+            $inputs = $request->all(System::get_system_keys('backup'));
+        
+            // set system_key and value
+            foreach ($inputs as $k => $input) {
+                System::{$k}($input);
+            }
+            DB::commit();
 
-    //     $form->switchbool('organization_available', exmtrans("system.organization_available"))
-    //         ->help(exmtrans("system.help.organization_available"));
-
-    //     $form->email('system_mail_from', exmtrans("system.system_mail_from"))
-    //         ->help(exmtrans("system.help.system_mail_from"));
-
-    //     return new Box(trans('admin.edit'), $form);
-    // }
+            admin_toastr(trans('admin.save_succeeded'));
+            return redirect(admin_base_path('backup'));
+        } catch (Exception $exception) {
+            //TODO:error handling
+            DB::rollback();
+        }
+    }
 
     /**
      * Render import modal form.
@@ -122,6 +139,8 @@ class BackupController extends AdminControllerBase
      */
     protected function import(Request $request)
     {
+        set_time_limit(240);
+
         if ($request->has('upload_zipfile')) {
             // get upload file
             $file = $request->file('upload_zipfile');
@@ -189,15 +208,11 @@ class BackupController extends AdminControllerBase
      */
     public function save(Request $request)
     {
+        set_time_limit(240);
         $data = $request->all();
 
-        $validator = Validator::make($data, [
-            'type' => 'required',
-        ]);
-
-        if ($validator->passes()) {
-            $result = \Artisan::call('exment:backup', ['type' => $data['type']]);
-        }
+        $target = System::backup_target();
+        $result = \Artisan::call('exment:backup', ['--target' => $target]);
 
         if (isset($result) && $result === 0) {
             return response()->json([

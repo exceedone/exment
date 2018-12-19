@@ -3,16 +3,18 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 
-class CustomBackupCommand extends CommandBase
+class BackupCommand extends CommandBase
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'exment:backup {type}';
+    protected $signature = 'exment:backup {--target=}';
 
     /**
      * The console command description.
@@ -43,14 +45,6 @@ class CustomBackupCommand extends CommandBase
     protected $listdir;
 
     /**
-     * backup type const definition
-     * 
-     */
-    protected const BACKUP_ALL = '1';
-    protected const BACKUP_TABLE = '2';
-    protected const BACKUP_FILE = '3';
-
-    /**
      * Create a new command instance.
      *
      * @return void
@@ -67,26 +61,28 @@ class CustomBackupCommand extends CommandBase
      */
     public function handle()
     {
+        parent::handle();
+
         $this->starttime = date('YmdHis');
 
-        $type = $this->argument("type");
+        $target = $this->option("target") ?? BackupTarget::arrays();
 
-        if (empty($type)) {
-            $type = CustomBackupCommand::BACKUP_ALL;
+        if(is_string($target)){
+            $target = collect(explode(",", $target))->map(function($t){
+                return new BackupTarget($t) ?? null;
+            })->filter()->toArray();
         }
 
         $this->getBackupPath();
 
         // backup database tables
-        if ($type !== CustomBackupCommand::BACKUP_FILE) {
+        if (in_array(BackupTarget::DATABASE, $target)) {
             $this->backupTables();
         }
 
         // backup directory
-        if ($type !== CustomBackupCommand::BACKUP_TABLE) {
-            if (!$this->copyFiles()) {
-                return -1;
-            }
+        if (!$this->copyFiles($target)) {
+            return -1;
         }
 
         // archive whole folder to zip
@@ -102,8 +98,8 @@ class CustomBackupCommand extends CommandBase
      * export table definition and table data
      * 
      */
-    private function backupTables() {
-
+    private function backupTables() 
+    {
         // export table definition
         $this->dumpDatabase();
 
@@ -135,7 +131,7 @@ class CustomBackupCommand extends CommandBase
     private function backupTable($table)
     {
         // create tsv file
-        $file = new \SplFileObject($this->tempdir.$table.'.tsv', 'w');
+        $file = new \SplFileObject(path_join($this->tempdir, $table.'.tsv'), 'w');
         $file->setCsvControl("\t");
 
         // get column definition
@@ -170,11 +166,10 @@ class CustomBackupCommand extends CommandBase
      */
     private function getBackupPath()
     {
-        $ds = DIRECTORY_SEPARATOR;
         // edit temporary folder path for store archive file 
-        $this->tempdir = storage_path('app/backup'.$ds.'tmp'.$ds.$this->starttime.$ds);
+        $this->tempdir = storage_paths('app','backup','tmp', $this->starttime);
         // edit zip folder path 
-        $this->listdir = storage_path('app/backup'.$ds.'list'.$ds);
+        $this->listdir = storage_paths('app', 'backup', 'list');
         // create temporary folder if not exists
         if (!is_dir($this->tempdir)) {
             mkdir($this->tempdir, 0755, true);
@@ -189,9 +184,14 @@ class CustomBackupCommand extends CommandBase
      * 
      * @return bool true:success/false:fail
      */
-    private function copyFiles()
+    private function copyFiles($target)
     {
-        $settings = Define::BACKUP_TARGET_DIRECTORIES;
+        // get directory paths
+        $settings = collect($target)->map(function($val){
+            return BackupTarget::dir($val);
+        })->filter(function($val){
+            return isset($val);
+        })->toArray();
         $settings = array_merge(
             config('exment.backup_info.copy_dir', []),
             $settings
@@ -201,6 +201,7 @@ class CustomBackupCommand extends CommandBase
             foreach($settings as $setting) {
                 $from = base_path($setting);
                 $to = path_join($this->tempdir, $setting);
+                
                 $success = \File::copyDirectory($from, $to);
 
                 if (!$success) {
@@ -221,7 +222,7 @@ class CustomBackupCommand extends CommandBase
 
         // open new zip file
         $zip = new \ZipArchive();
-        $res = $zip->open($this->listdir.$filename, \ZipArchive::CREATE);
+        $res = $zip->open(path_join($this->listdir, $filename), \ZipArchive::CREATE);
 
         if ($res === TRUE) {
             // iterator all files in folder
@@ -244,24 +245,22 @@ class CustomBackupCommand extends CommandBase
      */
     private function dumpDatabase($table=null)
     {
-
-        $ds = DIRECTORY_SEPARATOR;
         // get table connect info
-        $host = env('DB_HOST');
-        $username = env('DB_USERNAME');
-        $password = env('DB_PASSWORD');
-        $database = env('DB_DATABASE');
-        $dbport = env('DB_PORT');
+        $host = config('database.connections.mysql.host', '');
+        $username = config('database.connections.mysql.username', '');
+        $password = config('database.connections.mysql.password', '');
+        $database = config('database.connections.mysql.database', '');
+        $dbport = config('database.connections.mysql.port', '');
 
         $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
         $command = sprintf('%s -h %s -u %s --password=%s -P %s', 
             $mysqldump, $host, $username, $password, $dbport);
 
         if ($table == null) {
-            $file = $this->tempdir . config('exment.backup_info.def_file', 'table_definition.sql');
+            $file = path_join($this->tempdir , config('exment.backup_info.def_file', 'table_definition.sql'));
             $command = sprintf('%s -d %s > %s', $command, $database, $file);
         } else {
-            $file = sprintf('%s%s.sql', $this->tempdir, $table);
+            $file = sprintf('%s.sql', path_join($this->tempdir, $table));
             $command = sprintf('%s -t %s %s > %s', $command, $database, $table, $file);
         }
 

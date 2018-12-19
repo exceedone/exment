@@ -73,7 +73,7 @@ trait InitializeForm
             }
         }
 
-        $inputs = $request->all(array_keys(Define::SYSTEM_SETTING_NAME_VALUE));
+        $inputs = $request->all(System::get_system_keys('initialize'));
         array_forget($inputs, 'initialized');
        
         // set system_key and value

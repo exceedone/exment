@@ -24,7 +24,7 @@ class ApiController extends AdminControllerBase
         if (!\Exment::user()->hasPermissionTable($table, AuthorityValue::CUSTOM_TABLE)) {
             abort(403);
         }
-        return $result;
+        return $table;
     }
 
     /**

@@ -2,34 +2,13 @@
     <div class="box-header with-border">
         <div class="pull-right">
             <div class="btn-group pull-right" style="margin-right: 5px">
-                <button type="button" class="btn btn-sm btn-twitter dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    <i class="fa fa-download"></i> {{exmtrans("backup.backuprestore")}}
-                    <span class="caret"></span>
+                <button type="button" style="margin-right:5px;" class="btn btn-sm btn-twitter btn-backup">
+                    <i class="fa fa-download"></i> {{exmtrans("backup.backup")}}
                 </button>
-                <ul class="dropdown-menu">
-                    <li class="dropdown-header">{{exmtrans("backup.backup")}}</li>
-                    <li>
-                        <a href="javascript:void(0);" data-id="1" class="btn-backup">
-                        {{exmtrans("backup.backup_all")}}
-                        </a>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0);" data-id="2" class="btn-backup">
-                        {{exmtrans("backup.backup_table")}}
-                        </a>
-                    </li>
-                    <li>
-                        <a href="javascript:void(0);" data-id="3" class="btn-backup">
-                        {{exmtrans("backup.backup_file")}}
-                        </a>
-                    </li>
-                    <li class="dropdown-header">{{exmtrans("backup.restore")}}</li>
-                    <li>
-                        <a href="javascript:void(0);" data-toggle="modal" data-target="#data_import_modal">
-                        {{exmtrans("backup.restore_upload")}}
-                        </a>
-                    </li>
-                </ul>
+
+                <a href="javascript:void(0);" data-toggle="modal" data-target="#data_import_modal" type="button" class="btn btn-sm btn-twitter">
+                    <i class="fa fa-upload"></i> {{exmtrans("backup.restore")}}
+                </a>
             </div>
         </div>
         <span>
@@ -208,7 +187,6 @@
             restore(id);
         });
         $('.btn-backup').unbind('click').click(function() {
-            var id = $(this).data('id');
             swal({
                 title: "{{exmtrans('backup.message.backup_confirm')}}",
                 type: "warning",
@@ -225,7 +203,6 @@
                             data: {
                                 _method:'post',
                                 _token:'{{ csrf_token() }}',
-                                type: id
                             },
                             success: function (data) {
                                 $.pjax.reload('#pjax-container');

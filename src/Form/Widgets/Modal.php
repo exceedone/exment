@@ -38,6 +38,9 @@ class Modal
                 });
             });
             $(document).off('click', '#$id .modal-body a').on('click', '#$id .modal-body a', {}, function(ev){
+                if($(ev.target).closest('a[data-widgetmodal_url]').length > 0){
+                    return;
+                }
                 $('#$id .modal-body').html('');
                 $('#$id').modal('hide');
             });

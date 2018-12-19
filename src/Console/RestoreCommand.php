@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CustomRestoreCommand extends CommandBase
+class RestoreCommand extends CommandBase
 {
     /**
      * The name and signature of the console command.
@@ -38,6 +38,8 @@ class CustomRestoreCommand extends CommandBase
      */
     public function handle()
     {
+        parent::handle();
+
         $file = $this->argument("file");
 
         // unzip backup file
@@ -159,11 +161,11 @@ __EOT__;
     private function restoreDatabase($path)
     {
         // get table connect info
-        $host = env('DB_HOST');
-        $username = env('DB_USERNAME');
-        $password = env('DB_PASSWORD');
-        $database = env('DB_DATABASE');
-        $dbport = env('DB_PORT');
+        $host = config('database.connections.mysql.host', '');
+        $username = config('database.connections.mysql.username', '');
+        $password = config('database.connections.mysql.password', '');
+        $database = config('database.connections.mysql.database', '');
+        $dbport = config('database.connections.mysql.port', '');
 
         $mysqlcmd = sprintf('%s%s -h %s -u %s --password=%s -P %s %s', 
             config('exment.backup_info.mysql_dir'), 'mysql', 

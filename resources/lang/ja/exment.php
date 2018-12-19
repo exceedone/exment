@@ -195,6 +195,7 @@ return [
 
     'backup' => [
         'header' => 'バックアップ一覧',
+        'setting_header' => 'バックアップ設定',
         'description' => 'データベースやファイルのバックアップとリストアを行います。',
         'file_name' => 'ファイル名',
         'file_size' => 'ファイルサイズ',
@@ -206,7 +207,18 @@ return [
         'restore' => 'リストア',
         'restore_upload' => 'ファイルアップロード',
         'backuprestore' => 'バックアップ・リストア',
+        'backup_target' => 'バックアップ対象',
+        'enable_automatic' => '自動バックアップ',
+        'automatic_term' => '自動バックアップ実行間隔(日)',
+        'automatic_hour' => '自動バックアップ開始時間(時)',
         'upload_zipfile' => 'アップロード(zip)',
+        'backup_target_options' => [
+            'database' => 'データベース',
+            'plugin' => 'プラグインファイル',
+            'attachment' => '添付ファイル',
+            'log' => 'ログファイル',
+            'config' => '設定ファイル',
+        ],
         'message' => [
             'backup_confirm' => 'バックアップを実行しますか？',
             'backup_error' => 'バックアップに失敗しました。',
@@ -219,6 +231,10 @@ return [
         'help' =>[
             'file_name' => 'バックアップ情報を圧縮したzipファイルの名前を指定してください。',
             'import_error_message' => '取込ファイルに不備があった場合、この項目に、エラーメッセージを表示します。',
+            'backup_target' => 'バックアップの対象です。特に理由がない限り、すべての項目にチェックを入れることをおすすめします。',
+            'enable_automatic' => 'YESにした場合、自動的にバックアップを実行します。',
+            'automatic_term' => '自動バックアップを何日おきに実施するかの設定です。例：「3」と入力時、3日おきにバックアップ実行',
+            'automatic_hour' => '自動バックアップの開始時間です。例：「3」と入力時、3:00にバックアップ実行開始',
         ]
     ],
 

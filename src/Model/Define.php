@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums;
 
 /**
  * Define short summary.
@@ -18,17 +19,23 @@ class Define
     public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z]{1,32})[a-zA-Z][-_a-zA-Z0-9]+$';
     
     public const SYSTEM_SETTING_NAME_VALUE = [
-        'initialized' => ['type' => 'boolean', 'default' => '0'],
-        'site_name' => ['default' => 'Exment'],
-        'site_name_short' => ['default' => 'Exm'],
-        'site_logo' => ['type' => 'file', 'move' => 'system'],
-        'site_logo_mini' => ['type' => 'file', 'move' => 'system'],
-        'site_skin' => ['config' => 'admin.skin'],
-        'authority_available' => ['type' => 'boolean', 'default' => '1'],
-        'organization_available' => ['type' => 'boolean', 'default' => '1'],
+        'initialized' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
+        'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
+        'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
+        'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
+        'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
+        'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
+        'authority_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
+        'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         ///'system_authority' => ['type' => 'json'],
-        'system_mail_from' => ['default' => 'no-reply@hogehoge.com'],
-        'site_layout' => ['default' => 'layout_default'],
+        'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
+        'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
+        // cannot call getValue function
+        'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
+        'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],
+        'backup_automatic_hour' => ['type' => 'int', 'default' => '3', 'group' => 'backup'],
+        'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
+        'backup_automatic_executed' => ['type' => 'datetime'],
     ];
 
     public const SYSTEM_SKIN = [
@@ -171,14 +178,6 @@ class Define
     ];
     public const NOTIFY_ACTION_TARGET = [
         'has_authorities',
-    ];
-
-    public const BACKUP_TARGET_DIRECTORIES = [
-        'storage\logs',
-        'config',
-        'app\Plugins',
-        'app\Templates',
-        'storage\app\admin',
     ];
  
     // Template --------------------------------------------------

@@ -193,6 +193,19 @@ if (!function_exists('join_paths')) {
     }
 }
 
+if (!function_exists('storage_paths')) {
+    function storage_paths(...$pass_array)
+    {
+        return path_join(storage_path(), ...$pass_array);
+    }
+}
+
+if (!function_exists('app_paths')) {
+    function app_paths(...$pass_array)
+    {
+        return path_join(app_path(), ...$pass_array);
+    }
+}
 
 if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk)
@@ -980,6 +993,27 @@ if (!function_exists('getCellValue')) {
     }
 }
 
+if (!function_exists('getCellAlphabet')) {
+    /**
+     */
+    function getCellAlphabet($no)
+    {
+        $alphabet = "ZABCDEFGHIJKLMNOPQRSTUVWXY";
+        $columnStr = '';
+        $m = 0;
+            
+        do
+        {
+            $m = $no % 26;
+            $columnStr = substr($alphabet, $m, 1) . $columnStr;
+            $no = floor($no / 26);
+        } while (0 < $no && $m != 0);
+    
+    return $columnStr;
+    }
+}
+
+
 if (!function_exists('useLoginProvider')) {
     /**
      * use login provider
@@ -989,3 +1023,4 @@ if (!function_exists('useLoginProvider')) {
         return !is_nullorempty(config('exment.login_providers'));
     }
 }
+

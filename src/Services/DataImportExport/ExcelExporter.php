@@ -22,6 +22,14 @@ class ExcelExporter extends DataExporterBase
         $sheet = $spreadsheet->getActiveSheet()->setTitle($this->table->table_name);
         $sheet->fromArray($outputs, null, 'A1', false, false);
 
+        // set autosize
+        if(count($outputs) > 0){
+            $counts = count($outputs[0]);
+            for($i = 0; $i < $counts; $i++){
+                $sheet->getColumnDimension(getCellAlphabet($i + 1))->setAutoSize(true);
+            }
+        }
+
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
 
         $res_headers = [
