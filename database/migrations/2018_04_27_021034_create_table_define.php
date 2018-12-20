@@ -89,7 +89,7 @@ class CreateTableDefine extends Migration
             $table->string('plugin_name', 256)->unique();
             $table->string('plugin_view_name', 256);
             $table->string('author', 256)->nullable();
-            $table->string('plugin_type');
+            $table->integer('plugin_type');
             $table->string('version', 128)->nullable();
             $table->string('description', 1000)->nullable();
             $table->boolean('active_flg')->default(true);

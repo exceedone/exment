@@ -27,12 +27,30 @@ var Exment;
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
+            $(function () {
+                CommonEvent.GetVersion();
+            });
         }
         static AddEvent() {
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
             $.numberformat('[number_format]');
+        }
+        static GetVersion() {
+            if ($('#version').text().length > 0) {
+                return;
+            }
+            $.ajax({
+                url: admin_base_path('webapi/version'),
+                type: 'GET',
+            })
+                .done(function (data) {
+                $('#version').text(data);
+            })
+                .fail(function (data) {
+                console.log(data);
+            });
         }
         /**
          *
