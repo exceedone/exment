@@ -263,6 +263,7 @@ class CreateTableDefine extends Migration
             $table->string('suuid', 20)->unique();
             $table->integer('custom_table_id')->unsigned();
             $table->integer('view_type')->default(0);
+            $table->integer('view_kind_type')->default(0);
             $table->string('view_view_name', 40);
             $table->boolean('default_flg')->default(false);
             $table->timestamps();

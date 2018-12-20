@@ -61,6 +61,7 @@ class Define
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "authority";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
+    public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
 
     // Dashboard --------------------------------------------------

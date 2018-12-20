@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Enums\AuthorityType;
@@ -37,9 +38,13 @@ class SystemController extends AdminControllerBase
         $this->addAuthorityForm($form, AuthorityType::SYSTEM);
 
         // Version infomation
-        $infoBox = new InfoBox(exmtrans("system.current_version") . '---', 
-            'refresh', 'gray', config('exment.manual_url'), 
-            exmtrans("system.version_progress"));
+        $infoBox = new InfoBox(
+            exmtrans("system.current_version") . '---',
+            'refresh',
+            'gray',
+            config('exment.manual_url'),
+            exmtrans("system.version_progress")
+        );
         $class = $infoBox->getAttributes()['class'];
         $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
 
@@ -52,10 +57,11 @@ class SystemController extends AdminControllerBase
 
     /**
      * get system version script
-     * 
+     *
      * @return script
      */
-    protected function getVersionScript() {
+    protected function getVersionScript()
+    {
         $install = exmtrans("system.install_guide");
         $script = <<<EOT
         $(function () {
@@ -96,47 +102,59 @@ EOT;
      */
     public function version(Request $request)
     {
-        $output = [];
-
-        $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
-        exec($cmd, $output, $result);
-
-        if ($result === 0) {
-            // get version from output
-            $latest = '';
-            $current = '';
-            foreach($output as $data) {
-                $items = explode(':', $data);
-                if (trim($items[0]) === 'latest') {
-                    $latest = trim($items[1]);
-                } elseif (trim($items[0]) === 'versions') {
-                    $current = trim($items[1], " *\t\n\r\0\x0B");
+        $version_json = $request->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+        if (isset($version_json)) {
+            $version = json_decode($version_json, true);
+            $latest = array_get($version, 'latest');
+            $current = array_get($version, 'current');
+        } 
+        
+        if(empty($latest) || empty($current)){
+            $output = [];
+            $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
+            exec($cmd, $output, $result);
+            if ($result === 0) {
+                // get version from output
+                $latest = '';
+                $current = '';
+                foreach ($output as $data) {
+                    $items = explode(':', $data);
+                    if (trim($items[0]) === 'latest') {
+                        $latest = trim($items[1]);
+                    } elseif (trim($items[0]) === 'versions') {
+                        $current = trim($items[1], " *\t\n\r\0\x0B");
+                    }
                 }
-            }
-            if (strpos($current, 'dev-') === 0) {
-                return response()->json([
-                    'status'  => 3,
-                    'message'  => exmtrans("system.version_develope"),
-                    'current'  => exmtrans("system.current_version") . $current,
-                ]);
-            } else if ($latest === $current) {
-                return response()->json([
-                    'status'  => 1,
-                    'message'  => exmtrans("system.version_latest"),
-                    'current'  => exmtrans("system.current_version") . $current,
-                ]);
+
+                $request->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                    'latest' => $latest, 'current' => $current
+                ]));
             } else {
                 return response()->json([
-                    'status'  => 2,
-                    'message'  => exmtrans("system.version_old") . '(' . $latest . ')',
-                    'current'  => exmtrans("system.current_version") . $current,
+                    'status'  => -1,
+                    'message'  => exmtrans("system.version_error"),
+                    'current'  => exmtrans("system.current_version") . '---',
                 ]);
             }
+        }
+
+        if (strpos($current, 'dev-') === 0) {
+            return response()->json([
+                'status'  => 3,
+                'message'  => exmtrans("system.version_develope"),
+                'current'  => exmtrans("system.current_version") . $current,
+            ]);
+        } elseif ($latest === $current) {
+            return response()->json([
+                'status'  => 1,
+                'message'  => exmtrans("system.version_latest"),
+                'current'  => exmtrans("system.current_version") . $current,
+            ]);
         } else {
             return response()->json([
-                'status'  => -1,
-                'message'  => exmtrans("system.version_error"),
-                'current'  => exmtrans("system.current_version") . '---',
+                'status'  => 2,
+                'message'  => exmtrans("system.version_old") . '(' . $latest . ')',
+                'current'  => exmtrans("system.current_version") . $current,
             ]);
         }
     }
