@@ -7,6 +7,7 @@ class ViewColumnType extends EnumBase
     const COLUMN = 0;
     const SYSTEM = 1;
     const PARENT_ID = 2;
+    const CHILD_SUM = 3;
 
     public static function SYSTEM_OPTIONS(){
         return [

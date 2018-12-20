@@ -137,6 +137,20 @@ class CustomView extends ModelBase
                         });
                 }
             }
+            // child_summary
+            elseif ($view_column_type == ViewColumnType::CHILD_SUM) {
+                $column = $custom_view_column->custom_column;
+                if(!isset($column)){
+                    continue;
+                }
+                $table_id = array_get($column, 'custom_table_id');
+                $column_name = array_get($column, 'column_name');
+                $column_view_name = array_get($column, 'column_view_name');
+                $grid->column($column_name, $column_view_name)
+                    ->display(function ($value) use ($table_id, $column_name) {
+                        return $this->getSum($table_id, $column_name);
+                    });
+            }
             // system column
             else {
                 // get column name

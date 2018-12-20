@@ -132,6 +132,11 @@ EOT;
             $this->buttonlabel = exmtrans('common.change');
         }
 
+        // set button label
+        if (is_array($this->value)) {
+            $this->value = json_encode($this->value);
+        }
+
         // set script
         $this->script();
 
