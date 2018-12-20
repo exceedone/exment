@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;
@@ -26,10 +27,10 @@ class GridChangeView extends AbstractTool
         $custom_views = $this->custom_table->custom_views;
 
         foreach ($custom_views as $v) {
-            if ($v->view_type == ViewColumnType::SYSTEM) {
-                $systemviews[] = $v->toArray();
-            } else {
+            if ($v->view_type == ViewType::USER) {
                 $userviews[] = $v->toArray();
+            } else {
+                $systemviews[] = $v->toArray();
             }
         }
 

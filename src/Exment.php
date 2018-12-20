@@ -4,7 +4,7 @@ namespace Exceedone\Exment;
 
 use Exceedone\Exment\Model\Menu;
 use Illuminate\Support\Facades\Auth;
-
+use Encore\Admin\Admin;
 /**
  * Class Admin.
  */
@@ -39,5 +39,10 @@ class Exment
             }
         }
         return null;
+    }
+
+    public function version($getFromComposer = true){
+        list($latest, $current) = getExmentVersion($getFromComposer);
+        return $current;
     }
 }

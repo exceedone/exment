@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
@@ -148,7 +149,7 @@ class CustomValueController extends AdminControllerTableBase
         });
         return $content;
     }
-      
+
     /**
      * file delete custom column.
      */
@@ -235,10 +236,10 @@ class CustomValueController extends AdminControllerTableBase
         $fuleFullPath = $plugin->getFullPath('Plugin.php');
         if (\File::exists($fuleFullPath) && class_exists($classname)) {
             switch (array_get($plugin, 'plugin_type')) {
-                case 'document':
+                case PluginType::DOCUMENT:
                     $class = new $classname($plugin, $this->custom_table, $id);
                     break;
-                case 'trigger':
+                case PluginType::TRIGGER:
                     $class = new $classname($plugin, $this->custom_table, $id);
                     break;
             }

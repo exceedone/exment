@@ -926,6 +926,52 @@ if (!function_exists('getAjaxResponse')) {
     }
 }
 
+if (!function_exists('getExmentVersion')) {
+    /**
+     * getExmentVersion using session and composer 
+     * 
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    function getExmentVersion($getFromComposer = true)
+    {
+        $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+        if (isset($version_json)) {
+            $version = json_decode($version_json, true);
+            $latest = array_get($version, 'latest');
+            $current = array_get($version, 'current');
+        }
+        
+        if((empty($latest) || empty($current)) && $getFromComposer){
+            $output = [];
+            $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
+            exec($cmd, $output, $result);
+            if ($result === 0) {
+                // get version from output
+                $latest = '';
+                $current = '';
+                foreach ($output as $data) {
+                    $items = explode(':', $data);
+                    if (trim($items[0]) === 'latest') {
+                        $latest = trim($items[1]);
+                    } elseif (trim($items[0]) === 'versions') {
+                        $current = trim($items[1], " *\t\n\r\0\x0B");
+                    }
+                }
+
+                app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                    'latest' => $latest, 'current' => $current
+                ]));
+            }
+        }
+        
+        if (empty($latest) || empty($current)) {
+            return [null, null];
+        }
+        return [$latest, $current];
+    }
+}
+
+
 
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {

@@ -8,6 +8,7 @@ use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\UniqueInTableValidator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -188,7 +189,7 @@ class ExmentServiceProvider extends ServiceProvider
     {
         $plugin = Plugin
             ::where('active_flg', 1)
-            ->where('plugin_type', 'page')
+            ->where('plugin_type', PluginType::PAGE)
             ->where('options->uri', $pluginName)
             ->first();
 

@@ -204,6 +204,9 @@ class RouteServiceProvider extends ServiceProvider
                 } catch (\Exception $e) {
                 }
     
+                $router->get("version", function(){
+                    return (new \Exceedone\Exment\Exment)->version();
+                });
                 $router->get("table/{id}", 'ApiController@table');
                 $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns');
             });
