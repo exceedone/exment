@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Encore\Admin\Facades\Admin;
+use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
@@ -568,7 +569,18 @@ trait CustomValueTrait
         }
         return $model->label ?? null;
     }
-    
+    /**
+     * Get Custom children value summary
+     */
+    public function getSum($relation_table, $column_id) {
+        $relations = $this->getChildrenValues($relation_table);
+        $summary = Collection::make($relations)->map(function ($relation) use($column_id) {
+            return $relation->getValue($column_id);
+        })->filter(function ($value) {
+            return (isset($value) && is_numeric($value));
+        })->Sum();
+        return $summary;
+    }
     /**
      * Get Custom children Value
      */

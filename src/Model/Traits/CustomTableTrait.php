@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\AuthorityType;
@@ -408,6 +409,26 @@ trait CustomTableTrait
                 continue;
             }
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
+        }
+
+        if (!$search_enabled_only) {
+            ///// get child table columns for summary
+            $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
+            foreach ($relations as $rel) {
+                $child = array_get($rel, 'child_custom_table');
+                $tableid = array_get($child, 'id');
+                $tablename = array_get($child, 'table_view_name');
+                $child_columns = $child->custom_columns;
+                foreach ($child_columns as $option) {
+                    switch(array_get($option, 'column_type')) {
+                        case ColumnType::INTEGER:
+                        case ColumnType::DECIMAL:
+                        case ColumnType::CURRENCY:
+                            $options[$tableid . '_' . array_get($option, 'id')] = $tablename . ' : ' . array_get($option, 'column_view_name');
+                            break;
+                    }
+                }
+            }
         }
     
         return $options;
