@@ -797,7 +797,7 @@ class TemplateImporter
                         $findArray['suuid'] =  short_uuid();
                     }
                     // Create view --------------------------------------------------
-                    $obj_view = Customview::firstOrNew($findArray);
+                    $obj_view = CustomView::firstOrNew($findArray);
                     $obj_view->custom_table_id = $table->id;
                     $obj_view->suuid = $findArray['suuid'];
                     $obj_view->view_type = array_get($view, 'view_type') ?? ViewType::SYSTEM;
