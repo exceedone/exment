@@ -248,7 +248,7 @@ if (!function_exists('file_ext_strip')) {
 if (!function_exists('bytesToHuman')) {
     function bytesToHuman($bytes, $default = null)
     {
-        if(is_null($bytes)){
+        if (is_null($bytes)) {
             return $default;
         }
         $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
@@ -604,8 +604,8 @@ if (!function_exists('replaceTextFromFormat')) {
             [
                 'matchBeforeCallback' => null,
                 'afterCallBack' => null,
-            ]
-            , $options
+            ],
+            $options
         );
 
         try {
@@ -623,17 +623,17 @@ if (!function_exists('replaceTextFromFormat')) {
                         //split semi-coron
                         $length_array = explode("/", $match);
                         $matchOptions = [];
-                        if(count($length_array) > 1){
+                        if (count($length_array) > 1) {
                             $targetFormat = $length_array[0];
                             // $item is splited comma, key=value string
-                            foreach(explode(',', $length_array[1]) as $item){
+                            foreach (explode(',', $length_array[1]) as $item) {
                                 $kv = explode('=', $item);
-                                if(count($kv) <= 1){
+                                if (count($kv) <= 1) {
                                     continue;
                                 }
                                 $matchOptions[$kv[0]] = $kv[1];
                             }
-                        }else{
+                        } else {
                             $targetFormat = $length_array[0];
                         }
 
@@ -661,11 +661,11 @@ if (!function_exists('replaceTextFromFormat')) {
                             'second',
                         ];
 
-                        if(array_key_value_exists('matchBeforeCallback', $options)){
+                        if (array_key_value_exists('matchBeforeCallback', $options)) {
                             // execute callback
                             $callbackFunc = $options['matchBeforeCallback'];
                             $result = $callbackFunc->call($length_array, $match, $format, $custom_value, $options);
-                            if($result){
+                            if ($result) {
                                 $format = $result;
                                 continue;
                             }
@@ -683,12 +683,12 @@ if (!function_exists('replaceTextFromFormat')) {
                         ///// value
                         ///// base_info
                         elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
-                            if($key == "value"){
+                            if ($key == "value") {
                                 $target_value = $custom_value;
-                            }else{
+                            } else {
                                 $target_value = getModelName(SystemTableName::BASEINFO)::first();
                             }
-                            if(!isset($target_value)){
+                            if (!isset($target_value)) {
                                 $str = '';
                             }
                             // get value from model
@@ -703,7 +703,7 @@ if (!function_exists('replaceTextFromFormat')) {
                         }
                         ///// sum
                         elseif ($key == "sum") {
-                            if(!isset($custom_value)){
+                            if (!isset($custom_value)) {
                                 $str = '';
                             }
 
@@ -726,7 +726,7 @@ if (!function_exists('replaceTextFromFormat')) {
                         }
                         ///// child
                         elseif ($key == "child") {
-                            if(!isset($custom_value)){
+                            if (!isset($custom_value)) {
                                 $str = '';
                             }
 
@@ -741,9 +741,9 @@ if (!function_exists('replaceTextFromFormat')) {
                                 // get length
                                 $index = intval($length_array[3]);
                                 // get value
-                                if(count($children) <= $index){
+                                if (count($children) <= $index) {
                                     $str = '';
-                                }else{
+                                } else {
                                     $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
                                 }
                             }
@@ -757,11 +757,11 @@ if (!function_exists('replaceTextFromFormat')) {
                             $str = make_uuid();
                         }
                         // if has $datestrings, conbert using date string
-                        elseif(array_key_exists($key, $dateStrings)){
+                        elseif (array_key_exists($key, $dateStrings)) {
                             $str = Carbon::now()->format($dateStrings[$key]);
                         }
                         // if has $datestrings, conbert using date value
-                        elseif(in_array($key, $dateValues)){
+                        elseif (in_array($key, $dateValues)) {
                             $str = Carbon::now()->{$key};
                             // if user input length
                             if (count($length_array) > 1) {
@@ -777,15 +777,14 @@ if (!function_exists('replaceTextFromFormat')) {
                         $str = '';
                     }
 
-                    // replace 
+                    // replace
                     $format = str_replace($matchString, $str, $format);
                 }
             }
         } catch (\Exception $e) {
-
         }
 
-        if(array_key_value_exists('afterCallback', $options)){
+        if (array_key_value_exists('afterCallback', $options)) {
             // execute callback
             $callbackFunc = $options['afterCallback'];
             $format = $callbackFunc($format, $custom_value, $options);
@@ -795,7 +794,29 @@ if (!function_exists('replaceTextFromFormat')) {
 }
 
 // Database Difinition --------------------------------------------------
+if (!function_exists('shouldPassThrough')) {
+    function shouldPassThrough()
+    {
+        $request = app('request');
+        $excepts = [
+            admin_base_path('auth/login'),
+            admin_base_path('auth/logout'),
+            admin_base_path('initialize'),
+        ];
 
+        foreach ($excepts as $except) {
+            if ($except !== '/') {
+                $except = trim($except, '/');
+            }
+
+            if ($request->is($except)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
 if (!function_exists('getEndpointTable')) {
     /**
      * Get table object using endpoint name.
@@ -834,7 +855,7 @@ if (!function_exists('getTransArray')) {
      */
     function getTransArray($array, $base_key, $isExment = true)
     {
-        if($array instanceof \MyCLabs\Enum\Enum){
+        if ($array instanceof \MyCLabs\Enum\Enum) {
             $array = array_flatten($array::toArray());
         }
         $associative_array = [];
@@ -928,8 +949,8 @@ if (!function_exists('getAjaxResponse')) {
 
 if (!function_exists('getExmentVersion')) {
     /**
-     * getExmentVersion using session and composer 
-     * 
+     * getExmentVersion using session and composer
+     *
      * @return array $latest: new version in package, $current: this version in server
      */
     function getExmentVersion($getFromComposer = true)
@@ -941,7 +962,7 @@ if (!function_exists('getExmentVersion')) {
             $current = array_get($version, 'current');
         }
         
-        if((empty($latest) || empty($current)) && $getFromComposer){
+        if ((empty($latest) || empty($current)) && $getFromComposer) {
             $output = [];
             $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
             exec($cmd, $output, $result);
@@ -1047,14 +1068,13 @@ if (!function_exists('getCellAlphabet')) {
         $columnStr = '';
         $m = 0;
             
-        do
-        {
+        do {
             $m = $no % 26;
             $columnStr = substr($alphabet, $m, 1) . $columnStr;
             $no = floor($no / 26);
         } while (0 < $no && $m != 0);
     
-    return $columnStr;
+        return $columnStr;
     }
 }
 
@@ -1068,4 +1088,3 @@ if (!function_exists('useLoginProvider')) {
         return !is_nullorempty(config('exment.login_providers'));
     }
 }
-

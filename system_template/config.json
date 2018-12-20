@@ -475,11 +475,13 @@
 	],
     "dashboards": [
 		{
-			"dashboard_type": "system",
+			"dashboard_type": "0",
 			"dashboard_name": "system_default_dashboard",
 			"dashboard_view_name": "既定のダッシュボード",
-			"row1": "1",
-			"row2": "2",
+			"options": {
+                "row1" : "1",
+                "row2" : "2"
+            },
 			"dashboard_boxes": [
 				{
 					"row_no": "1",

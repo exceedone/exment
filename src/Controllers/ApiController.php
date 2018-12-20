@@ -21,7 +21,7 @@ class ApiController extends AdminControllerBase
     public function table($id, Request $request)
     {
         $table = CustomTable::find($id);
-        if (!\Exment::user()->hasPermissionTable($table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->custom_table->hasPermission(AuthorityValue::CUSTOM_TABLE)) {
             abort(403);
         }
         return $table;

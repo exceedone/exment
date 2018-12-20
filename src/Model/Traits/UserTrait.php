@@ -6,9 +6,13 @@ use Exceedone\Exment\Model;
 
 trait UserTrait
 {
-    public function login_user()
+    /**
+     * get login users.
+     * Why "hasMany" not "hasOne" is It can be logged in by multiple providers.
+     */
+    public function login_users()
     {
-        return $this->hasOne(Model\LoginUser::class, "base_user_id");
+        return $this->hasMany(Model\LoginUser::class, "base_user_id");
     }
 
     public function user_setting()

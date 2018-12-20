@@ -104,24 +104,39 @@ class DashboardBoxController extends AdminControllerBase
                         break;
                     }
 
-                    // create model for getting data --------------------------------------------------
-                    $classname = getModelName($table);
-                    $model = new $classname();
-                    // filter model
-                    $model = Admin::user()->filterModel($model, $table->table_name, $view);
-                    // get data
-                    // TODO:only take 5 rows. add function that changing take and skip records.
-                    $datalist = $model->take(5)->get();
+                    // if not access permission
+                    if(!$table->hasPermission()){
+                        $html = view('exment::dashboard.list.header')->render();
+                        $html .= trans('admin.deny');
+                    }else{
 
-                    // get widget table
-                    list($headers, $bodies) = $view->getDataTable($datalist);
-                    $widgetTable = new WidgetTable($headers, $bodies);
-                    $widgetTable->class('table table-hover');
+                        // create model for getting data --------------------------------------------------
+                        $classname = getModelName($table);
+                        $model = new $classname();
+                        // filter model
+                        $model = Admin::user()->filterModel($model, $table->table_name, $view);
+                        // get data
+                        // TODO:only take 5 rows. add function that changing take and skip records.
+                        $datalist = $model->take(5)->get();
 
-                    $html = view('exment::dashboard.list.header', [
-                        'new_url' => admin_base_path("data/{$table->table_name}/create")
-                    ])->render();
-                    $html .= $widgetTable->render();
+                        // get widget table
+                        list($headers, $bodies) = $view->getDataTable($datalist);
+                        $widgetTable = new WidgetTable($headers, $bodies);
+                        $widgetTable->class('table table-hover');
+
+                        // check edit permission
+                        if($table->hasPermission(Authority::AVAILABLE_EDIT_CUSTOM_VALUE)){
+                            $new_url= admin_base_path("data/{$table->table_name}/create");
+                        }else{
+                            $new_url = null;
+                        }
+
+                        $html = view('exment::dashboard.list.header', [
+                            'new_url' => $new_url
+                        ])->render();
+                        $html .= $widgetTable->render();
+
+                    }
                     break;
             }
         }

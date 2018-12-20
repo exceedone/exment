@@ -494,8 +494,7 @@ class TemplateExporter
                 'dashboard_type',
                 'dashboard_name',
                 'dashboard_view_name',
-                'row1',
-                'row2',
+                'options',
                 'dashboard_boxes',
             ]);
         }

@@ -39,20 +39,12 @@ trait HasPermissions
      */
     public function getAvatarAttribute($avatar = null)
     {
-        return $this->get_avatar($avatar);
-    }
-    
-    protected function get_avatar($avatar = null)
-    {
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
-        } elseif ($this->login_user && !is_nullorempty($this->avatar)) {
-            return Storage::disk(config('admin.upload.disk'))->url($this->avatar);
-        }
-
+        } 
         return asset('vendor/exment/images/user.png');
     }
-
+    
     /**
      * whethere has permission, permission level
      * $authority_key * if set array, check whether either items.
@@ -75,40 +67,6 @@ trait HasPermissions
             if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
                 && array_keys_exists($authority_key, $permission->getAuthorities())) {
                 return true;
-            }
-        }
-
-        return false;
-    }
-    /**
-     * whethere has permission selecting table, permission level
-     * @param array|string $authority_key * if set array, check whether either items.
-     */
-    public function hasPermissionTable($table, $authority_key)
-    {
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
-            return true;
-        }
-        $table_name = CustomTable::getEloquent($table)->table_name;
-        if (!is_array($authority_key)) {
-            $authority_key = [$authority_key];
-        }
-
-        $permissions = $this->allPermissions();
-        foreach ($permissions as $permission) {
-            // if authority type is system, and has key
-            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
-                && array_keys_exists($authority_key, $permission->getAuthorities())) {
-                return true;
-            }
-
-            // if authority type is table, and match table name
-            elseif (AuthorityType::TABLE()->match($permission->getAuthorityType()) && $permission->getTableName() == $table_name) {
-                // if user has authority
-                if (array_keys_exists($authority_key, $permission->getAuthorities())) {
-                    return true;
-                }
             }
         }
 
@@ -163,7 +121,7 @@ trait HasPermissions
         $custom_tables = CustomTable::all();
         // loop for table
         foreach ($custom_tables as $custom_table) {
-            if ($this->hasPermissionTable($custom_table->table_name, $authority_key)) {
+            if ($custom_table->hasPermission($authority_key)) {
                 $results[] = $custom_table;
             }
         }
@@ -215,93 +173,6 @@ trait HasPermissions
     }
 
     /**
-     * Whether user has permission about target id data.
-     */
-    public function hasPermissionData($id, $table_name)
-    {
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
-            return true;
-        }
-
-        // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            return false;
-        }
-
-        // if user has all edit table, return true.
-        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
-            return true;
-        }
-
-        $model = getModelName($table_name)::find($id);
-        // else, get model using value_authoritable.
-        // if count > 0, return true.
-        $rows = $model->getAuthoritable(SystemTableName::USER);
-        if (isset($rows) && count($rows) > 0) {
-            return true;
-        }
-
-        // else, get model using value_authoritable. (only that system uses organization.)
-        // if count > 0, return true.
-        if (System::organization_available()) {
-            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if (isset($rows) && count($rows) > 0) {
-                return true;
-            }
-        }
-
-        // else, return false.
-        return false;
-    }
-
-    /**
-     * Whether user has edit permission about target id data.
-     */
-    public function hasPermissionEditData($id, $table_name)
-    {
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
-            return true;
-        }
-
-        // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            return false;
-        }
-
-        // if user has all edit table, return true.
-        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
-            return true;
-        }
-
-        // if id is null(for create), return true
-        if (!isset($id)) {
-            return true;
-        }
-
-        // else, get model using value_authoritable.
-        $model = getModelName($table_name)::find($id);
-        // if count > 0, return true.
-        $rows = $model->getAuthoritable(SystemTableName::USER);
-        if (isset($rows) && count($rows) > 0) {
-            return true;
-        }
-
-        // else, get model using value_authoritable. (only that system uses organization.)
-        // if count > 0, return true.
-        if (System::organization_available()) {
-            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if (isset($rows) && count($rows) > 0) {
-                return true;
-            }
-        }
-
-        // else, return false.
-        return false;
-    }
-
-    /**
      * filter target model
      */
     public function filterModel($model, $table_name, $custom_view = null)
@@ -313,23 +184,8 @@ trait HasPermissions
             $model = $custom_view->setValueSort($model);
         }
 
-        // system filter(using system authority) --------------------------------------------------
-        // if user has all edit table, return. (nothing doing)
-        if ($this->hasPermissionTable($table_name, AuthorityValue::CUSTOM_VALUE_EDIT_ALL)) {
-            return $model;
-        }
+        ///// We don't need filter using authority here because filter auto using global scope.
 
-        // if user has edit or view table
-        if ($this->hasPermissionTable($table_name, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            // get only has authority
-            $model = $model
-                 ->whereHas('value_authoritable_users', function ($q) {
-                     $q->where('related_id', $this->base_user_id);
-                 })->orWhereHas('value_authoritable_organizations', function ($q) {
-                     $q->whereIn('related_id', $this->getOrganizationIds())
-                    ;
-                 });
-        }
         return $model;
     }
 

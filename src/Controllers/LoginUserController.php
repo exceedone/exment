@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Enums\SystemTableName;
+use Encore\Admin\Facades\Admin;
 
 class LoginUserController extends AdminControllerBase
 {
@@ -36,8 +37,10 @@ class LoginUserController extends AdminControllerBase
         $grid->column($table->getIndexColumnName('user_code'), exmtrans('user.user_code'));
         $grid->column($table->getIndexColumnName('user_name'), exmtrans('user.user_name'));
         $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));
-        $grid->column('login_user.id', exmtrans('user.login_user'))->display(function ($login_user_id) {
-            return !is_null($login_user_id) ? 'YES' : '';
+        
+        $controller = $this;
+        $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use($controller) {
+            return !is_null($controller->getLoginUser($this)) ? 'YES' : '';
         });
 
         $grid->disableCreateButton();
@@ -68,10 +71,11 @@ class LoginUserController extends AdminControllerBase
         $form->display('value.user_name', exmtrans('user.user_name'));
         $form->display('value.email', exmtrans('user.email'));
 
-        $login_user = $classname::find($id)->login_user ?? null;
+        $login_user = $this->getLoginUser($classname::find($id));
         $has_loginuser = !is_null($login_user);
+        $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
 
-        if (!useLoginProvider()) {
+        if (!$showLoginInfo) {
             $form->header(exmtrans('user.login'))->hr();
             $form->checkboxone('use_loginuser', exmtrans('user.use_loginuser'))->option(['1' => exmtrans('common.yes') ])
                     ->help(exmtrans('user.help.use_loginuser'))
@@ -102,17 +106,25 @@ class LoginUserController extends AdminControllerBase
                         , ['key' => 'reset_password', 'value' => "1"]
                         , ['key' => 'create_password_auto', 'nullValue' => true]
                         ])]);
+
             $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
                     , ['key' => 'create_password_auto', 'nullValue' => true]
                     ])]);
-        }
 
-        if(useLoginProvider()){
+            $form->checkboxone('send_password', exmtrans('user.send_password'))->option(['1' => exmtrans('common.yes')])
+                ->default(1)
+                ->help(exmtrans('user.help.send_password'))
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'create_password_auto', 'nullValue' => true]
+                    ])]);
+
+        }else{
             $form->disableSubmit();
         }
+
         $form->disableReset();
         $form->tools(function (Form\Tools $tools) {
             $tools->disableView();
@@ -135,10 +147,12 @@ class LoginUserController extends AdminControllerBase
 
         DB::beginTransaction();
         try {
-
+            // get login user
+            $user = getModelName(SystemTableName::USER)::findOrFail($id);
+            $login_user = $this->getLoginUser($user);
             // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
-            if (!is_null($user->login_user) && !array_key_exists('use_loginuser', $data)) {
-                $user->login_user->delete();
+            if (!is_null($login_user) && !array_key_exists('use_loginuser', $data)) {
+                $login_user->delete();
                 DB::commit();
                 return $this->response();
             }
@@ -147,13 +161,11 @@ class LoginUserController extends AdminControllerBase
             $has_change = false;
             $is_newuser = false;
             $password = null;
-            if (is_null($user->login_user) && array_get($data, 'use_loginuser')) {
+            if (is_null($login_user) && array_get($data, 'use_loginuser')) {
                 $login_user = new LoginUser;
                 $is_newuser = true;
                 $login_user->base_user_id = $user->id;
                 $has_change = true;
-            } else {
-                $login_user = $user->login_user;
             }
 
             // if user select "reset_password" (or new create)
@@ -182,15 +194,16 @@ class LoginUserController extends AdminControllerBase
                 $login_user->save();
 
                 // mailsend
-                $prms = [];
-                $prms['user'] = $user->toArray()['value'];
-                $prms['user']['password'] = $password;
-                //if($is_newuser){
-                MailSender::make('system_create_user', $user->value['email'])
+                if (array_key_exists('send_password', $data)) {
+                    $prms = [];
+                    $prms['user'] = $user->toArray()['value'];
+                    $prms['user']['password'] = $password;
+                    //if($is_newuser){
+                    MailSender::make('system_create_user', $user->value['email'])
                         ->prms($prms)
                         ->send();
-                //}
-
+                    //}
+                }
                 DB::commit();
             }
             DB::commit();
@@ -217,5 +230,10 @@ class LoginUserController extends AdminControllerBase
         admin_toastr($message);
         $url = admin_base_path('loginuser');
         return redirect($url);
+    }
+
+    protected function getLoginUser($user){
+        $login_user = $user->login_users()->whereNull('login_provider')->first();
+        return $login_user;
     }
 }

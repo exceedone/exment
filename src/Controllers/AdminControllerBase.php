@@ -55,7 +55,7 @@ class AdminControllerBase extends Controller
 
         //check permission
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermissionTable($table->table_name, $authority_name)) {
+        if (!$table->hasPermission($authority_name)) {
             Checker::error();
             return false;
         }

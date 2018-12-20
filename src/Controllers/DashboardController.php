@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\UserSetting;
 
@@ -67,14 +68,13 @@ class DashboardController extends AdminControllerBase
         // add dashboard header
         $content->row((new DashboardMenu($this->dashboard))->render());
 
-        //set row1
-        $row1_column = intval($this->dashboard->row1);
-        $this->setDashboardBox($content, $row1_column, 1);
-
-        //set row2
-        $row2_column = intval($this->dashboard->row2);
-        if ($row2_column > 0) {
-            $this->setDashboardBox($content, $row2_column, 2);
+        //set row
+        for ($i = 1; $i <= 4; $i++) {
+            $row_name = 'row'.$i;
+            $row_column = intval($this->dashboard->getOption($row_name));
+            if ($row_column > 0) {
+                $this->setDashboardBox($content, $row_column, $i);
+            }
         }
 
         // set dashboard box --------------------------------------------------
@@ -179,7 +179,7 @@ EOT;
     protected function form($id = null)
     {
         $form = new Form(new Dashboard);
-        $form->hidden('dashboard_type')->default('system');
+        $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
 
         if (!isset($id)) {
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
@@ -192,28 +192,38 @@ EOT;
 
         $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->required();
 
-        // create row1 select options
-        $row1 = [];
-        for ($i = 1; $i <= 4; $i++) {
-            $row1[$i] = $i.exmtrans('dashboard.row_optionsX');
-        }
-        $form->radio('row1', exmtrans("dashboard.row1"))
-            ->options($row1)
-            ->help(exmtrans("dashboard.description_row1"))
-            ->required()
-            ->default(1);
+        // create row select options
+        $form->embeds('options', exmtrans("dashboard.row"), function ($form) {
+            for ($row_count = 1; $row_count <= 4; $row_count++) {
+                $row = [];
+                if ($row_count > 1) {
+                    $row[] = exmtrans('dashboard.row_options0');
+                }
+                for ($i = 1; $i <= 4; $i++) {
+                    $row[$i] = $i.exmtrans('dashboard.row_optionsX');
+                }
 
-        // create row2 select options
-        $row2 = [];
-        $row2[0] = exmtrans('dashboard.row_options0');
-        for ($i = 1; $i <= 4; $i++) {
-            $row2[$i] = $i.exmtrans('dashboard.row_optionsX');
-        }
-        $form->radio('row2', exmtrans("dashboard.row2"))
-            ->options($row2)
-            ->help(exmtrans("dashboard.description_row2"))
-            ->required()
-            ->default(2);
+                // get default
+                switch ($row_count) {
+                    case 1:
+                        $default = 1;
+                        break;
+                    case 2:
+                        $default = 2;
+                        break;
+                    default:
+                        $default = 0;
+                        break;
+                }
+
+                $form->radio('row'.$row_count, sprintf(exmtrans("dashboard.row"), $row_count))
+                    ->options($row)
+                    ->help(exmtrans("dashboard.description_row"))
+                    ->required()
+                    ->default($default);
+            }
+        })->disableHeader();
+
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 
         disableFormFooter($form);
@@ -244,12 +254,9 @@ EOT;
             //TODO:now system admin. change if user dashboard
             $has_authority = Admin::user()->hasPermission(AuthorityValue::SYSTEM);
             for ($i = 1; $i <= $row_column_count; $i++) {
+                $func = "dashboard_row{$row_no}_boxes";
                 // get $boxes as $row_no
-                if ($row_no == 1) {
-                    $boxes = $this->dashboard->dashboard_row1_boxes();
-                } else {
-                    $boxes = $this->dashboard->dashboard_row2_boxes();
-                }
+                $boxes = $this->dashboard->{$func}();
 
                 // get target column by database
                 $dashboard_column = $boxes->where('column_no', $i)->first();
@@ -282,7 +289,13 @@ EOT;
                     array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash']);
                 }
                 
-                $row->column(12 / $row_column_count, view('exment::dashboard.box', [
+                // set column. use grid system
+                $grids = [
+                    'xs' => 12,
+                    'md' => ($row_column_count == 0 ? 12 : 12 / $row_column_count)
+                ];
+
+                $row->column($grids, view('exment::dashboard.box', [
                     'title' => $dashboard_column->dashboard_box_view_name ?? null,
                     'id' => $id,
                     'suuid' => $dashboard_column->suuid ?? null,

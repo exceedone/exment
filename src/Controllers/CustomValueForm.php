@@ -415,7 +415,7 @@ EOT;
             }
 
             // if user only view, disable delete and view
-            elseif (!Admin::user()->hasPermissionEditData($id, $custom_table->table_name)) {
+            elseif (!$custom_table->hasPermissionEditData($id)) {
                 $tools->disableDelete();
                 $tools->disableView();
                 disableFormFooter($form);
