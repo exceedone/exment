@@ -199,4 +199,9 @@ class Define
     ];
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
+
+    public const FILE_OPTION = [
+        'showPreview' => false,
+        'showCancel' => false,
+    ];
 }

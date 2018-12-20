@@ -99,12 +99,14 @@ class CustomView extends ModelBase
                 if(!isset($column)){
                     continue;
                 }
-                //$column_name = $column->getIndexColumnName();
-                $column_name = array_get($column, 'column_name');
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                $grid->column($column_name, $column_view_name)->display(function ($v) use ($column) {
+                // get grid column name. if hasindex, set as index name, else set as default column name
+                $isGridIndex = $column->hasIndex();
+                $column_name = $isGridIndex ? $column->getIndexColumnName() : array_get($column, 'column_name');
+                
+                $grid->column($column_name, $column_view_name)->sort($isGridIndex)->display(function ($v) use ($column) {
                     if (is_null($this)) {
                         return '';
                     }
