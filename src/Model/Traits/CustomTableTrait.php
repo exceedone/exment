@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +78,9 @@ trait CustomTableTrait
             $obj = static::findByName(array_get($obj, 'table_name'));
         } elseif ($obj instanceof CustomTable) {
             // nothing
-        } elseif ($obj instanceof CustomValue) {
+        }elseif ($obj instanceof CustomColumn) {
+            $obj = $obj->custom_table;
+        }elseif ($obj instanceof CustomValue) {
             $obj = $obj->custom_table;
         }
         return $obj;
@@ -162,7 +165,7 @@ trait CustomTableTrait
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissonData($id, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -170,7 +173,7 @@ trait CustomTableTrait
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissonData($id, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
     protected function _hasPermissionData($id, $authority){
@@ -309,8 +312,11 @@ trait CustomTableTrait
             $query = $this->getValueModel();
         }
         // if $table_name is user or organization, get from getAuthorityUserOrOrg
-        elseif (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
-            $query = Authority::getAuthorityUserOrgQuery($display_table, $table_name);
+        elseif ($table_name ==SystemTableName::USER && !$all) {
+            $query = AuthUserOrgHelper::getAuthorityUserQuery($display_table);
+        }
+        elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
+            $query = AuthUserOrgHelper::getAuthorityOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
         }

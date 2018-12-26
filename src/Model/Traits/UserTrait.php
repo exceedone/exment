@@ -19,4 +19,10 @@ trait UserTrait
     {
         return $this->hasOne(Model\UserSetting::class, "user_id");
     }
+    
+    public function belong_organizaitons(){
+        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        return $this->{$db_table_name_pivot}();
+    }
+
 }

@@ -6,19 +6,15 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
-use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\AuthorityType;
-use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
-use Carbon\Carbon;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait HasPermissions
 {
@@ -41,7 +37,7 @@ trait HasPermissions
     {
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
-        } 
+        }
         return asset('vendor/exment/images/user.png');
     }
     
@@ -190,7 +186,7 @@ trait HasPermissions
     }
 
     /**
-     * get organizations that user joins.
+     * get organizations that this_user joins.
      * @return mixed
      */
     public function getOrganizationIds()
@@ -203,21 +199,22 @@ trait HasPermissions
             return Session::get(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
         }
 
-        // get organization ids.
-        $db_table_name_organization = getDBTableName(SystemTableName::ORGANIZATION);
         $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
-        $ids = DB::table($db_table_name_organization.' AS o1')
-           ->leftJoin($db_table_name_organization.' AS o2', 'o2.parent_id', '=', 'o1.id')
-           ->leftJoin($db_table_name_organization.' AS o3', 'o3.parent_id', '=', 'o3.id')
-           ->leftJoin($db_table_name_pivot.' AS ou1', 'ou1.parent_id', '=', 'o1.id')
-           ->leftJoin($db_table_name_pivot.' AS ou2', 'ou2.parent_id', '=', 'o2.id')
-           ->leftJoin($db_table_name_pivot.' AS ou3', 'ou3.parent_id', '=', 'o3.id')
-           ->orWhere('ou1.child_id', $this->base_user_id)
-           ->orWhere('ou2.child_id', $this->base_user_id)
-           ->orWhere('ou3.child_id', $this->base_user_id)
-           ->get(['o1.id'])->pluck('id')->toArray();
+        $ids = AuthUserOrgHelper::getOrganizationIds(function(&$query, $deeps) use($db_table_name_pivot){
+            // for ($i=1; $i <= $deeps; $i++) {
+            //     $next  = $i + 1;
+            //     $query->leftJoin("$db_table_name_pivot AS ou$i", "ou$i.parent_id", '=', "o$i.id");
+            // }
+            
+            // $query->where(function($query) use($deeps){
+            //     for ($i=1; $i <= $deeps; $i++) {
+            //         $query->orWhere("ou{$i}.child_id", $this->base_user_id);
+            //     }
+            // });
+        });
+
         // set session.
-        Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
+        Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS, $ids);
         return $ids;
     }
 

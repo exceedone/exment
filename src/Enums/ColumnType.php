@@ -33,7 +33,19 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_SELECT_TABLE(){
+        return [
+            ColumnType::SELECT_TABLE,
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
+        ];
+    }
+
     public static function isCalc($column_type){
         return in_array($column_type, static::COLUMN_TYPE_CALC());
+    }
+    
+    public static function isSelectTable($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_SELECT_TABLE());
     }
 }

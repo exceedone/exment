@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services;
 
 class CustomValueModelScope implements Scope
 {
@@ -33,7 +34,15 @@ class CustomValueModelScope implements Scope
         }
 
         // if user can access list, return
-        if ($model->custom_table->hasPermission(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if($table_name == SystemTableName::USER){
+            //TODO
+            return;
+        }
+        elseif($table_name == SystemTableName::ORGANIZATION){
+            //TODO
+            return;
+        }
+        elseif ($model->custom_table->hasPermission(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
         // if user has edit or view table
@@ -43,15 +52,11 @@ class CustomValueModelScope implements Scope
                 ->whereHas('value_authoritable_users', function ($q) use($user) {
                     $q->where('related_id', $user->base_user_id);
                 })->orWhereHas('value_authoritable_organizations', function ($q) use($user) {
-                    $q->whereIn('related_id', $user->getOrganizationIds())
-                ;
+                    $q->whereIn('related_id', $user->getOrganizationIds());
                 });
         }
         // if not authority, set always false result. 
         else{
-            if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
-                return;
-            }
             $builder->where('id','<', 0);
         }
     }

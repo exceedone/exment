@@ -531,7 +531,7 @@
                     "view_filter_condition": "1",
                     "view_filter_condition_value_text": "0",
                     "view_column_target_name": "complete_flg",
-                    "view_column_target_type": "column"
+                    "view_column_type": "column"
                 }
             ],
             "table_name": "task"

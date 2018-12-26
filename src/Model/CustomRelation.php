@@ -41,6 +41,18 @@ class CustomRelation extends ModelBase
     }
 
     /**
+     * get relation by child table.
+     */
+    public static function getRelationsByChild($child_table, $relation_type = null){
+        $child_table = CustomTable::getEloquent($child_table);
+        $query = static::where('child_custom_table_id', array_get($child_table, 'id'));
+        if(isset($relation_type)){
+            $query = $query->where('relation_type', $relation_type);
+        }
+        return $query->get();
+    }
+
+    /**
      * Get relation name.
      * @param CustomRelation $relation_obj
      * @return string
@@ -63,7 +75,7 @@ class CustomRelation extends ModelBase
         if (is_null($parent_suuid) || is_null($child_suuid)) {
             return null;
         }
-        return "pivot_{$parent_suuid}_{$child_suuid}";
+        return "pivot__{$parent_suuid}_{$child_suuid}";
     }
 
 }

@@ -51,33 +51,4 @@ class Authority extends ModelBase
         }
     }
     
-    /**
-     * get users or organiztions who has authorities.
-     */
-    protected static function getAuthorityUserOrgQuery($target_table, $related_type)
-    {
-        if (is_null($target_table)) {
-            return [];
-        }
-        $target_table = CustomTable::getEloquent($target_table);
-    
-        // get user or organiztion ids
-        $target_ids = \DB::table('authorities as a')
-                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
-                ->where('related_type', $related_type)
-                ->where(function ($query) use ($target_table) {
-                    $query->orWhere(function ($query) {
-                        $query->where('morph_type', AuthorityType::SYSTEM);
-                    });
-                    $query->orWhere(function ($query) use ($target_table) {
-                        $query->where('morph_type', AuthorityType::TABLE)
-                        ->where('morph_id', $target_table->id);
-                    });
-                })->get(['related_id'])->pluck('related_id');
-            
-        // return target values
-        $query = getModelName($related_type)::query();
-        $query =  $query->whereIn('id', $target_ids);
-        return $query;
-    }    
 }
