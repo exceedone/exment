@@ -288,18 +288,18 @@ class TemplateExporter
                     // if number, get column_name
                     if (is_numeric($view_column_target)) {
                         $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name');
-                        $custom_view_column['view_column_target_type'] = ViewColumnType::COLUMN;
+                        $custom_view_column['view_column_type'] = ViewColumnType::COLUMN;
                     }
                     // else, system column
                     else {
                         $custom_view_column['view_column_target_name'] = $view_column_target;
-                        $custom_view_column['view_column_target_type'] = ViewColumnType::SYSTEM;
+                        $custom_view_column['view_column_type'] = ViewColumnType::SYSTEM;
                     }
 
                     // set $custom_view_column
                     $custom_view_column = array_only($custom_view_column, [
                         'view_column_target_name',
-                        'view_column_target_type',
+                        'view_column_type',
                         'order',
                     ]);
                 }
@@ -308,19 +308,6 @@ class TemplateExporter
             // loop custom_view_filters
             if (array_key_value_exists('custom_view_filters', $view)) {
                 foreach ($view['custom_view_filters'] as &$custom_view_filter) {
-                    // replace id to name
-                    $view_filter_target = array_get($custom_view_filter, 'view_filter_target');
-                    // if number, get column_name
-                    if (is_numeric($view_filter_target)) {
-                        $custom_view_filter['view_filter_target_name'] = array_get($custom_view_filter, 'custom_column.column_name');
-                        $custom_view_filter['view_filter_target_type'] = ViewColumnType::COLUMN;
-                    }
-                    // else, system column
-                    else {
-                        $custom_view_filter['view_filter_target_name'] = $view_filter_target;
-                        $custom_view_filter['view_filter_target_type'] = ViewColumnType::SYSTEM;
-                    }
-
                     // if has value view_filter_condition_value_table_id
                     if (array_key_value_exists('view_filter_condition_value_table_id', $custom_view_filter)) {
                         $custom_view_filter['view_filter_condition_value_table_name'] = CustomTable::find($custom_view_filter['view_filter_condition_value_table_id'])->table_name ?? null;
@@ -329,8 +316,8 @@ class TemplateExporter
 
                     // set $custom_view_filter
                     $custom_view_filter = array_only($custom_view_filter, [
-                        'view_filter_target_name',
-                        'view_filter_target_type',
+                        'view_column_type',
+                        'view_column_target_name',
                         'view_filter_condition',
                         'view_filter_condition_value_text',
                         'view_filter_condition_value_table_name',
@@ -351,9 +338,9 @@ class TemplateExporter
         
         // get relations --------------------------------------------------
         $relations = CustomRelation
-            ::with('parent_custom_table')
-            ->with('child_custom_table')
-            ->get()->toArray();
+        ::with('parent_custom_table')
+        ->with('child_custom_table')
+        ->get()->toArray();
         $configRelations = [];
         foreach ($relations as &$relation) {
             // replace id to name
@@ -507,8 +494,7 @@ class TemplateExporter
                 'dashboard_type',
                 'dashboard_name',
                 'dashboard_view_name',
-                'row1',
-                'row2',
+                'options',
                 'dashboard_boxes',
             ]);
         }

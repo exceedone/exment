@@ -279,7 +279,8 @@
                     "column_type": "select_table",
                     "description": null,
                     "options": {
-                        "select_target_table_name": "organization"
+                        "select_target_table_name": "organization",
+                        "search_enabled": "1"
                     }
                 }
             ]
@@ -378,6 +379,11 @@
                         {
                             "form_column_type": "column",
                             "options": null,
+                            "form_column_target_name": "parent_organization"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
                             "form_column_target_name": "organization_code"
                         },
                         {
@@ -408,32 +414,32 @@
 				{
 					"order": "1",
 					"view_column_target_name": "id",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "2",
 					"view_column_target_name": "user_code",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "3",
 					"view_column_target_name": "user_name",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "4",
 					"view_column_target_name": "email",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "96",
 					"view_column_target_name": "created_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "97",
 					"view_column_target_name": "updated_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				}
 			],
 			"custom_view_filters": [],
@@ -446,27 +452,32 @@
 				{
 					"order": "1",
 					"view_column_target_name": "id",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "2",
-					"view_column_target_name": "organization_code",
-					"view_column_target_type": "column"
+					"view_column_target_name": "parent_organization",
+					"view_column_type": 0
 				},
 				{
 					"order": "3",
+					"view_column_target_name": "organization_code",
+					"view_column_type": 0
+				},
+				{
+					"order": "4",
 					"view_column_target_name": "organization_name",
-					"view_column_target_type": "column"
+					"view_column_type": 0
 				},
 				{
 					"order": "96",
 					"view_column_target_name": "created_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				},
 				{
 					"order": "97",
 					"view_column_target_name": "updated_at",
-					"view_column_target_type": "system"
+					"view_column_type": 1
 				}
 			],
 			"custom_view_filters": [],
@@ -475,11 +486,13 @@
 	],
     "dashboards": [
 		{
-			"dashboard_type": "system",
+			"dashboard_type": "0",
 			"dashboard_name": "system_default_dashboard",
 			"dashboard_view_name": "既定のダッシュボード",
-			"row1": "1",
-			"row2": "2",
+			"options": {
+                "row1" : "1",
+                "row2" : "2"
+            },
 			"dashboard_boxes": [
 				{
 					"row_no": "1",
@@ -538,6 +551,17 @@
             "permissions": [
                 "custom_value_edit_all",
                 "custom_value_edit",
+                "custom_value_view_all",
+                "custom_value_view"
+            ]
+        },
+        {
+            "authority_type": "table",
+            "authority_name": "table_all_viewer",
+            "authority_view_name": "全データ閲覧者",
+            "description": "テーブル内のすべてのデータを閲覧できます。",
+            "permissions": [
+                "custom_value_view_all",
                 "custom_value_view"
             ]
         },

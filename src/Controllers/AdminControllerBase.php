@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Auth\Permission as Checker;
 use Exceedone\Exment\Model\CustomTable;
 
@@ -55,7 +54,7 @@ class AdminControllerBase extends Controller
 
         //check permission
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermissionTable($table->table_name, $authority_name)) {
+        if (!$table->hasPermission($authority_name)) {
             Checker::error();
             return false;
         }

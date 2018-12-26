@@ -67,10 +67,7 @@ trait CustomValueGrid
             // loop custom column
             $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
                 // check 1:n relation
-                $relation = CustomRelation
-                    ::with('parent_custom_table')
-                    ->where('child_custom_table_id', $this->custom_table->id)
-                    ->first();
+                $relation = CustomRelation::getRelationByChild($this->custom_table);
                 // if set, create select
                 if (isset($relation)) {
                     // get options and ajax url
@@ -158,7 +155,7 @@ trait CustomValueGrid
         $grid->disableExport();
         $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid) {
             // have edit flg
-            $edit_flg = Admin::user()->hasPermissionTable($this->custom_table->table_name, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = $this->custom_table->hasPermission(AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid));
@@ -194,18 +191,17 @@ trait CustomValueGrid
     {
         if (isset($this->custom_table)) {
             // name
-            $table_name = $this->custom_table->table_name;
-            $table_id = $this->custom_table->id;
-            $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
+            $custom_table = $this->custom_table;
+            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
                 $form_id = Req::get('form');
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-                    $actions->prepend('<a href="'.admin_base_paths('data', $table_name, $actions->getKey(), 'edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
+                    $actions->prepend('<a href="'.admin_base_paths('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
 
                 // if user does't edit permission disable edit row.
-                if (!Admin::user()->hasPermissionEditData($actions->getKey(), $table_name)) {
+                if (!$custom_table->hasPermissionEditData($actions->getKey())) {
                     $actions->disableEdit();
                     $actions->disableDelete();
                 }

@@ -8,12 +8,14 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\MailSender;
 use Carbon\Carbon;
 
-use Exceedone\Exment\Services\MailSender;
 
-class ScheduleCommand extends CommandBase
+class ScheduleCommand extends Command
 {
+    use CommandTrait;
+
     /**
      * The console command name.
      *
@@ -35,8 +37,6 @@ class ScheduleCommand extends CommandBase
      */
     public function handle()
     {
-        parent::handle();
-
         $this->notify();
         $this->backup();
     }

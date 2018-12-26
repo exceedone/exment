@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
 
 class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
 {

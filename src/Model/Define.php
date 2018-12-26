@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\AuthorityValue;
-use Exceedone\Exment\Enums;
 
 /**
  * Define short summary.
@@ -61,6 +60,7 @@ class Define
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "authority";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
+    public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
 
     // Dashboard --------------------------------------------------
@@ -195,5 +195,12 @@ class Define
         'custom_copies',
         'custom_copy_columns',
         'admin_menu',
+    ];
+
+    public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
+
+    public const FILE_OPTION = [
+        'showPreview' => false,
+        'showCancel' => false,
     ];
 }

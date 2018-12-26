@@ -84,7 +84,7 @@ EOT;
                 }
             } else {
                 // if user dont't has authority as table
-                if (!Admin::user()->hasPermissionTable($this->custom_table, array_get($menu, 'authorities'))) {
+                if (!$this->custom_table->hasPermission(array_get($menu, 'authorities'))) {
                     continue;
                 }
             }

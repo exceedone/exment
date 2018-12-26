@@ -98,7 +98,7 @@ trait CustomValueShow
             }
 
             // if user only view permission, disable delete and view
-            if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
+            if (!$this->custom_table->hasPermissionEditData($id)) {
                 $show->panel()->tools(function ($tools) {
                     $tools->disableEdit();
                     $tools->disableDelete();

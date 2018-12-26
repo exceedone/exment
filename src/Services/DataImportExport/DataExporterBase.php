@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport;
 use Illuminate\Database\Eloquent\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Exporters\AbstractExporter;
+use Exceedone\Exment\Model\CustomRelation;
 
 abstract class DataExporterBase extends AbstractExporter
 {
@@ -20,12 +21,19 @@ abstract class DataExporterBase extends AbstractExporter
     protected $search_enabled_columns;
 
     /**
+     * Whether this output is as template
+     */
+    protected $template = false;
+
+    /**
      * Create a new exporter instance.
      *
      * @param $grid
      */
     public function __construct(Grid $grid = null, $table = null, $search_enabled_columns = null)
     {
+        set_time_limit(240);
+
         if ($grid) {
             $this->setGrid($grid);
         }
@@ -35,6 +43,8 @@ abstract class DataExporterBase extends AbstractExporter
         if ($search_enabled_columns) {
             $this->search_enabled_columns = $search_enabled_columns;
         }
+
+        $this->template = app('request')->query('temp');
     }
 
     /**
@@ -52,8 +62,7 @@ abstract class DataExporterBase extends AbstractExporter
         $headers = $this->getHeaders($firstColumns, $custom_columns, $lastColumns);
 
         // if only template, output only headers
-        $isTepmlate = boolval(\Request::capture()->query('temp'));
-        if ($isTepmlate) {
+        if ($this->template) {
             $bodies = [];
         } else {
             $bodies = $this->getBodies($this->getRecords(), $firstColumns, $custom_columns, $lastColumns);
@@ -159,11 +168,20 @@ abstract class DataExporterBase extends AbstractExporter
     }
 
     /**
+     * whether this out is as zip.
+     * This table is parent and contains relation 1:n or n:n.
+     */
+    protected function isOutputAsZip(){
+        // check relations
+        return count(CustomRelation::getRelationsByChild($this->table)) > 0;
+    }
+
+    /**
      * get exporter model
      */
     public static function getModel(Grid $grid = null, $table = null, $search_enabled_columns = null)
     {
-        $format = \Request::capture()->input('format');
+        $format = app('request')->input('format');
         switch ($format) {
             case 'excel':
                 return new ExcelExporter($grid, $table, $search_enabled_columns);

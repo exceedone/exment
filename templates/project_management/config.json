@@ -455,27 +455,27 @@
                 {
                     "order": "1",
                     "view_column_target_name": "id",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "2",
                     "view_column_target_name": "project_code",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "3",
                     "view_column_target_name": "project_name",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "96",
                     "view_column_target_name": "created_at",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "97",
                     "view_column_target_name": "updated_at",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 }
             ],
             "custom_view_filters": [],
@@ -488,50 +488,50 @@
                 {
                     "order": "1",
                     "view_column_target_name": "id",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "2",
                     "view_column_target_name": "parent_id",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "3",
                     "view_column_target_name": "status",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "4",
                     "view_column_target_name": "task_name",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "5",
                     "view_column_target_name": "charge_user",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "6",
                     "view_column_target_name": "priority",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "96",
                     "view_column_target_name": "created_at",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "97",
                     "view_column_target_name": "updated_at",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 }
             ],
             "custom_view_filters": [
                 {
                     "view_filter_condition": "1",
                     "view_filter_condition_value_text": "0",
-                    "view_filter_target_name": "complete_flg",
-                    "view_filter_target_type": "column"
+                    "view_column_target_name": "complete_flg",
+                    "view_column_type": "column"
                 }
             ],
             "table_name": "task"
@@ -543,47 +543,47 @@
                 {
                     "order": "1",
                     "view_column_target_name": "id",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "2",
                     "view_column_target_name": "parent_id",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "3",
                     "view_column_target_name": "status",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "3",
                     "view_column_target_name": "target_project",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "4",
                     "view_column_target_name": "task_name",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "5",
                     "view_column_target_name": "charge_user",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "6",
                     "view_column_target_name": "priority",
-                    "view_column_target_type": "column"
+                    "view_column_type": 0
                 },
                 {
                     "order": "96",
                     "view_column_target_name": "created_at",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 },
                 {
                     "order": "97",
                     "view_column_target_name": "updated_at",
-                    "view_column_target_type": "system"
+                    "view_column_type": 1
                 }
             ],
             "custom_view_filters": [],

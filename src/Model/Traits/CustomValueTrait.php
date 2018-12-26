@@ -366,7 +366,7 @@ trait CustomValueTrait
                 if (is_null($column)) {
                     continue;
                 }
-                 
+                
                 // get label column
                 // if label is true, return getLabel
                 if ($label === true) {
@@ -395,7 +395,7 @@ trait CustomValueTrait
             return boolval($val) ? 'YES' : 'NO';
         }
         // boolean
-        elseif (in_array($column_type, [ColumnType::YESNO])) {
+        elseif (in_array($column_type, [ColumnType::BOOLEAN])) {
             if ($label !== true) {
                 return $val;
             }
@@ -568,20 +568,47 @@ trait CustomValueTrait
         }
         return $model->label ?? null;
     }
-    
     /**
-     * Get Custom children Value
+     * Get Custom children value summary
      */
-    public function getChildrenValues($relation_table)
+    public function getSum($custom_column) {
+        $name = $custom_column->hasIndex() ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+
+        if(!isset($name)){
+            return 0;
+        }
+        return $this->getChildrenValues($custom_column, true)
+            ->sum($name);
+    }
+
+    /**
+     * Get Custom children Value.
+     * v1.3.0 changes ... get children values using relation or select_table
+     */
+    public function getChildrenValues($relation, $returnBuilder = false)
     {
-        $parent_table = $this->custom_table;
-
+        // first, get children values as relation
+        if($relation instanceof CustomColumn){
+            // get custom column as array
+            // target column is select table and has index, get index name
+            if(ColumnType::isSelectTable($relation->column_type) && $relation->hasIndex()){
+                $index_name = $relation->getIndexColumnName();
+                // get children values where this id
+                $query = getModelName(CustomTable::getEloquent($relation))
+                    ::where($index_name, $this->id);
+                    return $returnBuilder ? $query : $query->get();
+            }
+        }
+    
         // get custom column as array
-        $child_table = CustomTable::getEloquent($relation_table);
-        $pivot_table_name = CustomRelation::getRelationNameByTables($parent_table, $child_table);
+        $child_table = CustomTable::getEloquent($relation);
+        $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
 
-        // get relation item list
-        return $this->{$pivot_table_name};
+        if(isset($pivot_table_name)){
+            return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
+        }
+        
+        return null;
     }
 
     /**

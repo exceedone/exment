@@ -58,6 +58,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
             $router->get('system/update', 'SystemController@updatePackage');
+            $router->get('system/version', 'SystemController@version');
             
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
@@ -203,6 +204,9 @@ class RouteServiceProvider extends ServiceProvider
                 } catch (\Exception $e) {
                 }
     
+                $router->get("version", function(){
+                    return (new \Exceedone\Exment\Exment)->version();
+                });
                 $router->get("table/{id}", 'ApiController@table');
                 $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns');
             });

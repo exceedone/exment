@@ -16,6 +16,7 @@ class Authority extends EnumBase
         AuthorityValue::CUSTOM_FORM,
         AuthorityValue::CUSTOM_VIEW,
         AuthorityValue::CUSTOM_VALUE_EDIT_ALL,
+        AuthorityValue::CUSTOM_VALUE_VIEW_ALL,
         AuthorityValue::CUSTOM_VALUE_EDIT,
         AuthorityValue::CUSTOM_VALUE_VIEW,
     ];

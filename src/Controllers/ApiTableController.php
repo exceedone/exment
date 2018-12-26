@@ -2,10 +2,8 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Illuminate\Support\Facades\Auth;
 use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Services\FormHelper;
 use Validator;
@@ -43,7 +41,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function find($id, Request $request)
     {
-        if (!\Exment::user()->hasPermissionData($id, $this->custom_table->table_name)) {
+        if (!$this->custom_table->hasPermissionData($id)) {
             abort(403);
         }
         $result = getModelName($this->custom_table->table_name)::findOrFail($id)
@@ -90,7 +88,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function createData(Request $request)
     {
-        if (!\Exment::user()->hasPermissionTable($this->custom_table, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
             abort(403);
         }
 
@@ -109,7 +107,7 @@ class ApiTableController extends AdminControllerTableBase
         }else{
             $custom_value = getModelName($this->custom_table)::find($key);
         }
-        if (!\Exment::user()->hasPermissionData($custom_value->id, $this->custom_table)){
+        if (!$this->custom_table->hasPermissionData($custom_value)){
             abort(403);
         }
 

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\CopyColumnType;
 
 class CustomCopyController extends AdminControllerTableBase
 {
@@ -148,17 +149,17 @@ class CustomCopyController extends AdminControllerTableBase
         $from_custom_column_options = $custom_table->getColumnsSelectOptions();
         $to_custom_column_options = $to_table->getColumnsSelectOptions();
         $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
-            $form->select('from_custom_column_target', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
+            $form->select('from_column_target_id', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
             $form->description('▶');
-            $form->select('to_custom_column_target', exmtrans("custom_copy.to_custom_column"))->options($to_custom_column_options);
-            $form->hidden('custom_copy_column_type')->default('default');
+            $form->select('to_column_target_id', exmtrans("custom_copy.to_custom_column"))->options($to_custom_column_options);
+            $form->hidden('copy_column_type')->default(CopyColumnType::DEFAULT);
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.column_description"));
 
         ///// get input columns
         $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
-            $form->select('to_custom_column_target', exmtrans("custom_copy.input_custom_column"))->options($to_custom_column_options);
-            $form->hidden('custom_copy_column_type')->default('input');
+            $form->select('to_column_target_id', exmtrans("custom_copy.input_custom_column"))->options($to_custom_column_options);
+            $form->hidden('copy_column_type')->default(CopyColumnType::INPUT);
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.input_column_description"));
 

@@ -23,6 +23,10 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
+
+            $(function(){
+                CommonEvent.GetVersion();
+            })
         }
         public static AddEvent() {
             CommonEvent.addSelect2();
@@ -30,6 +34,22 @@ namespace Exment {
             CommonEvent.tableHoverLink();
 
             $.numberformat('[number_format]');
+        }
+
+        private static GetVersion() {
+            if($('#version').text().length > 0){
+                return;
+            }
+            $.ajax({
+                url: admin_base_path('webapi/version'),
+                type: 'GET',
+            })
+                .done(function (data) {
+                    $('#version').text(data);
+                })
+                .fail(function (data) {
+                    console.log(data);
+                });
         }
 
         /**
@@ -58,13 +78,13 @@ namespace Exment {
                 // show toastr
                 if (hasValue(res.toastr)) {
                     toastr.error(res.toastr);
-                }else{
+                } else {
                     toastr.error('Undeifned Error');
                 }
             }
         }
 
-        private static redirectCallback(res){
+        private static redirectCallback(res) {
 
             if (hasValue(res.redirect)) {
                 $.pjax({ container: '#pjax-container', url: res.redirect });
@@ -74,7 +94,7 @@ namespace Exment {
         }
 
 
-        public static ShowSwal(url:string, options = []){
+        public static ShowSwal(url: string, options = []) {
             options = $.extend(
                 {
                     title: 'Swal',
@@ -88,7 +108,7 @@ namespace Exment {
 
             var data = $.extend(
                 {
-                    _pjax: true, 
+                    _pjax: true,
                     _token: LA.token,
                 }, options.data
             );
@@ -102,18 +122,18 @@ namespace Exment {
                 showLoaderOnConfirm: true,
                 allowOutsideClick: false,
                 cancelButtonText: options.cancel,
-                preConfirm: function() {
-                    return new Promise(function(resolve) {
+                preConfirm: function () {
+                    return new Promise(function (resolve) {
                         $.ajax({
                             type: options.method,
                             url: url,
                             //container: "#pjax-container",
-                            data:data,
-                            success:function(repsonse) {
+                            data: data,
+                            success: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
                                 resolve(repsonse);
                             },
-                            error: function(repsonse){
+                            error: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
                                 //toastr.error(repsonse.message);
                                 //reject(repsonse);
@@ -121,7 +141,7 @@ namespace Exment {
                         });
                     });
                 }
-            });  
+            });
         }
 
         /**

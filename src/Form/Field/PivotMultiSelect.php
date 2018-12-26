@@ -16,8 +16,6 @@ class PivotMultiSelect extends MultipleSelect
         $this->pivot = [];
     }
 
-
-
     /**
      * add pivot function
      *

@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +88,7 @@ class CreateTableDefine extends Migration
             $table->string('plugin_name', 256)->unique();
             $table->string('plugin_view_name', 256);
             $table->string('author', 256)->nullable();
-            $table->string('plugin_type');
+            $table->integer('plugin_type');
             $table->string('version', 128)->nullable();
             $table->string('description', 1000)->nullable();
             $table->boolean('active_flg')->default(true);
@@ -125,12 +124,11 @@ class CreateTableDefine extends Migration
         $schema->create('dashboards', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
-            $table->string('dashboard_type');
+            $table->integer('dashboard_type')->default(0);
             $table->string('dashboard_name', 256)->unique();
             $table->string('dashboard_view_name', 40);
             $table->boolean('default_flg')->default(false);
-            $table->integer('row1');
-            $table->integer('row2');
+            $table->json('options')->nullable();
             
             $table->timestamps();
             $table->softDeletes();
@@ -262,7 +260,8 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->string('suuid', 20)->unique();
             $table->integer('custom_table_id')->unsigned();
-            $table->string('view_type');
+            $table->integer('view_type')->default(0);
+            $table->integer('view_kind_type')->default(0);
             $table->string('view_view_name', 40);
             $table->boolean('default_flg')->default(false);
             $table->timestamps();
@@ -275,7 +274,8 @@ class CreateTableDefine extends Migration
         $schema->create('custom_view_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_view_id')->unsigned();
-            $table->string('view_column_target');
+            $table->integer('view_column_type')->default(0);
+            $table->integer('view_column_target_id')->nullable();
             $table->integer('order')->unsigned()->default(0);
             $table->timestamps();
             $table->softDeletes();
@@ -287,7 +287,8 @@ class CreateTableDefine extends Migration
         $schema->create('custom_view_filters', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_view_id')->unsigned();
-            $table->string('view_filter_target');
+            $table->integer('view_column_type')->default(0);
+            $table->integer('view_column_target_id')->nullable();
             $table->integer('view_filter_condition');
             $table->string('view_filter_condition_value_text', 1024)->nullable();
             $table->integer('view_filter_condition_value_table_id')->unsigned()->nullable();
@@ -302,7 +303,8 @@ class CreateTableDefine extends Migration
         $schema->create('custom_view_sorts', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_view_id')->unsigned();
-            $table->string('view_column_target');
+            $table->integer('view_column_type')->default(0);
+            $table->integer('view_column_target_id')->nullable();
             $table->integer('sort')->default(1);
             $table->integer('priority')->unsigned()->default(0);
             $table->timestamps();
@@ -329,9 +331,11 @@ class CreateTableDefine extends Migration
         $schema->create('custom_copy_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_copy_id')->unsigned();
-            $table->string('from_custom_column_target')->nullable();
-            $table->string('to_custom_column_target');
-            $table->string('custom_copy_column_type');
+            $table->integer('from_column_type')->nullable();
+            $table->integer('from_column_target_id')->nullable();
+            $table->integer('to_column_type')->default(0);
+            $table->integer('to_column_target_id');
+            $table->integer('copy_column_type')->default(0);
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

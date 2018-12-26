@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\DB;
+use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomCopy extends ModelBase
@@ -26,13 +27,13 @@ class CustomCopy extends ModelBase
     public function custom_copy_columns()
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
-        ->where('custom_copy_column_type', 'default');
+        ->where('copy_column_type', CopyColumnType::DEFAULT);
     }
 
     public function custom_copy_input_columns()
     {
         return $this->hasMany(CustomCopyColumn::class, 'custom_copy_id')
-        ->where('custom_copy_column_type', 'input');
+        ->where('copy_column_type', CopyColumnType::INPUT);
     }
 
     public function getOption($key, $default = null)
@@ -149,24 +150,24 @@ class CustomCopy extends ModelBase
         foreach ($custom_copy_columns as $custom_copy_column) {
             ///// get from_custom_value 
             // check number
-            if(is_numeric($custom_copy_column->from_custom_column_target)){
+            if(is_numeric($custom_copy_column->from_column_target_id)){
                 // get column
                 $from_custom_column = $custom_copy_column->from_custom_column;
                 // get value. (NOT use getValue function because don't want convert value. get $custom_value->value['column'] value.)
                 $val = array_get($from_custom_value, "value.{$from_custom_column->column_name}");
             }
             else{
-                $val = $from_custom_value->{$custom_copy_column->from_custom_column_target};
+                $val = $from_custom_value->{$custom_copy_column->from_column_target_id};
             }
 
             ///// get tom_custom_value 
             // check number
-            if(is_numeric($custom_copy_column->to_custom_column_target)){
+            if(is_numeric($custom_copy_column->to_column_target_id)){
                 $to_custom_column = $custom_copy_column->to_custom_column;
                 $to_custom_value->setValue($to_custom_column->column_name, $val);
             }
             else{
-                $to_custom_value->{$custom_copy_column->to_custom_column_target} = $val;
+                $to_custom_value->{$custom_copy_column->to_column_target_id} = $val;
             }
         }
 

@@ -7,6 +7,8 @@ use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
 
 class InstallCommand extends AdminInstallCommand
 {
+    use CommandTrait;
+
     /**
      * The console command name.
      *
@@ -35,8 +37,6 @@ class InstallCommand extends AdminInstallCommand
      */
     public function handle()
     {
-        parent::handle();
-
         $this->initDatabase();
         $this->initAdminDirectory();
 

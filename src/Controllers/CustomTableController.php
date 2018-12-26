@@ -95,6 +95,7 @@ class CustomTableController extends AdminControllerBase
 
         // Authority setting --------------------------------------------------
         $this->addAuthorityForm($form, AuthorityType::TABLE);
+        
         disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
             $tools->disableView();
