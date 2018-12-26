@@ -1,5 +1,4 @@
 <?php namespace Exceedone\Exment\Revisionable;
-use Exceedone\Exment\Model\CustomValue;
 
 /*
  * This file is part of the Revisionable package by Venture Craft

@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Auth\Permission as Checker;
 use Exceedone\Exment\Model\CustomTable;
 

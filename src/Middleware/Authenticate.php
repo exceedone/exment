@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
-use Encore\Admin\Facades\Admin;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {

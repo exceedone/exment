@@ -3,10 +3,6 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Enums\SystemTableName;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 

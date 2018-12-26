@@ -15,7 +15,6 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 trait CustomTableTrait

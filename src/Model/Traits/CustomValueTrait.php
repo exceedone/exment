@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Collection;
 use Carbon\Carbon;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;

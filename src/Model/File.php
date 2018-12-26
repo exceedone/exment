@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Services\Uuids;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;

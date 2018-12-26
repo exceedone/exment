@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\AuthorityValue;
-use Exceedone\Exment\Enums;
 
 /**
  * Define short summary.

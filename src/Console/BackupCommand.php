@@ -4,8 +4,6 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 
 class BackupCommand extends Command
 {

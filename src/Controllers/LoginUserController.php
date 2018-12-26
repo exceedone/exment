@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Enums\SystemTableName;
-use Encore\Admin\Facades\Admin;
 
 class LoginUserController extends AdminControllerBase
 {
