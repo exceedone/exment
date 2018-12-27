@@ -5,10 +5,12 @@ return [
         'home' => 'HOME',
         'error' => 'Error',
         'import' => 'Import',
+        'plugin' => 'Plugin',
         'copy' => 'Copy',
         'change' => 'Change',
         'reqired' => 'Required',
         'default' => 'Default',
+        'detail_setting' => 'Detail Setting',
         'input' => 'Input',
         'available_true' => 'Available',
         'available_false' => 'Not Available',
@@ -29,6 +31,8 @@ return [
         'no' => 'No',
         'row' => 'Row',
         'column' => 'Column',
+        'asc' => 'Asc',
+        'desc' => 'Desc',
         'message' => [
             'confirm_execute'        => 'Are you sure to %s ?',
             'import_success' => 'Success Import!',
@@ -39,6 +43,7 @@ return [
 
         'help' =>[
             'input_available_characters' => 'Please enter %s.',
+            'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
         ],
     ],
 
@@ -191,6 +196,48 @@ return [
         ],
     ],
 
+    'backup' => [
+        'header' => 'Backup List',
+        'setting_header' => 'Backup Setting',
+        'description' => 'Back up and restore databases and files.',
+        'file_name' => 'File Name',
+        'file_size' => 'File Size',
+        'backup' => 'Backup',
+        'restore' => 'Restore',
+        'restore_upload' => 'File Upload',
+        'backuprestore' => 'Backup/Restore',
+        'backup_target' => 'Target Backup',
+        'enable_automatic' => 'Auto Backup',
+        'automatic_term' => 'Auto Backup Execution Interval(day)',
+        'automatic_hour' => 'Auto Backup Start Time(hour)',
+        'upload_zipfile' => 'Upload(zip)',
+        'backup_target_options' => [
+            'database' => 'Database',
+            'plugin' => 'Plugin File',
+            'attachment' => 'Attachment File',
+            'log' => 'Log File',
+            'config' => 'Config File',
+        ],
+        'message' => [
+            'backup_confirm' => 'Would you like to perform a backup?',
+            'backup_error' => 'Backup failed.',
+            'download_error' => 'Download failed.',
+            'restore_confirm' => 'Would you like to perform a restore? (Remove all current data.)',
+            'restore_succeeded' => 'Restore success.',
+            'restore_error' => 'Restore failed.',
+            'restore_file_success' => 'Restore success. Redirect to login page.',
+            'restore_file_error' => 'Restore failed. Please check upload file.',
+        ],
+        'help' =>[
+            'file_name' => 'Please select the backup zip file.',
+            'import_error_message' => 'If incomplete files are incomplete, an error message is displayed in this item.',
+            'backup_target' => 'The target of backup. Unless there is a particular reason, we recommend checking all items.',
+            'enable_automatic' => 'If it is set to YES, backup will be executed automatically.',
+            'automatic_term' => 'It is a setting of how many days to perform automatic backup. Example: When entering "3", execute backup every 3 days',
+            'automatic_hour' => 'The start time of the automatic backup. Example: When entering "3", start backup execution at 3:00',
+        ]
+    ],
+
     'user' => [
         'header' => 'Login User Setting',
         'description' => 'Select the user who logins into this system from among the users, and set the password, initialize the password, and so on.',
@@ -201,6 +248,7 @@ return [
         'password_confirmation' => 'Password(Confirm)',
         'new_password' => 'New Password',
         'new_password_confirmation' => 'New Password(Confirm)',
+        'send_password' => 'Send User Info',
         'login_user' => 'Login User Setting',
         'login' => 'Login Setting',
         'use_loginuser' => 'Login Authorization Granted',
@@ -215,8 +263,9 @@ return [
             'change_only' => 'Enter only when making changes.',
             
             'use_loginuser' => 'By checking, this user will be able to log in to the system.',
-            'reset_password' => 'By checking and saving, the password will be reset.',
-            'create_password_auto' => 'By checking and saving, the password is automatically generated.',
+            'reset_password' => 'By checking, the password will be reset.',
+            'create_password_auto' => 'By checking, the password is automatically generated.',
+            'send_password' => 'By checking, we will e-mail user information to the relevant user.',
         ]
     ],
 
@@ -229,6 +278,8 @@ return [
         'forget_password' => 'I forgot my password',
         'password_reset' => 'Password Reset',
         'back_login_page' => 'Back to Login Page',
+        'sso_provider_error' => 'Failed to acquire login information from provider. If you fail many times, please contact your administrator.',
+        'noexists_user' => 'User did not exist in Exment. Please contact your administrator to add users first.',
     ],
 
     'change_page_menu' =>[
@@ -246,6 +297,7 @@ return [
     'custom_table' => [
         'header' => 'Custom Table Setting',
         'description' => 'Define custom table settings that can be changed independently.',
+        'table' => 'Table',
         'table_name' => 'Table Name',
         'table_view_name' => 'Table View Name',
         'field_description' => 'Description',
@@ -253,12 +305,26 @@ return [
         'icon' => 'Icon',
         'search_enabled' => 'Search Enabled',
         'one_record_flg' => 'Save Only One Record',
+        'attachment_flg' => 'Use Attachment File',
+        'revision_flg' => 'Use Data Revision',
+        'revision_count' => 'Data Revision Versioning Count',
+        'notify_flg' => 'Notify When Create/Update',
         'custom_columns' => 'Column List',
+        'all_user_editable_flg' => 'All Users Can Edit',
+        'all_user_viewable_flg' => 'All Users Can View',
+        'all_user_accessable_flg' => 'All Users Can Access',
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
             'search_enabled' => 'If set on, can search from search display.',
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
+            'attachment_flg' => 'If set to YES, you can add attachments to each data.',
+            'revision_flg' => 'If it is set to YES, save the data change history when saving each data. Also, you can restore previous saved information on each data screen.',
+            'revision_count' => 'The maximum number of items to save change history of data. When saving more history, the past history is deleted.',
+            'notify_flg' => 'If it is set to YES, a notification is sent to authorized users when adding / updating data.',
+            'all_user_editable_flg' => 'If set to YES, all users will be able to edit all the data in this table.',
+            'all_user_viewable_flg' => 'If set to YES, all users will be able to view all the data in this table.',
+            'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.',
         ],
         
         'system_definitions' => [
@@ -287,6 +353,7 @@ return [
             'number_min' => 'Min Number',
             'number_max' => 'Max Number',
             'number_format' => 'Use Number Comma String',
+            'decimal_digit' => 'Number of decimal places',
             'updown_button' => '+- Button',
             'select_item' => 'Select Choice',
             "select_valtext" => "Select Choice (Config value and text)",
@@ -435,6 +502,7 @@ return [
 
         'help'=> [
             'items' => 'Set the items to be displayed on the data form. <br /> From the "form item candidate list", drag & drop the item you want to display on the form to "form item column 1" "form item column 2".',
+            'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here</a>.',
         ],
     ],
 
@@ -443,13 +511,17 @@ return [
         'description' => 'Define the custom view setting.',
         'view_view_name' => 'View Display Name',
         'custom_view_columns' => 'Select View Columns',
+        'custom_view_sorts' => 'Sort Data',
         'view_column_target' => 'View Target Column',
         'order' => 'Order',
+        'sort' => 'Sort',
+        'priority' => 'Priority',
         'custom_view_filters' => 'View Filter',
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'default_view_name' => 'Default View',
         'description_custom_view_columns' => 'Select display columns.',
+        'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.',
 
         'filter_condition_options' => [
@@ -502,7 +574,8 @@ return [
         'default_flg_false' => '',
         'description_field' => 'Explain',
         'permissions' => 'Role Detail',
-        
+        'permission_header' => 'Permission Setting',
+
         'description_form' => [
             'system' => 'Please select users/organizations to whom role is given for the entire system.',
             'system_disableorg' => 'Please select users to whom role is given for the entire system.',
@@ -532,9 +605,12 @@ return [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
-            'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
+            'custom_value_edit_all' => ['label' => 'Edit All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
+            'custom_value_view_all' => ['label' => 'View All Data', 'help' => 'Users can view all data in custom tables.'],
+            'custom_value_access_all' => ['label' => 'Access All Data', 'help' => 'Users can see all data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
             'custom_value_edit' => ['label' => 'Edit Personnel Data', 'help' => 'Users can add, edit, delete personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
+            'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
@@ -554,11 +630,8 @@ return [
             'one_to_many'  => 'One to Many',
             'many_to_many'  => 'Many to Many',
         ],
-        'parent_custom_table_name' => 'Parent Table Name',
-        'parent_custom_table_view_name' => 'Parent Table View Name',
+        'parent_custom_table' => 'Parent Table',
         'child_custom_table' => 'Child Table',
-        'child_custom_table_name' => 'Child Table Name',
-        'child_custom_table_view_name' => 'Child Table View Name',
     ],
 
     'custom_copy' => [
@@ -610,6 +683,7 @@ return [
             'organization' => 'Organization',
             'menu' => 'Menu',
             'template' => 'Template',
+            'backup' => 'Backup',
             'loginuser' => 'LoginUser',
             'mail' => 'Mail',
             'notify' => 'Notify',

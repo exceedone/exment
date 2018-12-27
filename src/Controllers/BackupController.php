@@ -8,6 +8,7 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
 use Validator;
 use DB;
@@ -37,7 +38,7 @@ class BackupController extends AdminControllerBase
         // edit table row data
         $rows = [];
         foreach ($files as $file) {
-              $rows[] = [
+            $rows[] = [
                 'file_key' => pathinfo($file, PATHINFO_FILENAME),
                 'file_name' => mb_basename($file),
                 'file_size' => bytesToHuman(static::disk()->size($file)),
@@ -93,7 +94,6 @@ class BackupController extends AdminControllerBase
     {
         DB::beginTransaction();
         try {
-                
             $inputs = $request->all(System::get_system_keys('backup'));
         
             // set system_key and value
@@ -238,7 +238,7 @@ class BackupController extends AdminControllerBase
         $validator = Validator::make($data, [
             'file' => 'required',
         ]);
-      
+
         if ($validator->passes()) {
             // get backup folder full path
             $backup = static::disk()->getAdapter()->getPathPrefix();
@@ -251,7 +251,7 @@ class BackupController extends AdminControllerBase
         }
 
         if (isset($result) && $result === 0) {
-            admin_toastr('リストアに成功しました。ログイン画面にリダイレクトします。');
+            admin_toastr(exmtrans('backup.message.restore_file_success'));
             return redirect(admin_base_paths('auth', 'logout'));
             return response()->json([
                 'status'  => true,
