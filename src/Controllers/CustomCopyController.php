@@ -117,7 +117,7 @@ class CustomCopyController extends AdminControllerTableBase
 
         // get to item
         // if set $id, get from CustomCopy
-        $request = Request::capture();
+        $request = request();
         // if set posted to_custom_table_id, get from posted data
         if ($request->has('to_custom_table_id')) {
             $to_table = CustomTable::find($request->get('to_custom_table_id'));

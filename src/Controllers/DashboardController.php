@@ -74,7 +74,7 @@ class DashboardController extends AdminControllerBase
         $content->row((new DashboardMenu($this->dashboard))->render());
 
         //set row
-        for ($i = 1; $i <= 4; $i++) {
+        for ($i = 1; $i <= intval(config('exment.dashboard_rows', 4)); $i++) {
             $row_name = 'row'.$i;
             $row_column = intval($this->dashboard->getOption($row_name));
             if ($row_column > 0) {
@@ -199,7 +199,7 @@ EOT;
 
         // create row select options
         $form->embeds('options', exmtrans("dashboard.row"), function ($form) {
-            for ($row_count = 1; $row_count <= 4; $row_count++) {
+            for ($row_count = 1; $row_count <= intval(config('exment.dashboard_rows', 4)); $row_count++) {
                 $row = [];
                 if ($row_count > 1) {
                     $row[] = exmtrans('dashboard.row_options0');
@@ -223,7 +223,7 @@ EOT;
 
                 $form->radio('row'.$row_count, sprintf(exmtrans("dashboard.row"), $row_count))
                     ->options($row)
-                    ->help(exmtrans("dashboard.description_row"))
+                    ->help(sprintf(exmtrans("dashboard.description_row"), $row_count))
                     ->required()
                     ->default($default);
             }

@@ -43,7 +43,7 @@ class RoleController extends AdminControllerBase
             // ctrate newbutton (list) --------------------------------------------------
             $base_uri = admin_base_path('role/create');
             $addNewBtn = '<div class="btn-group pull-right">
-                <a class="btn btn-sm btn-success"><i class="fa fa-save"></i>&nbsp;'.trans('admin.new').'</a>
+                <a class="btn btn-sm btn-success"><i class="fa fa-plus"></i>&nbsp;'.trans('admin.new').'</a>
                 <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                     <span class="caret"></span>
                     <span class="sr-only">Toggle Dropdown</span>

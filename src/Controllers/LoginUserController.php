@@ -217,7 +217,7 @@ class LoginUserController extends AdminControllerBase
     protected function response()
     {
         $message = trans('admin.update_succeeded');
-        $request = Request::capture();
+        $request = request();
         // ajax but not pjax
         if ($request->ajax() && !$request->pjax()) {
             return response()->json([

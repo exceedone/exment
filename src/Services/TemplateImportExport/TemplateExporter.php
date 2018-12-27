@@ -63,13 +63,6 @@ class TemplateExporter
         $tmpFulldir = getFullpath($tmpdir, 'local');
         $tmpfilename = make_uuid();
 
-        // create full path to 
-        // $fullpath = getFullpath(path_join('exmtmp', $tmpfilename), 'local');
-        // $basePath = pathinfo($fullpath)['dirname'];
-        // if (!File::exists($basePath)) {
-        //     File::makeDirectory($basePath, 0775, true);
-        // }
-
         $zip = new ZipArchive();
         $zipfilename = short_uuid().'.zip';
         $zipfillpath = path_join($tmpFulldir, $zipfilename);
@@ -288,19 +281,17 @@ class TemplateExporter
             // loop custom_view_columns
             if (array_key_value_exists('custom_view_columns', $view)) {
                 foreach ($view['custom_view_columns'] as &$custom_view_column) {
-                    // replace id to name
-                    $view_column_target = array_get($custom_view_column, 'view_column_target');
-                    // if number, get column_name
-                    if (is_numeric($view_column_target)) {
-                        $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name');
-                        $custom_view_column['view_column_type'] = ViewColumnType::COLUMN;
+                    switch(array_get($custom_view_column, 'view_column_type')){
+                        case ViewColumnType::COLUMN:
+                            $custom_view_column['view_column_target_name'] = $custom_view_column->custom_column->column_name ?? null;
+                            break;
+                        case ViewColumnType::SYSTEM:
+                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target_id');
+                            break;
+                        case ViewColumnType::PARENT_ID:
+                            $custom_view_column['view_column_target_name'] = 'parent_id';
+                            break;
                     }
-                    // else, system column
-                    else {
-                        $custom_view_column['view_column_target_name'] = $view_column_target;
-                        $custom_view_column['view_column_type'] = ViewColumnType::SYSTEM;
-                    }
-
                     // set $custom_view_column
                     $custom_view_column = array_only($custom_view_column, [
                         'view_column_target_name',
@@ -330,6 +321,30 @@ class TemplateExporter
                 }
             }
 
+            // loop custom_view_columns
+            if (array_key_value_exists('custom_view_sorts', $view)) {
+                foreach ($view['custom_view_sorts'] as &$custom_view_column) {
+                    switch(array_get($custom_view_column, 'view_column_type')){
+                        case ViewColumnType::COLUMN:
+                            $custom_view_column['view_column_target_name'] = $custom_view_column->custom_column->column_name ?? null;
+                            break;
+                        case ViewColumnType::SYSTEM:
+                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target_id');
+                            break;
+                        case ViewColumnType::PARENT_ID:
+                            $custom_view_column['view_column_target_name'] = 'parent_id';
+                            break;
+                    }
+                    // set $custom_view_column
+                    $custom_view_column = array_only($custom_view_column, [
+                        'view_column_target_name',
+                        'view_column_type',
+                        'sort',
+                        'priority',
+                    ]);
+                }
+            }
+            
             $view = array_only($view, [
                 'view_view_name',
                 'suuid',

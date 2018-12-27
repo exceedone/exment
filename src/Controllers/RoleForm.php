@@ -27,7 +27,7 @@ trait RoleForm
         }
 
         // role setting --------------------------------------------------
-        $form->header(exmtrans('role.header'))->hr();
+        $form->header(exmtrans('role.permission_header'))->hr();
         switch ($role_type) {
             case RoleType::VALUE():
                 $form->description(exmtrans(System::organization_available() ? 'role.description_form.custom_value' : 'role.description_form.custom_value_disableorg'));

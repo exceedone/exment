@@ -168,7 +168,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true));
-            $form->select('sort', exmtrans("custom_view.sort"))->options([1 => '昇順', -1 => '逆順'])->required()->default(1);
+            $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
             $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
         ->description(exmtrans("custom_view.description_custom_view_sorts"));

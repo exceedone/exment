@@ -3426,6 +3426,29 @@
   padding-top: 7px;
 }
 
+/* box-dashboard */
+.box-dashboard {
+  height: 100%;
+  margin-bottom: 0;
+}
+
+.box-dashboard .box-body {
+  min-height: 150px;
+  max-height: 300px;
+}
+
+.box-dashboard .box-body .box-body-inner {
+  overflow-x: auto;
+}
+
+.box-dashboard table td, .box-dashboard .box-dashboard table th {
+  white-space: nowrap;
+}
+
+.box-dashboard [class^="col-"] {
+  margin-bottom: 20px;
+}
+
 .modal-body {
   max-height: calc(100vh - 200px);
   overflow-y: auto;

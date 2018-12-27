@@ -30,6 +30,8 @@ return [
         'no' => 'いいえ',
         'row' => '行',
         'column' => '列',
+        'asc' => '昇順',
+        'desc' => '降順',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'import_success' => 'インポート完了しました！',
@@ -568,6 +570,7 @@ return [
         'default_flg_false' => '',
         'description_field' => '説明文',
         'permissions' => '権限詳細',
+        'permission_header' => '権限設定',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択してください。',

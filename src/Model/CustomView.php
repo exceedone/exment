@@ -479,13 +479,13 @@ class CustomView extends ModelBase
      */
     public function setValueSort($model){
         // if request has "_sort", not executing
-        if(\Request::capture()->has('_sort')){
+        if(request()->has('_sort')){
             return $model;
         }
         foreach ($this->custom_view_sorts as $custom_view_sort) {
             // get column target column
-            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
-                $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
+            if ($custom_view_sort->view_column_type == ViewColumnType::COLUMN) {
+                $view_column_target = $custom_view_sort->custom_column->getIndexColumnName() ?? null;
             }
             //set order
             $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');

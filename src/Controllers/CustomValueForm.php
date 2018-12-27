@@ -32,7 +32,7 @@ trait CustomValueForm
      */
     protected function form($id = null)
     {
-        $this->setFormViewInfo(\Request::capture());
+        $this->setFormViewInfo(request());
 
         $classname = $this->getModelNameDV();
         $form = new Form(new $classname);

@@ -10,6 +10,8 @@ return [
 
     'organization_deeps' => env('EXMENT_ORGANIZATION_DEEPS', 4),
 
+    'dashboard_rows' => env('EXMENT_DASHBOARD_ROWS', 4),
+
     'manual_url' => env('EXMENT_MANUAL_URL', 'https://exment.net/docs/#/'),
 
     'show_default_login_provider' => env('EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER', true),
