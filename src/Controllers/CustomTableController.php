@@ -107,7 +107,7 @@ class CustomTableController extends AdminControllerBase
                 ->setWidth(9, 3)
             ;
             
-            $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_viewable_flg"))
+            $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
                 ->default("0")
                 ->setWidth(9, 3)
             ;

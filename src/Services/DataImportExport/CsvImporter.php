@@ -22,7 +22,7 @@ class CsvImporter extends DataImporterBase
         // if zip, extract
         if($extension == 'zip'){
             $tmpdir = getTmpFolderPath('data', false);
-            $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local');
+            $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
     
             $filename = $file->store($tmpdir, 'local');
             $fullpath = getFullpath($filename, 'local');

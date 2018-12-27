@@ -93,7 +93,7 @@ class PluginInstaller
     {
         // store uploaded file and get tmp path
         $tmpdir = getTmpFolderPath('plugin', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local');
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
 
         $filename = $uploadFile->store($tmpdir, 'local');
         $fullpath = getFullpath($filename, 'local');

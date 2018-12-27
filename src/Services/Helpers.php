@@ -202,9 +202,13 @@ if (!function_exists('app_paths')) {
 }
 
 if (!function_exists('getFullpath')) {
-    function getFullpath($filename, $disk)
+    function getFullpath($filename, $disk, $mkdir = false)
     {
-        return Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
+        $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
+        if($mkdir && !is_dir($path)){
+            mkdir($path, 0755, true);
+        }
+        return $path;
     }
 }
 
@@ -221,7 +225,7 @@ if (!function_exists('getTmpFolderPath')) {
         }
         $tmppath = getFullpath($path, 'local');
         if(!is_dir($tmppath)){
-            mkdir($tmppath, 0755, true);
+            $aa = mkdir($tmppath, 0755, true);
         }
 
         return $tmppath;
@@ -491,6 +495,9 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
+            if(!isset($suuid)){
+                return null;
+            }
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
             $table->createTable();
@@ -998,40 +1005,42 @@ if (!function_exists('getExmentVersion')) {
      */
     function getExmentVersion($getFromComposer = true)
     {
-        $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
-        if (isset($version_json)) {
-            $version = json_decode($version_json, true);
-            $latest = array_get($version, 'latest');
-            $current = array_get($version, 'current');
-        }
+        //TODO: reconsider how to get current version.
+        return [null, null];
+        // $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+        // if (isset($version_json)) {
+        //     $version = json_decode($version_json, true);
+        //     $latest = array_get($version, 'latest');
+        //     $current = array_get($version, 'current');
+        // }
         
-        if ((empty($latest) || empty($current)) && $getFromComposer) {
-            $output = [];
-            $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
-            exec($cmd, $output, $result);
-            if ($result === 0) {
-                // get version from output
-                $latest = '';
-                $current = '';
-                foreach ($output as $data) {
-                    $items = explode(':', $data);
-                    if (trim($items[0]) === 'latest') {
-                        $latest = trim($items[1]);
-                    } elseif (trim($items[0]) === 'versions') {
-                        $current = trim($items[1], " *\t\n\r\0\x0B");
-                    }
-                }
+        // if ((empty($latest) || empty($current)) && $getFromComposer) {
+        //     $output = [];
+        //     $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
+        //     exec($cmd, $output, $result);
+        //     if ($result === 0) {
+        //         // get version from output
+        //         $latest = '';
+        //         $current = '';
+        //         foreach ($output as $data) {
+        //             $items = explode(':', $data);
+        //             if (trim($items[0]) === 'latest') {
+        //                 $latest = trim($items[1]);
+        //             } elseif (trim($items[0]) === 'versions') {
+        //                 $current = trim($items[1], " *\t\n\r\0\x0B");
+        //             }
+        //         }
 
-                app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-                    'latest' => $latest, 'current' => $current
-                ]));
-            }
-        }
+        //         app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+        //             'latest' => $latest, 'current' => $current
+        //         ]));
+        //     }
+        // }
         
-        if (empty($latest) || empty($current)) {
-            return [null, null];
-        }
-        return [$latest, $current];
+        // if (empty($latest) || empty($current)) {
+        //     return [null, null];
+        // }
+        // return [$latest, $current];
     }
 }
 

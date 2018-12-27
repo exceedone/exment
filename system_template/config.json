@@ -36,69 +36,79 @@
             ]
         },
         {
-            "table_name": "mail_template",
-            "table_view_name": "メールテンプレート",
-            "description": "メール送信時のメッセージの本文などを管理します。",
-            "search_enabled": "0",
+            "table_name": "information",
+            "table_view_name": "お知らせ",
+            "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
+            "search_enabled": "1",
+            "showlist_flg": "1",
+            "system_flg": "0",
             "options": {
-                "icon": "fa-envelope",
-                "color": "#ff9932",
+                "icon": "fa-pencil",
+                "color": null,
+                "revision_flg": "0",
                 "attachment_flg": "0",
                 "one_record_flg": "0",
-                "revision_flg": "0",
+                "all_user_viewable_flg": "1",
                 "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
-                    "column_name": "mail_name",
-                    "column_view_name": "メールキー名",
+                    "column_name": "title",
+                    "column_view_name": "タイトル",
                     "column_type": "text",
-                    "options": {
-                        "required": "1",
-                        "search_enabled": "1",
-                        "unique": "1",
-                        "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
-                        "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
-                    }
-                },
-                {
-                    "column_name": "mail_view_name",
-                    "column_view_name": "メール表示名",
-                    "column_type": "text",
-                    "options": {
-                        "required": "1",
-                        "use_label_flg": "1",
-                        "search_enabled": "1",
-                        "help": "一覧画面で表示する、テンプレート名称です。"
-                    }
-                },
-                {
-                    "column_name": "mail_template_type",
-                    "column_view_name": "テンプレート種類",
                     "description": null,
-                    "column_type": "select_valtext",
+                    "system_flg": "0",
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1",
-                        "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター",
-                        "default": "body"
+                        "search_enabled": "1"
                     }
                 },
                 {
-                    "column_name": "mail_subject",
-                    "column_view_name": "メール件名",
-                    "column_type": "text",
-                    "options": {
-                        "help": "送付するメールの件名を入力します。変数を利用できます。"
-                    }
-                },
-                {
-                    "column_name": "mail_body",
-                    "column_view_name": "メール本文",
+                    "column_name": "body",
+                    "column_view_name": "本文",
                     "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
                     "options": {
-                        "help": "送付するメールの本文を入力します。変数を利用できます。"
+                        "string_length": "2000"
+                    }
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "表示フラグ",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "help": "一覧に表示したい場合、YESにしてください。",
+                        "default": "1",
+                        "required": "1"
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "表示順",
+                    "column_type": "integer",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "help": "数値が大きい順に、一覧に表示します。（同じ値の場合は更新日時が新しい順）",
+                        "required": "1",
+                        "number_max": null,
+                        "number_min": "0",
+                        "updown_button": "1"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "重要度",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "options": {
+                        "default": "3",
+                        "required": "1",
+                        "select_item_valtext": "1,非常に低い\r\n2,低い\r\n3,通常\r\n4,高い\r\n5,非常に高い"
                     }
                 }
             ]
@@ -354,6 +364,74 @@
                     }
                 }
             ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "メールテンプレート",
+            "description": "メール送信時のメッセージの本文などを管理します。",
+            "search_enabled": "0",
+            "options": {
+                "icon": "fa-envelope",
+                "color": "#ff9932",
+                "attachment_flg": "0",
+                "one_record_flg": "0",
+                "revision_flg": "0",
+                "all_user_accessable_flg": "1"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "mail_name",
+                    "column_view_name": "メールキー名",
+                    "column_type": "text",
+                    "options": {
+                        "required": "1",
+                        "search_enabled": "1",
+                        "unique": "1",
+                        "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
+                        "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "メール表示名",
+                    "column_type": "text",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1",
+                        "help": "一覧画面で表示する、テンプレート名称です。"
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "テンプレート種類",
+                    "description": null,
+                    "column_type": "select_valtext",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1",
+                        "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター",
+                        "default": "body"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "メール件名",
+                    "column_type": "text",
+                    "options": {
+                        "help": "送付するメールの件名を入力します。変数を利用できます。"
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "メール本文",
+                    "column_type": "textarea",
+                    "options": {
+                        "help": "送付するメールの本文を入力します。変数を利用できます。"
+                    }
+                }
+            ]
         }
     ],
     "custom_relations": [
@@ -518,6 +596,65 @@
                 }
             ],
             "table_name": "organization"
+        },
+        {
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "column",
+                            "options": [],
+                            "form_column_target_name": "title"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": [],
+                            "form_column_target_name": "body"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": [],
+                            "form_column_target_name": "priority"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": [],
+                            "form_column_target_name": "view_flg"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": [],
+                            "form_column_target_name": "order"
+                        },
+                        {
+                            "form_column_type": "system",
+                            "options": [],
+                            "form_column_target_name": "created_at"
+                        },
+                        {
+                            "form_column_type": "system",
+                            "options": [],
+                            "form_column_target_name": "updated_at"
+                        },
+                        {
+                            "form_column_type": "system",
+                            "options": [],
+                            "form_column_target_name": "created_user"
+                        },
+                        {
+                            "form_column_type": "system",
+                            "options": [],
+                            "form_column_target_name": "updated_user"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                }
+            ],
+            "table_name": "information"
         }
     ],
 	"custom_views": [
@@ -619,7 +756,69 @@
 			],
 			"custom_view_filters": [],
 			"table_name": "organization"
-		}
+		},
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "既定のビュー",
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "view_column_target_name": "title"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "view_column_target_name": "view_flg"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "view_column_target_name": "priority"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "96",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "97",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "table_name": "information"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "お知らせ一覧",
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "view_column_target_name": "title"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "view_column_target_name": "priority"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "3",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_filter_condition": "1",
+                    "view_filter_condition_value_text": "1"
+                }
+            ],
+            "table_name": "information"
+        }
 	],
     "dashboards": [
 		{
@@ -631,8 +830,18 @@
                 "row2" : "2"
             },
 			"dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "お知らせ一覧",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "target_table_name": "information",
+                        "target_view_suuid": "99120fd4b360e15993d2"
+                    }
+                },
 				{
-					"row_no": "1",
+					"row_no": "2",
 					"column_no": "1",
 					"dashboard_box_view_name": "ガイドライン",
 					"dashboard_box_type": "system",
@@ -806,6 +1015,13 @@
             "menu_name": "organization",
             "parent_name": "master",
             "menu_target_name": "organization"
+        },
+        {
+            "order": "4",
+            "menu_type": "table",
+            "menu_name": "information",
+            "parent_name": "master",
+            "menu_target_name": "information"
         },
         {
             "order": "91",

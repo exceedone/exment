@@ -343,7 +343,7 @@ EOT;
      * get target data revisions
      */
     protected function getRevisions($id, $modal = false, $all = false){
-        if ($modal && boolval($this->custom_table->getOption('revision_flg'))) {
+        if ($modal || !boolval($this->custom_table->getOption('revision_flg'))) {
             return [];
         }
 

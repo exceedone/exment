@@ -112,7 +112,7 @@ class TemplateImporter
     {
         // store uploaded file
         $tmpdir = getTmpFolderPath('template', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local');
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
 
         $filename = $uploadFile->store($tmpdir, 'local');
         $fullpath = getFullpath($filename, 'local');

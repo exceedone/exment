@@ -93,6 +93,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 - 以下のコマンドを実行します。
 
 ~~~
+php artisan passport:keys
 php artisan exment:install
 ~~~
 

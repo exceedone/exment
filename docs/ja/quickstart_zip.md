@@ -56,5 +56,6 @@ EXMENT_API=true #外部APIを使用する場合にtrueに追加
 - 以下のコマンドを実行します。
 
 ~~~
+php artisan passport:keys
 php artisan exment:install
 ~~~

@@ -496,7 +496,8 @@ trait CustomValueTrait
             [
                 'tag' => false,
                 'uri' => null,
-                'list' => false
+                'list' => false,
+                'external-link' => false,
             ]
             , $options
         );
@@ -523,7 +524,12 @@ trait CustomValueTrait
             return $url;
         }
         $url .= '?modal=1';
-        $label = esc_html($this->getLabel());
+
+        if(boolval($options['external-link'])){
+            $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
+        }else{
+            $label = esc_html($this->getLabel());
+        }
         return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
     }
 

@@ -681,6 +681,7 @@ return [
             'role' => '役割',
             'user' => 'ユーザー',
             'organization' => '組織',
+            'information' => 'お知らせ',
             'menu' => 'メニュー',
             'template' => 'テンプレート',
             'backup' => 'バックアップ',

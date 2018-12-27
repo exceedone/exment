@@ -58,6 +58,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 - Execute the following command.
 
 ~~~
+php artisan passport:keys
 php artisan exment:install
 ~~~
 
