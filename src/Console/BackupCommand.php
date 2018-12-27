@@ -4,11 +4,11 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\System;
 
-class BackupCommand extends CommandBase
+class BackupCommand extends Command
 {
+    use CommandTrait;
+
     /**
      * The name and signature of the console command.
      *
@@ -61,7 +61,8 @@ class BackupCommand extends CommandBase
      */
     public function handle()
     {
-        parent::handle();
+        // TODO:test
+        $aaaa = getModelName('organization')::getOrganizationIds();
 
         $this->starttime = date('YmdHis');
 

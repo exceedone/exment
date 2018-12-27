@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Form\Field\PivotMultiSelect;
 use Exceedone\Exment\Enums\AuthorityType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Form;
@@ -62,28 +63,18 @@ trait AuthorityForm
             $pivots = ['authority_id' => $authority->id, 'related_type' => $related_type];
             $related_type_table = CustomTable::findByName($related_type);
 
-            if ($related_type_table->isGetOptions()) {
-                $form->pivotMultiSelect($authority_name, $authority_view_name)
-                    ->options(function ($options) use ($authority_type, $related_type_table, $related_types) {
-                        if(AuthorityType::VALUE()->match($authority_type)){
-                            return $related_type_table->getOptions($options, $this->custom_table);
-                        }
-                        return $related_type_table->getOptions($options, null, true);
-                    })
-                    ->pivot($pivots)
-                    ;
-            } else {
-                $form->pivotMultiSelect($authority_name, $authority_view_name)
-                ->options(function ($options) use ($authority_type, $related_type_table, $related_types) {
-                    if(AuthorityType::VALUE()->match($authority_type)){
-                        return $related_type_table->getOptions($options, $this->custom_table);
-                    }
-                    return $related_type_table->getOptions($options, null, true);
-                })
-                ->ajax($related_type_table->getOptionAjaxUrl())
-                ->pivot($pivots)
-                ;
+            $field = new PivotMultiSelect($authority_name, [$authority_view_name]);
+            $field->options(function ($options) use ($authority_type, $related_type_table, $related_types) {
+                if(AuthorityType::VALUE()->match($authority_type)){
+                    return $related_type_table->getOptions($options, $this->custom_table);
+                }
+                return $related_type_table->getOptions($options, null, true);
+            })
+            ->pivot($pivots);
+            if (!$related_type_table->isGetOptions()) {
+                $field->ajax($related_type_table->getOptionAjaxUrl());
             }
+            $form->pushField($field);
         });
     }
 }

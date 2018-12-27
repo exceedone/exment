@@ -106,10 +106,9 @@ return [
         'header' => 'Dashboard',
         'dashboard_name' => 'Dashboard Name',
         'dashboard_view_name' => 'Dashboard View Name',
-        'row1' => 'Dashboard Row 1',
-        'row2' => 'Dashboard Row 2',
-        'description_row1' => 'The number of columns to display on the first row of the dashboard.',
-        'description_row2' => 'The number of columns to display on the second row of the dashboard. *If you select "None", the second row is not displayed.',
+        'row' => 'Dashboard Row',
+        'description_row' => 'The number of columns to display on the %s row of the dashboard.',
+        'description_row2' => 'The number of columns to display on the %s row of the dashboard. *If you select "None", the %s row is not displayed.',
         'default_dashboard_name' => 'Default Dashboard',
         'not_registered' => 'Not Registered',
         'dashboard_type_options' => [

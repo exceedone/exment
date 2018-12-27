@@ -3,24 +3,9 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Grid;
-use Encore\Admin\Grid\Column as GridColumn;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request as Req;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Auth\Authenticatable;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Authority;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums;
-use Exceedone\Exment\Enums\AuthorityType;
-use Exceedone\Exment\Enums\AuthorityValue;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
@@ -100,16 +85,19 @@ class CustomView extends ModelBase
             $view_column_target = array_get($custom_view_column, 'view_column_target');
             // if tagret is number, column type is column.
             if ($view_column_type == Enums\ViewColumnType::COLUMN) {
+                
                 $column = $custom_view_column->custom_column;
                 if(!isset($column)){
                     continue;
                 }
-                //$column_name = $column->getIndexColumnName();
-                $column_name = array_get($column, 'column_name');
                 $column_type = array_get($column, 'column_type');
                 $column_view_name = array_get($column, 'column_view_name');
 
-                $grid->column($column_name, $column_view_name)->display(function ($v) use ($column) {
+                // get grid column name. if hasindex, set as index name, else set as default column name
+                $isGridIndex = $column->hasIndex();
+                $column_name = $isGridIndex ? $column->getIndexColumnName() : array_get($column, 'column_name');
+                
+                $grid->column($column_name, $column_view_name)->sort($isGridIndex)->display(function ($v) use ($column) {
                     if (is_null($this)) {
                         return '';
                     }
@@ -148,12 +136,9 @@ class CustomView extends ModelBase
                 if(!isset($column)){
                     continue;
                 }
-                $table_id = array_get($column, 'custom_table_id');
-                $column_name = array_get($column, 'column_name');
-                $column_view_name = array_get($column, 'column_view_name');
-                $grid->column($column_name, $column_view_name)
-                    ->display(function ($value) use ($table_id, $column_name) {
-                        return $this->getSum($table_id, $column_name);
+                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))
+                    ->display(function ($value) use ($column) {
+                        return $this->getSum($column);
                     });
             }
             // system column
@@ -192,22 +177,19 @@ class CustomView extends ModelBase
         foreach ($custom_view_columns as $custom_view_column) {
             // get column --------------------------------------------------
             // if number, get custom column
-            if ($custom_view_column->view_column_target == ViewColumnType::COLUMN) {
+            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                 $custom_column = $custom_view_column->custom_column;
                 if (isset($custom_column)) {
                     $headers[] = $custom_column->column_view_name;
                 }
-            } elseif ($custom_view_column->view_column_target == ViewColumnType::PARENT_ID) {
+            } elseif ($custom_view_column->view_column_type == ViewColumnType::PARENT_ID) {
                 // get parent data
                 $relation = CustomRelation::getRelationByChild($custom_table);
                 if (isset($relation)) {
                     $headers[] = $relation->parent_custom_table->table_view_name;
                 }
             } else {
-                // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                $name = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use ($custom_view_column) {
-                    return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
-                })['name'] ?? null;
+                $name = $custom_view_column->view_column_target;
                 // add headers transaction
                 $headers[] = exmtrans('common.'.$name);
             }
@@ -254,7 +236,7 @@ class CustomView extends ModelBase
                 ///// add show and edit link
                 // using authority
                 $link = '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id')).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
-                if (Admin::user()->hasPermissionEditData(array_get($data, 'id'), $custom_table->table_name)) {
+                if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
                     $link .= '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit').'"><i class="fa fa-edit"></i></a>';
                 }
                 if(isset($options['action_callback'])){

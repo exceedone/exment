@@ -101,5 +101,7 @@ class CustomValue extends ModelBase
                     ->delete();
             }
         });
+
+        static::addGlobalScope(new CustomValueModelScope);
     }
 }

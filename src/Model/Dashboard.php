@@ -3,17 +3,20 @@
 namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
 class Dashboard extends ModelBase
 {
     use Traits\AutoSUuidTrait;
+    use Traits\DatabaseJsonTrait;
     use Traits\DefaultFlgTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];
-    
+    protected $casts = ['options' => 'json'];
+
     public function dashboard_boxes()
     {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
@@ -23,16 +26,28 @@ class Dashboard extends ModelBase
     
     public function dashboard_row1_boxes()
     {
-        return $this->hasMany(DashboardBox::class, 'dashboard_id')
-        ->where('row_no', 1)
-        ->orderBy('row_no')
-        ->orderBy('column_no');
+        return $this->dashboard_row_boxes(1);
     }
 
     public function dashboard_row2_boxes()
     {
+        return $this->dashboard_row_boxes(2);
+    }
+    
+    public function dashboard_row3_boxes()
+    {
+        return $this->dashboard_row_boxes(3);
+    }
+
+    public function dashboard_row4_boxes()
+    {
+        return $this->dashboard_row_boxes(4);
+    }
+
+    protected function dashboard_row_boxes($row_no)
+    {
         return $this->hasMany(DashboardBox::class, 'dashboard_id')
-        ->where('row_no', 2)
+        ->where('row_no', $row_no)
         ->orderBy('row_no')
         ->orderBy('column_no');
     }
@@ -73,15 +88,31 @@ class Dashboard extends ModelBase
         // create new dashboard
         if (!isset($dashboard)) {
             $dashboard = new Dashboard;
-            $dashboard->dashboard_type = 'system';
+            $dashboard->dashboard_type = DashboardType::SYSTEM;
             $dashboard->dashboard_name = 'system_default_dashboard';
             $dashboard->dashboard_view_name = exmtrans('dashboard.default_dashboard_name');
-            $dashboard->row1 = 1;
-            $dashboard->row2 = 2;
+            $dashboard->options = ['row1' => 1, 'row2' => 2, 'row3' => 0, 'row4' => 0];
             $dashboard->save();
         }
 
         return $dashboard;
+    }
+    
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    public function clearOption()
+    {
+        return $this->clearJson('options');
     }
     
     protected static function boot()

@@ -13,8 +13,6 @@ use Exceedone\Exment\Validator\UniqueInTableValidator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use League\Flysystem\Filesystem;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 

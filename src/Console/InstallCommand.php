@@ -7,6 +7,8 @@ use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
 
 class InstallCommand extends AdminInstallCommand
 {
+    use CommandTrait;
+
     /**
      * The console command name.
      *
@@ -35,9 +37,6 @@ class InstallCommand extends AdminInstallCommand
      */
     public function handle()
     {
-        \Exceedone\Exment\Middleware\Morph::defineMorphMap();
-        \Exceedone\Exment\Middleware\Initialize::initializeConfig(false);
-
         $this->initDatabase();
         $this->initAdminDirectory();
 

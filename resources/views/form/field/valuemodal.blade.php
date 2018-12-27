@@ -27,8 +27,8 @@
                 <div class="modal-footer">
                     <div class="col-sm-12">
                         @if(in_array('reset', $buttons))
-                        <button type="button" class="btn btn-default button-reset">{{trans('admin.reset')}}</button> @endif @if(in_array('setting',
-                        $buttons))
+                        <button type="button" class="btn btn-default button-reset">{{trans('admin.reset')}}</button> @endif 
+                        @if(in_array('setting', $buttons))
                         <button type="button" class="btn btn-info button-setting">{{trans('admin.setting')}}</button> @endif
                     </div>
                 </div>

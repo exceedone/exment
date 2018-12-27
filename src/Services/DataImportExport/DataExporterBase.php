@@ -181,7 +181,7 @@ abstract class DataExporterBase extends AbstractExporter
      */
     public static function getModel(Grid $grid = null, $table = null, $search_enabled_columns = null)
     {
-        $format = \Request::capture()->input('format');
+        $format = app('request')->input('format');
         switch ($format) {
             case 'excel':
                 return new ExcelExporter($grid, $table, $search_enabled_columns);

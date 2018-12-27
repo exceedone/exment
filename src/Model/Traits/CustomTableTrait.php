@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Authority;
@@ -11,8 +12,9 @@ use Exceedone\Exment\Enums\AuthorityValue;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 trait CustomTableTrait
@@ -75,7 +77,9 @@ trait CustomTableTrait
             $obj = static::findByName(array_get($obj, 'table_name'));
         } elseif ($obj instanceof CustomTable) {
             // nothing
-        } elseif ($obj instanceof CustomValue) {
+        }elseif ($obj instanceof CustomColumn) {
+            $obj = $obj->custom_table;
+        }elseif ($obj instanceof CustomValue) {
             $obj = $obj->custom_table;
         }
         return $obj;
@@ -116,7 +120,112 @@ trait CustomTableTrait
         }
         return $model;
     }
+
+    /**
+     * whether has permission. target is table
+     */
+    public function hasPermission($authority_key = AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE){
+        // if system doesn't use authority, return true
+        if (!System::authority_available()) {
+            return true;
+        }
+        $table_name = $this->table_name;
+        if (!is_array($authority_key)) {
+            $authority_key = [$authority_key];
+        }
+
+        $user = \Exment::user();
+        if(!isset($user)){
+            return false;
+        }
+        
+        $permissions = $user->allPermissions();
+        foreach ($permissions as $permission) {
+            // if authority type is system, and has key
+            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
+                && array_keys_exists($authority_key, $permission->getAuthorities())) {
+                return true;
+            }
+
+            // if authority type is table, and match table name
+            elseif (AuthorityType::TABLE()->match($permission->getAuthorityType()) && $permission->getTableName() == $table_name) {
+                // if user has authority
+                if (array_keys_exists($authority_key, $permission->getAuthorities())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
     
+    /**
+     * Whether user has permission about target id data.
+     */
+    public function hasPermissionData($id)
+    {
+        return $this->_hasPermissionData($id, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
+    }
+
+    /**
+     * Whether user has edit permission about target id data.
+     */
+    public function hasPermissionEditData($id)
+    {
+        return $this->_hasPermissionData($id, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+    }
+
+    protected function _hasPermissionData($id, $authority){
+        // if system doesn't use authority, return true
+        if (!System::authority_available()) {
+            return true;
+        }
+
+        // if user doesn't have all permissons about target table, return false.
+        if (!$this->hasPermission($authority)) {
+            return false;
+        }
+
+        // if user has all edit table, return true.
+        if ($this->hasPermission(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+            return true;
+        }
+
+        // if id is null(for create), return true
+        if (!isset($id)) {
+            return true;
+        }
+
+        if(is_numeric($id)){
+            $model = getModelName($table_name)::find($id);
+        }else{
+            $model = $id;
+        }
+
+        if (!isset($model)) {
+            return false;
+        }
+
+        // else, get model using value_authoritable.
+        // if count > 0, return true.
+        $rows = $model->getAuthoritable(SystemTableName::USER);
+        if (isset($rows) && count($rows) > 0) {
+            return true;
+        }
+
+        // else, get model using value_authoritable. (only that system uses organization.)
+        // if count > 0, return true.
+        if (System::organization_available()) {
+            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
+            if (isset($rows) && count($rows) > 0) {
+                return true;
+            }
+        }
+
+        // else, return false.
+        return false;
+    }
+
     /**
      * Get search-enabled columns.
      */
@@ -202,8 +311,11 @@ trait CustomTableTrait
             $query = $this->getValueModel();
         }
         // if $table_name is user or organization, get from getAuthorityUserOrOrg
-        elseif (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$all) {
-            $query = Authority::getAuthorityUserOrgQuery($display_table, $table_name);
+        elseif ($table_name ==SystemTableName::USER && !$all) {
+            $query = AuthUserOrgHelper::getAuthorityUserQuery($display_table);
+        }
+        elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
+            $query = AuthUserOrgHelper::getAuthorityOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
         }

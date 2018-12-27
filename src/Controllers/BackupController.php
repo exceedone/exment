@@ -8,7 +8,6 @@ use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
 use Validator;
 use DB;

@@ -151,7 +151,7 @@ class Permission
                return array_keys_exists([AuthorityValue::CUSTOM_VIEW], $this->authorities);
             case "data":
                 if ($systemAuthority) {
-                    return array_key_exists(AuthorityValue::CUSTOM_VALUE_EDIT_ALL, $this->authorities);
+                    return array_keys_exists(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->authorities);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
@@ -162,7 +162,7 @@ class Permission
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
             if ($systemAuthority) {
-                return array_key_exists(AuthorityValue::CUSTOM_VALUE_EDIT_ALL, $this->authorities);
+                return array_keys_exists(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->authorities);
             }
             // check endpoint name and checking table_name.
             if (!$this->matchEndPointTable($endpoint)) {

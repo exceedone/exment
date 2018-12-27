@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Middleware;
 
 use Closure;
-use Illuminate\Support\Facades\Auth;
-use Encore\Admin\Facades\Admin;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {
@@ -18,7 +16,7 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        $shouldPassThrough = $this->shouldPassThrough($request);
+        $shouldPassThrough = shouldPassThrough();
         if($shouldPassThrough){
             return $next($request);
         }
@@ -29,33 +27,5 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
         }
 
         return $next($request);
-    }
-
-    /**
-     * Determine if the request has a URI that should pass through verification.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return bool
-     */
-    protected function shouldPassThrough($request)
-    {
-        $excepts = [
-            admin_base_path('auth/login'),
-            admin_base_path('auth/logout'),
-            admin_base_path('initialize'),
-        ];
-
-        foreach ($excepts as $except) {
-            if ($except !== '/') {
-                $except = trim($except, '/');
-            }
-
-            if ($request->is($except)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

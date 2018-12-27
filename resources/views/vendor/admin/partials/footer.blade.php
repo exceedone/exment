@@ -1,5 +1,5 @@
 <!-- Main Footer -->
-<footer class="main-footer">
+<footer class="main-footer clearfix">
     <!-- To the right -->
     <div class="pull-right hidden-xs">
 

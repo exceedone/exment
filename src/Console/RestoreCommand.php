@@ -5,8 +5,10 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class RestoreCommand extends CommandBase
+class RestoreCommand extends Command
 {
+    use CommandTrait;
+
     /**
      * The name and signature of the console command.
      *
@@ -38,8 +40,6 @@ class RestoreCommand extends CommandBase
      */
     public function handle()
     {
-        parent::handle();
-
         $file = $this->argument("file");
 
         // unzip backup file

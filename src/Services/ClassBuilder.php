@@ -221,7 +221,27 @@ class ClassBuilder
             }
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }
-            
+        
+        $relations = CustomRelation::getRelationsByChild($table);
+        // loop children tables
+        foreach ($relations as $relation) {
+            $pivot_table_name = $relation->getRelationName();
+            // Get Parent and child table Name.
+            // case 1 to many
+            if ($relation->relation_type == 'one_to_many') {
+                $function_string = 'return $this->morphTo("'.getModelName($relation->parent_custom_table, true).'", "parent");';
+            }
+            // case many to many
+            else {
+                // Create pivot table
+                $db = DB::connection();
+                $db->statement("CREATE TABLE IF NOT EXISTS ".$pivot_table_name." LIKE custom_relation_values");
+
+                $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "parent_id", "child_id");';
+            }
+            $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
+        }
+
         // add authority --------------------------------------------------
         Authority::authorityLoop(AuthorityType::VALUE(), function ($authority, $related_type) use ($builder, $obj) {
             $target_model = getModelName($related_type, true);
@@ -239,7 +259,11 @@ class ClassBuilder
         if ($table->table_name == SystemTableName::USER) {
             $builder->addInUse('\Exceedone\Exment\Model\Traits\UserTrait');
         }
+        elseif ($table->table_name == SystemTableName::ORGANIZATION) {
+            $builder->addInUse('\Exceedone\Exment\Model\Traits\OrganizationTrait');
+        }
 
+        
         $builder->build();
     }
     

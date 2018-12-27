@@ -299,7 +299,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     protected function redirectShow($id)
     {
-        if (!Admin::user()->hasPermissionEditData($id, $this->custom_table->table_name)) {
+        if (!$this->custom_table->hasPermissionEditData($id)) {
             return redirect(admin_base_path("data/{$this->custom_table->table_name}/$id"));
         }
         return null;
@@ -338,7 +338,7 @@ class CustomValueController extends AdminControllerTableBase
         // id set, checking as update.
         if(isset($id)){
             // if user doesn't have authority for target id data, show deny error.
-            if (!Admin::user()->hasPermissionData($id, $this->custom_table->table_name)) {
+            if (!$this->custom_table->hasPermissionData($id)) {
                 Checker::error();
                 return false;
             }

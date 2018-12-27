@@ -8,9 +8,7 @@ use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\AuthorityValue;
@@ -220,7 +218,7 @@ EOT;
         $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get();
         foreach ($tables as $table) {
             // if not authority, continue
-            if (System::authority_available() && !Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
 
@@ -459,12 +457,11 @@ EOT;
             ->where('options->select_target_table', $value_table->id);
         })
         ->where('search_enabled', true)
-        ->get()
-        ->toArray();
+        ->get();
 
         foreach ($tables as $table) {
             // if not authority, continue
-            if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, 'select_table'));
@@ -480,7 +477,8 @@ EOT;
             })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
             // if not authority, continue
-            if (!Admin::user()->hasPermissionTable(array_get($table, 'table_name'), AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
+            if (!$table_obj->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, 'relation_type'));

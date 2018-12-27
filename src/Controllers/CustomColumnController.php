@@ -199,20 +199,20 @@ class CustomColumnController extends AdminControllerTableBase
                 ->defaultEmpty();
             
             $form->switchbool('number_format', exmtrans("custom_column.options.number_format"))
-                    ->help(exmtrans("custom_column.help.number_format"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])]);
+                ->help(exmtrans("custom_column.help.number_format"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])]);
 
-            $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
-                ->help(exmtrans("custom_column.help.updown_button"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::INTEGER]])])
-                ;
-            
             $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL, ColumnType::CURRENCY]])])
                 ->default(2)
                 ->min(0)
                 ->max(8);
 
+            $form->switchbool('updown_button', exmtrans("custom_column.options.updown_button"))
+                ->help(exmtrans("custom_column.help.updown_button"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::INTEGER]])])
+                ;
+            
             $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
                 ->help(exmtrans("custom_column.help.currency_symbol"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::CURRENCY]])])
