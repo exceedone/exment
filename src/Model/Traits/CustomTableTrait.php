@@ -124,11 +124,22 @@ trait CustomTableTrait
     /**
      * whether has permission. target is table
      */
-    public function hasPermission($role_key = RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE){
+    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE){
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
         }
+
+        // check table all data
+        $role_keys = (is_array($role_key) ? $role_key : [$role_key]);
+        
+        if(in_array(RoleValue::CUSTOM_VALUE_VIEW_ALL, $role_keys) && boolval($this->getOption('all_user_viewable_flg'))){
+            return true;
+        }
+        if(in_array(RoleValue::CUSTOM_VALUE_EDIT_ALL, $role_keys) && boolval($this->getOption('all_user_editable_flg'))){
+            return true;
+        }
+
         $table_name = $this->table_name;
         if (!is_array($role_key)) {
             $role_key = [$role_key];

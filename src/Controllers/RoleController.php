@@ -29,13 +29,16 @@ class RoleController extends AdminControllerBase
     {
         $grid = new Grid(new Role);
         $grid->column('role_type', exmtrans('role.role_type'))->display(function ($role_type) {
-            return exmtrans('role.role_type_options.'.$role_type);
+            $enum = RoleType::getEnum($role_type);
+            if(!isset($enum)){
+                return '';
+            }
+            return exmtrans('role.role_type_options.'.strtolower($enum->getKey()));
         });
         $grid->column('role_name', exmtrans('role.role_name'));
         $grid->column('role_view_name', exmtrans('role.role_view_name'));
-        // $grid->column('default_flg', exmtrans('role.default_flg'))->display(function($default_flg){
-        //     return boolval($default_flg) ? exmtrans('role.default_flg_true') : exmtrans('role.default_flg_false');
-        // });
+        
+        $grid->model()->where('role_type', '<>', RoleType::PLUGIN);
         $grid->model()->orderBy('role_type')->orderBy('id');
 
         $grid->disableCreateButton();
@@ -80,8 +83,10 @@ class RoleController extends AdminControllerBase
                 $role_type = app('request')->query('role_type');
             }
         }
+        $enum = RoleType::getEnum($role_type);
+        $role_type_default = isset($enum) ? exmtrans("role.role_type_options.".strtolower($enum->getKey())) : null;
         $form->hidden('role_type')->default($role_type);
-        $form->display('role_type', exmtrans("role.role_type"))->default(exmtrans("role.role_type_options.".$role_type));
+        $form->display('role_type_default', exmtrans("role.role_type"))->default($role_type_default);
 
         if (!isset($id)) {
             $form->text('role_name', exmtrans('role.role_name'))
@@ -99,9 +104,11 @@ class RoleController extends AdminControllerBase
         // create permissons looping
         $form->embeds('permissions', exmtrans('role.permissions'), function ($form) use ($role_type) {
             // role define
+            $enum = RoleType::getEnum($role_type);
+            $role_type_key = strtolower($enum->getKey());
             $roles = RoleEnum::getRoleType($role_type);
             foreach ($roles as $role_define) {
-                $transArray = exmtrans("role.role_type_option_$role_type.$role_define");
+                $transArray = exmtrans("role.role_type_option_$role_type_key.$role_define");
                 $form->switchbool($role_define, array_get($transArray, 'label'))->help(array_get($transArray, 'help'));
             }
         });

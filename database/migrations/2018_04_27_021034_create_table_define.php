@@ -99,7 +99,7 @@ class CreateTableDefine extends Migration
         $schema->create('roles', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
-            $table->string('role_type');
+            $table->integer('role_type');
             $table->string('role_name', 256)->index()->unique();
             $table->string('role_view_name', 256);
             $table->string('description', 1000)->nullable();

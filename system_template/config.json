@@ -12,7 +12,8 @@
                 "icon": "fa-file",
                 "color": "#999999",
                 "attachment_flg": "0",
-                "one_record_flg": "0"
+                "one_record_flg": "0",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
@@ -44,7 +45,8 @@
                 "color": "#ff9932",
                 "attachment_flg": "0",
                 "one_record_flg": "0",
-                "revision_flg": "0"
+                "revision_flg": "0",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
@@ -109,7 +111,8 @@
                 "icon": "fa-building",
                 "color": null,
                 "attachment_flg": "0",
-                "one_record_flg": "1"
+                "one_record_flg": "1",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
@@ -642,7 +645,7 @@
 	],
     "roles": [
         {
-            "role_type": "system",
+            "role_type": 0,
             "role_name": "system_admin",
             "role_view_name": "システム管理者",
             "description": "すべての操作が可能なシステム権限です。",
@@ -655,7 +658,7 @@
             ]
         },
         {
-            "role_type": "system",
+            "role_type": 0,
             "role_name": "data_admin",
             "role_view_name": "データ管理者",
             "description": "すべてのデータを編集・閲覧可能な権限です。",
@@ -664,7 +667,7 @@
             ]
         },
         {
-            "role_type": "table",
+            "role_type": 1,
             "role_name": "table_admin",
             "role_view_name": "管理者",
             "description": "テーブルやフォーム・ビュー設定を編集・削除可能な権限です。",
@@ -675,11 +678,13 @@
                 "custom_value_edit_all",
                 "custom_value_edit",
                 "custom_value_view_all",
-                "custom_value_view"
+                "custom_value_view",
+                "custom_value_access_all",
+                "custom_value_access"
             ]
         },
         {
-            "role_type": "table",
+            "role_type": 1,
             "role_name": "table_all_editor",
             "role_view_name": "全データ編集者",
             "description": "テーブル内のすべてのデータを編集できます。",
@@ -687,40 +692,46 @@
                 "custom_value_edit_all",
                 "custom_value_edit",
                 "custom_value_view_all",
-                "custom_value_view"
+                "custom_value_view",
+                "custom_value_access_all",
+                "custom_value_access"
             ]
         },
         {
-            "role_type": "table",
+            "role_type": 1,
             "role_name": "table_all_viewer",
             "role_view_name": "全データ閲覧者",
             "description": "テーブル内のすべてのデータを閲覧できます。",
             "permissions": [
                 "custom_value_view_all",
-                "custom_value_view"
+                "custom_value_view",
+                "custom_value_access_all",
+                "custom_value_access"
             ]
         },
         {
-            "role_type": "table",
+            "role_type": 1,
             "role_name": "table_editor",
             "role_view_name": "編集者",
             "description": "自分が担当者のデータを編集できます。",
             "permissions": [
                 "custom_value_edit",
-                "custom_value_view"
+                "custom_value_view",
+                "custom_value_access"
             ]
         },
         {
-            "role_type": "table",
+            "role_type": 1,
             "role_name": "table_viewer",
             "role_view_name": "閲覧者",
             "description": "自分が担当者のデータを閲覧できます。",
             "permissions": [
-                "custom_value_view"
+                "custom_value_view",
+                "custom_value_access"
             ]
         },
         {
-            "role_type": "value",
+            "role_type": 2,
             "role_name": "value_editor",
             "role_view_name": "編集者",
             "description": "対象のデータを編集できます。",
@@ -730,7 +741,7 @@
             ]
         },
         {
-            "role_type": "value",
+            "role_type": 2,
             "role_name": "value_viewer",
             "role_view_name": "閲覧者",
             "description": "対象のデータを閲覧できます。",
@@ -739,7 +750,7 @@
             ]
         },
         {
-            "role_type": "plugin",
+            "role_type": 3,
             "role_name": "plugin_manager",
             "role_view_name": "プラグイン管理者",
             "description": "プラグインの設定を変更できます。",
@@ -749,7 +760,7 @@
             ]
         },
         {
-            "role_type": "plugin",
+            "role_type": 3,
             "role_name": "plugin_access",
             "role_view_name": "プラグイン利用者",
             "description": "このプラグインを利用できます。",

@@ -276,10 +276,10 @@ trait HasPermissions
                     continue;
                 }
                 $query = $query->where('related_type', 'organization')
-                    ->whereIn('related_id', $organization_ids);
-            }
+                ->whereIn('related_id', $organization_ids);
+        }
 
-            $roles = array_merge($roles, $query->orderBy('table_name')
+            $roles = array_merge(($roles ?? []), $query->orderBy('table_name')
                 ->orderBy('id')
                 ->get(['a.id', 'c.table_name', 'permissions'])->toArray());
         }

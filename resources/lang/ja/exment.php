@@ -10,6 +10,7 @@ return [
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
+        'detail_setting' => '詳細設定',
         'input' => '入力',
         'available_true' => '有効',
         'available_false' => '無効',
@@ -312,6 +313,9 @@ return [
         'revision_count' => '変更履歴バージョン数',
         'notify_flg' => '登録・更新時通知',
         'custom_columns' => '列一覧',
+        'all_user_editable_flg' => 'すべてのユーザーが編集可能',
+        'all_user_viewable_flg' => 'すべてのユーザーが閲覧可能',
+        'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
@@ -321,6 +325,9 @@ return [
             'revision_flg' => 'YESにした場合、各データの保存時、データの変更履歴を保存します。また、各データ画面で、以前の保存情報を復元することができます。',
             'revision_count' => 'データの変更履歴を保存する最大件数です。それ以上の履歴を保存する場合、過去の履歴は削除されます。',
             'notify_flg' => 'YESにした場合、データの追加・更新時、権限のあるユーザーに通知を送信します。',
+            'all_user_editable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを編集可能になります。',
+            'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
+            'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
         ],
         
         'system_definitions' => [
@@ -603,8 +610,10 @@ return [
             'custom_view' => ['label' => 'ビュー', 'help' => 'ビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => 'すべてのデータの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
+            'custom_value_access_all' => ['label' => 'すべてのデータの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
             'custom_value_edit' => ['label' => '担当者データの編集', 'help' => '自分に権限のあるデータを追加・編集・削除できます。'],
             'custom_value_view' => ['label' => '担当者データの閲覧', 'help' => '自分に権限のあるデータを閲覧できます。'],
+            'custom_value_access' => ['label' => '担当者データの参照', 'help' => '自分に権限のあるデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集者', 'help' => '対象のデータを編集できます。'],

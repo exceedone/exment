@@ -218,7 +218,7 @@ EOT;
         $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get();
         foreach ($tables as $table) {
             // if not role, continue
-            if (!$table->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
 
@@ -461,7 +461,7 @@ EOT;
 
         foreach ($tables as $table) {
             // if not role, continue
-            if (!$table->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, 'select_table'));
@@ -478,7 +478,7 @@ EOT;
         foreach ($tables as $table) {
             // if not role, continue
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-            if (!$table_obj->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table_obj->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, array_get($table, 'relation_type')));

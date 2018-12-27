@@ -20,4 +20,14 @@ class EnumBase extends Enum
     public static function arrays(){
         return array_flatten(static::toArray()); 
     }
+
+    public static function getEnum($value){
+        $enums = static::values();
+        foreach($enums as $enum){
+            if($enum == $value){
+                return $enum;
+            }
+        }
+        return $enum;
+    }
 }

@@ -164,7 +164,7 @@ class Define
         ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [RoleValue::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
         ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => [RoleValue::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
         ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
-        ['url' => 'data', 'icon' => 'fa-database', 'roles' => RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+        ['url' => 'data', 'icon' => 'fa-database', 'roles' => RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
     public const NOTIFY_TRIGGER = [
