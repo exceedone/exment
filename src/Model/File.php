@@ -43,6 +43,19 @@ class File extends ModelBase
         return $document_model;
     }
 
+    public function saveCustomValue($custom_value, $custom_column = null){
+        if(isset($custom_value)){
+            $this->parent_id = $custom_value->id;
+            $this->parent_type = $custom_value->custom_table->table_name;
+        }
+        if(isset($custom_column)){
+            $custom_column = CustomColumn::getEloquent($custom_column, $custom_value->custom_table);
+            $this->custom_column_id = $custom_column->id;
+        }
+        $this->save();
+        return $this;
+    }
+
     /**
      * get the file url
      * @return void
@@ -111,7 +124,7 @@ class File extends ModelBase
     /**
      * Download file
      */
-    public static function downloadFile($uuid, Closure $authCallback = null)
+    public static function downloadFile($uuid)
     {
         $data = static::getData($uuid);
         if (!$data) {
@@ -123,8 +136,13 @@ class File extends ModelBase
         if (!$exists) {
             abort(404);
         }
-        if ($authCallback) {
-            $authCallback($data);
+
+        // if has parent_id, check permission
+        if(isset($data->parent_id) && isset($data->parent_type)){
+            $custom_table = CustomTable::findByName($data->parent_type);
+            if(!$custom_table->hasPermissionData($data->parent_id)){
+                abort(403);
+            }
         }
 
         $file = Storage::disk(config('admin.upload.disk'))->get($path);
@@ -231,7 +249,7 @@ class File extends ModelBase
      */
     public static function store($content, $dirname)
     {
-        $file = static::saveFileInfo($dirname);
+        $file = static::saveFileInfo($dirname, null, null, false);
         $content->store($file->local_dirname, config('admin.upload.disk'));
         return $file;
     }

@@ -8,9 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class InitializeController extends Controller
@@ -71,14 +71,14 @@ class InitializeController extends Controller
             $loginuser->password = bcrypt($request->get('password'));
             $loginuser->saveOrFail();
 
-            // add system authority
+            // add system role
             DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
                 [
                     'related_id' => $user->id,
                     'related_type' => SystemTableName::USER,
                     'morph_id' => null,
-                    'morph_type' =>  AuthorityType::SYSTEM,
-                    'authority_id' => Authority::where('authority_type', AuthorityType::SYSTEM)->first()->id,
+                    'morph_type' =>  RoleType::SYSTEM,
+                    'role_id' => Role::where('role_type', RoleType::SYSTEM)->first()->id,
                 ]
             );
 

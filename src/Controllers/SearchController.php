@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 
 class SearchController extends AdminControllerBase
 {
@@ -217,8 +217,8 @@ EOT;
         $results = [];
         $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get();
         foreach ($tables as $table) {
-            // if not authority, continue
-            if (!$table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            // if not role, continue
+            if (!$table->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
 
@@ -460,8 +460,8 @@ EOT;
         ->get();
 
         foreach ($tables as $table) {
-            // if not authority, continue
-            if (!$table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            // if not role, continue
+            if (!$table->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, 'select_table'));
@@ -476,12 +476,12 @@ EOT;
                 $query->where('parent_custom_table_id', $value_table->id);
             })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
-            // if not authority, continue
+            // if not role, continue
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-            if (!$table_obj->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table_obj->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                 continue;
             }
-            array_push($results, $this->getTableArray($table, 'relation_type'));
+            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type')));
         }
 
         return $results;

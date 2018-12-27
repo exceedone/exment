@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ColumnType;
 
 class CustomColumnController extends AdminControllerTableBase
@@ -36,7 +36,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -53,7 +53,7 @@ class CustomColumnController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
@@ -71,7 +71,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -382,7 +382,7 @@ class CustomColumnController extends AdminControllerTableBase
             // image, file, select
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::SELECT, ColumnType::SELECT_VALTEXT, 'user', 'organization']])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
         $form->saved(function (Form $form) {

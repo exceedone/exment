@@ -1,7 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 
 /**
  * Define short summary.
@@ -24,9 +24,9 @@ class Define
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
-        'authority_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
+        'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
-        ///'system_authority' => ['type' => 'json'],
+        ///'system_role' => ['type' => 'json'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
         // cannot call getValue function
@@ -58,10 +58,11 @@ class Define
     ];
 
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
-    public const SYSTEM_KEY_SESSION_AUTHORITY = "authority";
+    public const SYSTEM_KEY_SESSION_AUTHORITY = "role";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
     public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
+    public const SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID = "file_uploaded_uuid";
 
     // Dashboard --------------------------------------------------
     
@@ -95,8 +96,8 @@ class Define
             'uri' => 'table',
             'icon' => 'fa-table',
         ],
-        'authority' => [
-            'uri' => 'authority',
+        'role' => [
+            'uri' => 'role',
             'icon' => 'fa-user-secret',
         ],
         'user' => [
@@ -157,13 +158,13 @@ class Define
     ];
 
     public const GRID_CHANGE_PAGE_MENULIST = [
-        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
-        ['url' => 'column', 'icon' => 'fa-list', 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
-        ['url' => 'relation', 'icon' => 'fa-compress', 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
-        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'authorities' => [AuthorityValue::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'authorities' => [AuthorityValue::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
-        ['url' => 'copy', 'icon' => 'fa-copy', 'authorities' => [AuthorityValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
-        ['url' => 'data', 'icon' => 'fa-database', 'authorities' => AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
+        ['url' => 'column', 'icon' => 'fa-list', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
+        ['url' => 'relation', 'icon' => 'fa-compress', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
+        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [RoleValue::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
+        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => [RoleValue::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
+        ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
+        ['url' => 'data', 'icon' => 'fa-database', 'roles' => RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
     public const NOTIFY_TRIGGER = [
@@ -177,7 +178,7 @@ class Define
         '1' => 'email',
     ];
     public const NOTIFY_ACTION_TARGET = [
-        'has_authorities',
+        'has_roles',
     ];
  
     // Template --------------------------------------------------

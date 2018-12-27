@@ -175,6 +175,7 @@ trait CustomValueShow
                 $options = [
                     'showUpload' => true,
                     'showPreview' => false,
+                    'showCancel' => false,
                     'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
                     'uploadExtraData'=> [
                         '_token' => csrf_token()

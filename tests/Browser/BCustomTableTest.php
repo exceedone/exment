@@ -80,7 +80,7 @@ class CustomTableTest extends DuskTestCase
                 ->assertSee('Icon')
                 ->assertSee('Search Enabled')
                 ->assertSee('Save Only One Record')
-                ->assertSee('Authority Setting');
+                ->assertSee('Role Setting');
         });
     }
 

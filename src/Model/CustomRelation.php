@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelation extends ModelBase
 {
@@ -78,4 +79,13 @@ class CustomRelation extends ModelBase
         return "pivot__{$parent_suuid}_{$child_suuid}";
     }
 
+    /**
+     * get sheet name for excel, csv
+     */
+    public function getSheetName(){
+        if($this->relation_type == RelationType::MANY_TO_MANY){
+            return $this->parent_custom_table->table_name . '_' . $this->child_custom_table->table_name;
+        }
+        return $this->child_custom_table->table_name;
+    }
 }

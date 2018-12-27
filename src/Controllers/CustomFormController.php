@@ -18,7 +18,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\CustomFormBlockType;
@@ -48,7 +48,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -65,7 +65,7 @@ class CustomFormController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
 
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomForm::class, $id, 'form')) {
@@ -85,7 +85,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         $this->AdminContent($content);

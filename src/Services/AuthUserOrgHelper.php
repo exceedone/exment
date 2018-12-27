@@ -5,28 +5,32 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 
 
 /**
- * Authority, user , organization helper
+ * Role, user , organization helper
  */
 class AuthUserOrgHelper
 {
     /**
-     * get organiztions who has authorities.
-     * this function is called from custom value authority
+     * get organiztions who has roles.
+     * this function is called from custom value role
      */
-    // getAuthorityUserOrgQuery
-    public static function getAuthorityOrganizationQuery($target_table, &$builder = null)
+    // getRoleUserOrgQuery
+    public static function getRoleOrganizationQuery($target_table, &$builder = null)
     {
         if (is_null($target_table)) {
             return [];
         }
+        if(!System::organization_available()){
+            return [];
+        }
+
         $target_table = CustomTable::getEloquent($target_table);
     
         // get organiztion ids
-        $target_ids = static::getAuthorityUserOrgId($target_table, SystemTableName::ORGANIZATION);
+        $target_ids = static::getRoleUserOrgId($target_table, SystemTableName::ORGANIZATION);
 
         // return target values
         if(!isset($builder)){
@@ -37,12 +41,12 @@ class AuthUserOrgHelper
     }
     
     /**
-     * get users who has authorities.
+     * get users who has roles.
      * and get users joined parent or children organizations
-     * this function is called from custom value authority
+     * this function is called from custom value role
      */
-    // getAuthorityUserOrgQuery
-    public static function getAuthorityUserQuery($target_table, &$builder = null)
+    // getRoleUserOrgQuery
+    public static function getRoleUserQuery($target_table, &$builder = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -50,20 +54,22 @@ class AuthUserOrgHelper
         $target_table = CustomTable::getEloquent($target_table);
     
         // get user ids
-        $user_ids = static::getAuthorityUserOrgId($target_table, SystemTableName::USER);
+        $user_ids = static::getRoleUserOrgId($target_table, SystemTableName::USER);
 
-        // and get authoritiable organization
-        $organizations = static::getAuthorityOrganizationQuery($target_table)
-            ->with('users')
-            ->get() ?? [];
-        foreach($organizations as $organization){
-            foreach($organization->all_related_organizations() as $related_organization){
-                foreach($related_organization->users as $user){
-                    $user_ids[] = $user->id;
+        if(System::organization_available()){
+            // and get authoritiable organization
+            $organizations = static::getRoleOrganizationQuery($target_table)
+                ->with('users')
+                ->get() ?? [];
+            foreach($organizations as $organization){
+                foreach($organization->all_related_organizations() as $related_organization){
+                    foreach($related_organization->users as $user){
+                        $user_ids[] = $user->id;
+                    }
                 }
             }
         }
-
+        
         // return target values
         if (!isset($builder)) {
             $builder = getModelName(SystemTableName::USER)::query();
@@ -149,19 +155,19 @@ class AuthUserOrgHelper
      * @param CustomTable $target_table access table.
      * @param string $related_type "user" or "organization"
      */
-    protected static function getAuthorityUserOrgId($target_table, $related_type){
+    protected static function getRoleUserOrgId($target_table, $related_type){
         $target_table = CustomTable::getEloquent($target_table);
         
         // get user or organiztion ids
-        $target_ids = \DB::table('authorities as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+        $target_ids = \DB::table('roles as a')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
             ->where('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', AuthorityType::SYSTEM);
+                    $query->where('morph_type', RoleType::SYSTEM);
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', AuthorityType::TABLE)
+                    $query->where('morph_type', RoleType::TABLE)
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id') ?? [];

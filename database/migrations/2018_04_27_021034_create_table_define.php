@@ -55,6 +55,8 @@ class CreateTableDefine extends Migration
             $table->string('local_dirname')->index();
             $table->string('local_filename')->index();
             $table->string('filename')->index();
+            $table->nullableMorphs('parent');
+            $table->integer('custom_column_id')->nullable();
             $table->timestamps();
             $table->timeusers();
         });
@@ -67,19 +69,6 @@ class CreateTableDefine extends Migration
             $table->timeusers();
 
             $table->primary('system_name');
-        });
-
-        $schema->create('mail_templates', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->string('mail_name', 256)->unique();
-            $table->string('mail_view_name', 256);
-            $table->string('mail_subject', 256);
-            $table->string('mail_body', 4000);
-            $table->string('mail_template_type')->default(Enums\MailTemplateType::BODY);
-            $table->boolean('system_flg')->default(false);
-            $table->timestamps();
-            $table->softDeletes();
-            $table->timeusers();
         });
 
         $schema->create('plugins', function (ExtendedBlueprint $table) {
@@ -107,12 +96,12 @@ class CreateTableDefine extends Migration
             $table->timeusers();
         });
 
-        $schema->create('authorities', function (ExtendedBlueprint $table) {
+        $schema->create('roles', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
-            $table->string('authority_type');
-            $table->string('authority_name', 256)->index()->unique();
-            $table->string('authority_view_name', 256);
+            $table->string('role_type');
+            $table->string('role_name', 256)->index()->unique();
+            $table->string('role_view_name', 256);
             $table->string('description', 1000)->nullable();
             $table->boolean('default_flg')->default(false);
             $table->json('permissions')->nullable();
@@ -366,14 +355,14 @@ class CreateTableDefine extends Migration
             $table->integer('related_id')->index();
             $table->string('related_type')->index();
             $table->nullableMorphs('morph');
-            $table->integer('authority_id')->index();
+            $table->integer('role_id')->index();
         });
 
         $schema->create('value_authoritable', function (ExtendedBlueprint $table) {
             $table->integer('related_id')->index();
             $table->string('related_type')->index();
             $table->nullableMorphs('morph');
-            $table->integer('authority_id')->index();
+            $table->integer('role_id')->index();
         });
         
         // Update --------------------------------------------------
@@ -427,12 +416,11 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('custom_tables');
         Schema::dropIfExists('dashboard_boxes');
         Schema::dropIfExists('dashboards');
-        Schema::dropIfExists('authorities');
+        Schema::dropIfExists('roles');
         Schema::dropIfExists('user_settings');
         Schema::dropIfExists('login_users');
         Schema::dropIfExists('plugins');
         Schema::dropIfExists('notifies');
-        Schema::dropIfExists('mail_templates');
         Schema::dropIfExists('systems');
         Schema::dropIfExists('revisions');
         Schema::dropIfExists('files');

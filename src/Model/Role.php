@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class Authority extends ModelBase
+class Role extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,34 +18,34 @@ class Authority extends ModelBase
      * Get atuhority name.
      * @return string
      */
-    public function getAuthorityName($related_type)
+    public function getRoleName($related_type)
     {
-        return "authority_{$this->suuid}_{$related_type}";
+        return "role_{$this->suuid}_{$related_type}";
     }
 
     /**
-     * get authority loop function and execute callback
+     * get role loop function and execute callback
      * @param $related_type string "user" or "organization" string.
      */
-    public static function authorityLoop($related_type, $callback)
+    public static function roleLoop($related_type, $callback)
     {
         if (!Schema::hasTable(System::getTableName()) || !Schema::hasTable(static::getTableName())) {
             return;
         }
-        if (!System::authority_available()) {
+        if (!System::permission_available()) {
             return;
         }
         
-        // get Authority setting
-        $authorities = Authority::where('authority_type', $related_type)->get();
-        foreach ($authorities as $authority) {
+        // get Role setting
+        $roles = Role::where('role_type', $related_type)->get();
+        foreach ($roles as $role) {
             $related_types = [SystemTableName::USER];
             // if use organization, add
             if (System::organization_available()) {
                 $related_types[] = SystemTableName::ORGANIZATION;
             }
             foreach ($related_types as $related_type) {
-                $callback($authority, $related_type);
+                $callback($role, $related_type);
             }
         }
     }

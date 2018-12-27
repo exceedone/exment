@@ -28,7 +28,7 @@ class Morph
         if (Schema::hasTable(CustomTable::getTableName())) {
             $table_names = CustomTable::all(['table_name'])->pluck('table_name');
             $morphMaps = [
-                "authorities" => Model\Authority::class,
+                "roles" => Model\Role::class,
                 "table" => CustomTable::class
             ];
             foreach ($table_names as $table_name) {

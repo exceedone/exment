@@ -487,7 +487,7 @@ trait RevisionableTrait
         }
         foreach ($attribute as $key => $value) {
             if (is_array($value) || is_object($value)) {
-                $value = $this->sortJsonKeys($value);
+                $value = $this->getSortedJson($value);
             } else {
                 continue;
             }

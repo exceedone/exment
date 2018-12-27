@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
-class AuthorityType extends EnumBase
+class RoleType extends EnumBase
 {
     const SYSTEM = 'system';
     const TABLE = 'table';

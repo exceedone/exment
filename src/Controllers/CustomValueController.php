@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceActions, AuthorityForm, CustomValueGrid, CustomValueForm, CustomValueShow;
+    use HasResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
     protected $plugins = [];
 
     /**
@@ -177,7 +177,7 @@ class CustomValueController extends AdminControllerTableBase
                 $field->setOriginal($obj->value);
 
                 $field->destroy(); // delete file
-                \Exceedone\Exment\Model\File::deleteFileInfo($original); // delete file table
+                ExmentFile::deleteFileInfo($original); // delete file table
                 $obj->setValue($del_column_name, null)
                     ->remove_file_columns($del_column_name)
                     ->save();
@@ -202,10 +202,11 @@ class CustomValueController extends AdminControllerTableBase
         $filename = $httpfile->getClientOriginalName();
         $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
         // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
-        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename, $uniqueFileName);
+        $custom_value = $this->getModelNameDV()::find($id);
+        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename, $uniqueFileName, false)
+            ->saveCustomValue($custom_value);
 
         // save document model
-        $custom_value = $this->getModelNameDV()::find($id);
         $document_model = $file->saveDocumentModel($custom_value, $filename);
         
         return getAjaxResponse([
@@ -319,20 +320,20 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * First flow. check authority and set form and view id etc.
+     * First flow. check role and set form and view id etc.
      * different logic for new or update
      */
     protected function firstFlow(Request $request, $id = null)
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return false;
         }
             
         // id set, checking as update.
         if(isset($id)){
-            // if user doesn't have authority for target id data, show deny error.
+            // if user doesn't have role for target id data, show deny error.
             if (!$this->custom_table->hasPermissionData($id)) {
                 Checker::error();
                 return false;

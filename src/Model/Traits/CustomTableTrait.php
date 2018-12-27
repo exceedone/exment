@@ -6,13 +6,13 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnType;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\DB;
@@ -88,7 +88,7 @@ trait CustomTableTrait
     /**
      * get table list.
      * But filter these:
-     *     Get only has authority
+     *     Get only has role
      *     showlist_flg is true
      */
     public static function filterList($model = null, $options = [])
@@ -105,9 +105,9 @@ trait CustomTableTrait
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(AuthorityValue::CUSTOM_TABLE)) {
+        if (!Admin::user()->hasPermission(RoleValue::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(AuthorityValue::CUSTOM_TABLE);
+            $permission_tables = Admin::user()->allHasPermissionTables(RoleValue::CUSTOM_TABLE);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });
@@ -124,14 +124,14 @@ trait CustomTableTrait
     /**
      * whether has permission. target is table
      */
-    public function hasPermission($authority_key = AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE){
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
+    public function hasPermission($role_key = RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE){
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
             return true;
         }
         $table_name = $this->table_name;
-        if (!is_array($authority_key)) {
-            $authority_key = [$authority_key];
+        if (!is_array($role_key)) {
+            $role_key = [$role_key];
         }
 
         $user = \Exment::user();
@@ -141,16 +141,16 @@ trait CustomTableTrait
         
         $permissions = $user->allPermissions();
         foreach ($permissions as $permission) {
-            // if authority type is system, and has key
-            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
-                && array_keys_exists($authority_key, $permission->getAuthorities())) {
+            // if role type is system, and has key
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_keys_exists($role_key, $permission->getRoles())) {
                 return true;
             }
 
-            // if authority type is table, and match table name
-            elseif (AuthorityType::TABLE()->match($permission->getAuthorityType()) && $permission->getTableName() == $table_name) {
-                // if user has authority
-                if (array_keys_exists($authority_key, $permission->getAuthorities())) {
+            // if role type is table, and match table name
+            elseif (RoleType::TABLE == $permission->getRoleType() && $permission->getTableName() == $table_name) {
+                // if user has role
+                if (array_keys_exists($role_key, $permission->getRoles())) {
                     return true;
                 }
             }
@@ -164,7 +164,7 @@ trait CustomTableTrait
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -172,22 +172,22 @@ trait CustomTableTrait
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissionData($id, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
-    protected function _hasPermissionData($id, $authority){
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
+    protected function _hasPermissionData($id, $role){
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
             return true;
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermission($authority)) {
+        if (!$this->hasPermission($role)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if ($this->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return true;
         }
 
@@ -197,7 +197,7 @@ trait CustomTableTrait
         }
 
         if(is_numeric($id)){
-            $model = getModelName($table_name)::find($id);
+            $model = getModelName($this)::find($id);
         }else{
             $model = $id;
         }
@@ -296,7 +296,7 @@ trait CustomTableTrait
      *
      * @param $selected_value the value that already selected.
      * @param CustomTable $display_table Information on the table displayed on the screen
-     * @param boolean $all is show all data. for system authority, it's true.
+     * @param boolean $all is show all data. for system role, it's true.
      */
     public function getOptions($selected_value = null, $display_table = null, $all = false)
     {
@@ -310,12 +310,12 @@ trait CustomTableTrait
         if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
             $query = $this->getValueModel();
         }
-        // if $table_name is user or organization, get from getAuthorityUserOrOrg
+        // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name ==SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getAuthorityUserQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
         }
         elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getAuthorityOrganizationQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
         }

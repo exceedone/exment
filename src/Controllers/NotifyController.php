@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\SystemTableName;
 use DB;
 
@@ -56,7 +55,7 @@ class NotifyController extends AdminControllerBase
     {
         $form = new Form(new Notify);
         $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required();
-        // TODO: only authority tables
+        // TODO: only role tables
 
         $form->header(exmtrans('notify.header_trigger'))->hr();
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
@@ -115,10 +114,10 @@ class NotifyController extends AdminControllerBase
                 ->help(exmtrans("notify.help.notify_action_target"));
 
             // get notify mail template
-            $notify_mail_id = MailTemplate::where('mail_name', 'system_notify')->first()->id;
+            $notify_mail_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('mail_name', 'system_notify')->first()->id;
 
             $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
-                return MailTemplate::all()->pluck('mail_view_name', 'id');
+                return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('mail_view_name', 'id');
             })->help(exmtrans("notify.help.mail_template_id"))
             ->default($notify_mail_id);
         })->disableHeader();

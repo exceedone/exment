@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -207,6 +207,27 @@ if (!function_exists('getFullpath')) {
         return Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
     }
 }
+
+if (!function_exists('getTmpFolderPath')) {
+    /**
+     * get tmp folder path. Uses for 
+     * @param string $type "plugin", "template", "backup", "data".
+     */
+    function getTmpFolderPath($type, $fullpath = true)
+    {
+        $path = path_join('tmp', $type);
+        if(!$fullpath){
+            return $path;
+        }
+        $tmppath = getFullpath($path, 'local');
+        if(!is_dir($tmppath)){
+            mkdir($tmppath, 0755, true);
+        }
+
+        return $tmppath;
+    }
+}
+
 
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)
@@ -554,11 +575,11 @@ if (!function_exists('getCurrencySymbolLabel')) {
     }
 }
 
-if (!function_exists('getAuthorityUser')) {
+if (!function_exists('getRoleUser')) {
     /**
-     * get users who has authorities.
+     * get users who has roles.
      */
-    function getAuthorityUser($target_table, $related_type)
+    function getRoleUser($target_table, $related_type)
     {
         if (is_null($target_table)) {
             return [];
@@ -566,15 +587,15 @@ if (!function_exists('getAuthorityUser')) {
         $target_table = CustomTable::getEloquent($target_table);
 
         // get user or organiztion ids
-        $target_ids = DB::table('authorities as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+        $target_ids = DB::table('roles as a')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
             ->whereIn('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', AuthorityType::SYSTEM);
+                    $query->where('morph_type', RoleType::SYSTEM);
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', AuthorityType::TABLE)
+                    $query->where('morph_type', RoleType::TABLE)
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id');
@@ -655,117 +676,139 @@ if (!function_exists('replaceTextFromFormat')) {
                             'second',
                         ];
 
+                        $callbacked = false;
                         if (array_key_value_exists('matchBeforeCallback', $options)) {
                             // execute callback
                             $callbackFunc = $options['matchBeforeCallback'];
-                            $result = $callbackFunc->call($length_array, $match, $format, $custom_value, $options);
+                            $result = $callbackFunc($length_array, $match, $format, $custom_value, $options);
                             if ($result) {
-                                $format = $result;
-                                continue;
+                                $str = $result;
+                                $callbacked = true;
                             }
                         }
 
                         ///// id
-                        if ($key == "id") {
-                            // replace add zero using id.
-                            if (count($length_array) > 1) {
-                                $str = sprintf('%0'.$length_array[1].'d', $id);
-                            } else {
-                                $str = $id;
-                            }
-                        }
-                        ///// value
-                        ///// base_info
-                        elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
-                            if ($key == "value") {
-                                $target_value = $custom_value;
-                            } else {
-                                $target_value = getModelName(SystemTableName::BASEINFO)::first();
-                            }
-                            if (!isset($target_value)) {
-                                $str = '';
-                            }
-                            // get value from model
-                            elseif (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                // get comma string from index 1.
-                                $length_array = array_slice($length_array, 1);
-
-                                $str = $target_value->getValue(implode(',', $length_array), true, $matchOptions) ?? '';
-                            }
-                        }
-                        ///// sum
-                        elseif ($key == "sum") {
-                            if (!isset($custom_value)) {
-                                $str = '';
-                            }
-
-                            // get sum value from children model
-                            elseif (count($length_array) <= 2) {
-                                $str = '';
-                            }
-                            //else, getting value using cihldren
-                            else {
-                                // get children values
-                                $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
-                                // looping
-                                $sum = 0;
-                                foreach ($children as $child) {
-                                    // get value
-                                    $sum += intval(str_replace(',', '', $child->getValue($length_array[2]) ?? 0));
+                        if (!$callbacked) {
+                            if ($key == "id") {
+                                // replace add zero using id.
+                                if (count($length_array) > 1) {
+                                    $str = sprintf('%0'.$length_array[1].'d', $id);
+                                } else {
+                                    $str = $id;
                                 }
-                                $str = strval($sum);
                             }
-                        }
-                        ///// child
-                        elseif ($key == "child") {
-                            if (!isset($custom_value)) {
-                                $str = '';
-                            }
-
-                            // get sum value from children model
-                            elseif (count($length_array) <= 3) {
-                                $str = '';
-                            }
-                            //else, getting value using cihldren
-                            else {
-                                // get children values
-                                $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
-                                // get length
-                                $index = intval($length_array[3]);
-                                // get value
-                                if (count($children) <= $index) {
+                            ///// value
+                            ///// base_info
+                            elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
+                                if ($key == "value") {
+                                    $target_value = $custom_value;
+                                } else {
+                                    $target_value = getModelName(SystemTableName::BASEINFO)::first();
+                                }
+                                if (!isset($target_value)) {
+                                    $str = '';
+                                }
+                                // get value from model
+                                elseif (count($length_array) <= 1) {
                                     $str = '';
                                 } else {
-                                    $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
+                                    // get comma string from index 1.
+                                    $length_array = array_slice($length_array, 1);
+
+                                    $str = $target_value->getValue(implode(',', $length_array), true, $matchOptions) ?? '';
                                 }
                             }
-                        }
-                        // suuid
-                        elseif ($key == "suuid") {
-                            $str = short_uuid();
-                        }
-                        // uuid
-                        elseif ($key == "uuid") {
-                            $str = make_uuid();
-                        }
-                        // if has $datestrings, conbert using date string
-                        elseif (array_key_exists($key, $dateStrings)) {
-                            $str = Carbon::now()->format($dateStrings[$key]);
-                        }
-                        // if has $datestrings, conbert using date value
-                        elseif (in_array($key, $dateValues)) {
-                            $str = Carbon::now()->{$key};
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
+                            ///// sum
+                            elseif ($key == "sum") {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+
+                                // get sum value from children model
+                                elseif (count($length_array) <= 2) {
+                                    $str = '';
+                                }
+                                //else, getting value using cihldren
+                                else {
+                                    // get children values
+                                    $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
+                                    // looping
+                                    $sum = 0;
+                                    foreach ($children as $child) {
+                                        // get value
+                                        $sum += intval(str_replace(',', '', $child->getValue($length_array[2]) ?? 0));
+                                    }
+                                    $str = strval($sum);
+                                }
                             }
-                            // default 2
-                            else {
-                                $length = 1;
+                            ///// child
+                            elseif ($key == "child") {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+
+                                // get sum value from children model
+                                elseif (count($length_array) <= 3) {
+                                    $str = '';
+                                }
+                                //else, getting value using cihldren
+                                else {
+                                    // get children values
+                                    $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
+                                    // get length
+                                    $index = intval($length_array[3]);
+                                    // get value
+                                    if (count($children) <= $index) {
+                                        $str = '';
+                                    } else {
+                                        $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
+                                    }
+                                }
                             }
-                            $str = sprintf('%0'.$length.'d', $str);
+                            // suuid
+                            elseif ($key == "suuid") {
+                                $str = short_uuid();
+                            }
+                            // uuid
+                            elseif ($key == "uuid") {
+                                $str = make_uuid();
+                            }
+                            // system
+                            elseif ($key == "system") {
+                                if (count($length_array) < 2) {
+                                    $str = '';
+                                } else {
+                                    $key_system = $length_array[1];
+                                    if (System::hasFunction($key_system)) {
+                                        $str = System::{$key_system}();
+                                    }
+                    
+                                    // get static value
+                                    if ($key_system == "login_url") {
+                                        $str = admin_url("auth/login");
+                                    }
+                                    if ($key_system == "system_url") {
+                                        $str = admin_url("");
+                                    }
+                                }
+                            }
+                            // if has $datestrings, conbert using date string
+                            elseif (array_key_exists($key, $dateStrings)) {
+                                $str = Carbon::now()->format($dateStrings[$key]);
+                            }
+                            // if has $datestrings, conbert using date value
+                            elseif (in_array($key, $dateValues)) {
+                                $str = Carbon::now()->{$key};
+                                // if user input length
+                                if (count($length_array) > 1) {
+                                    $length = $length_array[1];
+                                }
+                                // default 2
+                                else {
+                                    $length = 1;
+                                }
+                                $str = sprintf('%0'.$length.'d', $str);
+                            }
                         }
                     } catch (\Exception $e) {
                         $str = '';

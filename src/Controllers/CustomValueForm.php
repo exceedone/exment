@@ -7,15 +7,17 @@ use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\ViewColumnType;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\CustomFormBlockType;
@@ -168,8 +170,8 @@ EOT;
             Admin::script($script);
         }
 
-        // add authority form
-        $this->setAuthorityForm($form);
+        // add role form
+        $this->setRoleForm($form);
 
         // add form saving and saved event
         $this->manageFormSaving($form);
@@ -186,10 +188,10 @@ EOT;
     }
 
     /**
-     * setAuthorityForm.
-     * if table is user, org, etc...., not set authority
+     * setRoleForm.
+     * if table is user, org, etc...., not set role
      */
-    protected function setAuthorityForm($form)
+    protected function setRoleForm($form)
     {
         // if ignore user and org, return
         if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
@@ -200,8 +202,8 @@ EOT;
             return;
         }
 
-        // set addAuthorityForm
-        $this->addAuthorityForm($form, AuthorityType::VALUE);
+        // set addRoleForm
+        $this->addRoleForm($form, RoleType::VALUE);
     }
 
     /**
@@ -394,6 +396,14 @@ EOT;
         // after saving
         $form->saved(function ($form) {
             PluginInstaller::pluginPreparing($this->plugins, 'saved');
+
+            // if requestsession "file upload uuid"(for set data this value's id and type into files)
+            $uuids = getRequestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
+            if(isset($uuids)){
+                foreach($uuids as $uuid){
+                    File::getData(array_get($uuid, 'uuid'))->saveCustomValue($form->model(), array_get($uuid, 'column_name'));
+                }
+            }
 
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));

@@ -229,7 +229,7 @@ class CustomView extends ModelBase
                 }
 
                 ///// add show and edit link
-                // using authority
+                // using role
                 $link = '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id')).'" style="margin-right:3px;"><i class="fa fa-eye"></i></a>';
                 if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
                     $link .= '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit').'"><i class="fa fa-edit"></i></a>';

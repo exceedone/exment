@@ -61,9 +61,6 @@ class BackupCommand extends Command
      */
     public function handle()
     {
-        // TODO:test
-        $aaaa = getModelName('organization')::getOrganizationIds();
-
         $this->starttime = date('YmdHis');
 
         $target = $this->option("target") ?? BackupTarget::arrays();

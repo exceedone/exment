@@ -92,10 +92,13 @@ class PluginInstaller
     public static function uploadPlugin($uploadFile)
     {
         // store uploaded file and get tmp path
-        $filename = $uploadFile->store('upload_tmp', 'local');
+        $tmpdir = getTmpFolderPath('plugin', false);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local');
+
+        $filename = $uploadFile->store($tmpdir, 'local');
         $fullpath = getFullpath($filename, 'local');
-        // tmpfolderpath is the folder path uploaded.
-        $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
+        // // tmpfolderpath is the folder path uploaded.
+        // $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
         $tmpPluginFolderPath = null;
 
         // open zip file
@@ -178,9 +181,9 @@ class PluginInstaller
         }
         
         // delete tmp folder
-        File::deleteDirectory($tmpfolderpath);
         $zip->close();
         // delete zip
+        File::deleteDirectory($tmpfolderpath);
         unlink($fullpath);
         //return response
         if (isset($response)) {

@@ -3,16 +3,16 @@ namespace Exceedone\Exment\Auth;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\AuthorityType;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\RoleValue;
 
 class Permission
 {
     /**
-     * Summary of $table_name
+     * Summary of $role_type
      * @var string
      */
-    protected $authority_type;
+    protected $role_type;
 
     /**
      * Summary of $table_name
@@ -21,10 +21,10 @@ class Permission
     protected $table_name;
 
     /**
-     * Summary of $authorities
+     * Summary of $permission_details
      * @var array
      */
-    protected $authorities;
+    protected $permission_details;
     /**
      * Create a new Eloquent model instance.
      *
@@ -32,14 +32,14 @@ class Permission
      */
     public function __construct(array $attributes = [])
     {
-        $this->authority_type = array_get($attributes, 'authority_type');
+        $this->role_type = array_get($attributes, 'role_type');
         $this->table_name = array_get($attributes, 'table_name');
-        $this->authorities = array_get($attributes, 'authorities');
+        $this->permission_details = array_get($attributes, 'permission_details');
     }
 
-    public function getAuthorityType()
+    public function getRoleType()
     {
-        return $this->authority_type;
+        return $this->role_type;
     }
 
     public function getTableName()
@@ -47,9 +47,9 @@ class Permission
         return $this->table_name;
     }
 
-    public function getAuthorities()
+    public function getPermissionDetails()
     {
-        return $this->authorities;
+        return $this->permission_details;
     }
 
     /**
@@ -76,15 +76,17 @@ class Permission
      */
     public function shouldPass($endpoint) : bool
     {
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
             return true;
         }
 
-        $systemAuthority = AuthorityType::SYSTEM()->match($this->authority_type);
-        if ($systemAuthority && array_key_exists(AuthorityType::SYSTEM, $this->authorities)) {
+        // if system user, return true
+        $systemRole = RoleType::SYSTEM == $this->role_type;
+        if ($systemRole && array_key_exists(RoleType::SYSTEM, $this->permission_details)) {
             return true;
         }
+        
         switch ($endpoint) {
             case "":
             case "/":
@@ -98,77 +100,77 @@ class Permission
             case "files":
                 return true;
             case "system":
-            case "authority":
+            case "role":
             case "plugin":
             case "database":
             case "loginuser":
             case "auth/menu":
             case "notify":
-                if ($systemAuthority) {
-                    return array_key_exists('system', $this->authorities);
+                if ($systemRole) {
+                    return array_key_exists('system', $this->permission_details);
                 }
                 return false;
             case "table":
-                if ($systemAuthority) {
-                    return array_key_exists('custom_table', $this->authorities);
+                if ($systemRole) {
+                    return array_key_exists('custom_table', $this->permission_details);
                 }
-                return array_key_exists('custom_table', $this->authorities);
+                return array_key_exists('custom_table', $this->permission_details);
             case "column":
-                if ($systemAuthority) {
-                    return array_key_exists('custom_table', $this->authorities);
+                if ($systemRole) {
+                    return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
-                return array_key_exists('custom_table', $this->authorities);
+                return array_key_exists('custom_table', $this->permission_details);
             case "relation":
-                if ($systemAuthority) {
-                    return array_key_exists('custom_table', $this->authorities);
+                if ($systemRole) {
+                    return array_key_exists('custom_table', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
-                return array_key_exists('custom_table', $this->authorities);
+                return array_key_exists('custom_table', $this->permission_details);
             case "form":
-                if ($systemAuthority) {
-                    return array_key_exists('custom_form', $this->authorities);
+                if ($systemRole) {
+                    return array_key_exists('custom_form', $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
-                return array_key_exists('custom_form', $this->authorities);
+                return array_key_exists('custom_form', $this->permission_details);
             case "view":
-                if ($systemAuthority) {
-                    return array_keys_exists([AuthorityValue::CUSTOM_VIEW], $this->authorities);
+                if ($systemRole) {
+                    return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable()) {
                     return false;
                 }
-               return array_keys_exists([AuthorityValue::CUSTOM_VIEW], $this->authorities);
+               return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);
             case "data":
-                if ($systemAuthority) {
-                    return array_keys_exists(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->authorities);
+                if ($systemRole) {
+                    return array_keys_exists(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
-                return array_keys_exists(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
+                return array_keys_exists(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE, $this->permission_details);
         }
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
-            if ($systemAuthority) {
-                return array_keys_exists(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->authorities);
+            if ($systemRole) {
+                return array_keys_exists(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->permission_details);
             }
             // check endpoint name and checking table_name.
             if (!$this->matchEndPointTable($endpoint)) {
                 return false;
             }
-            return array_keys_exists(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE, $this->authorities);
+            return array_keys_exists(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE, $this->permission_details);
         }
 
         return false;

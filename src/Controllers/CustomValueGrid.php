@@ -11,7 +11,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
@@ -155,7 +155,7 @@ trait CustomValueGrid
         $grid->disableExport();
         $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid) {
             // have edit flg
-            $edit_flg = $this->custom_table->hasPermission(AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = $this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid));

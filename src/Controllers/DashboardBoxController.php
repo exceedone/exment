@@ -125,7 +125,7 @@ class DashboardBoxController extends AdminControllerBase
                         $widgetTable->class('table table-hover');
 
                         // check edit permission
-                        if($table->hasPermission(Authority::AVAILABLE_EDIT_CUSTOM_VALUE)){
+                        if($table->hasPermission(Role::AVAILABLE_EDIT_CUSTOM_VALUE)){
                             $new_url= admin_base_path("data/{$table->table_name}/create");
                         }else{
                             $new_url = null;

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Encore\Admin\Form\Field;
@@ -366,14 +367,16 @@ class FormHelper
 
     protected static function getFileOptions($custom_table, $custom_column, $id)
     {
-        return [
+        return 
+            [
+            'showCancel' => false,
             'deleteUrl' => admin_urls('data', $custom_table->table_name, $id, 'filedelete'),
             'deleteExtraData'      => [
                 Field::FILE_DELETE_FLAG         => $custom_column->column_name,
                 '_token'                         => csrf_token(),
                 '_method'                        => 'PUT',
-            ],
-        ];
+            ]
+            ];
     }
 
     /**
@@ -387,6 +390,12 @@ class FormHelper
         $local_filename = ExmentFile::getUniqueFileName($dirname, $filename);
         // save file info
         $exmentfile = ExmentFile::saveFileInfo($dirname, $filename, $local_filename);
+
+        // set request session to save this custom_value's id and type into files table.
+        $file_uuids = getRequestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+        $file_uuids[] = ['uuid' => $exmentfile->uuid, 'column_name' => $field->column()];
+        setRequestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+        
         // return filename
         return $exmentfile->local_filename;
     }

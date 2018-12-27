@@ -19,13 +19,13 @@ This is the procedure for adding a new custom table.
 - New table screen will be displayed, enter necessary information.  
 ![Custom table screen](img/table/table_new1.png)
 
-## Authority
-![Custom table screen](img/table/table_authority1.png)  
+## Role
+![Custom table screen](img/table/table_role1.png)  
 Manage users or organizations that can access this table.  
 Only users who correspond to users/organizations saved under this setting can access this table.  
 However, users and organizations registered in "System setting" of the menu can also access this table.  
   
-Please add users/organizations you want to grant access to this table to the corresponding authority item.
+Please add users/organizations you want to grant access to this table to the corresponding role item.
 
 ## Save
 After filling in the settings, please click "Send".

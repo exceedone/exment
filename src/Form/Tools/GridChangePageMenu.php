@@ -75,16 +75,16 @@ EOT;
             if ($this->page_name == array_get($menu, 'url')) {
                 continue;
             }
-            // check menu using authority
-            // if this page_name is table and grid, check authority
+            // check menu using role
+            // if this page_name is table and grid, check role
             if ($this->page_name == 'table' && !isset($this->custom_table)) {
-                // if user dont't has authority system
-                if (!Admin::user()->hasPermission(array_get($menu, 'authorities'))) {
+                // if user dont't has role system
+                if (!Admin::user()->hasPermission(array_get($menu, 'roles'))) {
                     continue;
                 }
             } else {
-                // if user dont't has authority as table
-                if (!$this->custom_table->hasPermission(array_get($menu, 'authorities'))) {
+                // if user dont't has role as table
+                if (!$this->custom_table->hasPermission(array_get($menu, 'roles'))) {
                     continue;
                 }
             }

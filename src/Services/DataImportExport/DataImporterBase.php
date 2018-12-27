@@ -2,18 +2,25 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
+use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\FormHelper;
+use Illuminate\Http\Request;
 use Validator;
 use Carbon\Carbon;
 
 abstract class DataImporterBase
 {
     protected $custom_table;
+    protected $relations;
     protected $accept_extension = '';
     public function __construct($custom_table)
     {
         $this->custom_table = $custom_table;
+        $this->relations = CustomRelation::getRelationsByParent($this->custom_table);
     }
 
     /**
@@ -24,40 +31,65 @@ abstract class DataImporterBase
     {
         set_time_limit(240);
         // validate request
-        $validateRequest = $this->validateRequest($request);
-        if ($validateRequest !== true) {
-            return [
-                'result' => false,
-                //'toastr' => exmtrans('common.message.import_error'),
-                'errors' => $validateRequest,
-            ];
+        if ($request instanceof Request) {
+            $validateRequest = $this->validateRequest($request);
+            if ($validateRequest !== true) {
+                return [
+                    'result' => false,
+                    //'toastr' => exmtrans('common.message.import_error'),
+                    'errors' => $validateRequest,
+                ];
+            }
+            $select_primary_key = $request->select_primary_key;
+        }else{
+            $select_primary_key = 'id';
         }
 
         // get table data
-        $tableData = $this->getDataTable($request);
-        //Remove empty data
-        $data = array_filter($tableData, function ($value) {
-            return count(array_filter($value)) > 0 ;
-        });
-
-        // get target data and model list
-        $dataAndModels = $this->getDataAndModels($data, $request->select_primary_key);
-        // validate data
-        list($data_import, $error_data) = $this->validateData($dataAndModels);
+        $datalist = $this->getDataTable($request);
         
-        // if has error data, return error data
-        if (count($error_data) > 0) {
-            return [
-                'result' => false,
-                'toastr' => exmtrans('common.message.import_error'),
-                'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
-            ];
+        // get target data and model list
+        
+        foreach ($datalist as $table_name => $data) {
+            // if data is n:n data, get data as pivot
+            if(isset($data['relation']) && $data['relation']->relation_type == RelationType::MANY_TO_MANY){
+                $data_pivots[] = $this->getPivotData($data['data'], $data['relation']);
+                continue;
+            }
+
+            $target_table = $data['custom_table'];
+            $dataAndModels = $this->getDataAndModels($target_table, $data['data'], $select_primary_key);
+            // validate data
+            list($data_import, $error_data) = $this->validateData($target_table, $dataAndModels);
+        
+            // if has error data, return error data
+            if (count($error_data) > 0) {
+                return [
+                    'result' => false,
+                    'toastr' => exmtrans('common.message.import_error'),
+                    'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
+                ];
+            }
+            $data_imports[] = $data_import;
         }
 
-        // execute imoport
-        foreach ($data_import as $index => &$row) {
-            $row['data'] = $this->dataProcessing(array_get($row, 'data'));
-            $this->dataImportFlow($request->custom_table_name, $row, $request->select_primary_key);
+        if (isset($data_imports)) {
+            foreach ($data_imports as $data_import) {
+                // execute imoport
+                foreach ($data_import as $index => &$row) {
+                    $row['data'] = $this->dataProcessing(array_get($row, 'data'));
+                    $this->dataImportFlow($row, $select_primary_key);
+                }
+            }
+        }
+
+        if (isset($data_pivots)) {
+            foreach ($data_pivots as $data_pivot) {
+                // execute imoport
+                foreach ($data_pivot as $index => &$row) {
+                    $this->dataImportPivot($row);
+                }
+            }
         }
 
         // if success, return result and toastor messsage
@@ -109,10 +141,40 @@ abstract class DataImporterBase
     }
 
     /**
+     * get pivot data for n:n
+     */
+    protected function getPivotData($data, $relation){
+        $results = [];
+        $headers = [];
+        foreach ($data as $key => $value) {
+            // get header if $key == 0
+            if ($key == 0) {
+                $headers = $value;
+                continue;
+            }
+            // continue if $key == 1
+            elseif ($key == 1) {
+                continue;
+            }
+
+            // combine value
+            $value_custom = array_combine($headers, $value);
+            $delete = boolval(array_get($value_custom, 'delete'));
+            array_forget($value_custom, 'delete');
+            $results[] = ['data' => $value_custom, 'delete' => $delete, 'relation' => $relation];
+        }
+
+        return $results;
+    }
+
+    /**
      * get data and model array
      */
-    public function getDataAndModels($data, $primary_key)
+    public function getDataAndModels($target_table, $data, $primary_key)
     {
+        ///// get all table columns
+        $custom_columns = $target_table->custom_columns;
+
         $results = [];
         $headers = [];
         foreach ($data as $key => $value) {
@@ -129,8 +191,11 @@ abstract class DataImporterBase
             // combine value
             $value_custom = array_combine($headers, $value);
 
+            ///// convert data first.
+            $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom);
+
             // get model
-            $modelName = getModelName($this->custom_table);
+            $modelName = getModelName($target_table);
             // select $model using primary key and value
             $primary_value = array_get($value_custom, $primary_key);
             // if not exists, new instance
@@ -157,15 +222,15 @@ abstract class DataImporterBase
      * @param $data
      * @return array
      */
-    public function validateData($dataAndModels)
+    public function validateData($target_table, $dataAndModels)
     {
         ///// get all table columns
-        $validate_columns = $this->custom_table->custom_columns;
+        $validate_columns = $target_table->custom_columns;
         
         $error_data = array();
         $success_data = array();
         foreach ($dataAndModels as $key => $value) {
-            $check = $this->validateDataRow($key, $value, $validate_columns);
+            $check = $this->validateDataRow($target_table, $key, $value, $validate_columns);
             if ($check === true) {
                 array_push($success_data, $value);
             } else {
@@ -181,7 +246,7 @@ abstract class DataImporterBase
      * @param $data
      * @return array
      */
-    public function validateDataRow($line_no, $dataAndModel, $validate_columns)
+    public function validateDataRow($target_table, $line_no, $dataAndModel, $validate_columns)
     {
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
@@ -189,7 +254,7 @@ abstract class DataImporterBase
         // get fields for validation
         $fields = [];
         foreach ($validate_columns as $validate_column) {
-            $fields[] = FormHelper::getFormField($this->custom_table, $validate_column, array_get($model, 'id'), null, 'value.');
+            $fields[] = FormHelper::getFormField($target_table, $validate_column, array_get($model, 'id'), null, 'value.');
         }
         // create common validate rules.
         $rules = [
@@ -230,6 +295,33 @@ abstract class DataImporterBase
      * @param $data
      * @return array
      */
+    public function dataProcessingFirst($custom_columns, $data)
+    {
+        foreach ($data as $key => &$value) {
+            if (strpos($key, "value.") !== false) {
+                $new_key = str_replace('value.', '', $key);
+                // get target column
+                $target_column = $custom_columns->first(function($custom_column) use($new_key){
+                    return array_get($custom_column, 'column_name') == $new_key;
+                });
+                if(!isset($target_column)){
+                    continue;
+                }
+
+                if(ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
+                    && boolval(array_get($target_column, 'options.multiple_enabled')))
+                {
+                    $value = explode(",", $value);
+                }
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * @param $data
+     * @return array
+     */
     public function dataProcessing($data)
     {
         $data_custom = array();
@@ -237,7 +329,7 @@ abstract class DataImporterBase
         foreach ($data as $key => $value) {
             if (strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
-                $value_arr[$new_key] = $value;
+                $value_arr[$new_key] = is_nullorempty($value) ? null : preg_replace("/\\\\r\\\\n|\\\\r|\\\\n/", "\n", $value);
             } else {
                 $data_custom[$key] = is_nullorempty($value) ? null : $value;
             }
@@ -249,7 +341,7 @@ abstract class DataImporterBase
     /**
      * import data
      */
-    public function dataImportFlow($table_name, $dataAndModel, $primary_key)
+    public function dataImportFlow($dataAndModel, $primary_key)
     {
         $data = array_get($dataAndModel, 'data');
         $model = array_get($dataAndModel, 'model');
@@ -315,6 +407,32 @@ abstract class DataImporterBase
 
         // save model
         $model->save();
+    }
+
+    /**
+     * import data (n:n relation)
+     */
+    public function dataImportPivot($dataPivot)
+    {
+        $data = array_get($dataPivot, 'data');
+        $delete = array_get($dataPivot, 'delete');
+        $relation = array_get($dataPivot, 'relation');
+
+        // get database name
+        $table_name = $relation->getRelationName();
+
+        // get target id(cannot use Eloquent because not define)
+        $id = \DB::table($table_name)
+            ->where('parent_id', array_get($data, 'parent_id'))
+            ->where('child_id', array_get($data, 'child_id'))
+            ->first()->id ?? null;
+        
+        // if delete
+        if (isset($id) && $delete) {
+            \DB::table($table_name)->where('id', $id)->delete();
+        }elseif(!isset($id)){
+            \DB::table($table_name)->insert($data);
+        }
     }
 
 

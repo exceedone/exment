@@ -55,7 +55,7 @@ return [
         'site_logo_mini' => 'Site Logo(Small)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
-        'authority_available' => 'Use Authority Management',
+        'permission_available' => 'Use Role Management',
         'organization_available' => 'Use Organization Management',
         'system_mail_from' => 'System Email',
         'template' => 'Install Template',
@@ -95,7 +95,7 @@ return [
             'site_logo_mini' => 'Site logo(small size). Recommended size:40px * 40px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
-            'authority_available' => 'If Select YES, management authority using user or organozation.',
+            'permission_available' => 'If Select YES, management role using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
             'template' => 'If select these templates, install tables, columns and forms.',
@@ -450,7 +450,7 @@ return [
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'default_view_name' => 'Default View',
         'description_custom_view_columns' => 'Select display columns.',
-        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the authority data owned by the login user is displayed.',
+        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.',
 
         'filter_condition_options' => [
             'eq' => 'Equal', 
@@ -491,44 +491,44 @@ return [
         ],
     ],
 
-    'authority' => [
-        'header' => 'Authority Setting',
-        'description' => 'Define Setting authority.',
-        'authority_name' => 'Authority Name',
-        'authority_view_name' => 'Authority View Name',
-        'authority_type' => 'Authority Type',
-        'default_flg' => 'Default Authority',
+    'role' => [
+        'header' => 'Role Setting',
+        'description' => 'Define Setting role.',
+        'role_name' => 'Role Name',
+        'role_view_name' => 'Role View Name',
+        'role_type' => 'Role Type',
+        'default_flg' => 'Default Role',
         'default_flg_true' => 'True',
         'default_flg_false' => '',
         'description_field' => 'Explain',
-        'permissions' => 'Authority Detail',
+        'permissions' => 'Role Detail',
         
         'description_form' => [
-            'system' => 'Please select users/organizations to whom authority is given for the entire system.',
-            'system_disableorg' => 'Please select users to whom authority is given for the entire system.',
-            'custom_table' => 'Please select users/organizations to whom authority is given for the entire table.',
-            'custom_table_disableorg' => 'Please select users to whom authority is given for the entire system.',
-            'custom_value' => 'Please select users/organizations to whom authority is given for this data.',
-            'custom_value_disableorg' => 'Please select users to whom authority is given for this data.',
-            'plugin' => 'Please select users/organizations to whom authority is given for this plugin.',
-            'plugin_disableorg' => 'Please select users to whom authority is given for this plugin.',
+            'system' => 'Please select users/organizations to whom role is given for the entire system.',
+            'system_disableorg' => 'Please select users to whom role is given for the entire system.',
+            'custom_table' => 'Please select users/organizations to whom role is given for the entire table.',
+            'custom_table_disableorg' => 'Please select users to whom role is given for the entire system.',
+            'custom_value' => 'Please select users/organizations to whom role is given for this data.',
+            'custom_value_disableorg' => 'Please select users to whom role is given for this data.',
+            'plugin' => 'Please select users/organizations to whom role is given for this plugin.',
+            'plugin_disableorg' => 'Please select users to whom role is given for this plugin.',
         ],
 
-        'authority_type_options' =>[
+        'role_type_options' =>[
             'system' => 'System',
             'table' => 'Table',
             'value' => 'Value',
             'plugin' => 'Plugin',
         ],
         
-        'authority_type_option_system' => [
+        'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
         ],
-        'authority_type_option_table' => [
+        'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
@@ -536,11 +536,11 @@ return [
             'custom_value_edit' => ['label' => 'Edit Personnel Data', 'help' => 'Users can add, edit, delete personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
         ], 
-        'authority_type_option_value' => [
+        'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'Viewer', 'help' => 'Users can view personnel data in custom tables.'],
         ], 
-        'authority_type_option_plugin' => [
+        'role_type_option_plugin' => [
             'plugin_access' => ['label' => 'Access', 'help' => 'User can use this plugin.'],
             'plugin_setting' => ['label' => 'Manage Setting', 'help' => 'For plugins with configuration changes, user can change the setting of this plugin.'],
         ],
@@ -605,7 +605,7 @@ return [
             'system' => 'System Setting',
             'plugin' => 'Plugin',
             'custom_table' => 'Custom Table',
-            'authority' => 'Authority',
+            'role' => 'Role',
             'user' => 'User',
             'organization' => 'Organization',
             'menu' => 'Menu',
@@ -669,7 +669,7 @@ return [
             'table' => 'Table',
             'dashboard' => 'Dashboard',
             'menu' => 'Menu',
-            'authority' => 'Authority',
+            'role' => 'Role',
             'mail_template' => 'Mail Template',
         ]
     ],
@@ -749,7 +749,7 @@ return [
         ],
 
         'notify_action_target_options' => [
-            'has_authorities' => 'Have the Authority User',
+            'has_roles' => 'Have the Role User',
         ],
     ],
 ];

@@ -8,12 +8,11 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
@@ -56,48 +55,54 @@ class TemplateExporter
             static::setTemplateDashboard($config);
         }
         if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
-            static::setTemplateAuthority($config);
+            static::setTemplateRole($config);
         }
-        if (in_array(TemplateExportTarget::MAIL_TEMPLATE, $options['export_target'])) {
-            static::setTemplateMailTemplate($config);
-        }
-
+        
         // create ZIP file --------------------------------------------------
-        $zip = new ZipArchive();
+        $tmpdir = getTmpFolderPath('template', false);
+        $tmpFulldir = getFullpath($tmpdir, 'local');
         $tmpfilename = make_uuid();
-        $fullpath = getFullpath(path_join('exmtmp', $tmpfilename), 'local');
-        $basePath = pathinfo($fullpath)['dirname'];
-        if (!File::exists($basePath)) {
-            File::makeDirectory($basePath, 0775, true);
-        }
-        if ($zip->open($fullpath, ZipArchive::CREATE)!==true) {
+
+        // create full path to 
+        // $fullpath = getFullpath(path_join('exmtmp', $tmpfilename), 'local');
+        // $basePath = pathinfo($fullpath)['dirname'];
+        // if (!File::exists($basePath)) {
+        //     File::makeDirectory($basePath, 0775, true);
+        // }
+
+        $zip = new ZipArchive();
+        $zipfilename = short_uuid().'.zip';
+        $zipfillpath = path_join($tmpFulldir, $zipfilename);
+        if ($zip->open($zipfillpath, ZipArchive::CREATE)!==true) {
             //TODO:error
         }
         
         // add thumbnail
         if (isset($thumbnail)) {
             // save thumbnail
+            $thumbnail_dir = path_join($tmpdir, short_uuid());
+            $thumbnail_dirpath = getFullpath($thumbnail_dir, 'local');
+
             $thumbnail_name = 'thumbnail.' . $thumbnail->extension();
-            $thumbnail_path = $thumbnail->store('exmtmp', 'local');
+            $thumbnail_path = $thumbnail->store($thumbnail_dir, 'local');
             $thumbnail_fullpath = getFullpath($thumbnail_path, 'local');
-            $zip->addFile($thumbnail_fullpath, 'thumbnail.' . $thumbnail->extension());
+            $zip->addFile($thumbnail_fullpath, $thumbnail_name);
 
             $config['thumbnail'] = $thumbnail_name;
         }
 
         // add config array
         $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-
         $zip->close();
 
         // isset $thumbnail_fullpath, remove
-        if (isset($thumbnail_fullpath)) {
-            File::delete($thumbnail_fullpath);
+        if (isset($thumbnail_dirpath)) {
+            File::deleteDirectory($thumbnail_dirpath);
         }
 
         // create response
         $filename = $template_name.'.zip';
-        $response = response()->download($fullpath, $filename)->deleteFileAfterSend(true);
+        $response = response()->download($zipfillpath, $filename)->deleteFileAfterSend(true);
 
         return $response;
     }
@@ -404,11 +409,11 @@ class TemplateExporter
 
         // menu_target
         $menu_type = $menu['menu_type'];
-        if (MenuType::TABLE()->match($menu_type)) {
+        if (MenuType::TABLE == $menu_type) {
             $menu['menu_target_name'] = CustomTable::find($menu['menu_target'])->table_name ?? null;
-        } elseif (MenuType::PLUGIN()->match($menu_type)) {
+        } elseif (MenuType::PLUGIN == $menu_type) {
             $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
-        } elseif (MenuType::SYSTEM()->match($menu_type)) {
+        } elseif (MenuType::SYSTEM == $menu_type) {
             $menu['menu_target_name'] = $menu['menu_name'];
         }
         // custom, parent_node
@@ -418,7 +423,7 @@ class TemplateExporter
 
         //// url
         // menu type is table, remove uri "data/"
-        if (MenuType::TABLE()->match($menu_type)) {
+        if (MenuType::TABLE == $menu_type) {
             $menu['uri'] = preg_replace('/^data\//', '', $menu['uri']);
         }
 
@@ -502,43 +507,29 @@ class TemplateExporter
     }
 
     /**
-     * set Authority info to config
+     * set Role info to config
      */
-    protected static function setTemplateAuthority(&$config)
+    protected static function setTemplateRole(&$config)
     {
-        // Get Authorities --------------------------------------------------
-        $authorities = Authority::all()->toArray();
-        foreach ($authorities as &$authority) {
+        // Get Roles --------------------------------------------------
+        $roles = Role::all()->toArray();
+        foreach ($roles as &$role) {
             // redeclare permissions
-            if (isset($authority['permissions']) && is_array($authority['permissions'])) {
+            if (isset($role['permissions']) && is_array($role['permissions'])) {
                 $permissions = [];
-                foreach ($authority['permissions'] as $key => $value) {
+                foreach ($role['permissions'] as $key => $value) {
                     $permissions[] = key($value);
                 }
-                $authority['permissions'] = $permissions;
+                $role['permissions'] = $permissions;
             }
-            $authority = array_only($authority, [
-                'authority_type',
-                'authority_name',
-                'authority_view_name',
+            $role = array_only($role, [
+                'role_type',
+                'role_name',
+                'role_view_name',
                 'description',
                 'permissions',
             ]);
         }
-        $config['authorities'] = $authorities;
-    }
-
-    /**
-     * set MailTemplate info to config
-     */
-    protected static function setTemplateMailTemplate(&$config)
-    {
-        // get mail_templates --------------------------------------------------
-        $mail_templates = MailTemplate::all()->toArray();
-        foreach ($mail_templates as &$mail_template) {
-            // remove others
-            $mail_template = array_only($mail_template, ['mail_name', 'mail_subject', 'mail_body']);
-        }
-        $config['mail_templates'] = $mail_templates;
+        $config['roles'] = $roles;
     }
 }

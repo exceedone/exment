@@ -15,13 +15,12 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomCopyColumn;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\CustomFormBlockType;
@@ -30,6 +29,7 @@ use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Services\DataImportExport\CsvImporter;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
@@ -111,9 +111,12 @@ class TemplateImporter
     public static function uploadTemplate($uploadFile)
     {
         // store uploaded file
-        $filename = $uploadFile->store('template_tmp', 'local');
+        $tmpdir = getTmpFolderPath('template', false);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local');
+
+        $filename = $uploadFile->store($tmpdir, 'local');
         $fullpath = getFullpath($filename, 'local');
-        $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
+
         // zip
         $zip = new ZipArchive;
         $res = $zip->open($fullpath);
@@ -164,8 +167,13 @@ class TemplateImporter
                 File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
             }
             
-            return $template_name;
         }
+
+        // delete zip
+        File::deleteDirectory($tmpfolderpath);
+        unlink($fullpath);
+        
+        return $template_name ?? null;
     }
 
     /**
@@ -421,6 +429,37 @@ class TemplateImporter
         }
 
         static::import($json, $system_flg);
+
+        // get data path
+        $basePath = pathinfo($basePath)['dirname'];
+        $dataPath = path_join($basePath, 'data');
+        // if exists, execute data copy
+        if(is_dir($dataPath)){
+            static::importData($dataPath);
+        }
+    }
+
+    /**
+     * import data using csv
+     */
+    public static function importData($dataPath){
+        // get all csv files
+        $files = collect(\File::files($dataPath))->filter(function($value){
+            return pathinfo($value)['extension'] == 'csv';
+        });
+        
+        // loop csv file
+        foreach($files as $file){
+            $table_name = $file->getBasename('.csv');
+            $custom_table = CustomTable::getEloquent($table_name);
+            if(!isset($custom_table)){
+                continue;
+            }
+
+            // execute import
+            $importer = new CsvImporter($custom_table);
+            $importer->import($file->getRealPath());
+        }
     }
 
     /**
@@ -952,26 +991,26 @@ class TemplateImporter
                 }
             }
 
-            // Loop for authorities.
-            if (array_key_exists('authorities', $json)) {
-                foreach (array_get($json, "authorities") as $authority) {
-                    // Create authority. --------------------------------------------------
-                    $obj_authority = Authority::firstOrNew(['authority_type' => array_get($authority, 'authority_type'), 'authority_name' => array_get($authority, 'authority_name')]);
-                    $obj_authority->authority_type = array_get($authority, 'authority_type');
-                    $obj_authority->authority_name = array_get($authority, 'authority_name');
-                    $obj_authority->authority_view_name = array_get($authority, 'authority_view_name');
-                    $obj_authority->description = array_get($authority, 'description');
-                    $obj_authority->default_flg = boolval(array_get($authority, 'default_flg'));
+            // Loop for roles.
+            if (array_key_exists('roles', $json)) {
+                foreach (array_get($json, "roles") as $role) {
+                    // Create role. --------------------------------------------------
+                    $obj_role = Role::firstOrNew(['role_type' => array_get($role, 'role_type'), 'role_name' => array_get($role, 'role_name')]);
+                    $obj_role->role_type = array_get($role, 'role_type');
+                    $obj_role->role_name = array_get($role, 'role_name');
+                    $obj_role->role_view_name = array_get($role, 'role_view_name');
+                    $obj_role->description = array_get($role, 'description');
+                    $obj_role->default_flg = boolval(array_get($role, 'default_flg'));
 
-                    // Create authority detail.
-                    if (array_key_exists('permissions', $authority)) {
+                    // Create role detail.
+                    if (array_key_exists('permissions', $role)) {
                         $permissions = [];
-                        foreach (array_get($authority, "permissions") as $permission) {
+                        foreach (array_get($role, "permissions") as $permission) {
                             $permissions[$permission] = "1";
                         }
-                        $obj_authority->permissions = $permissions;
+                        $obj_role->permissions = $permissions;
                     }
-                    $obj_authority->saveOrFail();
+                    $obj_role->saveOrFail();
                 }
             }
 
@@ -1161,24 +1200,6 @@ class TemplateImporter
                     }
                 }
             }
-            
-            // Loop for mail templates
-            if (array_key_exists('mail_templates', $json)) {
-                foreach (array_get($json, "mail_templates") as $mail_template) {
-                    // Create mail template --------------------------------------------------
-                    $obj_mail_template = MailTemplate::firstOrNew(['mail_name' => array_get($mail_template, 'mail_name')]);
-                    $obj_mail_template->mail_name = array_get($mail_template, 'mail_name');
-                    $obj_mail_template->mail_view_name = array_get($mail_template, 'mail_view_name');
-                    $obj_mail_template->mail_subject = array_get($mail_template, 'mail_subject');
-
-                    // get body
-                    $body = array_get($mail_template, 'mail_body');
-                    $obj_mail_template->mail_body = preg_replace("/\r\n|\r|\n/", "\n", $body);
-                    $obj_mail_template->system_flg = $system_flg;
-
-                    $obj_mail_template->saveOrFail();
-                }
-            }
         });
     }
 
@@ -1207,20 +1228,6 @@ class TemplateImporter
                 })[$returnNumber ? 'id' : 'name'] ?? null;
         }
         return null;
-    }
-
-    /**
-     * set MailTemplate info to config
-     */
-    protected static function setTemplateMailTemplate(&$config)
-    {
-        // get mail_templates --------------------------------------------------
-        $mail_templates = MailTemplate::all()->toArray();
-        foreach ($mail_templates as &$mail_template) {
-            // remove others
-            $mail_template = array_only($mail_template, ['mail_name', 'mail_subject', 'mail_body']);
-        }
-        $config['mail_templates'] = $mail_templates;
     }
 
     protected static function getTemplateBasePaths()

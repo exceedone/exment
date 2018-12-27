@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +18,7 @@ use File;
 
 class PluginController extends AdminControllerBase
 {
-    use HasResourceActions, AuthorityForm;
+    use HasResourceActions, RoleForm;
 
     public function __construct(Request $request)
     {
@@ -183,9 +183,9 @@ class PluginController extends AdminControllerBase
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
         })->disableHeader();
 
-        // Authority setting --------------------------------------------------
+        // Role setting --------------------------------------------------
         // TODO:error
-        //$this->addAuthorityForm($form, AuthorityType::PLUGIN);
+        //$this->addRoleForm($form, RoleType::PLUGIN);
 
         $form->disableReset();
         return $form;

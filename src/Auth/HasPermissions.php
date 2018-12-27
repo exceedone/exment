@@ -7,12 +7,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\UserSetting;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -43,32 +44,50 @@ trait HasPermissions
     
     /**
      * whethere has permission, permission level
-     * $authority_key * if set array, check whether either items.
-     * @param array|string $authority_key
+     * $role_key * if set array, check whether either items.
+     * @param array|string $role_key
      */
-    public function hasPermission($authority_key)
+    public function hasPermission($role_key)
     {
-        // if system doesn't use authority, return true
-        if (!System::authority_available()) {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
             return true;
         }
 
-        if (!is_array($authority_key)) {
-            $authority_key = [$authority_key];
+        if (!is_array($role_key)) {
+            $role_key = [$role_key];
         }
 
         $permissions = $this->allPermissions();
         foreach ($permissions as $permission) {
-            // if authority type is system, and has key
-            if (AuthorityType::SYSTEM()->match($permission->getAuthorityType())
-                && array_keys_exists($authority_key, $permission->getAuthorities())) {
+            // if role type is system, and has key
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
                 return true;
             }
         }
-
         return false;
     }
 
+    /**
+     * whether user has no permission
+     * if no permission, show message on dashboard
+     */
+    public function noPermission()
+    {
+        // if system doesn't use role, return false
+        if (!System::permission_available()) {
+            return false;
+        }
+        $permissions = $this->allPermissions();
+        foreach ($permissions as $permission) {
+            // roles, this user has permission
+            if (count($permission->getPermissionDetails()) > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
     /**
      * Get all permissions of user.
      *
@@ -76,28 +95,28 @@ trait HasPermissions
      */
     public function allPermissions() : Collection
     {
-        // get session about authority
-        $authorities = Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
+        // get session about role
+        $roles = Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
         // if not exists, get permissons
-        if (!isset($authorities)) {
-            $authorities = $this->getPermissions();
+        if (!isset($roles)) {
+            $roles = $this->getPermissions();
         }
 
         $permissions = [];
-        foreach ($authorities as $key => $authority) {
-            if (AuthorityType::SYSTEM()->match($key)) {
+        foreach ($roles as $key => $role) {
+            if (RoleType::SYSTEM == $key) {
                 array_push($permissions, new Permission([
-                    'authority_type' =>$key,
+                    'role_type' =>$key,
                     'table_name' => null,
-                    'authorities' =>$authority,
+                    'permission_details' =>$role,
                 ]));
                 continue;
             }
-            foreach ($authority as $k => $v) {
+            foreach ($role as $k => $v) {
                 array_push($permissions, new Permission([
-                    'authority_type' =>$key,
+                    'role_type' =>$key,
                     'table_name' =>$k,
-                    'authorities' =>$v,
+                    'permission_details' =>$v,
                 ]));
             }
         }
@@ -110,14 +129,14 @@ trait HasPermissions
      *
      * @return mixed
      */
-    public function allHasPermissionTables($authority_key) : Collection
+    public function allHasPermissionTables($role_key) : Collection
     {
         $results = [];
         // get tables
         $custom_tables = CustomTable::all();
         // loop for table
         foreach ($custom_tables as $custom_table) {
-            if ($custom_table->hasPermission($authority_key)) {
+            if ($custom_table->hasPermission($role_key)) {
                 $results[] = $custom_table;
             }
         }
@@ -125,7 +144,8 @@ trait HasPermissions
     }
 
     /**
-     * If visible for roles.
+     * If visible for permission_details.
+     * called form menu
      *
      * @param $item menu item
      * @param $target_tables output target tables. for template export. default nothing item
@@ -137,6 +157,13 @@ trait HasPermissions
         if (empty($item)) {
             return false;
         }
+
+        // if organization and not use org setting, return false
+        if(array_get($item, 'menu_type') == MenuType::TABLE 
+            && array_get($item, 'table_name') == SystemTableName::ORGANIZATION 
+            && !System::organization_available()){
+                return false;
+            }
 
         // if $item has children, get children's visible result.
         // if children have true result, return true;
@@ -180,7 +207,7 @@ trait HasPermissions
             $model = $custom_view->setValueSort($model);
         }
 
-        ///// We don't need filter using authority here because filter auto using global scope.
+        ///// We don't need filter using role here because filter auto using global scope.
 
         return $model;
     }
@@ -200,18 +227,7 @@ trait HasPermissions
         }
 
         $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
-        $ids = AuthUserOrgHelper::getOrganizationIds(function(&$query, $deeps) use($db_table_name_pivot){
-            // for ($i=1; $i <= $deeps; $i++) {
-            //     $next  = $i + 1;
-            //     $query->leftJoin("$db_table_name_pivot AS ou$i", "ou$i.parent_id", '=', "o$i.id");
-            // }
-            
-            // $query->where(function($query) use($deeps){
-            //     for ($i=1; $i <= $deeps; $i++) {
-            //         $query->orWhere("ou{$i}.child_id", $this->base_user_id);
-            //     }
-            // });
-        });
+        $ids = AuthUserOrgHelper::getOrganizationIds();
 
         // set session.
         Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS, $ids);
@@ -227,8 +243,8 @@ trait HasPermissions
         $permission_tables = $this->getCustomTablePermissions();
 
         Session::put(Define::SYSTEM_KEY_SESSION_AUTHORITY, [
-            AuthorityType::SYSTEM => $permission_system_auths,
-            AuthorityType::TABLE => $permission_tables]);
+            RoleType::SYSTEM => $permission_system_auths,
+            RoleType::TABLE => $permission_tables]);
         Session::put(Define::SYSTEM_KEY_SESSION_INITIALIZE, true);
 
         return Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
@@ -241,13 +257,13 @@ trait HasPermissions
     {
         $organization_ids = $this->getOrganizationIds();
 
-        // get authorities for all tables. --------------------------------------------------
-        $authorities = [];
+        // get permission_details for all tables. --------------------------------------------------
+        $permission_details = [];
         for ($i = 0; $i < 2; $i++) {
-            $query = DB::table('authorities as a')
-                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+            $query = DB::table('roles as a')
+                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
-                ->where('morph_type', AuthorityType::TABLE())
+                ->where('morph_type', RoleType::TABLE())
                 ;
             // if $i == 0, then search as user
             if ($i == 0) {
@@ -263,20 +279,20 @@ trait HasPermissions
                     ->whereIn('related_id', $organization_ids);
             }
 
-            $authorities = array_merge($authorities, $query->orderBy('table_name')
+            $roles = array_merge($roles, $query->orderBy('table_name')
                 ->orderBy('id')
                 ->get(['a.id', 'c.table_name', 'permissions'])->toArray());
         }
-        if (count($authorities) == 0) {
+        if (count($roles) == 0) {
             return [];
         }
 
         $permissions = [];
         $before_table_name = null;
-        foreach ($authorities as $authority) {
-            $authority = (array)$authority;
+        foreach ($roles as $role) {
+            $role = (array)$role;
             // if different table name, change target array.
-            $table_name = array_get($authority, 'table_name');
+            $table_name = array_get($role, 'table_name');
             if ($before_table_name != $table_name) {
                 $permission_tables = [];
                 $permissions[$table_name] = &$permission_tables;
@@ -284,11 +300,11 @@ trait HasPermissions
             } else {
                 $permission_tables = &$permissions[$table_name];
             }
-            $authority_details = array_get($authority, 'permissions');
-            if (is_string($authority_details)) {
-                $authority_details = json_decode($authority_details, true);
+            $role_details = array_get($role, 'permissions');
+            if (is_string($role_details)) {
+                $role_details = json_decode($role_details, true);
             }
-            foreach ($authority_details as $key => $value) {
+            foreach ($role_details as $key => $value) {
                 // if permission value is 1, add permission.
                 if (boolval($value) && !array_key_exists($key, $permission_tables)) {
                     $permission_tables[$key] = $value;
@@ -307,9 +323,9 @@ trait HasPermissions
         $organization_ids = $this->getOrganizationIds();
 
         // get all permissons for system. --------------------------------------------------
-        $authorities = DB::table('authorities as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
-            ->where('morph_type', AuthorityType::SYSTEM())
+        $roles = DB::table('roles as a')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
+            ->where('morph_type', RoleType::SYSTEM())
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {
                     $query->where('related_type', SystemTableName::USER)
@@ -321,21 +337,21 @@ trait HasPermissions
                 });
             })->get(['id', 'permissions'])->toArray();
 
-        if (count($authorities) == 0) {
+        if (count($roles) == 0) {
             return [];
         }
 
-        // get authorities records
+        // get roles records
         $permissions = [];
-        foreach ($authorities as $authority) {
-            if (is_null($authority->permissions)) {
+        foreach ($roles as $role) {
+            if (is_null($role->permissions)) {
                 continue;
             }
-            $authority_details = json_decode($authority->permissions, true);
-            if (is_string($authority_details)) {
-                $authority_details = json_decode($authority_details, true);
+            $role_details = json_decode($role->permissions, true);
+            if (is_string($role_details)) {
+                $role_details = json_decode($role_details, true);
             }
-            foreach ($authority_details as $key => $value) {
+            foreach ($role_details as $key => $value) {
                 // if permission value is 1, add permission.
                 // $key = key($kv);
                 // $value = $kv[$key];
@@ -345,47 +361,10 @@ trait HasPermissions
             }
         }
 
-        if (count($permissions) == 0) {
-            $permissions['dashboard'] = [];
-        }
+        // if (count($permissions) == 0) {
+        //     $permissions['dashboard'] = [];
+        // }
 
         return $permissions;
-    }
-
-    /**
-     * get value from user setting table
-     */
-    public function getSettingValue($key)
-    {
-        if (is_null($this->base_user)) {
-            return null;
-        }
-        // get settings from settion
-        $settings = Session::get("user_setting.$key");
-        // if empty, get User Setting table
-        if (!isset($settings)) {
-            $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
-            $settings = $usersetting->settings ?? [];
-        }
-        return array_get($settings, $key) ?? null;
-    }
-    public function setSettingValue($key, $value)
-    {
-        if (is_null($this->base_user)) {
-            return null;
-        }
-        // set User Setting table
-        $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
-        $settings = $usersetting->settings;
-        if (!isset($settings)) {
-            $settings = [];
-        }
-        // set value
-        array_set($settings, $key, $value);
-        $usersetting->settings = $settings;
-        $usersetting->saveOrFail();
-
-        // put session
-        Session::put("user_setting.$key", $settings);
     }
 }

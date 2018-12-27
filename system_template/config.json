@@ -10,7 +10,7 @@
             "showlist_flg": "0",
             "options": {
                 "icon": "fa-file",
-                "color": null,
+                "color": "#999999",
                 "attachment_flg": "0",
                 "one_record_flg": "0"
             },
@@ -30,6 +30,73 @@
                     "description": null,
                     "options": {
                         "search_enabled": "1"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "メールテンプレート",
+            "description": "メール送信時のメッセージの本文などを管理します。",
+            "search_enabled": "0",
+            "options": {
+                "icon": "fa-envelope",
+                "color": "#ff9932",
+                "attachment_flg": "0",
+                "one_record_flg": "0",
+                "revision_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "mail_name",
+                    "column_view_name": "メールキー名",
+                    "column_type": "text",
+                    "options": {
+                        "required": "1",
+                        "search_enabled": "1",
+                        "unique": "1",
+                        "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
+                        "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "メール表示名",
+                    "column_type": "text",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1",
+                        "help": "一覧画面で表示する、テンプレート名称です。"
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "テンプレート種類",
+                    "description": null,
+                    "column_type": "select_valtext",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "search_enabled": "1",
+                        "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター",
+                        "default": "body"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "メール件名",
+                    "column_type": "text",
+                    "options": {
+                        "help": "送付するメールの件名を入力します。変数を利用できます。"
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "メール本文",
+                    "column_type": "textarea",
+                    "options": {
+                        "help": "送付するメールの本文を入力します。変数を利用できます。"
                     }
                 }
             ]
@@ -291,9 +358,53 @@
             "relation_type": "many_to_many",
             "parent_custom_table_name": "organization",
             "child_custom_table_name": "user"
+        },
+        {
+            "relation_type": "one_to_many",
+            "parent_custom_table_name": "notify_history",
+            "child_custom_table_name": "notify_history_user"
         }
     ],
     "custom_forms": [
+        {
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "mail_name"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "mail_view_name"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "mail_template_type"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "mail_subject"
+                        },
+                        {
+                            "form_column_type": "column",
+                            "options": null,
+                            "form_column_target_name": "mail_body"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                }
+            ],
+            "table_name": "mail_template"
+        },
         {
             "form_view_name": "フォーム",
             "custom_form_blocks": [
@@ -408,6 +519,29 @@
     ],
 	"custom_views": [
 		{
+			"suuid": "s6j3csfuc4kagb82zna3",
+			"view_view_name": "既定のビュー",
+			"custom_view_columns": [
+				{
+					"order": "1",
+					"view_column_target_name": "mail_name",
+					"view_column_type": 0
+				},
+				{
+					"order": "2",
+					"view_column_target_name": "mail_view_name",
+					"view_column_type": 0
+				},
+				{
+					"order": "3",
+					"view_column_target_name": "mail_template_type",
+					"view_column_type": 0
+				}
+			],
+			"custom_view_filters": [],
+			"table_name": "mail_template"
+		},
+		{
 			"suuid": "3471e23fbff8dc65437b",
 			"view_view_name": "既定のビュー",
 			"custom_view_columns": [
@@ -506,11 +640,11 @@
 			]
 		}
 	],
-    "authorities": [
+    "roles": [
         {
-            "authority_type": "system",
-            "authority_name": "system_admin",
-            "authority_view_name": "システム管理者",
+            "role_type": "system",
+            "role_name": "system_admin",
+            "role_view_name": "システム管理者",
             "description": "すべての操作が可能なシステム権限です。",
             "permissions": [
                 "system",
@@ -521,18 +655,18 @@
             ]
         },
         {
-            "authority_type": "system",
-            "authority_name": "data_admin",
-            "authority_view_name": "データ管理者",
+            "role_type": "system",
+            "role_name": "data_admin",
+            "role_view_name": "データ管理者",
             "description": "すべてのデータを編集・閲覧可能な権限です。",
             "permissions": [
                 "custom_value_edit_all"
             ]
         },
         {
-            "authority_type": "table",
-            "authority_name": "table_admin",
-            "authority_view_name": "管理者",
+            "role_type": "table",
+            "role_name": "table_admin",
+            "role_view_name": "管理者",
             "description": "テーブルやフォーム・ビュー設定を編集・削除可能な権限です。",
             "permissions": [
                 "custom_table",
@@ -540,13 +674,14 @@
                 "custom_view",
                 "custom_value_edit_all",
                 "custom_value_edit",
+                "custom_value_view_all",
                 "custom_value_view"
             ]
         },
         {
-            "authority_type": "table",
-            "authority_name": "table_all_editor",
-            "authority_view_name": "全データ編集者",
+            "role_type": "table",
+            "role_name": "table_all_editor",
+            "role_view_name": "全データ編集者",
             "description": "テーブル内のすべてのデータを編集できます。",
             "permissions": [
                 "custom_value_edit_all",
@@ -556,9 +691,9 @@
             ]
         },
         {
-            "authority_type": "table",
-            "authority_name": "table_all_viewer",
-            "authority_view_name": "全データ閲覧者",
+            "role_type": "table",
+            "role_name": "table_all_viewer",
+            "role_view_name": "全データ閲覧者",
             "description": "テーブル内のすべてのデータを閲覧できます。",
             "permissions": [
                 "custom_value_view_all",
@@ -566,9 +701,9 @@
             ]
         },
         {
-            "authority_type": "table",
-            "authority_name": "table_editor",
-            "authority_view_name": "編集者",
+            "role_type": "table",
+            "role_name": "table_editor",
+            "role_view_name": "編集者",
             "description": "自分が担当者のデータを編集できます。",
             "permissions": [
                 "custom_value_edit",
@@ -576,18 +711,18 @@
             ]
         },
         {
-            "authority_type": "table",
-            "authority_name": "table_viewer",
-            "authority_view_name": "閲覧者",
+            "role_type": "table",
+            "role_name": "table_viewer",
+            "role_view_name": "閲覧者",
             "description": "自分が担当者のデータを閲覧できます。",
             "permissions": [
                 "custom_value_view"
             ]
         },
         {
-            "authority_type": "value",
-            "authority_name": "value_editor",
-            "authority_view_name": "編集者",
+            "role_type": "value",
+            "role_name": "value_editor",
+            "role_view_name": "編集者",
             "description": "対象のデータを編集できます。",
             "permissions": [
                 "custom_value_edit",
@@ -595,18 +730,18 @@
             ]
         },
         {
-            "authority_type": "value",
-            "authority_name": "value_viewer",
-            "authority_view_name": "閲覧者",
+            "role_type": "value",
+            "role_name": "value_viewer",
+            "role_view_name": "閲覧者",
             "description": "対象のデータを閲覧できます。",
             "permissions": [
                 "custom_value_view"
             ]
         },
         {
-            "authority_type": "plugin",
-            "authority_name": "plugin_manager",
-            "authority_view_name": "プラグイン管理者",
+            "role_type": "plugin",
+            "role_name": "plugin_manager",
+            "role_view_name": "プラグイン管理者",
             "description": "プラグインの設定を変更できます。",
             "permissions": [
                 "plugin_setting",
@@ -614,9 +749,9 @@
             ]
         },
         {
-            "authority_type": "plugin",
-            "authority_name": "plugin_access",
-            "authority_view_name": "プラグイン利用者",
+            "role_type": "plugin",
+            "role_name": "plugin_access",
+            "role_view_name": "プラグイン利用者",
             "description": "このプラグインを利用できます。",
             "permissions": [
                 "plugin_access"
@@ -714,9 +849,9 @@
         {
             "order": "7",
             "menu_type": "system",
-            "menu_name": "authority",
+            "menu_name": "role",
             "parent_name": "admin",
-            "menu_target_name": "authority"
+            "menu_target_name": "role"
         },
         {
             "order": "8",
@@ -734,30 +869,10 @@
         },
         {
             "order": "10",
-            "menu_type": "system",
-            "menu_name": "mail",
+            "menu_type": "table",
+            "menu_name": "mail_template",
             "parent_name": "admin",
-            "menu_target_name": "mail"
-        }
-    ],
-    "mail_templates": [
-        {
-            "mail_name": "system_create_user",
-            "mail_view_name": "ユーザー新規登録",
-            "mail_subject": "[${system.site_name}]ユーザー新規登録",
-            "mail_body": "${user.user_name}様\n新規ユーザー追加されました。ユーザー情報をご確認ください。\n\nユーザーコード:${user.user_code}\nメールアドレス:${user.email}\nパスワード:${user.password}\n\nこちらからログインできます。\n${system.login_url}"
-        },
-        {
-            "mail_name": "system_reset_password",
-            "mail_view_name": "パスワード再登録",
-            "mail_subject": "[${system.site_name}]パスワード再登録",
-            "mail_body": "パスワード再登録を行います。下記のURLより、パスワードを再登録してください。\n\n${system.password_reset_url}"
-        },
-        {
-            "mail_name": "system_notify",
-            "mail_view_name": "メール通知",
-            "mail_subject": "[${system.site_name}]期限通知",
-            "mail_body": "システムにより設定された通知日になりました。内容をご確認ください。\n\n[登録内容]\n・通知名：${notify.notify_view_name}\n・対象テーブル：${target_table}\n・対象データ：${target_value}\n・${notify_target_column_key}：${notify_target_column_value}\n\n対象データは、以下のURLをご確認ください。\n<a href='${data_url}' target='_blank'>${data_url}</a>"
+            "menu_target_name": "mail_template"
         }
     ],
     "thumbnail": "thumbnail.png"

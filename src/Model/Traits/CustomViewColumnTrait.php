@@ -38,8 +38,11 @@ trait CustomViewColumnTrait
             return 'parent_id';
         }
         elseif($this->{$column_type_key} == ViewColumnType::CHILD_SUM){
-            $tableid = CustomColumn::find($this->view_column_target_id)->custom_table_id;
-            return $tableid . '_' . $this->view_column_target_id;
+            $custom_column = $this->custom_column;
+            if(is_null($custom_column)){
+                return null;
+            }
+            return $custom_column->custom_table->id . '_' . $this->view_column_target_id;
         }
         else{
             return $this->view_column_target_id;
@@ -51,7 +54,7 @@ trait CustomViewColumnTrait
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
                 $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } else if(strpos($view_column_target, '_') !== false) {
+            } elseif(preg_match('/^\d+_\d+$/u', $view_column_target)) {
                 $items = explode('_', $view_column_target);
                 $this->{$column_type_key} = ViewColumnType::CHILD_SUM;
                 $this->{$column_type_target_key} = $items[1];

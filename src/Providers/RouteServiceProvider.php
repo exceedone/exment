@@ -75,7 +75,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('authority', 'AuthorityController', ['except' => ['show']]);
+            $router->resource('role', 'RoleController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             $router->resource('mail', 'MailTemplateController', ['except' => ['show']]);

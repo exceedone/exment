@@ -2,10 +2,10 @@
 namespace Exceedone\Exment\Services;
 
 use \Exceedone\Exment\Model\System;
-use \Exceedone\Exment\Model\Authority;
+use \Exceedone\Exment\Model\Role;
 use \Exceedone\Exment\Model\CustomTable;
 use \Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\DB;
 
@@ -217,7 +217,7 @@ class ClassBuilder
                 $db = DB::connection();
                 $db->statement("CREATE TABLE IF NOT EXISTS ".$pivot_table_name." LIKE custom_relation_values");
 
-                $function_string = 'return $this->belongsToMany("'.getModelName($relation->child_custom_table).'", "'.$pivot_table_name.'", "parent_id", "child_id");';
+                $function_string = 'return $this->belongsToMany("'.getModelName($relation->child_custom_table).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
             }
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }
@@ -237,21 +237,21 @@ class ClassBuilder
                 $db = DB::connection();
                 $db->statement("CREATE TABLE IF NOT EXISTS ".$pivot_table_name." LIKE custom_relation_values");
 
-                $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "parent_id", "child_id");';
+                $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
             }
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }
 
-        // add authority --------------------------------------------------
-        Authority::authorityLoop(AuthorityType::VALUE(), function ($authority, $related_type) use ($builder, $obj) {
+        // add role --------------------------------------------------
+        Role::roleLoop(RoleType::VALUE(), function ($role, $related_type) use ($builder, $obj) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",
-                    $authority->getAuthorityName($related_type)."()",
+                    $role->getRoleName($related_type)."()",
                         "return \$this->morphToMany('$target_model', 'morph', 'value_authoritable', 'morph_id', 'related_id')
-                        ->withPivot('related_id', 'related_type', 'authority_id')
+                        ->withPivot('related_id', 'related_type', 'role_id')
                         ->wherePivot('related_type', '".$related_type."')
-                        ->wherePivot('authority_id', {$authority->id});"
+                        ->wherePivot('role_id', {$role->id});"
                     );
         });
 
@@ -276,16 +276,16 @@ class ClassBuilder
                 ->addNamespace($namespace)
                 ->addTrait()
                 ;
-        // Ad Authority. for system, table --------------------------------------------------
-        Authority::authorityLoop(AuthorityType::TABLE(), function ($authority, $related_type) use ($builder) {
+        // Ad Role. for system, table --------------------------------------------------
+        Role::roleLoop(RoleType::TABLE(), function ($role, $related_type) use ($builder) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
                     "public",
-                    $authority->getAuthorityName($related_type)."()",
+                    $role->getRoleName($related_type)."()",
                         "return \$this->morphToMany('$target_model', 'morph', 'system_authoritable', 'morph_id', 'related_id')
-                        ->withPivot('related_id', 'related_type', 'authority_id')
+                        ->withPivot('related_id', 'related_type', 'role_id')
                         ->wherePivot('related_type', '".$related_type."')
-                        ->wherePivot('authority_id', {$authority->id});"
+                        ->wherePivot('role_id', {$role->id});"
                     );
         });
         $builder->build();

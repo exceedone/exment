@@ -8,15 +8,15 @@ use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\AuthorityType;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\RoleValue;
 
 class CustomTableController extends AdminControllerBase
 {
-    use HasResourceActions, AuthorityForm;
+    use HasResourceActions, RoleForm;
 
     public function __construct(Request $request)
     {
@@ -90,11 +90,13 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
                 ;
-                //$form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))->help(exmtrans("custom_table.help.comment_flg"));
+            $form->switchbool('notify_flg', exmtrans("custom_table.notify_flg"))->help(exmtrans("custom_table.help.notify_flg"))
+                ->default("0")
+                ;
         })->disableHeader();
 
-        // Authority setting --------------------------------------------------
-        $this->addAuthorityForm($form, AuthorityType::TABLE);
+        // Role setting --------------------------------------------------
+        $this->addRoleForm($form, RoleType::TABLE);
         
         disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
@@ -124,7 +126,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if (!$this->validateTable($id, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($id, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);
