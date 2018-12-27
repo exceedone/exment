@@ -40,7 +40,8 @@ class InstallCommand extends AdminInstallCommand
         $this->initDatabase();
         $this->initAdminDirectory();
 
-        $this->call('passport:keys');
+        //$this->call('passport:keys');
+        $this->line("<info>Exment Install Success!! Please execute command 'php artisan passport:keys'.</info>");
     }
 
     /**
