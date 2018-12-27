@@ -26,10 +26,10 @@ class Morph
         // morphMap
         try {
             if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-                $table_names = CustomTable::all(['table_name'])->pluck('table_name');
+                $table_names = Model\CustomTable::all(['table_name'])->pluck('table_name');
                 $morphMaps = [
                 "roles" => Model\Role::class,
-                "table" => CustomTable::class
+                "table" => Model\CustomTable::class
             ];
                 foreach ($table_names as $table_name) {
                     // morphmap
