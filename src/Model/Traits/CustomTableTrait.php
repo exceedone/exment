@@ -143,14 +143,14 @@ trait CustomTableTrait
         foreach ($permissions as $permission) {
             // if role type is system, and has key
             if (RoleType::SYSTEM == $permission->getRoleType()
-                && array_keys_exists($role_key, $permission->getRoles())) {
+                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
                 return true;
             }
 
             // if role type is table, and match table name
             elseif (RoleType::TABLE == $permission->getRoleType() && $permission->getTableName() == $table_name) {
                 // if user has role
-                if (array_keys_exists($role_key, $permission->getRoles())) {
+                if (array_keys_exists($role_key, $permission->getPermissionDetails())) {
                     return true;
                 }
             }
