@@ -945,7 +945,11 @@ if (!function_exists('getRequestSession')) {
     function getRequestSession($key)
     {
         $config_key = "exment_global.$key";
-        return config($config_key);
+
+        if(!is_null(request()->route())){
+            return request()[$config_key] ?? null;
+        }
+        return null;
     }
 }
 
@@ -956,7 +960,9 @@ if (!function_exists('setRequestSession')) {
     function setRequestSession($key, $value)
     {
         $config_key = "exment_global.$key";
-        config([$config_key => $value]);
+        if(!is_null(request()->route())){
+            request()[$config_key] = $value;
+        }
     }
 }
 

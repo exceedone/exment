@@ -250,8 +250,8 @@ trait CustomTableTrait
         }
 
         // check already execute
-        $key = getRequestSession('create_table.'.$table_name);
-        if (boolval($key)) {
+        $key = 'create_table.'.$table_name;
+        if (boolval(getRequestSession($key))) {
             return;
         }
 
