@@ -58,7 +58,7 @@ trait CustomViewColumnTrait
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
                 $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } else if(strpos($view_column_target, '_') !== false) {
+            } else if(preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
                 $items = explode('_', $view_column_target);
                 $this->{$column_type_key} = ViewColumnType::CHILD_SUM;
                 $this->{$column_type_target_key} = $items[1];

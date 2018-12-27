@@ -316,6 +316,19 @@ class CreateTableDefine extends Migration
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
         });
 
+        $schema->create('custom_view_summaries', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('custom_view_id')->unsigned();
+            $table->integer('view_column_type')->default(0);
+            $table->integer('view_column_target_id')->nullable();
+            $table->integer('view_summary_condition')->unsigned()->default(0);
+            $table->timestamps();
+            $table->softDeletes();
+            $table->timeusers();
+
+            $table->foreign('custom_view_id')->references('id')->on('custom_views');
+        });
+
         $schema->create('custom_copies', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
@@ -420,6 +433,7 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('custom_copies');
         Schema::dropIfExists('custom_view_sorts');
         Schema::dropIfExists('custom_view_filters');
+        Schema::dropIfExists('custom_view_summaries');
         Schema::dropIfExists('custom_view_columns');
         Schema::dropIfExists('custom_views');
         Schema::dropIfExists('custom_form_columns');

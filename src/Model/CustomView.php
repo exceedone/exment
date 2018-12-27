@@ -56,6 +56,11 @@ class CustomView extends ModelBase
         return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
     }
 
+    public function custom_view_summaries()
+    {
+        return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
+    }
+
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();
@@ -353,15 +358,18 @@ class CustomView extends ModelBase
     /**
      * set value filter 
      */
-    public function setValueFilter($model){
+    public function setValueFilter($model, $table_name = null){
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
-            if ($filter->column_view_type == ViewColumnType::COLUMN) {
+            if ($filter->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
-            }elseif($filter->column_view_type == ViewColumnType::PARENT_ID) {
+            }elseif($filter->view_column_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
+            }
+            if (isset($table_name)) {
+                $view_column_target = $table_name.'.'.$view_column_target;
             }
             $condition_value_text = $filter->view_filter_condition_value_text;
             $view_filter_condition = $filter->view_filter_condition;
@@ -491,7 +499,7 @@ class CustomView extends ModelBase
 
         return $model;
     }
-    
+
     /**
      * set value sort 
      */

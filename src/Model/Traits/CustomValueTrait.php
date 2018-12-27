@@ -290,6 +290,11 @@ trait CustomValueTrait
             return null;
         }
 
+        return $this->editValue($column, $val, $label, $options);
+    }
+    
+    public function editValue($column, $val, $label = false, $options = []) {
+        $custom_table = $this->custom_table;
         $column_type = array_get($column, 'column_type');
         // calcurate  --------------------------------------------------
         if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
@@ -448,7 +453,7 @@ trait CustomValueTrait
             return $val;
         }
     }
-        
+
     /**
      * Get vustom_value's label 
      * @param CustomValue $custom_value

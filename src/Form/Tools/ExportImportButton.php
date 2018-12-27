@@ -10,10 +10,12 @@ use Encore\Admin\Grid;
 class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 {
     protected $table_name;
+    protected $export_only;
 
-    public function __construct($table_name, Grid $grid)
+    public function __construct($table_name, Grid $grid, $export_only = false)
     {
         $this->table_name = $table_name;
+        $this->export_only = $export_only;
         parent::__construct($grid);
     }
 
@@ -40,7 +42,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         $import_template = admin_base_path('data/'.$this->table_name).'?_export_=all&temp=1'; // laravel-admin 1.6.1
         $import_template_trans = exmtrans('custom_value.template');
 
-        $import_export = exmtrans('custom_value.import_export');
+        $import_export = $this->export_only? exmtrans('custom_value.export'): exmtrans('custom_value.import_export');
 
         $page = request('page', 1);
 
@@ -53,34 +55,41 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         ];
 
         foreach ($formats as $format => $format_text) {
+            $items = [
+                ['href' => $this->grid->getExportUrl('all'), 'text' => $all, 'target' => '_blank'],
+                ['href' => $this->grid->getExportUrl('page', $page), 'text' => $currentPage, 'target' => '_blank'],
+            ];
+            if (!$this->grid->disableRowSelector()) {
+                $items[] = ['href' => $this->grid->getExportUrl('selected', '__rows__'), 'text' => $selectedRows, 'class' => $this->grid->getExportSelectedName(), 'target' => '_blank'];
+            }
+            $menulist = [
+                ///// export
+                [
+                    'action' => 'export',
+                    'label' => trans('admin.export'),
+                    'items' => $items
+                ]
+            ];
+            if (!$this->export_only) {
+                ///// import
+                $menulist[] = [
+                    'action' => 'import',
+                    'label' => exmtrans('common.import'),
+                    'items' =>[
+                        ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
+                        ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal', 'format_query' => false],
+                    ]
+                ];
+            }
             $buttons[$format] = [
                 'format_text' => $format_text,
-                'menulist' => [
-                    ///// export
-                    [
-                        'action' => 'export',
-                        'label' => trans('admin.export'),
-                        'items' =>[
-                            ['href' => $this->grid->getExportUrl('all'), 'text' => $all, 'target' => '_blank'],
-                            ['href' => $this->grid->getExportUrl('page', $page), 'text' => $currentPage, 'target' => '_blank'],
-                            ['href' => $this->grid->getExportUrl('selected', '__rows__'), 'text' => $selectedRows, 'class' => $this->grid->getExportSelectedName(), 'target' => '_blank'],
-                        ]
-                    ],
-                    ///// import
-                    [
-                        'action' => 'import',
-                        'label' => exmtrans('common.import'),
-                        'items' =>[
-                            ['href' => $import_template, 'text' => $import_template_trans, 'target' => '_blank'],
-                            ['href' => 'javascript:void(0);', 'text' => $import, 'data-toggle' => 'modal', 'data-target' => '#data_import_modal', 'format_query' => false],
-                        ]
-                    ],
-                ]
+                'menulist' => $menulist
             ];
         }
 
         return view('exment::tools.exportimport-button', [
             'buttons' => $buttons,
+            'button_caption' => $import_export
         ]);
     }
 }

@@ -267,7 +267,7 @@ trait CustomTableTrait
      * @param array|CustomTable $table
      * @param $selected_value
      */
-    public function getColumnsSelectOptions($search_enabled_only = false)
+    public function getColumnsSelectOptions($search_enabled_only = false, $group_key_only = false)
     {
         $options = [];
         
@@ -280,10 +280,12 @@ trait CustomTableTrait
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
-        ///// if this table is child relation(1:n), add parent table
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
-        if (isset($relation)) {
-            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
+        if (!$group_key_only) {
+            ///// if this table is child relation(1:n), add parent table
+            $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
+            if (isset($relation)) {
+                $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
+            }
         }
 
         ///// get table columns
@@ -320,6 +322,48 @@ trait CustomTableTrait
                             $options[$tableid . '_' . array_get($option, 'id')] = $tablename . ' : ' . array_get($option, 'column_view_name');
                             break;
                     }
+                }
+            }
+        }
+    
+        return $options;
+    }
+
+    /**
+     * get number columns select options. It contains integer, decimal, currency columns.
+     * @param array|CustomTable $table
+     * @param $selected_value
+     */
+    public function getNumberColumnsSelectOptions()
+    {
+        $options = [];
+
+        ///// get table columns
+        $custom_columns = $this->custom_columns;
+        foreach ($custom_columns as $option) {
+            switch(array_get($option, 'column_type')) {
+                case ColumnType::INTEGER:
+                case ColumnType::DECIMAL:
+                case ColumnType::CURRENCY:
+                    $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
+                    break;
+            }
+        }
+
+        ///// get child table columns for summary
+        $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
+        foreach ($relations as $rel) {
+            $child = array_get($rel, 'child_custom_table');
+            $tableid = array_get($child, 'id');
+            $tablename = array_get($child, 'table_view_name');
+            $child_columns = $child->custom_columns;
+            foreach ($child_columns as $option) {
+                switch(array_get($option, 'column_type')) {
+                    case ColumnType::INTEGER:
+                    case ColumnType::DECIMAL:
+                    case ColumnType::CURRENCY:
+                        $options[$tableid . '_' . array_get($option, 'id')] = $tablename . ' : ' . array_get($option, 'column_view_name');
+                        break;
                 }
             }
         }
