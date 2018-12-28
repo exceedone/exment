@@ -23,8 +23,8 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\MenuType;
-use Exceedone\Exment\Enums\CustomFormBlockType;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardType;
@@ -690,7 +690,7 @@ class TemplateImporter
                             } else {
                                 $self = $target_table->id == $table->id;
                                 if ($self) {
-                                    $form_block_type = CustomFormBlockType::DEFAULT;
+                                    $form_block_type = FormBlockType::DEFAULT;
                                 } else {
                                     // get relation
                                     $block_relation = CustomRelation
@@ -700,7 +700,7 @@ class TemplateImporter
                                     if (isset($block_relation)) {
                                         $form_block_type = $block_relation->relation_type;
                                     } else {
-                                        $form_block_type = CustomFormBlockType::RELATION_ONE_TO_MANY;
+                                        $form_block_type = FormBlockType::RELATION_ONE_TO_MANY;
                                     }
                                 }
                             }
@@ -732,13 +732,13 @@ class TemplateImporter
                                     if (array_key_exists('form_column_type', $form_column)) {
                                         $form_column_type = array_get($form_column, "form_column_type");
                                     } else {
-                                        $form_column_type = CustomFormColumnType::COLUMN;
+                                        $form_column_type = FormColumnType::COLUMN;
                                     }
 
                                     $form_column_name = array_get($form_column, "form_column_target_name");
                                     switch ($form_column_type) {
                                     // for table column
-                                    case CustomFormColumnType::COLUMN:
+                                    case FormColumnType::COLUMN:
                                         // get column name
                                         $form_column_target = CustomColumn
                                             ::where('column_name', $form_column_name)
@@ -746,14 +746,14 @@ class TemplateImporter
                                             ->first();
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
                                         break;
-                                    case CustomFormColumnType::SYSTEM:
+                                    case FormColumnType::SYSTEM:
                                         $form_column_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column_name) {
                                             return $item['name'] == $form_column_name;
                                         });
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
                                         break;
                                     default:
-                                        $form_column_target = collect(CustomFormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_name) {
+                                        $form_column_target = collect(FormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_name) {
                                             return $item['column_name'] == $form_column_name;
                                         });
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;

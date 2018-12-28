@@ -347,7 +347,7 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -355,7 +355,7 @@
                             "form_column_target_name": "project_code"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -377,7 +377,7 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -385,7 +385,7 @@
                             "form_column_target_name": "task_name"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -393,7 +393,7 @@
                             "form_column_target_name": "explain"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -401,7 +401,7 @@
                             "form_column_target_name": "status"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -409,7 +409,7 @@
                             "form_column_target_name": "charge_user"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -417,7 +417,7 @@
                             "form_column_target_name": "priority"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -425,7 +425,7 @@
                             "form_column_target_name": "start_date"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -433,7 +433,7 @@
                             "form_column_target_name": "end_date"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": {
                                 "changedata_column_id": null,
                                 "changedata_target_column_id": null
@@ -592,7 +592,7 @@
     ],
     "custom_relations": [
         {
-            "relation_type": "one_to_many",
+            "relation_type": 1,
             "parent_custom_table_name": "project",
             "child_custom_table_name": "task"
         }
@@ -601,7 +601,7 @@
         {
             "order": "0",
             "title": "プロジェクト管理",
-            "menu_type": "custom",
+            "menu_type": "parent_node",
             "menu_name": "project_management",
             "parent_name": null,
             "menu_target_name": null,

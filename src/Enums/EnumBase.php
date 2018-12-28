@@ -17,6 +17,17 @@ class EnumBase extends Enum
         return getTransArray(static::arrays(), $base_key, $isExment);
     }
 
+    /**
+     * convert trans 
+     */
+    public function transKey($base_key, $isExment = true){
+        $key = $base_key.'.'.strtolower($this->getKey());
+        if($isExment){
+            return exmtrans($key);
+        }
+        return trans($key);
+    }
+
     public static function arrays(){
         return array_flatten(static::toArray()); 
     }

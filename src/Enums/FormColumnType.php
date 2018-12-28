@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Enums;
 
-class CustomFormColumnType extends EnumBase
+class FormColumnType extends EnumBase
 {
-    const SYSTEM = 'system';
-    const COLUMN = 'column';
-    const OTHER = 'other';
+    const COLUMN = '0';
+    const SYSTEM = '1';
+    const OTHER = '99';
     
     public static function OTHER_TYPE(){
         return [

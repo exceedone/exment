@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\RelationType;
 
 class SearchController extends AdminControllerBase
 {
@@ -481,7 +482,7 @@ EOT;
             if (!$table_obj->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
-            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type')));
+            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? 'one_to_many' : 'many_to_many'));
         }
 
         return $results;

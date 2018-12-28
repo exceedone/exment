@@ -192,7 +192,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->integer('parent_custom_table_id')->unsigned();
             $table->integer('child_custom_table_id')->unsigned();
-            $table->string('relation_type')->default('one_to_many');
+            $table->integer('relation_type')->default(0);
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
@@ -218,7 +218,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->integer('custom_form_id')->unsigned();
             $table->string('form_block_view_name')->nullable();
-            $table->string('form_block_type');
+            $table->integer('form_block_type');
             $table->integer('form_block_target_table_id')->unsigned()->nullable();
             $table->boolean('available')->default(false);
             $table->json('options')->nullable();
@@ -233,7 +233,7 @@ class CreateTableDefine extends Migration
         $schema->create('custom_form_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_form_block_id')->unsigned();
-            $table->string('form_column_type');
+            $table->integer('form_column_type');
             $table->integer('form_column_target_id')->nullable();
             $table->integer('column_no')->default(1);
             $table->json('options')->nullable();
@@ -386,7 +386,7 @@ class CreateTableDefine extends Migration
 
         // delete all pivot's table.
         if (Schema::hasTable('custom_relations')) {
-            $relations = CustomRelation::where('relation_type', 'many_to_many')->get();
+            $relations = CustomRelation::where('relation_type', Enums\RelationType::MANY_TO_MANY)->get();
             foreach ($relations as $relation) {
                 Schema::dropIfExists($relation->getRelationName());
             }

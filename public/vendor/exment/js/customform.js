@@ -1,10 +1,9 @@
-/// <reference path="../../../../../../Scripts/typings/jquery/jquery.d.ts" />
 var Exment;
 (function (Exment) {
     class CustomFromEvent {
         static AddEvent() {
             CustomFromEvent.addDragEvent();
-            CustomFromEvent.appendIcheckEvent($('.icheck:visible'));
+            CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.ignoreSuggests);
         }
         static AddEventOnce() {
@@ -150,10 +149,13 @@ var Exment;
             return header_name + header_column_name;
         }
         static appendIcheckEvent($elem) {
-            if (!$elem.data('ichecked')) {
-                $elem.iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
-                $elem.data('ichecked', true);
-            }
+            $elem.each(function (index, elem) {
+                var $e = $(elem);
+                if (!$e.data('ichecked')) {
+                    $e.iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
+                    $e.data('ichecked', true);
+                }
+            });
         }
         static getModalTargetLi() {
             // get target_header_column_name for updating.
@@ -195,14 +197,14 @@ var Exment;
             value: 1
         }));
         item.fadeOut();
-        if (item.find('.form_column_type').val() != 'other') {
+        if (item.find('.form_column_type').val() != '99') {
             var form_column_type = item.find('.form_column_type').val();
             var form_column_target_id = item.find('.form_column_target_id').val();
             var form_block_type = item.closest('.custom_form_column_block').data('form_block_type');
             var form_block_target_table_id = item.closest('.custom_form_column_block').data('form_block_target_table_id');
             // get suggest_form_column_type.
-            if (form_column_type == 'system') {
-                var suggest_form_column_type = 'column';
+            if (form_column_type == '1') {
+                var suggest_form_column_type = '0';
             }
             else {
                 suggest_form_column_type = form_column_type;

@@ -372,12 +372,12 @@
     ],
     "custom_relations": [
         {
-            "relation_type": "one_to_many",
+            "relation_type": 1,
             "parent_custom_table_name": "contract",
             "child_custom_table_name": "contract_detail"
         },
         {
-            "relation_type": "one_to_many",
+            "relation_type": 1,
             "parent_custom_table_name": "product",
             "child_custom_table_name": "product_version"
         }
@@ -392,12 +392,12 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "product_code"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "product_name"
                         }
@@ -410,17 +410,17 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "product_version_code"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "product_version_name"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "cost"
                         }
@@ -439,22 +439,22 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "contract_code"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "client"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "status"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "contract_date"
                         },
@@ -466,22 +466,22 @@
                             "form_column_target_name": "header"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "subscription_claim_type"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "subscription_agreement_term"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "subscription_agreement_limit_date"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "subscription_end_date"
                         }
@@ -494,22 +494,22 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "product_version_id"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "zeinuki_price"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "fixed_price"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "num"
                         }
@@ -563,7 +563,7 @@
         },
         {
             "order": "9",
-            "menu_type": "custom",
+            "menu_type": "parent_node",
             "menu_name": "saller",
             "title": "営業支援(SFA)",
             "parent_name": null,
@@ -571,7 +571,7 @@
         },
         {
             "order": "10",
-            "menu_type": "custom",
+            "menu_type": "parent_node",
             "menu_name": "manage",
             "title": "顧客管理(CRM)",
             "parent_name": null,

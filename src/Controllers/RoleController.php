@@ -29,11 +29,7 @@ class RoleController extends AdminControllerBase
     {
         $grid = new Grid(new Role);
         $grid->column('role_type', exmtrans('role.role_type'))->display(function ($role_type) {
-            $enum = RoleType::getEnum($role_type);
-            if(!isset($enum)){
-                return '';
-            }
-            return exmtrans('role.role_type_options.'.strtolower($enum->getKey()));
+            return RoleType::getEnum($role_type)->transKey('role.role_type_options') ?? null;
         });
         $grid->column('role_name', exmtrans('role.role_name'));
         $grid->column('role_view_name', exmtrans('role.role_view_name'));
@@ -83,8 +79,8 @@ class RoleController extends AdminControllerBase
                 $role_type = app('request')->query('role_type');
             }
         }
-        $enum = RoleType::getEnum($role_type);
-        $role_type_default = isset($enum) ? exmtrans("role.role_type_options.".strtolower($enum->getKey())) : null;
+
+        $role_type_default = RoleType::getEnum($role_type)->transKey("role.role_type_options") ?? null;
         $form->hidden('role_type')->default($role_type);
         $form->display('role_type_default', exmtrans("role.role_type"))->default($role_type_default);
 

@@ -16,8 +16,8 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
-use Exceedone\Exment\Enums\CustomFormBlockType;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use ZipArchive;
@@ -200,13 +200,13 @@ class TemplateExporter
                         foreach ($custom_form_block['custom_form_columns'] as &$custom_form_column) {
                             // replace id to name
                             $form_column_target_id = array_get($custom_form_column, 'form_column_target_id');
-                            if (array_get($custom_form_column, 'form_column_type') == CustomFormColumnType::COLUMN) {
-                                $custom_form_column['form_column_target_name'] = CustomColumn::find($form_column_target_id)->column_name;
-                            } else {
-                                $form_column_target_name = collect(CustomFormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_target_id) {
-                                    return $item['id'] == $form_column_target_id;
-                                });
-                                $custom_form_column['form_column_target_name'] = isset($form_column_target_name) ? array_get($form_column_target_name, 'column_name') : null;
+                            switch(array_get($custom_form_column, 'form_column_type')){
+                                case FormColumnType::COLUMN:
+                                    $custom_form_column['form_column_target_name'] = array_get($custom_form_column, 'custom_column.column_name', null);
+                                    break;
+                                default:
+                                    $custom_form_column['form_column_target_name'] = array_get($custom_form_column, 'form_column_target', null);
+                                    break;
                             }
                             
                             if (is_null($custom_form_column['options'])) {
@@ -235,7 +235,7 @@ class TemplateExporter
                     }
 
                     // add table
-                    if (array_get($custom_form_block, 'form_block_type') == CustomFormBlockType::DEFAULT) {
+                    if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                         $custom_form_block['form_block_target_table_name'] = null;
                     } else {
                         $custom_form_block['form_block_target_table_name'] = CustomTable::find(array_get($custom_form_block, 'form_block_target_table_id'))->table_name;

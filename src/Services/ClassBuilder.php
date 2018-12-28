@@ -7,6 +7,7 @@ use \Exceedone\Exment\Model\CustomTable;
 use \Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\RelationType;
 use Illuminate\Support\Facades\DB;
 
 class ClassBuilder
@@ -208,7 +209,7 @@ class ClassBuilder
             $pivot_table_name = $relation->getRelationName();
             // Get Parent and child table Name.
             // case 1 to many
-            if ($relation->relation_type == 'one_to_many') {
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                 $function_string = 'return $this->morphMany("'.getModelName($relation->child_custom_table).'", "parent");';
             }
             // case many to many
@@ -228,7 +229,7 @@ class ClassBuilder
             $pivot_table_name = $relation->getRelationName();
             // Get Parent and child table Name.
             // case 1 to many
-            if ($relation->relation_type == 'one_to_many') {
+            if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                 $function_string = 'return $this->morphTo("'.getModelName($relation->parent_custom_table, true).'", "parent");';
             }
             // case many to many

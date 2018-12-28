@@ -20,8 +20,8 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
-use Exceedone\Exment\Enums\CustomFormBlockType;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 
 trait CustomValueForm
 {
@@ -83,7 +83,7 @@ trait CustomValueForm
                 continue;
             }
             // when default block, set as normal form columns.
-            if ($custom_form_block->form_block_type == CustomFormBlockType::DEFAULT) {
+            if ($custom_form_block->form_block_type == FormBlockType::DEFAULT) {
                 $form->embeds('value', exmtrans("common.input"), $this->getCustomFormColumns($form, $custom_form_block, $id))
                     ->disableHeader();
             }
@@ -92,7 +92,7 @@ trait CustomValueForm
                 list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                 $target_table = $custom_form_block->target_table;
                 // 1:n
-                if ($custom_form_block->form_block_type == CustomFormBlockType::RELATION_ONE_TO_MANY) {
+                if ($custom_form_block->form_block_type == FormBlockType::RELATION_ONE_TO_MANY) {
                     // get form columns count
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable
@@ -215,12 +215,12 @@ EOT;
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             $form_column_options = $form_column->options;
             switch ($form_column->form_column_type) {
-                case CustomFormColumnType::COLUMN:
+                case FormColumnType::COLUMN:
                     $column = $form_column->custom_column;
                     $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
                     $fields[] = $field;
                     break;
-                case CustomFormColumnType::SYSTEM:
+                case FormColumnType::SYSTEM:
                     // id is null, as create, so continue
                     if (!isset($id)) {
                         break;
@@ -237,9 +237,9 @@ EOT;
                     $field->default(array_get($model, $form_column_name));
                     $fields[] = $field;
                     break;
-                case CustomFormColumnType::OTHER:
+                case FormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
+                    $form_column_obj = array_get(FormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
                     switch (array_get($form_column_obj, 'column_name')) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
@@ -279,11 +279,11 @@ EOT;
             $field = null;
             $form_column_options = $form_column->options;
             switch ($form_column->form_column_type) {
-                case CustomFormColumnType::COLUMN:
+                case FormColumnType::COLUMN:
                     $column = $form_column->custom_column;
                     $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
                     break;
-                case CustomFormColumnType::SYSTEM:
+                case FormColumnType::SYSTEM:
                     // id is null, as create, so continue
                     if (!isset($id)) {
                         break;
@@ -299,9 +299,9 @@ EOT;
                     $field = new ExmentField\Display($form_column_name, [$column_view_name]);
                     $field->default(array_get($model, $form_column_name));
                     break;
-                case CustomFormColumnType::OTHER:
+                case FormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(CustomFormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
+                    $form_column_obj = array_get(FormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
                     switch (array_get($form_column_obj, 'column_name')) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
@@ -358,7 +358,7 @@ EOT;
     {
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             foreach ($custom_form_block->custom_form_columns as $form_column) {
-                if ($form_column->form_column_type != CustomFormColumnType::COLUMN) {
+                if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
                 }
                 $column = $form_column->custom_column;

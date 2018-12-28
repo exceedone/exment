@@ -81,7 +81,7 @@
                     "description": null,
                     "system_flg": "0",
                     "options": {
-                        "help": "一覧に表示したい場合、YESにしてください。",
+                        "help": "一覧表示したい場合、YESに設定してください。",
                         "default": "1",
                         "required": "1"
                     }
@@ -436,12 +436,12 @@
     ],
     "custom_relations": [
         {
-            "relation_type": "many_to_many",
+            "relation_type": 2,
             "parent_custom_table_name": "organization",
             "child_custom_table_name": "user"
         },
         {
-            "relation_type": "one_to_many",
+            "relation_type": 1,
             "parent_custom_table_name": "notify_history",
             "child_custom_table_name": "notify_history_user"
         }
@@ -456,27 +456,27 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_name"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_view_name"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_template_type"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_subject"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "mail_body"
                         }
@@ -495,62 +495,62 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_name"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_kana"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "zip01"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "zip02"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "pref"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "addr01"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "addr02"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "tel01"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "tel02"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "tel03"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_logo"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "company_stamp"
                         }
@@ -569,17 +569,17 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "parent_organization"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "organization_code"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "organization_name"
                         }
@@ -606,47 +606,47 @@
                     "available": "1",
                     "custom_form_columns": [
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "title"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "body"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "priority"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "view_flg"
                         },
                         {
-                            "form_column_type": "column",
+                            "form_column_type": "0",
                             "options": [],
                             "form_column_target_name": "order"
                         },
                         {
-                            "form_column_type": "system",
+                            "form_column_type": "1",
                             "options": [],
                             "form_column_target_name": "created_at"
                         },
                         {
-                            "form_column_type": "system",
+                            "form_column_type": "1",
                             "options": [],
                             "form_column_target_name": "updated_at"
                         },
                         {
-                            "form_column_type": "system",
+                            "form_column_type": "1",
                             "options": [],
                             "form_column_target_name": "created_user"
                         },
                         {
-                            "form_column_type": "system",
+                            "form_column_type": "1",
                             "options": [],
                             "form_column_target_name": "updated_user"
                         }
