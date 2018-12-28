@@ -53,6 +53,11 @@ class EnumBase extends Enum
             if($enum == $value){
                 return $enum;
             }
+            
+            $key = strtolower($enum->getKey());
+            if($key == $value){
+                return $enum;
+            }
         }
         return $enum;
     }

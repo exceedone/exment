@@ -60,10 +60,7 @@ class PluginController extends AdminControllerBase
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
         $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
         $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($value) {
-            if (is_null($value)) {
-                return '';
-            }
-            return exmtrans("plugin.plugin_type_options.$value");
+            return PluginType::getEnum($value)->transKey("plugin.plugin_type_options") ?? null;
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
         $grid->column('version', exmtrans("plugin.version"));
@@ -152,11 +149,8 @@ class PluginController extends AdminControllerBase
         $form->display('plugin_name', exmtrans("plugin.plugin_name"));
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
         // create as label
-        $form->display('plugin_type_label', exmtrans("plugin.plugin_type"))->default(function ($value) use ($plugin) {
-            if (is_null($plugin)) {
-                return '';
-            }
-            return exmtrans("plugin.plugin_type_options.{$plugin->plugin_type}");
+        $form->display('plugin_type', exmtrans("plugin.plugin_type"))->with(function ($value) {
+            return PluginType::getEnum($value)->transKey("plugin.plugin_type_options") ?? null;
         });
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));

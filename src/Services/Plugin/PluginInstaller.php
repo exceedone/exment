@@ -334,7 +334,7 @@ class PluginInstaller
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // get plugin_type
-                $plugin_type = PluginType::getPluginType(array_get($plugin, 'plugin_type'));
+                $plugin_type = PluginType::getEnum(array_get($plugin, 'plugin_type'));
                 // if $plugin_type is not trigger, continue
                 if ($plugin_type != PluginType::TRIGGER) {
                     continue;
@@ -366,7 +366,7 @@ class PluginInstaller
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // get plugin_type
-                $plugin_type = PluginType::getPluginType(array_get($plugin, 'plugin_type'));
+                $plugin_type = PluginType::getEnum(array_get($plugin, 'plugin_type'));
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
                         $event_triggers_button = ['form_menubutton_show'];
