@@ -89,7 +89,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
-            return esc_html(array_get(ColumnType::trans("custom_column.column_type_options"), $val));
+            return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
         });
 
         if (isset($this->custom_table)) {
@@ -117,7 +117,7 @@ class CustomColumnController extends AdminControllerTableBase
             $filter->equal('column_name', exmtrans("custom_column.column_name"));
             $filter->equal('column_view_name', exmtrans("custom_column.column_view_name"));
             $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
-                return array_get(ColumnType::trans("custom_column.column_type_options"), $val);
+                return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
             });
         });
         return $grid;
@@ -151,7 +151,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form->text('column_view_name', exmtrans("custom_column.column_view_name"))->required();
         $form->select('column_type', exmtrans("custom_column.column_type"))
-        ->options(ColumnType::trans("custom_column.column_type_options"))
+        ->options(ColumnType::transArray("custom_column.column_type_options"))
         ->attribute(['data-filtertrigger' =>true])
         ->required();
 

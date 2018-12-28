@@ -11,14 +11,29 @@ class EnumBase extends Enum
     }
 
     /**
-     * convert trans 
+     * convert trans Array. 
+     * value is enum value.
+     * text translates using enum value.
      */
-    public static function trans($base_key, $isExment = true){
+    public static function transArray($base_key, $isExment = true){
         return getTransArray(static::arrays(), $base_key, $isExment);
     }
 
     /**
-     * convert trans 
+     * convert trans Array. 
+     * value is enum value.
+     * text translates using enum key.
+     */
+    public static function transKeyArray($base_key, $isExment = true){
+        $array = [];
+        foreach(static::toArray() as $key => $value){
+            $array[$value] = strtolower($key);
+        }
+        return getTransArrayValue($array, $base_key, $isExment);
+    }
+
+    /**
+     * convert trans. use enum key (and convert key snake_case)
      */
     public function transKey($base_key, $isExment = true){
         $key = $base_key.'.'.strtolower($this->getKey());

@@ -65,7 +65,7 @@ class BackupController extends AdminControllerBase
 
         $form->checkbox('backup_target', exmtrans("backup.backup_target"))
             ->help(exmtrans("backup.help.backup_target"))
-            ->options(Enums\BackupTarget::trans('backup.backup_target_options'))
+            ->options(Enums\BackupTarget::transArray('backup.backup_target_options'))
             ;
         
         $form->switchbool('backup_enable_automatic', exmtrans("backup.enable_automatic"))

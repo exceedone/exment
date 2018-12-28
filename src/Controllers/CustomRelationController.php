@@ -124,7 +124,7 @@ class CustomRelationController extends AdminControllerTableBase
                 ->toArray();
         })->required();
 
-        $relation_type_options = RelationType::trans("custom_relation.relation_type_options");
+        $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
         $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->required();
         disableFormFooter($form);
         $custom_table = $this->custom_table;

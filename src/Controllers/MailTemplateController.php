@@ -64,7 +64,7 @@ class MailTemplateController extends AdminControllerBase
             ->help(exmtrans("mail_template.help.mail_view_name"));
         
         $form->select('mail_template_type', exmtrans("mail_template.mail_template_type"))->required()
-            ->options(MailTemplateType::trans('mail_template.mail_template_type_options'))
+            ->options(MailTemplateType::transArray('mail_template.mail_template_type_options'))
             ->default(MailTemplateType::BODY);
 
         $form->text('mail_subject', exmtrans("mail_template.mail_subject"))

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\SearchType;
 
 class SearchController extends AdminControllerBase
 {
@@ -390,11 +391,11 @@ EOT;
 
         switch ($search_type) {
             // self table
-            case 'self':
+            case SearchType::SELF:
                 $data = [getModelName($search_table)::find($value_id)];
                 break;
             // select_table(select box)
-            case 'select_table':
+            case SearchType::SELECT_TABLE:
                 // Retrieve the record list whose value is "value_id" in the column "options.select_target_table" of the table "custom column"
                 $selecttable_columns = $search_table->custom_columns()
                     ->where('column_type', 'select_table')
@@ -409,11 +410,11 @@ EOT;
                 break;
             
             // one_to_many
-            case 'one_to_many':
+            case SearchType::ONE_TO_MANY:
                 $data = getModelName($search_table)::where('parent_id', $value_id)->take(5)->get();
                 break;
             // many_to_many
-            case 'many_to_many':
+            case SearchType::MANY_TO_MANY:
                 $relation_name = CustomRelation::getRelationNameByTables($value_table, $search_table);
 
                 // get search_table value
@@ -447,7 +448,7 @@ EOT;
         $results = [];
 
         // 1. For self-table
-        array_push($results, $this->getTableArray($value_table, 'self'));
+        array_push($results, $this->getTableArray($value_table, SearchType::SELF));
 
         // 2. Get tables as "select_table". They contains these columns matching them.
         // * table_column > options > search_enabled is true.
@@ -465,7 +466,7 @@ EOT;
             if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
-            array_push($results, $this->getTableArray($table, 'select_table'));
+            array_push($results, $this->getTableArray($table, SearchType::SELECT_TABLE));
         }
 
         // 3. Get relation tables.
@@ -482,7 +483,7 @@ EOT;
             if (!$table_obj->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
-            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? 'one_to_many' : 'many_to_many'));
+            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY));
         }
 
         return $results;
