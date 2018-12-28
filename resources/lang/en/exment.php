@@ -378,6 +378,7 @@ return [
         'column_type_options' => [
             "text" => "One-Line Text",
             "textarea" => "Multiple-Line Text",
+            "editor" => "Text Editor",
             "url" => "URL",
             "email" => "Email",
             "integer" => "Integer",

@@ -130,16 +130,6 @@ trait CustomTableTrait
             return true;
         }
 
-        // check table all data
-        $role_keys = (is_array($role_key) ? $role_key : [$role_key]);
-        
-        if(in_array(RoleValue::CUSTOM_VALUE_VIEW_ALL, $role_keys) && boolval($this->getOption('all_user_viewable_flg'))){
-            return true;
-        }
-        if(in_array(RoleValue::CUSTOM_VALUE_EDIT_ALL, $role_keys) && boolval($this->getOption('all_user_editable_flg'))){
-            return true;
-        }
-
         $table_name = $this->table_name;
         if (!is_array($role_key)) {
             $role_key = [$role_key];

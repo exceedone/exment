@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -283,9 +284,9 @@ trait HasPermissions
                 ->orderBy('id')
                 ->get(['a.id', 'c.table_name', 'permissions'])->toArray());
         }
-        if (count($roles) == 0) {
-            return [];
-        }
+        // if (count($roles) == 0) {
+        //     return [];
+        // }
 
         $permissions = [];
         $before_table_name = null;
@@ -300,15 +301,30 @@ trait HasPermissions
             } else {
                 $permission_tables = &$permissions[$table_name];
             }
-            $role_details = array_get($role, 'permissions');
-            if (is_string($role_details)) {
-                $role_details = json_decode($role_details, true);
+            $permission_details = array_get($role, 'permissions');
+            if (is_string($permission_details)) {
+                $permission_details = json_decode($permission_details, true);
             }
-            foreach ($role_details as $key => $value) {
+            foreach ($permission_details as $key => $value) {
                 // if permission value is 1, add permission.
                 if (boolval($value) && !array_key_exists($key, $permission_tables)) {
                     $permission_tables[$key] = $value;
                 }
+            }
+        }
+
+        // check table all data
+        $tables = CustomTable::all();
+        foreach($tables as $table){
+            $table_name = $table->table_name;
+            if(boolval($table->getOption('all_user_editable_flg'))){
+                $permissions[$table_name][RoleValue::CUSTOM_VALUE_EDIT_ALL] = "1";
+            }
+            if(boolval($table->getOption('all_user_viewable_flg'))){
+                $permissions[$table_name][RoleValue::CUSTOM_VALUE_VIEW_ALL] = "1";
+            }
+            if(boolval($table->getOption('all_user_accessable_flg'))){
+                $permissions[$table_name][RoleValue::CUSTOM_VALUE_ACCESS_ALL] = "1";
             }
         }
 
@@ -337,9 +353,9 @@ trait HasPermissions
                 });
             })->get(['id', 'permissions'])->toArray();
 
-        if (count($roles) == 0) {
-            return [];
-        }
+        // if (count($roles) == 0) {
+        //     return [];
+        // }
 
         // get roles records
         $permissions = [];

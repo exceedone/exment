@@ -67,7 +67,7 @@
                 {
                     "column_name": "body",
                     "column_view_name": "本文",
-                    "column_type": "textarea",
+                    "column_type": "editor",
                     "description": null,
                     "system_flg": "0",
                     "options": {

@@ -378,6 +378,7 @@ return [
         'column_type_options' => [
             "text" => "1行テキスト",
             "textarea" => "複数行テキスト",
+            "editor" => "テキストエディタ",
             "url" => "URL",
             "email" => "メールアドレス",
             "integer" => "整数",

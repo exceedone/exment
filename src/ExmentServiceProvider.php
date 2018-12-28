@@ -4,12 +4,14 @@ namespace Exceedone\Exment;
 
 use Storage;
 use Request;
+use Encore\Admin\Admin;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\UniqueInTableValidator;
+use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use League\Flysystem\Filesystem;
@@ -214,6 +216,9 @@ class ExmentServiceProvider extends ServiceProvider
             return new Filesystem(new AdminLocal(array_get($config, 'root')));
         });
 
-        \Exceedone\Exment\Middleware\Initialize::initializeConfig(false);
+        Initialize::initializeConfig(false);
+        Admin::booting(function(){
+            Initialize::initializeFormField();
+        });
     }
 }

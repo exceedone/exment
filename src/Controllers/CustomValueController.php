@@ -135,7 +135,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function show(Request $request, $id, Content $content)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request, $id, true);
 
         $modal = boolval($request->get('modal'));
         if ($modal) {
@@ -321,13 +321,14 @@ class CustomValueController extends AdminControllerTableBase
 
     /**
      * First flow. check role and set form and view id etc.
-     * different logic for new or update
+     * different logic for new, update or show
      */
-    protected function firstFlow(Request $request, $id = null)
+    protected function firstFlow(Request $request, $id = null, $show = false)
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        $roleValue = $show ? RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE : RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE;
+        if (!$this->validateTable($this->custom_table, $roleValue)) {
             return false;
         }
             

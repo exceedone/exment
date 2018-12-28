@@ -54,6 +54,31 @@ if (!function_exists('esc_html')) {
     }
 }
 
+if (!function_exists('esc_script_tag')) {
+    /**
+     * escape only script tag
+     */
+    function esc_script_tag($str)
+    {
+        $dom = new \DOMDocument();
+
+        $dom->loadHTML($html);
+
+        $script = $dom->getElementsByTagName('script');
+
+        $remove = [];
+        foreach ($script as $item) {
+            $remove[] = $item;
+        }
+
+        foreach ($remove as $item) {
+            $item->parentNode->removeChild($item);
+        }
+
+        $html = $dom->saveHTML();
+        return $html;
+    }
+}
 
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)

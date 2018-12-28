@@ -153,7 +153,7 @@ class Permission
                 return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);
             case "data":
                 if ($systemRole) {
-                    return array_keys_exists(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->permission_details);
+                    return array_keys_exists(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
@@ -164,7 +164,7 @@ class Permission
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
             if ($systemRole) {
-                return array_keys_exists(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE, $this->permission_details);
+                return array_keys_exists(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             }
             // check endpoint name and checking table_name.
             if (!$this->matchEndPointTable($endpoint)) {

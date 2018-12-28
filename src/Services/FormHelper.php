@@ -48,6 +48,9 @@ class FormHelper
             case ColumnType::TEXTAREA:
                 $field = new Field\Textarea($form_column_name, [$column_view_name]);
                 break;
+            case ColumnType::EDITOR:
+                $field = new ExmentField\Tinymce($form_column_name, [$column_view_name]);
+                break;
             case ColumnType::URL:
                 $field = new Field\Url($form_column_name, [$column_view_name]);
                 break;

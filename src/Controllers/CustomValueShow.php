@@ -13,6 +13,7 @@ use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -44,16 +45,20 @@ trait CustomValueShow
                                 $column = $form_column->custom_column;
                                 // set escape.
                                 // select_table, url is false
-                                $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
-                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column, $isUrl) {
+                                $isEscape = in_array(array_get($column, 'column_type'), [ColumnType::URL, ColumnType::SELECT_TABLE, ColumnType::EDITOR]);
+                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column) {
                                     if (is_null($this)) {
                                         return '';
                                     }
-                                    if ($isUrl) {
+                                    $column_type = array_get($column, 'column_type');
+                                    if (ColumnType::isUrl($column_type)) {
                                         return $this->getColumnUrl($column, true);
                                     }
+                                    if ($column_type == ColumnType::EDITOR) {
+                                        return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $this->getValue($column, true)).'</div>' ?? null;
+                                    }
                                     return $this->getValue($column, true);
-                                })->setEscape(!$isUrl);
+                                })->setEscape(!$isEscape);
                                 break;
                             case FormColumnType::SYSTEM:
                                 $form_column_obj = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column) {

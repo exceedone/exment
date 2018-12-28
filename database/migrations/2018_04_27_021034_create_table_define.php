@@ -176,7 +176,7 @@ class CreateTableDefine extends Migration
             $table->integer('custom_table_id')->unsigned();
             $table->string('column_name')->index();
             $table->string('column_view_name');
-            $table->string('column_type');
+            $table->string('column_type')->index();
             $table->string('description', 1000)->nullable();
             $table->boolean('system_flg')->default(false);
             $table->json('options')->nullable();

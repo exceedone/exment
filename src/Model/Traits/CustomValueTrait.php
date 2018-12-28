@@ -436,7 +436,8 @@ trait CustomValueTrait
             }
             // else, return
             return $val;
-        } else {
+        }
+        else {
             // if not label, return
             if ($label !== true) {
                 return $val;

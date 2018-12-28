@@ -6,6 +6,7 @@ class ColumnType extends EnumBase
 {
     const TEXT = 'text';
     const TEXTAREA = 'textarea';
+    const EDITOR = 'editor';
     const URL = 'url';
     const EMAIL = 'email';
     const INTEGER = 'integer';
@@ -33,6 +34,13 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_URL(){
+        return [
+            ColumnType::SELECT_TABLE,
+            ColumnType::URL,
+        ];
+    }
+
     public static function COLUMN_TYPE_SELECT_TABLE(){
         return [
             ColumnType::SELECT_TABLE,
@@ -53,6 +61,10 @@ class ColumnType extends EnumBase
 
     public static function isCalc($column_type){
         return in_array($column_type, static::COLUMN_TYPE_CALC());
+    }
+    
+    public static function isUrl($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_URL());
     }
     
     public static function isSelectTable($column_type){
