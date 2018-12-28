@@ -253,7 +253,7 @@ trait CustomTableTrait
 
         // check already execute
         $key = 'create_table.'.$table_name;
-        if (boolval(getRequestSession($key))) {
+        if (boolval(System::requestSession($key))) {
             return;
         }
 
@@ -264,7 +264,7 @@ trait CustomTableTrait
         $db = DB::connection();
         $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
         
-        setRequestSession($key, 1);
+        System::requestSession($key, 1);
     }
     
     /**

@@ -485,8 +485,8 @@ if (!function_exists('getModelName')) {
         // stop db access too much
         if (is_numeric($obj) || is_string($obj)) {
             // has request session, set suuid
-            if (!is_null(getRequestSession('getModelName_'.$obj))) {
-                $suuid = getRequestSession('getModelName_'.$obj);
+            if (!is_null(System::requestSession('getModelName_'.$obj))) {
+                $suuid = System::requestSession('getModelName_'.$obj);
             }
         }
 
@@ -497,12 +497,12 @@ if (!function_exists('getModelName')) {
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
                 //$table = CustomTable::find($obj);
                 $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
-                setRequestSession('getModelName_'.$obj, $suuid);
+                System::requestSession('getModelName_'.$obj, $suuid);
             } elseif (is_string($obj)) {
                 // get by table_name
                 // $table = CustomTable::findByName($obj);
                 $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
-                setRequestSession('getModelName_'.$obj, $suuid);
+                System::requestSession('getModelName_'.$obj, $suuid);
             } elseif ($obj instanceof CustomValue) {
                 $table = $obj->custom_table;
                 $suuid = $table->suuid;
@@ -969,37 +969,6 @@ if (!function_exists('disableFormFooter')) {
         });
     }
 }
-
-if (!function_exists('getRequestSession')) {
-    /**
-     * Get (such as) avaivable session in request.
-     */
-    function getRequestSession($key)
-    {
-        //TODO:comment out. how to best practice setting vclue
-        // $config_key = "exment_global.$key";
-
-        // if(!is_null(request()->route())){
-        //     return request()[$config_key] ?? null;
-        // }
-        return null;
-    }
-}
-
-if (!function_exists('setRequestSession')) {
-    /**
-     * Set (such as) avaivable session in request.
-     */
-    function setRequestSession($key, $value)
-    {
-        //TODO:comment out. how to best practice setting vclue
-        // $config_key = "exment_global.$key";
-        // if(!is_null(request()->route())){
-        //     request()[$config_key] = $value;
-        // }
-    }
-}
-
 
 if (!function_exists('getAjaxResponse')) {
     /**

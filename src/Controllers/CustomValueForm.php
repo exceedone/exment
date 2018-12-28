@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -398,7 +399,7 @@ EOT;
             PluginInstaller::pluginPreparing($this->plugins, 'saved');
 
             // if requestsession "file upload uuid"(for set data this value's id and type into files)
-            $uuids = getRequestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
+            $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
             if(isset($uuids)){
                 foreach($uuids as $uuid){
                     File::getData(array_get($uuid, 'uuid'))->saveCustomValue($form->model(), array_get($uuid, 'column_name'));

@@ -17,6 +17,7 @@ class System extends ModelBase
     
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
+    protected static $requestSession = [];
 
     public static function __callStatic($name, $argments)
     {
@@ -27,6 +28,14 @@ class System extends ModelBase
         }
 
         return parent::__callStatic($name, $argments);
+    }
+
+    public static function requestSession($key, $value = null){
+        $config_key = "exment_global.$key";
+        if(is_null($value)){
+            return static::$requestSession[$config_key] ?? null;
+        }
+        static::$requestSession[$config_key] = $value;
     }
 
     /**
@@ -100,8 +109,8 @@ class System extends ModelBase
     protected static function get_system_value($name, $setting)
     {
         $config_key = static::getConfigKey($name);
-        if (!is_null(getRequestSession($config_key))) {
-            return getRequestSession($config_key);
+        if (!is_null(static::requestSession($config_key))) {
+            return static::requestSession($config_key);
         }
         $system = System::find($name);
         $value = null;
@@ -133,7 +142,7 @@ class System extends ModelBase
         } elseif ($type == 'file') {
             $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
         }
-        setRequestSession($config_key, $value);
+        System::requestSession($config_key, $value);
         return $value;
     }
 
@@ -185,7 +194,7 @@ class System extends ModelBase
         
         // update config
         $config_key = static::getConfigKey($name);
-        setRequestSession($config_key, $system->system_value);
+        static::requestSession($config_key, $system->system_value);
     }
 
     protected static function getConfigKey($name)

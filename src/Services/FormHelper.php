@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -395,9 +396,9 @@ class FormHelper
         $exmentfile = ExmentFile::saveFileInfo($dirname, $filename, $local_filename);
 
         // set request session to save this custom_value's id and type into files table.
-        $file_uuids = getRequestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+        $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
         $file_uuids[] = ['uuid' => $exmentfile->uuid, 'column_name' => $field->column()];
-        setRequestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+        System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
         
         // return filename
         return $exmentfile->local_filename;
