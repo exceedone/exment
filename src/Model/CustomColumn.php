@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,11 @@ class CustomColumn extends ModelBase
     public function custom_view_columns()
     {
         return $this->hasMany(CustomViewColumn::class, 'view_column_target');
+    }
+
+    public function scopeIndexEnabled($query)
+    {
+        return $query->whereIn('options->index_enabled', [1, "1", true]);
     }
 
     /**
@@ -91,16 +97,16 @@ class CustomColumn extends ModelBase
         // Create table
         $table->createTable();
 
-        // get whether search_enabled column
-        $search_enabled = $this->hasIndex();
+        // get whether index_enabled column
+        $index_enabled = $this->indexEnabled();
         
         // check table column field exists.
         $exists = Schema::hasColumn($db_table_name, $db_column_name);
 
         $index_name = "index_$db_column_name";
-        //  if search_enabled = false, and exists, then drop index
-        // if column exists and (search_enabled = false or forceDropIndex)
-        if ($exists && ($forceDropIndex || (!boolval($search_enabled)))) {
+        //  if index_enabled = false, and exists, then drop index
+        // if column exists and (index_enabled = false or forceDropIndex)
+        if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
             DB::beginTransaction();
             try {
                 // ALTER TABLE
@@ -112,12 +118,14 @@ class CustomColumn extends ModelBase
                 throw $exception;
             }
         }
-        // if search_enabled = true, not exists, then create index
-        elseif ($search_enabled && !$exists) {
+        // if index_enabled = true, not exists, then create index
+        elseif ($index_enabled && !$exists) {
             DB::beginTransaction();
             try {
                 // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS (json_unquote(json_extract(`value`,'$.$column_name'))) VIRTUAL;");
+                $as_value = "json_unquote(json_extract(`value`,'$.$column_name'))";
+
+                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS ($as_value) VIRTUAL;");
                 DB::statement("ALTER TABLE $db_table_name ADD index $index_name($db_column_name)");
     
                 DB::commit();
@@ -150,9 +158,9 @@ class CustomColumn extends ModelBase
      * Whether this column has index
      * @return boolean
      */
-    public function hasIndex()
+    public function indexEnabled()
     {
-        return boolval(array_get($this, 'options.search_enabled'));
+        return boolval(array_get($this, 'options.index_enabled'));
     }
 
     /**

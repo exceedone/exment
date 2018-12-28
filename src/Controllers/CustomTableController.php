@@ -70,12 +70,12 @@ class CustomTableController extends AdminControllerBase
         }
         $form->text('table_view_name', exmtrans("custom_table.table_view_name"))->required();
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
-        $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1");
         
         $form->header(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), [function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"))->setWidth(9, 3);
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"))->setWidth(9, 3);
+            $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1");
             $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))
                 ->help(exmtrans("custom_table.help.one_record_flg"))
                 ->default("0")

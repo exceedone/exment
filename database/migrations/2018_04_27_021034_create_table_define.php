@@ -160,7 +160,6 @@ class CreateTableDefine extends Migration
             $table->string('table_name', 256)->unique();
             $table->string('table_view_name', 256);
             $table->string('description', 1000)->nullable();
-            $table->boolean('search_enabled')->default(true);
             $table->boolean('system_flg')->default(false);
             $table->boolean('showlist_flg')->default(true);
             $table->json('options')->nullable();

@@ -475,7 +475,6 @@ class TemplateImporter
                 $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
                 $obj_table->table_name = $table_name;
                 $obj_table->description = array_get($table, 'description');
-                $obj_table->search_enabled = boolval(array_get($table, 'search_enabled'));
                 $obj_table->system_flg = $system_flg;
 
                 // set showlist_flg

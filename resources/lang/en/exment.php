@@ -343,7 +343,7 @@ return [
         'column_type' => 'Column Type',
         'options' => [
             'header' => 'Detail Option',
-            'search_enabled' => 'Search Index',
+            'index_enabled' => 'Index Enabled',
             'unique' => 'Unique',
             'default' => 'Default Value',
             'placeholder' => 'PlaceHolder',

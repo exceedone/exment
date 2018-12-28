@@ -343,7 +343,7 @@ return [
         'column_type' => '列種類',
         'options' => [
             'header' => '詳細オプション',
-            'search_enabled' => '検索インデックス',
+            'index_enabled' => '検索インデックス',
             'unique' => 'ユニーク(一意)',
             'default' => '初期値',
             'placeholder' => 'プレースホルダー',

@@ -89,7 +89,7 @@ class CustomView extends ModelBase
                 $column_view_name = array_get($column, 'column_view_name');
 
                 // get grid column name. if hasindex, set as index name, else set as default column name
-                $isGridIndex = $column->hasIndex();
+                $isGridIndex = $column->indexEnabled();
                 $column_name = $isGridIndex ? $column->getIndexColumnName() : array_get($column, 'column_name');
                 
                 $grid->column($column_name, $column_view_name)->sort($isGridIndex)->display(function ($v) use ($column) {
@@ -290,7 +290,7 @@ class CustomView extends ModelBase
             $view = static::createDefaultView($tableObj);
         }
 
-        // if target form doesn't have columns, add columns for search_enabled columns.
+        // if target form doesn't have columns, add columns for has_index_columns columns.
         if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
             // get view id for after
             $view->createDefaultViewColumns();

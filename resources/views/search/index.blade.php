@@ -25,9 +25,11 @@
             <div class="box-body" style="min-height:100px;">
 
             </div>
+            @if(isset($table['show_list']))
             <div class="box-footer">
                 <a href="{{ admin_base_path('data/'.$table['table_name']) }}">{{ exmtrans('search.view_list') }}</a>
             </div>
+            @endif
         </div>
         @endforeach
     </div>

@@ -16,6 +16,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 trait CustomTableTrait
 {
@@ -233,7 +234,7 @@ trait CustomTableTrait
     public function getSearchEnabledColumns()
     {
         return $this->custom_columns()
-            ->whereIn('options->search_enabled', [1, "1"])
+            ->indexEnabled()
             ->get();
     }
 
@@ -257,6 +258,9 @@ trait CustomTableTrait
         }
 
         // CREATE TABLE from custom value table.
+        if(Schema::hasTable($table_name)){
+            return;
+        }
         $db = DB::connection();
         $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
         
@@ -380,7 +384,7 @@ trait CustomTableTrait
      * @param array|CustomTable $table
      * @param $selected_value
      */
-    public function getColumnsSelectOptions($search_enabled_only = false)
+    public function getColumnsSelectOptions($index_enabled_only = false)
     {
         $options = [];
         
@@ -401,12 +405,12 @@ trait CustomTableTrait
 
         ///// get table columns
         $custom_columns = $this->custom_columns;
-        foreach ($custom_columns as $option) {
-            // if $search_enabled_only = true and options.search_enabled is false, continue
-            if ($search_enabled_only && !boolval(array_get($option, 'options.search_enabled'))) {
+        foreach ($custom_columns as $custom_column) {
+            // if $index_enabled_only = true and options.index_enabled_only is false, continue
+            if ($index_enabled_only && !$custom_column->indexEnabled()) {
                 continue;
             }
-            $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
+            $options[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
         }
         ///// get system columns
         foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
@@ -417,7 +421,7 @@ trait CustomTableTrait
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
-        if (!$search_enabled_only) {
+        if (!$index_enabled_only) {
             ///// get child table columns for summary
             $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {

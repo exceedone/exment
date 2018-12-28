@@ -7,12 +7,12 @@
             "table_name": "project",
             "table_view_name": "プロジェクト管理",
             "description": "案件プロジェクトを管理します。",
-            "search_enabled": "1",
             "options": {
                 "icon": "fa-flickr",
                 "color": "#0044fc",
                 "one_record_flg": "0",
-                "attachment_flg": "1"
+                "attachment_flg": "1",
+                "search_enabled": "1"
             },
             "custom_columns": [
                 {
@@ -36,7 +36,7 @@
                         "string_length": "64",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -71,7 +71,7 @@
                         "string_length": "256",
                         "updown_button": "0",
                         "use_label_flg": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -86,8 +86,8 @@
             "table_name": "task",
             "table_view_name": "タスク管理",
             "description": "日々のタスクを管理します。",
-            "search_enabled": "1",
             "options": {
+                "search_enabled": "1",
                 "icon": "fa-tasks",
                 "color": "#ff0808",
                 "one_record_flg": "0",
@@ -115,7 +115,7 @@
                         "string_length": "1024",
                         "updown_button": "0",
                         "use_label_flg": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -127,7 +127,7 @@
                 {
                     "column_name": "explain",
                     "column_view_name": "説明文",
-                    "column_type": "textarea",
+                    "column_type": "editor",
                     "description": null,
                     "options": {
                         "help": null,
@@ -145,7 +145,7 @@
                         "string_length": "2000",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "0",
+                        "index_enabled": "0",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -162,6 +162,7 @@
                     "options": {
                         "help": null,
                         "required": "1",
+                        "default": "1",
                         "number_max": null,
                         "number_min": null,
                         "true_label": "はい",
@@ -175,41 +176,11 @@
                         "string_length": "256",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
                         "select_item_valtext": "1,新規\r\n2,対応中\r\n90,完了\r\n91,保留\r\n97,対応なし",
-                        "select_target_table": null,
-                        "available_characters": []
-                    }
-                },
-                {
-                    "column_name": "charge_user",
-                    "column_view_name": "担当者",
-                    "column_type": "user",
-                    "description": null,
-                    "options": {
-                        "help": null,
-                        "required": "0",
-                        "number_max": null,
-                        "number_min": null,
-                        "true_label": "はい",
-                        "true_value": null,
-                        "false_label": "いいえ",
-                        "false_value": null,
-                        "placeholder": null,
-                        "select_item": null,
-                        "calc_formula": null,
-                        "number_format": "0",
-                        "string_length": "256",
-                        "updown_button": "0",
-                        "use_label_flg": "0",
-                        "search_enabled": "1",
-                        "auto_number_type": null,
-                        "multiple_enabled": "1",
-                        "auto_number_format": null,
-                        "select_item_valtext": null,
                         "select_target_table": null,
                         "available_characters": []
                     }
@@ -222,6 +193,7 @@
                     "options": {
                         "help": null,
                         "required": "0",
+                        "default": "2",
                         "number_max": null,
                         "number_min": null,
                         "true_label": "はい",
@@ -235,7 +207,7 @@
                         "string_length": "256",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "0",
+                        "index_enabled": "0",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -265,7 +237,7 @@
                         "string_length": "256",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "0",
+                        "index_enabled": "0",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -295,9 +267,39 @@
                         "string_length": "256",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "0",
+                        "index_enabled": "0",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
+                        "auto_number_format": null,
+                        "select_item_valtext": null,
+                        "select_target_table": null,
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "担当者",
+                    "column_type": "user",
+                    "description": null,
+                    "options": {
+                        "help": null,
+                        "required": "0",
+                        "number_max": null,
+                        "number_min": null,
+                        "true_label": "はい",
+                        "true_value": null,
+                        "false_label": "いいえ",
+                        "false_value": null,
+                        "placeholder": null,
+                        "select_item": null,
+                        "calc_formula": null,
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "index_enabled": "1",
+                        "auto_number_type": null,
+                        "multiple_enabled": "1",
                         "auto_number_format": null,
                         "select_item_valtext": null,
                         "select_target_table": null,
@@ -325,7 +327,7 @@
                         "string_length": "256",
                         "updown_button": "0",
                         "use_label_flg": "0",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
@@ -493,7 +495,7 @@
                 {
                     "order": "2",
                     "view_column_target_name": "parent_id",
-                    "view_column_type": 1
+                    "view_column_type": 2
                 },
                 {
                     "order": "3",
@@ -548,7 +550,7 @@
                 {
                     "order": "2",
                     "view_column_target_name": "parent_id",
-                    "view_column_type": 1
+                    "view_column_type": 2
                 },
                 {
                     "order": "3",
@@ -599,7 +601,7 @@
     ],
     "admin_menu": [
         {
-            "order": "0",
+            "order": "30",
             "title": "プロジェクト管理",
             "menu_type": "parent_node",
             "menu_name": "project_management",
@@ -608,7 +610,7 @@
             "icon": "fa-product-hunt"
         },
         {
-            "order": "0",
+            "order": "1",
             "title": "プロジェクト",
             "menu_type": "table",
             "menu_name": "project",
@@ -616,7 +618,7 @@
             "menu_target_name": "project"
         },
         {
-            "order": "0",
+            "order": "2",
             "title": "タスク管理",
             "menu_type": "table",
             "menu_name": "task",

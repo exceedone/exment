@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
@@ -86,24 +87,24 @@ trait CustomValueGrid
                     // filter type
                     $column_type = array_get($search_column, 'column_type');
                     switch ($column_type) {
-                        case 'select':
-                        case 'select_valtext':
+                        case ColumnType::SELECT:
+                        case ColumnType::SELECT_VALTEXT:
                             $filter->equal($column_name, $column_view_name)->select($search_column->createSelectOptions());
                             break;
-                        case 'select_table':
-                        case 'user':
-                        case 'organization':
+                        case ColumnType::SELECT_TABLE:
+                        case ColumnType::USER:
+                        case ColumnType::ORGANIZATION:
                             // get select_target_table
-                            if ($column_type == 'select_table') {
+                            if ($column_type == ColumnType::SELECT_TABLE) {
                                 $select_target_table_id = array_get($search_column, 'options.select_target_table');
                                 if (isset($select_target_table_id)) {
                                     $select_target_table = CustomTable::find($select_target_table_id);
                                 } else {
                                     $select_target_table = null;
                                 }
-                            } elseif ($column_type == SystemTableName::USER) {
+                            } elseif ($column_type == ColumnType::USER) {
                                 $select_target_table = CustomTable::findByName(SystemTableName::USER);
-                            } elseif ($column_type == SystemTableName::ORGANIZATION) {
+                            } elseif ($column_type == ColumnType::ORGANIZATION) {
                                 $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
                             }
 
@@ -116,14 +117,14 @@ trait CustomValueGrid
                                 $filter->equal($column_name, $column_view_name)->select($options);
                             }
                             break;
-                        case 'yesno':
+                        case ColumnType::YESNO:
                             $filter->equal($column_name, $column_view_name)->radio([
                                 ''   => 'All',
                                 0    => 'NO',
                                 1    => 'YES',
                             ]);
                             break;
-                        case 'boolean':
+                        case ColumnType::BOOLEAN:
                             $filter->equal($column_name, $column_view_name)->radio([
                                 ''   => 'All',
                                 array_get($search_column, 'options.false_value')    => array_get($search_column, 'options.false_label'),
@@ -131,8 +132,8 @@ trait CustomValueGrid
                             ]);
                             break;
                         
-                        case 'date':
-                        case 'datetime':
+                        case ColumnType::DATE:
+                        case ColumnType::DATETIME:
                             $filter->between($column_name, $column_view_name)->date();
                             break;
                         default:

@@ -976,11 +976,12 @@ if (!function_exists('getRequestSession')) {
      */
     function getRequestSession($key)
     {
-        $config_key = "exment_global.$key";
+        //TODO:comment out. how to best practice setting vclue
+        // $config_key = "exment_global.$key";
 
-        if(!is_null(request()->route())){
-            return request()[$config_key] ?? null;
-        }
+        // if(!is_null(request()->route())){
+        //     return request()[$config_key] ?? null;
+        // }
         return null;
     }
 }
@@ -991,10 +992,11 @@ if (!function_exists('setRequestSession')) {
      */
     function setRequestSession($key, $value)
     {
-        $config_key = "exment_global.$key";
-        if(!is_null(request()->route())){
-            request()[$config_key] = $value;
-        }
+        //TODO:comment out. how to best practice setting vclue
+        // $config_key = "exment_global.$key";
+        // if(!is_null(request()->route())){
+        //     request()[$config_key] = $value;
+        // }
     }
 }
 

@@ -9,8 +9,10 @@
             "icon": "fa-user",
             "color": null,
             "description": null,
-            "search_enabled": "0",
             "one_record_flg": "0",
+            "options": {
+                "search_enabled": "1"
+            },
             "custom_columns": [
                 {
                     "column_name": "client_code",
@@ -19,7 +21,7 @@
                     "description": null,
                     "options": {
                         "required": 1,
-                        "search_enabled": 1,
+                        "index_enabled": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -31,7 +33,7 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "search_enabled": 1
+                        "index_enabled": 1
                     }
                 }
             ]
@@ -42,8 +44,10 @@
             "icon": "fa-building",
             "color": null,
             "description": null,
-            "search_enabled": "0",
             "one_record_flg": "0",
+            "options": {
+                "search_enabled": "1"
+            },
             "custom_columns": [
                 {
                     "column_name": "agency_code",
@@ -52,7 +56,7 @@
                     "description": null,
                     "options": {
                         "required": 1,
-                        "search_enabled": 1,
+                        "index_enabled": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -64,7 +68,7 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "search_enabled": 1
+                        "index_enabled": 1
                     }
                 }
             ]
@@ -75,8 +79,10 @@
             "icon": "fa-shopping-bag",
             "color": null,
             "description": null,
-            "search_enabled": "0",
             "one_record_flg": "0",
+            "options": {
+                "search_enabled": "1"
+            },
             "custom_columns": [
                 {
                     "column_name": "product_code",
@@ -85,7 +91,7 @@
                     "description": null,
                     "options": {
                         "required": 1,
-                        "search_enabled": 1,
+                        "index_enabled": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -97,7 +103,7 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "search_enabled": 1
+                        "index_enabled": 1
                     }
                 }
             ]
@@ -108,8 +114,10 @@
             "icon": "fa-shopping-bag",
             "color": null,
             "description": null,
-            "search_enabled": "0",
             "one_record_flg": "0",
+            "options": {
+                "search_enabled": "1"
+            },
             "custom_columns": [
                 {
                     "column_name": "product_version_code",
@@ -118,7 +126,7 @@
                     "description": null,
                     "options": {
                         "required": 1,
-                        "search_enabled": 1,
+                        "index_enabled": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -130,7 +138,7 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "search_enabled": 1
+                        "index_enabled": 1
                     }
                 },
                 {
@@ -148,8 +156,10 @@
             "icon": "fa-file-text",
             "color": null,
             "description": null,
-            "search_enabled": "0",
             "one_record_flg": "0",
+            "options": {
+                "search_enabled": "1"
+            },
             "custom_columns": [
                 {
                     "column_name": "contract_code",
@@ -159,7 +169,7 @@
                     "options": {
                         "required": 1,
                         "use_label_flg": 1,
-                        "search_enabled": 1,
+                        "index_enabled": 1,
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -170,7 +180,7 @@
                     "description": null,
                     "options": {
                         "required": 1,
-                        "search_enabled": 1,
+                        "index_enabled": 1,
                         "select_target_table_name": "client"
                     }
                 },
@@ -182,7 +192,7 @@
                     "options": {
                         "required": 1,
                         "select_item": "1,問合\n2,試用\n3,見積\n4,請求\n5,保守\n6,完了",
-                        "search_enabled": 1
+                        "index_enabled": 1
                     }
                 },
                 {
@@ -293,8 +303,10 @@
             "icon": "fa-file-text-o",
             "color": null,
             "description": null,
-            "search_enabled": "0",
             "one_record_flg": "0",
+            "options": {
+                "search_enabled": "1"
+            },
             "custom_columns": [
                 {
                     "column_name": "fixed_price",

@@ -6,9 +6,9 @@
         {
             "table_name": "document",
             "description": null,
-            "search_enabled": "0",
             "showlist_flg": "0",
             "options": {
+                "search_enabled": "0",
                 "icon": "fa-file",
                 "color": "#999999",
                 "attachment_flg": "0",
@@ -22,7 +22,7 @@
                     "description": null,
                     "options": {
                         "use_label_flg": "1",
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 },
                 {
@@ -30,7 +30,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 }
             ]
@@ -39,11 +39,11 @@
             "table_name": "information",
             "table_view_name": "お知らせ",
             "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
-            "search_enabled": "1",
             "showlist_flg": "1",
             "system_flg": "0",
             "options": {
-                "icon": "fa-pencil",
+                "search_enabled": "1",
+                "icon": "fa-exclamation",
                 "color": null,
                 "revision_flg": "0",
                 "attachment_flg": "0",
@@ -61,7 +61,7 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 },
                 {
@@ -116,8 +116,8 @@
         {
             "table_name": "base_info",
             "description": null,
-            "search_enabled": "0",
             "options": {
+                "search_enabled": "0",
                 "icon": "fa-building",
                 "color": null,
                 "attachment_flg": "0",
@@ -132,7 +132,7 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 },
                 {
@@ -281,8 +281,8 @@
         {
             "table_name": "user",
             "description": null,
-            "search_enabled": "1",
             "options": {
+                "search_enabled": "1",
                 "icon": "fa-user",
                 "color": null,
                 "one_record_flg": "0",
@@ -295,7 +295,7 @@
                     "description": null,
                     "options": {
                         "required": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "unique": "1",
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
@@ -307,7 +307,7 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 },
                 {
@@ -316,7 +316,7 @@
                     "description": null,
                     "options": {
                         "required": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "unique": "1"
                     }
                 }
@@ -325,8 +325,8 @@
         {
             "table_name": "organization",
             "description": null,
-            "search_enabled": "1",
             "options": {
+                "search_enabled": "1",
                 "icon": "fa-sitemap",
                 "color": null,
                 "one_record_flg": "0",
@@ -339,7 +339,7 @@
                     "description": null,
                     "options": {
                         "required": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "unique": "1",
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
@@ -351,7 +351,7 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 },
                 {
@@ -360,7 +360,7 @@
                     "description": null,
                     "options": {
                         "select_target_table_name": "organization",
-                        "search_enabled": "1"
+                        "index_enabled": "1"
                     }
                 }
             ]
@@ -369,8 +369,8 @@
             "table_name": "mail_template",
             "table_view_name": "メールテンプレート",
             "description": "メール送信時のメッセージの本文などを管理します。",
-            "search_enabled": "0",
             "options": {
+                "search_enabled": "0",
                 "icon": "fa-envelope",
                 "color": "#ff9932",
                 "attachment_flg": "0",
@@ -385,7 +385,7 @@
                     "column_type": "text",
                     "options": {
                         "required": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "unique": "1",
                         "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
                         "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
@@ -398,7 +398,7 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "help": "一覧画面で表示する、テンプレート名称です。"
                     }
                 },
@@ -410,7 +410,7 @@
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
-                        "search_enabled": "1",
+                        "index_enabled": "1",
                         "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター",
                         "default": "body"
                     }

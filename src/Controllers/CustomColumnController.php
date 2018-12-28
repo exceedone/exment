@@ -162,8 +162,8 @@ class CustomColumnController extends AdminControllerTableBase
         $column_type = isset($id) ? CustomColumn::find($id)->column_type : null;
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
-            $form->switchbool('search_enabled', exmtrans("custom_column.options.search_enabled"))
-                ->help(exmtrans("custom_column.help.search_enabled"));
+            $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
+                ->help(exmtrans("custom_column.help.index_enabled"));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
             $form->text('default', exmtrans("custom_column.options.default"));

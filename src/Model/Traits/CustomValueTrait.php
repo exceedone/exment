@@ -579,7 +579,7 @@ trait CustomValueTrait
      * Get Custom children value summary
      */
     public function getSum($custom_column) {
-        $name = $custom_column->hasIndex() ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->indexEnabled() ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
 
         if(!isset($name)){
             return 0;
@@ -598,7 +598,7 @@ trait CustomValueTrait
         if($relation instanceof CustomColumn){
             // get custom column as array
             // target column is select table and has index, get index name
-            if(ColumnType::isSelectTable($relation->column_type) && $relation->hasIndex()){
+            if(ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()){
                 $index_name = $relation->getIndexColumnName();
                 // get children values where this id
                 $query = getModelName(CustomTable::getEloquent($relation))

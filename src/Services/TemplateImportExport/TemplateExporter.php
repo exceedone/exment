@@ -168,7 +168,6 @@ class TemplateExporter
                 'table_name',
                 'table_view_name',
                 'description',
-                'search_enabled',
                 'showlist_flg',
                 'options',
                 'custom_columns',

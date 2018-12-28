@@ -104,7 +104,7 @@ EOT;
 
         $results = [];
         // Get table list
-        $tables = CustomTable::where('search_enabled', true)->get();
+        $tables = CustomTable::searchEnabled()->get();
         foreach ($tables as $table) {
             if (count($results) >= 10) {
                 break;
@@ -159,6 +159,9 @@ EOT;
      */
     protected function getFreeWord(Request $request, Content $content)
     {
+        if(is_null($request->query('query'))){
+            return redirect(admin_base_path());
+        }
         $this->AdminContent($content);
         $content->header(exmtrans('search.header_freeword'));
         $content->description(exmtrans('search.description_freeword'));
@@ -217,7 +220,7 @@ EOT;
     protected function getSearchTargetTable($value_table = null)
     {
         $results = [];
-        $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get();
+        $tables = CustomTable::with('custom_columns')->searchEnabled()->get();
         foreach ($tables as $table) {
             // if not role, continue
             if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
@@ -227,7 +230,7 @@ EOT;
             // search using column
             $result = array_get($table, 'custom_columns')->first(function ($custom_column) {
                 // this column is search_enabled, add array.
-                if (!boolval(array_get($custom_column['options'], 'search_enabled'))) {
+                if (!$custom_column->indexEnabled()) {
                     return false;
                 }
 
@@ -319,10 +322,11 @@ EOT;
         $model = getModelName($table)::find($request->input('value_id'));
         $value = $model->label;
         $content->body(view('exment::search.index', [
-            'table_name' => $request->input('table_name')
-            , 'value_id' => $request->input('value_id')
-            , 'query' => $value
-            , 'tables' => $this->getSearchTargetRelationTable($table)]));
+            'table_name' => $request->input('table_name'),
+            'value_id' => $request->input('value_id'),
+            'query' => $value,
+            'tables' => $this->getSearchTargetRelationTable($table)])
+        );
 
         // create searching javascript
         $list_url = admin_base_path("search/relation");
@@ -455,10 +459,10 @@ EOT;
         // * table_column > options > select_target_table is table id user selected.
         $tables = CustomTable
         ::whereHas('custom_columns', function ($query) use ($value_table) {
-            $query->whereIn('options->search_enabled', [1, "1"])
+            $query->whereIn('options->index_enabled', [1, "1"])
             ->where('options->select_target_table', $value_table->id);
         })
-        ->where('search_enabled', true)
+        ->searchEnabled()
         ->get();
 
         foreach ($tables as $table) {
@@ -534,6 +538,9 @@ EOT;
         ];
         if(isset($search_type)){
             $array['search_type'] = $search_type;
+        }
+        if($table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)){
+            $array['show_list'] = true;
         }
         return $array;
     }   

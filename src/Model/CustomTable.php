@@ -51,6 +51,12 @@ class CustomTable extends ModelBase
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
     
+    public function scopeSearchEnabled($query)
+    {
+        return $query->whereIn('options->search_enabled', [1, "1", true]);
+    }
+
+
     public function getOption($key, $default = null)
     {
         return $this->getJson('options', $key, $default);
