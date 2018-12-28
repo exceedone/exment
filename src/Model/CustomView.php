@@ -7,6 +7,7 @@ use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request as Req;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\UserSetting;
@@ -92,11 +93,11 @@ class CustomView extends ModelBase
                 $isGridIndex = $column->indexEnabled();
                 $column_name = $isGridIndex ? $column->getIndexColumnName() : array_get($column, 'column_name');
                 
-                $grid->column($column_name, $column_view_name)->sort($isGridIndex)->display(function ($v) use ($column) {
+                $grid->column($column_name, $column_view_name)->sort($isGridIndex)->display(function ($v) use ($column, $column_type) {
                     if (is_null($this)) {
                         return '';
                     }
-                    $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
+                    $isUrl = ColumnType::isUrl($column_type);
                     if ($isUrl) {
                         return $this->getColumnUrl($column, true);
                     }

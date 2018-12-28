@@ -86,37 +86,55 @@ trait CustomValueGrid
                     $column_view_name = array_get($search_column, 'column_view_name');
                     // filter type
                     $column_type = array_get($search_column, 'column_type');
-                    switch ($column_type) {
-                        case ColumnType::SELECT:
-                        case ColumnType::SELECT_VALTEXT:
-                            $filter->equal($column_name, $column_view_name)->select($search_column->createSelectOptions());
-                            break;
-                        case ColumnType::SELECT_TABLE:
-                        case ColumnType::USER:
-                        case ColumnType::ORGANIZATION:
-                            // get select_target_table
-                            if ($column_type == ColumnType::SELECT_TABLE) {
-                                $select_target_table_id = array_get($search_column, 'options.select_target_table');
-                                if (isset($select_target_table_id)) {
-                                    $select_target_table = CustomTable::find($select_target_table_id);
-                                } else {
-                                    $select_target_table = null;
-                                }
-                            } elseif ($column_type == ColumnType::USER) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::USER);
-                            } elseif ($column_type == ColumnType::ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
-                            }
 
-                            // get options and ajax url
-                            $options = $select_target_table->getOptions();
-                            $ajax = $select_target_table->getOptionAjaxUrl();
+                    // if multiple enabled column
+                    if(ColumnType::isMultipleEnabled($column_type)){
+                        //get options and ajax.
+                        $options = null;
+                        $ajax = null;
+                        switch ($column_type) {
+                            case ColumnType::SELECT:
+                            case ColumnType::SELECT_VALTEXT:
+                                $options = $search_column->createSelectOptions();
+                                break;
+                            case ColumnType::SELECT_TABLE:
+                            case ColumnType::USER:
+                            case ColumnType::ORGANIZATION:
+                                // get select_target_table
+                                if ($column_type == ColumnType::SELECT_TABLE) {
+                                    $select_target_table_id = array_get($search_column, 'options.select_target_table');
+                                    if (isset($select_target_table_id)) {
+                                        $select_target_table = CustomTable::find($select_target_table_id);
+                                    } else {
+                                        $select_target_table = null;
+                                    }
+                                } elseif ($column_type == ColumnType::USER) {
+                                    $select_target_table = CustomTable::findByName(SystemTableName::USER);
+                                } elseif ($column_type == ColumnType::ORGANIZATION) {
+                                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
+                                }
+    
+                                // get options and ajax url
+                                $options = $select_target_table->getOptions();
+                                $ajax = $select_target_table->getOptionAjaxUrl();
+                                break;
+                        }
+
+                        // if multiple, create where
+                        if(boolval($search_column->getOption('multiple_enabled'))){
+                            $filter->where(function ($query) use($column_name) {
+                                $query->whereRaw("FIND_IN_SET({$this->input}, REPLACE(REPLACE(REPLACE(REPLACE(`$column_name`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))");
+                            }, $column_view_name)->select($options);
+                        }else{
                             if (isset($ajax)) {
                                 $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
                             } else {
                                 $filter->equal($column_name, $column_view_name)->select($options);
                             }
-                            break;
+                        }
+                    }
+                    else{
+                        switch ($column_type) {
                         case ColumnType::YESNO:
                             $filter->equal($column_name, $column_view_name)->radio([
                                 ''   => 'All',
@@ -139,6 +157,7 @@ trait CustomValueGrid
                         default:
                             $filter->like($column_name, $column_view_name);
                             break;
+                        }
                     }
                 }
             });

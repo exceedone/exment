@@ -45,7 +45,7 @@ trait CustomValueShow
                                 $column = $form_column->custom_column;
                                 // set escape.
                                 // select_table, url is false
-                                $isEscape = in_array(array_get($column, 'column_type'), [ColumnType::URL, ColumnType::SELECT_TABLE, ColumnType::EDITOR]);
+                                $isEscape = ColumnType::isNotEscape(array_get($column, 'column_type'));
                                 $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column) {
                                     if (is_null($this)) {
                                         return '';

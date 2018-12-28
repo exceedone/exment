@@ -37,6 +37,8 @@ class ColumnType extends EnumBase
     public static function COLUMN_TYPE_URL(){
         return [
             ColumnType::SELECT_TABLE,
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
             ColumnType::URL,
         ];
     }
@@ -59,6 +61,16 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_SHOW_NOT_ESCAPE(){
+        return [
+            ColumnType::URL, 
+            ColumnType::SELECT_TABLE, 
+            ColumnType::EDITOR,
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
+        ];
+    }
+
     public static function isCalc($column_type){
         return in_array($column_type, static::COLUMN_TYPE_CALC());
     }
@@ -72,5 +84,8 @@ class ColumnType extends EnumBase
     }
     public static function isMultipleEnabled($column_type){
         return in_array($column_type, static::COLUMN_TYPE_MULTIPLE_ENABLED());
+    }
+    public static function isNotEscape($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_SHOW_NOT_ESCAPE());
     }
 }

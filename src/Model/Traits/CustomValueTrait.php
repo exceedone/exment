@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+use Illuminate\Database\Eloquent\Collection;
 use Encore\Admin\Facades\Admin;
 use Carbon\Carbon;
 use Exceedone\Exment\Model\Define;
@@ -357,13 +358,13 @@ trait CustomValueTrait
             }
             
             // if $model is array multiple, set as array
-            if (!($model instanceof \Illuminate\Database\Eloquent\Collection)) {
+            if (!($model instanceof Collection)) {
                 $model = [$model];
             }
 
             $labels = [];
             foreach ($model as $m) {
-                if (is_null($column)) {
+                if (is_null($m)) {
                     continue;
                 }
                 
@@ -545,20 +546,35 @@ trait CustomValueTrait
         $url = null;
         $value = esc_html($this->getValue($column, true));
         switch ($column->column_type) {
-            case 'url':
+            case ColumnType::URL:
                 $url = $this->getValue($column);
                 if (!$tag) {
                     return $url;
                 }
                 return "<a href='{$url}' target='_blank'>$value</a>";
-            case 'select_table':
+            case ColumnType::SELECT_TABLE:
+            case ColumnType::USER:
+            case ColumnType::ORGANIZATION:
                 $target_value = $this->getValue($column);
-                $id =  $target_value->id ?? null;
-                if (!isset($id)) {
-                    return null;
+                    
+                // if $target_value is not array multiple, set as array
+                if (!($target_value instanceof Collection)) {
+                    $target_value = [$target_value];
                 }
-                // create url
-                return $target_value->getUrl($tag);
+                $urls = [];
+                foreach ($target_value as $m) {
+                    if (is_null($m)) {
+                        continue;
+                    }
+
+                    $id = $m->id ?? null;
+                    if (!isset($id)) {
+                        continue;
+                    }
+                    // create url
+                    $urls[] = $m->getUrl($tag);
+                }
+                return implode(exmtrans('common.separate_word'), $urls);
         }
  
         return null;
