@@ -275,13 +275,10 @@ class PluginInstaller
      */
     public static function getPluginByTable($table_name)
     {
-        // espace name
-        $table_name_escape = trim(DB::getPdo()->quote($table_name), "'");
         // execute query
         return Plugin::where('active_flg', '=', 1)
             ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
-            ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
-            //->where('options->target_tables', $table_name)
+            ->where("options->target_tables", $table_name)
             ->get()
             ;
     }

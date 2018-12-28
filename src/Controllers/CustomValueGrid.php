@@ -123,7 +123,7 @@ trait CustomValueGrid
                         // if multiple, create where
                         if(boolval($search_column->getOption('multiple_enabled'))){
                             $filter->where(function ($query) use($column_name) {
-                                $query->whereRaw("FIND_IN_SET({$this->input}, REPLACE(REPLACE(REPLACE(REPLACE(`$column_name`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))");
+                                $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$column_name`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $this->input);
                             }, $column_view_name)->select($options);
                         }else{
                             if (isset($ajax)) {
