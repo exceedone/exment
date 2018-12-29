@@ -15,6 +15,8 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyBeforeAfter;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use DB;
 
 class NotifyController extends AdminControllerBase
@@ -103,7 +105,7 @@ class NotifyController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ;
             $form->select('notify_beforeafter', exmtrans("notify.notify_beforeafter"))
-                ->options(getTransArrayValue(Define::NOTIFY_BEFOREAFTER, 'notify.notify_beforeafter_options'))
+                ->options(NotifyBeforeAfter::transKeyArray('notify.notify_beforeafter_options'))
                 ->default('-1')
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_beforeafter"));
@@ -124,9 +126,12 @@ class NotifyController extends AdminControllerBase
             ;
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
+            $controller = $this;
             $form->select('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(getTransArray(Define::NOTIFY_ACTION_TARGET, 'notify.notify_action_target_options'))
-                ->default('has_roles')
+                ->options(function ($val) use($controller) {
+                    return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
+                })
+                ->default(NotifyActionTarget::HAS_ROLES)
                 ->required()
                 ->help(exmtrans("notify.help.notify_action_target"));
 
@@ -154,32 +159,44 @@ class NotifyController extends AdminControllerBase
 
     public function notify_action_target(Request $request)
     {
-        $table_id = $request->get('q');
-        $array = getTransArray(Define::NOTIFY_ACTION_TARGET, 'notify.notify_action_target_options');
-        $changedatas = [];
-        foreach ($array as $k => $v) {
-            $changedatas[] = ['id' => $k, 'text' => $v];
-        }
-        $changedatas = array_merge($changedatas, CustomColumn
-            ::where('custom_table_id', $table_id)
-            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
-            ->get(
-                ['id', DB::raw('column_view_name as text')]
-            )->toArray());
-
-        return $changedatas;
+        return $this->getNotifyActionTargetOptions($request->get('q'), true);
     }
 
     protected function getTargetColumnOptions($custom_table, $isApi){
         $custom_table = CustomTable::getEloquent($custom_table);
+
         $options = CustomColumn
             ::where('custom_table_id', $custom_table->id)
             ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
             ->get(['id', DB::raw('column_view_name as text')]);
-            if($isApi){
-                return $options;
-            }else{
-                return $options->pluck('text', 'id');
-            }
+
+        if($isApi){
+            return $options;
+        }else{
+            return $options->pluck('text', 'id');
         }
+    }
+
+    protected function getNotifyActionTargetOptions($custom_table, $isApi){
+        $array = NotifyActionTarget::transArray('notify.notify_action_target_options');
+        $options = [];
+        foreach ($array as $k => $v) {
+            $options[] = ['id' => $k, 'text' => $v];
+        }
+
+        if (isset($custom_table)) {
+            $custom_table = CustomTable::getEloquent($custom_table);
+            $options = array_merge($options, CustomColumn
+            ::where('custom_table_id', $custom_table->id)
+            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+            ->get(
+                ['id', DB::raw('column_view_name as text')]
+            )->toArray());
+        }
+        if($isApi){
+            return $options;
+        }else{
+            return collect($options)->pluck('text', 'id')->toArray();
+        }
+    }
 }

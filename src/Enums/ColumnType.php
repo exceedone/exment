@@ -64,6 +64,7 @@ class ColumnType extends EnumBase
     public static function COLUMN_TYPE_SHOW_NOT_ESCAPE(){
         return [
             ColumnType::URL, 
+            ColumnType::TEXTAREA, 
             ColumnType::SELECT_TABLE, 
             ColumnType::EDITOR,
             ColumnType::USER,

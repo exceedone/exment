@@ -737,7 +737,7 @@ if (!function_exists('replaceTextFromFormat')) {
 
                                 //else, getting url
                                 else {
-                                    $str = $custom_value->getUrl(true) ?? '';
+                                    $str = $custom_value->getUrl(['tag' => true, 'modal' => false]) ?? '';
                                 }
                             }
                             ///// value

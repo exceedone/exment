@@ -274,12 +274,7 @@ trait CustomValueTrait
 
         ///// get custom column
         // if string
-        if (is_string($column)) {
-            $column = CustomColumn
-                ::where('column_name', $column)
-                ->where('custom_table_id', array_get($custom_table, 'id'))
-                ->first();
-        }        
+        $column = CustomColumn::getEloquent($column, $custom_table);
         if (is_null($column)) {
             return null;
         }
@@ -500,6 +495,7 @@ trait CustomValueTrait
                 'uri' => null,
                 'list' => false,
                 'external-link' => false,
+                'modal' => true,
             ]
             , $options
         );
@@ -525,14 +521,22 @@ trait CustomValueTrait
         if (!$tag) {
             return $url;
         }
-        $url .= '?modal=1';
-
         if(boolval($options['external-link'])){
             $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
         }else{
             $label = esc_html($this->getLabel());
         }
-        return "<a href='javascript:void(0);' data-widgetmodal_url='$url'>$label</a>";
+
+        if (boolval($options['modal'])) {
+            $url .= '?modal=1';
+            $href = 'javascript:void(0);';
+            $widgetmodal_url = " data-widgetmodal_url='$url'";
+        }else{
+            $href = $url;
+            $widgetmodal_url = null;
+        }
+
+        return "<a href='$href'$widgetmodal_url>$label</a>";
     }
 
     /**

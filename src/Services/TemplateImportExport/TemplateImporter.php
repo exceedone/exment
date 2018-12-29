@@ -476,7 +476,8 @@ class TemplateImporter
                 $obj_table->table_name = $table_name;
                 $obj_table->description = array_get($table, 'description');
                 // system flg checks 1. whether import from system, 2. table setting sets 1
-                $obj_table->system_flg = $system_flg && boolval(array_get($table, 'system_flg'));
+                $table_system_flg = array_get($table, 'system_flg');
+                $obj_table->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
 
                 // set showlist_flg
                 if (!array_has($table, 'showlist_flg')) {
@@ -517,7 +518,8 @@ class TemplateImporter
                         $obj_column->column_name = $column_name;
                         $obj_column->column_type = array_get($column, 'column_type');
                         // system flg checks 1. whether import from system, 2. table setting sets 1
-                        $obj_column->system_flg = $system_flg && boolval(array_get($table, 'system_flg'));
+                        $column_system_flg = array_get($column, 'system_flg');
+                        $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
 
                         ///// set options
                         collect(array_get($column, 'options', []))->each(function ($option, $key) use($obj_column) {

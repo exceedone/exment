@@ -170,15 +170,6 @@ class Define
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
-    public const NOTIFY_BEFOREAFTER = [
-        '-1' => 'before',
-        '1'  => 'after',
-    ];
-    
-    public const NOTIFY_ACTION_TARGET = [
-        'has_roles',
-    ];
- 
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',

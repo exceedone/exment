@@ -36,84 +36,6 @@
             ]
         },
         {
-            "table_name": "information",
-            "table_view_name": "お知らせ",
-            "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
-            "showlist_flg": "1",
-            "system_flg": "0",
-            "options": {
-                "search_enabled": "1",
-                "icon": "fa-exclamation",
-                "color": null,
-                "revision_flg": "0",
-                "attachment_flg": "0",
-                "one_record_flg": "0",
-                "all_user_viewable_flg": "1",
-                "all_user_accessable_flg": "1"
-            },
-            "custom_columns": [
-                {
-                    "column_name": "title",
-                    "column_view_name": "タイトル",
-                    "column_type": "text",
-                    "description": null,
-                    "system_flg": "0",
-                    "options": {
-                        "required": "1",
-                        "use_label_flg": "1",
-                        "index_enabled": "1"
-                    }
-                },
-                {
-                    "column_name": "body",
-                    "column_view_name": "本文",
-                    "column_type": "editor",
-                    "description": null,
-                    "system_flg": "0",
-                    "options": {
-                        "string_length": "2000"
-                    }
-                },
-                {
-                    "column_name": "view_flg",
-                    "column_view_name": "表示フラグ",
-                    "column_type": "yesno",
-                    "description": null,
-                    "system_flg": "0",
-                    "options": {
-                        "help": "一覧表示したい場合、YESに設定してください。",
-                        "default": "1",
-                        "required": "1"
-                    }
-                },
-                {
-                    "column_name": "order",
-                    "column_view_name": "表示順",
-                    "column_type": "integer",
-                    "description": null,
-                    "system_flg": "0",
-                    "options": {
-                        "help": "数値が大きい順に、一覧に表示します。（同じ値の場合は更新日時が新しい順）",
-                        "required": "1",
-                        "number_max": null,
-                        "number_min": "0",
-                        "updown_button": "1"
-                    }
-                },
-                {
-                    "column_name": "priority",
-                    "column_view_name": "重要度",
-                    "column_type": "select_valtext",
-                    "description": null,
-                    "options": {
-                        "default": "3",
-                        "required": "1",
-                        "select_item_valtext": "1,非常に低い\r\n2,低い\r\n3,通常\r\n4,高い\r\n5,非常に高い"
-                    }
-                }
-            ]
-        },
-        {
             "table_name": "base_info",
             "description": null,
             "options": {
@@ -428,6 +350,84 @@
                     "column_type": "textarea",
                     "options": {
                         "help": "送付するメールの本文を入力します。変数を利用できます。"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "お知らせ",
+            "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
+            "showlist_flg": "1",
+            "system_flg": "0",
+            "options": {
+                "search_enabled": "1",
+                "icon": "fa-exclamation",
+                "color": null,
+                "revision_flg": "0",
+                "attachment_flg": "0",
+                "one_record_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "1"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "タイトル",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "required": "1",
+                        "use_label_flg": "1",
+                        "index_enabled": "1"
+                    }
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "本文",
+                    "column_type": "editor",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "string_length": "2000"
+                    }
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "表示フラグ",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "help": "一覧表示したい場合、YESに設定してください。",
+                        "default": "1",
+                        "required": "1"
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "表示順",
+                    "column_type": "integer",
+                    "description": null,
+                    "system_flg": "0",
+                    "options": {
+                        "help": "数値が大きい順に、一覧に表示します。（同じ値の場合は更新日時が新しい順）",
+                        "required": "1",
+                        "number_max": null,
+                        "number_min": "0",
+                        "updown_button": "1"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "重要度",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "options": {
+                        "default": "3",
+                        "required": "1",
+                        "select_item_valtext": "1,非常に低い\r\n2,低い\r\n3,通常\r\n4,高い\r\n5,非常に高い"
                     }
                 }
             ]

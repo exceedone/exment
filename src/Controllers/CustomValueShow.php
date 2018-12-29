@@ -54,7 +54,7 @@ trait CustomValueShow
                                     if (ColumnType::isUrl($column_type)) {
                                         return $this->getColumnUrl($column, true);
                                     }
-                                    if ($column_type == ColumnType::EDITOR) {
+                                    if ($column_type == ColumnType::EDITOR || $column_type == ColumnType::TEXTAREA) {
                                         return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $this->getValue($column, true)).'</div>' ?? null;
                                     }
                                     return $this->getValue($column, true);

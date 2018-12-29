@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\CustomTable;
@@ -9,6 +10,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Carbon\Carbon;
@@ -55,29 +57,12 @@ class ScheduleCommand extends Command
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            // get target date number.
-            $before_after_number = intval(array_get($notify->trigger_settings, 'notify_beforeafter'));
-            $notify_day = intval(array_get($notify->trigger_settings, 'notify_day'));
+            list($datalist, $table, $column) = $this->getNotifyTargetDatalist($notify);
 
-            // calc target date
-            $target_date = Carbon::today()->addDay($before_after_number * $notify_day * -1);
-            $target_date_str = $target_date->format('Y-m-d');
-
-            // get target table and column
-            $table = $notify->custom_table;
-            $column = CustomColumn::find(array_get($notify, 'trigger_settings.notify_target_column'));
-
-            // find data. where equal target_date
-            $datalist = getModelName($table)
-                ::where('value->'.$column->column_name, $target_date_str)
-                ->get();
-
-            // send mail
+            // loop data
             foreach ($datalist as $data) {
-                // get user list
-                $value_authoritable_users = AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
-        
-                foreach ($value_authoritable_users as $user) {
+                $users = $this->getNotifyTargetUsers($notify, $data);
+                foreach ($users as $user) {
                     $prms = [
                         'user' => $user,
                         'notify' => $notify,
@@ -121,5 +106,57 @@ class ScheduleCommand extends Command
         \Artisan::call('exment:backup', isset($target) ? ['--target' => $target] : []);
 
         System::backup_automatic_executed($now);
+    }
+
+        
+    /**
+     * get notify target datalist
+     */
+    protected function getNotifyTargetDatalist($notify)
+    {
+        // get target date number.
+        $before_after_number = intval(array_get($notify->trigger_settings, 'notify_beforeafter'));
+        $notify_day = intval(array_get($notify->trigger_settings, 'notify_day'));
+
+        // calc target date
+        $target_date = Carbon::today()->addDay($before_after_number * $notify_day * -1);
+        $target_date_str = $target_date->format('Y-m-d');
+
+        // get target table and column
+        $table = $notify->custom_table;
+        $column = CustomColumn::find(array_get($notify, 'trigger_settings.notify_target_column'));
+
+        // find data. where equal target_date
+        $datalist = getModelName($table)
+            ::where('value->'.$column->column_name, $target_date_str)
+            ->get();
+
+        return [$datalist, $table, $column];
+    }
+        
+    /**
+     * get notify target users
+     */
+    protected function getNotifyTargetUsers($notify, $data)
+    {
+        $notify_action_target = $notify->getActionSetting('notify_action_target');
+        if(!isset($notify_action_target)){
+            return [];
+        }
+
+        // if has_roles, return has permission users
+        if($notify_action_target == NotifyActionTarget::HAS_ROLES){
+            return AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
+        }
+
+        $users = $data->getValue($notify_action_target);
+        if(is_null($users)){
+            return [];
+        }
+        if(!($users instanceof Collection)){
+            $users = collect([$users]);
+        }
+        
+        return $users;
     }
 }
