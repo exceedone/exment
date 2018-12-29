@@ -3,6 +3,8 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;  
+use Exceedone\Exment\Model\CustomValue;
+use Illuminate\Database\Eloquent\Collection;  
 use Illuminate\Support\Facades\Mail;
 use Exception;
 
@@ -54,18 +56,27 @@ class MailSender
         return $this;
     }
     
+    /**
+     * mail TO. support mail address or User model
+     */
     public function to($to)
     {
         $this->to = $to;
         return $this;
     }
     
+    /**
+     * mail CC. support mail address or User model
+     */
     public function cc($cc)
     {
         $this->cc = $cc;
         return $this;
     }
     
+    /**
+     * mail BCC. support mail address or User model
+     */
     public function bcc($bcc)
     {
         $this->bcc = $bcc;
@@ -121,16 +132,30 @@ class MailSender
     protected function sendMail($subject, $body)
     {
         Mail::send([], [], function ($message) use ($subject, $body) {
-            $message->to($this->to)->subject($subject);
-            $message->from(isset($this->from) ? $this->from : System::system_mail_from());
+            $message->to($this->getAddress($this->to))->subject($subject);
+            $message->from(isset($this->from) ? $this->getAddress($this->from) : System::system_mail_from());
             if (count($this->cc) > 0) {
-                $message->cc($this->cc);
+                $message->cc($this->getAddress($this->cc));
             }
             if (count($this->bcc) > 0) {
-                $message->bcc($this->bcc);
+                $message->bcc($this->getAddress($this->bcc));
             }
             // replace \r\n
             $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
         });
+    }
+
+    protected function getAddress($users){
+        if(!($users instanceof Collection) && !is_array($users)){
+            $users = [];
+        }
+        $addresses = [];
+        foreach ($users as $user) {
+            if ($user instanceof CustomValue) {
+                $addresses[] = $user->getValue('email');
+            }
+            $addresses[] = $user;
+        }
+        return count($addresses) == 1 ? $addresses[0] : $addresses;
     }
 }

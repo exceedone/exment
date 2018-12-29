@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Auth;
 
 use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Enums\MailKeyName;
 
 trait CanResetPassword
 {
@@ -24,7 +25,7 @@ trait CanResetPassword
      */
     public function sendPasswordResetNotification($token)
     {
-        MailSender::make('system_reset_password', $this->getEmailForPasswordReset())
+        MailSender::make(MailKeyName::RESET_PASSWORD, $this->getEmailForPasswordReset())
             ->prms([
                 'system.password_reset_url' => admin_url("auth/reset/".$token)
             ])

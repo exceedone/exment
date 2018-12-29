@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyBeforeAfter;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\MailKeyName;
 use DB;
 
 class NotifyController extends AdminControllerBase
@@ -106,7 +107,7 @@ class NotifyController extends AdminControllerBase
                 ;
             $form->select('notify_beforeafter', exmtrans("notify.notify_beforeafter"))
                 ->options(NotifyBeforeAfter::transKeyArray('notify.notify_beforeafter_options'))
-                ->default('-1')
+                ->default(NotifyBeforeAfter::BEFORE)
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_beforeafter"));
                 
@@ -136,13 +137,12 @@ class NotifyController extends AdminControllerBase
                 ->help(exmtrans("notify.help.notify_action_target"));
 
             // get notify mail template
-            $notify_mail_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'system_notify')->first()->id;
+            $notify_mail_id = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::TIME_NOTIFY)->first()->id;
 
             $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
                 return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
             })->help(exmtrans("notify.help.mail_template_id"))
             ->default($notify_mail_id);
-
         })->disableHeader();
         
         disableFormFooter($form);

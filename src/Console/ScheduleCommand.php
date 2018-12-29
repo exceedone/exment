@@ -57,27 +57,7 @@ class ScheduleCommand extends Command
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            list($datalist, $table, $column) = $this->getNotifyTargetDatalist($notify);
-
-            // loop data
-            foreach ($datalist as $data) {
-                $users = $this->getNotifyTargetUsers($notify, $data);
-                foreach ($users as $user) {
-                    $prms = [
-                        'user' => $user,
-                        'notify' => $notify,
-                        'target_table' => $table->table_view_name ?? null,
-                        'notify_target_column_key' => $column->column_view_name ?? null,
-                        'notify_target_column_value' => $data->getValue($column),
-                    ];
-
-                    // send mail
-                    MailSender::make(array_get($notify->action_settings, 'mail_template_id'), $user->getValue('email'))
-                        ->prms($prms)
-                        ->custom_value($data)
-                        ->send();
-                }
-            }
+            $notify->notifyuser();
         }
     }
 
@@ -106,57 +86,5 @@ class ScheduleCommand extends Command
         \Artisan::call('exment:backup', isset($target) ? ['--target' => $target] : []);
 
         System::backup_automatic_executed($now);
-    }
-
-        
-    /**
-     * get notify target datalist
-     */
-    protected function getNotifyTargetDatalist($notify)
-    {
-        // get target date number.
-        $before_after_number = intval(array_get($notify->trigger_settings, 'notify_beforeafter'));
-        $notify_day = intval(array_get($notify->trigger_settings, 'notify_day'));
-
-        // calc target date
-        $target_date = Carbon::today()->addDay($before_after_number * $notify_day * -1);
-        $target_date_str = $target_date->format('Y-m-d');
-
-        // get target table and column
-        $table = $notify->custom_table;
-        $column = CustomColumn::find(array_get($notify, 'trigger_settings.notify_target_column'));
-
-        // find data. where equal target_date
-        $datalist = getModelName($table)
-            ::where('value->'.$column->column_name, $target_date_str)
-            ->get();
-
-        return [$datalist, $table, $column];
-    }
-        
-    /**
-     * get notify target users
-     */
-    protected function getNotifyTargetUsers($notify, $data)
-    {
-        $notify_action_target = $notify->getActionSetting('notify_action_target');
-        if(!isset($notify_action_target)){
-            return [];
-        }
-
-        // if has_roles, return has permission users
-        if($notify_action_target == NotifyActionTarget::HAS_ROLES){
-            return AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
-        }
-
-        $users = $data->getValue($notify_action_target);
-        if(is_null($users)){
-            return [];
-        }
-        if(!($users instanceof Collection)){
-            $users = collect([$users]);
-        }
-        
-        return $users;
     }
 }

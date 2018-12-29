@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class LoginUserController extends AdminControllerBase
@@ -198,7 +199,7 @@ class LoginUserController extends AdminControllerBase
                     $prms['user'] = $user->toArray()['value'];
                     $prms['user']['password'] = $password;
                     //if($is_newuser){
-                    MailSender::make($is_newuser ? 'system_create_user' : 'system_reset_password_admin', $user->value['email'])
+                    MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user->value['email'])
                         ->prms($prms)
                         ->send();
                     //}
