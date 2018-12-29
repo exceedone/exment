@@ -768,6 +768,9 @@ var Exment;
                     else {
                         var filterVal = CommonEvent.getFilterVal($parent, a);
                     }
+                    if (typeof filterVal == "number") {
+                        filterVal = String(filterVal);
+                    }
                     if (isShow) {
                         // nullかどうかのチェックの場合
                         if (a.hasValue) {
@@ -784,13 +787,13 @@ var Exment;
                         }
                         // その値が、a.valueに含まれているか
                         if (a.value) {
-                            var valueArray = !Array.isArray(a.value) ? a.value.split(',') : a.value;
+                            var valueArray = !Array.isArray(a.value) ? a.value.split(',') : String(a.value);
                             if (valueArray.indexOf(filterVal) == -1) {
                                 isShow = false;
                             }
                         }
                         if (a.notValue) {
-                            var valueArray = !Array.isArray(a.notValue) ? a.notValue.split(',') : a.notValue;
+                            var valueArray = !Array.isArray(a.notValue) ? a.notValue.split(',') : String(a.notValue);
                             if (valueArray.indexOf(filterVal) != -1) {
                                 isShow = false;
                             }
@@ -798,7 +801,7 @@ var Exment;
                     }
                     // change readonly attribute
                     if (!isReadOnly && a.readonlyValue) {
-                        var valueArray = !Array.isArray(a.readonlyValue) ? a.readonlyValue.split(',') : a.readonlyValue;
+                        var valueArray = !Array.isArray(a.readonlyValue) ? a.readonlyValue.split(',') : String(a.readonlyValue);
                         if (valueArray.indexOf(filterVal) != -1) {
                             isReadOnly = true;
                         }

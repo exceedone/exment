@@ -9,4 +9,10 @@ class Notify extends ModelBase
     
     protected $guarded = ['id'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
+    
+    public function custom_table()
+    {
+        return $this->belongsTo(CustomTable::class, 'custom_table_id');
+    }
+
 }

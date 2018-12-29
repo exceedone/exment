@@ -729,6 +729,17 @@ if (!function_exists('replaceTextFromFormat')) {
                                     $str = $id;
                                 }
                             }
+                            ///// value_url
+                            elseif ($key == "value_url") {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+
+                                //else, getting url
+                                else {
+                                    $str = $custom_value->getUrl(true) ?? '';
+                                }
+                            }
                             ///// value
                             ///// base_info
                             elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
@@ -742,7 +753,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                 }
                                 // get value from model
                                 elseif (count($length_array) <= 1) {
-                                    $str = '';
+                                    $str = $target_value->getLabel();
                                 } else {
                                     // get comma string from index 1.
                                     $length_array = array_slice($length_array, 1);

@@ -475,7 +475,8 @@ class TemplateImporter
                 $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
                 $obj_table->table_name = $table_name;
                 $obj_table->description = array_get($table, 'description');
-                $obj_table->system_flg = $system_flg;
+                // system flg checks 1. whether import from system, 2. table setting sets 1
+                $obj_table->system_flg = $system_flg && boolval(array_get($table, 'system_flg'));
 
                 // set showlist_flg
                 if (!array_has($table, 'showlist_flg')) {
@@ -515,7 +516,8 @@ class TemplateImporter
                         $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
                         $obj_column->column_name = $column_name;
                         $obj_column->column_type = array_get($column, 'column_type');
-                        $obj_column->system_flg = $system_flg;
+                        // system flg checks 1. whether import from system, 2. table setting sets 1
+                        $obj_column->system_flg = $system_flg && boolval(array_get($table, 'system_flg'));
 
                         ///// set options
                         collect(array_get($column, 'options', []))->each(function ($option, $key) use($obj_column) {

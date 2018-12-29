@@ -148,7 +148,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->command('exment:schedule')->hourlyAt(0);
+            $schedule->command('exment:schedule')->everyMinute();
         });
     }
 
@@ -217,6 +217,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         Initialize::initializeConfig(false);
+        
         Admin::booting(function(){
             Initialize::initializeFormField();
         });

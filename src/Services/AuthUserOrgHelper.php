@@ -1,6 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services;
 
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
@@ -27,16 +28,29 @@ class AuthUserOrgHelper
             return [];
         }
 
-        $target_table = CustomTable::getEloquent($target_table);
-    
-        // get organiztion ids
-        $target_ids = static::getRoleUserOrgId($target_table, SystemTableName::ORGANIZATION);
+        $all = false;
+        if($target_table->allUserAccessable()){
+            $all = true;
+        }
+        else{
+            $target_table = CustomTable::getEloquent($target_table);
+
+            // check request session
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS, $target_table->id);
+            if(is_null($target_ids = System::requestSession($key))){
+                // get organiztion ids
+                $target_ids = static::getRoleUserOrgId($target_table, SystemTableName::ORGANIZATION);
+                System::requestSession($key, $target_ids);
+            }
+        }
 
         // return target values
         if(!isset($builder)){
             $builder = getModelName(SystemTableName::ORGANIZATION)::query();
         }
-        $builder->whereIn('id', $target_ids);
+        if (!$all) {
+            $builder->whereIn('id', $target_ids);
+        }
         return $builder;
     }
     
@@ -52,29 +66,92 @@ class AuthUserOrgHelper
             return [];
         }
         $target_table = CustomTable::getEloquent($target_table);
-    
-        // get user ids
-        $user_ids = static::getRoleUserOrgId($target_table, SystemTableName::USER);
+        
+        $all = false;
+        if($target_table->allUserAccessable()){
+            $all = true;
+        }
+        else{
+            // check request session
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS, $target_table->id);
+            if (is_null($target_ids = System::requestSession($key))) {
+                // get user ids
+                $target_ids = static::getRoleUserOrgId($target_table ?? [], SystemTableName::USER);
 
-        if(System::organization_available()){
-            // and get authoritiable organization
-            $organizations = static::getRoleOrganizationQuery($target_table)
-                ->with('users')
-                ->get() ?? [];
-            foreach($organizations as $organization){
-                foreach($organization->all_related_organizations() as $related_organization){
-                    foreach($related_organization->users as $user){
-                        $user_ids[] = $user->id;
+                if (System::organization_available()) {
+                    // and get authoritiable organization
+                    $organizations = static::getRoleOrganizationQuery($target_table)
+                    ->with('users')
+                    ->get() ?? [];
+                    foreach ($organizations as $organization) {
+                        foreach ($organization->all_related_organizations() as $related_organization) {
+                            foreach ($related_organization->users as $user) {
+                                $target_ids[] = $user->id;
+                            }
+                        }
                     }
                 }
+                System::requestSession($key, $target_ids);
             }
         }
-        
+    
         // return target values
         if (!isset($builder)) {
             $builder = getModelName(SystemTableName::USER)::query();
         }
-        $builder->whereIn('id', $user_ids);
+        if (!$all) {
+            $builder->whereIn('id', $target_ids);
+        }
+        return $builder;
+    }
+
+    /**
+     * get all users who can access custom_value.
+     * *key:custom_value
+     * @return CustomValue users who can access custom_value.
+     */
+    public static function getAllRoleUserQuery($custom_value, &$builder = null){
+        // get custom_value's users
+        $target_ids = [];
+        
+        // check request session
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS, $custom_value->custom_table->id, $custom_value->id);
+        if(is_null($target_ids = System::requestSession($key))){
+            $target_ids = array_merge(
+                $custom_value->value_authoritable_users()->pluck('id')->toArray(),
+                []
+            );
+
+            // get custom_value's organizations
+            if(System::organization_available()){
+                // and get authoritiable organization
+                $organizations = $custom_value->value_authoritable_organizations()
+                    ->with('users')
+                    ->get() ?? [];
+                foreach($organizations as $organization){
+                    foreach($organization->all_related_organizations() as $related_organization){
+                        $target_ids = array_merge(
+                            $related_organization->users()->pluck('id')->toArray(),
+                            $target_ids
+                        );
+                    }
+                }
+            }
+
+            // get custom table's user ids
+            $target_ids = array_merge(
+                static::getRoleUserQuery($custom_value->custom_table)->pluck('id')->toArray(),
+                $target_ids
+            );
+
+            System::requestSession($key, $target_ids);
+        }
+    
+        // return target values
+        if (!isset($builder)) {
+            $builder = getModelName(SystemTableName::USER)::query();
+        }
+        $builder->whereIn('id', $target_ids);
         return $builder;
     }
     

@@ -34,7 +34,7 @@ class CustomValue extends ModelBase
      */
     protected $remove_file_columns = [];
 
-    // user value_authoritable. it's all role data. only filter  morph_type
+    // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
     {
         return $this->morphToMany(getModelName(SystemTableName::USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')

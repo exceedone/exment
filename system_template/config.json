@@ -409,7 +409,6 @@
                     "column_type": "select_valtext",
                     "options": {
                         "required": "1",
-                        "use_label_flg": "1",
                         "index_enabled": "1",
                         "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター",
                         "default": "body"

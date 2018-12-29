@@ -63,6 +63,9 @@ class Define
     public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
     public const SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID = "file_uploaded_uuid";
+    public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";
+    public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS = "table_accessible_users_%s";
+    public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
 
     // Dashboard --------------------------------------------------
     
@@ -167,16 +170,11 @@ class Define
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
-    public const NOTIFY_TRIGGER = [
-        '1' => 'time',
-    ];
     public const NOTIFY_BEFOREAFTER = [
         '-1' => 'before',
         '1'  => 'after',
     ];
-    public const NOTIFY_ACTION = [
-        '1' => 'email',
-    ];
+    
     public const NOTIFY_ACTION_TARGET = [
         'has_roles',
     ];

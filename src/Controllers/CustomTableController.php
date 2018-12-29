@@ -72,51 +72,43 @@ class CustomTableController extends AdminControllerBase
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
         $form->header(exmtrans('common.detail_setting'))->hr();
-        $form->embeds('options', exmtrans("custom_column.options.header"), [function ($form) use ($id) {
-            $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"))->setWidth(9, 3);
-            $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"))->setWidth(9, 3);
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
+            $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
+            $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
             $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
-            ->setWidth(9, 3);
+            ;
             $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))
                 ->help(exmtrans("custom_table.help.one_record_flg"))
                 ->default("0")
-                ->setWidth(9, 3);
+                ;
+
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
                 ->default("1")
-                ->setWidth(9, 3);
-        }, function ($form) use ($id) {
+                ;
+            
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
                 ->default("1")
                 ->attribute(['data-filtertrigger' =>true])
-                ->setWidth(9, 3)
                 ;
             $form->number('revision_count', exmtrans("custom_table.revision_count"))->help(exmtrans("custom_table.help.revision_count"))
                 ->min(0)
                 ->max(500)
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
-                ->setWidth(9, 3)
                 ;
                 
             $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
                 ->default("0")
-                ->setWidth(9, 3)
             ;
             
             $form->switchbool('all_user_viewable_flg', exmtrans("custom_table.all_user_viewable_flg"))->help(exmtrans("custom_table.help.all_user_viewable_flg"))
                 ->default("0")
-                ->setWidth(9, 3)
             ;
             
             $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
                 ->default("0")
-                ->setWidth(9, 3)
             ;
-            // $form->switchbool('notify_flg', exmtrans("custom_table.notify_flg"))->help(exmtrans("custom_table.help.notify_flg"))
-            //     ->default("0")
-            //     ->setWidth(9, 3)
-            //     ;
-        }])->disableHeader();
+        })->disableHeader();
 
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);

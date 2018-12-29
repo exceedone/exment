@@ -123,7 +123,7 @@ trait CustomTableTrait
     }
 
     /**
-     * whether has permission. target is table
+     * whether login user has permission. target is table
      */
     public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE){
         // if system doesn't use role, return true
@@ -162,7 +162,7 @@ trait CustomTableTrait
     }
     
     /**
-     * Whether user has permission about target id data.
+     * Whether login user has permission about target id data.
      */
     public function hasPermissionData($id)
     {
@@ -170,13 +170,16 @@ trait CustomTableTrait
     }
 
     /**
-     * Whether user has edit permission about target id data.
+     * Whether login user has edit permission about target id data.
      */
     public function hasPermissionEditData($id)
     {
         return $this->_hasPermissionData($id, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
+    /**
+     * Whether login user has permission about target id data. (protected function)
+     */
     protected function _hasPermissionData($id, $role){
         // if system doesn't use role, return true
         if (!System::permission_available()) {
@@ -226,6 +229,15 @@ trait CustomTableTrait
 
         // else, return false.
         return false;
+    }
+
+    /**
+     * 
+     */
+    public function allUserAccessable(){
+        return boolval($this->getOption('all_user_editable_flg'))
+            || boolval($this->getOption('all_user_viewable_flg'))
+            || boolval($this->getOption('all_user_accessable_flg'));
     }
 
     /**

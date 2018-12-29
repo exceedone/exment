@@ -18,6 +18,7 @@ class MailSender
 
     protected $mail_template;
     protected $prms;
+    protected $custom_value;
     
     public function __construct($mail_name, $to)
     {
@@ -70,6 +71,12 @@ class MailSender
         $this->bcc = $bcc;
         return $this;
     }
+
+    public function custom_value($custom_value)
+    {
+        $this->custom_value = $custom_value;
+        return $this;
+    }
     
     public function prms($prms)
     {
@@ -94,7 +101,7 @@ class MailSender
      */
     protected function replaceWord(string $target)
     {
-        $target = replaceTextFromFormat($target, null, [
+        $target = replaceTextFromFormat($target, $this->custom_value, [
             'matchBeforeCallback' => function($length_array, $matchKey, $format, $custom_value, $options){
                 // if has prms using $match, return value
                 $matchKey = str_replace(":", ".", $matchKey);
