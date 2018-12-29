@@ -6,6 +6,13 @@ use MyCLabs\Enum\Enum;
 
 class EnumBase extends Enum
 {
+    /**
+     * get lower key Name
+     */
+    public function lowerKey(){
+        return strtolower($this->getKey());
+    }
+    
     public function toString(){
         return $this->__toString();
     }
@@ -36,7 +43,7 @@ class EnumBase extends Enum
      * convert trans. use enum key (and convert key snake_case)
      */
     public function transKey($base_key, $isExment = true){
-        $key = $base_key.'.'.strtolower($this->getKey());
+        $key = $base_key.'.'.$this->name();
         if($isExment){
             return exmtrans($key);
         }
@@ -59,6 +66,6 @@ class EnumBase extends Enum
                 return $enum;
             }
         }
-        return $enum;
+        return null;
     }
 }

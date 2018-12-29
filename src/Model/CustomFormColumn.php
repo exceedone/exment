@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Database\Eloquent\Builder;
 
 class CustomFormColumn extends ModelBase
@@ -43,17 +44,13 @@ class CustomFormColumn extends ModelBase
     
     protected function getFormColumnTargetAttribute(){
         if($this->form_column_target_id == FormColumnType::SYSTEM){
-            return collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) {
-                return array_get($value, 'id') == $this->form_column_target_id;
-            })['name'] ?? null;
+            return SystemColumn::getOption(['id' => $this->form_column_target_id])['name'] ?? null;
         }
         elseif($this->form_column_target_id == FormColumnType::COLUMN){
             return $this->view_column_target_id;
         }
         elseif($this->form_column_target_id == FormColumnType::OTHER){
-            return collect(FormColumnType::OTHER_TYPE())->first(function ($value) {
-                return array_get($value, 'id') == $this->form_column_target_id;
-            })['column_name'] ?? null;
+            $form_column_obj = FormColumnType::getOption(['id' => $this->form_column_target_id])['column_name'] ?? null;
         }
         return null;
     }

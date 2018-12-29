@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 
 trait CustomValueForm
 {
@@ -226,11 +227,7 @@ EOT;
                     if (!isset($id)) {
                         break;
                     }
-                    $form_column_obj = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($option) use ($form_column) {
-                        return array_get($option, 'id') == array_get($form_column, 'form_column_target_id');
-                    }) ?? [];
-                    // get form column name
-                    $form_column_name = array_get($form_column_obj, 'name');
+                    $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
                     $column_view_name =  exmtrans("common.".$form_column_name);
                     // get model. we can get model is id almost has.
                     $model = $this->getModelNameDV()::find($id);
@@ -240,8 +237,8 @@ EOT;
                     break;
                 case FormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(FormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
-                    switch (array_get($form_column_obj, 'column_name')) {
+                    $form_column_name = FormColumnType::getOption(['id' => $form_column->form_column_target_id])['column_name'] ?? null;
+                    switch ($form_column_name) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
                             $field->hr();
@@ -289,11 +286,7 @@ EOT;
                     if (!isset($id)) {
                         break;
                     }
-                    $form_column_obj = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($option) use ($form_column) {
-                        return array_get($option, 'id') == array_get($form_column, 'form_column_target_id');
-                    }) ?? [];
-                    // get form column name
-                    $form_column_name = array_get($form_column_obj, 'name');
+                    $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
                     $column_view_name =  exmtrans("common.".$form_column_name);
                     // get model. we can get model is id almost has.
                     $model = $this->getModelNameDV()::find($id);
@@ -302,8 +295,8 @@ EOT;
                     break;
                 case FormColumnType::OTHER:
                     $options = [];
-                    $form_column_obj = array_get(FormColumnType::OTHER_TYPE(), $form_column->form_column_target_id);
-                    switch (array_get($form_column_obj, 'column_name')) {
+                    $form_column_name = FormColumnType::getOption(['id' => $form_column->form_column_target_id])['column_name'] ?? null;
+                    switch ($form_column_name) {
                         case 'header':
                             $field = new ExmentField\Header(array_get($form_column_options, 'text'));
                             $field->hr();

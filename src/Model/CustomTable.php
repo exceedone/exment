@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\DB;
@@ -502,11 +503,7 @@ class CustomTable extends ModelBase
         $options = [];
         
         ///// get system columns
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
-            // not header, continue
-            if (!boolval(array_get($option, 'header'))) {
-                continue;
-            }
+        foreach(SystemColumn::getOptions(['header' => true]) as $option){
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
@@ -526,11 +523,7 @@ class CustomTable extends ModelBase
             $options[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
         }
         ///// get system columns
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $option) {
-            // not footer, continue
-            if (!boolval(array_get($option, 'footer'))) {
-                continue;
-            }
+        foreach(SystemColumn::getOptions(['footer' => true]) as $option){
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 

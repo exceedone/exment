@@ -57,7 +57,7 @@ class ScheduleCommand extends Command
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            $notify->notifyuser();
+            $notify->notifyUser();
         }
     }
 

@@ -67,6 +67,27 @@ class Notify extends ModelBase
     }
     
     /**
+     * notify_create_update_user
+     */
+    public function notifyCreateUpdateUser($data){
+        // loop data
+        $users = $this->getNotifyTargetUsers($data);
+        foreach ($users as $user) {
+            $prms = [
+                'user' => $user,
+                'notify' => $this,
+                'target_table' => $table->table_view_name ?? null,
+            ];
+
+            // send mail
+            MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user->getValue('email'))
+                ->prms($prms)
+                ->custom_value($data)
+                ->send();
+        }
+    }
+    
+    /**
      * get notify target datalist
      */
     protected function getNotifyTargetDatalist()

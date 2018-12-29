@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -225,16 +226,12 @@ class CustomFormController extends AdminControllerTableBase
                         
                     case FormColumnType::SYSTEM:
                         // get column name
-                        $column_form_column_array = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($option) use ($custom_form_column) {
-                            return array_get($option, 'id') == array_get($custom_form_column, 'form_column_target_id');
-                        }) ?? [];
-                        $column_form_column_name = array_get($column_form_column_array, 'name');
-                        $column_view_name =  exmtrans("common.".array_get($column_form_column_array, 'name'));
+                        $column_form_column_name = SystemColumn::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['name'] ?? null;
+                        $column_view_name =  exmtrans("common.".$column_form_column_name);
                         break;
                     default:
                         // get column name
-                        $column_form_column_array = array_get(FormColumnType::OTHER_TYPE(), array_get($custom_form_column, 'form_column_target_id'));
-                        $column_form_column_name = array_get($column_form_column_array, 'column_name');
+                        $column_form_column_name = FormColumnType::getOption(['id' => array_get($custom_form_column, 'form_column_target_id')])['column_name'] ?? null;
                         $column_view_name = exmtrans("custom_form.form_column_type_other_options.$column_form_column_name");
                         break;
                 }
@@ -346,13 +343,9 @@ class CustomFormController extends AdminControllerTableBase
             $custom_form_columns = [];
             
             // set VIEW_COLUMN_SYSTEM_OPTIONS as header and footer
-            $system_columns_header = collect(ViewColumnType::SYSTEM_OPTIONS())->filter(function ($option) {
-                return array_key_value_exists('header', $option);
-            });
-            $system_columns_footer = collect(ViewColumnType::SYSTEM_OPTIONS())->filter(function ($option) {
-                return array_key_value_exists('footer', $option);
-            });
-            
+            $system_columns_header = SystemColumn::getOptions(['header' => $option]) ?? [];
+            $system_columns_footer = SystemColumn::getOptions(['footer' => $option]) ?? [];
+
             $loops = [
                 ['form_column_type' => FormColumnType::SYSTEM , 'columns' => $system_columns_header],
                 ['form_column_type' => FormColumnType::COLUMN , 'columns' => $custom_columns],
@@ -425,7 +418,7 @@ class CustomFormController extends AdminControllerTableBase
 
         // set free html
         $custom_form_columns  = [];
-        foreach (FormColumnType::OTHER_TYPE() as $id => $type) {
+        foreach (FormColumnType::getOptions() as $id => $type) {
             $header_column_name = '[custom_form_columns][NEW__'.make_uuid().']';
             array_push($custom_form_columns, [
                 'id' => null,

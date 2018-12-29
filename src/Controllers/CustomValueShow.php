@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
@@ -61,11 +62,7 @@ trait CustomValueShow
                                 })->setEscape(!$isEscape);
                                 break;
                             case FormColumnType::SYSTEM:
-                                $form_column_obj = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column) {
-                                    return $item['id'] == array_get($form_column, 'form_column_target_id');
-                                });
-                                // get form column name
-                                $form_column_name = array_get($form_column_obj, 'name');
+                                $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
                                 $column_view_name =  exmtrans("common.".$form_column_name);
                                 $show->field($form_column_name, $column_view_name)->as(function ($v) use ($form_column_name) {
                                     return array_get($this, $form_column_name);

@@ -109,7 +109,7 @@ return [
 
     'dashboard' => [
         'header' => 'ダッシュボード',
-        'dashboard_name' => 'ダッシュボード名',
+        'dashboard_name' => 'ダッシュボード名(英数字)',
         'dashboard_view_name' => 'ダッシュボード表示名',
         'row' => 'ダッシュボード%s行目',
         'description_row' => 'ダッシュボードの%s行目に表示する列数です。',
@@ -154,8 +154,8 @@ return [
         'upload_header' => 'プラグインアップロード',
         'extension' => 'ファイル形式：zip',
         'uuid' => 'プラグインID',
-        'plugin_name' => 'プラグイン名',
-        'plugin_view_name' => '表示名',
+        'plugin_name' => 'プラグイン名(英数字)',
+        'plugin_view_name' => 'プラグイン表示名',
         'plugin_type' => '種類',
         'author' => '作者',
         'version' => 'バージョン',
@@ -298,7 +298,7 @@ return [
         'header' => 'カスタムテーブル設定',
         'description' => '独自に変更できるカスタムテーブルの設定を行います。',
         'table' => 'テーブル',
-        'table_name' => 'テーブル名',
+        'table_name' => 'テーブル名(英数字)',
         'table_view_name' => 'テーブル表示名',
         'field_description' => '説明',
         'color' => '色',
@@ -338,7 +338,7 @@ return [
     'custom_column' => [
         'header' => 'カスタム列詳細設定',
         'description' => 'カスタム列ごとの詳細設定を行います。列の必須項目、検索可能フィールドなどを定義します。',
-        'column_name' => '列名',
+        'column_name' => '列名(英数字)',
         'column_view_name' => '列表示名',
         'column_type' => '列種類',
         'options' => [
@@ -567,7 +567,7 @@ return [
     'role' => [
         'header' => '役割設定',
         'description' => '役割の設定を行います。役割は複数の権限を持ち、ユーザーのアクセス制御を行います。',
-        'role_name' => '役割名',
+        'role_name' => '役割名(英数字)',
         'role_view_name' => '役割表示名',
         'role_type' => '役割の種類',
         'default_flg' => '既定の役割',
@@ -664,7 +664,7 @@ return [
     'menu' => [
         'menu_type' => 'メニュー種類',
         'menu_target' => '対象',
-        'menu_name' => 'メニュー名',
+        'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',
         'menu_type_options' => [
             'system' => 'システムメニュー',
@@ -698,7 +698,7 @@ return [
     'mail_template' => [
         'header' => 'メールテンプレート設定',
         'description' => 'メール送信時のメッセージの本文などを管理します。',
-        'mail_key_name' => 'メールキー名',
+        'mail_key_name' => 'メールキー名(英数字)',
         'mail_view_name' => 'メール表示名',
         'mail_subject' => 'メール件名',
         'mail_body' => 'メール本文',
@@ -724,7 +724,7 @@ return [
         'description' => 'Exmentのテーブル、列、フォーム情報をインポート、またはエクスポートします。',
         'description_export' => 'システムに登録している、テーブル・列・フォーム情報をエクスポートします。このテンプレートファイルは、他のシステムでインポートすることができます。',
         'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />以下の3つの項目から、1つを選択し、実施してください。',
-        'template_name' => 'テンプレート名',
+        'template_name' => 'テンプレート名(英数字)',
         'template_view_name' => 'テンプレート表示名',
         'form_description' => 'テンプレート説明文',
         'thumbnail' => 'サムネイル',

@@ -29,6 +29,7 @@ use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\DataImportExport\CsvImporter;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
@@ -742,16 +743,10 @@ class TemplateImporter
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
                                         break;
                                     case FormColumnType::SYSTEM:
-                                        $form_column_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column_name) {
-                                            return $item['name'] == $form_column_name;
-                                        });
-                                        $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
+                                        $form_column_target_id = SystemColumn::getOption(['name' => $form_column_name])['id'] ?? null;
                                         break;
                                     default:
-                                        $form_column_target = collect(FormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_name) {
-                                            return $item['column_name'] == $form_column_name;
-                                        });
-                                        $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
+                                        $form_column_target_id = $form_column_obj = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
                                         break;
                                 }
 
@@ -1218,9 +1213,7 @@ class TemplateImporter
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
                     return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
                 } 
-                return collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($column_name) {
-                    return $item['name'] == $column_name;
-                })[$returnNumber ? 'id' : 'name'] ?? null;
+                return SystemColumn::getOption(['name' => $option])[$returnNumber ? 'id' : 'name'];
         }
         return null;
     }

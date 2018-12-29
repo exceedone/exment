@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\SystemColumn;
 use Carbon\Carbon;
 
 
@@ -220,9 +221,7 @@ class CustomView extends ModelBase
                         }
                     } else {
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                        $name = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use ($custom_view_column) {
-                            return array_get($value, 'name') == array_get($custom_view_column, 'view_column_target');
-                        })['name'] ?? null;
+                        $name = SystemColumn::getEnum(array_get($custom_view_column, 'view_column_target'))->name() ?? null;
                         if (isset($name)) {
                             $body_items[] = esc_html(array_get($data, $name));
                         }
@@ -318,11 +317,7 @@ class CustomView extends ModelBase
     {
         $view_columns = [];
         // set default view_column
-        foreach (ViewColumnType::SYSTEM_OPTIONS() as $view_column_system) {
-            // if not default, continue
-            if (!boolval(array_get($view_column_system, 'default'))) {
-                continue;
-            }
+        foreach (SystemColumn::getOptions(['default' => true]) as $view_column_system) {
             $view_column = new CustomViewColumn;
             $view_column->custom_view_id = $this->id;
             $view_column->view_column_target = array_get($view_column_system, 'name');

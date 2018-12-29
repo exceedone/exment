@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model\Traits;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 
 trait CustomViewColumnTrait
 {
@@ -30,9 +31,7 @@ trait CustomViewColumnTrait
         }
         if($this->{$column_type_key} == ViewColumnType::SYSTEM){
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-            return collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use($column_type_target_key) {
-                return array_get($value, 'id') == $this->{$column_type_target_key};
-            })['name'] ?? null;
+            return SystemColumn::getOption(['id' => $this->{$column_type_target_key}])['name'] ?? null;
         }
         elseif($this->{$column_type_key} == ViewColumnType::PARENT_ID){
             return 'parent_id';
@@ -60,9 +59,7 @@ trait CustomViewColumnTrait
                 $this->{$column_type_target_key} = $items[1];
             } else {
                 $this->{$column_type_key} = ViewColumnType::SYSTEM;
-                $this->{$column_type_target_key} = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use ($view_column_target) {
-                    return array_get($value, 'name') == $view_column_target;
-                })['id'] ?? null;
+                $this->{$column_type_target_key} = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;
             }
         } else {
             $this->{$column_type_key} = ViewColumnType::COLUMN;

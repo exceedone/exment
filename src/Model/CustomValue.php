@@ -4,6 +4,23 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
+use Encore\Admin\Facades\Admin;
+
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Console\Command;
+use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Carbon\Carbon;
 
 class CustomValue extends ModelBase
 {
@@ -16,6 +33,12 @@ class CustomValue extends ModelBase
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
+    /**
+     * remove_file_columns.
+     * default flow, if file column is empty, set original value.
+     */
+    protected $remove_file_columns = [];
+
     
     public function getLabelAttribute()
     {
@@ -26,12 +49,6 @@ class CustomValue extends ModelBase
     {
         return CustomTable::findByDBTableName($this->getTable());
     }
-
-    /**
-     * remove_file_columns.
-     * default flow, if file column is empty, set original value.
-     */
-    protected $remove_file_columns = [];
 
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
@@ -81,6 +98,8 @@ class CustomValue extends ModelBase
         static::saved(function ($model) {
             // set auto format
             static::setAutoNumber($model);
+            // send notify
+            static::notify($model);
         });
         
         static::deleting(function ($model) {
@@ -195,6 +214,20 @@ class CustomValue extends ModelBase
         if ($update_flg) {
             $model->save();
         }
+    }
+
+    
+    // notify user --------------------------------------------------
+    protected static function notify($model)
+    {
+        $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
+            ->get();
+
+        // loop for $notifies
+        foreach ($notifies as $notify) {
+            $notify->notifyUser();
+        }
+
     }
 
     /**
