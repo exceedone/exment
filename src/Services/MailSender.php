@@ -20,7 +20,7 @@ class MailSender
     protected $prms;
     protected $custom_value;
     
-    public function __construct($mail_name, $to)
+    public function __construct($mail_key_name, $to)
     {
         $this->from = null;
         $this->to = $to;
@@ -29,21 +29,21 @@ class MailSender
         $this->prms = [];
 
         // get mail template
-        if (is_numeric($mail_name)) {
-            $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_name);
+        if (is_numeric($mail_key_name)) {
+            $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_key_name);
         } else {
             $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
-                ::where('value->mail_name', $mail_name)->first();
+                ::where('value->mail_key_name', $mail_key_name)->first();
         }
         // if not found, return exception
         if (is_null($this->mail_template)) {
-            throw new Exception("No MailTemplate. Please set mail template. mail_template:$mail_name");
+            throw new Exception("No MailTemplate. Please set mail template. mail_template:$mail_key_name");
         }
     }
 
-    public static function make($mail_name, $to)
+    public static function make($mail_key_name, $to)
     {
-        $sender = new MailSender($mail_name, $to);
+        $sender = new MailSender($mail_key_name, $to);
         
         return $sender;
     }

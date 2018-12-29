@@ -6,5 +6,5 @@ class MailTemplate extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
-    protected $guarded = ['id', 'mail_name'];
+    protected $guarded = ['id', 'mail_key_name'];
 }

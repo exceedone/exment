@@ -1,4 +1,4 @@
-id,suuid,parent_id,parent_type,value.mail_name,value.mail_view_name,value.mail_template_type,value.mail_subject,value.mail_body,created_at,updated_at,deleted_at
+id,suuid,parent_id,parent_type,value.mail_key_name,value.mail_view_name,value.mail_template_type,value.mail_subject,value.mail_body,created_at,updated_at,deleted_at
 ID,内部ID(20桁),親データのID,親データのテーブル名,メールキー名,メール表示名,テンプレート種類,メール件名,メール本文,作成日時,更新日時,削除日時
 1,,,,system_create_user,ユーザー新規登録,body,[${system:site_name}]ユーザー新規登録,${user:user_name}様\nシステム管理者により、あなたのアカウントが新規追加されました。ユーザー情報をご確認ください。\n\nユーザーコード:${user:user_code}\nメールアドレス:${user:email}\nパスワード:${user:password}\n※セキュリティ向上の為、ログイン後、パスワードを変更することをおすすめします。\n\n${system:site_name}は、こちらからログインできます。\n${system:login_url},,,
 2,,,,system_reset_password,パスワードリセット,body,[${system:site_name}]パスワードリセット,パスワードリセットを行います。下記のURLより、パスワードを再登録してください。\n\n${system:password_reset_url},,,

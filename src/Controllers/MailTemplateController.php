@@ -27,7 +27,7 @@ class MailTemplateController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new MailTemplate);
-        $grid->column('mail_name', exmtrans("mail_template.mail_name"));
+        $grid->column('mail_key_name', exmtrans("mail_template.mail_key_name"));
         $grid->column('mail_view_name', exmtrans("mail_template.mail_view_name"));
 
         $grid->disableExport();
@@ -49,13 +49,13 @@ class MailTemplateController extends AdminControllerBase
     {
         $form = new Form(new MailTemplate);
         if (!isset($id)) {
-            $form->text('mail_name', exmtrans("mail_template.mail_name"))
+            $form->text('mail_key_name', exmtrans("mail_template.mail_key_name"))
                 ->required()
                 ->rules("unique:".MailTemplate::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
-                ->help(exmtrans("mail_template.help.mail_name").exmtrans("common.help_code"));
+                ->help(exmtrans("mail_template.help.mail_key_name").exmtrans("common.help_code"));
         } else {
-            $form->display('mail_name', exmtrans("mail_template.mail_name"))
-            ->help(exmtrans("mail_template.help.mail_name"));
+            $form->display('mail_key_name', exmtrans("mail_template.mail_key_name"))
+            ->help(exmtrans("mail_template.help.mail_key_name"));
         }
 
         // get manual url abou mail temlate valiable value

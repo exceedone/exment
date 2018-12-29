@@ -698,13 +698,13 @@ return [
     'mail_template' => [
         'header' => 'メールテンプレート設定',
         'description' => 'メール送信時のメッセージの本文などを管理します。',
-        'mail_name' => 'メールキー名',
+        'mail_key_name' => 'メールキー名',
         'mail_view_name' => 'メール表示名',
         'mail_subject' => 'メール件名',
         'mail_body' => 'メール本文',
         'mail_template_type' => 'テンプレート種類',
         'help' =>[
-            'mail_name' => 'システム上で、メールテンプレートを一意に判別するためのキー名です。',
+            'mail_key_name' => 'システム上で、メールテンプレートを一意に判別するためのキー名です。',
             'mail_view_name' => '一覧画面で表示する、テンプレート名称です。',    
             'mail_subject' => '送付するメールの件名を入力します。変数を利用できます。',
             'mail_body' => '送付するメールの本文を入力します。変数を利用できます。',    

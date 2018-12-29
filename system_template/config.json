@@ -302,7 +302,7 @@
             },
             "custom_columns": [
                 {
-                    "column_name": "mail_name",
+                    "column_name": "mail_key_name",
                     "column_view_name": "メールキー名",
                     "column_type": "text",
                     "options": {
@@ -457,7 +457,7 @@
                         {
                             "form_column_type": "0",
                             "options": null,
-                            "form_column_target_name": "mail_name"
+                            "form_column_target_name": "mail_key_name"
                         },
                         {
                             "form_column_type": "0",
@@ -663,7 +663,7 @@
 			"custom_view_columns": [
 				{
 					"order": "1",
-					"view_column_target_name": "mail_name",
+					"view_column_target_name": "mail_key_name",
 					"view_column_type": 0
 				},
 				{

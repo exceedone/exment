@@ -697,13 +697,13 @@ return [
     'mail_template' => [
         'header' => 'Mail Template Setting',
         'description' => 'Define mail subject, body, etc.',
-        'mail_name' => 'Mail Key Name',
+        'mail_key_name' => 'Mail Key Name',
         'mail_view_name' => 'Mail View Name',
         'mail_subject' => 'Mail Subject',
         'mail_body' => 'Mail Body',
         'mail_template_type' => 'Template Type',
         'help' =>[
-            'mail_name' => 'A key name for uniquely identifying a mail template on the system.',
+            'mail_key_name' => 'A key name for uniquely identifying a mail template on the system.',
             'mail_view_name' => 'The template name displayed on the list screen.',    
             'mail_subject' => 'Enter the subject of the mail to be sent. Variables can be used.',
             'mail_body' => 'Enter the body of the mail to be sent. Variables can be used.',    
