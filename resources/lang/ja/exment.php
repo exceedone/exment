@@ -19,6 +19,8 @@ return [
         'suuid' => '内部ID(20桁)',
         'parent_id' => '親データのID',
         'parent_type' => '親データのテーブル名',
+        'created' => '新規作成',
+        'updated' => '更新', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
@@ -814,7 +816,8 @@ return [
         ],
 
         'notify_trigger_options' => [
-            'time' => '時間の経過'
+            'time' => '時間の経過',
+            'create_update_data' => 'データ新規作成・更新',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 

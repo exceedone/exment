@@ -491,6 +491,7 @@ abstract class DataImporterBase
     {
         switch ($format) {
             case 'excel':
+            case 'xlsx':
                 return new ExcelImporter($custom_table);
             default:
                 return new CsvImporter($custom_table);

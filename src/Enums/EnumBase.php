@@ -43,7 +43,7 @@ class EnumBase extends Enum
      * convert trans. use enum key (and convert key snake_case)
      */
     public function transKey($base_key, $isExment = true){
-        $key = $base_key.'.'.$this->name();
+        $key = $base_key.'.'.$this->lowerKey();
         if($isExment){
             return exmtrans($key);
         }

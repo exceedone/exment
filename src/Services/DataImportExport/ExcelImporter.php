@@ -13,8 +13,16 @@ class ExcelImporter extends DataImporterBase
      */
     protected function getDataTable($request)
     {
+        // get file
+        if(is_string($request)){
+            $path = $request;
+        }else{
+            $file = $request->file('custom_table_file');
+            $path = $file->getRealPath();
+        }
+        
         $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($request->file('custom_table_file')->getRealPath());
+        $spreadsheet = $reader->load($path);
 
         // first, get custom_table sheet list
         $sheet = $spreadsheet->getSheetByName($this->custom_table->table_name);

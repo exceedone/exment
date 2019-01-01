@@ -1,6 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services;
 
+use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;  
 use Exceedone\Exment\Model\CustomValue;
@@ -101,10 +102,41 @@ class MailSender
      */
     public function send()
     {
+        // get subject
+        $subject = $this->replaceWord($this->mail_template->getValue('mail_subject'));
+
+        ///// get body using header and footer
+        $header = $this->getHeaderFooter(MailTemplateType::HEADER);
+        $body = $this->replaceWord($this->mail_template->getValue('mail_body'));
+        $footer = $this->getHeaderFooter(MailTemplateType::FOOTER);
+
+        // total body
+        $mail_bodies = [];
+        if(isset($header)){
+            $mail_bodies[]  = $header;
+        }
+        $mail_bodies[]  = $body;
+        if(isset($footer)){
+            $mail_bodies[]  = $footer;
+        }
+
+        // get header
         $this->sendMail(
-            $this->replaceWord($this->mail_template->getValue('mail_subject')),
-            $this->replaceWord($this->mail_template->getValue('mail_body'))
+            $subject,
+            implode("\n\n", $mail_bodies)
         );
+    }
+
+    /**
+     * get mail template type
+     */
+    protected function getHeaderFooter($mailTemplateType){
+        $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
+            ::where('value->mail_template_type', $mailTemplateType)->first();
+        if(!isset($mail_template)){
+            return null;
+        }
+        return $this->replaceWord($mail_template->getValue('mail_body'));
     }
 
     /**
@@ -147,14 +179,15 @@ class MailSender
 
     protected function getAddress($users){
         if(!($users instanceof Collection) && !is_array($users)){
-            $users = [];
+            $users = [$users];
         }
         $addresses = [];
         foreach ($users as $user) {
             if ($user instanceof CustomValue) {
                 $addresses[] = $user->getValue('email');
+            }else{
+                $addresses[] = $user;
             }
-            $addresses[] = $user;
         }
         return count($addresses) == 1 ? $addresses[0] : $addresses;
     }

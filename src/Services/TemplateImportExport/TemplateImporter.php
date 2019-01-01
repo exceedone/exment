@@ -30,7 +30,7 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Services\DataImportExport\CsvImporter;
+use Exceedone\Exment\Services\DataImportExport\DataImporterBase;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
@@ -441,24 +441,25 @@ class TemplateImporter
     }
 
     /**
-     * import data using csv
+     * import data using csv, xlsx
      */
     public static function importData($dataPath){
         // get all csv files
         $files = collect(\File::files($dataPath))->filter(function($value){
-            return pathinfo($value)['extension'] == 'csv';
+            return in_array(pathinfo($value)['extension'], ['csv', 'xlsx']);
         });
         
         // loop csv file
         foreach($files as $file){
-            $table_name = $file->getBasename('.csv');
+            $table_name = file_ext_strip($file->getBasename());
+            $format = file_ext($file->getBasename());
             $custom_table = CustomTable::getEloquent($table_name);
             if(!isset($custom_table)){
                 continue;
             }
 
             // execute import
-            $importer = new CsvImporter($custom_table);
+            $importer = DataImporterBase::getModel($custom_table, $format);
             $importer->import($file->getRealPath());
         }
     }
@@ -1213,7 +1214,7 @@ class TemplateImporter
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
                     return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
                 } 
-                return SystemColumn::getOption(['name' => $option])[$returnNumber ? 'id' : 'name'];
+                return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
         }
         return null;
     }

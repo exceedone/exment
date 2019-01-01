@@ -19,6 +19,8 @@ return [
         'suuid' => 'System ID(20-length)',
         'parent_id' => 'Parent Data ID',
         'parent_type' => 'Parent Data Table Name',
+        'created' => 'Created',
+        'updated' => 'Updated',  
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',  
         'deleted_at' => 'Deleted At',      

@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Carbon\Carbon;
@@ -69,7 +70,7 @@ class Notify extends ModelBase
     /**
      * notify_create_update_user
      */
-    public function notifyCreateUpdateUser($data){
+    public function notifyCreateUpdateUser($data, $create = true){
         // loop data
         $users = $this->getNotifyTargetUsers($data);
         foreach ($users as $user) {
@@ -77,10 +78,11 @@ class Notify extends ModelBase
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $table->table_view_name ?? null,
+                'create_or_update' => $create ? exmtrans('common.created') : exmtrans('common.updated')
             ];
 
             // send mail
-            MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user->getValue('email'))
+            MailSender::make(MailKeyName::DATA_SAVED_NOTIFY, $user)
                 ->prms($prms)
                 ->custom_value($data)
                 ->send();

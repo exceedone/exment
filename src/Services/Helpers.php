@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -689,6 +690,7 @@ if (!function_exists('replaceTextFromFormat')) {
                         $length_array = explode(":", $targetFormat);
                         $key = $length_array[0];
                         
+                        $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
                         // define date array
                         $dateStrings = [
                             'ymdhms' => 'YmdHis',
@@ -721,12 +723,16 @@ if (!function_exists('replaceTextFromFormat')) {
 
                         ///// id
                         if (!$callbacked) {
-                            if ($key == "id") {
-                                // replace add zero using id.
-                                if (count($length_array) > 1) {
-                                    $str = sprintf('%0'.$length_array[1].'d', $id);
-                                } else {
-                                    $str = $id;
+                            if (in_array($key, $systemValues)) {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+                                //else, get system value
+                                else{
+                                    $str = $custom_value->{$key};
+                                    if (count($length_array) > 1) {
+                                        $str = sprintf('%0'.$length_array[1].'d', $str);
+                                    }
                                 }
                             }
                             ///// value_url
@@ -825,12 +831,11 @@ if (!function_exists('replaceTextFromFormat')) {
                                     if (System::hasFunction($key_system)) {
                                         $str = System::{$key_system}();
                                     }
-                    
                                     // get static value
-                                    if ($key_system == "login_url") {
+                                    elseif ($key_system == "login_url") {
                                         $str = admin_url("auth/login");
                                     }
-                                    if ($key_system == "system_url") {
+                                    elseif ($key_system == "system_url") {
                                         $str = admin_url("");
                                     }
                                 }

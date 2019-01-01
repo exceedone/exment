@@ -1,11 +1,11 @@
 <?php
 
 namespace Exceedone\Exment\Services\DataImportExport;
+use PhpOffice\PhpSpreadsheet\Reader\Csv;
 
 class CsvImporter extends DataImporterBase
 {
     protected $accept_extension = 'csv,zip';
-
 
     protected function getDataTable($request)
     {
@@ -46,7 +46,7 @@ class CsvImporter extends DataImporterBase
                 if($this->custom_table->table_name == $csvfile->getBasename('.csv')){
                     $datalist[$this->custom_table->table_name] = [
                         'custom_table' => $this->custom_table,
-                        'data' => array_map('str_getcsv', file($csvfile->getRealPath())),
+                        'data' => $this->getCsvArray($csvfile->getRealPath()),
                     ];
                     continue;
                 }
@@ -58,7 +58,7 @@ class CsvImporter extends DataImporterBase
                         $datalist[$sheetName] = [
                             'custom_table' => $relation->child_custom_table,
                             'relation' => $relation,
-                            'data' => array_map('str_getcsv', file($csvfile->getRealPath())),
+                            'data' => $this->getCsvArray($csvfile->getRealPath()),
                         ];
                         continue;
                     }
@@ -73,10 +73,18 @@ class CsvImporter extends DataImporterBase
         }else{
             $datalist[$this->custom_table->table_name] = [
                 'custom_table' => $this->custom_table,
-                'data' => array_map('str_getcsv', file($path)),
+                'data' => $this->getCsvArray($path),
             ];
         }
 
         return $datalist;
+    }
+
+    protected function getCsvArray($file){
+        $reader = new Csv();
+        $reader->setInputEncoding('UTF-8');
+        $reader->setDelimiter("\t");
+        $spreadsheet = $reader->load($file);
+        return $spreadsheet->getActiveSheet()->toArray();
     }
 }

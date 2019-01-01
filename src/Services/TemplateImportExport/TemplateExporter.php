@@ -180,6 +180,7 @@ class TemplateExporter
         $forms = CustomForm::with('custom_form_blocks')
             ->with('custom_table')
             ->with('custom_form_blocks.custom_form_columns')
+            ->with('custom_form_blocks.custom_form_columns.custom_column')
             ->get()->toArray();
         $configForms = [];
         foreach ($forms as &$form) {

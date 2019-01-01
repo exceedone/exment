@@ -8,5 +8,5 @@ class MailKeyName extends EnumBase
     const RESET_PASSWORD = 'reset_password';
     const RESET_PASSWORD_ADMIN = 'reset_password_admin';
     const TIME_NOTIFY = 'time_notify';
-    const DATA_CREATE_UPDATE_NOTIFY = 'data_create_update_notify';
+    const DATA_SAVED_NOTIFY = 'data_saved_notify';
 }

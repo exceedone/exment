@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Enums;
 class SystemColumn extends EnumBase
 {
     use EnumOptionTrait;
-    
+
     const ID = 'id';
     const SUUID = 'suuid';
     const PARENT_ID = 'parent_id';
@@ -29,24 +29,6 @@ class SystemColumn extends EnumBase
         'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'default' => false, 'order' => 92, 'footer' => true],
         'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'default' => false, 'order' => 93, 'footer' => true],
     ];
-
-    protected function option(){
-        return array_get(static::options, $this, null);
-    }
-
-    public static function getOptions($filters = []){
-        $options = static::$options;
-        foreach ($filters as $key => $value) {
-            $options = collect($options)->filter(function($option) use($key, $value){
-                return array_get($option, $key) == $value;
-            });
-        }
-        return collect($options)->toArray();
-    }
-    
-    public static function getOption($filters = []){
-        return collect(static::getOptions($filters))->first() ?? null;
-    }
 
     public function id(){
         return array_get($this->option(), 'id');

@@ -38,7 +38,6 @@ class CustomValue extends ModelBase
      * default flow, if file column is empty, set original value.
      */
     protected $remove_file_columns = [];
-
     
     public function getLabelAttribute()
     {
@@ -98,8 +97,14 @@ class CustomValue extends ModelBase
         static::saved(function ($model) {
             // set auto format
             static::setAutoNumber($model);
+        });
+        static::created(function ($model) {
             // send notify
-            static::notify($model);
+            static::notify($model, true);
+        });
+        static::updated(function ($model) {
+            // send notify
+            static::notify($model, false);
         });
         
         static::deleting(function ($model) {
@@ -215,19 +220,18 @@ class CustomValue extends ModelBase
             $model->save();
         }
     }
-
     
     // notify user --------------------------------------------------
-    protected static function notify($model)
+    protected static function notify($model, $create = true)
     {
         $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
+            ->where('custom_table_id', $model->custom_table->id)
             ->get();
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            $notify->notifyUser();
+            $notify->notifyCreateUpdateUser($model, $create);
         }
-
     }
 
     /**
