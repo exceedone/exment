@@ -61,6 +61,7 @@ class Notify extends ModelBase
                 // send mail
                 MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user->getValue('email'))
                     ->prms($prms)
+                    ->user($user)
                     ->custom_value($data)
                     ->send();
             }
@@ -71,9 +72,17 @@ class Notify extends ModelBase
      * notify_create_update_user
      */
     public function notifyCreateUpdateUser($data, $create = true){
+        $custom_table = $data->custom_table;
+        $mail_send_history_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_HISTORY);
+        $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)->first();
+
         // loop data
         $users = $this->getNotifyTargetUsers($data);
         foreach ($users as $user) {
+            if(!$this->approvalSendUser($mail_template, $custom_table, $data, $user)){
+                continue;
+            }
+
             $prms = [
                 'user' => $user,
                 'notify' => $this,
@@ -82,8 +91,9 @@ class Notify extends ModelBase
             ];
 
             // send mail
-            MailSender::make(MailKeyName::DATA_SAVED_NOTIFY, $user)
+            MailSender::make($mail_template, $user)
                 ->prms($prms)
+                ->user($user)
                 ->custom_value($data)
                 ->send();
         }
@@ -138,5 +148,33 @@ class Notify extends ModelBase
         }
         
         return $users;
+    }
+
+    /**
+     * 
+     */
+    protected function approvalSendUser($mail_template, $custom_table, $data, $user){
+        $mail_send_history_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_HISTORY);
+
+        // if already send notify in 1 minutes, continue.
+        $index_user = CustomColumn::getEloquent('user', $mail_send_history_table)->getIndexColumnName();
+        $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_history_table)->getIndexColumnName();
+        $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_HISTORY)
+            ::where($index_user, $user->id)
+            ->where($index_mail_template, $mail_template->id)
+            ->where('parent_id', $data->id)
+            ->where('parent_type', $custom_table->table_name)
+            ->get()
+        ;
+        foreach($mail_send_histories as $mail_send_history){
+            $send_datetime = (new Carbon($mail_send_history->getValue('send_datetime')))->addMinutes(5);
+            $now = Carbon::now();
+            // If user were sending within 5 minutes,
+            if($send_datetime->gt($now)){
+                return false;
+            }
+        }
+
+        return true;
     }
 }

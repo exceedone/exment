@@ -38,6 +38,12 @@ class CustomValue extends ModelBase
      * default flow, if file column is empty, set original value.
      */
     protected $remove_file_columns = [];
+
+    /**
+     * saved notify.
+     * if false, don't notify
+     */
+    protected $saved_notify = true;
     
     public function getLabelAttribute()
     {
@@ -85,6 +91,12 @@ class CustomValue extends ModelBase
         $this->remove_file_columns[] = $key;
         return $this;
     }
+    
+    public function saved_notify($disable_saved_notify)
+    {
+        $this->disable_saved_notify = $disable_saved_notify;
+        return $this;
+    }
 
     protected static function boot()
     {
@@ -100,11 +112,11 @@ class CustomValue extends ModelBase
         });
         static::created(function ($model) {
             // send notify
-            static::notify($model, true);
+            $model->notify(true);
         });
         static::updated(function ($model) {
             // send notify
-            static::notify($model, false);
+            $model->notify(false);
         });
         
         static::deleting(function ($model) {
@@ -222,15 +234,20 @@ class CustomValue extends ModelBase
     }
     
     // notify user --------------------------------------------------
-    protected static function notify($model, $create = true)
+    public function notify($create = true)
     {
+        // if $saved_notify is false, return
+        if($this->saved_notify === false){
+            return;
+        }
+
         $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
-            ->where('custom_table_id', $model->custom_table->id)
+            ->where('custom_table_id', $this->custom_table->id)
             ->get();
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            $notify->notifyCreateUpdateUser($model, $create);
+            $notify->notifyCreateUpdateUser($this, $create);
         }
     }
 

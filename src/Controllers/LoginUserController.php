@@ -199,8 +199,9 @@ class LoginUserController extends AdminControllerBase
                     $prms['user'] = $user->toArray()['value'];
                     $prms['user']['password'] = $password;
                     //if($is_newuser){
-                    MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user->value['email'])
+                    MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
                         ->prms($prms)
+                        ->user($user)
                         ->send();
                     //}
                 }

@@ -355,6 +355,90 @@
             ]
         },
         {
+            "table_name": "mail_send_history",
+            "table_view_name": "メール送信履歴",
+            "description": "メール送信履歴を管理します。",
+            "options": {
+                "search_enabled": "0",
+                "icon": "fa-envelope-o",
+                "color": "#ffbd3a",
+                "attachment_flg": "0",
+                "one_record_flg": "0",
+                "revision_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "メール送信元",
+                    "column_type": "email",
+                    "options": {
+                        "required": "1"
+                    }
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "メール送信先",
+                    "column_type": "text",
+                    "options": {
+                        "required": "1"
+                    }
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "メール送信先(CC)",
+                    "column_type": "text",
+                    "options": {
+                    }
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "メール送信先(BCC)",
+                    "column_type": "text",
+                    "options": {
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "件名",
+                    "column_type": "text",
+                    "options": {
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "本文",
+                    "column_type": "textarea",
+                    "options": {
+                    }
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "送信対象ユーザー",
+                    "column_type": "user",
+                    "options": {
+                        "index_enabled": "1"
+                    }
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "送信メールテンプレート",
+                    "column_type": "select_table",
+                    "options": {
+                        "select_target_table_name": "mail_template",
+                        "index_enabled": "1"
+                    }
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "送信日時",
+                    "column_type": "datetime",
+                    "options": {
+                        "index_enabled": "1"
+                    }
+                }
+            ]
+        },
+        {
             "table_name": "information",
             "table_view_name": "お知らせ",
             "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
@@ -484,6 +568,65 @@
                 }
             ],
             "table_name": "mail_template"
+        }, 
+        {
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "default",
+                    "available": "1",
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_from"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_to"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_cc"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_bcc"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_subject"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_body"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "user"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "mail_template"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "send_datetime"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                }
+            ],
+            "table_name": "mail_send_history"
         },
         {
             "form_view_name": "フォーム",
@@ -681,6 +824,34 @@
 			"table_name": "mail_template"
 		},
 		{
+			"suuid": "s6j3csauc4kagb82zna3",
+			"view_view_name": "既定のビュー",
+			"custom_view_columns": [
+				{
+					"order": "1",
+					"view_column_target_name": "mail_template",
+					"view_column_type": 0
+				},
+                {
+					"order": "2",
+					"view_column_target_name": "mail_to",
+					"view_column_type": 0
+				},
+				{
+					"order": "3",
+					"view_column_target_name": "user",
+					"view_column_type": 0
+				},
+				{
+					"order": "4",
+					"view_column_target_name": "send_datetime",
+					"view_column_type": 0
+				}
+			],
+			"custom_view_filters": [],
+			"table_name": "mail_send_history"
+		},
+        {
 			"suuid": "3471e23fbff8dc65437b",
 			"view_view_name": "既定のビュー",
 			"custom_view_columns": [
@@ -1099,6 +1270,13 @@
             "menu_name": "mail_template",
             "parent_name": "admin",
             "menu_target_name": "mail_template"
+        },
+        {
+            "order": "11",
+            "menu_type": "table",
+            "menu_name": "mail_send_history",
+            "parent_name": "admin",
+            "menu_target_name": "mail_send_history"
         }
     ],
     "thumbnail": "thumbnail.png"

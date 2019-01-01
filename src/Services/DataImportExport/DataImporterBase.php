@@ -210,6 +210,7 @@ abstract class DataImporterBase
             if (!isset($model)) {
                 continue;
             }
+            $model->saved_notify(false);
 
             $results[] = ['data' => $value_custom, 'model' => $model];
         }

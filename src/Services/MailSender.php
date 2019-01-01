@@ -5,6 +5,7 @@ use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;  
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Database\Eloquent\Collection;  
 use Illuminate\Support\Facades\Mail;
 use Exception;
@@ -22,6 +23,7 @@ class MailSender
     protected $mail_template;
     protected $prms;
     protected $custom_value;
+    protected $user;
     
     public function __construct($mail_key_name, $to)
     {
@@ -32,7 +34,10 @@ class MailSender
         $this->prms = [];
 
         // get mail template
-        if (is_numeric($mail_key_name)) {
+        if($mail_key_name instanceof CustomValue){
+            $this->mail_template = $mail_key_name; 
+        }
+        elseif (is_numeric($mail_key_name)) {
             $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_key_name);
         } else {
             $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
@@ -90,6 +95,12 @@ class MailSender
         return $this;
     }
     
+    public function user($user)
+    {
+        $this->user = $user;
+        return $this;
+    }
+    
     public function prms($prms)
     {
         $this->prms = $prms;
@@ -120,11 +131,19 @@ class MailSender
             $mail_bodies[]  = $footer;
         }
 
-        // get header
-        $this->sendMail(
-            $subject,
-            implode("\n\n", $mail_bodies)
-        );
+        // dispatch jobs
+        MailSendJob::dispatch(
+            $this->from, 
+            $this->to, 
+            $subject, 
+            implode("\n\n", $mail_bodies),
+            $this->mail_template,
+            [
+                'cc' => $this->cc,
+                'bcc' => $this->bcc,
+                'custom_value' => $this->custom_value,
+                'user' => $this->user,
+            ]);
     }
 
     /**
@@ -156,39 +175,5 @@ class MailSender
         ]);
 
         return $target;
-    }
-
-    /**
-     * send
-     */
-    protected function sendMail($subject, $body)
-    {
-        Mail::send([], [], function ($message) use ($subject, $body) {
-            $message->to($this->getAddress($this->to))->subject($subject);
-            $message->from(isset($this->from) ? $this->getAddress($this->from) : System::system_mail_from());
-            if (count($this->cc) > 0) {
-                $message->cc($this->getAddress($this->cc));
-            }
-            if (count($this->bcc) > 0) {
-                $message->bcc($this->getAddress($this->bcc));
-            }
-            // replace \r\n
-            $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
-        });
-    }
-
-    protected function getAddress($users){
-        if(!($users instanceof Collection) && !is_array($users)){
-            $users = [$users];
-        }
-        $addresses = [];
-        foreach ($users as $user) {
-            if ($user instanceof CustomValue) {
-                $addresses[] = $user->getValue('email');
-            }else{
-                $addresses[] = $user;
-            }
-        }
-        return count($addresses) == 1 ? $addresses[0] : $addresses;
     }
 }
