@@ -86,7 +86,7 @@ class Notify extends ModelBase
             $prms = [
                 'user' => $user,
                 'notify' => $this,
-                'target_table' => $table->table_view_name ?? null,
+                'target_table' => $custom_table->table_view_name ?? null,
                 'create_or_update' => $create ? exmtrans('common.created') : exmtrans('common.updated')
             ];
 

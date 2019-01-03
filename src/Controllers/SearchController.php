@@ -502,30 +502,6 @@ EOT;
         $query = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         $mark = ($isLike ? 'LIKE' : '=');
 
-        // foreach ($search_columns as $search_column) {
-        //     // get data
-        //     $foodata = getModelName($table)
-        //         ::where($search_column->getIndexColumnName(), $mark, $query)
-        //         ->take($max_count - count($data))
-        //         ->get();
-            
-        //     foreach ($foodata as $foo) {
-        //         if (count($data) >= $max_count) {
-        //             break;
-        //         }
-
-        //         // if exists id, continue
-        //         if (!is_null(collect($data)->first(function ($value, $key) use ($foo) {
-        //             return array_get($value, 'id') == array_get($foo, 'id');
-        //         }))) {
-        //             continue;
-        //         }
-
-        //         $data[] = $foo;
-        //     }
-        // }
-
-
         // get data
         $foodata = getModelName($table)
             ::where(function($wherequery) use($search_columns, $mark, $query){
