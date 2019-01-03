@@ -275,10 +275,11 @@ class PluginInstaller
      */
     public static function getPluginByTable($table_name)
     {
+        $table_name_escape = trim(DB::getPdo()->quote($table_name), "'");
         // execute query
         return Plugin::where('active_flg', '=', 1)
             ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
-            ->where("options->target_tables", $table_name)
+            ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
             ->get()
             ;
     }
@@ -365,13 +366,13 @@ class PluginInstaller
                 // get plugin_type
                 $plugin_type = PluginType::getEnum(array_get($plugin, 'plugin_type'));
                 switch ($plugin_type) {
-                    case PluginType::DOCUMENT:
+                    case PluginType::DOCUMENT():
                         $event_triggers_button = ['form_menubutton_show'];
                         if (in_array($event, $event_triggers_button)) {
                             array_push($buttonList, $plugin);
                         }
                         break;
-                    case PluginType::TRIGGER:
+                    case PluginType::TRIGGER():
                         $event_triggers = $plugin->options['event_triggers'];
                         $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                         if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
