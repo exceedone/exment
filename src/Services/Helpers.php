@@ -743,7 +743,7 @@ if (!function_exists('replaceTextFromFormat')) {
 
                                 //else, getting url
                                 else {
-                                    $str = $custom_value->getUrl(['tag' => true, 'modal' => false]) ?? '';
+                                    $str = $custom_value->getUrl(['modal' => false]) ?? '';
                                 }
                             }
                             ///// value
@@ -833,20 +833,10 @@ if (!function_exists('replaceTextFromFormat')) {
                                     }
                                     // get static value
                                     elseif ($key_system == "login_url") {
-                                        $url = admin_url("auth/login");
-                                        if(array_key_value_exists('tag', $matchOptions)){
-                                            $str = "<a href='$url'></a>";
-                                        }else{
-                                            $str = $url;
-                                        }
+                                        $str = admin_url("auth/login");
                                     }
                                     elseif ($key_system == "system_url") {
-                                        $url = admin_url("auth/login");
-                                        if(array_key_value_exists('tag', $matchOptions)){
-                                            $str = "<a href='$url'></a>";
-                                        }else{
-                                            $str = $url;
-                                        }
+                                        $str = admin_url("auth/login");
                                     }
                                 }
                             }
@@ -870,6 +860,10 @@ if (!function_exists('replaceTextFromFormat')) {
                         }
                     } catch (\Exception $e) {
                         $str = '';
+                    }
+
+                    if(array_key_value_exists('link', $matchOptions)){
+                        $str = "<a href='$str'></a>";
                     }
 
                     // replace
