@@ -121,7 +121,7 @@ class FormHelper
                     $select_target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
                 }
 
-                $field->options(function ($val) use ($select_target_table, $custom_table) {
+                $field->options(function ($val) use ($select_target_table, $custom_table, $form_column_name) {
                     // get DB option value
                     return $select_target_table->getOptions($val, $custom_table);
                 });
