@@ -21,6 +21,9 @@ cd (プロジェクト名)
 - ".env" を開き、以下の内容を追加・変更します。  
 
 ~~~
+#基本設定
+APP_URL=http://XXXX.com #そのサイトにアクセスするURL。"admin"は不要
+
 # 以下、データベースの設定値変更
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1 #MySQLのホスト名

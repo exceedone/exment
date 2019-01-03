@@ -94,7 +94,7 @@ class CustomValue extends ModelBase
     
     public function saved_notify($disable_saved_notify)
     {
-        $this->disable_saved_notify = $disable_saved_notify;
+        $this->saved_notify = $disable_saved_notify;
         return $this;
     }
 
