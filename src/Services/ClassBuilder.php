@@ -189,6 +189,7 @@ class ClassBuilder
                 ->addUse("\Exceedone\Exment\Model\CustomValue")
                 ->extend("CustomValue")
                 ->addProperty("protected", 'table', "'".getDBTableName($table)."'")
+                ->addProperty("protected", 'custom_table_name', "'".$table->table_name."'")
                 ;
 
         // set revision property

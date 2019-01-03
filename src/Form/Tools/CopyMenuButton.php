@@ -100,6 +100,8 @@ EOT;
         // get label
         if (!is_null(array_get($this->copy, 'options.label'))) {
             $label = array_get($this->copy, 'options.label');
+        }else{
+            $label = exmtrans('common.copy');
         }
 
         // get uuid

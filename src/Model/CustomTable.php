@@ -143,7 +143,7 @@ class CustomTable extends ModelBase
      */
     public static function findByDBTableName($db_table_name, $with_custom_columns = false)
     {
-        $query = static::where('suuid', preg_replace('/^exm__/', '', $db_table_name));
+        $query = static::where('suuid', preg_replace('/^exm__/', '', $db_table_name))->remember(120);
         if ($with_custom_columns) {
             $query = $query->with('custom_columns');
         }
@@ -154,8 +154,16 @@ class CustomTable extends ModelBase
      * get custom table eloquent.
      * @param mixed $obj id, table_name, CustomTable object, CustomValue object.
      */
-    public static function getEloquent($obj)
+    public static function getEloquent($obj, $with_custom_columns = false)
     {
+        if ($obj instanceof CustomTable) {
+            return $obj;
+        }elseif ($obj instanceof CustomColumn) {
+            return $obj->custom_table;
+        }elseif ($obj instanceof CustomValue) {
+            return $obj->custom_table;
+        }
+
         if ($obj instanceof \stdClass) {
             $obj = (array)$obj;
         }
@@ -171,20 +179,18 @@ class CustomTable extends ModelBase
             }
         }
 
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT, $obj);
         // get eloquent model
         if (is_numeric($obj)) {
-            $obj = static::find($obj);
+            $obj = System::requestSession($key, function() use($obj){
+                return static::find($obj);
+            });
         } elseif (is_string($obj)) {
-            $obj = static::findByName($obj);
-        } elseif (is_array($obj)) {
-            $obj = static::findByName(array_get($obj, 'table_name'));
-        } elseif ($obj instanceof CustomTable) {
-            // nothing
-        }elseif ($obj instanceof CustomColumn) {
-            $obj = $obj->custom_table;
-        }elseif ($obj instanceof CustomValue) {
-            $obj = $obj->custom_table;
+            $obj = System::requestSession($key, function() use($obj, $with_custom_columns){
+                return static::findByName($obj, $with_custom_columns);
+            });
         }
+
         return $obj;
     }
 

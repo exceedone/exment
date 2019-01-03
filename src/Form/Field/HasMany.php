@@ -31,6 +31,7 @@ class HasMany extends AdminHasMany
             'forms'        => $this->buildRelatedForms(),
             'template'     => $template,
             'relationName' => $this->relationName,
+            'options'      => $this->options,
         ]);
     }
 

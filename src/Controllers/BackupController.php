@@ -127,7 +127,7 @@ class BackupController extends AdminControllerBase
         $form->action($import_path)
             ->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
             ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
-            ->options(['showPreview' => false])
+            ->options(Define::FILE_OPTION)
             ->help(exmtrans('backup.help.file_name'));
 
         return $form->render()->render();

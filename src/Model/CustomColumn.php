@@ -37,6 +37,13 @@ class CustomColumn extends ModelBase
         return $query->whereIn('options->index_enabled', [1, "1", true]);
     }
 
+    public function scopeUseLabelFlg($query)
+    {
+        return $query
+            ->whereNotIn('options->use_label_flg', [0, "0"])
+            ->orderBy('options->use_label_flg');
+    }
+
     /**
      * get custom column eloquent. (use table)
      */
@@ -45,13 +52,24 @@ class CustomColumn extends ModelBase
         if (!isset($column_obj)) {
             return null;
         }
+
+        if ($column_obj instanceof \stdClass) {
+            $column_obj = array_get((array)$column_obj, 'id');
+        }
+
         // get column eloquent model
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
-        } elseif (is_array($column_obj)) {
-            return CustomColumn::find(array_get($column_obj, 'id'));
-        } elseif (is_numeric($column_obj)) {
-            return CustomColumn::find($column_obj);
+        } 
+        
+        if (is_array($column_obj)) {
+            $column_obj = array_get($column_obj, 'id');
+        }
+        
+        if (is_numeric($column_obj)) {
+            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $column_obj), function() use($column_obj){
+                return static::find($column_obj);
+            });
         }
         // else,call $table_obj
         else {
@@ -67,14 +85,9 @@ class CustomColumn extends ModelBase
             }
             
             // get column name
-            if (is_string($column_obj)) {
-                $column_name = $column_obj;
-            } elseif (is_array($column_obj)) {
-                $column_name = array_get($column_obj, 'column_name');
-            } elseif ($column_obj instanceof \stdClass) {
-                $column_name = array_get((array)$column_obj, 'column_name');
-            }
-            return $table_obj->custom_columns()->where('column_name', $column_name)->first() ?? null;
+            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $table_obj->table_name . '_'.$column_obj), function() use($table_obj, $column_obj){
+                return $table_obj->custom_columns()->where('column_name', $column_obj)->first() ?? null;
+            });
         }
         return null;
     }

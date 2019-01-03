@@ -32,7 +32,7 @@ class File extends ModelBase
      */
     public function saveDocumentModel($custom_value, $document_name){
         // save Document Model
-        $document_model = CustomTable::findByName(SystemTableName::DOCUMENT)->getValueModel();
+        $document_model = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel();
         $document_model->parent_id = $custom_value->id;
         $document_model->parent_type = $custom_value->custom_table->table_name;
         $document_model->setValue([
@@ -139,7 +139,7 @@ class File extends ModelBase
 
         // if has parent_id, check permission
         if(isset($data->parent_id) && isset($data->parent_type)){
-            $custom_table = CustomTable::findByName($data->parent_type);
+            $custom_table = CustomTable::getEloquent($data->parent_type);
             if(!$custom_table->hasPermissionData($data->parent_id)){
                 abort(403);
             }
@@ -183,7 +183,7 @@ class File extends ModelBase
 
         // if has document, remove document info
         if (boolval($options['removeDocumentInfo'])) {
-            $column_name = CustomTable::findByName(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
+            $column_name = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getIndexColumnName('file_uuid');
         
             // delete document info
             getModelName(SystemTableName::DOCUMENT)

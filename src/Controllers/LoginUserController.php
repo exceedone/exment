@@ -33,7 +33,7 @@ class LoginUserController extends AdminControllerBase
     {
         $classname = getModelName(SystemTableName::USER);
         $grid = new Grid(new $classname);
-        $table = CustomTable::findByName(SystemTableName::USER);
+        $table = CustomTable::getEloquent(SystemTableName::USER);
         $grid->column($table->getIndexColumnName('user_code'), exmtrans('user.user_code'));
         $grid->column($table->getIndexColumnName('user_name'), exmtrans('user.user_name'));
         $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));

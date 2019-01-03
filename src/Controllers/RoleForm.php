@@ -61,7 +61,7 @@ trait RoleForm
             $role_name = $role->getRoleName($related_type);
             $role_view_name = "{$role->role_view_name}(".array_get($related_types, 'view_name').")";
             $pivots = ['role_id' => $role->id, 'related_type' => $related_type];
-            $related_type_table = CustomTable::findByName($related_type);
+            $related_type_table = CustomTable::getEloquent($related_type);
 
             $field = new PivotMultiSelect($role_name, [$role_view_name]);
             $field->options(function ($options) use ($role_type, $related_type_table, $related_types) {

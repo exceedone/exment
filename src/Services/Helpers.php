@@ -501,7 +501,7 @@ if (!function_exists('getModelName')) {
                 System::requestSession('getModelName_'.$obj, $suuid);
             } elseif (is_string($obj)) {
                 // get by table_name
-                // $table = CustomTable::findByName($obj);
+                // $table = CustomTable::getEloquent($obj);
                 $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
                 System::requestSession('getModelName_'.$obj, $suuid);
             } elseif ($obj instanceof CustomValue) {
@@ -908,6 +908,7 @@ if (!function_exists('getEndpointTable')) {
      */
     function getEndpointTable($endpoint = null)
     {
+        $table_names = CustomTable::all()->pluck('table_name')->toArray();
         if (!isset($endpoint)) {
             $endpoint = url()->current();
         }
@@ -924,9 +925,8 @@ if (!function_exists('getEndpointTable')) {
             }
 
             // joint table
-            $table = CustomTable::findByName($url);
-            if (isset($table)) {
-                return $table;
+            if(in_array($url, $table_names)){
+                return CustomTable::getEloquent($url);
             }
         }
 

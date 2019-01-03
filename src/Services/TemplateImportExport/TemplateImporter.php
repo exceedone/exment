@@ -533,7 +533,7 @@ class TemplateImporter
                             if (is_nullorempty(array_get($column, 'options.select_target_table_name'))) {
                                 $obj_column->forgetOption('select_target_table');
                             } else {
-                                $custom_table = CustomTable::findByName(array_get($column, 'options.select_target_table_name'));
+                                $custom_table = CustomTable::getEloquent(array_get($column, 'options.select_target_table_name'));
                                 $id = $custom_table->id ?? null;
                                 // not set id, continue
                                 if (!isset($id)) {
@@ -641,8 +641,8 @@ class TemplateImporter
             // Loop relations.
             if (array_key_exists('custom_relations', $json)) {
                 foreach (array_get($json, "custom_relations") as $relation) {
-                    $parent_id = CustomTable::findByName(array_get($relation, 'parent_custom_table_name'))->id ?? null;
-                    $child_id = CustomTable::findByName(array_get($relation, 'child_custom_table_name'))->id ?? null;
+                    $parent_id = CustomTable::getEloquent(array_get($relation, 'parent_custom_table_name'))->id ?? null;
+                    $child_id = CustomTable::getEloquent(array_get($relation, 'child_custom_table_name'))->id ?? null;
                     if (!isset($parent_id) || !isset($child_id)) {
                         continue;
                     }
@@ -662,7 +662,7 @@ class TemplateImporter
             // loop for form
             if (array_key_exists('custom_forms', $json)) {
                 foreach (array_get($json, "custom_forms") as $form) {
-                    $table = CustomTable::findByName(array_get($form, 'table_name'));
+                    $table = CustomTable::getEloquent(array_get($form, 'table_name'));
                     // Create form --------------------------------------------------
                     $obj_form = CustomForm::firstOrNew([
                         'custom_table_id' => $table->id
@@ -676,7 +676,7 @@ class TemplateImporter
                         foreach (array_get($form, "custom_form_blocks") as $form_block) {
                             // target block id
                             if (isset($form_block['form_block_target_table_name'])) {
-                                $target_table = CustomTable::findByName($form_block['form_block_target_table_name']);
+                                $target_table = CustomTable::getEloquent($form_block['form_block_target_table_name']);
                             } else {
                                 $target_table = $table;
                             }
@@ -697,7 +697,7 @@ class TemplateImporter
                                     if (isset($block_relation)) {
                                         $form_block_type = $block_relation->relation_type;
                                     } else {
-                                        $form_block_type = FormBlockType::RELATION_ONE_TO_MANY;
+                                        $form_block_type = FormBlockType::ONE_TO_MANY;
                                     }
                                 }
                             }
@@ -777,7 +777,7 @@ class TemplateImporter
                                     // if has changedata_column_name and changedata_target_column_name, set id
                                     if (array_key_value_exists('options.changedata_column_name', $form_column) && array_key_value_exists('options.changedata_column_table_name', $form_column)) {
                                         // get using changedata_column_table_name
-                                        $id = CustomTable::findByName(array_get($form_column, 'options.changedata_column_table_name'))
+                                        $id = CustomTable::getEloquent(array_get($form_column, 'options.changedata_column_table_name'))
                                             ->custom_columns()
                                             ->where('column_name', array_get($form_column, 'options.changedata_column_name'))
                                             ->first()
@@ -792,7 +792,7 @@ class TemplateImporter
                                         // if changedata_target_column_name value has dotted, get parent table name
                                         if (str_contains($changedata_target_column_name, ".")) {
                                             list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
-                                            $changedata_target_table = CustomTable::findByName($changedata_target_table_name);
+                                            $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
                                         } else {
                                             $changedata_target_table = $target_table;
                                             $changedata_target_column_name = $changedata_target_column_name;
@@ -817,7 +817,7 @@ class TemplateImporter
             // loop for view
             if (array_key_value_exists('custom_views', $json)) {
                 foreach (array_get($json, "custom_views") as $view) {
-                    $table = CustomTable::findByName(array_get($view, 'table_name'));
+                    $table = CustomTable::getEloquent(array_get($view, 'table_name'));
                     $findArray = [
                         'custom_table_id' => $table->id
                     ];
@@ -918,8 +918,8 @@ class TemplateImporter
             // loop for copy
             if (array_key_value_exists('custom_copies', $json)) {
                 foreach (array_get($json, "custom_copies") as $copy) {
-                    $from_table = CustomTable::findByName(array_get($copy, 'from_custom_table_name'));
-                    $to_table = CustomTable::findByName(array_get($copy, 'to_custom_table_name'));
+                    $from_table = CustomTable::getEloquent(array_get($copy, 'from_custom_table_name'));
+                    $to_table = CustomTable::getEloquent(array_get($copy, 'to_custom_table_name'));
 
                     // id not funnd
                     if (!isset($from_table) && !isset($to_table)) {
@@ -1054,7 +1054,7 @@ class TemplateImporter
                                 // list
                                 case DashboardBoxType::LIST:
                                     // get target table
-                                    $obj_dashboard_box->setOption('target_table_id', CustomTable::findByName(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
+                                    $obj_dashboard_box->setOption('target_table_id', CustomTable::getEloquent(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
                                     // get target view using suuid
                                     $obj_dashboard_box->setOption('target_view_id', CustomView::findBySuuid(array_get($dashboard_box, 'options.target_view_suuid'))->id ?? null);
                                     break;
@@ -1127,7 +1127,7 @@ class TemplateImporter
                                     }
                                     break;
                                 case MenuType::TABLE:
-                                    $parent = CustomTable::findByName($menu['menu_target_name']);
+                                    $parent = CustomTable::getEloquent($menu['menu_target_name']);
                                     if (isset($parent)) {
                                         $obj_menu->menu_target = $parent->id;
                                     }
@@ -1160,7 +1160,7 @@ class TemplateImporter
                                     $obj_menu->icon = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
                                     break;
                                 case MenuType::TABLE:
-                                    $obj_menu->icon = CustomTable::findByName($obj_menu->menu_name)->icon ?? null;
+                                    $obj_menu->icon = CustomTable::getEloquent($obj_menu->menu_name)->icon ?? null;
                                     break;
                             }
                         }

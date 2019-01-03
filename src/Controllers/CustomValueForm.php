@@ -94,7 +94,7 @@ trait CustomValueForm
                 list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                 $target_table = $custom_form_block->target_table;
                 // 1:n
-                if ($custom_form_block->form_block_type == FormBlockType::RELATION_ONE_TO_MANY) {
+                if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
                     // get form columns count
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable

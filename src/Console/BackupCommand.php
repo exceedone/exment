@@ -199,9 +199,14 @@ class BackupCommand extends Command
             foreach($settings as $setting) {
                 $from = base_path($setting);
                 $to = path_join($this->tempdir, $setting);
-                
-                $success = \File::copyDirectory($from, $to);
+                if(!is_dir($from)){
+                    continue;
+                }
+                if(!is_dir($to)){
+                    mkdir($to, 0755, true);
+                }
 
+                $success = \File::copyDirectory($from, $to);
                 if (!$success) {
                     return false;
                 }

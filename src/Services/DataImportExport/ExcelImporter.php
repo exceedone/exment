@@ -24,6 +24,7 @@ class ExcelImporter extends DataImporterBase
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($path);
 
+        $datalist = [];
         // first, get custom_table sheet list
         $sheet = $spreadsheet->getSheetByName($this->custom_table->table_name);
         if(isset($sheet)){

@@ -277,7 +277,7 @@ EOT;
     public function getList(Request $request)
     {
         $q = $request->input('query');
-        $table = CustomTable::findByName($request->input('table_name'), true);
+        $table = CustomTable::getEloquent($request->input('table_name'), true);
         // Get search enabled columns.
         $search_columns = $table->getSearchEnabledColumns();
 
@@ -318,7 +318,7 @@ EOT;
         $content->description(exmtrans('search.description_relation'));
 
         // get seleted name
-        $table = CustomTable::findByName($request->input('table_name'));
+        $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
         $value = $model->label;
         $content->body(view('exment::search.index', [
@@ -384,10 +384,10 @@ EOT;
         // value_id is the id user selected.
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
-        $value_table = CustomTable::findByName($request->input('value_table_name'), true);
+        $value_table = CustomTable::getEloquent($request->input('value_table_name'), true);
         $value_table_id = $value_table->id;
         /// $search_table is the table for search. it's ex. select_table, relation, ...
-        $search_table = CustomTable::findByName($request->input('search_table_name'), true);
+        $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
         // Get search enabled columns.

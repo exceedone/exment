@@ -301,7 +301,7 @@ class CustomFormController extends AdminControllerTableBase
             $custom_columns = CustomTable::find($form_block_target_table_id)->custom_columns->toArray();
             
             // if form block type is 1:n or n:n, get parent tables columns too. use parent_table_id.
-            if (in_array(array_get($custom_form_block, 'form_block_type'), [FormBlockType::RELATION_ONE_TO_MANY, FormBlockType::RELATION_MANY_TO_MANY])) {
+            if (in_array(array_get($custom_form_block, 'form_block_type'), [FormBlockType::ONE_TO_MANY, FormBlockType::MANY_TO_MANY])) {
                 $custom_columns = array_merge(
                     CustomTable::find($parent_table_id)->custom_columns->toArray(),
                     $custom_columns
@@ -336,7 +336,7 @@ class CustomFormController extends AdminControllerTableBase
     protected function setTableSuggests($form, $custom_form_block, &$suggests = [])
     {
         // if form_block_type is n:n, no get columns.
-        if (array_get($custom_form_block, 'form_block_type') != FormBlockType::RELATION_MANY_TO_MANY) {
+        if (array_get($custom_form_block, 'form_block_type') != FormBlockType::MANY_TO_MANY) {
 
             // get columns by form_block_target_table_id.
             $custom_columns = CustomColumn::where('custom_table_id', array_get($custom_form_block, 'form_block_target_table_id'))->get()->toArray();
@@ -527,9 +527,9 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function getBlockLabelHeader($form_block_type){
         switch($form_block_type){
-            case FormBlockType::RELATION_ONE_TO_MANY:
+            case FormBlockType::ONE_TO_MANY:
                 return exmtrans('custom_form.table_one_to_many_label');
-            case FormBlockType::RELATION_MANY_TO_MANY:
+            case FormBlockType::MANY_TO_MANY:
                 return exmtrans('custom_form.table_many_to_many_label');
         }
         return exmtrans('custom_form.table_default_label');

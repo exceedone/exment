@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
@@ -310,7 +311,8 @@ class CustomValueController extends AdminControllerTableBase
         // get label hasmany
         $block_label = $custom_form_block->form_block_view_name;
         if (!isset($block_label)) {
-            $block_label = exmtrans("custom_form.table_".array_get($custom_form_block, 'form_block_type')."_label") . $target_table->table_view_name;
+            $enum = FormBlockType::getEnum(array_get($custom_form_block, 'form_block_type'));
+            $block_label = exmtrans("custom_form.table_".$enum->lowerKey()."_label") . $target_table->table_view_name;
         }
         // get form columns count
         $form_block_options = array_get($custom_form_block, 'options', []);

@@ -52,7 +52,11 @@ class CustomValue extends ModelBase
 
     public function getCustomTableAttribute()
     {
-        return CustomTable::findByDBTableName($this->getTable());
+        // return resuly using cache
+        return System::requestSession('custom_table_' . $this->custom_table_name, function()
+        {
+            return CustomTable::getEloquent($this->custom_table_name);
+        });
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
@@ -104,7 +108,7 @@ class CustomValue extends ModelBase
 
         static::saving(function ($model) {
             // re-get field data --------------------------------------------------
-            static::regetOriginalData($model);
+            $model->regetOriginalData();
         });
         static::saved(function ($model) {
             // set auto format
@@ -141,15 +145,15 @@ class CustomValue extends ModelBase
     }
         // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
-    protected static function regetOriginalData($model)
+    public function regetOriginalData()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
         // because on value edit display, if before upload file and not upload again, don't post value.
-        $value = $model->value;
-        $original = json_decode($model->getOriginal('value'), true);
+        $value = $this->value;
+        $original = json_decode($this->getOriginal('value'), true);
         // get  columns
-        $file_columns = $model->custom_table
+        $file_columns = $this->custom_table
             ->custom_columns
             ->pluck('column_name')
             ->toArray();
@@ -162,7 +166,7 @@ class CustomValue extends ModelBase
             if (!array_key_exists($file_column, $value)) {
                 // if column has $remove_file_columns, continue.
                 // property "$remove_file_columns" uses user wants to delete file
-                if (in_array($file_column, $model->remove_file_columns())) {
+                if (in_array($file_column, $this->remove_file_columns())) {
                     continue;
                 }
 
@@ -174,7 +178,7 @@ class CustomValue extends ModelBase
         }
         // if update
         if ($update_flg) {
-            $model->setAttribute('value', $value);
+            $this->setAttribute('value', $value);
         }
     }
 
@@ -408,7 +412,6 @@ class CustomValue extends ModelBase
                 }
                 return $loop_value;
             }
-            // if length <= 1, set normal getValueUseTable flow, so $column = $columns[0]
             else {
                 $column = $columns[0];
             }
@@ -595,10 +598,15 @@ class CustomValue extends ModelBase
     public function getLabel()
     {
         $custom_table = $this->custom_table;
-        $columns = $custom_table->custom_columns()
-            ->whereNotIn('options->use_label_flg', [0, "0"])
-            ->orderBy('options->use_label_flg')
+
+        $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
+        $columns = System::requestSession($key, function() use($custom_table){
+            return $custom_table
+            ->custom_columns()
+            ->useLabelFlg()
             ->get();
+        });
+
         if (!isset($columns) || count($columns) == 0) {
             $columns = [$custom_table->custom_columns->first()];
         }

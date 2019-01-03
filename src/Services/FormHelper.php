@@ -116,9 +116,9 @@ class FormHelper
                         $select_target_table = null;
                     }
                 } elseif ($column->column_type == SystemTableName::USER) {
-                    $select_target_table = CustomTable::findByName(SystemTableName::USER);
+                    $select_target_table = CustomTable::getEloquent(SystemTableName::USER);
                 } elseif ($column->column_type == SystemTableName::ORGANIZATION) {
-                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
+                    $select_target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
                 }
 
                 $field->options(function ($val) use ($select_target_table, $custom_table) {

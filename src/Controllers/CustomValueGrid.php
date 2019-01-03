@@ -109,9 +109,9 @@ trait CustomValueGrid
                                         $select_target_table = null;
                                     }
                                 } elseif ($column_type == ColumnType::USER) {
-                                    $select_target_table = CustomTable::findByName(SystemTableName::USER);
+                                    $select_target_table = CustomTable::getEloquent(SystemTableName::USER);
                                 } elseif ($column_type == ColumnType::ORGANIZATION) {
-                                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
+                                    $select_target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
                                 }
     
                                 // get options and ajax url
