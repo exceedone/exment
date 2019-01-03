@@ -743,7 +743,9 @@ if (!function_exists('replaceTextFromFormat')) {
 
                                 //else, getting url
                                 else {
-                                    $str = $custom_value->getUrl(['modal' => false]) ?? '';
+                                    $tag = array_key_value_exists('link', $matchOptions);
+                                    $str = $custom_value->getUrl(['tag' => $tag, 'modal' => false]) ?? '';
+                                    array_forget($matchOptions, 'link');
                                 }
                             }
                             ///// value
@@ -863,7 +865,7 @@ if (!function_exists('replaceTextFromFormat')) {
                     }
 
                     if(array_key_value_exists('link', $matchOptions)){
-                        $str = "<a href='$str'></a>";
+                        $str = "<a href='$str'>$str</a>";
                     }
 
                     // replace
