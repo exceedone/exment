@@ -216,7 +216,7 @@ class PluginInstaller
         // find or new $plugin
         $plugin = Plugin::withTrashed()->firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
         $plugin->plugin_name = array_get($json, 'plugin_name');
-        $plugin->plugin_type = array_get($json, 'plugin_type');
+        $plugin->plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'))->getValue() ?? null;
         $plugin->author = array_get($json, 'author');
         $plugin->version = array_get($json, 'version');
         $plugin->uuid = array_get($json, 'uuid');
