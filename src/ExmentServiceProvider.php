@@ -148,7 +148,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->command('exment:schedule')->everyMinute();
+            $schedule->command('exment:schedule')->hourlyAt(0);
         });
     }
 

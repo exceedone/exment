@@ -833,10 +833,20 @@ if (!function_exists('replaceTextFromFormat')) {
                                     }
                                     // get static value
                                     elseif ($key_system == "login_url") {
-                                        $str = admin_url("auth/login");
+                                        $url = admin_url("auth/login");
+                                        if(array_key_value_exists('tag', $matchOptions)){
+                                            $str = "<a href='$url'></a>";
+                                        }else{
+                                            $str = $url;
+                                        }
                                     }
                                     elseif ($key_system == "system_url") {
-                                        $str = admin_url("");
+                                        $url = admin_url("auth/login");
+                                        if(array_key_value_exists('tag', $matchOptions)){
+                                            $str = "<a href='$url'></a>";
+                                        }else{
+                                            $str = $url;
+                                        }
                                     }
                                 }
                             }
