@@ -55,4 +55,14 @@ class ExcelExporter extends DataExporterBase
     protected function getFileName(){
         return $this->custom_table->table_view_name.date('YmdHis').".xlsx";
     }
+    
+    /**
+     * whether this out is as zip.
+     * This table is parent and contains relation 1:n or n:n.
+     */
+    protected function isOutputAsZip(){
+        // check relations
+        return false;
+    }
+
 }

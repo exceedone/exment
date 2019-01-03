@@ -51,4 +51,13 @@ class CsvExporter extends DataExporterBase
         return $this->custom_table->table_view_name.date('YmdHis'). ($this->isOutputAsZip() ? ".zip" : ".csv");
     }
 
+    /**
+     * whether this out is as zip.
+     * This table is parent and contains relation 1:n or n:n.
+     */
+    protected function isOutputAsZip(){
+        // check relations
+        return count($this->relations) > 0;
+    }
+
 }

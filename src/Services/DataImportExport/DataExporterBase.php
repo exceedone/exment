@@ -292,15 +292,6 @@ abstract class DataExporterBase extends AbstractExporter
         return $files;
     }
 
-    /**
-     * whether this out is as zip.
-     * This table is parent and contains relation 1:n or n:n.
-     */
-    protected function isOutputAsZip(){
-        // check relations
-        return count($this->relations) > 0;
-    }
-
     protected function getDefaultHeaders(){
         $filename = $this->getFileName();
         return [
