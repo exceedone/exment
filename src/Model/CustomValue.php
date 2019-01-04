@@ -68,7 +68,7 @@ class CustomValue extends ModelBase
             ;
     }
 
-    // user value_authoritable. it's all role data. only filter  morph_type
+    // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_organizations()
     {
         return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
@@ -112,7 +112,7 @@ class CustomValue extends ModelBase
         });
         static::saved(function ($model) {
             // set auto format
-            static::setAutoNumber($model);
+            $model->setAutoNumber();
         });
         static::created(function ($model) {
             // send notify
@@ -124,28 +124,16 @@ class CustomValue extends ModelBase
         });
         
         static::deleting(function ($model) {
-            $parent_table = $model->custom_table;
-            // delete custom relation is 1:n value
-            $relations = CustomRelation
-                ::where('parent_custom_table_id', $parent_table->id)
-                ->where('relation_type', RelationType::ONE_TO_MANY)
-                ->get();
-            // loop relations
-            foreach ($relations as $relation) {
-                $child_table = CustomTable::find($relation->child_custom_table_id);
-                // find keys
-                getModelName($child_table)
-                    ::where('parent_id', $model->id)
-                    ->where('parent_type', $parent_table->table_name)
-                    ->delete();
-            }
+            $model->deleteRelationValues();
         });
 
         static::addGlobalScope(new CustomValueModelScope);
     }
-        // re-set field data --------------------------------------------------
+
+
+    // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
-    public function regetOriginalData()
+    protected function regetOriginalData()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
@@ -183,15 +171,15 @@ class CustomValue extends ModelBase
     }
 
     // set auto number --------------------------------------------------
-    protected static function setAutoNumber($model)
+    protected function setAutoNumber()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
         // because on value edit display, if before upload file and not upload again, don't post value.
-        $value = $model->value;
-        $id = $model->id;
+        $value = $this->value;
+        $id = $this->id;
         // get image and file columns
-        $columns = $model->custom_table
+        $columns = $this->custom_table
             ->custom_columns
             ->all();
 
@@ -204,7 +192,7 @@ class CustomValue extends ModelBase
                 // if column type is auto_number, set auto number.
                 case ColumnType::AUTO_NUMBER:
                     // already set value, break
-                    if (!is_null($model->getValue($column_name))) {
+                    if (!is_null($this->getValue($column_name))) {
                         break;
                     }
                     $options = $custom_column->options;
@@ -213,7 +201,7 @@ class CustomValue extends ModelBase
                     }
                     
                     if (array_get($options, 'auto_number_type') == 'format') {
-                        $auto_number = static::createAutoNumberFormat($model, $id, $options);
+                        $auto_number = $this->createAutoNumberFormat($id, $options);
                     }
                     // if auto_number_type is random25, set value
                     elseif (array_get($options, 'auto_number_type') == 'random25') {
@@ -225,7 +213,7 @@ class CustomValue extends ModelBase
                     }
 
                     if (isset($auto_number)) {
-                        $model->setValue($column_name, $auto_number);
+                        $this->setValue($column_name, $auto_number);
                         $update_flg = true;
                     }
                     break;
@@ -233,12 +221,12 @@ class CustomValue extends ModelBase
         }
         // if update
         if ($update_flg) {
-            $model->save();
+            $this->save();
         }
     }
     
     // notify user --------------------------------------------------
-    public function notify($create = true)
+    protected function notify($create = true)
     {
         // if $saved_notify is false, return
         if($this->saved_notify === false){
@@ -258,7 +246,7 @@ class CustomValue extends ModelBase
     /**
      * Create Auto Number value using format.
      */
-    protected static function createAutoNumberFormat($model, $id, $options)
+    protected function createAutoNumberFormat($id, $options)
     {
         // get format
         $format = array_get($options, "auto_number_format");
@@ -325,7 +313,7 @@ class CustomValue extends ModelBase
                             if (count($length_array) <= 1) {
                                 $str = '';
                             } else {
-                                $str = $model->getValue($length_array);
+                                $str = $this->getValue($length_array);
                             }
                             $format = str_replace($matches[0][$i], $str, $format);
                         }
@@ -337,6 +325,50 @@ class CustomValue extends ModelBase
         }
         return $format;
     }
+
+    /**
+     * delete relation if record delete
+     */
+    protected function deleteRelationValues(){
+        $custom_table = $this->custom_table;
+        // delete custom relation is 1:n value
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            // find keys
+            getModelName($child_table)
+                ::where('parent_id', $this->id)
+                ->where('parent_type', $custom_table->table_name)
+                ->delete();
+        }
+        
+        // delete custom relation is n:n value
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::MANY_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            // ge pivot table
+            $pivot_name = $relation->getRelationName();
+            
+            // find keys and delete
+            \DB::table($pivot_name)
+                ->where('parent_id', $this->id)
+                ->delete();
+        }
+        
+        // delete custom relation is n:n value (for children)
+        $relations = CustomRelation::getRelationsByChild($custom_table, RelationType::MANY_TO_MANY);
+        // loop relations
+        foreach ($relations as $relation) {
+            // ge pivot table
+            $pivot_name = $relation->getRelationName();
+            
+            // find keys and delete
+            \DB::table($pivot_name)
+                ->where('child_id', $this->id)
+                ->delete();
+        }
+    }
     
     /**
      * get Authoritable values.
@@ -347,11 +379,11 @@ class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('related_id', Admin::user()->base_user_id);
+            ->where('related_id', \Exment::user()->base_user_id);
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $query = $this
             ->value_authoritable_organizations()
-            ->whereIn('related_id', Admin::user()->getOrganizationIds());
+            ->whereIn('related_id', \Exment::user()->getOrganizationIds());
         }
 
         return $query->get();
