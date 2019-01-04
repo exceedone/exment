@@ -13,11 +13,14 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Carbon\Carbon;
@@ -113,6 +116,7 @@ class CustomValue extends ModelBase
         static::saved(function ($model) {
             // set auto format
             $model->setAutoNumber();
+            $model->setValueAuthoritable();
         });
         static::created(function ($model) {
             // send notify
@@ -170,7 +174,9 @@ class CustomValue extends ModelBase
         }
     }
 
-    // set auto number --------------------------------------------------
+    /**
+     * set auto number
+     */
     protected function setAutoNumber()
     {
         ///// saving event for image, file event
@@ -224,6 +230,44 @@ class CustomValue extends ModelBase
             $this->save();
         }
     }
+
+    /**
+     * set value_authoritable
+     */
+    public function setValueAuthoritable()
+    {
+        $table_name = $this->custom_table->table_name;
+        if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+            return;
+        }
+        if($this->value_authoritable_users()->count() > 0 || $this->value_authoritable_organizations()->count() > 0){
+            return;
+        }
+        $user = \Exment::user();
+        if(!isset($user)){
+            return;
+        }
+
+        // get role editable value
+        $role = Role::where('role_type', RoleType::VALUE)->whereIn('permissions->'.RoleValue::CUSTOM_VALUE_EDIT, [1, "1"])
+            ->first();
+        // set user
+        if(!isset($role)){
+            return;
+        }
+
+        \DB::table(SystemTableName::VALUE_AUTHORITABLE)->insert(
+            [
+                'related_id' => $user->base_user_id,
+                'related_type' => SystemTableName::USER,
+                'morph_id' => $this->id,
+                'morph_type' => $table_name,
+                'role_id' => $role->id,
+            ]
+        );
+    }
+
+    
     
     // notify user --------------------------------------------------
     protected function notify($create = true)

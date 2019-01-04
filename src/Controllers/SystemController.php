@@ -145,7 +145,7 @@ EOT;
             }
 
             // Set Role
-            Role::roleLoop(RoleType::SYSTEM(), function ($role, $related_type) use ($request) {
+            Role::roleLoop(RoleType::SYSTEM, function ($role, $related_type) use ($request) {
                 $values = $request->input($role->getRoleName($related_type));
                 // array_filter
                 $values = array_filter($values, function ($k) {
@@ -158,7 +158,7 @@ EOT;
                 // get DB system_authoritable values
                 $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                     ->where('related_type', $related_type)
-                    ->where('morph_type', RoleType::SYSTEM())
+                    ->where('morph_type', RoleType::SYSTEM)
                     ->where('role_id', $role->id)
                     ->get(['related_id']);
                 foreach ($values as $value) {
@@ -174,7 +174,7 @@ EOT;
                             'related_id' => $value,
                             'related_type' => $related_type,
                             'morph_id' => null,
-                            'morph_type' => RoleType::SYSTEM(),
+                            'morph_type' => RoleType::SYSTEM,
                             'role_id' => $role->id,
                         ]
                     );

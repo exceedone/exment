@@ -389,6 +389,7 @@ EOT;
     {
         // after saving
         $form->saved(function ($form) {
+            $form->model()->setValueAuthoritable();
             PluginInstaller::pluginPreparing($this->plugins, 'saved');
 
             // if requestsession "file upload uuid"(for set data this value's id and type into files)

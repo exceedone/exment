@@ -41,7 +41,7 @@ trait RoleForm
                 $form->description(exmtrans(System::organization_available() ? 'role.description_form.system' : 'role.description_form.system_disableorg'));
                 break;
             
-            case RoleType::PLUGIN():
+            case RoleType::PLUGIN:
                 $form->description(exmtrans(System::organization_available() ? 'role.description_form.plugin' : 'role.description_form.plugin_disableorg'));
                 break;
         }
