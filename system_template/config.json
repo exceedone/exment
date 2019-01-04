@@ -355,7 +355,7 @@
             ]
         },
         {
-            "table_name": "mail_send_history",
+            "table_name": "mail_send_log",
             "table_view_name": "メール送信履歴",
             "description": "メール送信履歴を管理します。",
             "options": {
@@ -628,7 +628,7 @@
                     "form_block_target_table_name": null
                 }
             ],
-            "table_name": "mail_send_history"
+            "table_name": "mail_send_log"
         },
         {
             "form_view_name": "フォーム",
@@ -851,7 +851,7 @@
 				}
 			],
 			"custom_view_filters": [],
-			"table_name": "mail_send_history"
+			"table_name": "mail_send_log"
 		},
         {
 			"suuid": "3471e23fbff8dc65437b",
@@ -1316,9 +1316,9 @@
         {
             "order": "11",
             "menu_type": "table",
-            "menu_name": "mail_send_history",
+            "menu_name": "mail_send_log",
             "parent_name": "admin",
-            "menu_target_name": "mail_send_history"
+            "menu_target_name": "mail_send_log"
         }
     ],
     "thumbnail": "thumbnail.png"

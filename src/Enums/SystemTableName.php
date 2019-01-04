@@ -9,7 +9,7 @@ class SystemTableName extends EnumBase
     const ORGANIZATION = 'organization';
     const COMMENT = 'comment';
     const MAIL_TEMPLATE = 'mail_template';
-    const MAIL_SEND_HISTORY = 'mail_send_history';
+    const MAIL_SEND_LOG = 'mail_send_log';
     const BASEINFO = 'base_info';
     const DOCUMENT = 'document';
     const NOTIFY_HISTORY = 'notify_history';

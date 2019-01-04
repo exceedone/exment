@@ -693,7 +693,7 @@ return [
             'backup' => 'Backup',
             'loginuser' => 'LoginUser',
             'mail_template' => 'Mail Template',
-            'mail_send_history' => 'Mail Send History',
+            'mail_send_log' => 'Mail Send Log',
             'notify' => 'Notify',
             'base_info' => 'Base Info',
             'master' => 'Manage Master',

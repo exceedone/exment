@@ -71,7 +71,7 @@ class MailSendJob extends JobBase
     }
 
     protected function saveMailSendHistory(){
-        $modelname = getModelName(SystemTableName::MAIL_SEND_HISTORY);
+        $modelname = getModelName(SystemTableName::MAIL_SEND_LOG);
         $model = new $modelname;
 
         $model->setValue('mail_from', implode(",", $this->getAddress($this->from)) ?? null);

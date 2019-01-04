@@ -699,7 +699,7 @@ return [
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
             'mail_template' => 'メールテンプレート',
-            'mail_send_history' => 'メール送信履歴',
+            'mail_send_log' => 'メール送信履歴',
             'notify' => '通知',
             'base_info' => '基本情報',
             'master' => 'マスター管理',
