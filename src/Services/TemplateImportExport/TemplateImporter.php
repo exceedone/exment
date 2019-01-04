@@ -707,7 +707,7 @@ class TemplateImporter
                             'form_block_target_table_id' => $target_table->id,
                         ]);
                             $obj_form_block->custom_form_id = $obj_form->id;
-                            $obj_form_block->form_block_type = $form_block_type;
+                            $obj_form_block->form_block_type = FormBlockType::getEnum($form_block_type)->getValue();
                             $obj_form_block->form_block_view_name = array_get($form_block, 'form_block_view_name');
                             $obj_form_block->form_block_target_table_id = $target_table->id;
                             if (!$obj_form_block->exists) {
@@ -762,7 +762,7 @@ class TemplateImporter
                                     'form_column_target_id' => $form_column_target_id,
                                 ]);
                                     $obj_form_column->custom_form_block_id = $obj_form_block->id;
-                                    $obj_form_column->form_column_type = $form_column_type;
+                                    $obj_form_column->form_column_type = FormColumnType::getEnum($form_column_type)->getValue();;
                                     $obj_form_column->form_column_target_id = $form_column_target_id;
                                     if (!$obj_form_column->exists) {
                                         $obj_form_column->order = ++$count;
