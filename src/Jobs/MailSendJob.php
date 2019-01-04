@@ -2,13 +2,10 @@
 
 namespace Exceedone\Exment\Jobs;
 
-use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\System;  
 use Exceedone\Exment\Model\CustomValue;
 use Illuminate\Database\Eloquent\Collection;  
 use Illuminate\Support\Facades\Mail;
-use Exception;
 use Carbon\Carbon;
 
 class MailSendJob extends JobBase

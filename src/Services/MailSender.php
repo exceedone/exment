@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;  
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
-use Illuminate\Database\Eloquent\Collection;  
 use Illuminate\Support\Facades\Mail;
 use Exception;
 

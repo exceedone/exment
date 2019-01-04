@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RelationType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 abstract class DataExporterBase extends AbstractExporter
 {

@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;

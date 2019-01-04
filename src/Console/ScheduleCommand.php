@@ -2,17 +2,10 @@
 
 namespace Exceedone\Exment\Console;
 
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\NotifyActionTarget;
-use Exceedone\Exment\Services\MailSender;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Carbon\Carbon;
 
 class ScheduleCommand extends Command

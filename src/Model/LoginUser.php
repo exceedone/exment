@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Auth\HasPermissions;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\UserSetting;
 use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;

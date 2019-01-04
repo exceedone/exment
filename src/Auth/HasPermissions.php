@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleValue;

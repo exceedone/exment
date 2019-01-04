@@ -20,7 +20,6 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\RelationType;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;

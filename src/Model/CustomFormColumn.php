@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Database\Eloquent\Builder;
 

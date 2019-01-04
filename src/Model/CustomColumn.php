@@ -1,7 +1,6 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;

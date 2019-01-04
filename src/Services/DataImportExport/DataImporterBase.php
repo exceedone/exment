@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\FormHelper;
 use Illuminate\Http\Request;
