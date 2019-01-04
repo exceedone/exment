@@ -76,7 +76,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         return $content;
     }
-   
+    
     /**
      * Create interface.
      *

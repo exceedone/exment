@@ -387,9 +387,9 @@ namespace Exment {
          * set getmodel or getitem data to form
          */
         private static setModelItemKey($target: JQuery, $parent: JQuery, data: any) {
-            // 取得した要素でループ
+            // Loop with acquired element
             for (var key in data) {
-                //id系は除外
+                //remove id, created_at, updated_at
                 if ($.inArray(key, ['id', 'created_at', 'updated_at']) != -1) {
                     continue;
                 }
@@ -510,28 +510,22 @@ namespace Exment {
         }
 
         /**
-         * 対象のセレクトボックスの値に応じて、表示・非表示を切り替える
+         * Switch display / non-display according to the target input value
          * @param $target
          */
         private static setFormFilter = ($target: JQuery<TElement>) => {
             $target = CommonEvent.getParentRow($target).find('[data-filter]');
             for (var tIndex = 0; tIndex < $target.length; tIndex++) {
                 var $t = $target.eq(tIndex);
-                // 表示フィルターを掛ける場合
-                //if (!$t.data('filter')) {
-                //    continue;
-                //}
-                // そのinputの親要素取得
+                // Get parent element of that input
                 var $parent = CommonEvent.getParentRow($t);
-                // 行の要素取得
+                // Get parent element with row
                 var $eParent = $t.parents('.form-group');
 
-                //var $elem = $parent.find('[data-filter-target]'); // 表示非表示対象
-
-                // 検索対象のキー・値取得
+                // Get search target key and value
                 try {
                     var array = $t.data('filter');
-                    // 配列でない場合、配列に変換
+                    // if not array, convert array
                     if (!Array.isArray(array)) {
                         array = [array];
                     }
@@ -539,9 +533,8 @@ namespace Exment {
                     var isReadOnly = false;
                     for (var index = 0; index < array.length; index++) {
                         var a = array[index];
-                        // そのkeyを持つclassの値取得
-                        // 最終的に送信されるのは最後の要素なので、last-child付ける
-                        // parent値ある場合
+                        // Get value of class with that key
+                        // if has parent value
                         var parentCount = a.parent ? a.parent : 0;
                         if (parentCount > 0) {
                             var $calcParent = $parent;
@@ -553,12 +546,8 @@ namespace Exment {
                             var filterVal = CommonEvent.getFilterVal($parent, a);
                         }
 
-                        if(typeof filterVal == "number"){
-                            filterVal = String(filterVal);
-                        }
-
                         if (isShow) {
-                            // nullかどうかのチェックの場合
+                            // check whether null
                             if (a.hasValue) {
                                 if (!hasValue(filterVal)) {
                                     isShow = false;
@@ -574,15 +563,13 @@ namespace Exment {
 
                             // その値が、a.valueに含まれているか
                             if (a.value) {
-                                var valueArray = !Array.isArray(a.value) ? a.value.split(',') : a.value;
-                                if (valueArray.indexOf(filterVal) == -1) {
+                                if(!CommonEvent.findValue(filterVal, a.value)){
                                     isShow = false;
                                 }
                             }
                             
                             if (a.notValue) {
-                                var valueArray = !Array.isArray(a.notValue) ? a.notValue.split(',') : a.notValue;
-                                if (valueArray.indexOf(filterVal) != -1) {
+                                if(!CommonEvent.findValue(filterVal, a.notValue)){
                                     isShow = false;
                                 }
                             }
@@ -590,9 +577,8 @@ namespace Exment {
 
                         // change readonly attribute
                         if (!isReadOnly && a.readonlyValue) {
-                            var valueArray = !Array.isArray(a.readonlyValue) ? a.readonlyValue.split(',') : a.readonlyValue;
-                            if (valueArray.indexOf(filterVal) != -1) {
-                                isReadOnly = true;
+                            if(!CommonEvent.findValue(filterVal, a.readonlyValue)){
+                                isShow = false;
                             }
                         }
                     }
@@ -894,6 +880,17 @@ namespace Exment {
         }
         private static getClassKey(key, prefix = '') {
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
+        }
+
+
+        private static findValue(key, values){
+            values = !Array.isArray(values) ? values.split(',') : values;
+            for(var i = 0; i < values.length; i++){
+                if(values[i] == key){
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
