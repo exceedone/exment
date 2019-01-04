@@ -225,10 +225,7 @@ trait HasPermissions
         if (Session::has(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS)) {
             return Session::get(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
         }
-
-        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
         $ids = AuthUserOrgHelper::getOrganizationIds();
-
         // set session.
         Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS, $ids);
         return $ids;

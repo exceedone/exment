@@ -156,6 +156,16 @@ class CustomValue extends ModelBase
                 }
             }
         }
+
+        // array_forget if $v is null
+        // if not execute this, mysql column "virtual" returns string "null".
+        foreach($value as $k => $v){
+            if (is_null($v)) {
+                $update_flg = true;
+                array_forget($value, $k);
+            }
+        }
+
         // if update
         if ($update_flg) {
             $this->setAttribute('value', $value);
