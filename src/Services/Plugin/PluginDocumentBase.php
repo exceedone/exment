@@ -72,12 +72,12 @@ abstract class PluginDocumentBase
         if ($result) {
             return ([
                 'result'  => true,
-                'toastr' => 'Create Document Success!!', //TODO:trans
+                'toastr' => sprintf(exmtrans('common.message.success_execute')),
             ]);
         }
         return ([
             'result'  => false,
-            'toastr' => 'Create Document failure', //TODO:trans
+            'toastr' => sprintf(exmtrans('common.message.error_execute')),
         ]);
     }
 

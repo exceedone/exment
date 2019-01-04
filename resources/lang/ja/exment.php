@@ -37,6 +37,8 @@ return [
         'desc' => '降順',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
+            'success_execute' => '実行完了しました！',
+            'error_execute' => '実行失敗しました。',
             'import_success' => 'インポート完了しました！',
             'import_error' => 'インポート失敗しました。CSVファイルをご確認ください。',
             'notfound' => 'データが存在しません。',

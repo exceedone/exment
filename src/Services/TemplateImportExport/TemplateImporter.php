@@ -951,9 +951,6 @@ class TemplateImporter
                     if (array_key_exists('custom_copy_columns', $copy)) {
                         foreach (array_get($copy, "custom_copy_columns") as $copy_column) {
                             // get from and to column
-                            // $from_column_target = CustomColumn::getEloquent(array_get($copy_column, "from_custom_column_name"), $from_table)->id ?? null;
-                            // $to_column_target = CustomColumn::getEloquent(array_get($copy_column, "to_custom_column_name"), $to_table)->id ?? null;
-
                             $from_column_target = static::getColumnIdOrName(
                                 array_get($copy_column, "from_column_type"), 
                                 array_get($copy_column, "from_column_name"), 
@@ -972,7 +969,9 @@ class TemplateImporter
                             }
                             $obj_copy_column = CustomCopyColumn::firstOrNew([
                                 'custom_copy_id' => $obj_copy->id,
+                                'from_column_type' => array_get($copy_column, "from_column_type") ?? null,
                                 'from_column_target_id' => $from_column_target ?? null,
+                                'to_column_type' => array_get($copy_column, "to_column_type") ?? null,
                                 'to_column_target_id' => $to_column_target ?? null,
                                 'copy_column_type' => array_get($copy_column, "copy_column_type"),
                             ]);

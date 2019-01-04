@@ -59,9 +59,11 @@ class CopyMenuButton
                             data:{ _pjax: true, _token: LA.token,uuid:"$uuid"},
                             success:function(repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                swal.close();
                             },
                             error: function(repsonse){
                                 toastr.error(repsonse.message);
+                                swal.close();
                             }
                         });
                     });
