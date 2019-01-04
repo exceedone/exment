@@ -51,6 +51,13 @@ return [
         ],
     ],
 
+    'error' => [
+        'header' => 'エラーが発生しました',
+        'description' => 'エラーが発生しました。エラー内容をご確認ください。',
+        'error_message' => 'エラーメッセージ',
+        'error_trace' => 'エラー詳細',
+    ],
+
     'system' => [
         'system_header' => 'システム設定',
         'system_description' => 'システム設定を変更します。',

@@ -4,6 +4,7 @@ namespace Exceedone\Exment;
 
 use Exceedone\Exment\Model\Menu;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Encore\Admin\Admin;
 /**
  * Class Admin.
@@ -18,6 +19,28 @@ class Exment
     public function menu()
     {
         return (new Menu())->toTree();
+    }
+
+    public static function error($request, $exception, $callback){
+        try {
+            // if (!($exception instanceof HttpException)) {
+            //     return $callback($request, $exception);
+            // }
+        
+            // whether has User
+            $user = \Exment::user();
+            if (!isset($user)) {
+                return $callback($request, $exception);
+            }
+
+            $errorController = app(\Exceedone\Exment\Controllers\ErrorController::class);
+            return $errorController->error($request, $exception);
+        
+        }catch(\Exception $ex){
+            return $callback($request, $exception);
+        } catch (Throwable $e) {
+            return $callback($request, $exception);
+        }
     }
 
     /**
