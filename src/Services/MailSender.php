@@ -24,6 +24,7 @@ class MailSender
     protected $prms;
     protected $custom_value;
     protected $user;
+    protected $history_body;
     
     public function __construct($mail_key_name, $to)
     {
@@ -32,6 +33,7 @@ class MailSender
         $this->cc = [];
         $this->bcc = [];
         $this->prms = [];
+        $this->history_body = true;
 
         // get mail template
         if($mail_key_name instanceof CustomValue){
@@ -107,6 +109,12 @@ class MailSender
         return $this;
     }
     
+    public function disableHistoryBody()
+    {
+        $this->history_body = false;
+        return $this;
+    }
+    
     /**
      * Send Mail
      *
@@ -146,6 +154,7 @@ class MailSender
                 'bcc' => $this->bcc,
                 'custom_value' => $this->custom_value,
                 'user' => $this->user,
+                'history_body' => $this->history_body,
             ]
         );
     }

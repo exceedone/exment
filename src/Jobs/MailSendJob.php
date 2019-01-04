@@ -24,6 +24,7 @@ class MailSendJob extends JobBase
     protected $mail_template;
     protected $custom_value;
     protected $user;
+    protected $history_body;
 
     public function __construct($from, $to, $subject, $body, $mail_template, $options = []){
         $this->from = $from;
@@ -35,6 +36,7 @@ class MailSendJob extends JobBase
         $this->bcc = array_get($options, 'bcc', []);
         $this->custom_value = array_get($options, 'custom_value');
         $this->user = array_get($options, 'user');
+        $this->history_body = array_get($options, 'history_body', true);
     }
 
     public function handle()
@@ -80,7 +82,6 @@ class MailSendJob extends JobBase
         $model->setValue('mail_cc', implode(",", $this->getAddress($this->cc)) ?? null);
         $model->setValue('mail_bcc', implode(",", $this->getAddress($this->bcc)) ?? null);
         $model->setValue('mail_subject', $this->subject);
-        $model->setValue('mail_body', $this->body);
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));
         
@@ -92,7 +93,13 @@ class MailSendJob extends JobBase
             $model->parent_id = $this->custom_value->id;
             $model->parent_type = $this->custom_value->custom_table->table_name;
         }
-
+        
+        if ($this->history_body) {
+            $model->setValue('mail_body', $this->body);
+        }else{
+            $model->setValue('mail_body', exmtrans('mail_template.disable_body'));
+        }
+        
         $model->save();
     }
 }

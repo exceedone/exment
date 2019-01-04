@@ -1,3 +1,4 @@
+
 <?php
 
 return [    
@@ -37,6 +38,8 @@ return [
         'desc' => 'Desc',
         'message' => [
             'confirm_execute'        => 'Are you sure to %s ?',
+            'success_execute' => 'Execute Success!',
+            'error_execute' => 'Execute Error',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check csv file.',
             'notfound' => 'Data Not Found.',
@@ -684,11 +687,13 @@ return [
             'role' => 'Role',
             'user' => 'User',
             'organization' => 'Organization',
+            'information' => 'Information',
             'menu' => 'Menu',
             'template' => 'Template',
             'backup' => 'Backup',
             'loginuser' => 'LoginUser',
-            'mail' => 'Mail',
+            'mail_template' => 'Mail Template',
+            'mail_send_history' => 'Mail Send History',
             'notify' => 'Notify',
             'base_info' => 'Base Info',
             'master' => 'Manage Master',
@@ -697,25 +702,7 @@ return [
     ],
 
     'mail_template' => [
-        'header' => 'Mail Template Setting',
-        'description' => 'Define mail subject, body, etc.',
-        'mail_key_name' => 'Mail Key Name',
-        'mail_view_name' => 'Mail View Name',
-        'mail_subject' => 'Mail Subject',
-        'mail_body' => 'Mail Body',
-        'mail_template_type' => 'Template Type',
-        'help' =>[
-            'mail_key_name' => 'A key name for uniquely identifying a mail template on the system.',
-            'mail_view_name' => 'The template name displayed on the list screen.',    
-            'mail_subject' => 'Enter the subject of the mail to be sent. Variables can be used.',
-            'mail_body' => 'Enter the body of the mail to be sent. Variables can be used.',    
-        ],
-        
-        'mail_template_type_options' => [
-            'header' => 'Header',
-            'body' => 'Body',
-            'footer' => 'Footer',
-        ],
+        'disable_body' => '(For security reasons, the body is hidden)',
     ],
     
     'template' =>[
@@ -815,7 +802,8 @@ return [
         ],
 
         'notify_trigger_options' => [
-            'time' => 'The Passage of Time'
+            'time' => 'The Passage of Time',
+            'create_update_data' => 'Data Create/Update',
         ],
         'notify_beforeafter_options' => [
             'before' => 'Before', 

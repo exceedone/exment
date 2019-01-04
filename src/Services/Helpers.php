@@ -838,7 +838,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                         $str = admin_url("auth/login");
                                     }
                                     elseif ($key_system == "system_url") {
-                                        $str = admin_url("auth/login");
+                                        $str = admin_url("");
                                     }
                                 }
                             }
