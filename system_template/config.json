@@ -484,6 +484,7 @@
                     "description": null,
                     "system_flg": "0",
                     "options": {
+                        "index_enabled": "1",
                         "help": "一覧表示したい場合、YESに設定してください。",
                         "default": "1",
                         "required": "1"
@@ -496,6 +497,7 @@
                     "description": null,
                     "system_flg": "0",
                     "options": {
+                        "index_enabled": "1",
                         "help": "数値が大きい順に、一覧に表示します。（同じ値の場合は更新日時が新しい順）",
                         "required": "1",
                         "number_max": null,
@@ -958,6 +960,26 @@
                 }
             ],
             "custom_view_filters": [],
+            "custom_view_sorts": [
+                {
+                    "view_column_type": "0",
+                    "sort": "-1",
+                    "priority": "1",
+                    "view_column_target_name": "order"
+                },
+                {
+                    "view_column_type": "1",
+                    "sort": "-1",
+                    "priority": "2",
+                    "view_column_target_name": "updated_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "sort": "-1",
+                    "priority": "3",
+                    "view_column_target_name": "id"
+                }
+            ],
             "table_name": "information"
         },
         {
@@ -985,6 +1007,26 @@
                     "view_column_type": "0",
                     "view_filter_condition": "1",
                     "view_filter_condition_value_text": "1"
+                }
+            ],
+            "custom_view_sorts": [
+                {
+                    "view_column_type": "0",
+                    "sort": "-1",
+                    "priority": "1",
+                    "view_column_target_name": "order"
+                },
+                {
+                    "view_column_type": "1",
+                    "sort": "-1",
+                    "priority": "2",
+                    "view_column_target_name": "updated_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "sort": "-1",
+                    "priority": "3",
+                    "view_column_target_name": "id"
                 }
             ],
             "table_name": "information"
