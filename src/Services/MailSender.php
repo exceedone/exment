@@ -130,6 +130,9 @@ class MailSender
         if(isset($footer)){
             $mail_bodies[]  = $footer;
         }
+        if(!isset($this->from)){
+            $this->from = [System::system_mail_from()];
+        }
 
         // dispatch jobs
         MailSendJob::dispatch(
@@ -143,7 +146,8 @@ class MailSender
                 'bcc' => $this->bcc,
                 'custom_value' => $this->custom_value,
                 'user' => $this->user,
-            ]);
+            ]
+        );
     }
 
     /**

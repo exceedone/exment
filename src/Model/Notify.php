@@ -167,9 +167,11 @@ class Notify extends ModelBase
             ->get()
         ;
         foreach($mail_send_histories as $mail_send_history){
-            $send_datetime = (new Carbon($mail_send_history->getValue('send_datetime')))->addMinutes(5);
+            // If user were sending within 5 minutes, false
+            $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
+            $send_datetime = (new Carbon($mail_send_history->getValue('send_datetime')))
+                ->addMinutes($skip_mitutes);
             $now = Carbon::now();
-            // If user were sending within 5 minutes,
             if($send_datetime->gt($now)){
                 return false;
             }

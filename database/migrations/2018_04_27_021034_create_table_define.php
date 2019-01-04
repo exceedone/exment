@@ -252,6 +252,7 @@ class CreateTableDefine extends Migration
             $table->integer('view_kind_type')->default(0);
             $table->string('view_view_name', 40);
             $table->boolean('default_flg')->default(false);
+            $table->json('options')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();

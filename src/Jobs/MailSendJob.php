@@ -11,16 +11,8 @@ use Illuminate\Support\Facades\Mail;
 use Exception;
 use Carbon\Carbon;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-
-class MailSendJob implements ShouldQueue
+class MailSendJob extends JobBase
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
     protected $from;
     protected $to;
     protected $cc;
@@ -39,18 +31,14 @@ class MailSendJob implements ShouldQueue
         $this->subject = $subject;
         $this->body = $body;
         $this->mail_template = $mail_template;
-        $this->cc = array_get($options, 'cc');
-        $this->bcc = array_get($options, 'bcc');
+        $this->cc = array_get($options, 'cc', []);
+        $this->bcc = array_get($options, 'bcc', []);
         $this->custom_value = array_get($options, 'custom_value');
         $this->user = array_get($options, 'user');
     }
 
     public function handle()
     {
-        if(!isset($this->from)){
-            $this->from = [System::system_mail_from()];
-        }
-
         Mail::send([], [], function ($message){
             $message->to($this->getAddress($this->to))->subject($this->subject);
             $message->from($this->getAddress($this->from));
