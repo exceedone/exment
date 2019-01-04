@@ -237,7 +237,7 @@ class CustomValue extends ModelBase
     public function setValueAuthoritable()
     {
         $table_name = $this->custom_table->table_name;
-        if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+        if(in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())){
             return;
         }
         if($this->value_authoritable_users()->count() > 0 || $this->value_authoritable_organizations()->count() > 0){
