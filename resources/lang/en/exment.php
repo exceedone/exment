@@ -28,6 +28,7 @@ return [
         'created_user' => 'Created User',
         'updated_user' => 'Updated User', 
         'deleted_user' => 'Deleted User',   
+        'trashed_user' => '(Already Trashed User)', 
         'attachment' => 'Attachment File',     
         'separate_word' => ',',
         'yes' => 'Yes',

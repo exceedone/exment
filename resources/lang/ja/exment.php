@@ -27,6 +27,7 @@ return [
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
+        'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   
         'separate_word' => '、',
         'yes' => 'はい',
