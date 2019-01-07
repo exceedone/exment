@@ -69,7 +69,7 @@ class ScheduleCommand extends Command
         $last_executed = System::backup_automatic_executed();
         if (isset($last_executed)) {
             $term = System::backup_automatic_term();
-            if ($last_executed->addDay($term)->today()->gt($now->today())) {
+            if ($last_executed->addDay($term)->gt($now->today())) {
                 return;
             }
         }
