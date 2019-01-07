@@ -29,7 +29,7 @@ http(s)://(ExmentのURL)/admin/auth/login/(socialiteのprovider名)/callback
 - 以下のコマンドを、Exmentのルートディレクトリで実行します。
 
 ~~~
-composer require laravel/socialite
+composer require laravel/socialite=~3.2.0
 ~~~
 
 - config/services.phpに、各プロバイダのclient_id, client_secretを記入します。  
@@ -73,7 +73,7 @@ http(s)://(ExmentのURL)/admin/auth/login/(socialiteのprovider名)/callback
 - 以下のコマンドを、Exmentのルートディレクトリで実行します。
 
 ~~~
-composer require laravel/socialite
+composer require laravel/socialite=~3.2.0
 composer require socialiteproviders/microsoft-graph
 ~~~
 
@@ -101,10 +101,9 @@ EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER=true #通常のログインを表示させる
 ~~~
 
 - (任意)アバター取得のために、既存のプロバイダーを継承したクラスを、App\Socialiteに作成します。  
+1つ目は、MicrosoftGraphProvider.phpです。インタフェースProviderAvatarをimplementsし、getAvatarを実装します。
 
 ~~~ php
-////// MicrosoftGraphProvider.php
-////// インタフェースProviderAvatarをimplementsし、getAvatarを実装します。  
 <?php
 
 namespace App\Socialite;
@@ -148,9 +147,9 @@ class MicrosoftGraphProvider extends Provider implements ProviderAvatar
 
 ~~~ 
 
+- 2つ目は、GraphExtendSocialite.phpです。作成したMicrosoftGraphProviderを指定します。
+
 ~~~ php
-////// GraphExtendSocialite.php
-////// 先ほど作成したMicrosoftGraphProviderを指定します  
 <?php
 
 namespace App\Socialite;

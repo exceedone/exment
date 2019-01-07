@@ -27,24 +27,6 @@ class ResetPasswordController extends Controller
     public function __construct()
     {
         $this->redirectTo = admin_base_path('');
-        $model = getModelName(SystemTableName::USER);
-        if (!Config::has('auth.providers.exment_admins')) {
-            Config::set('auth.providers.exment_admins', [
-                'driver' => 'eloquent',
-                'model' => $model
-            ]);
-        }
-
-        // add for exment_admins
-        if (!Config::has('auth.passwords.exment_admins')) {
-            Config::set('auth.passwords.exment_admins', [
-                'provider' => 'exment_admins',
-                'table' => 'password_resets',
-                'expire' => 720,
-            ]);
-        }
-        //TODO:only set admin::guest
-        //$this->middleware('guest');
     }
 
     /**

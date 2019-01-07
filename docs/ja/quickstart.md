@@ -103,5 +103,5 @@ php artisan exment:install
 ## その他の初期設定
 以上の作業で、Exmentを開始することは可能ですが、一部の機能を使うために、追加で設定が必要になる場合があります。  
 以下のリンクをご確認ください。  
-- [シングルサインオン](quickstart_more.md#シングルサインオン)
-- [タスクスケジュール機能](quickstart_more.md#タスクスケジュール機能)
+- [シングルサインオン](/ja/quickstart_more.md#シングルサインオン)
+- [タスクスケジュール機能](/ja/quickstart_more.md#タスクスケジュール機能)

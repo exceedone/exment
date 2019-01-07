@@ -143,6 +143,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected function bootApp(){
         $this->app->register(ExmentProviders\RouteServiceProvider::class);
         $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
+        $this->app->register(ExmentProviders\PasswordResetServiceProvider::class);
         
         $this->commands($this->commands);
 
