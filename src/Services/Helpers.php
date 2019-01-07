@@ -892,6 +892,8 @@ if (!function_exists('shouldPassThrough')) {
         $excepts = [
             admin_base_path('auth/login'),
             admin_base_path('auth/logout'),
+            admin_base_path('auth/reset'),
+            admin_base_path('auth/forget'),
             admin_base_path('initialize'),
         ];
 

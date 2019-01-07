@@ -26,7 +26,7 @@ class ResetPasswordController extends Controller
      */
     public function __construct()
     {
-        $this->redirectTo = admin_base_path('');
+        $this->redirectTo = admin_base_path('auth/login');
     }
 
     /**
@@ -87,7 +87,7 @@ class ResetPasswordController extends Controller
         );
 
         if ($response == Password::PASSWORD_RESET) {
-            admin_toastr(trans('admin.update_succeeded'));
+            admin_toastr(trans($response));
         }
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can
@@ -113,8 +113,6 @@ class ResetPasswordController extends Controller
         $user->saveOrFail();
 
         event(new PasswordReset($user));
-
-        $this->guard()->login($user);
     }
 
     //defining which password broker to use, in our case its the exment
