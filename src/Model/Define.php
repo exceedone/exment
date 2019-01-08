@@ -13,6 +13,9 @@ use Exceedone\Exment\Enums\RoleValue;
  */
 class Define
 {
+    public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
+    public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
+
     public const RULES_REGEX_VALUE_FORMAT = '\${(.*?)\}';
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';
     public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z]{1,32})[a-zA-Z][-_a-zA-Z0-9]+$';

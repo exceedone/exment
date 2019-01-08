@@ -76,7 +76,7 @@ return [
         'version_develope' => 'This is developer version.',
         'version_old' => 'New version is available.',
         'version_error' => 'Checking system version is failed.',
-        'install_guide' => 'Install from here !!',
+        'update_guide' => 'Check how to update from here !!',
         'current_version' => 'Current version : ',
         
         'site_skin_options' => [

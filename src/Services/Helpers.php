@@ -1035,42 +1035,68 @@ if (!function_exists('getExmentVersion')) {
      */
     function getExmentVersion($getFromComposer = true)
     {
-        //TODO: reconsider how to get current version.
-        return [null, null];
-        // $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
-        // if (isset($version_json)) {
-        //     $version = json_decode($version_json, true);
-        //     $latest = array_get($version, 'latest');
-        //     $current = array_get($version, 'current');
-        // }
+        $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+        if (isset($version_json)) {
+            $version = json_decode($version_json, true);
+            $latest = array_get($version, 'latest');
+            $current = array_get($version, 'current');
+        }
         
-        // if ((empty($latest) || empty($current)) && $getFromComposer) {
-        //     $output = [];
-        //     $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
-        //     exec($cmd, $output, $result);
-        //     if ($result === 0) {
-        //         // get version from output
-        //         $latest = '';
-        //         $current = '';
-        //         foreach ($output as $data) {
-        //             $items = explode(':', $data);
-        //             if (trim($items[0]) === 'latest') {
-        //                 $latest = trim($items[1]);
-        //             } elseif (trim($items[0]) === 'versions') {
-        //                 $current = trim($items[1], " *\t\n\r\0\x0B");
-        //             }
-        //         }
+        if ((empty($latest) || empty($current)) && $getFromComposer) {
+            // get current version from composer.lock
+            $composer_lock = base_path('composer.lock');
+            if(!\File::exists($composer_lock)){
+                return [null, null];
+            }
 
-        //         app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-        //             'latest' => $latest, 'current' => $current
-        //         ]));
-        //     }
-        // }
+            $contents = \File::get($composer_lock);
+            $json = json_decode($contents, true);
+            if(!$json){
+                return [null, null];
+            }
+            
+            // get exment info
+            $packages = array_get($json, 'packages');
+            $exment = collect($packages)->filter(function($package){
+                return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+            })->first();
+            if(!isset($exment)){
+                return [null, null];
+            }
+            $current = array_get($exment, 'version');
+            
+            //// get latest version
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
+                'http_errors' => false,
+            ]);
+            $contents = $response->getBody()->getContents();
+            $json = json_decode($contents, true);
+            if(!$json){
+                return [null, null];
+            }
+            $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
+            if(!$packages){
+                return [null, null];
+            }
+            foreach ($packages as $key => $package) {
+                // if version is "dev-", continue
+                if(substr($key, 0, 4) == 'dev-'){
+                    continue;
+                }
+                $latest = $key;
+                break;
+            }
+
+            app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                'latest' => $latest, 'current' => $current
+            ]));
+        }
         
-        // if (empty($latest) || empty($current)) {
-        //     return [null, null];
-        // }
-        // return [$latest, $current];
+        if (empty($latest) || empty($current)) {
+            return [null, null];
+        }
+        return [$latest, $current];
     }
 }
 
