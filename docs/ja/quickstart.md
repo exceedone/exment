@@ -59,6 +59,7 @@ php artisan vendor:publish --provider="Encore\Admin\AdminServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider"
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=public --force
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=lang --force
+php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=views_vendor
 ~~~
 
 ## config変更

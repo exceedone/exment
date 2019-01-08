@@ -2,7 +2,6 @@
 
 * 【システム管理者向け】
   * [クイックスタート](/ja/quickstart.md)
-  * [クイックスタート(ZIP版)](/ja/quickstart_zip.md)
   * [クイックスタート(追加設定)](/ja/quickstart_more.md)
   * [アップデート](/ja/update.md)
 
