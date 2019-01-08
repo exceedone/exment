@@ -7,6 +7,5 @@ class TemplateExportTarget extends EnumBase
     const TABLE = 'table';
     const DASHBOARD = 'dashboard';
     const MENU = 'menu';
-    const AUTHORITY = 'authority';
-    const MAIL_TEMPLATE = 'mail_template';
+    const AUTHORITY = 'role';
 }

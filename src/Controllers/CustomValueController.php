@@ -13,16 +13,17 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceActions, AuthorityForm, CustomValueGrid, CustomValueForm, CustomValueShow, CustomValueSummary;
+    use HasResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow, CustomValueSummary;
     protected $plugins = [];
 
     /**
@@ -80,7 +81,7 @@ class CustomValueController extends AdminControllerTableBase
         }
         return $content;
     }
-   
+    
     /**
      * Create interface.
      *
@@ -140,7 +141,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function show(Request $request, $id, Content $content)
     {
-        $this->firstFlow($request, $id);
+        $this->firstFlow($request, $id, true);
 
         $modal = boolval($request->get('modal'));
         if ($modal) {
@@ -182,7 +183,7 @@ class CustomValueController extends AdminControllerTableBase
                 $field->setOriginal($obj->value);
 
                 $field->destroy(); // delete file
-                \Exceedone\Exment\Model\File::deleteFileInfo($original); // delete file table
+                ExmentFile::deleteFileInfo($original); // delete file table
                 $obj->setValue($del_column_name, null)
                     ->remove_file_columns($del_column_name)
                     ->save();
@@ -207,10 +208,11 @@ class CustomValueController extends AdminControllerTableBase
         $filename = $httpfile->getClientOriginalName();
         $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
         // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
-        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename, $uniqueFileName);
+        $custom_value = $this->getModelNameDV()::find($id);
+        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename, $uniqueFileName, false)
+            ->saveCustomValue($custom_value);
 
         // save document model
-        $custom_value = $this->getModelNameDV()::find($id);
         $document_model = $file->saveDocumentModel($custom_value, $filename);
         
         return getAjaxResponse([
@@ -314,7 +316,8 @@ class CustomValueController extends AdminControllerTableBase
         // get label hasmany
         $block_label = $custom_form_block->form_block_view_name;
         if (!isset($block_label)) {
-            $block_label = exmtrans("custom_form.table_".array_get($custom_form_block, 'form_block_type')."_label") . $target_table->table_view_name;
+            $enum = FormBlockType::getEnum(array_get($custom_form_block, 'form_block_type'));
+            $block_label = exmtrans("custom_form.table_".$enum->lowerKey()."_label") . $target_table->table_view_name;
         }
         // get form columns count
         $form_block_options = array_get($custom_form_block, 'options', []);
@@ -324,20 +327,21 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * First flow. check authority and set form and view id etc.
-     * different logic for new or update
+     * First flow. check role and set form and view id etc.
+     * different logic for new, update or show
      */
-    protected function firstFlow(Request $request, $id = null)
+    protected function firstFlow(Request $request, $id = null, $show = false)
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        $roleValue = $show ? RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE : RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE;
+        if (!$this->validateTable($this->custom_table, $roleValue)) {
             return false;
         }
             
         // id set, checking as update.
         if(isset($id)){
-            // if user doesn't have authority for target id data, show deny error.
+            // if user doesn't have role for target id data, show deny error.
             if (!$this->custom_table->hasPermissionData($id)) {
                 Checker::error();
                 return false;

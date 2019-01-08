@@ -1,3 +1,4 @@
+
 <?php
 
 return [    
@@ -5,10 +6,12 @@ return [
         'home' => 'HOME',
         'error' => 'Error',
         'import' => 'Import',
+        'plugin' => 'Plugin',
         'copy' => 'Copy',
         'change' => 'Change',
         'reqired' => 'Required',
         'default' => 'Default',
+        'detail_setting' => 'Detail Setting',
         'input' => 'Input',
         'available_true' => 'Available',
         'available_false' => 'Not Available',
@@ -17,20 +20,27 @@ return [
         'suuid' => 'System ID(20-length)',
         'parent_id' => 'Parent Data ID',
         'parent_type' => 'Parent Data Table Name',
+        'created' => 'Created',
+        'updated' => 'Updated',  
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',  
         'deleted_at' => 'Deleted At',      
         'created_user' => 'Created User',
         'updated_user' => 'Updated User', 
         'deleted_user' => 'Deleted User',   
+        'trashed_user' => '(Already Trashed User)', 
         'attachment' => 'Attachment File',     
         'separate_word' => ',',
         'yes' => 'Yes',
         'no' => 'No',
         'row' => 'Row',
         'column' => 'Column',
+        'asc' => 'Asc',
+        'desc' => 'Desc',
         'message' => [
             'confirm_execute'        => 'Are you sure to %s ?',
+            'success_execute' => 'Execute Success!',
+            'error_execute' => 'Execute Error',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check csv file.',
             'notfound' => 'Data Not Found.',
@@ -39,6 +49,7 @@ return [
 
         'help' =>[
             'input_available_characters' => 'Please enter %s.',
+            'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
         ],
     ],
 
@@ -55,7 +66,7 @@ return [
         'site_logo_mini' => 'Site Logo(Small)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
-        'authority_available' => 'Use Authority Management',
+        'permission_available' => 'Use Role Management',
         'organization_available' => 'Use Organization Management',
         'system_mail_from' => 'System Email',
         'template' => 'Install Template',
@@ -95,7 +106,7 @@ return [
             'site_logo_mini' => 'Site logo(small size). Recommended size:40px * 40px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
-            'authority_available' => 'If Select YES, management authority using user or organozation.',
+            'permission_available' => 'If Select YES, management role using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
             'template' => 'If select these templates, install tables, columns and forms.',
@@ -191,6 +202,48 @@ return [
         ],
     ],
 
+    'backup' => [
+        'header' => 'Backup List',
+        'setting_header' => 'Backup Setting',
+        'description' => 'Back up and restore databases and files.',
+        'file_name' => 'File Name',
+        'file_size' => 'File Size',
+        'backup' => 'Backup',
+        'restore' => 'Restore',
+        'restore_upload' => 'File Upload',
+        'backuprestore' => 'Backup/Restore',
+        'backup_target' => 'Target Backup',
+        'enable_automatic' => 'Auto Backup',
+        'automatic_term' => 'Auto Backup Execution Interval(day)',
+        'automatic_hour' => 'Auto Backup Start Time(hour)',
+        'upload_zipfile' => 'Upload(zip)',
+        'backup_target_options' => [
+            'database' => 'Database',
+            'plugin' => 'Plugin File',
+            'attachment' => 'Attachment File',
+            'log' => 'Log File',
+            'config' => 'Config File',
+        ],
+        'message' => [
+            'backup_confirm' => 'Would you like to perform a backup?',
+            'backup_error' => 'Backup failed.',
+            'download_error' => 'Download failed.',
+            'restore_confirm' => 'Would you like to perform a restore? (Remove all current data.)',
+            'restore_succeeded' => 'Restore success.',
+            'restore_error' => 'Restore failed.',
+            'restore_file_success' => 'Restore success. Redirect to login page.',
+            'restore_file_error' => 'Restore failed. Please check upload file.',
+        ],
+        'help' =>[
+            'file_name' => 'Please select the backup zip file.',
+            'import_error_message' => 'If incomplete files are incomplete, an error message is displayed in this item.',
+            'backup_target' => 'The target of backup. Unless there is a particular reason, we recommend checking all items.',
+            'enable_automatic' => 'If it is set to YES, backup will be executed automatically.',
+            'automatic_term' => 'It is a setting of how many days to perform automatic backup. Example: When entering "3", execute backup every 3 days',
+            'automatic_hour' => 'The start time of the automatic backup. Example: When entering "3", start backup execution at 3:00',
+        ]
+    ],
+
     'user' => [
         'header' => 'Login User Setting',
         'description' => 'Select the user who logins into this system from among the users, and set the password, initialize the password, and so on.',
@@ -201,6 +254,7 @@ return [
         'password_confirmation' => 'Password(Confirm)',
         'new_password' => 'New Password',
         'new_password_confirmation' => 'New Password(Confirm)',
+        'send_password' => 'Send User Info',
         'login_user' => 'Login User Setting',
         'login' => 'Login Setting',
         'use_loginuser' => 'Login Authorization Granted',
@@ -215,8 +269,9 @@ return [
             'change_only' => 'Enter only when making changes.',
             
             'use_loginuser' => 'By checking, this user will be able to log in to the system.',
-            'reset_password' => 'By checking and saving, the password will be reset.',
-            'create_password_auto' => 'By checking and saving, the password is automatically generated.',
+            'reset_password' => 'By checking, the password will be reset.',
+            'create_password_auto' => 'By checking, the password is automatically generated.',
+            'send_password' => 'By checking, we will e-mail user information to the relevant user.',
         ]
     ],
 
@@ -229,6 +284,8 @@ return [
         'forget_password' => 'I forgot my password',
         'password_reset' => 'Password Reset',
         'back_login_page' => 'Back to Login Page',
+        'sso_provider_error' => 'Failed to acquire login information from provider. If you fail many times, please contact your administrator.',
+        'noexists_user' => 'User did not exist in Exment. Please contact your administrator to add users first.',
     ],
 
     'change_page_menu' =>[
@@ -246,6 +303,7 @@ return [
     'custom_table' => [
         'header' => 'Custom Table Setting',
         'description' => 'Define custom table settings that can be changed independently.',
+        'table' => 'Table',
         'table_name' => 'Table Name',
         'table_view_name' => 'Table View Name',
         'field_description' => 'Description',
@@ -253,12 +311,26 @@ return [
         'icon' => 'Icon',
         'search_enabled' => 'Search Enabled',
         'one_record_flg' => 'Save Only One Record',
+        'attachment_flg' => 'Use Attachment File',
+        'revision_flg' => 'Use Data Revision',
+        'revision_count' => 'Data Revision Versioning Count',
+        'notify_flg' => 'Notify When Create/Update',
         'custom_columns' => 'Column List',
+        'all_user_editable_flg' => 'All Users Can Edit',
+        'all_user_viewable_flg' => 'All Users Can View',
+        'all_user_accessable_flg' => 'All Users Can Access',
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
             'search_enabled' => 'If set on, can search from search display.',
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
+            'attachment_flg' => 'If set to YES, you can add attachments to each data.',
+            'revision_flg' => 'If it is set to YES, save the data change history when saving each data. Also, you can restore previous saved information on each data screen.',
+            'revision_count' => 'The maximum number of items to save change history of data. When saving more history, the past history is deleted.',
+            'notify_flg' => 'If it is set to YES, a notification is sent to authorized users when adding / updating data.',
+            'all_user_editable_flg' => 'If set to YES, all users will be able to edit all the data in this table.',
+            'all_user_viewable_flg' => 'If set to YES, all users will be able to view all the data in this table.',
+            'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.',
         ],
         
         'system_definitions' => [
@@ -277,7 +349,7 @@ return [
         'column_type' => 'Column Type',
         'options' => [
             'header' => 'Detail Option',
-            'search_enabled' => 'Search Index',
+            'index_enabled' => 'Index Enabled',
             'unique' => 'Unique',
             'default' => 'Default Value',
             'placeholder' => 'PlaceHolder',
@@ -287,6 +359,7 @@ return [
             'number_min' => 'Min Number',
             'number_max' => 'Max Number',
             'number_format' => 'Use Number Comma String',
+            'decimal_digit' => 'Number of decimal places',
             'updown_button' => '+- Button',
             'select_item' => 'Select Choice',
             "select_valtext" => "Select Choice (Config value and text)",
@@ -311,6 +384,7 @@ return [
         'column_type_options' => [
             "text" => "One-Line Text",
             "textarea" => "Multiple-Line Text",
+            "editor" => "Text Editor",
             "url" => "URL",
             "email" => "Email",
             "integer" => "Integer",
@@ -435,6 +509,7 @@ return [
 
         'help'=> [
             'items' => 'Set the items to be displayed on the data form. <br /> From the "form item candidate list", drag & drop the item you want to display on the form to "form item column 1" "form item column 2".',
+            'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here</a>.',
         ],
     ],
 
@@ -443,14 +518,18 @@ return [
         'description' => 'Define the custom view setting.',
         'view_view_name' => 'View Display Name',
         'custom_view_columns' => 'Select View Columns',
+        'custom_view_sorts' => 'Sort Data',
         'view_column_target' => 'View Target Column',
         'order' => 'Order',
+        'sort' => 'Sort',
+        'priority' => 'Priority',
         'custom_view_filters' => 'View Filter',
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'default_view_name' => 'Default View',
         'description_custom_view_columns' => 'Select display columns.',
-        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the authority data owned by the login user is displayed.',
+        'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.',
+        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.',
 
         'filter_condition_options' => [
             'eq' => 'Equal', 
@@ -491,56 +570,60 @@ return [
         ],
     ],
 
-    'authority' => [
-        'header' => 'Authority Setting',
-        'description' => 'Define Setting authority.',
-        'authority_name' => 'Authority Name',
-        'authority_view_name' => 'Authority View Name',
-        'authority_type' => 'Authority Type',
-        'default_flg' => 'Default Authority',
+    'role' => [
+        'header' => 'Role Setting',
+        'description' => 'Define Setting role.',
+        'role_name' => 'Role Name',
+        'role_view_name' => 'Role View Name',
+        'role_type' => 'Role Type',
+        'default_flg' => 'Default Role',
         'default_flg_true' => 'True',
         'default_flg_false' => '',
         'description_field' => 'Explain',
-        'permissions' => 'Authority Detail',
-        
+        'permissions' => 'Role Detail',
+        'permission_header' => 'Permission Setting',
+
         'description_form' => [
-            'system' => 'Please select users/organizations to whom authority is given for the entire system.',
-            'system_disableorg' => 'Please select users to whom authority is given for the entire system.',
-            'custom_table' => 'Please select users/organizations to whom authority is given for the entire table.',
-            'custom_table_disableorg' => 'Please select users to whom authority is given for the entire system.',
-            'custom_value' => 'Please select users/organizations to whom authority is given for this data.',
-            'custom_value_disableorg' => 'Please select users to whom authority is given for this data.',
-            'plugin' => 'Please select users/organizations to whom authority is given for this plugin.',
-            'plugin_disableorg' => 'Please select users to whom authority is given for this plugin.',
+            'system' => 'Please select users/organizations to whom role is given for the entire system.',
+            'system_disableorg' => 'Please select users to whom role is given for the entire system.',
+            'custom_table' => 'Please select users/organizations to whom role is given for the entire table.',
+            'custom_table_disableorg' => 'Please select users to whom role is given for the entire system.',
+            'custom_value' => 'Please select users/organizations to whom role is given for this data.',
+            'custom_value_disableorg' => 'Please select users to whom role is given for this data.',
+            'plugin' => 'Please select users/organizations to whom role is given for this plugin.',
+            'plugin_disableorg' => 'Please select users to whom role is given for this plugin.',
         ],
 
-        'authority_type_options' =>[
+        'role_type_options' =>[
             'system' => 'System',
             'table' => 'Table',
             'value' => 'Value',
             'plugin' => 'Plugin',
         ],
         
-        'authority_type_option_system' => [
+        'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
         ],
-        'authority_type_option_table' => [
+        'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
-            'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
+            'custom_value_edit_all' => ['label' => 'Edit All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
+            'custom_value_view_all' => ['label' => 'View All Data', 'help' => 'Users can view all data in custom tables.'],
+            'custom_value_access_all' => ['label' => 'Access All Data', 'help' => 'Users can see all data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
             'custom_value_edit' => ['label' => 'Edit Personnel Data', 'help' => 'Users can add, edit, delete personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
+            'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
         ], 
-        'authority_type_option_value' => [
+        'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'Viewer', 'help' => 'Users can view personnel data in custom tables.'],
         ], 
-        'authority_type_option_plugin' => [
+        'role_type_option_plugin' => [
             'plugin_access' => ['label' => 'Access', 'help' => 'User can use this plugin.'],
             'plugin_setting' => ['label' => 'Manage Setting', 'help' => 'For plugins with configuration changes, user can change the setting of this plugin.'],
         ],
@@ -554,11 +637,8 @@ return [
             'one_to_many'  => 'One to Many',
             'many_to_many'  => 'Many to Many',
         ],
-        'parent_custom_table_name' => 'Parent Table Name',
-        'parent_custom_table_view_name' => 'Parent Table View Name',
+        'parent_custom_table' => 'Parent Table',
         'child_custom_table' => 'Child Table',
-        'child_custom_table_name' => 'Child Table Name',
-        'child_custom_table_view_name' => 'Child Table View Name',
     ],
 
     'custom_copy' => [
@@ -605,13 +685,16 @@ return [
             'system' => 'System Setting',
             'plugin' => 'Plugin',
             'custom_table' => 'Custom Table',
-            'authority' => 'Authority',
+            'role' => 'Role',
             'user' => 'User',
             'organization' => 'Organization',
+            'information' => 'Information',
             'menu' => 'Menu',
             'template' => 'Template',
+            'backup' => 'Backup',
             'loginuser' => 'LoginUser',
-            'mail' => 'Mail',
+            'mail_template' => 'Mail Template',
+            'mail_send_log' => 'Mail Send Log',
             'notify' => 'Notify',
             'base_info' => 'Base Info',
             'master' => 'Manage Master',
@@ -620,25 +703,7 @@ return [
     ],
 
     'mail_template' => [
-        'header' => 'Mail Template Setting',
-        'description' => 'Define mail subject, body, etc.',
-        'mail_name' => 'Mail Key Name',
-        'mail_view_name' => 'Mail View Name',
-        'mail_subject' => 'Mail Subject',
-        'mail_body' => 'Mail Body',
-        'mail_template_type' => 'Template Type',
-        'help' =>[
-            'mail_name' => 'A key name for uniquely identifying a mail template on the system.',
-            'mail_view_name' => 'The template name displayed on the list screen.',    
-            'mail_subject' => 'Enter the subject of the mail to be sent. Variables can be used.',
-            'mail_body' => 'Enter the body of the mail to be sent. Variables can be used.',    
-        ],
-        
-        'mail_template_type_options' => [
-            'header' => 'Header',
-            'body' => 'Body',
-            'footer' => 'Footer',
-        ],
+        'disable_body' => '(For security reasons, the body is hidden)',
     ],
     
     'template' =>[
@@ -669,7 +734,7 @@ return [
             'table' => 'Table',
             'dashboard' => 'Dashboard',
             'menu' => 'Menu',
-            'authority' => 'Authority',
+            'role' => 'Role',
             'mail_template' => 'Mail Template',
         ]
     ],
@@ -738,7 +803,8 @@ return [
         ],
 
         'notify_trigger_options' => [
-            'time' => 'The Passage of Time'
+            'time' => 'The Passage of Time',
+            'create_update_data' => 'Data Create/Update',
         ],
         'notify_beforeafter_options' => [
             'before' => 'Before', 
@@ -749,7 +815,7 @@ return [
         ],
 
         'notify_action_target_options' => [
-            'has_authorities' => 'Have the Authority User',
+            'has_roles' => 'Have the Role User',
         ],
     ],
 ];

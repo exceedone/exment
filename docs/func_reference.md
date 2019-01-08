@@ -143,7 +143,7 @@ Converts a string to a Pascal case.
 #### getModelName
 ---
 Get the full path string of the model of the custom table.  
-We also define methods for relationships between tables and methods for obtaining authority information.  
+We also define methods for relationships between tables and methods for obtaining role information.  
 * When acquiring the model of the custom table, be sure to use this function.  
 
 ##### Argument
@@ -255,20 +255,20 @@ Specify the parent table and child table to obtain the relation name of the rela
 | string | relation name |
 
 
-#### getAuthorityName
+#### getRoleName
 ---
-Gets the authority name.  
+Gets the role name.  
 
 ##### Argument
 | Name | Type | Description |
 | ---- | ---- | ---- |
-| obj | Authority | Instance of Authority |
+| obj | Role | Instance of Role |
 | related_type | stirng | permission type |
 
 ##### Return value
 | Type | Description |
 | ---- | ---- |
-| string | authority name |
+| string | role name |
 
 
 

@@ -5,9 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Encore\Admin;
-use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin as Ad;
-use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Controllers;
 
 /**
@@ -17,28 +15,6 @@ class Bootstrap
 {
     public function handle(Request $request, \Closure $next)
     {
-        $map = [
-            'number'        => Field\Number::class,
-            'image'        => Field\Image::class,
-            'display'        => Field\Display::class,
-            'link'           => Field\Link::class,
-            'header'           => Field\Header::class,
-            'description'           => Field\Description::class,
-            'switchbool'          => Field\SwitchBoolField::class,
-            'pivotMultiSelect'          => Field\PivotMultiSelect::class,
-            'checkboxone'          => Field\Checkboxone::class,
-            'tile'          => Field\Tile::class,
-            'hasMany'           => Field\HasMany::class,
-            'hasManyTable'           => Field\HasManyTable::class,
-            'relationTable'          => Field\RelationTable::class,
-            'embeds'          => Field\Embeds::class,
-            'nestedEmbeds'          => Field\NestedEmbeds::class,
-            'valueModal'          => Field\ValueModal::class,
-        ];
-        foreach ($map as $abstract => $class) {
-            Form::extend($abstract, $class);
-        }
-
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->right(new \Exceedone\Exment\Form\Tools\HelpNav);

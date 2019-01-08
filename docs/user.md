@@ -43,7 +43,7 @@ If you want to delete a user, please click the "Delete" link on the correspondin
 
 ## Login user management
 We will manage login users based on the user created on the above screen.  
-You can add password information, reissue a password, delete login authority, and so on.
+You can add password information, reissue a password, delete login role, and so on.
 
 ### Screen display
 From the left menu, click "Login User".  
@@ -59,7 +59,7 @@ Click the "Edit" link in the user's line to add login information.
   
 The login information edit screen is displayed.  
 ![Login user screen](img/user/loginuser_edit1.png)  
-To add login privileges, click the "Login authority" checkbox.  
+To add login privileges, click the "Login role" checkbox.  
 
 #### Automatic password generation
 When adding login permission, check if you want to generate passwords automatically.  
@@ -92,6 +92,6 @@ Delete the login permission.
 On the list screen, click the "Edit" link of the user whose column "Login user setting" is "YES".  
 ![Login user screen](img/user/loginuser_grid3.png)  
 
-Clear the "Grant login authority" check box.  
+Clear the "Grant login role" check box.  
 ![Login user screen](img/user/loginuser_remove.png)  
 Then click "Save".

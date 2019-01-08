@@ -61,6 +61,7 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
 + [TCPDF](https://tcpdf.org/)
 + [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
 + [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
++ [TinyMCE](https://www.tiny.cloud/)
 
 
 ## クイックスタート

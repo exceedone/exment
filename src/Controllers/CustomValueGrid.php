@@ -11,7 +11,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
@@ -85,45 +86,63 @@ trait CustomValueGrid
                     $column_view_name = array_get($search_column, 'column_view_name');
                     // filter type
                     $column_type = array_get($search_column, 'column_type');
-                    switch ($column_type) {
-                        case 'select':
-                        case 'select_valtext':
-                            $filter->equal($column_name, $column_view_name)->select($search_column->createSelectOptions());
-                            break;
-                        case 'select_table':
-                        case 'user':
-                        case 'organization':
-                            // get select_target_table
-                            if ($column_type == 'select_table') {
-                                $select_target_table_id = array_get($search_column, 'options.select_target_table');
-                                if (isset($select_target_table_id)) {
-                                    $select_target_table = CustomTable::find($select_target_table_id);
-                                } else {
-                                    $select_target_table = null;
-                                }
-                            } elseif ($column_type == SystemTableName::USER) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::USER);
-                            } elseif ($column_type == SystemTableName::ORGANIZATION) {
-                                $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
-                            }
 
-                            // get options and ajax url
-                            $options = $select_target_table->getOptions();
-                            $ajax = $select_target_table->getOptionAjaxUrl();
+                    // if multiple enabled column
+                    if(ColumnType::isMultipleEnabled($column_type)){
+                        //get options and ajax.
+                        $options = null;
+                        $ajax = null;
+                        switch ($column_type) {
+                            case ColumnType::SELECT:
+                            case ColumnType::SELECT_VALTEXT:
+                                $options = $search_column->createSelectOptions();
+                                break;
+                            case ColumnType::SELECT_TABLE:
+                            case ColumnType::USER:
+                            case ColumnType::ORGANIZATION:
+                                // get select_target_table
+                                if ($column_type == ColumnType::SELECT_TABLE) {
+                                    $select_target_table_id = array_get($search_column, 'options.select_target_table');
+                                    if (isset($select_target_table_id)) {
+                                        $select_target_table = CustomTable::find($select_target_table_id);
+                                    } else {
+                                        $select_target_table = null;
+                                    }
+                                } elseif ($column_type == ColumnType::USER) {
+                                    $select_target_table = CustomTable::getEloquent(SystemTableName::USER);
+                                } elseif ($column_type == ColumnType::ORGANIZATION) {
+                                    $select_target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
+                                }
+    
+                                // get options and ajax url
+                                $options = $select_target_table->getOptions();
+                                $ajax = $select_target_table->getOptionAjaxUrl();
+                                break;
+                        }
+
+                        // if multiple, create where
+                        if(boolval($search_column->getOption('multiple_enabled'))){
+                            $filter->where(function ($query) use($column_name) {
+                                $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$column_name`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $this->input);
+                            }, $column_view_name)->select($options);
+                        }else{
                             if (isset($ajax)) {
                                 $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
                             } else {
                                 $filter->equal($column_name, $column_view_name)->select($options);
                             }
-                            break;
-                        case 'yesno':
+                        }
+                    }
+                    else{
+                        switch ($column_type) {
+                        case ColumnType::YESNO:
                             $filter->equal($column_name, $column_view_name)->radio([
                                 ''   => 'All',
                                 0    => 'NO',
                                 1    => 'YES',
                             ]);
                             break;
-                        case 'boolean':
+                        case ColumnType::BOOLEAN:
                             $filter->equal($column_name, $column_view_name)->radio([
                                 ''   => 'All',
                                 array_get($search_column, 'options.false_value')    => array_get($search_column, 'options.false_label'),
@@ -131,13 +150,14 @@ trait CustomValueGrid
                             ]);
                             break;
                         
-                        case 'date':
-                        case 'datetime':
+                        case ColumnType::DATE:
+                        case ColumnType::DATETIME:
                             $filter->between($column_name, $column_view_name)->date();
                             break;
                         default:
                             $filter->like($column_name, $column_view_name);
                             break;
+                        }
                     }
                 }
             });
@@ -155,7 +175,7 @@ trait CustomValueGrid
         $grid->disableExport();
         $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid) {
             // have edit flg
-            $edit_flg = $this->custom_table->hasPermission(AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+            $edit_flg = $this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid));

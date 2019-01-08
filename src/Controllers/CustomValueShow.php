@@ -13,10 +13,11 @@ use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\CustomFormBlockType;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
@@ -35,32 +36,32 @@ trait CustomValueShow
                     continue;
                 }
                 ////// default block(no relation block)
-                if (array_get($custom_form_block, 'form_block_type') == CustomFormBlockType::DEFAULT) {
+                if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         //// change value using custom form value
                         switch (array_get($form_column, 'form_column_type')) {
                             // for table column
-                            case CustomFormColumnType::COLUMN:
+                            case FormColumnType::COLUMN:
                                 $column = $form_column->custom_column;
                                 // set escape.
                                 // select_table, url is false
-                                $isUrl = in_array(array_get($column, 'column_type'), ['url', 'select_table']);
-                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column, $isUrl) {
+                                $isEscape = ColumnType::isNotEscape(array_get($column, 'column_type'));
+                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column) {
                                     if (is_null($this)) {
                                         return '';
                                     }
-                                    if ($isUrl) {
+                                    $column_type = array_get($column, 'column_type');
+                                    if (ColumnType::isUrl($column_type)) {
                                         return $this->getColumnUrl($column, true);
                                     }
+                                    if ($column_type == ColumnType::EDITOR || $column_type == ColumnType::TEXTAREA) {
+                                        return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $this->getValue($column, true)).'</div>' ?? null;
+                                    }
                                     return $this->getValue($column, true);
-                                })->setEscape(!$isUrl);
+                                })->setEscape(!$isEscape);
                                 break;
-                            case CustomFormColumnType::SYSTEM:
-                                $form_column_obj = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column) {
-                                    return $item['id'] == array_get($form_column, 'form_column_target_id');
-                                });
-                                // get form column name
-                                $form_column_name = array_get($form_column_obj, 'name');
+                            case FormColumnType::SYSTEM:
+                                $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
                                 $column_view_name =  exmtrans("common.".$form_column_name);
                                 $show->field($form_column_name, $column_view_name)->as(function ($v) use ($form_column_name) {
                                     return array_get($this, $form_column_name);
@@ -175,6 +176,7 @@ trait CustomValueShow
                 $options = [
                     'showUpload' => true,
                     'showPreview' => false,
+                    'showCancel' => false,
                     'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
                     'uploadExtraData'=> [
                         '_token' => csrf_token()
@@ -342,7 +344,7 @@ EOT;
      * get target data revisions
      */
     protected function getRevisions($id, $modal = false, $all = false){
-        if ($modal && boolval($this->custom_table->getOption('revision_flg'))) {
+        if ($modal || !boolval($this->custom_table->getOption('revision_flg'))) {
             return [];
         }
 

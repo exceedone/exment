@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\DashboardBoxType;
 
 class DashboardBoxController extends AdminControllerBase
@@ -125,14 +126,17 @@ class DashboardBoxController extends AdminControllerBase
                         $widgetTable->class('table table-hover');
 
                         // check edit permission
-                        if($table->hasPermission(Authority::AVAILABLE_EDIT_CUSTOM_VALUE)){
+                        if($table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
                             $new_url= admin_base_path("data/{$table->table_name}/create");
+                            $list_url = admin_base_path("data/{$table->table_name}");
                         }else{
                             $new_url = null;
+                            $list_url = null;
                         }
 
                         $html = view('exment::dashboard.list.header', [
-                            'new_url' => $new_url
+                            'new_url' => $new_url,
+                            'list_url' => $list_url,
                         ])->render();
                         $html .= $widgetTable->render();
 
@@ -158,7 +162,7 @@ class DashboardBoxController extends AdminControllerBase
         $form = new Form(new DashboardBox);
         // set info with query --------------------------------------------------
         // get request
-        $request = Request::capture();
+        $request = request();
         // get dashboard, row_no, column_no, ... from query "dashboard_suuid"
         list($dashboard, $dashboard_box_type, $row_no, $column_no) = $this->getDashboardInfo($id);
         if (!isset($dashboard)) {
@@ -217,6 +221,7 @@ class DashboardBoxController extends AdminControllerBase
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
             $tools->disableView();
             $tools->disableList();
+            $tools->disableDelete();
 
             // addhome button
             $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
@@ -231,7 +236,7 @@ class DashboardBoxController extends AdminControllerBase
     {
         // set info with query --------------------------------------------------
         // get request
-        $request = Request::capture();
+        $request = request();
         // get dashboard_id from query "dashboard_suuid"
         if (isset($id)) {
             $dashboard_box = DashboardBox::find($id);

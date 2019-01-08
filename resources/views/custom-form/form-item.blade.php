@@ -10,7 +10,7 @@
 
         <div class="options" style="display:{{!boolval($suggest) ? 'block' : 'none'}};">
             <div class="form-horizontal">
-                    @if($custom_form_column['form_column_type'] == 'column')
+                    @if($custom_form_column['form_column_type'] == '0')
                     <div class="form-group">
                         <span class="small control-label col-sm-5">{{exmtrans('custom_form.view_only')}}</span>
                         <div class="col-sm-7" style="padding-top:4px;">
@@ -37,7 +37,7 @@
                     </div>
                     @endif
 
-                    @if($custom_form_column['form_column_type'] == 'other' && in_array($custom_form_column['form_column_target_id'],[1,2]))
+                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[1,2]))
                     <div class="form-group">
                             <span class="control-label col-sm-5">{{exmtrans('custom_form.text')}}</span>
                             <div class="col-sm-7">
@@ -50,7 +50,7 @@
                     </div>
                     @endif
 
-                    @if($custom_form_column['form_column_type'] == 'other' && in_array($custom_form_column['form_column_target_id'],[3]))
+                    @if($custom_form_column['form_column_type'] == '99' && in_array($custom_form_column['form_column_target_id'],[3]))
                     <div class="form-group">
                             <span class="control-label col-sm-5">{{exmtrans('custom_form.html')}}</span>
                             <div class="col-sm-7">

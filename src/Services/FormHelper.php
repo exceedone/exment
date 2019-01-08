@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Encore\Admin\Form\Field;
@@ -46,6 +48,9 @@ class FormHelper
                 break;
             case ColumnType::TEXTAREA:
                 $field = new Field\Textarea($form_column_name, [$column_view_name]);
+                break;
+            case ColumnType::EDITOR:
+                $field = new ExmentField\Tinymce($form_column_name, [$column_view_name]);
                 break;
             case ColumnType::URL:
                 $field = new Field\Url($form_column_name, [$column_view_name]);
@@ -111,12 +116,12 @@ class FormHelper
                         $select_target_table = null;
                     }
                 } elseif ($column->column_type == SystemTableName::USER) {
-                    $select_target_table = CustomTable::findByName(SystemTableName::USER);
+                    $select_target_table = CustomTable::getEloquent(SystemTableName::USER);
                 } elseif ($column->column_type == SystemTableName::ORGANIZATION) {
-                    $select_target_table = CustomTable::findByName(SystemTableName::ORGANIZATION);
+                    $select_target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
                 }
 
-                $field->options(function ($val) use ($select_target_table, $custom_table) {
+                $field->options(function ($val) use ($select_target_table, $custom_table, $form_column_name) {
                     // get DB option value
                     return $select_target_table->getOptions($val, $custom_table);
                 });
@@ -366,14 +371,16 @@ class FormHelper
 
     protected static function getFileOptions($custom_table, $custom_column, $id)
     {
-        return [
+        return 
+            [
+            'showCancel' => false,
             'deleteUrl' => admin_urls('data', $custom_table->table_name, $id, 'filedelete'),
             'deleteExtraData'      => [
                 Field::FILE_DELETE_FLAG         => $custom_column->column_name,
                 '_token'                         => csrf_token(),
                 '_method'                        => 'PUT',
-            ],
-        ];
+            ]
+            ];
     }
 
     /**
@@ -387,6 +394,12 @@ class FormHelper
         $local_filename = ExmentFile::getUniqueFileName($dirname, $filename);
         // save file info
         $exmentfile = ExmentFile::saveFileInfo($dirname, $filename, $local_filename);
+
+        // set request session to save this custom_value's id and type into files table.
+        $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
+        $file_uuids[] = ['uuid' => $exmentfile->uuid, 'column_name' => $field->column()];
+        System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
+        
         // return filename
         return $exmentfile->local_filename;
     }

@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class CustomValueModelScope implements Scope
@@ -24,7 +24,7 @@ class CustomValueModelScope implements Scope
         $user = \Exment::user();
         // if not have, check as login
         if(!isset($user)){
-            // no access authority
+            // no access role
             //throw new \Exception;
             
             // set no filter. Because when this function called, almost after login or pass oauth authonize.
@@ -41,12 +41,12 @@ class CustomValueModelScope implements Scope
             //TODO
             return;
         }
-        elseif ($model->custom_table->hasPermission(AuthorityValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        elseif ($model->custom_table->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
         // if user has edit or view table
-        elseif ($model->custom_table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            // get only has authority
+        elseif ($model->custom_table->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            // get only has role
             $builder
                 ->whereHas('value_authoritable_users', function ($q) use($user) {
                     $q->where('related_id', $user->base_user_id);
@@ -54,7 +54,7 @@ class CustomValueModelScope implements Scope
                     $q->whereIn('related_id', $user->getOrganizationIds());
                 });
         }
-        // if not authority, set always false result. 
+        // if not role, set always false result. 
         else{
             $builder->where('id','<', 0);
         }

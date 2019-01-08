@@ -8,17 +8,16 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
-use Exceedone\Exment\Enums\CustomFormBlockType;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use ZipArchive;
@@ -56,48 +55,47 @@ class TemplateExporter
             static::setTemplateDashboard($config);
         }
         if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
-            static::setTemplateAuthority($config);
+            static::setTemplateRole($config);
         }
-        if (in_array(TemplateExportTarget::MAIL_TEMPLATE, $options['export_target'])) {
-            static::setTemplateMailTemplate($config);
-        }
-
+        
         // create ZIP file --------------------------------------------------
-        $zip = new ZipArchive();
+        $tmpdir = getTmpFolderPath('template', false);
+        $tmpFulldir = getFullpath($tmpdir, 'local', true);
         $tmpfilename = make_uuid();
-        $fullpath = getFullpath(path_join('exmtmp', $tmpfilename), 'local');
-        $basePath = pathinfo($fullpath)['dirname'];
-        if (!File::exists($basePath)) {
-            File::makeDirectory($basePath, 0775, true);
-        }
-        if ($zip->open($fullpath, ZipArchive::CREATE)!==true) {
+
+        $zip = new ZipArchive();
+        $zipfilename = short_uuid().'.zip';
+        $zipfillpath = path_join($tmpFulldir, $zipfilename);
+        if ($zip->open($zipfillpath, ZipArchive::CREATE)!==true) {
             //TODO:error
         }
         
         // add thumbnail
         if (isset($thumbnail)) {
             // save thumbnail
+            $thumbnail_dir = path_join($tmpdir, short_uuid());
+            $thumbnail_dirpath = getFullpath($thumbnail_dir, 'local');
+
             $thumbnail_name = 'thumbnail.' . $thumbnail->extension();
-            $thumbnail_path = $thumbnail->store('exmtmp', 'local');
+            $thumbnail_path = $thumbnail->store($thumbnail_dir, 'local');
             $thumbnail_fullpath = getFullpath($thumbnail_path, 'local');
-            $zip->addFile($thumbnail_fullpath, 'thumbnail.' . $thumbnail->extension());
+            $zip->addFile($thumbnail_fullpath, $thumbnail_name);
 
             $config['thumbnail'] = $thumbnail_name;
         }
 
         // add config array
         $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-
         $zip->close();
 
         // isset $thumbnail_fullpath, remove
-        if (isset($thumbnail_fullpath)) {
-            File::delete($thumbnail_fullpath);
+        if (isset($thumbnail_dirpath)) {
+            File::deleteDirectory($thumbnail_dirpath);
         }
 
         // create response
         $filename = $template_name.'.zip';
-        $response = response()->download($fullpath, $filename)->deleteFileAfterSend(true);
+        $response = response()->download($zipfillpath, $filename)->deleteFileAfterSend(true);
 
         return $response;
     }
@@ -170,7 +168,6 @@ class TemplateExporter
                 'table_name',
                 'table_view_name',
                 'description',
-                'search_enabled',
                 'showlist_flg',
                 'options',
                 'custom_columns',
@@ -183,6 +180,7 @@ class TemplateExporter
         $forms = CustomForm::with('custom_form_blocks')
             ->with('custom_table')
             ->with('custom_form_blocks.custom_form_columns')
+            ->with('custom_form_blocks.custom_form_columns.custom_column')
             ->get()->toArray();
         $configForms = [];
         foreach ($forms as &$form) {
@@ -202,13 +200,13 @@ class TemplateExporter
                         foreach ($custom_form_block['custom_form_columns'] as &$custom_form_column) {
                             // replace id to name
                             $form_column_target_id = array_get($custom_form_column, 'form_column_target_id');
-                            if (array_get($custom_form_column, 'form_column_type') == CustomFormColumnType::COLUMN) {
-                                $custom_form_column['form_column_target_name'] = CustomColumn::find($form_column_target_id)->column_name;
-                            } else {
-                                $form_column_target_name = collect(CustomFormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_target_id) {
-                                    return $item['id'] == $form_column_target_id;
-                                });
-                                $custom_form_column['form_column_target_name'] = isset($form_column_target_name) ? array_get($form_column_target_name, 'column_name') : null;
+                            switch(array_get($custom_form_column, 'form_column_type')){
+                                case FormColumnType::COLUMN:
+                                    $custom_form_column['form_column_target_name'] = array_get($custom_form_column, 'custom_column.column_name', null);
+                                    break;
+                                default:
+                                    $custom_form_column['form_column_target_name'] = array_get($custom_form_column, 'form_column_target', null);
+                                    break;
                             }
                             
                             if (is_null($custom_form_column['options'])) {
@@ -237,7 +235,7 @@ class TemplateExporter
                     }
 
                     // add table
-                    if (array_get($custom_form_block, 'form_block_type') == CustomFormBlockType::DEFAULT) {
+                    if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                         $custom_form_block['form_block_target_table_name'] = null;
                     } else {
                         $custom_form_block['form_block_target_table_name'] = CustomTable::find(array_get($custom_form_block, 'form_block_target_table_id'))->table_name;
@@ -266,9 +264,11 @@ class TemplateExporter
         $views = CustomView
             ::with('custom_view_columns')
             ->with('custom_view_filters')
+            ->with('custom_view_sorts')
             ->with('custom_table')
             ->with('custom_view_columns.custom_column')
             ->with('custom_view_filters.custom_column')
+            ->with('custom_view_sorts.custom_column')
             ->get()->toArray();
         $configViews = [];
         foreach ($views as &$view) {
@@ -283,19 +283,17 @@ class TemplateExporter
             // loop custom_view_columns
             if (array_key_value_exists('custom_view_columns', $view)) {
                 foreach ($view['custom_view_columns'] as &$custom_view_column) {
-                    // replace id to name
-                    $view_column_target = array_get($custom_view_column, 'view_column_target');
-                    // if number, get column_name
-                    if (is_numeric($view_column_target)) {
-                        $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name');
-                        $custom_view_column['view_column_type'] = ViewColumnType::COLUMN;
+                    switch(array_get($custom_view_column, 'view_column_type')){
+                        case ViewColumnType::COLUMN:
+                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
+                            break;
+                        case ViewColumnType::SYSTEM:
+                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target');
+                            break;
+                        case ViewColumnType::PARENT_ID:
+                            $custom_view_column['view_column_target_name'] = 'parent_id';
+                            break;
                     }
-                    // else, system column
-                    else {
-                        $custom_view_column['view_column_target_name'] = $view_column_target;
-                        $custom_view_column['view_column_type'] = ViewColumnType::SYSTEM;
-                    }
-
                     // set $custom_view_column
                     $custom_view_column = array_only($custom_view_column, [
                         'view_column_target_name',
@@ -325,11 +323,36 @@ class TemplateExporter
                 }
             }
 
+            // loop custom_view_columns
+            if (array_key_value_exists('custom_view_sorts', $view)) {
+                foreach ($view['custom_view_sorts'] as &$custom_view_column) {
+                    switch(array_get($custom_view_column, 'view_column_type')){
+                        case ViewColumnType::COLUMN:
+                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
+                            break;
+                        case ViewColumnType::SYSTEM:
+                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target');
+                            break;
+                        case ViewColumnType::PARENT_ID:
+                            $custom_view_column['view_column_target_name'] = 'parent_id';
+                            break;
+                    }
+                    // set $custom_view_column
+                    $custom_view_column = array_only($custom_view_column, [
+                        'view_column_target_name',
+                        'view_column_type',
+                        'sort',
+                        'priority',
+                    ]);
+                }
+            }
+            
             $view = array_only($view, [
                 'view_view_name',
                 'suuid',
                 'custom_view_columns',
                 'custom_view_filters',
+                'custom_view_sorts',
                 'table_name',
             ]);
             $configViews[] = $view;
@@ -404,11 +427,11 @@ class TemplateExporter
 
         // menu_target
         $menu_type = $menu['menu_type'];
-        if (MenuType::TABLE()->match($menu_type)) {
+        if (MenuType::TABLE == $menu_type) {
             $menu['menu_target_name'] = CustomTable::find($menu['menu_target'])->table_name ?? null;
-        } elseif (MenuType::PLUGIN()->match($menu_type)) {
+        } elseif (MenuType::PLUGIN == $menu_type) {
             $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
-        } elseif (MenuType::SYSTEM()->match($menu_type)) {
+        } elseif (MenuType::SYSTEM == $menu_type) {
             $menu['menu_target_name'] = $menu['menu_name'];
         }
         // custom, parent_node
@@ -418,7 +441,7 @@ class TemplateExporter
 
         //// url
         // menu type is table, remove uri "data/"
-        if (MenuType::TABLE()->match($menu_type)) {
+        if (MenuType::TABLE == $menu_type) {
             $menu['uri'] = preg_replace('/^data\//', '', $menu['uri']);
         }
 
@@ -502,43 +525,29 @@ class TemplateExporter
     }
 
     /**
-     * set Authority info to config
+     * set Role info to config
      */
-    protected static function setTemplateAuthority(&$config)
+    protected static function setTemplateRole(&$config)
     {
-        // Get Authorities --------------------------------------------------
-        $authorities = Authority::all()->toArray();
-        foreach ($authorities as &$authority) {
+        // Get Roles --------------------------------------------------
+        $roles = Role::all()->toArray();
+        foreach ($roles as &$role) {
             // redeclare permissions
-            if (isset($authority['permissions']) && is_array($authority['permissions'])) {
+            if (isset($role['permissions']) && is_array($role['permissions'])) {
                 $permissions = [];
-                foreach ($authority['permissions'] as $key => $value) {
+                foreach ($role['permissions'] as $key => $value) {
                     $permissions[] = key($value);
                 }
-                $authority['permissions'] = $permissions;
+                $role['permissions'] = $permissions;
             }
-            $authority = array_only($authority, [
-                'authority_type',
-                'authority_name',
-                'authority_view_name',
+            $role = array_only($role, [
+                'role_type',
+                'role_name',
+                'role_view_name',
                 'description',
                 'permissions',
             ]);
         }
-        $config['authorities'] = $authorities;
-    }
-
-    /**
-     * set MailTemplate info to config
-     */
-    protected static function setTemplateMailTemplate(&$config)
-    {
-        // get mail_templates --------------------------------------------------
-        $mail_templates = MailTemplate::all()->toArray();
-        foreach ($mail_templates as &$mail_template) {
-            // remove others
-            $mail_template = array_only($mail_template, ['mail_name', 'mail_subject', 'mail_body']);
-        }
-        $config['mail_templates'] = $mail_templates;
+        $config['roles'] = $roles;
     }
 }

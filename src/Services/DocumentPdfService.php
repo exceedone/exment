@@ -317,7 +317,7 @@ class DocumentPdfService extends AbstractFPDIService
             // set header name using table
             if (!array_key_value_exists('label', $target_column)) {
                 $target_column['label'] =
-                CustomTable::findByName($options['target_table'])
+                CustomTable::getEloquent($options['target_table'])
                 ->custom_columns()
                 ->where('column_name', array_get($target_column, 'column_name'))
                 ->first()->column_view_name ?? '';

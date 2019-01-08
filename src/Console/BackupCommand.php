@@ -61,9 +61,6 @@ class BackupCommand extends Command
      */
     public function handle()
     {
-        // TODO:test
-        $aaaa = getModelName('organization')::getOrganizationIds();
-
         $this->starttime = date('YmdHis');
 
         $target = $this->option("target") ?? BackupTarget::arrays();
@@ -205,9 +202,14 @@ class BackupCommand extends Command
                     continue;
                 }
                 $to = path_join($this->tempdir, $setting);
-                
-                $success = \File::copyDirectory($from, $to);
+                if(!is_dir($from)){
+                    continue;
+                }
+                if(!is_dir($to)){
+                    mkdir($to, 0755, true);
+                }
 
+                $success = \File::copyDirectory($from, $to);
                 if (!$success) {
                     return false;
                 }

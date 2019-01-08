@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class LoginUserController extends AdminControllerBase
@@ -32,7 +33,7 @@ class LoginUserController extends AdminControllerBase
     {
         $classname = getModelName(SystemTableName::USER);
         $grid = new Grid(new $classname);
-        $table = CustomTable::findByName(SystemTableName::USER);
+        $table = CustomTable::getEloquent(SystemTableName::USER);
         $grid->column($table->getIndexColumnName('user_code'), exmtrans('user.user_code'));
         $grid->column($table->getIndexColumnName('user_name'), exmtrans('user.user_name'));
         $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));
@@ -197,11 +198,11 @@ class LoginUserController extends AdminControllerBase
                     $prms = [];
                     $prms['user'] = $user->toArray()['value'];
                     $prms['user']['password'] = $password;
-                    //if($is_newuser){
-                    MailSender::make('system_create_user', $user->value['email'])
+                    MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
                         ->prms($prms)
+                        ->user($user)
+                        ->disableHistoryBody()
                         ->send();
-                    //}
                 }
                 DB::commit();
             }
@@ -217,7 +218,7 @@ class LoginUserController extends AdminControllerBase
     protected function response()
     {
         $message = trans('admin.update_succeeded');
-        $request = Request::capture();
+        $request = request();
         // ajax but not pjax
         if ($request->ajax() && !$request->pjax()) {
             return response()->json([

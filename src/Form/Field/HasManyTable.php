@@ -247,6 +247,7 @@ EOT;
             'tablewidth' => $this->tablewidth,
             'tablecolumnwidths' => $this->tablecolumnwidths,
             'description' => $this->description,
+            'options'      => $this->options,
         ]);
     }
 }

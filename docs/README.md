@@ -61,6 +61,7 @@ Exment uses the following plug-in service etc.
 + [TCPDF](https://tcpdf.org/)
 + [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
 + [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
++ [TinyMCE](https://www.tiny.cloud/)
 
 ## quick start
 Please check [Quickstart](quickstart.md).

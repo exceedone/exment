@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ColumnType;
 
 class CustomColumnController extends AdminControllerTableBase
@@ -36,7 +36,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -53,7 +53,7 @@ class CustomColumnController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
@@ -71,7 +71,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -89,7 +89,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_name', exmtrans("custom_column.column_name"))->sortable();
         $grid->column('column_view_name', exmtrans("custom_column.column_view_name"))->sortable();
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
-            return esc_html(array_get(ColumnType::trans("custom_column.column_type_options"), $val));
+            return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
         });
 
         if (isset($this->custom_table)) {
@@ -117,7 +117,7 @@ class CustomColumnController extends AdminControllerTableBase
             $filter->equal('column_name', exmtrans("custom_column.column_name"));
             $filter->equal('column_view_name', exmtrans("custom_column.column_view_name"));
             $filter->equal('column_type', exmtrans("custom_column.column_type"))->select(function ($val) {
-                return array_get(ColumnType::trans("custom_column.column_type_options"), $val);
+                return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
             });
         });
         return $grid;
@@ -151,7 +151,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form->text('column_view_name', exmtrans("custom_column.column_view_name"))->required();
         $form->select('column_type', exmtrans("custom_column.column_type"))
-        ->options(ColumnType::trans("custom_column.column_type_options"))
+        ->options(ColumnType::transArray("custom_column.column_type_options"))
         ->attribute(['data-filtertrigger' =>true])
         ->required();
 
@@ -162,8 +162,8 @@ class CustomColumnController extends AdminControllerTableBase
         $column_type = isset($id) ? CustomColumn::find($id)->column_type : null;
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
-            $form->switchbool('search_enabled', exmtrans("custom_column.options.search_enabled"))
-                ->help(exmtrans("custom_column.help.search_enabled"));
+            $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
+                ->help(exmtrans("custom_column.help.index_enabled"));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
             $form->text('default', exmtrans("custom_column.options.default"));
@@ -382,7 +382,7 @@ class CustomColumnController extends AdminControllerTableBase
             // image, file, select
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::SELECT, ColumnType::SELECT_VALTEXT, 'user', 'organization']])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
         $form->saved(function (Form $form) {

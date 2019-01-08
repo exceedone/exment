@@ -21,6 +21,9 @@ cd (プロジェクト名)
 - ".env" を開き、以下の内容を追加・変更します。  
 
 ~~~
+#基本設定
+APP_URL=http://XXXX.com #そのサイトにアクセスするURL。"admin"は不要
+
 # 以下、データベースの設定値変更
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1 #MySQLのホスト名
@@ -93,11 +96,12 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 - 以下のコマンドを実行します。
 
 ~~~
+php artisan passport:keys
 php artisan exment:install
 ~~~
 
 ## その他の初期設定
 以上の作業で、Exmentを開始することは可能ですが、一部の機能を使うために、追加で設定が必要になる場合があります。  
 以下のリンクをご確認ください。  
-- [シングルサインオン](quickstart_more.md#シングルサインオン)
-- [タスクスケジュール機能](quickstart_more.md#タスクスケジュール機能)
+- [シングルサインオン](/ja/quickstart_more.md#シングルサインオン)
+- [タスクスケジュール機能](/ja/quickstart_more.md#タスクスケジュール機能)

@@ -39,7 +39,7 @@
                     <th> </th>
                     <th>{{exmtrans("backup.file_name")}}</th>
                     <th>{{exmtrans("backup.file_size")}}</th>
-                    <th>{{exmtrans("backup.created")}}</th>
+                    <th>{{exmtrans("common.created_at")}}</th>
                     <th>{{trans('admin.action')}}</th>
                 </tr>
             </thead>

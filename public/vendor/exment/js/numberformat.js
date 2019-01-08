@@ -44,7 +44,7 @@
             $(this).val(fmcomma(v));
         });
         // Remove comma on submit
-        $elem.parents('form').submit(function () {
+        $(document).on('submit', 'form', {}, function () {
             $(this).find('input').filter(selector).each(function () {
                 $(this).val(rmcomma($(this).val()));
             });

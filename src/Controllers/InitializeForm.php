@@ -41,8 +41,8 @@ trait InitializeForm
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
             ->help(exmtrans("system.help.site_layout"));
 
-        $form->switchbool('authority_available', exmtrans("system.authority_available"))
-            ->help(exmtrans("system.help.authority_available"));
+        $form->switchbool('permission_available', exmtrans("system.permission_available"))
+            ->help(exmtrans("system.help.permission_available"));
 
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));

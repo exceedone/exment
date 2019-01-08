@@ -6,6 +6,7 @@ class ColumnType extends EnumBase
 {
     const TEXT = 'text';
     const TEXTAREA = 'textarea';
+    const EDITOR = 'editor';
     const URL = 'url';
     const EMAIL = 'email';
     const INTEGER = 'integer';
@@ -33,9 +34,39 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_URL(){
+        return [
+            ColumnType::SELECT_TABLE,
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
+            ColumnType::URL,
+        ];
+    }
+
     public static function COLUMN_TYPE_SELECT_TABLE(){
         return [
             ColumnType::SELECT_TABLE,
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
+        ];
+    }
+
+    public static function COLUMN_TYPE_MULTIPLE_ENABLED(){
+        return [
+            ColumnType::SELECT,
+            ColumnType::SELECT_VALTEXT,
+            ColumnType::SELECT_TABLE,
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
+        ];
+    }
+
+    public static function COLUMN_TYPE_SHOW_NOT_ESCAPE(){
+        return [
+            ColumnType::URL, 
+            ColumnType::TEXTAREA, 
+            ColumnType::SELECT_TABLE, 
+            ColumnType::EDITOR,
             ColumnType::USER,
             ColumnType::ORGANIZATION,
         ];
@@ -45,7 +76,17 @@ class ColumnType extends EnumBase
         return in_array($column_type, static::COLUMN_TYPE_CALC());
     }
     
+    public static function isUrl($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_URL());
+    }
+    
     public static function isSelectTable($column_type){
         return in_array($column_type, static::COLUMN_TYPE_SELECT_TABLE());
+    }
+    public static function isMultipleEnabled($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_MULTIPLE_ENABLED());
+    }
+    public static function isNotEscape($column_type){
+        return in_array($column_type, static::COLUMN_TYPE_SHOW_NOT_ESCAPE());
     }
 }

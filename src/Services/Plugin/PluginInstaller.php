@@ -92,10 +92,13 @@ class PluginInstaller
     public static function uploadPlugin($uploadFile)
     {
         // store uploaded file and get tmp path
-        $filename = $uploadFile->store('upload_tmp', 'local');
+        $tmpdir = getTmpFolderPath('plugin', false);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
+
+        $filename = $uploadFile->store($tmpdir, 'local');
         $fullpath = getFullpath($filename, 'local');
-        // tmpfolderpath is the folder path uploaded.
-        $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
+        // // tmpfolderpath is the folder path uploaded.
+        // $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
         $tmpPluginFolderPath = null;
 
         // open zip file
@@ -178,9 +181,9 @@ class PluginInstaller
         }
         
         // delete tmp folder
-        File::deleteDirectory($tmpfolderpath);
         $zip->close();
         // delete zip
+        File::deleteDirectory($tmpfolderpath);
         unlink($fullpath);
         //return response
         if (isset($response)) {
@@ -213,7 +216,7 @@ class PluginInstaller
         // find or new $plugin
         $plugin = Plugin::withTrashed()->firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
         $plugin->plugin_name = array_get($json, 'plugin_name');
-        $plugin->plugin_type = array_get($json, 'plugin_type');
+        $plugin->plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'))->getValue() ?? null;
         $plugin->author = array_get($json, 'author');
         $plugin->version = array_get($json, 'version');
         $plugin->uuid = array_get($json, 'uuid');
@@ -272,13 +275,11 @@ class PluginInstaller
      */
     public static function getPluginByTable($table_name)
     {
-        // espace name
         $table_name_escape = trim(DB::getPdo()->quote($table_name), "'");
         // execute query
         return Plugin::where('active_flg', '=', 1)
             ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
             ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
-            //->where('options->target_tables', $table_name)
             ->get()
             ;
     }
@@ -331,7 +332,7 @@ class PluginInstaller
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // get plugin_type
-                $plugin_type = PluginType::getPluginType(array_get($plugin, 'plugin_type'));
+                $plugin_type = array_get($plugin, 'plugin_type');
                 // if $plugin_type is not trigger, continue
                 if ($plugin_type != PluginType::TRIGGER) {
                     continue;
@@ -363,7 +364,7 @@ class PluginInstaller
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
                 // get plugin_type
-                $plugin_type = PluginType::getPluginType(array_get($plugin, 'plugin_type'));
+                $plugin_type = array_get($plugin, 'plugin_type');
                 switch ($plugin_type) {
                     case PluginType::DOCUMENT:
                         $event_triggers_button = ['form_menubutton_show'];

@@ -4,12 +4,14 @@ namespace Exceedone\Exment;
 
 use Storage;
 use Request;
+use Encore\Admin\Admin;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\UniqueInTableValidator;
+use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use League\Flysystem\Filesystem;
@@ -141,12 +143,13 @@ class ExmentServiceProvider extends ServiceProvider
     protected function bootApp(){
         $this->app->register(ExmentProviders\RouteServiceProvider::class);
         $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
+        $this->app->register(ExmentProviders\PasswordResetServiceProvider::class);
         
         $this->commands($this->commands);
 
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->command('exment:schedule')->hourlyAt(0);
+            $schedule->command('exment:schedule')->hourly();
         });
     }
 
@@ -214,6 +217,10 @@ class ExmentServiceProvider extends ServiceProvider
             return new Filesystem(new AdminLocal(array_get($config, 'root')));
         });
 
-        \Exceedone\Exment\Middleware\Initialize::initializeConfig(false);
+        Initialize::initializeConfig(false);
+        
+        Admin::booting(function(){
+            Initialize::initializeFormField();
+        });
     }
 }

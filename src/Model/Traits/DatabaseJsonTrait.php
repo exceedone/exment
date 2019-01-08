@@ -25,7 +25,7 @@ trait DatabaseJsonTrait
         // if key is array, loop key value
         if (is_array($key)) {
             foreach ($key as $k => $v) {
-                $this->setValue($k, $v);
+                $this->setJson($dbcolumnname, $k, $v);
             }
             return $this;
         }

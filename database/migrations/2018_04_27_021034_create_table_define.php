@@ -55,6 +55,8 @@ class CreateTableDefine extends Migration
             $table->string('local_dirname')->index();
             $table->string('local_filename')->index();
             $table->string('filename')->index();
+            $table->nullableMorphs('parent');
+            $table->integer('custom_column_id')->nullable();
             $table->timestamps();
             $table->timeusers();
         });
@@ -67,19 +69,6 @@ class CreateTableDefine extends Migration
             $table->timeusers();
 
             $table->primary('system_name');
-        });
-
-        $schema->create('mail_templates', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->string('mail_name', 256)->unique();
-            $table->string('mail_view_name', 256);
-            $table->string('mail_subject', 256);
-            $table->string('mail_body', 4000);
-            $table->string('mail_template_type')->default(Enums\MailTemplateType::BODY);
-            $table->boolean('system_flg')->default(false);
-            $table->timestamps();
-            $table->softDeletes();
-            $table->timeusers();
         });
 
         $schema->create('plugins', function (ExtendedBlueprint $table) {
@@ -107,12 +96,12 @@ class CreateTableDefine extends Migration
             $table->timeusers();
         });
 
-        $schema->create('authorities', function (ExtendedBlueprint $table) {
+        $schema->create('roles', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->unique();
-            $table->string('authority_type');
-            $table->string('authority_name', 256)->index()->unique();
-            $table->string('authority_view_name', 256);
+            $table->integer('role_type');
+            $table->string('role_name', 256)->index()->unique();
+            $table->string('role_view_name', 256);
             $table->string('description', 1000)->nullable();
             $table->boolean('default_flg')->default(false);
             $table->json('permissions')->nullable();
@@ -171,7 +160,6 @@ class CreateTableDefine extends Migration
             $table->string('table_name', 256)->unique();
             $table->string('table_view_name', 256);
             $table->string('description', 1000)->nullable();
-            $table->boolean('search_enabled')->default(true);
             $table->boolean('system_flg')->default(false);
             $table->boolean('showlist_flg')->default(true);
             $table->json('options')->nullable();
@@ -187,7 +175,7 @@ class CreateTableDefine extends Migration
             $table->integer('custom_table_id')->unsigned();
             $table->string('column_name')->index();
             $table->string('column_view_name');
-            $table->string('column_type');
+            $table->string('column_type')->index();
             $table->string('description', 1000)->nullable();
             $table->boolean('system_flg')->default(false);
             $table->json('options')->nullable();
@@ -203,7 +191,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->integer('parent_custom_table_id')->unsigned();
             $table->integer('child_custom_table_id')->unsigned();
-            $table->string('relation_type')->default('one_to_many');
+            $table->integer('relation_type')->default(0);
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
@@ -229,7 +217,7 @@ class CreateTableDefine extends Migration
             $table->increments('id');
             $table->integer('custom_form_id')->unsigned();
             $table->string('form_block_view_name')->nullable();
-            $table->string('form_block_type');
+            $table->integer('form_block_type');
             $table->integer('form_block_target_table_id')->unsigned()->nullable();
             $table->boolean('available')->default(false);
             $table->json('options')->nullable();
@@ -244,7 +232,7 @@ class CreateTableDefine extends Migration
         $schema->create('custom_form_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_form_block_id')->unsigned();
-            $table->string('form_column_type');
+            $table->integer('form_column_type');
             $table->integer('form_column_target_id')->nullable();
             $table->integer('column_no')->default(1);
             $table->json('options')->nullable();
@@ -264,6 +252,7 @@ class CreateTableDefine extends Migration
             $table->integer('view_kind_type')->default(0);
             $table->string('view_view_name', 40);
             $table->boolean('default_flg')->default(false);
+            $table->json('options')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
@@ -379,14 +368,14 @@ class CreateTableDefine extends Migration
             $table->integer('related_id')->index();
             $table->string('related_type')->index();
             $table->nullableMorphs('morph');
-            $table->integer('authority_id')->index();
+            $table->integer('role_id')->index();
         });
 
         $schema->create('value_authoritable', function (ExtendedBlueprint $table) {
             $table->integer('related_id')->index();
             $table->string('related_type')->index();
             $table->nullableMorphs('morph');
-            $table->integer('authority_id')->index();
+            $table->integer('role_id')->index();
         });
         
         // Update --------------------------------------------------
@@ -410,7 +399,7 @@ class CreateTableDefine extends Migration
 
         // delete all pivot's table.
         if (Schema::hasTable('custom_relations')) {
-            $relations = CustomRelation::where('relation_type', 'many_to_many')->get();
+            $relations = CustomRelation::where('relation_type', Enums\RelationType::MANY_TO_MANY)->get();
             foreach ($relations as $relation) {
                 Schema::dropIfExists($relation->getRelationName());
             }
@@ -441,12 +430,11 @@ class CreateTableDefine extends Migration
         Schema::dropIfExists('custom_tables');
         Schema::dropIfExists('dashboard_boxes');
         Schema::dropIfExists('dashboards');
-        Schema::dropIfExists('authorities');
+        Schema::dropIfExists('roles');
         Schema::dropIfExists('user_settings');
         Schema::dropIfExists('login_users');
         Schema::dropIfExists('plugins');
         Schema::dropIfExists('notifies');
-        Schema::dropIfExists('mail_templates');
         Schema::dropIfExists('systems');
         Schema::dropIfExists('revisions');
         Schema::dropIfExists('files');

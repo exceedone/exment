@@ -40,7 +40,7 @@ class InstallCommand extends AdminInstallCommand
         $this->initDatabase();
         $this->initAdminDirectory();
 
-        $this->call('passport:keys');
+        //$this->call('passport:keys');
     }
 
     /**

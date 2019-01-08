@@ -3,8 +3,8 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 
 trait CustomViewColumnTrait
 {
@@ -30,16 +30,17 @@ trait CustomViewColumnTrait
         }
         if($this->{$column_type_key} == ViewColumnType::SYSTEM){
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-            return collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use($column_type_target_key) {
-                return array_get($value, 'id') == $this->{$column_type_target_key};
-            })['name'] ?? null;
+            return SystemColumn::getOption(['id' => $this->{$column_type_target_key}])['name'] ?? null;
         }
         elseif($this->{$column_type_key} == ViewColumnType::PARENT_ID){
             return 'parent_id';
         }
         elseif($this->{$column_type_key} == ViewColumnType::CHILD_SUM){
-            $tableid = CustomColumn::find($this->view_column_target_id)->custom_table_id;
-            return $tableid . '_' . $this->view_column_target_id;
+            $custom_column = $this->custom_column;
+            if(is_null($custom_column)){
+                return null;
+            }
+            return $custom_column->custom_table->id . '_' . $this->view_column_target_id;
         }
         else{
             return $this->view_column_target_id;
@@ -51,15 +52,13 @@ trait CustomViewColumnTrait
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
                 $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } else if(preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
+            } elseif(preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
                 $items = explode('_', $view_column_target);
                 $this->{$column_type_key} = ViewColumnType::CHILD_SUM;
                 $this->{$column_type_target_key} = $items[1];
             } else {
                 $this->{$column_type_key} = ViewColumnType::SYSTEM;
-                $this->{$column_type_target_key} = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($value) use ($view_column_target) {
-                    return array_get($value, 'name') == $view_column_target;
-                })['id'] ?? null;
+                $this->{$column_type_target_key} = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;
             }
         } else {
             $this->{$column_type_key} = ViewColumnType::COLUMN;

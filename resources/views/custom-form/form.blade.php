@@ -41,7 +41,7 @@
         <!-- /.box-header -->
 
         <div class="box-body">
-            {{-- Use checkbox only relation block --}} @if($custom_form_block['form_block_type'] != 'default')
+            {{-- Use checkbox only relation block --}} @if($custom_form_block['form_block_type'] != '0')
             <div class="custom_form_block_available">
                 {{ Form::checkbox("{$custom_form_block['header_name']}[available]", 1, $custom_form_block['available'], ['id' => "custom_form_block_{$custom_form_block['id']}__available_",
                 'class' => 'icheck icheck_toggleblock']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__available_",
@@ -52,10 +52,10 @@
                 {{-- Form Block Label --}}
                 <div class="col-sm-12">
                     {{-- select hasmany or hasmanytable --}}
-                    @if($custom_form_block['form_block_type'] == 'one_to_many')
+                    @if($custom_form_block['form_block_type'] == '1')
                     <div class="form-group">
                         {{ Form::checkbox("{$custom_form_block['header_name']}[options][hasmany_type]", 1, array_get($custom_form_block, 'options.hasmany_type'), ['id' => "custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
-                        'class' => 'icheck']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
+                        'class' => 'icheck icheck_hasmany_type']) }} {{ Form::label("custom_form_block_{$custom_form_block['id']}__options__hasmany_type_",
                         exmtrans('custom_form.hasmany_type')) }}
                     </div>
                     @endif

@@ -26,25 +26,7 @@ class ResetPasswordController extends Controller
      */
     public function __construct()
     {
-        $this->redirectTo = admin_base_path('');
-        $model = getModelName(SystemTableName::USER);
-        if (!Config::has('auth.providers.exment_admins')) {
-            Config::set('auth.providers.exment_admins', [
-                'driver' => 'eloquent',
-                'model' => $model
-            ]);
-        }
-
-        // add for exment_admins
-        if (!Config::has('auth.passwords.exment_admins')) {
-            Config::set('auth.passwords.exment_admins', [
-                'provider' => 'exment_admins',
-                'table' => 'password_resets',
-                'expire' => 720,
-            ]);
-        }
-        //TODO:only set admin::guest
-        //$this->middleware('guest');
+        $this->redirectTo = admin_base_path('auth/login');
     }
 
     /**
@@ -105,7 +87,7 @@ class ResetPasswordController extends Controller
         );
 
         if ($response == Password::PASSWORD_RESET) {
-            admin_toastr(trans('admin.update_succeeded'));
+            admin_toastr(trans($response));
         }
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can
@@ -131,8 +113,6 @@ class ResetPasswordController extends Controller
         $user->saveOrFail();
 
         event(new PasswordReset($user));
-
-        $this->guard()->login($user);
     }
 
     //defining which password broker to use, in our case its the exment

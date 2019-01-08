@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -37,8 +37,8 @@ class GridChangeView extends AbstractTool
 
         // setting menu list
         $settings = [];
-        //authority check
-        if (Admin::user()->hasPermission(AuthorityValue::CUSTOM_VIEW)) {
+        //role check
+        if (Admin::user()->hasPermission(RoleValue::CUSTOM_VIEW)) {
             $query_str = '';
             if (intval($this->current_custom_view->view_kind_type) === ViewKindType::AGGREGATE) {
                 $query_str = '?view_kind_type=1';

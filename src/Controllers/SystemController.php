@@ -6,8 +6,8 @@ use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Authority;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Model\Role;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Facades\Admin;
@@ -16,7 +16,7 @@ use Encore\Admin\Widgets\InfoBox;
 
 class SystemController extends AdminControllerBase
 {
-    use InitializeForm, AuthorityForm;
+    use InitializeForm, RoleForm;
     
     public function __construct(Request $request)
     {
@@ -34,24 +34,24 @@ class SystemController extends AdminControllerBase
         $form = $this->getInitializeForm();
         $form->action('system');
 
-        // Authority Setting
-        $this->addAuthorityForm($form, AuthorityType::SYSTEM);
+        // Role Setting
+        $this->addRoleForm($form, RoleType::SYSTEM);
 
         // Version infomation
-        $infoBox = new InfoBox(
-            exmtrans("system.current_version") . '---',
-            'refresh',
-            'gray',
-            config('exment.manual_url'),
-            exmtrans("system.version_progress")
-        );
-        $class = $infoBox->getAttributes()['class'];
-        $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
+        // $infoBox = new InfoBox(
+        //     exmtrans("system.current_version") . '---',
+        //     'refresh',
+        //     'gray',
+        //     config('exment.manual_url'),
+        //     exmtrans("system.version_progress")
+        // );
+        // $class = $infoBox->getAttributes()['class'];
+        // $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
 
         $content->row(new Box(trans('admin.edit'), $form));
-        $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+        //$content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
 
-        Admin::script($this->getVersionScript());
+        //Admin::script($this->getVersionScript());
         return $content;
     }
 
@@ -144,9 +144,9 @@ EOT;
                 return $result;
             }
 
-            // Set Authority
-            Authority::authorityLoop(AuthorityType::SYSTEM(), function ($authority, $related_type) use ($request) {
-                $values = $request->input($authority->getAuthorityName($related_type));
+            // Set Role
+            Role::roleLoop(RoleType::SYSTEM, function ($role, $related_type) use ($request) {
+                $values = $request->input($role->getRoleName($related_type));
                 // array_filter
                 $values = array_filter($values, function ($k) {
                     return isset($k);
@@ -158,8 +158,8 @@ EOT;
                 // get DB system_authoritable values
                 $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                     ->where('related_type', $related_type)
-                    ->where('morph_type', AuthorityType::SYSTEM())
-                    ->where('authority_id', $authority->id)
+                    ->where('morph_type', RoleType::SYSTEM)
+                    ->where('role_id', $role->id)
                     ->get(['related_id']);
                 foreach ($values as $value) {
                     if (!isset($value)) {
@@ -174,8 +174,8 @@ EOT;
                             'related_id' => $value,
                             'related_type' => $related_type,
                             'morph_id' => null,
-                            'morph_type' => AuthorityType::SYSTEM(),
-                            'authority_id' => $authority->id,
+                            'morph_type' => RoleType::SYSTEM,
+                            'role_id' => $role->id,
                         ]
                     );
                     }
@@ -189,8 +189,8 @@ EOT;
                         DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                         ->where('related_id', $dbValue->related_id)
                         ->where('related_type', $related_type)
-                        ->where('morph_type', AuthorityType::SYSTEM())
-                        ->where('authority_id', $authority->id)
+                        ->where('morph_type', RoleType::SYSTEM())
+                        ->where('role_id', $role->id)
                         ->delete();
                     }
                 }

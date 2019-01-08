@@ -44,7 +44,7 @@ class AdminControllerBase extends Controller
      * validation table
      * @param mixed $table id or customtable
      */
-    protected function validateTable($table, $authority_name)
+    protected function validateTable($table, $role_name)
     {
         if (is_numeric($table)) {
             $table = CustomTable::find($table);
@@ -54,7 +54,7 @@ class AdminControllerBase extends Controller
 
         //check permission
         // if not exists, filter model using permission
-        if (!$table->hasPermission($authority_name)) {
+        if (!$table->hasPermission($role_name)) {
             Checker::error();
             return false;
         }

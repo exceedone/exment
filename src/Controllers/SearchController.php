@@ -11,7 +11,9 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\SearchType;
 
 class SearchController extends AdminControllerBase
 {
@@ -102,7 +104,7 @@ EOT;
 
         $results = [];
         // Get table list
-        $tables = CustomTable::where('search_enabled', true)->get();
+        $tables = CustomTable::searchEnabled()->get();
         foreach ($tables as $table) {
             if (count($results) >= 10) {
                 break;
@@ -157,6 +159,9 @@ EOT;
      */
     protected function getFreeWord(Request $request, Content $content)
     {
+        if(is_null($request->query('query'))){
+            return redirect(admin_base_path());
+        }
         $this->AdminContent($content);
         $content->header(exmtrans('search.header_freeword'));
         $content->description(exmtrans('search.description_freeword'));
@@ -215,17 +220,17 @@ EOT;
     protected function getSearchTargetTable($value_table = null)
     {
         $results = [];
-        $tables = CustomTable::with('custom_columns')->where('search_enabled', true)->get();
+        $tables = CustomTable::with('custom_columns')->searchEnabled()->get();
         foreach ($tables as $table) {
-            // if not authority, continue
-            if (!$table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            // if not role, continue
+            if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
 
             // search using column
             $result = array_get($table, 'custom_columns')->first(function ($custom_column) {
                 // this column is search_enabled, add array.
-                if (!boolval(array_get($custom_column['options'], 'search_enabled'))) {
+                if (!$custom_column->indexEnabled()) {
                     return false;
                 }
 
@@ -272,7 +277,7 @@ EOT;
     public function getList(Request $request)
     {
         $q = $request->input('query');
-        $table = CustomTable::findByName($request->input('table_name'), true);
+        $table = CustomTable::getEloquent($request->input('table_name'), true);
         // Get search enabled columns.
         $search_columns = $table->getSearchEnabledColumns();
 
@@ -313,14 +318,15 @@ EOT;
         $content->description(exmtrans('search.description_relation'));
 
         // get seleted name
-        $table = CustomTable::findByName($request->input('table_name'));
+        $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
         $value = $model->label;
         $content->body(view('exment::search.index', [
-            'table_name' => $request->input('table_name')
-            , 'value_id' => $request->input('value_id')
-            , 'query' => $value
-            , 'tables' => $this->getSearchTargetRelationTable($table)]));
+            'table_name' => $request->input('table_name'),
+            'value_id' => $request->input('value_id'),
+            'query' => $value,
+            'tables' => $this->getSearchTargetRelationTable($table)])
+        );
 
         // create searching javascript
         $list_url = admin_base_path("search/relation");
@@ -378,10 +384,10 @@ EOT;
         // value_id is the id user selected.
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
-        $value_table = CustomTable::findByName($request->input('value_table_name'), true);
+        $value_table = CustomTable::getEloquent($request->input('value_table_name'), true);
         $value_table_id = $value_table->id;
         /// $search_table is the table for search. it's ex. select_table, relation, ...
-        $search_table = CustomTable::findByName($request->input('search_table_name'), true);
+        $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
         // Get search enabled columns.
@@ -389,11 +395,11 @@ EOT;
 
         switch ($search_type) {
             // self table
-            case 'self':
+            case SearchType::SELF:
                 $data = [getModelName($search_table)::find($value_id)];
                 break;
             // select_table(select box)
-            case 'select_table':
+            case SearchType::SELECT_TABLE:
                 // Retrieve the record list whose value is "value_id" in the column "options.select_target_table" of the table "custom column"
                 $selecttable_columns = $search_table->custom_columns()
                     ->where('column_type', 'select_table')
@@ -408,11 +414,11 @@ EOT;
                 break;
             
             // one_to_many
-            case 'one_to_many':
+            case SearchType::ONE_TO_MANY:
                 $data = getModelName($search_table)::where('parent_id', $value_id)->take(5)->get();
                 break;
             // many_to_many
-            case 'many_to_many':
+            case SearchType::MANY_TO_MANY:
                 $relation_name = CustomRelation::getRelationNameByTables($value_table, $search_table);
 
                 // get search_table value
@@ -446,25 +452,25 @@ EOT;
         $results = [];
 
         // 1. For self-table
-        array_push($results, $this->getTableArray($value_table, 'self'));
+        array_push($results, $this->getTableArray($value_table, SearchType::SELF));
 
         // 2. Get tables as "select_table". They contains these columns matching them.
         // * table_column > options > search_enabled is true.
         // * table_column > options > select_target_table is table id user selected.
         $tables = CustomTable
         ::whereHas('custom_columns', function ($query) use ($value_table) {
-            $query->whereIn('options->search_enabled', [1, "1"])
+            $query->whereIn('options->index_enabled', [1, "1"])
             ->where('options->select_target_table', $value_table->id);
         })
-        ->where('search_enabled', true)
+        ->searchEnabled()
         ->get();
 
         foreach ($tables as $table) {
-            // if not authority, continue
-            if (!$table->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            // if not role, continue
+            if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
-            array_push($results, $this->getTableArray($table, 'select_table'));
+            array_push($results, $this->getTableArray($table, SearchType::SELECT_TABLE));
         }
 
         // 3. Get relation tables.
@@ -476,12 +482,12 @@ EOT;
                 $query->where('parent_custom_table_id', $value_table->id);
             })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
         foreach ($tables as $table) {
-            // if not authority, continue
+            // if not role, continue
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-            if (!$table_obj->hasPermission(AuthorityValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            if (!$table_obj->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
-            array_push($results, $this->getTableArray($table, 'relation_type'));
+            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY));
         }
 
         return $results;
@@ -495,27 +501,30 @@ EOT;
         $data = [];
         $query = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         $mark = ($isLike ? 'LIKE' : '=');
-        foreach ($search_columns as $search_column) {
-            // get data
-            $foodata = getModelName($table)
-                ::where($search_column->getIndexColumnName(), $mark, $query)
-                ->take($max_count - count($data))
-                ->get();
-            
-            foreach ($foodata as $foo) {
-                if (count($data) >= $max_count) {
-                    break;
-                }
 
-                // if exists id, continue
-                if (!is_null(collect($data)->first(function ($value, $key) use ($foo) {
-                    return array_get($value, 'id') == array_get($foo, 'id');
-                }))) {
-                    continue;
+        // get data
+        $foodata = getModelName($table)
+            ::where(function($wherequery) use($search_columns, $mark, $query){
+                foreach($search_columns as $search_column){
+                    $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $query);
                 }
-
-                $data[] = $foo;
+            })
+            ->take($max_count - count($data))
+            ->get();
+        
+        foreach ($foodata as $foo) {
+            if (count($data) >= $max_count) {
+                break;
             }
+
+            // if exists id, continue
+            if (!is_null(collect($data)->first(function ($value, $key) use ($foo) {
+                return array_get($value, 'id') == array_get($foo, 'id');
+            }))) {
+                continue;
+            }
+
+            $data[] = $foo;
         }
 
         return $data;
@@ -532,6 +541,9 @@ EOT;
         ];
         if(isset($search_type)){
             $array['search_type'] = $search_type;
+        }
+        if($table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)){
+            $array['show_list'] = true;
         }
         return $array;
     }   

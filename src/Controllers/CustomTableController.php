@@ -8,15 +8,15 @@ use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\AuthorityType;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\RoleValue;
 
 class CustomTableController extends AdminControllerBase
 {
-    use HasResourceActions, AuthorityForm;
+    use HasResourceActions, RoleForm;
 
     public function __construct(Request $request)
     {
@@ -70,16 +70,22 @@ class CustomTableController extends AdminControllerBase
         }
         $form->text('table_view_name', exmtrans("custom_table.table_view_name"))->required();
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
-        $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1");
         
+        $form->header(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
+            $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
+            ;
             $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))
                 ->help(exmtrans("custom_table.help.one_record_flg"))
-                ->default("0");
+                ->default("0")
+                ;
+
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
-                ->default("1");
+                ->default("1")
+                ;
+            
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
                 ->default("1")
                 ->attribute(['data-filtertrigger' =>true])
@@ -90,11 +96,22 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
                 ;
-                //$form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))->help(exmtrans("custom_table.help.comment_flg"));
+                
+            $form->switchbool('all_user_editable_flg', exmtrans("custom_table.all_user_editable_flg"))->help(exmtrans("custom_table.help.all_user_editable_flg"))
+                ->default("0")
+            ;
+            
+            $form->switchbool('all_user_viewable_flg', exmtrans("custom_table.all_user_viewable_flg"))->help(exmtrans("custom_table.help.all_user_viewable_flg"))
+                ->default("0")
+            ;
+            
+            $form->switchbool('all_user_accessable_flg', exmtrans("custom_table.all_user_accessable_flg"))->help(exmtrans("custom_table.help.all_user_accessable_flg"))
+                ->default("0")
+            ;
         })->disableHeader();
 
-        // Authority setting --------------------------------------------------
-        $this->addAuthorityForm($form, AuthorityType::TABLE);
+        // Role setting --------------------------------------------------
+        $this->addRoleForm($form, RoleType::TABLE);
         
         disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
@@ -124,7 +141,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if (!$this->validateTable($id, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($id, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\CopyColumnType;
 
 class CustomCopyController extends AdminControllerTableBase
@@ -34,7 +34,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -49,7 +49,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function edit(Request $request, $id, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomCopy::class, $id, 'copy')) {
@@ -66,7 +66,7 @@ class CustomCopyController extends AdminControllerTableBase
     public function create(Request $request, Content $content)
     {
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -117,7 +117,7 @@ class CustomCopyController extends AdminControllerTableBase
 
         // get to item
         // if set $id, get from CustomCopy
-        $request = Request::capture();
+        $request = request();
         // if set posted to_custom_table_id, get from posted data
         if ($request->has('to_custom_table_id')) {
             $to_table = CustomTable::find($request->get('to_custom_table_id'));

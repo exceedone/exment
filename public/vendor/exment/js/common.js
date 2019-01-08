@@ -6,21 +6,59 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var Exment;
 (function (Exment) {
-    class CommonEvent {
+    var _this = this;
+    var CommonEvent = /** @class */ (function () {
+        function CommonEvent() {
+        }
         /**
          * Call only once. It's $(document).on event.
          */
-        static AddEventOnce() {
-            $(document).on('change', '[data-changedata]', {}, (ev) => __awaiter(this, void 0, void 0, function* () { yield CommonEvent.changeModelData($(ev.target)); }));
-            $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, (ev) => {
+        CommonEvent.AddEventOnce = function () {
+            var _this = this;
+            $(document).on('change', '[data-changedata]', {}, function (ev) { return __awaiter(_this, void 0, void 0, function () { return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, CommonEvent.changeModelData($(ev.target))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            }); }); });
+            $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, function (ev) {
                 CommonEvent.setFormFilter($(ev.target));
             });
-            $(document).on('click', '.add,.remove', {}, (ev) => {
+            $(document).on('click', '.add,.remove', {}, function (ev) {
                 CommonEvent.setFormFilter($(ev.target));
             });
-            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev, state) => {
+            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, function (ev, state) {
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
@@ -30,14 +68,14 @@ var Exment;
             $(function () {
                 CommonEvent.GetVersion();
             });
-        }
-        static AddEvent() {
+        };
+        CommonEvent.AddEvent = function () {
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
             $.numberformat('[number_format]');
-        }
-        static GetVersion() {
+        };
+        CommonEvent.GetVersion = function () {
             if ($('#version').text().length > 0) {
                 return;
             }
@@ -51,11 +89,11 @@ var Exment;
                 .fail(function (data) {
                 console.log(data);
             });
-        }
+        };
         /**
          *
          */
-        static CallbackExmentAjax(res) {
+        CommonEvent.CallbackExmentAjax = function (res) {
             if (res.result === true) {
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
@@ -82,16 +120,17 @@ var Exment;
                     toastr.error('Undeifned Error');
                 }
             }
-        }
-        static redirectCallback(res) {
+        };
+        CommonEvent.redirectCallback = function (res) {
             if (hasValue(res.redirect)) {
                 $.pjax({ container: '#pjax-container', url: res.redirect });
             }
             else {
                 $.pjax.reload('#pjax-container');
             }
-        }
-        static ShowSwal(url, options = []) {
+        };
+        CommonEvent.ShowSwal = function (url, options) {
+            if (options === void 0) { options = []; }
             options = $.extend({
                 title: 'Swal',
                 confirm: 'OK',
@@ -132,11 +171,11 @@ var Exment;
                     });
                 }
             });
-        }
+        };
         /**
          * if click grid row, move page
          */
-        static tableHoverLink() {
+        CommonEvent.tableHoverLink = function () {
             $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
                 // if e.target closest"a" is length > 0, return
                 if ($(ev.target).closest('a').length > 0) {
@@ -153,18 +192,26 @@ var Exment;
                 }
                 linkElem.closest('a').click();
             }).addClass('tableHoverLinkEvent');
-        }
+        };
         /**
          * Set changedata event
          */
-        static setChangedataEvent(datalist) {
+        CommonEvent.setChangedataEvent = function (datalist) {
+            var _this = this;
             // loop "data-changedata" targets   
             for (var key in datalist) {
                 var data = datalist[key];
                 // set change event
-                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                    yield CommonEvent.changeModelData($(ev.target), ev.data.data);
-                }));
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data }, function (ev) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, CommonEvent.changeModelData($(ev.target), ev.data.data)];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
                 // if hasvalue to_block, add event when click add button
                 for (var table_name in data) {
                     var target_table_data = data[table_name];
@@ -176,176 +223,223 @@ var Exment;
                         if (!hasValue(d.to_block)) {
                             continue;
                         }
-                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                            // get target
-                            var $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
-                            var data = ev.data.data;
-                            // set to_lastindex matched index
-                            for (var i = 0; i < data.length; i++) {
-                                if (i != ev.data.index) {
-                                    continue;
+                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, function (ev) { return __awaiter(_this, void 0, void 0, function () {
+                            var $target, data, i, modelArray;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
+                                        data = ev.data.data;
+                                        // set to_lastindex matched index
+                                        for (i = 0; i < data.length; i++) {
+                                            if (i != ev.data.index) {
+                                                continue;
+                                            }
+                                            data[i]['to_lastindex'] = true;
+                                        }
+                                        modelArray = {};
+                                        modelArray[ev.data.table_name] = data;
+                                        return [4 /*yield*/, CommonEvent.changeModelData($target, modelArray)];
+                                    case 1:
+                                        _a.sent();
+                                        return [2 /*return*/];
                                 }
-                                data[i]['to_lastindex'] = true;
-                            }
-                            // create rensou array.
-                            var modelArray = {};
-                            modelArray[ev.data.table_name] = data;
-                            yield CommonEvent.changeModelData($target, modelArray);
-                        }));
+                            });
+                        }); });
                     }
                 }
             }
-        }
+        };
         /**
         * get model and change value
         */
-        static changeModelData($target, data = null) {
-            return __awaiter(this, void 0, void 0, function* () {
-                var $d = $.Deferred();
-                // get parent element from the form field.
-                var $parent = CommonEvent.getParentRow($target);
-                // if has data, get from data object
-                if (hasValue(data)) {
-                    // if data is not array, set as array
-                    //if(!Array.isArray(data)){data = [data];}
-                    // loop for model table
-                    for (var table_name in data) {
-                        var target_table_data = data[table_name];
-                        if (!hasValue(target_table_data)) {
-                            continue;
-                        }
-                        // get selected model
-                        // get value.
-                        var value = $target.val();
-                        if (!hasValue(value)) {
-                            yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
-                            continue;
-                        }
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('[name="_token"]').val()
+        CommonEvent.changeModelData = function ($target, data) {
+            if (data === void 0) { data = null; }
+            return __awaiter(this, void 0, void 0, function () {
+                var $d, $parent, _a, _b, _i, table_name, target_table_data, value, changedata_data, getitem, send_data, index, key, $elem;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            $d = $.Deferred();
+                            $parent = CommonEvent.getParentRow($target);
+                            if (!hasValue(data)) return [3 /*break*/, 5];
+                            _a = [];
+                            for (_b in data)
+                                _a.push(_b);
+                            _i = 0;
+                            _c.label = 1;
+                        case 1:
+                            if (!(_i < _a.length)) return [3 /*break*/, 5];
+                            table_name = _a[_i];
+                            target_table_data = data[table_name];
+                            if (!hasValue(target_table_data)) {
+                                return [3 /*break*/, 4];
                             }
-                        });
-                        $.ajax({
-                            url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
-                            type: 'POST',
-                            context: {
-                                data: target_table_data,
-                            }
-                        })
-                            .done(function (modeldata) {
-                            return __awaiter(this, void 0, void 0, function* () {
-                                yield CommonEvent.setModelItem(modeldata, $parent, $target, this.data);
-                                $d.resolve();
+                            value = $target.val();
+                            if (!!hasValue(value)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, CommonEvent.setModelItem(null, $parent, $target, target_table_data)];
+                        case 2:
+                            _c.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            $.ajaxSetup({
+                                headers: {
+                                    'X-CSRF-TOKEN': $('[name="_token"]').val()
+                                }
                             });
-                        })
-                            .fail(function (errordata) {
-                            console.log(errordata);
-                            $d.reject();
-                        });
+                            $.ajax({
+                                url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
+                                type: 'POST',
+                                context: {
+                                    data: target_table_data,
+                                }
+                            })
+                                .done(function (modeldata) {
+                                return __awaiter(this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4 /*yield*/, CommonEvent.setModelItem(modeldata, $parent, $target, this.data)];
+                                            case 1:
+                                                _a.sent();
+                                                $d.resolve();
+                                                return [2 /*return*/];
+                                        }
+                                    });
+                                });
+                            })
+                                .fail(function (errordata) {
+                                console.log(errordata);
+                                $d.reject();
+                            });
+                            _c.label = 4;
+                        case 4:
+                            _i++;
+                            return [3 /*break*/, 1];
+                        case 5:
+                            changedata_data = $target.data('changedata');
+                            if (hasValue(changedata_data)) {
+                                getitem = changedata_data.getitem;
+                                if (hasValue(getitem)) {
+                                    send_data = {};
+                                    send_data['value'] = $target.val();
+                                    // get data-key
+                                    for (index in getitem.key) {
+                                        key = getitem.key[index];
+                                        $elem = $parent.find(CommonEvent.getClassKey(key));
+                                        if ($elem.length == 0) {
+                                            continue;
+                                        }
+                                        send_data[key] = $elem.val();
+                                    }
+                                    // send ajax
+                                    $.ajaxSetup({
+                                        headers: {
+                                            'X-CSRF-TOKEN': $('[name="_token"]').val()
+                                        }
+                                    });
+                                    $.ajax({
+                                        url: getitem.uri,
+                                        type: 'POST',
+                                        data: send_data,
+                                        context: {
+                                            target: $target,
+                                            parent: $parent,
+                                        }
+                                    })
+                                        .done(function (data) {
+                                        CommonEvent.setModelItemKey(this.target, this.parent, data);
+                                        $d.resolve();
+                                    })
+                                        .fail(function (data) {
+                                        console.log(data);
+                                        $d.reject();
+                                    });
+                                }
+                            }
+                            return [2 /*return*/, $d.promise()];
                     }
-                    //}
-                }
-                // getItem
-                var changedata_data = $target.data('changedata');
-                if (hasValue(changedata_data)) {
-                    var getitem = changedata_data.getitem;
-                    if (hasValue(getitem)) {
-                        var send_data = {};
-                        send_data['value'] = $target.val();
-                        // get data-key
-                        for (var index in getitem.key) {
-                            var key = getitem.key[index];
-                            var $elem = $parent.find(CommonEvent.getClassKey(key));
-                            if ($elem.length == 0) {
-                                continue;
-                            }
-                            send_data[key] = $elem.val();
-                        }
-                        // send ajax
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('[name="_token"]').val()
-                            }
-                        });
-                        $.ajax({
-                            url: getitem.uri,
-                            type: 'POST',
-                            data: send_data,
-                            context: {
-                                target: $target,
-                                parent: $parent,
-                            }
-                        })
-                            .done(function (data) {
-                            CommonEvent.setModelItemKey(this.target, this.parent, data);
-                            $d.resolve();
-                        })
-                            .fail(function (data) {
-                            console.log(data);
-                            $d.reject();
-                        });
-                    }
-                }
-                return $d.promise();
+                });
             });
-        }
+        };
         /**
          * set getmodel or getitem data to form
          */
-        static setModelItem(modeldata, $changedata_target, $elem, options) {
+        CommonEvent.setModelItem = function (modeldata, $changedata_target, $elem, options) {
             var $elem;
-            return __awaiter(this, void 0, void 0, function* () {
-                // loop for options
-                for (var i = 0; i < options.length; i++) {
-                    var option = options[i];
-                    // if has changedata_to_block, get $elem using changedata_to_block
-                    if (hasValue(option.to_block)) {
-                        $changedata_target = $(option.to_block);
-                        // if has to_lastindex, get last children item
-                        if (hasValue(option.to_lastindex)) {
-                            $changedata_target = $changedata_target.find(option.to_block_form).last();
-                        }
-                    }
-                    $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
-                    if (!hasValue(modeldata)) {
-                        $elem.val('');
-                    }
-                    else {
-                        // get element value from model
-                        var from = modeldata['value'][option.from];
-                        yield CommonEvent.setValue($elem, from);
-                    }
-                    // view filter execute
-                    CommonEvent.setFormFilter($elem);
-                    // add $elem to option
-                    option['elem'] = $elem;
-                }
-                // re-loop for options
-                for (var i = 0; i < options.length; i++) {
-                    var option = options[i];
-                    $elem = option['elem'];
-                    ///// execute calc
-                    for (var j = 0; j < CommonEvent.calcDataList.length; j++) {
-                        var calcData = CommonEvent.calcDataList[j];
-                        // if calcData.key matches option.to, execute cals
-                        if (calcData.key == option.to) {
-                            var $filterTo = $elem.filter(calcData.classKey);
-                            if (hasValue($filterTo)) {
-                                yield CommonEvent.setCalc($filterTo, calcData.data);
+            return __awaiter(this, void 0, void 0, function () {
+                var i, option, from, i, option, j, calcData, $filterTo;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            i = 0;
+                            _a.label = 1;
+                        case 1:
+                            if (!(i < options.length)) return [3 /*break*/, 6];
+                            option = options[i];
+                            // if has changedata_to_block, get $elem using changedata_to_block
+                            if (hasValue(option.to_block)) {
+                                $changedata_target = $(option.to_block);
+                                // if has to_lastindex, get last children item
+                                if (hasValue(option.to_lastindex)) {
+                                    $changedata_target = $changedata_target.find(option.to_block_form).last();
+                                }
                             }
-                        }
+                            $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                            if (!!hasValue(modeldata)) return [3 /*break*/, 2];
+                            $elem.val('');
+                            return [3 /*break*/, 4];
+                        case 2:
+                            from = modeldata['value'][option.from];
+                            return [4 /*yield*/, CommonEvent.setValue($elem, from)];
+                        case 3:
+                            _a.sent();
+                            _a.label = 4;
+                        case 4:
+                            // view filter execute
+                            CommonEvent.setFormFilter($elem);
+                            // add $elem to option
+                            option['elem'] = $elem;
+                            _a.label = 5;
+                        case 5:
+                            i++;
+                            return [3 /*break*/, 1];
+                        case 6:
+                            i = 0;
+                            _a.label = 7;
+                        case 7:
+                            if (!(i < options.length)) return [3 /*break*/, 12];
+                            option = options[i];
+                            $elem = option['elem'];
+                            j = 0;
+                            _a.label = 8;
+                        case 8:
+                            if (!(j < CommonEvent.calcDataList.length)) return [3 /*break*/, 11];
+                            calcData = CommonEvent.calcDataList[j];
+                            if (!(calcData.key == option.to)) return [3 /*break*/, 10];
+                            $filterTo = $elem.filter(calcData.classKey);
+                            if (!hasValue($filterTo)) return [3 /*break*/, 10];
+                            return [4 /*yield*/, CommonEvent.setCalc($filterTo, calcData.data)];
+                        case 9:
+                            _a.sent();
+                            _a.label = 10;
+                        case 10:
+                            j++;
+                            return [3 /*break*/, 8];
+                        case 11:
+                            i++;
+                            return [3 /*break*/, 7];
+                        case 12: return [2 /*return*/];
                     }
-                }
+                });
             });
-        }
+        };
         /**
          * set getmodel or getitem data to form
          */
-        static setModelItemKey($target, $parent, data) {
-            // 取得した要素でループ
+        CommonEvent.setModelItemKey = function ($target, $parent, data) {
+            // Loop with acquired element
             for (var key in data) {
-                //id系は除外
+                //remove id, created_at, updated_at
                 if ($.inArray(key, ['id', 'created_at', 'updated_at']) != -1) {
                     continue;
                 }
@@ -367,11 +461,11 @@ var Exment;
                 }
             }
             CommonEvent.setFormFilter($target);
-        }
+        };
         /**
          * Set RelatedLinkage event
          */
-        static setRelatedLinkageEvent(datalist) {
+        CommonEvent.setRelatedLinkageEvent = function (datalist) {
             // set relatedLinkageList for after flow.
             CommonEvent.relatedLinkageList = [];
             // loop "related Linkage" targets   
@@ -385,8 +479,8 @@ var Exment;
                 // set linkage event
                 $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, CommonEvent.setRelatedLinkageChangeEvent);
             }
-        }
-        static linkage($target, url, val, expand) {
+        };
+        CommonEvent.linkage = function ($target, url, val, expand) {
             var $d = $.Deferred();
             // create querystring
             if (!hasValue(expand)) {
@@ -408,52 +502,58 @@ var Exment;
                 $d.resolve();
             });
             return $d.promise();
-        }
+        };
         /**
          * set calc
          * data : has "to" and "options". options has properties "val" and "type"
          *
          */
-        static setCalc($target, data) {
-            return __awaiter(this, void 0, void 0, function* () {
-                // if not found target, return.
-                if (!hasValue($target)) {
-                    return;
-                }
-                var $parent = CommonEvent.getParentRow($target);
-                if (!hasValue(data)) {
-                    return;
-                }
-                // loop for calc target.
-                for (var i = 0; i < data.length; i++) {
-                    // for creating array contains object "value0" and "calc_type" and "value1".
-                    var value_itemlist = [];
-                    var value_item = { values: [], calc_type: null };
-                    var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
-                    var isfirst = true;
-                    for (var j = 0; j < data[i].options.length; j++) {
-                        var val = 0;
-                        // calc option
-                        var option = data[i].options[j];
-                        // when fixed value
-                        if (option.type == 'fixed') {
+        CommonEvent.setCalc = function ($target, data) {
+            return __awaiter(this, void 0, void 0, function () {
+                var $parent, i, value_itemlist, value_item, $to, isfirst, j, val, option, $select, table_name, model, bn, j, v, precision, i, $to, _a, _b, _i, key, calcData, $filterTo;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            // if not found target, return.
+                            if (!hasValue($target)) {
+                                return [2 /*return*/];
+                            }
+                            $parent = CommonEvent.getParentRow($target);
+                            if (!hasValue(data)) {
+                                return [2 /*return*/];
+                            }
+                            i = 0;
+                            _c.label = 1;
+                        case 1:
+                            if (!(i < data.length)) return [3 /*break*/, 11];
+                            value_itemlist = [];
+                            value_item = { values: [], calc_type: null };
+                            $to = $parent.find(CommonEvent.getClassKey(data[i].to));
+                            isfirst = true;
+                            j = 0;
+                            _c.label = 2;
+                        case 2:
+                            if (!(j < data[i].options.length)) return [3 /*break*/, 9];
+                            val = 0;
+                            option = data[i].options[j];
+                            if (!(option.type == 'fixed')) return [3 /*break*/, 3];
                             value_item.values.push(rmcomma(option.val));
-                        }
-                        // when dynamic value, get value
-                        else if (option.type == 'dynamic') {
+                            return [3 /*break*/, 7];
+                        case 3:
+                            if (!(option.type == 'dynamic')) return [3 /*break*/, 4];
                             val = rmcomma($parent.find(CommonEvent.getClassKey(option.val)).val());
                             if (!hasValue(val)) {
                                 val = 0;
                             }
                             value_item.values.push(val);
-                        }
-                        // when select_table value, get value from table
-                        else if (option.type == 'select_table') {
-                            // find select target table
-                            var $select = $parent.find(CommonEvent.getClassKey(option.val));
-                            var table_name = $select.data('target_table_name');
-                            // get selected table model
-                            var model = yield CommonEvent.findModel(table_name, $select.val());
+                            return [3 /*break*/, 7];
+                        case 4:
+                            if (!(option.type == 'select_table')) return [3 /*break*/, 6];
+                            $select = $parent.find(CommonEvent.getClassKey(option.val));
+                            table_name = $select.data('target_table_name');
+                            return [4 /*yield*/, CommonEvent.findModel(table_name, $select.val())];
+                        case 5:
+                            model = _c.sent();
                             // get value
                             if (hasValue(model)) {
                                 val = model['value'][option.from];
@@ -462,76 +562,100 @@ var Exment;
                                 }
                             }
                             value_item.values.push(val);
-                        }
-                        // when symbol
-                        else if (option.type == 'symbol') {
-                            value_item.calc_type = option.val;
-                        }
-                        // if hasValue calc_type and values.length == 1 or first, set value_itemlist
-                        if (hasValue(value_item.calc_type) &&
-                            value_item.values.length >= 2 || (!isfirst && value_item.values.length >= 1)) {
-                            value_itemlist.push(value_item);
-                            // reset
-                            value_item = { values: [], calc_type: null };
-                            isfirst = false;
-                        }
-                    }
-                    // get value useing value_itemlist
-                    var bn = null;
-                    for (var j = 0; j < value_itemlist.length; j++) {
-                        value_item = value_itemlist[j];
-                        // if first item, new BigNumber using first item
-                        if (value_item.values.length == 2) {
-                            bn = new BigNumber(value_item.values[0]);
-                        }
-                        // get appended value
-                        var v = value_item.values[value_item.values.length - 1];
-                        switch (value_item.calc_type) {
-                            case 'plus':
-                                bn = bn.plus(v);
-                                break;
-                            case 'minus':
-                                bn = bn.minus(v);
-                                break;
-                            case 'times':
-                                bn = bn.times(v);
-                                break;
-                            case 'div':
-                                if (v == 0) {
-                                    bn = new BigNumber(0);
+                            return [3 /*break*/, 7];
+                        case 6:
+                            if (option.type == 'symbol') {
+                                value_item.calc_type = option.val;
+                            }
+                            _c.label = 7;
+                        case 7:
+                            // if hasValue calc_type and values.length == 1 or first, set value_itemlist
+                            if (hasValue(value_item.calc_type) &&
+                                value_item.values.length >= 2 || (!isfirst && value_item.values.length >= 1)) {
+                                value_itemlist.push(value_item);
+                                // reset
+                                value_item = { values: [], calc_type: null };
+                                isfirst = false;
+                            }
+                            _c.label = 8;
+                        case 8:
+                            j++;
+                            return [3 /*break*/, 2];
+                        case 9:
+                            bn = null;
+                            for (j = 0; j < value_itemlist.length; j++) {
+                                value_item = value_itemlist[j];
+                                // if first item, new BigNumber using first item
+                                if (value_item.values.length == 2) {
+                                    bn = new BigNumber(value_item.values[0]);
                                 }
-                                else {
-                                    bn = bn.div(v);
+                                v = value_item.values[value_item.values.length - 1];
+                                switch (value_item.calc_type) {
+                                    case 'plus':
+                                        bn = bn.plus(v);
+                                        break;
+                                    case 'minus':
+                                        bn = bn.minus(v);
+                                        break;
+                                    case 'times':
+                                        bn = bn.times(v);
+                                        break;
+                                    case 'div':
+                                        if (v == 0) {
+                                            bn = new BigNumber(0);
+                                        }
+                                        else {
+                                            bn = bn.div(v);
+                                        }
+                                        break;
                                 }
-                                break;
-                        }
+                            }
+                            precision = bn.toPrecision();
+                            CommonEvent.setValue($to, precision);
+                            _c.label = 10;
+                        case 10:
+                            i++;
+                            return [3 /*break*/, 1];
+                        case 11:
+                            i = 0;
+                            _c.label = 12;
+                        case 12:
+                            if (!(i < data.length)) return [3 /*break*/, 17];
+                            $to = $parent.find(CommonEvent.getClassKey(data[i].to));
+                            _a = [];
+                            for (_b in CommonEvent.calcDataList)
+                                _a.push(_b);
+                            _i = 0;
+                            _c.label = 13;
+                        case 13:
+                            if (!(_i < _a.length)) return [3 /*break*/, 16];
+                            key = _a[_i];
+                            calcData = CommonEvent.calcDataList[key];
+                            $filterTo = $to.filter(calcData.classKey);
+                            if (!hasValue($filterTo)) return [3 /*break*/, 15];
+                            return [4 /*yield*/, CommonEvent.setCalc($filterTo, calcData.data)];
+                        case 14:
+                            _c.sent();
+                            _c.label = 15;
+                        case 15:
+                            _i++;
+                            return [3 /*break*/, 13];
+                        case 16:
+                            i++;
+                            return [3 /*break*/, 12];
+                        case 17: return [2 /*return*/];
                     }
-                    var precision = bn.toPrecision();
-                    CommonEvent.setValue($to, precision);
-                }
-                ///// re-loop after all data setting value
-                for (var i = 0; i < data.length; i++) {
-                    var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
-                    // if $to has "calc_data" data, execute setcalc function again
-                    //var to_data = $to.data('calc_data');
-                    for (var key in CommonEvent.calcDataList) {
-                        var calcData = CommonEvent.calcDataList[key];
-                        // filter $to obj
-                        var $filterTo = $to.filter(calcData.classKey);
-                        if (hasValue($filterTo)) {
-                            yield CommonEvent.setCalc($filterTo, calcData.data);
-                        }
-                    }
-                }
+                });
             });
-        }
+        };
         /**
          * find table data
          * @param table_name
          * @param value
          * @param context
          */
-        static findModel(table_name, value, context = null) {
+        CommonEvent.findModel = function (table_name, value, context) {
+            if (context === void 0) { context = null; }
             var $d = $.Deferred();
             if (!hasValue(value)) {
                 $d.resolve(null);
@@ -551,12 +675,12 @@ var Exment;
                 });
             }
             return $d.promise();
-        }
+        };
         /**
          * set value. check number format, column type, etc...
          * @param $target
          */
-        static setValue($target, value) {
+        CommonEvent.setValue = function ($target, value) {
             if (!hasValue($target)) {
                 return;
             }
@@ -582,11 +706,11 @@ var Exment;
             }
             // set value
             $target.val(value);
-        }
+        };
         /**
          * add select2
          */
-        static addSelect2() {
+        CommonEvent.addSelect2 = function () {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem) {
                 var $elem = $(elem);
                 var options = {
@@ -628,8 +752,8 @@ var Exment;
                 }
                 $(elem).select2(options);
             }).addClass('added-select2');
-        }
-        static getFilterVal($parent, a) {
+        };
+        CommonEvent.getFilterVal = function ($parent, a) {
             // get filter object
             var $filterObj = $parent.find(CommonEvent.getClassKey(a.key)).filter(':last');
             // if checkbox
@@ -637,8 +761,8 @@ var Exment;
                 return $filterObj.is(':checked') ? $filterObj.val() : null;
             }
             return $filterObj.val();
-        }
-        static getParentRow($query) {
+        };
+        CommonEvent.getParentRow = function ($query) {
             if ($query.closest('tr').length > 0) {
                 return $query.closest('tr');
             }
@@ -648,232 +772,254 @@ var Exment;
                 return $query.parents('.fields-group').eq(0);
             }
             return $query.closest('.fields-group');
-        }
-        static getClassKey(key, prefix = '') {
+        };
+        CommonEvent.getClassKey = function (key, prefix) {
+            if (prefix === void 0) { prefix = ''; }
             return '.' + prefix + key + ',.' + prefix + 'value_' + key;
-        }
-    }
-    CommonEvent.calcDataList = [];
-    CommonEvent.relatedLinkageList = [];
-    /**
-    * 日付の計算
-    */
-    CommonEvent.calcDate = () => {
-        var $type = $('.subscription_claim_type');
-        var $start_date = $('.subscription_agreement_start_date');
-        var $term = $('.subscription_agreement_term');
-        var $end_date = $('.subscription_agreement_limit_date');
-        var term = pInt($term.val());
-        if (!$type.val() || !$start_date.val()) {
-            return;
-        }
-        // 日付計算
-        var dt = new Date($('.subscription_agreement_start_date').val());
-        if ($type.val() == 'month') {
-            dt.setMonth(dt.getMonth() + term);
-        }
-        else if ($type.val() == 'year') {
-            dt.setFullYear(dt.getFullYear() + term);
-        }
-        dt.setDate(dt.getDate() - 1);
-        // セット
-        $end_date.val(dt.getFullYear() + '-'
-            + ('00' + (dt.getMonth() + 1)).slice(-2)
-            + '-' + ('00' + dt.getDate()).slice(-2));
-    };
-    /**
-     * call select2 items using linkage
-     */
-    CommonEvent.setRelatedLinkageChangeEvent = (ev) => {
-        var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
-        if (!hasValue($base)) {
-            return;
-        }
-        var $parent = CommonEvent.getParentRow($base);
-        var linkages = ev.data.data;
-        if (!hasValue(linkages)) {
-            return;
-        }
-        // execute linkage event
-        for (var key in linkages) {
-            // set param from PHP
-            var link = linkages[key];
-            var url = link.url;
-            var expand = link.expand;
-            var $target = $parent.find(CommonEvent.getClassKey(link.to));
-            CommonEvent.linkage($target, url, $base.val(), expand);
-        }
-    };
-    /**
-     * call select2 items using linkage
-     */
-    CommonEvent.setLinkageEvent = (ev) => {
-        var $base = $(ev.target).closest('[data-linkage]');
-        if (!hasValue($base)) {
-            return;
-        }
-        var $parent = CommonEvent.getParentRow($base);
-        var linkages = $base.data('linkage');
-        if (!hasValue(linkages)) {
-            return;
-        }
-        // get expand data
-        var expand = $base.data('linkage-expand');
-        // execute linkage event
-        for (var key in linkages) {
-            var link = linkages[key];
-            var $target = $parent.find(CommonEvent.getClassKey(key));
-            CommonEvent.linkage($target, link, $base.val(), expand);
-        }
-    };
-    /**
-     * 対象のセレクトボックスの値に応じて、表示・非表示を切り替える
-     * @param $target
-     */
-    CommonEvent.setFormFilter = ($target) => {
-        $target = CommonEvent.getParentRow($target).find('[data-filter]');
-        for (var tIndex = 0; tIndex < $target.length; tIndex++) {
-            var $t = $target.eq(tIndex);
-            // 表示フィルターを掛ける場合
-            //if (!$t.data('filter')) {
-            //    continue;
-            //}
-            // そのinputの親要素取得
-            var $parent = CommonEvent.getParentRow($t);
-            // 行の要素取得
-            var $eParent = $t.parents('.form-group');
-            //var $elem = $parent.find('[data-filter-target]'); // 表示非表示対象
-            // 検索対象のキー・値取得
-            try {
-                var array = $t.data('filter');
-                // 配列でない場合、配列に変換
-                if (!Array.isArray(array)) {
-                    array = [array];
+        };
+        CommonEvent.findValue = function (key, values) {
+            values = !Array.isArray(values) ? values.split(',') : values;
+            for (var i = 0; i < values.length; i++) {
+                if (values[i] == key) {
+                    return true;
                 }
-                var isShow = true;
-                var isReadOnly = false;
-                for (var index = 0; index < array.length; index++) {
-                    var a = array[index];
-                    // そのkeyを持つclassの値取得
-                    // 最終的に送信されるのは最後の要素なので、last-child付ける
-                    // parent値ある場合
-                    var parentCount = a.parent ? a.parent : 0;
-                    if (parentCount > 0) {
-                        var $calcParent = $parent;
-                        for (var i = 0; i < parentCount; i++) {
-                            $calcParent = CommonEvent.getParentRow($calcParent);
-                        }
-                        var filterVal = CommonEvent.getFilterVal($calcParent, a);
+            }
+            return false;
+        };
+        CommonEvent.calcDataList = [];
+        CommonEvent.relatedLinkageList = [];
+        /**
+        * 日付の計算
+        */
+        CommonEvent.calcDate = function () {
+            var $type = $('.subscription_claim_type');
+            var $start_date = $('.subscription_agreement_start_date');
+            var $term = $('.subscription_agreement_term');
+            var $end_date = $('.subscription_agreement_limit_date');
+            var term = pInt($term.val());
+            if (!$type.val() || !$start_date.val()) {
+                return;
+            }
+            // 日付計算
+            var dt = new Date($('.subscription_agreement_start_date').val());
+            if ($type.val() == 'month') {
+                dt.setMonth(dt.getMonth() + term);
+            }
+            else if ($type.val() == 'year') {
+                dt.setFullYear(dt.getFullYear() + term);
+            }
+            dt.setDate(dt.getDate() - 1);
+            // セット
+            $end_date.val(dt.getFullYear() + '-'
+                + ('00' + (dt.getMonth() + 1)).slice(-2)
+                + '-' + ('00' + dt.getDate()).slice(-2));
+        };
+        /**
+         * call select2 items using linkage
+         */
+        CommonEvent.setRelatedLinkageChangeEvent = function (ev) {
+            var $base = $(ev.target).closest(CommonEvent.getClassKey(ev.data.key));
+            if (!hasValue($base)) {
+                return;
+            }
+            var $parent = CommonEvent.getParentRow($base);
+            var linkages = ev.data.data;
+            if (!hasValue(linkages)) {
+                return;
+            }
+            // execute linkage event
+            for (var key in linkages) {
+                // set param from PHP
+                var link = linkages[key];
+                var url = link.url;
+                var expand = link.expand;
+                var $target = $parent.find(CommonEvent.getClassKey(link.to));
+                CommonEvent.linkage($target, url, $base.val(), expand);
+            }
+        };
+        /**
+         * call select2 items using linkage
+         */
+        CommonEvent.setLinkageEvent = function (ev) {
+            var $base = $(ev.target).closest('[data-linkage]');
+            if (!hasValue($base)) {
+                return;
+            }
+            var $parent = CommonEvent.getParentRow($base);
+            var linkages = $base.data('linkage');
+            if (!hasValue(linkages)) {
+                return;
+            }
+            // get expand data
+            var expand = $base.data('linkage-expand');
+            // execute linkage event
+            for (var key in linkages) {
+                var link = linkages[key];
+                var $target = $parent.find(CommonEvent.getClassKey(key));
+                CommonEvent.linkage($target, link, $base.val(), expand);
+            }
+        };
+        /**
+         * Switch display / non-display according to the target input value
+         * @param $target
+         */
+        CommonEvent.setFormFilter = function ($target) {
+            $target = CommonEvent.getParentRow($target).find('[data-filter]');
+            for (var tIndex = 0; tIndex < $target.length; tIndex++) {
+                var $t = $target.eq(tIndex);
+                // Get parent element of that input
+                var $parent = CommonEvent.getParentRow($t);
+                // Get parent element with row
+                var $eParent = $t.parents('.form-group');
+                // Get search target key and value
+                try {
+                    var array = $t.data('filter');
+                    // if not array, convert array
+                    if (!Array.isArray(array)) {
+                        array = [array];
                     }
-                    else {
-                        var filterVal = CommonEvent.getFilterVal($parent, a);
+                    var isShow = true;
+                    var isReadOnly = false;
+                    for (var index = 0; index < array.length; index++) {
+                        var a = array[index];
+                        // Get value of class with that key
+                        // if has parent value
+                        var parentCount = a.parent ? a.parent : 0;
+                        if (parentCount > 0) {
+                            var $calcParent = $parent;
+                            for (var i = 0; i < parentCount; i++) {
+                                $calcParent = CommonEvent.getParentRow($calcParent);
+                            }
+                            var filterVal = CommonEvent.getFilterVal($calcParent, a);
+                        }
+                        else {
+                            var filterVal = CommonEvent.getFilterVal($parent, a);
+                        }
+                        if (isShow) {
+                            // check whether null
+                            if (a.hasValue) {
+                                if (!hasValue(filterVal)) {
+                                    isShow = false;
+                                }
+                            }
+                            // when value is null and not set "nullValue", isSnow = false
+                            if (filterVal == null && !a.nullValue) {
+                                isShow = false;
+                            }
+                            else if (filterVal != null && a.nullValue) {
+                                isShow = false;
+                            }
+                            // その値が、a.valueに含まれているか
+                            if (a.value) {
+                                if (!CommonEvent.findValue(filterVal, a.value)) {
+                                    isShow = false;
+                                }
+                            }
+                            if (a.notValue) {
+                                if (!CommonEvent.findValue(filterVal, a.notValue)) {
+                                    isShow = false;
+                                }
+                            }
+                        }
+                        // change readonly attribute
+                        if (!isReadOnly && a.readonlyValue) {
+                            if (!CommonEvent.findValue(filterVal, a.readonlyValue)) {
+                                isShow = false;
+                            }
+                        }
                     }
                     if (isShow) {
-                        // nullかどうかのチェックの場合
-                        if (a.hasValue) {
-                            if (!hasValue(filterVal)) {
-                                isShow = false;
-                            }
-                        }
-                        // when value is null and not set "nullValue", isSnow = false
-                        if (filterVal == null && !a.nullValue) {
-                            isShow = false;
-                        }
-                        else if (filterVal != null && a.nullValue) {
-                            isShow = false;
-                        }
-                        // その値が、a.valueに含まれているか
-                        if (a.value) {
-                            var valueArray = !Array.isArray(a.value) ? a.value.split(',') : a.value;
-                            if (valueArray.indexOf(filterVal) == -1) {
-                                isShow = false;
-                            }
-                        }
-                        if (a.notValue) {
-                            var valueArray = !Array.isArray(a.notValue) ? a.notValue.split(',') : a.notValue;
-                            if (valueArray.indexOf(filterVal) != -1) {
-                                isShow = false;
-                            }
-                        }
+                        $eParent.show();
+                        // disabled false
                     }
-                    // change readonly attribute
-                    if (!isReadOnly && a.readonlyValue) {
-                        var valueArray = !Array.isArray(a.readonlyValue) ? a.readonlyValue.split(',') : a.readonlyValue;
-                        if (valueArray.indexOf(filterVal) != -1) {
-                            isReadOnly = true;
-                        }
+                    else {
+                        $eParent.hide();
+                        ///// remove value
+                        // comment out because remove default value
+                        //$t.val('');
+                    }
+                    // if selectbox, disabled
+                    var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
+                        ? 'disabled' : 'readonly';
+                    if (isReadOnly) {
+                        $t.prop(propName, true);
+                    }
+                    else {
+                        $t.prop(propName, false);
                     }
                 }
-                if (isShow) {
-                    $eParent.show();
-                    // disabled false
-                }
-                else {
-                    $eParent.hide();
-                    ///// remove value
-                    // comment out because remove default value
-                    //$t.val('');
-                }
-                // if selectbox, disabled
-                var propName = $t.prop('type') == 'select-one' || $t.prop('tagName').toLowerCase() == 'select'
-                    ? 'disabled' : 'readonly';
-                if (isReadOnly) {
-                    $t.prop(propName, true);
-                }
-                else {
-                    $t.prop(propName, false);
+                catch (e) {
                 }
             }
-            catch (e) {
+        };
+        /**
+         * Set calc event
+         */
+        CommonEvent.setCalcEvent = function (datalist) {
+            // set datalist for after flow.
+            CommonEvent.calcDataList = [];
+            // loop "data-calc" targets   
+            for (var key in datalist) {
+                var data = datalist[key];
+                // set data to element
+                // cannot use because cannot fire new row
+                //$(CommonEvent.getClassKey(key)).data('calc_data', data);
+                // set calcDataList array. key is getClassKey. data is data
+                CommonEvent.calcDataList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
+                // set calc event
+                $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, function (ev) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, CommonEvent.setCalc($(ev.target), ev.data.data)];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                // set event for plus minus button
+                $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, function (ev) { return __awaiter(_this, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data)];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
             }
-        }
-    };
-    /**
-     * Set calc event
-     */
-    CommonEvent.setCalcEvent = (datalist) => {
-        // set datalist for after flow.
-        CommonEvent.calcDataList = [];
-        // loop "data-calc" targets   
-        for (var key in datalist) {
-            var data = datalist[key];
-            // set data to element
-            // cannot use because cannot fire new row
-            //$(CommonEvent.getClassKey(key)).data('calc_data', data);
-            // set calcDataList array. key is getClassKey. data is data
-            CommonEvent.calcDataList.push({ "key": key, "classKey": CommonEvent.getClassKey(key), "data": data });
-            // set calc event
-            $('.box-body').on('change', CommonEvent.getClassKey(key), { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                yield CommonEvent.setCalc($(ev.target), ev.data.data);
-            }));
-            // set event for plus minus button
-            $('.box-body').on('click', '.btn-number-plus,.btn-number-minus', { data: data, key: key }, (ev) => __awaiter(this, void 0, void 0, function* () {
-                yield CommonEvent.setCalc($(ev.target).closest('.input-group').find(CommonEvent.getClassKey(ev.data.key)), ev.data.data);
-            }));
-        }
-    };
+        };
+        return CommonEvent;
+    }());
     Exment.CommonEvent = CommonEvent;
 })(Exment || (Exment = {}));
 $(function () {
     Exment.CommonEvent.AddEvent();
     Exment.CommonEvent.AddEventOnce();
 });
-const URLJoin = (...args) => args
-    .join('/')
-    .replace(/[\/]+/g, '/')
-    .replace(/^(.+):\//, '$1://')
-    .replace(/^file:/, 'file:/')
-    .replace(/\/(\?|&|#[^!])/g, '$1')
-    .replace(/\?/g, '&')
-    .replace('&', '?');
-const pInt = (obj) => {
+var URLJoin = function () {
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        args[_i] = arguments[_i];
+    }
+    return args
+        .join('/')
+        .replace(/[\/]+/g, '/')
+        .replace(/^(.+):\//, '$1://')
+        .replace(/^file:/, 'file:/')
+        .replace(/\/(\?|&|#[^!])/g, '$1')
+        .replace(/\?/g, '&')
+        .replace('&', '?');
+};
+var pInt = function (obj) {
     if (!hasValue(obj)) {
         return 0;
     }
     obj = obj.toString().replace(/,/g, '');
     return parseInt(obj);
 };
-const hasValue = (obj) => {
+var hasValue = function (obj) {
     if (obj == null || obj == undefined || obj.length == 0) {
         return false;
     }
@@ -883,30 +1029,30 @@ const hasValue = (obj) => {
 //    return rmcomma(x).replace(/(\d)(?=(?:\d{3}){2,}(?:\.|$))|(\d)(\d{3}(?:\.\d*)?$)/g
 //        , '$1$2,$3');
 //}
-const comma = (x) => {
+var comma = function (x) {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
-const rmcomma = (x) => {
+var rmcomma = function (x) {
     if (x === null || x === undefined) {
         return x;
     }
     return x.toString().replace(/,/g, '');
 };
-const trimAny = function (str, any) {
+var trimAny = function (str, any) {
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
 };
-const selectedRow = function () {
+var selectedRow = function () {
     var id = $('.grid-row-checkbox:checked').eq(0).data('id');
     return id;
 };
-const selectedRows = function () {
+var selectedRows = function () {
     var rows = [];
-    $('.grid-row-checkbox:checked').each((num, element) => {
+    $('.grid-row-checkbox:checked').each(function (num, element) {
         rows.push($(element).data('id'));
     });
     return rows;
 };
-const admin_base_path = function (path) {
+var admin_base_path = function (path) {
     var urls = [];
     var admin_base_uri = trimAny($('#admin_base_uri').val(), '/');
     if (admin_base_uri.length > 0) {
@@ -917,7 +1063,7 @@ const admin_base_path = function (path) {
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 };
-const getParamFromArray = function (array) {
+var getParamFromArray = function (array) {
     array = array.filter(function (x) {
         return (x.value !== (undefined || null || ''));
     });

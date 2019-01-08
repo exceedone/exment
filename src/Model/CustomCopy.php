@@ -130,7 +130,7 @@ class CustomCopy extends ModelBase
         
         return [
             'result'  => true,
-            'toastr' => 'Copy Success!!', //TODO:trans
+            'toastr' => sprintf(exmtrans('common.message.success_execute')),
             // set redirect url
             'redirect' => admin_base_paths('data', $this->to_custom_table->table_name, $to_custom_value->id)
         ];

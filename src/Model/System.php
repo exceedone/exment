@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Carbon\Carbon;
 use Storage;
@@ -15,8 +15,9 @@ class System extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
-    protected $casts = ['authority' => 'json'];
+    protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
+    protected static $requestSession = [];
 
     public static function __callStatic($name, $argments)
     {
@@ -27,6 +28,22 @@ class System extends ModelBase
         }
 
         return parent::__callStatic($name, $argments);
+    }
+
+    public static function requestSession($key, $value = null){
+        $config_key = "exment_global.$key";
+        if(is_null($value)){
+            return static::$requestSession[$config_key] ?? null;
+        }
+        elseif($value instanceof \Closure){
+            $val = static::$requestSession[$config_key] ?? null;
+            if(is_null($val)){
+                $val = $value();
+                static::$requestSession[$config_key] = $val;
+            }
+            return $val;
+        }
+        static::$requestSession[$config_key] = $value;
     }
 
     /**
@@ -64,22 +81,22 @@ class System extends ModelBase
             $array[$k] = static::{$k}();
         }
 
-        // add system authority --------------------------------------------------
-        // get system authority value
-        $system_authority = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->where('morph_type', AuthorityType::SYSTEM)->get();
-        // get Authority list for system.
-        $authorities = Authority::where('authority_type', AuthorityType::SYSTEM)->get(['id', 'suuid', 'authority_name']);
-        foreach ($authorities as $authority) {
+        // add system role --------------------------------------------------
+        // get system role value
+        $system_role = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->where('morph_type', RoleType::SYSTEM)->get();
+        // get Role list for system.
+        $roles = Role::where('role_type', RoleType::SYSTEM)->get(['id', 'suuid', 'role_name']);
+        foreach ($roles as $role) {
             foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $related_type) {
-                // filter related_type and authority_id. convert to string
-                $filter = $system_authority->filter(function ($value, $key) use ($authority, $related_type) {
-                    return $value->related_type  == $related_type && $value->authority_id  == $authority->id;
+                // filter related_type and role_id. convert to string
+                $filter = $system_role->filter(function ($value, $key) use ($role, $related_type) {
+                    return $value->related_type  == $related_type && $value->role_id  == $role->id;
                 });
                 if (!isset($filter)) {
                     continue;
                 }
 
-                $array[$authority->getAuthorityName($related_type)] = $filter->pluck('related_id')->map(function($value){
+                $array[$role->getRoleName($related_type)] = $filter->pluck('related_id')->map(function($value){
                     return strval($value);
                 })->toArray();
             }
@@ -100,8 +117,8 @@ class System extends ModelBase
     protected static function get_system_value($name, $setting)
     {
         $config_key = static::getConfigKey($name);
-        if (!is_null(getRequestSession($config_key))) {
-            return getRequestSession($config_key);
+        if (!is_null(static::requestSession($config_key))) {
+            return static::requestSession($config_key);
         }
         $system = System::find($name);
         $value = null;
@@ -133,7 +150,7 @@ class System extends ModelBase
         } elseif ($type == 'file') {
             $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
         }
-        setRequestSession($config_key, $value);
+        System::requestSession($config_key, $value);
         return $value;
     }
 
@@ -185,7 +202,7 @@ class System extends ModelBase
         
         // update config
         $config_key = static::getConfigKey($name);
-        setRequestSession($config_key, $system->system_value);
+        static::requestSession($config_key, $system->system_value);
     }
 
     protected static function getConfigKey($name)

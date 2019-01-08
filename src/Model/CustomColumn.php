@@ -1,7 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
@@ -23,12 +23,24 @@ class CustomColumn extends ModelBase
     public function custom_form_columns()
     {
         return $this->hasMany(CustomFormColumn::class, 'form_column_target_id')
-            ->where('form_column_type', CustomFormColumnType::COLUMN);
+            ->where('form_column_type', FormColumnType::COLUMN);
     }
 
     public function custom_view_columns()
     {
         return $this->hasMany(CustomViewColumn::class, 'view_column_target');
+    }
+
+    public function scopeIndexEnabled($query)
+    {
+        return $query->whereIn('options->index_enabled', [1, "1", true]);
+    }
+
+    public function scopeUseLabelFlg($query)
+    {
+        return $query
+            ->whereNotIn('options->use_label_flg', [0, "0"])
+            ->orderBy('options->use_label_flg');
     }
 
     /**
@@ -39,13 +51,24 @@ class CustomColumn extends ModelBase
         if (!isset($column_obj)) {
             return null;
         }
+
+        if ($column_obj instanceof \stdClass) {
+            $column_obj = array_get((array)$column_obj, 'id');
+        }
+
         // get column eloquent model
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
-        } elseif (is_array($column_obj)) {
-            return CustomColumn::find(array_get($column_obj, 'id'));
-        } elseif (is_numeric($column_obj)) {
-            return CustomColumn::find($column_obj);
+        } 
+        
+        if (is_array($column_obj)) {
+            $column_obj = array_get($column_obj, 'id');
+        }
+        
+        if (is_numeric($column_obj)) {
+            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $column_obj), function() use($column_obj){
+                return static::find($column_obj);
+            });
         }
         // else,call $table_obj
         else {
@@ -61,14 +84,9 @@ class CustomColumn extends ModelBase
             }
             
             // get column name
-            if (is_string($column_obj)) {
-                $column_name = $column_obj;
-            } elseif (is_array($column_obj)) {
-                $column_name = array_get($column_obj, 'column_name');
-            } elseif ($column_obj instanceof \stdClass) {
-                $column_name = array_get((array)$column_obj, 'column_name');
-            }
-            return $table_obj->custom_columns()->where('column_name', $column_name)->first() ?? null;
+            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $table_obj->table_name . '_'.$column_obj), function() use($table_obj, $column_obj){
+                return $table_obj->custom_columns()->where('column_name', $column_obj)->first() ?? null;
+            });
         }
         return null;
     }
@@ -91,16 +109,16 @@ class CustomColumn extends ModelBase
         // Create table
         $table->createTable();
 
-        // get whether search_enabled column
-        $search_enabled = $this->hasIndex();
+        // get whether index_enabled column
+        $index_enabled = $this->indexEnabled();
         
         // check table column field exists.
         $exists = Schema::hasColumn($db_table_name, $db_column_name);
 
         $index_name = "index_$db_column_name";
-        //  if search_enabled = false, and exists, then drop index
-        // if column exists and (search_enabled = false or forceDropIndex)
-        if ($exists && ($forceDropIndex || (!boolval($search_enabled)))) {
+        //  if index_enabled = false, and exists, then drop index
+        // if column exists and (index_enabled = false or forceDropIndex)
+        if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
             DB::beginTransaction();
             try {
                 // ALTER TABLE
@@ -112,12 +130,14 @@ class CustomColumn extends ModelBase
                 throw $exception;
             }
         }
-        // if search_enabled = true, not exists, then create index
-        elseif ($search_enabled && !$exists) {
+        // if index_enabled = true, not exists, then create index
+        elseif ($index_enabled && !$exists) {
             DB::beginTransaction();
             try {
                 // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS (json_unquote(json_extract(`value`,'$.$column_name'))) VIRTUAL;");
+                $as_value = "json_unquote(json_extract(`value`,'$.$column_name'))";
+
+                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS ($as_value) VIRTUAL;");
                 DB::statement("ALTER TABLE $db_table_name ADD index $index_name($db_column_name)");
     
                 DB::commit();
@@ -150,9 +170,9 @@ class CustomColumn extends ModelBase
      * Whether this column has index
      * @return boolean
      */
-    public function hasIndex()
+    public function indexEnabled()
     {
-        return boolval(array_get($this, 'options.search_enabled'));
+        return boolval(array_get($this, 'options.index_enabled'));
     }
 
     /**

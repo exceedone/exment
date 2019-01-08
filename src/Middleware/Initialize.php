@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Form\Field;
+use Encore\Admin\Form;
 use \Html;
 use PDO;
 
@@ -113,7 +115,7 @@ class Initialize
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
         Config::set('admin.enable_default_breadcrumb', false);
-        //Config::set('admin.show_version', false);
+        Config::set('admin.show_version', false);
         Config::set('admin.show_environment', false);
 
         if ($setDatabase) {
@@ -157,6 +159,34 @@ class Initialize
             if (isset($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
+        }
+    }
+
+    /**
+     * set laravel-admin form field
+     */
+    public static function initializeFormField(){
+        $map = [
+            'number'        => Field\Number::class,
+            'editor'        => Field\Tinymce::class, //TODO
+            'image'        => Field\Image::class,
+            'display'        => Field\Display::class,
+            'link'           => Field\Link::class,
+            'header'           => Field\Header::class,
+            'description'           => Field\Description::class,
+            'switchbool'          => Field\SwitchBoolField::class,
+            'pivotMultiSelect'          => Field\PivotMultiSelect::class,
+            'checkboxone'          => Field\Checkboxone::class,
+            'tile'          => Field\Tile::class,
+            'hasMany'           => Field\HasMany::class,
+            'hasManyTable'           => Field\HasManyTable::class,
+            'relationTable'          => Field\RelationTable::class,
+            'embeds'          => Field\Embeds::class,
+            'nestedEmbeds'          => Field\NestedEmbeds::class,
+            'valueModal'          => Field\ValueModal::class,
+        ];
+        foreach ($map as $abstract => $class) {
+            Form::extend($abstract, $class);
         }
     }
 }

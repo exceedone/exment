@@ -6,8 +6,9 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
-use Exceedone\Exment\Enums\AuthorityType;
+use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -54,6 +55,31 @@ if (!function_exists('esc_html')) {
     }
 }
 
+if (!function_exists('esc_script_tag')) {
+    /**
+     * escape only script tag
+     */
+    function esc_script_tag($str)
+    {
+        $dom = new \DOMDocument();
+
+        $dom->loadHTML($html);
+
+        $script = $dom->getElementsByTagName('script');
+
+        $remove = [];
+        foreach ($script as $item) {
+            $remove[] = $item;
+        }
+
+        foreach ($remove as $item) {
+            $item->parentNode->removeChild($item);
+        }
+
+        $html = $dom->saveHTML();
+        return $html;
+    }
+}
 
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)
@@ -202,11 +228,36 @@ if (!function_exists('app_paths')) {
 }
 
 if (!function_exists('getFullpath')) {
-    function getFullpath($filename, $disk)
+    function getFullpath($filename, $disk, $mkdir = false)
     {
-        return Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
+        $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
+        if($mkdir && !is_dir($path)){
+            mkdir($path, 0755, true);
+        }
+        return $path;
     }
 }
+
+if (!function_exists('getTmpFolderPath')) {
+    /**
+     * get tmp folder path. Uses for 
+     * @param string $type "plugin", "template", "backup", "data".
+     */
+    function getTmpFolderPath($type, $fullpath = true)
+    {
+        $path = path_join('tmp', $type);
+        if(!$fullpath){
+            return $path;
+        }
+        $tmppath = getFullpath($path, 'local');
+        if(!is_dir($tmppath)){
+            $aa = mkdir($tmppath, 0755, true);
+        }
+
+        return $tmppath;
+    }
+}
+
 
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)
@@ -435,8 +486,8 @@ if (!function_exists('getModelName')) {
         // stop db access too much
         if (is_numeric($obj) || is_string($obj)) {
             // has request session, set suuid
-            if (!is_null(getRequestSession('getModelName_'.$obj))) {
-                $suuid = getRequestSession('getModelName_'.$obj);
+            if (!is_null(System::requestSession('getModelName_'.$obj))) {
+                $suuid = System::requestSession('getModelName_'.$obj);
             }
         }
 
@@ -447,12 +498,12 @@ if (!function_exists('getModelName')) {
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
                 //$table = CustomTable::find($obj);
                 $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
-                setRequestSession('getModelName_'.$obj, $suuid);
+                System::requestSession('getModelName_'.$obj, $suuid);
             } elseif (is_string($obj)) {
                 // get by table_name
-                // $table = CustomTable::findByName($obj);
+                // $table = CustomTable::getEloquent($obj);
                 $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
-                setRequestSession('getModelName_'.$obj, $suuid);
+                System::requestSession('getModelName_'.$obj, $suuid);
             } elseif ($obj instanceof CustomValue) {
                 $table = $obj->custom_table;
                 $suuid = $table->suuid;
@@ -470,6 +521,9 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
+            if(!isset($suuid)){
+                return null;
+            }
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
             $table->createTable();
@@ -554,11 +608,11 @@ if (!function_exists('getCurrencySymbolLabel')) {
     }
 }
 
-if (!function_exists('getAuthorityUser')) {
+if (!function_exists('getRoleUser')) {
     /**
-     * get users who has authorities.
+     * get users who has roles.
      */
-    function getAuthorityUser($target_table, $related_type)
+    function getRoleUser($target_table, $related_type)
     {
         if (is_null($target_table)) {
             return [];
@@ -566,15 +620,15 @@ if (!function_exists('getAuthorityUser')) {
         $target_table = CustomTable::getEloquent($target_table);
 
         // get user or organiztion ids
-        $target_ids = DB::table('authorities as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.authority_id')
+        $target_ids = DB::table('roles as a')
+            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
             ->whereIn('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', AuthorityType::SYSTEM);
+                    $query->where('morph_type', RoleType::SYSTEM);
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', AuthorityType::TABLE)
+                    $query->where('morph_type', RoleType::TABLE)
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id');
@@ -636,6 +690,7 @@ if (!function_exists('replaceTextFromFormat')) {
                         $length_array = explode(":", $targetFormat);
                         $key = $length_array[0];
                         
+                        $systemValues = collect(SystemColumn::getOptions())->pluck('name')->toArray();
                         // define date array
                         $dateStrings = [
                             'ymdhms' => 'YmdHis',
@@ -655,120 +710,162 @@ if (!function_exists('replaceTextFromFormat')) {
                             'second',
                         ];
 
+                        $callbacked = false;
                         if (array_key_value_exists('matchBeforeCallback', $options)) {
                             // execute callback
                             $callbackFunc = $options['matchBeforeCallback'];
-                            $result = $callbackFunc->call($length_array, $match, $format, $custom_value, $options);
+                            $result = $callbackFunc($length_array, $match, $format, $custom_value, $options);
                             if ($result) {
-                                $format = $result;
-                                continue;
+                                $str = $result;
+                                $callbacked = true;
                             }
                         }
 
                         ///// id
-                        if ($key == "id") {
-                            // replace add zero using id.
-                            if (count($length_array) > 1) {
-                                $str = sprintf('%0'.$length_array[1].'d', $id);
-                            } else {
-                                $str = $id;
-                            }
-                        }
-                        ///// value
-                        ///// base_info
-                        elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
-                            if ($key == "value") {
-                                $target_value = $custom_value;
-                            } else {
-                                $target_value = getModelName(SystemTableName::BASEINFO)::first();
-                            }
-                            if (!isset($target_value)) {
-                                $str = '';
-                            }
-                            // get value from model
-                            elseif (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                // get comma string from index 1.
-                                $length_array = array_slice($length_array, 1);
-
-                                $str = $target_value->getValue(implode(',', $length_array), true, $matchOptions) ?? '';
-                            }
-                        }
-                        ///// sum
-                        elseif ($key == "sum") {
-                            if (!isset($custom_value)) {
-                                $str = '';
-                            }
-
-                            // get sum value from children model
-                            elseif (count($length_array) <= 2) {
-                                $str = '';
-                            }
-                            //else, getting value using cihldren
-                            else {
-                                // get children values
-                                $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
-                                // looping
-                                $sum = 0;
-                                foreach ($children as $child) {
-                                    // get value
-                                    $sum += intval(str_replace(',', '', $child->getValue($length_array[2]) ?? 0));
+                        if (!$callbacked) {
+                            if (in_array($key, $systemValues)) {
+                                if (!isset($custom_value)) {
+                                    $str = '';
                                 }
-                                $str = strval($sum);
+                                //else, get system value
+                                else{
+                                    $str = $custom_value->{$key};
+                                    if (count($length_array) > 1) {
+                                        $str = sprintf('%0'.$length_array[1].'d', $str);
+                                    }
+                                }
                             }
-                        }
-                        ///// child
-                        elseif ($key == "child") {
-                            if (!isset($custom_value)) {
-                                $str = '';
-                            }
+                            ///// value_url
+                            elseif ($key == "value_url") {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
 
-                            // get sum value from children model
-                            elseif (count($length_array) <= 3) {
-                                $str = '';
+                                //else, getting url
+                                else {
+                                    $tag = array_key_value_exists('link', $matchOptions);
+                                    $str = $custom_value->getUrl(['tag' => $tag, 'modal' => false]) ?? '';
+                                    array_forget($matchOptions, 'link');
+                                }
                             }
-                            //else, getting value using cihldren
-                            else {
-                                // get children values
-                                $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
-                                // get length
-                                $index = intval($length_array[3]);
-                                // get value
-                                if (count($children) <= $index) {
+                            ///// value
+                            ///// base_info
+                            elseif (in_array($key, ["value", SystemTableName::BASEINFO])) {
+                                if ($key == "value") {
+                                    $target_value = $custom_value;
+                                } else {
+                                    $target_value = getModelName(SystemTableName::BASEINFO)::first();
+                                }
+                                if (!isset($target_value)) {
+                                    $str = '';
+                                }
+                                // get value from model
+                                elseif (count($length_array) <= 1) {
+                                    $str = $target_value->getLabel();
+                                } else {
+                                    // get comma string from index 1.
+                                    $length_array = array_slice($length_array, 1);
+
+                                    $str = $target_value->getValue(implode(',', $length_array), true, $matchOptions) ?? '';
+                                }
+                            }
+                            ///// sum
+                            elseif ($key == "sum") {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+
+                                // get sum value from children model
+                                elseif (count($length_array) <= 2) {
+                                    $str = '';
+                                }
+                                //else, getting value using cihldren
+                                else {
+                                    // get children values
+                                    $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
+                                    // looping
+                                    $sum = 0;
+                                    foreach ($children as $child) {
+                                        // get value
+                                        $sum += intval(str_replace(',', '', $child->getValue($length_array[2]) ?? 0));
+                                    }
+                                    $str = strval($sum);
+                                }
+                            }
+                            ///// child
+                            elseif ($key == "child") {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+
+                                // get sum value from children model
+                                elseif (count($length_array) <= 3) {
+                                    $str = '';
+                                }
+                                //else, getting value using cihldren
+                                else {
+                                    // get children values
+                                    $children = $custom_value->getChildrenValues($length_array[1]) ?? [];
+                                    // get length
+                                    $index = intval($length_array[3]);
+                                    // get value
+                                    if (count($children) <= $index) {
+                                        $str = '';
+                                    } else {
+                                        $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
+                                    }
+                                }
+                            }
+                            // suuid
+                            elseif ($key == "suuid") {
+                                $str = short_uuid();
+                            }
+                            // uuid
+                            elseif ($key == "uuid") {
+                                $str = make_uuid();
+                            }
+                            // system
+                            elseif ($key == "system") {
+                                if (count($length_array) < 2) {
                                     $str = '';
                                 } else {
-                                    $str = $children[$index]->getValue($length_array[2], true, $matchOptions) ?? '';
+                                    $key_system = $length_array[1];
+                                    if (System::hasFunction($key_system)) {
+                                        $str = System::{$key_system}();
+                                    }
+                                    // get static value
+                                    elseif ($key_system == "login_url") {
+                                        $str = admin_url("auth/login");
+                                    }
+                                    elseif ($key_system == "system_url") {
+                                        $str = admin_url("");
+                                    }
                                 }
                             }
-                        }
-                        // suuid
-                        elseif ($key == "suuid") {
-                            $str = short_uuid();
-                        }
-                        // uuid
-                        elseif ($key == "uuid") {
-                            $str = make_uuid();
-                        }
-                        // if has $datestrings, conbert using date string
-                        elseif (array_key_exists($key, $dateStrings)) {
-                            $str = Carbon::now()->format($dateStrings[$key]);
-                        }
-                        // if has $datestrings, conbert using date value
-                        elseif (in_array($key, $dateValues)) {
-                            $str = Carbon::now()->{$key};
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
+                            // if has $datestrings, conbert using date string
+                            elseif (array_key_exists($key, $dateStrings)) {
+                                $str = Carbon::now()->format($dateStrings[$key]);
                             }
-                            // default 2
-                            else {
-                                $length = 1;
+                            // if has $datestrings, conbert using date value
+                            elseif (in_array($key, $dateValues)) {
+                                $str = Carbon::now()->{$key};
+                                // if user input length
+                                if (count($length_array) > 1) {
+                                    $length = $length_array[1];
+                                }
+                                // default 2
+                                else {
+                                    $length = 1;
+                                }
+                                $str = sprintf('%0'.$length.'d', $str);
                             }
-                            $str = sprintf('%0'.$length.'d', $str);
                         }
                     } catch (\Exception $e) {
                         $str = '';
+                    }
+
+                    if(array_key_value_exists('link', $matchOptions)){
+                        $str = "<a href='$str'>$str</a>";
                     }
 
                     // replace
@@ -795,6 +892,8 @@ if (!function_exists('shouldPassThrough')) {
         $excepts = [
             admin_base_path('auth/login'),
             admin_base_path('auth/logout'),
+            admin_base_path('auth/reset'),
+            admin_base_path('auth/forget'),
             admin_base_path('initialize'),
         ];
 
@@ -817,6 +916,7 @@ if (!function_exists('getEndpointTable')) {
      */
     function getEndpointTable($endpoint = null)
     {
+        $table_names = CustomTable::all()->pluck('table_name')->toArray();
         if (!isset($endpoint)) {
             $endpoint = url()->current();
         }
@@ -833,9 +933,8 @@ if (!function_exists('getEndpointTable')) {
             }
 
             // joint table
-            $table = CustomTable::findByName($url);
-            if (isset($table)) {
-                return $table;
+            if(in_array($url, $table_names)){
+                return CustomTable::getEloquent($url);
             }
         }
 
@@ -895,29 +994,6 @@ if (!function_exists('disableFormFooter')) {
     }
 }
 
-if (!function_exists('getRequestSession')) {
-    /**
-     * Get (such as) avaivable session in request.
-     */
-    function getRequestSession($key)
-    {
-        $config_key = "exment_global.$key";
-        return config($config_key);
-    }
-}
-
-if (!function_exists('setRequestSession')) {
-    /**
-     * Set (such as) avaivable session in request.
-     */
-    function setRequestSession($key, $value)
-    {
-        $config_key = "exment_global.$key";
-        config([$config_key => $value]);
-    }
-}
-
-
 if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.
@@ -949,40 +1025,42 @@ if (!function_exists('getExmentVersion')) {
      */
     function getExmentVersion($getFromComposer = true)
     {
-        $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
-        if (isset($version_json)) {
-            $version = json_decode($version_json, true);
-            $latest = array_get($version, 'latest');
-            $current = array_get($version, 'current');
-        }
+        //TODO: reconsider how to get current version.
+        return [null, null];
+        // $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+        // if (isset($version_json)) {
+        //     $version = json_decode($version_json, true);
+        //     $latest = array_get($version, 'latest');
+        //     $current = array_get($version, 'current');
+        // }
         
-        if ((empty($latest) || empty($current)) && $getFromComposer) {
-            $output = [];
-            $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
-            exec($cmd, $output, $result);
-            if ($result === 0) {
-                // get version from output
-                $latest = '';
-                $current = '';
-                foreach ($output as $data) {
-                    $items = explode(':', $data);
-                    if (trim($items[0]) === 'latest') {
-                        $latest = trim($items[1]);
-                    } elseif (trim($items[0]) === 'versions') {
-                        $current = trim($items[1], " *\t\n\r\0\x0B");
-                    }
-                }
+        // if ((empty($latest) || empty($current)) && $getFromComposer) {
+        //     $output = [];
+        //     $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
+        //     exec($cmd, $output, $result);
+        //     if ($result === 0) {
+        //         // get version from output
+        //         $latest = '';
+        //         $current = '';
+        //         foreach ($output as $data) {
+        //             $items = explode(':', $data);
+        //             if (trim($items[0]) === 'latest') {
+        //                 $latest = trim($items[1]);
+        //             } elseif (trim($items[0]) === 'versions') {
+        //                 $current = trim($items[1], " *\t\n\r\0\x0B");
+        //             }
+        //         }
 
-                app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-                    'latest' => $latest, 'current' => $current
-                ]));
-            }
-        }
+        //         app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+        //             'latest' => $latest, 'current' => $current
+        //         ]));
+        //     }
+        // }
         
-        if (empty($latest) || empty($current)) {
-            return [null, null];
-        }
-        return [$latest, $current];
+        // if (empty($latest) || empty($current)) {
+        //     return [null, null];
+        // }
+        // return [$latest, $current];
     }
 }
 

@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Services\FormHelper;
 use Validator;
 
@@ -61,7 +61,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function query(Request $request)
     {
-        // get model filtered using authority
+        // get model filtered using role
         $model = getModelName($this->custom_table)::query();
         $model = \Exment::user()->filterModel($model, $this->custom_table);
 
@@ -88,7 +88,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function createData(Request $request)
     {
-        if (!$this->custom_table->hasPermission(AuthorityValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
             abort(403);
         }
 

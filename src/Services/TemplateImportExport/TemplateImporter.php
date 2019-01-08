@@ -15,21 +15,22 @@ use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomCopyColumn;
-use Exceedone\Exment\Model\Authority;
+use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\MailTemplate;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\MenuType;
-use Exceedone\Exment\Enums\CustomFormBlockType;
-use Exceedone\Exment\Enums\CustomFormColumnType;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Services\DataImportExport\DataImporterBase;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
@@ -111,9 +112,12 @@ class TemplateImporter
     public static function uploadTemplate($uploadFile)
     {
         // store uploaded file
-        $filename = $uploadFile->store('template_tmp', 'local');
+        $tmpdir = getTmpFolderPath('template', false);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
+
+        $filename = $uploadFile->store($tmpdir, 'local');
         $fullpath = getFullpath($filename, 'local');
-        $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
+
         // zip
         $zip = new ZipArchive;
         $res = $zip->open($fullpath);
@@ -164,8 +168,13 @@ class TemplateImporter
                 File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
             }
             
-            return $template_name;
         }
+
+        // delete zip
+        File::deleteDirectory($tmpfolderpath);
+        unlink($fullpath);
+        
+        return $template_name ?? null;
     }
 
     /**
@@ -421,6 +430,38 @@ class TemplateImporter
         }
 
         static::import($json, $system_flg);
+
+        // get data path
+        $basePath = pathinfo($basePath)['dirname'];
+        $dataPath = path_join($basePath, 'data');
+        // if exists, execute data copy
+        if(is_dir($dataPath)){
+            static::importData($dataPath);
+        }
+    }
+
+    /**
+     * import data using csv, xlsx
+     */
+    public static function importData($dataPath){
+        // get all csv files
+        $files = collect(\File::files($dataPath))->filter(function($value){
+            return in_array(pathinfo($value)['extension'], ['csv', 'xlsx']);
+        });
+        
+        // loop csv file
+        foreach($files as $file){
+            $table_name = file_ext_strip($file->getBasename());
+            $format = file_ext($file->getBasename());
+            $custom_table = CustomTable::getEloquent($table_name);
+            if(!isset($custom_table)){
+                continue;
+            }
+
+            // execute import
+            $importer = DataImporterBase::getModel($custom_table, $format);
+            $importer->import($file->getRealPath());
+        }
     }
 
     /**
@@ -436,8 +477,9 @@ class TemplateImporter
                 $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
                 $obj_table->table_name = $table_name;
                 $obj_table->description = array_get($table, 'description');
-                $obj_table->search_enabled = boolval(array_get($table, 'search_enabled'));
-                $obj_table->system_flg = $system_flg;
+                // system flg checks 1. whether import from system, 2. table setting sets 1
+                $table_system_flg = array_get($table, 'system_flg');
+                $obj_table->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
 
                 // set showlist_flg
                 if (!array_has($table, 'showlist_flg')) {
@@ -456,15 +498,7 @@ class TemplateImporter
                 else {
                     $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
                 }
-
-                ///// set options
-                $obj_table->setOption('icon', array_get($table, 'options.icon'));
-                $obj_table->setOption('color', array_get($table, 'options.color'));
-                $obj_table->setOption('one_record_flg', array_get($table, 'options.one_record_flg', "0"));
-                $obj_table->setOption('attachment_flg', array_get($table, 'options.attachment_flg', "1"));
-                $obj_table->setOption('revision_flg', array_get($table, 'options.revision_flg', "1"));
-                $obj_table->setOption('revision_count', array_get($table, 'options.revision_count', config('exment.revision_count', 100)));
-
+                $obj_table->setOption(array_get($table, 'options', []));                    
                 $obj_table->saveOrFail();
 
                 // Create database table.
@@ -485,7 +519,9 @@ class TemplateImporter
                         $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
                         $obj_column->column_name = $column_name;
                         $obj_column->column_type = array_get($column, 'column_type');
-                        $obj_column->system_flg = $system_flg;
+                        // system flg checks 1. whether import from system, 2. table setting sets 1
+                        $column_system_flg = array_get($column, 'system_flg');
+                        $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
 
                         ///// set options
                         collect(array_get($column, 'options', []))->each(function ($option, $key) use($obj_column) {
@@ -497,7 +533,7 @@ class TemplateImporter
                             if (is_nullorempty(array_get($column, 'options.select_target_table_name'))) {
                                 $obj_column->forgetOption('select_target_table');
                             } else {
-                                $custom_table = CustomTable::findByName(array_get($column, 'options.select_target_table_name'));
+                                $custom_table = CustomTable::getEloquent(array_get($column, 'options.select_target_table_name'));
                                 $id = $custom_table->id ?? null;
                                 // not set id, continue
                                 if (!isset($id)) {
@@ -605,8 +641,8 @@ class TemplateImporter
             // Loop relations.
             if (array_key_exists('custom_relations', $json)) {
                 foreach (array_get($json, "custom_relations") as $relation) {
-                    $parent_id = CustomTable::findByName(array_get($relation, 'parent_custom_table_name'))->id ?? null;
-                    $child_id = CustomTable::findByName(array_get($relation, 'child_custom_table_name'))->id ?? null;
+                    $parent_id = CustomTable::getEloquent(array_get($relation, 'parent_custom_table_name'))->id ?? null;
+                    $child_id = CustomTable::getEloquent(array_get($relation, 'child_custom_table_name'))->id ?? null;
                     if (!isset($parent_id) || !isset($child_id)) {
                         continue;
                     }
@@ -626,7 +662,7 @@ class TemplateImporter
             // loop for form
             if (array_key_exists('custom_forms', $json)) {
                 foreach (array_get($json, "custom_forms") as $form) {
-                    $table = CustomTable::findByName(array_get($form, 'table_name'));
+                    $table = CustomTable::getEloquent(array_get($form, 'table_name'));
                     // Create form --------------------------------------------------
                     $obj_form = CustomForm::firstOrNew([
                         'custom_table_id' => $table->id
@@ -640,7 +676,7 @@ class TemplateImporter
                         foreach (array_get($form, "custom_form_blocks") as $form_block) {
                             // target block id
                             if (isset($form_block['form_block_target_table_name'])) {
-                                $target_table = CustomTable::findByName($form_block['form_block_target_table_name']);
+                                $target_table = CustomTable::getEloquent($form_block['form_block_target_table_name']);
                             } else {
                                 $target_table = $table;
                             }
@@ -651,7 +687,7 @@ class TemplateImporter
                             } else {
                                 $self = $target_table->id == $table->id;
                                 if ($self) {
-                                    $form_block_type = CustomFormBlockType::DEFAULT;
+                                    $form_block_type = FormBlockType::DEFAULT;
                                 } else {
                                     // get relation
                                     $block_relation = CustomRelation
@@ -661,7 +697,7 @@ class TemplateImporter
                                     if (isset($block_relation)) {
                                         $form_block_type = $block_relation->relation_type;
                                     } else {
-                                        $form_block_type = CustomFormBlockType::RELATION_ONE_TO_MANY;
+                                        $form_block_type = FormBlockType::ONE_TO_MANY;
                                     }
                                 }
                             }
@@ -671,7 +707,7 @@ class TemplateImporter
                             'form_block_target_table_id' => $target_table->id,
                         ]);
                             $obj_form_block->custom_form_id = $obj_form->id;
-                            $obj_form_block->form_block_type = $form_block_type;
+                            $obj_form_block->form_block_type = FormBlockType::getEnum($form_block_type)->getValue();
                             $obj_form_block->form_block_view_name = array_get($form_block, 'form_block_view_name');
                             $obj_form_block->form_block_target_table_id = $target_table->id;
                             if (!$obj_form_block->exists) {
@@ -693,13 +729,13 @@ class TemplateImporter
                                     if (array_key_exists('form_column_type', $form_column)) {
                                         $form_column_type = array_get($form_column, "form_column_type");
                                     } else {
-                                        $form_column_type = CustomFormColumnType::COLUMN;
+                                        $form_column_type = FormColumnType::COLUMN;
                                     }
 
                                     $form_column_name = array_get($form_column, "form_column_target_name");
                                     switch ($form_column_type) {
                                     // for table column
-                                    case CustomFormColumnType::COLUMN:
+                                    case FormColumnType::COLUMN:
                                         // get column name
                                         $form_column_target = CustomColumn
                                             ::where('column_name', $form_column_name)
@@ -707,17 +743,11 @@ class TemplateImporter
                                             ->first();
                                         $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
                                         break;
-                                    case CustomFormColumnType::SYSTEM:
-                                        $form_column_target = collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($form_column_name) {
-                                            return $item['name'] == $form_column_name;
-                                        });
-                                        $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
+                                    case FormColumnType::SYSTEM:
+                                        $form_column_target_id = SystemColumn::getOption(['name' => $form_column_name])['id'] ?? null;
                                         break;
                                     default:
-                                        $form_column_target = collect(CustomFormColumnType::OTHER_TYPE())->first(function ($item) use ($form_column_name) {
-                                            return $item['column_name'] == $form_column_name;
-                                        });
-                                        $form_column_target_id = isset($form_column_target) ? $form_column_target['id'] : null;
+                                        $form_column_target_id = $form_column_obj = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
                                         break;
                                 }
 
@@ -732,7 +762,7 @@ class TemplateImporter
                                     'form_column_target_id' => $form_column_target_id,
                                 ]);
                                     $obj_form_column->custom_form_block_id = $obj_form_block->id;
-                                    $obj_form_column->form_column_type = $form_column_type;
+                                    $obj_form_column->form_column_type = FormColumnType::getEnum($form_column_type)->getValue();;
                                     $obj_form_column->form_column_target_id = $form_column_target_id;
                                     if (!$obj_form_column->exists) {
                                         $obj_form_column->order = ++$count;
@@ -747,7 +777,7 @@ class TemplateImporter
                                     // if has changedata_column_name and changedata_target_column_name, set id
                                     if (array_key_value_exists('options.changedata_column_name', $form_column) && array_key_value_exists('options.changedata_column_table_name', $form_column)) {
                                         // get using changedata_column_table_name
-                                        $id = CustomTable::findByName(array_get($form_column, 'options.changedata_column_table_name'))
+                                        $id = CustomTable::getEloquent(array_get($form_column, 'options.changedata_column_table_name'))
                                             ->custom_columns()
                                             ->where('column_name', array_get($form_column, 'options.changedata_column_name'))
                                             ->first()
@@ -762,7 +792,7 @@ class TemplateImporter
                                         // if changedata_target_column_name value has dotted, get parent table name
                                         if (str_contains($changedata_target_column_name, ".")) {
                                             list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
-                                            $changedata_target_table = CustomTable::findByName($changedata_target_table_name);
+                                            $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
                                         } else {
                                             $changedata_target_table = $target_table;
                                             $changedata_target_column_name = $changedata_target_column_name;
@@ -787,7 +817,7 @@ class TemplateImporter
             // loop for view
             if (array_key_value_exists('custom_views', $json)) {
                 foreach (array_get($json, "custom_views") as $view) {
-                    $table = CustomTable::findByName(array_get($view, 'table_name'));
+                    $table = CustomTable::getEloquent(array_get($view, 'table_name'));
                     $findArray = [
                         'custom_table_id' => $table->id
                     ];
@@ -888,8 +918,8 @@ class TemplateImporter
             // loop for copy
             if (array_key_value_exists('custom_copies', $json)) {
                 foreach (array_get($json, "custom_copies") as $copy) {
-                    $from_table = CustomTable::findByName(array_get($copy, 'from_custom_table_name'));
-                    $to_table = CustomTable::findByName(array_get($copy, 'to_custom_table_name'));
+                    $from_table = CustomTable::getEloquent(array_get($copy, 'from_custom_table_name'));
+                    $to_table = CustomTable::getEloquent(array_get($copy, 'to_custom_table_name'));
 
                     // id not funnd
                     if (!isset($from_table) && !isset($to_table)) {
@@ -921,9 +951,6 @@ class TemplateImporter
                     if (array_key_exists('custom_copy_columns', $copy)) {
                         foreach (array_get($copy, "custom_copy_columns") as $copy_column) {
                             // get from and to column
-                            // $from_column_target = CustomColumn::getEloquent(array_get($copy_column, "from_custom_column_name"), $from_table)->id ?? null;
-                            // $to_column_target = CustomColumn::getEloquent(array_get($copy_column, "to_custom_column_name"), $to_table)->id ?? null;
-
                             $from_column_target = static::getColumnIdOrName(
                                 array_get($copy_column, "from_column_type"), 
                                 array_get($copy_column, "from_column_name"), 
@@ -942,7 +969,9 @@ class TemplateImporter
                             }
                             $obj_copy_column = CustomCopyColumn::firstOrNew([
                                 'custom_copy_id' => $obj_copy->id,
+                                'from_column_type' => array_get($copy_column, "from_column_type") ?? null,
                                 'from_column_target_id' => $from_column_target ?? null,
+                                'to_column_type' => array_get($copy_column, "to_column_type") ?? null,
                                 'to_column_target_id' => $to_column_target ?? null,
                                 'copy_column_type' => array_get($copy_column, "copy_column_type"),
                             ]);
@@ -952,26 +981,26 @@ class TemplateImporter
                 }
             }
 
-            // Loop for authorities.
-            if (array_key_exists('authorities', $json)) {
-                foreach (array_get($json, "authorities") as $authority) {
-                    // Create authority. --------------------------------------------------
-                    $obj_authority = Authority::firstOrNew(['authority_type' => array_get($authority, 'authority_type'), 'authority_name' => array_get($authority, 'authority_name')]);
-                    $obj_authority->authority_type = array_get($authority, 'authority_type');
-                    $obj_authority->authority_name = array_get($authority, 'authority_name');
-                    $obj_authority->authority_view_name = array_get($authority, 'authority_view_name');
-                    $obj_authority->description = array_get($authority, 'description');
-                    $obj_authority->default_flg = boolval(array_get($authority, 'default_flg'));
+            // Loop for roles.
+            if (array_key_exists('roles', $json)) {
+                foreach (array_get($json, "roles") as $role) {
+                    // Create role. --------------------------------------------------
+                    $obj_role = Role::firstOrNew(['role_type' => array_get($role, 'role_type'), 'role_name' => array_get($role, 'role_name')]);
+                    $obj_role->role_type = array_get($role, 'role_type');
+                    $obj_role->role_name = array_get($role, 'role_name');
+                    $obj_role->role_view_name = array_get($role, 'role_view_name');
+                    $obj_role->description = array_get($role, 'description');
+                    $obj_role->default_flg = boolval(array_get($role, 'default_flg'));
 
-                    // Create authority detail.
-                    if (array_key_exists('permissions', $authority)) {
+                    // Create role detail.
+                    if (array_key_exists('permissions', $role)) {
                         $permissions = [];
-                        foreach (array_get($authority, "permissions") as $permission) {
+                        foreach (array_get($role, "permissions") as $permission) {
                             $permissions[$permission] = "1";
                         }
-                        $obj_authority->permissions = $permissions;
+                        $obj_role->permissions = $permissions;
                     }
-                    $obj_authority->saveOrFail();
+                    $obj_role->saveOrFail();
                 }
             }
 
@@ -1024,7 +1053,7 @@ class TemplateImporter
                                 // list
                                 case DashboardBoxType::LIST:
                                     // get target table
-                                    $obj_dashboard_box->setOption('target_table_id', CustomTable::findByName(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
+                                    $obj_dashboard_box->setOption('target_table_id', CustomTable::getEloquent(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
                                     // get target view using suuid
                                     $obj_dashboard_box->setOption('target_view_id', CustomView::findBySuuid(array_get($dashboard_box, 'options.target_view_suuid'))->id ?? null);
                                     break;
@@ -1097,7 +1126,7 @@ class TemplateImporter
                                     }
                                     break;
                                 case MenuType::TABLE:
-                                    $parent = CustomTable::findByName($menu['menu_target_name']);
+                                    $parent = CustomTable::getEloquent($menu['menu_target_name']);
                                     if (isset($parent)) {
                                         $obj_menu->menu_target = $parent->id;
                                     }
@@ -1130,7 +1159,7 @@ class TemplateImporter
                                     $obj_menu->icon = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
                                     break;
                                 case MenuType::TABLE:
-                                    $obj_menu->icon = CustomTable::findByName($obj_menu->menu_name)->icon ?? null;
+                                    $obj_menu->icon = CustomTable::getEloquent($obj_menu->menu_name)->icon ?? null;
                                     break;
                             }
                         }
@@ -1161,24 +1190,6 @@ class TemplateImporter
                     }
                 }
             }
-            
-            // Loop for mail templates
-            if (array_key_exists('mail_templates', $json)) {
-                foreach (array_get($json, "mail_templates") as $mail_template) {
-                    // Create mail template --------------------------------------------------
-                    $obj_mail_template = MailTemplate::firstOrNew(['mail_name' => array_get($mail_template, 'mail_name')]);
-                    $obj_mail_template->mail_name = array_get($mail_template, 'mail_name');
-                    $obj_mail_template->mail_view_name = array_get($mail_template, 'mail_view_name');
-                    $obj_mail_template->mail_subject = array_get($mail_template, 'mail_subject');
-
-                    // get body
-                    $body = array_get($mail_template, 'mail_body');
-                    $obj_mail_template->mail_body = preg_replace("/\r\n|\r|\n/", "\n", $body);
-                    $obj_mail_template->system_flg = $system_flg;
-
-                    $obj_mail_template->saveOrFail();
-                }
-            }
         });
     }
 
@@ -1202,25 +1213,9 @@ class TemplateImporter
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
                     return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
                 } 
-                return collect(ViewColumnType::SYSTEM_OPTIONS())->first(function ($item) use ($column_name) {
-                    return $item['name'] == $column_name;
-                })[$returnNumber ? 'id' : 'name'] ?? null;
+                return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
         }
         return null;
-    }
-
-    /**
-     * set MailTemplate info to config
-     */
-    protected static function setTemplateMailTemplate(&$config)
-    {
-        // get mail_templates --------------------------------------------------
-        $mail_templates = MailTemplate::all()->toArray();
-        foreach ($mail_templates as &$mail_template) {
-            // remove others
-            $mail_template = array_only($mail_template, ['mail_name', 'mail_subject', 'mail_body']);
-        }
-        $config['mail_templates'] = $mail_templates;
     }
 
     protected static function getTemplateBasePaths()

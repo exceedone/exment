@@ -341,7 +341,7 @@ class CustomRelationTest extends DuskTestCase
                 ->clickLink('Form Setting')
                 ->pause(5000)
                 ->assertSee('Custom Form Setting')
-                ->assertSee('Define the form display that the user can enter. You can switch between authority and users.')
+                ->assertSee('Define the form display that the user can enter. You can switch between role and users.')
                 ->assertSee('Showing 1 to 1 of 1 entries')
                 ->assertPathIs('/admin/form/ntq_form');
         });

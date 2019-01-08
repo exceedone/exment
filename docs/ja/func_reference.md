@@ -255,14 +255,14 @@ UUIDを作成します。
 | string | リレーション名 |
 
 
-#### getAuthorityName
+#### getRoleName
 ---
 権限名を取得します。  
 
 ##### 引数
 | 名前 | 種類 | 説明 |
 | ---- | ---- | ---- |
-| obj | Authority | Authorityのインスタンス |
+| obj | Role | Roleのインスタンス |
 | related_type | stirng | 権限種類 |
 
 ##### 戻り値

@@ -10,6 +10,7 @@ return [
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
+        'detail_setting' => '詳細設定',
         'input' => '入力',
         'available_true' => '有効',
         'available_false' => '無効',
@@ -18,20 +19,27 @@ return [
         'suuid' => '内部ID(20桁)',
         'parent_id' => '親データのID',
         'parent_type' => '親データのテーブル名',
+        'created' => '新規作成',
+        'updated' => '更新', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
+        'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   
         'separate_word' => '、',
         'yes' => 'はい',
         'no' => 'いいえ',
         'row' => '行',
         'column' => '列',
+        'asc' => '昇順',
+        'desc' => '降順',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
+            'success_execute' => '実行完了しました！',
+            'error_execute' => '実行失敗しました。',
             'import_success' => 'インポート完了しました！',
             'import_error' => 'インポート失敗しました。CSVファイルをご確認ください。',
             'notfound' => 'データが存在しません。',
@@ -40,7 +48,15 @@ return [
 
         'help' =>[
             'input_available_characters' => '%sで記入してください。',
+            'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
         ],
+    ],
+
+    'error' => [
+        'header' => 'エラーが発生しました',
+        'description' => 'エラーが発生しました。エラー内容をご確認ください。',
+        'error_message' => 'エラーメッセージ',
+        'error_trace' => 'エラー詳細',
     ],
 
     'system' => [
@@ -56,7 +72,7 @@ return [
         'site_logo_mini' => 'サイトロゴ(小)',
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
-        'authority_available' => '権限管理を使用する',
+        'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
         'system_mail_from' => 'システムメール送信元',
         'template' => 'インストールテンプレート',
@@ -96,7 +112,7 @@ return [
             'site_logo_mini' => 'サイトのロゴ(小アイコン)です。推奨サイズ：40px * 40px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
-            'authority_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
+            'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
             'system_mail_from' => 'システムからメールを送付する際の送信元です。このメールアドレスをFromとして、メールが送付されます。',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
@@ -105,7 +121,7 @@ return [
 
     'dashboard' => [
         'header' => 'ダッシュボード',
-        'dashboard_name' => 'ダッシュボード名',
+        'dashboard_name' => 'ダッシュボード名(英数字)',
         'dashboard_view_name' => 'ダッシュボード表示名',
         'row' => 'ダッシュボード%s行目',
         'description_row' => 'ダッシュボードの%s行目に表示する列数です。',
@@ -150,8 +166,8 @@ return [
         'upload_header' => 'プラグインアップロード',
         'extension' => 'ファイル形式：zip',
         'uuid' => 'プラグインID',
-        'plugin_name' => 'プラグイン名',
-        'plugin_view_name' => '表示名',
+        'plugin_name' => 'プラグイン名(英数字)',
+        'plugin_view_name' => 'プラグイン表示名',
         'plugin_type' => '種類',
         'author' => '作者',
         'version' => 'バージョン',
@@ -198,11 +214,7 @@ return [
         'description' => 'データベースやファイルのバックアップとリストアを行います。',
         'file_name' => 'ファイル名',
         'file_size' => 'ファイルサイズ',
-        'created' => '作成日時',
         'backup' => 'バックアップ',
-        'backup_all' => '全て',
-        'backup_table' => 'テーブルのみ',
-        'backup_file' => 'ファイルのみ',
         'restore' => 'リストア',
         'restore_upload' => 'ファイルアップロード',
         'backuprestore' => 'バックアップ・リストア',
@@ -225,10 +237,11 @@ return [
             'restore_confirm' => 'リストアを本当に実行しますか？（現在のデータはすべて失われます）',
             'restore_succeeded' => 'リストアを実行しました。',
             'restore_error' => 'リストアに失敗しました。',
+            'restore_file_success' => 'リストアに成功しました。ログイン画面にリダイレクトします。',
             'restore_file_error' => 'リストアに失敗しました。アップロードファイルを確認してください。',
         ],
         'help' =>[
-            'file_name' => 'バックアップ情報を圧縮したzipファイルの名前を指定してください。',
+            'file_name' => 'バックアップしたzipファイルを選択してください。',
             'import_error_message' => '取込ファイルに不備があった場合、この項目に、エラーメッセージを表示します。',
             'backup_target' => 'バックアップの対象です。特に理由がない限り、すべての項目にチェックを入れることをおすすめします。',
             'enable_automatic' => 'YESにした場合、自動的にバックアップを実行します。',
@@ -297,7 +310,7 @@ return [
         'header' => 'カスタムテーブル設定',
         'description' => '独自に変更できるカスタムテーブルの設定を行います。',
         'table' => 'テーブル',
-        'table_name' => 'テーブル名',
+        'table_name' => 'テーブル名(英数字)',
         'table_view_name' => 'テーブル表示名',
         'field_description' => '説明',
         'color' => '色',
@@ -307,7 +320,11 @@ return [
         'attachment_flg' => '添付ファイル使用',
         'revision_flg' => 'データ変更履歴使用',
         'revision_count' => '変更履歴バージョン数',
+        'notify_flg' => '登録・更新時通知',
         'custom_columns' => '列一覧',
+        'all_user_editable_flg' => 'すべてのユーザーが編集可能',
+        'all_user_viewable_flg' => 'すべてのユーザーが閲覧可能',
+        'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
@@ -316,6 +333,10 @@ return [
             'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
             'revision_flg' => 'YESにした場合、各データの保存時、データの変更履歴を保存します。また、各データ画面で、以前の保存情報を復元することができます。',
             'revision_count' => 'データの変更履歴を保存する最大件数です。それ以上の履歴を保存する場合、過去の履歴は削除されます。',
+            'notify_flg' => 'YESにした場合、データの追加・更新時、権限のあるユーザーに通知を送信します。',
+            'all_user_editable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを編集可能になります。',
+            'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
+            'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
         ],
         
         'system_definitions' => [
@@ -329,12 +350,12 @@ return [
     'custom_column' => [
         'header' => 'カスタム列詳細設定',
         'description' => 'カスタム列ごとの詳細設定を行います。列の必須項目、検索可能フィールドなどを定義します。',
-        'column_name' => '列名',
+        'column_name' => '列名(英数字)',
         'column_view_name' => '列表示名',
         'column_type' => '列種類',
         'options' => [
             'header' => '詳細オプション',
-            'search_enabled' => '検索インデックス',
+            'index_enabled' => '検索インデックス',
             'unique' => 'ユニーク(一意)',
             'default' => '初期値',
             'placeholder' => 'プレースホルダー',
@@ -369,6 +390,7 @@ return [
         'column_type_options' => [
             "text" => "1行テキスト",
             "textarea" => "複数行テキスト",
+            "editor" => "テキストエディタ",
             "url" => "URL",
             "email" => "メールアドレス",
             "integer" => "整数",
@@ -390,7 +412,7 @@ return [
             "organization" => "組織",
         ],
         'help' => [
-            'search_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>※同一のテーブルで、「検索インデックス」を非常に多く設定すると、パフォーマンスが低下する可能性があります。',
+            'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>※同一のテーブルで、「検索インデックス」を非常に多く設定すると、パフォーマンスが低下する可能性があります。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
@@ -563,17 +585,18 @@ return [
         ],
     ],
 
-    'authority' => [
-        'header' => '権限設定',
-        'description' => '権限の設定を行います。',
-        'authority_name' => '権限名',
-        'authority_view_name' => '権限表示名',
-        'authority_type' => '権限の種類',
-        'default_flg' => '既定の権限',
+    'role' => [
+        'header' => '役割設定',
+        'description' => '役割の設定を行います。役割は複数の権限を持ち、ユーザーのアクセス制御を行います。',
+        'role_name' => '役割名(英数字)',
+        'role_view_name' => '役割表示名',
+        'role_type' => '役割の種類',
+        'default_flg' => '既定の役割',
         'default_flg_true' => '既定',
         'default_flg_false' => '',
         'description_field' => '説明文',
         'permissions' => '権限詳細',
+        'permission_header' => '権限設定',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択してください。',
@@ -586,34 +609,36 @@ return [
             'plugin_disableorg' => 'このプラグインを対象に、権限を付与するユーザーを選択してください。',
         ],
 
-        'authority_type_options' => [
+        'role_type_options' => [
             'system' => 'システム',
             'table' => 'テーブル',
             'value' => 'データ',
             'plugin' => 'プラグイン',
         ],
 
-        'authority_type_option_system' => [
+        'role_type_option_system' => [
             'system' => ['label' => 'システム情報', 'help' => 'システム情報を変更できます。'],
             'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'すべてのデータを追加・変更・削除できます。'],
         ],
-        'authority_type_option_table' => [
+        'role_type_option_table' => [
             'custom_table' => ['label' => 'テーブル', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'ビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => 'すべてのデータの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
-            'custom_value_edit' => ['label' => '担当者データの編集', 'help' => '自分が担当者のデータを追加・編集・削除できます。'],
-            'custom_value_view' => ['label' => '担当者データの閲覧', 'help' => '自分が担当者のデータを閲覧できます。'],
+            'custom_value_access_all' => ['label' => 'すべてのデータの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_value_edit' => ['label' => '担当者データの編集', 'help' => '自分に権限のあるデータを追加・編集・削除できます。'],
+            'custom_value_view' => ['label' => '担当者データの閲覧', 'help' => '自分に権限のあるデータを閲覧できます。'],
+            'custom_value_access' => ['label' => '担当者データの参照', 'help' => '自分に権限のあるデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
         ], 
-        'authority_type_option_value' => [
+        'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集者', 'help' => '対象のデータを編集できます。'],
             'custom_value_view' => ['label' => '閲覧者', 'help' => '対象のデータを閲覧できます。'],
         ], 
-        'authority_type_option_plugin' => [
+        'role_type_option_plugin' => [
             'plugin_access' => ['label' => '利用', 'help' => 'このプラグインを利用できます。'],
             'plugin_setting' => ['label' => '設定変更', 'help' => '設定変更をもつプラグインの場合、このプラグインの設定を変更できます。'],
         ],
@@ -660,7 +685,7 @@ return [
     'menu' => [
         'menu_type' => 'メニュー種類',
         'menu_target' => '対象',
-        'menu_name' => 'メニュー名',
+        'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',
         'menu_type_options' => [
             'system' => 'システムメニュー',
@@ -675,14 +700,16 @@ return [
             'system' => 'システム設定',
             'plugin' => 'プラグイン',
             'custom_table' => 'カスタムテーブル',
-            'authority' => '権限',
+            'role' => '役割',
             'user' => 'ユーザー',
             'organization' => '組織',
+            'information' => 'お知らせ',
             'menu' => 'メニュー',
             'template' => 'テンプレート',
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
-            'mail' => 'メールテンプレート',
+            'mail_template' => 'メールテンプレート',
+            'mail_send_log' => 'メール送信履歴',
             'notify' => '通知',
             'base_info' => '基本情報',
             'master' => 'マスター管理',
@@ -691,25 +718,7 @@ return [
     ],
 
     'mail_template' => [
-        'header' => 'メールテンプレート設定',
-        'description' => 'メール送信時のメッセージの本文などを管理します。',
-        'mail_name' => 'メールキー名',
-        'mail_view_name' => 'メール表示名',
-        'mail_subject' => 'メール件名',
-        'mail_body' => 'メール本文',
-        'mail_template_type' => 'テンプレート種類',
-        'help' =>[
-            'mail_name' => 'システム上で、メールテンプレートを一意に判別するためのキー名です。',
-            'mail_view_name' => '一覧画面で表示する、テンプレート名称です。',    
-            'mail_subject' => '送付するメールの件名を入力します。変数を利用できます。',
-            'mail_body' => '送付するメールの本文を入力します。変数を利用できます。',    
-        ],
-        
-        'mail_template_type_options' => [
-            'header' => 'ヘッダー',
-            'body' => '本文',
-            'footer' => 'フッター',
-        ],
+        'disable_body' => '(セキュリティのため、本文は非表示になります)',
     ],
 
     'template' =>[
@@ -719,7 +728,7 @@ return [
         'description' => 'Exmentのテーブル、列、フォーム情報をインポート、またはエクスポートします。',
         'description_export' => 'システムに登録している、テーブル・列・フォーム情報をエクスポートします。このテンプレートファイルは、他のシステムでインポートすることができます。',
         'description_import' => 'エクスポートされたExmentテンプレート情報を、このシステムにインポートし、テーブル・列・フォーム情報をインストールします。<br />以下の3つの項目から、1つを選択し、実施してください。',
-        'template_name' => 'テンプレート名',
+        'template_name' => 'テンプレート名(英数字)',
         'template_view_name' => 'テンプレート表示名',
         'form_description' => 'テンプレート説明文',
         'thumbnail' => 'サムネイル',
@@ -740,7 +749,7 @@ return [
             'table' => 'テーブル',
             'dashboard' => 'ダッシュボード',
             'menu' => 'メニュー',
-            'authority' => '権限',
+            'role' => '権限',
             'mail_template' => 'メールテンプレート',
         ]
     ],
@@ -810,7 +819,8 @@ return [
         ],
 
         'notify_trigger_options' => [
-            'time' => '時間の経過'
+            'time' => '時間の経過',
+            'create_update_data' => 'データ新規作成・更新',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 
@@ -821,7 +831,7 @@ return [
         ],
 
         'notify_action_target_options' => [
-            'has_authorities' => '権限のあるユーザー',
+            'has_roles' => '権限のあるユーザー',
         ],
     ],
 ];

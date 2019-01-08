@@ -59,9 +59,11 @@ class CopyMenuButton
                             data:{ _pjax: true, _token: LA.token,uuid:"$uuid"},
                             success:function(repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
+                                swal.close();
                             },
                             error: function(repsonse){
                                 toastr.error(repsonse.message);
+                                swal.close();
                             }
                         });
                     });
@@ -100,6 +102,8 @@ EOT;
         // get label
         if (!is_null(array_get($this->copy, 'options.label'))) {
             $label = array_get($this->copy, 'options.label');
+        }else{
+            $label = exmtrans('common.copy');
         }
 
         // get uuid

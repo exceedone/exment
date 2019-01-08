@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\AuthorityValue;
+use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
@@ -51,7 +51,7 @@ class CustomViewController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
@@ -69,7 +69,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, AuthorityValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -204,7 +204,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true));
-            $form->select('sort', exmtrans("custom_view.sort"))->options([1 => '昇順', -1 => '逆順'])->required()->default(1);
+            $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
             $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
         ->description(exmtrans("custom_view.description_custom_view_sorts"));

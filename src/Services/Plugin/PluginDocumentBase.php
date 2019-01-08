@@ -37,7 +37,8 @@ abstract class PluginDocumentBase
 
         // set path and file info
         $path = $service->getFilePath();
-        $file = ExmentFile::saveFileInfo($path, null, null, true);
+        $file = ExmentFile::saveFileInfo($path, null, null, true)
+            ->saveCustomValue($this->custom_value);
 
         // save Document Model
         $document_model = $file->saveDocumentModel($this->custom_value, $service->getFileName());
@@ -71,12 +72,12 @@ abstract class PluginDocumentBase
         if ($result) {
             return ([
                 'result'  => true,
-                'toastr' => 'Create Document Success!!', //TODO:trans
+                'toastr' => sprintf(exmtrans('common.message.success_execute')),
             ]);
         }
         return ([
             'result'  => false,
-            'toastr' => 'Create Document failure', //TODO:trans
+            'toastr' => sprintf(exmtrans('common.message.error_execute')),
         ]);
     }
 

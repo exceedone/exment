@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Controllers\BackupController;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -75,7 +76,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('authority', 'AuthorityController', ['except' => ['show']]);
+            $router->resource('role', 'RoleController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             $router->resource('mail', 'MailTemplateController', ['except' => ['show']]);
