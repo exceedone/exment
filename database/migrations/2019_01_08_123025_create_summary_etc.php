@@ -1,8 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Database\ExtendedBlueprint;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums;
+use Illuminate\Support\Facades\DB;
 
 class CreateSummaryEtc extends Migration
 {
@@ -13,6 +16,12 @@ class CreateSummaryEtc extends Migration
      */
     public function up()
     {
+        $schema = DB::connection()->getSchemaBuilder();
+
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
         $schema->create('custom_view_summaries', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('custom_view_id')->unsigned();
