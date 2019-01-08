@@ -2,11 +2,10 @@
 
 namespace Exceedone\Exment\Model;
 
+use Encore\Admin\Facades\Admin;
+use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
-use Encore\Admin\Facades\Admin;
-
-use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
@@ -503,7 +502,12 @@ class CustomValue extends ModelBase
         if (is_null($val)) {
             return null;
         }
-
+        
+        return $this->editValue($column, $val, $label, $options);
+    }
+    
+    public function editValue($column, $val, $label = false, $options = []) {
+        $custom_table = $this->custom_table;
         $column_type = array_get($column, 'column_type');
         // calcurate  --------------------------------------------------
         if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {

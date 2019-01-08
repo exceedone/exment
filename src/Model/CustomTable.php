@@ -157,9 +157,9 @@ class CustomTable extends ModelBase
     {
         if ($obj instanceof CustomTable) {
             return $obj;
-        }elseif ($obj instanceof CustomColumn) {
+        } elseif ($obj instanceof CustomColumn) {
             return $obj->custom_table;
-        }elseif ($obj instanceof CustomValue) {
+        } elseif ($obj instanceof CustomValue) {
             return $obj->custom_table;
         }
 
@@ -181,11 +181,11 @@ class CustomTable extends ModelBase
         $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT, $obj);
         // get eloquent model
         if (is_numeric($obj)) {
-            $obj = System::requestSession($key, function() use($obj){
+            $obj = System::requestSession($key, function () use ($obj) {
                 return static::find($obj);
             });
         } elseif (is_string($obj)) {
-            $obj = System::requestSession($key, function() use($obj, $with_custom_columns){
+            $obj = System::requestSession($key, function () use ($obj, $with_custom_columns) {
                 return static::findByName($obj, $with_custom_columns);
             });
         }
@@ -232,7 +232,8 @@ class CustomTable extends ModelBase
     /**
      * whether login user has permission. target is table
      */
-    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE){
+    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)
+    {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -244,7 +245,7 @@ class CustomTable extends ModelBase
         }
 
         $user = \Exment::user();
-        if(!isset($user)){
+        if (!isset($user)) {
             return false;
         }
         
@@ -287,7 +288,8 @@ class CustomTable extends ModelBase
     /**
      * Whether login user has permission about target id data. (protected function)
      */
-    protected function _hasPermissionData($id, $role){
+    protected function _hasPermissionData($id, $role)
+    {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -308,9 +310,9 @@ class CustomTable extends ModelBase
             return true;
         }
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
             $model = getModelName($this)::find($id);
-        }else{
+        } else {
             $model = $id;
         }
 
@@ -339,9 +341,10 @@ class CustomTable extends ModelBase
     }
 
     /**
-     * 
+     *
      */
-    public function allUserAccessable(){
+    public function allUserAccessable()
+    {
         return boolval($this->getOption('all_user_editable_flg'))
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
@@ -377,7 +380,7 @@ class CustomTable extends ModelBase
         }
 
         // CREATE TABLE from custom value table.
-        if(Schema::hasTable($table_name)){
+        if (Schema::hasTable($table_name)) {
             return;
         }
         $db = DB::connection();
@@ -391,7 +394,7 @@ class CustomTable extends ModelBase
      * @param string|CustomTable|array $obj
      * @return string
      */
-    function getIndexColumnName($column_name)
+    public function getIndexColumnName($column_name)
     {
         // get column eloquent
         $column = CustomColumn::getEloquent($column_name, $this);
@@ -431,14 +434,13 @@ class CustomTable extends ModelBase
 
         // get query.
         // if org
-        if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
             $query = $this->getValueModel();
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name ==SystemTableName::USER && !$all) {
             $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
-        }
-        elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
+        } elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
@@ -503,19 +505,25 @@ class CustomTable extends ModelBase
      * @param array|CustomTable $table
      * @param $selected_value
      */
-    public function getColumnsSelectOptions($index_enabled_only = false)
+    public function getColumnsSelectOptions($index_enabled_only = false, $group_key_only = false)
     {
         $options = [];
         
         ///// get system columns
-        foreach(SystemColumn::getOptions(['header' => true]) as $option){
+        foreach (SystemColumn::getOptions(['header' => true]) as $option) {
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
-        ///// if this table is child relation(1:n), add parent table
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
-        if (isset($relation)) {
-            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
+        if (!$group_key_only) {
+            $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
+            ///// if this table is child relation(1:n), add parent table
+            if (isset($relation)) {
+                $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
+                $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
+                if (isset($relation)) {
+                    $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
+                }
+            }
         }
 
         ///// get table columns
@@ -528,7 +536,7 @@ class CustomTable extends ModelBase
             $options[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
         }
         ///// get system columns
-        foreach(SystemColumn::getOptions(['footer' => true]) as $option){
+        foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
@@ -541,7 +549,7 @@ class CustomTable extends ModelBase
                 $tablename = array_get($child, 'table_view_name');
                 $child_columns = $child->custom_columns;
                 foreach ($child_columns as $option) {
-                    switch(array_get($option, 'column_type')) {
+                    switch (array_get($option, 'column_type')) {
                         case ColumnType::INTEGER:
                         case ColumnType::DECIMAL:
                         case ColumnType::CURRENCY:
@@ -555,7 +563,48 @@ class CustomTable extends ModelBase
         return $options;
     }
     
-    public function getValueModel(){
+    /**
+     * get number columns select options. It contains integer, decimal, currency columns.
+     * @param array|CustomTable $table
+     * @param $selected_value
+     */
+    public function getNumberColumnsSelectOptions()
+    {
+        $options = [];
+        ///// get table columns
+        $custom_columns = $this->custom_columns;
+        foreach ($custom_columns as $option) {
+            switch (array_get($option, 'column_type')) {
+                case ColumnType::INTEGER:
+                case ColumnType::DECIMAL:
+                case ColumnType::CURRENCY:
+                    $options[array_get($option, 'id')] = array_get($option, 'column_view_name');
+                    break;
+            }
+        }
+        ///// get child table columns for summary
+        $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
+        foreach ($relations as $rel) {
+            $child = array_get($rel, 'child_custom_table');
+            $tableid = array_get($child, 'id');
+            $tablename = array_get($child, 'table_view_name');
+            $child_columns = $child->custom_columns;
+            foreach ($child_columns as $option) {
+                switch (array_get($option, 'column_type')) {
+                    case ColumnType::INTEGER:
+                    case ColumnType::DECIMAL:
+                    case ColumnType::CURRENCY:
+                        $options[$tableid . '_' . array_get($option, 'id')] = $tablename . ' : ' . array_get($option, 'column_view_name');
+                        break;
+                }
+            }
+        }
+    
+        return $options;
+    }
+        
+    public function getValueModel()
+    {
         $modelname = getModelName($this);
         $model = new $modelname;
 
