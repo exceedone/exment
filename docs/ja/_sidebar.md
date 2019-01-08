@@ -28,3 +28,4 @@
   * [関数リファレンス](/ja/func_reference.md)
   * [プラグイン開発方法](/ja/plugin_quickstart.md)
   * [プラグインリファレンス](/ja/plugin_reference.md)
+  * [リリースノート](/ja/release_note.md)
