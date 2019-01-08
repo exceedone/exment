@@ -6,11 +6,11 @@
         {
             "table_name": "client",
             "table_view_name": "顧客",
-            "icon": "fa-user",
-            "color": null,
-            "description": null,
-            "one_record_flg": "0",
+            "description": "顧客情報を管理します。",
             "options": {
+                "icon": "fa-user",
+                "color": null,
+                "one_record_flg": "0",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -41,11 +41,11 @@
         {
             "table_name": "agency",
             "table_view_name": "代理店",
-            "icon": "fa-building",
-            "color": null,
             "description": null,
-            "one_record_flg": "0",
             "options": {
+                "icon": "fa-building",
+                "color": null,
+                "one_record_flg": "0",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -76,11 +76,11 @@
         {
             "table_name": "product",
             "table_view_name": "製品",
-            "icon": "fa-shopping-bag",
-            "color": null,
             "description": null,
-            "one_record_flg": "0",
             "options": {
+                "icon": "fa-shopping-bag",
+                "color": null,
+                "one_record_flg": "0",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -111,11 +111,11 @@
         {
             "table_name": "product_version",
             "table_view_name": "製品バージョン",
-            "icon": "fa-shopping-bag",
-            "color": null,
             "description": null,
-            "one_record_flg": "0",
             "options": {
+                "icon": "fa-shopping-bag",
+                "color": null,
+                "one_record_flg": "0",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -153,11 +153,11 @@
         {
             "table_name": "contract",
             "table_view_name": "契約",
-            "icon": "fa-file-text",
-            "color": null,
             "description": null,
-            "one_record_flg": "0",
             "options": {
+                "icon": "fa-file-text",
+                "color": null,
+                "one_record_flg": "0",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -300,11 +300,11 @@
         {
             "table_name": "contract_detail",
             "table_view_name": "契約明細",
-            "icon": "fa-file-text-o",
-            "color": null,
             "description": null,
-            "one_record_flg": "0",
             "options": {
+                "icon": "fa-file-text-o",
+                "color": null,
+                "one_record_flg": "0",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -579,7 +579,8 @@
             "menu_name": "saller",
             "title": "営業支援(SFA)",
             "parent_name": null,
-            "menu_target_name": null
+            "menu_target_name": null,
+            "icon": "fa-money"
         },
         {
             "order": "10",
@@ -587,7 +588,8 @@
             "menu_name": "manage",
             "title": "顧客管理(CRM)",
             "parent_name": null,
-            "menu_target_name": null
+            "menu_target_name": null,
+            "icon": "fa-user"
         }
     ],
     "thumbnail": "thumbnail.png"

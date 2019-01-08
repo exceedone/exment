@@ -21,7 +21,10 @@ use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -654,7 +657,7 @@ class TemplateImporter
                         ]);
                     $obj_relation->parent_custom_table_id = $parent_id;
                     $obj_relation->child_custom_table_id = $child_id;
-                    $obj_relation->relation_type = array_get($relation, 'relation_type');
+                    $obj_relation->relation_type = RelationType::getEnum(array_get($relation, 'relation_type'))->getValue() ?? null;
                     $obj_relation->saveOrFail();
                 }
             }
@@ -756,13 +759,14 @@ class TemplateImporter
                                         continue;
                                     }
 
+                                    $form_column_type = FormColumnType::getEnum($form_column_type)->getValue() ?? null;
                                     $obj_form_column = CustomFormColumn::firstOrNew([
                                     'custom_form_block_id' => $obj_form_block->id,
                                     'form_column_type' => $form_column_type,
                                     'form_column_target_id' => $form_column_target_id,
                                 ]);
                                     $obj_form_column->custom_form_block_id = $obj_form_block->id;
-                                    $obj_form_column->form_column_type = FormColumnType::getEnum($form_column_type)->getValue();;
+                                    $obj_form_column->form_column_type = $form_column_type;
                                     $obj_form_column->form_column_target_id = $form_column_target_id;
                                     if (!$obj_form_column->exists) {
                                         $obj_form_column->order = ++$count;
@@ -831,7 +835,7 @@ class TemplateImporter
                     $obj_view = CustomView::firstOrNew($findArray);
                     $obj_view->custom_table_id = $table->id;
                     $obj_view->suuid = $findArray['suuid'];
-                    $obj_view->view_type = array_get($view, 'view_type') ?? ViewType::SYSTEM;
+                    $obj_view->view_type = ViewType::getEnum(array_get($view, 'view_type'))->getValue() ?? ViewType::SYSTEM;
                     $obj_view->view_view_name = array_get($view, 'view_view_name');
                     $obj_view->default_flg = boolval(array_get($view, 'default_flg'));
                     $obj_view->saveOrFail();
@@ -851,6 +855,7 @@ class TemplateImporter
                                 continue;
                             }
 
+                            $view_column_type = ViewColumnType::getEnum($view_column_type)->getValue() ?? null;
                             $obj_view_column = CustomViewColumn::firstOrNew([
                                 'custom_view_id' => $obj_view->id,
                                 'view_column_type' => $view_column_type,
@@ -876,9 +881,10 @@ class TemplateImporter
                                 continue;
                             }
 
+                            $view_column_type = ViewColumnType::getEnum(array_get($view_filter, "view_column_type"))->getValue() ?? null;
                             $obj_view_filter = CustomviewFilter::firstOrNew([
                                 'custom_view_id' => $obj_view->id,
-                                'view_column_type' => array_get($view_filter, "view_column_type"),
+                                'view_column_type' => $view_column_type,
                                 'view_column_target_id' => $view_column_target,
                                 'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
                             ]);
@@ -901,9 +907,10 @@ class TemplateImporter
                                 continue;
                             }
 
+                            $view_column_type = ViewColumnType::getEnum(array_get($view_column, "view_column_type"))->getValue() ?? null;
                             $obj_view_sort = CustomviewSort::firstOrNew([
                                 'custom_view_id' => $obj_view->id,
-                                'view_column_type' => array_get($view_column, "view_column_type"),
+                                'view_column_type' => $view_column_type,
                                 'view_column_target_id' => $view_column_target,
                             ]);
                             
@@ -967,11 +974,14 @@ class TemplateImporter
                             if(is_null($to_column_target)){
                                 continue;
                             }
+
+                            $from_column_type = CopyColumnType::getEnum(array_get($copy_column, "from_column_type"))->getValue() ?? null;
+                            $to_column_type = CopyColumnType::getEnum(array_get($copy_column, "to_column_type"))->getValue() ?? null;
                             $obj_copy_column = CustomCopyColumn::firstOrNew([
                                 'custom_copy_id' => $obj_copy->id,
-                                'from_column_type' => array_get($copy_column, "from_column_type") ?? null,
+                                'from_column_type' => $from_column_type,
                                 'from_column_target_id' => $from_column_target ?? null,
-                                'to_column_type' => array_get($copy_column, "to_column_type") ?? null,
+                                'to_column_type' => $to_column_type,
                                 'to_column_target_id' => $to_column_target ?? null,
                                 'copy_column_type' => array_get($copy_column, "copy_column_type"),
                             ]);
@@ -985,8 +995,9 @@ class TemplateImporter
             if (array_key_exists('roles', $json)) {
                 foreach (array_get($json, "roles") as $role) {
                     // Create role. --------------------------------------------------
-                    $obj_role = Role::firstOrNew(['role_type' => array_get($role, 'role_type'), 'role_name' => array_get($role, 'role_name')]);
-                    $obj_role->role_type = array_get($role, 'role_type');
+                    $role_type = RoleType::getEnum(array_get($role, 'role_type'))->getValue() ?? null;
+                    $obj_role = Role::firstOrNew(['role_type' => $role_type, 'role_name' => array_get($role, 'role_name')]);
+                    $obj_role->role_type = $role_type;
                     $obj_role->role_name = array_get($role, 'role_name');
                     $obj_role->role_view_name = array_get($role, 'role_view_name');
                     $obj_role->description = array_get($role, 'description');
@@ -1011,7 +1022,9 @@ class TemplateImporter
                     $obj_dashboard = Dashboard::firstOrNew([
                         'dashboard_name' => array_get($dashboard, "dashboard_name")
                     ]);
-                    $obj_dashboard->dashboard_type = array_get($dashboard, 'dashboard_type', DashboardType::SYSTEM);
+
+                    $dashboard_type = DashboardType::getEnum(array_get($dashboard, 'dashboard_type'))->getValue() ?? DashboardType::SYSTEM;
+                    $obj_dashboard->dashboard_type = $dashboard_type;
                     $obj_dashboard->dashboard_view_name = array_get($dashboard, 'dashboard_view_name');
                     $obj_dashboard->setOption('row1', array_get($dashboard, 'options.row1'), 1);
                     $obj_dashboard->setOption('row2', array_get($dashboard, 'options.row2'), 2);
@@ -1033,7 +1046,7 @@ class TemplateImporter
                                 'column_no' => array_get($dashboard_box, "column_no"),
                             ]);
                             $obj_dashboard_box->dashboard_box_view_name = array_get($dashboard_box, "dashboard_box_view_name");
-                            $obj_dashboard_box->dashboard_box_type = array_get($dashboard_box, "dashboard_box_type");
+                            $obj_dashboard_box->dashboard_box_type = DashboardBoxType::getEnum(array_get($dashboard_box, "dashboard_box_type"))->getValue() ?? null;
 
                             // set options
                             collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use($obj_dashboard_box) {
@@ -1105,8 +1118,9 @@ class TemplateImporter
                             $title = exmtrans('menu.system_definitions.'.$translate_key);
                         }
 
+                        $menu_type = MenuType::getEnum(array_get($menu, 'menu_type'))->getValue() ?? null;
                         $obj_menu = Menu::firstOrNew(['menu_name' => array_get($menu, 'menu_name'), 'parent_id' => $parent_id]);
-                        $obj_menu->menu_type = array_get($menu, 'menu_type');
+                        $obj_menu->menu_type = $menu_type;
                         $obj_menu->menu_name = array_get($menu, 'menu_name');
                         $obj_menu->title = $title;
                         $obj_menu->parent_id = $parent_id;
@@ -1118,7 +1132,7 @@ class TemplateImporter
                         // get menu target id from menu_target_name
                         elseif (isset($menu['menu_target_name'])) {
                             // case plugin or table
-                            switch ($menu['menu_type']) {
+                            switch ($menu_type) {
                                 case MenuType::PLUGIN:
                                     $parent = Plugin::where('plugin_name', $menu['menu_target_name'])->first();
                                     if (isset($parent)) {

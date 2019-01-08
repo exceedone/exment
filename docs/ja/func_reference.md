@@ -1,4 +1,6 @@
 # 関数リファレンス
+※申し訳ございません。下記は古い情報になります。  
+近日最新化いたします。
 ## はじめに
 ExmentはPHPを使用したオープンソースシステムです。  
 また、フレームワークに[Laravel](https://laravel.com/)、[laravel-admin](http://laravel-admin.org/docs/#/)を使用しています。  
