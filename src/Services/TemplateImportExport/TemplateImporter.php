@@ -730,7 +730,7 @@ class TemplateImporter
                                 foreach (array_get($form_block, "custom_form_columns") as $form_column) {
                                     //
                                     if (array_key_exists('form_column_type', $form_column)) {
-                                        $form_column_type = array_get($form_column, "form_column_type");
+                                        $form_column_type = FormColumnType::getEnum(array_get($form_column, "form_column_type"))->getValue();
                                     } else {
                                         $form_column_type = FormColumnType::COLUMN;
                                     }
@@ -750,7 +750,7 @@ class TemplateImporter
                                         $form_column_target_id = SystemColumn::getOption(['name' => $form_column_name])['id'] ?? null;
                                         break;
                                     default:
-                                        $form_column_target_id = $form_column_obj = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
+                                        $form_column_target_id = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
                                         break;
                                 }
 
@@ -759,12 +759,11 @@ class TemplateImporter
                                         continue;
                                     }
 
-                                    $form_column_type = FormColumnType::getEnum($form_column_type)->getValue() ?? null;
                                     $obj_form_column = CustomFormColumn::firstOrNew([
-                                    'custom_form_block_id' => $obj_form_block->id,
-                                    'form_column_type' => $form_column_type,
-                                    'form_column_target_id' => $form_column_target_id,
-                                ]);
+                                        'custom_form_block_id' => $obj_form_block->id,
+                                        'form_column_type' => $form_column_type,
+                                        'form_column_target_id' => $form_column_target_id,
+                                    ]);
                                     $obj_form_column->custom_form_block_id = $obj_form_block->id;
                                     $obj_form_column->form_column_type = $form_column_type;
                                     $obj_form_column->form_column_target_id = $form_column_target_id;
