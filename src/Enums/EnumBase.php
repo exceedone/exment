@@ -61,7 +61,7 @@ class EnumBase extends Enum
         
         $enums = static::values();
         foreach($enums as $enum){
-            if($enum->getValue() == $value){
+            if($enum == $value){
                 return $enum;
             }
             
