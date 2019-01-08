@@ -54,7 +54,7 @@ class EnumBase extends Enum
         return array_flatten(static::toArray()); 
     }
 
-    public static function getEnum($value){
+    public static function getEnum($value, $default = null){
         if($value instanceof Enum){
             return $value;
         }
@@ -70,6 +70,14 @@ class EnumBase extends Enum
                 return $enum;
             }
         }
-        return null;
+        return $default;
+    }
+    
+    /**
+     * get enum, and return value
+     */
+    public static function getEnumValue($value, $default = null){
+        $enum = static::getEnum($value, $default);
+        return isset($enum) ? $enum->getValue() : $default;
     }
 }

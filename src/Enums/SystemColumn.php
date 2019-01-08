@@ -38,8 +38,8 @@ class SystemColumn extends EnumBase
         return $this->lowerKey();
     }
     
-    public static function getEnum($value){
-        $enum = parent::getEnum($value);
+    public static function getEnum($value, $default = null){
+        $enum = parent::getEnum($value, $default);
         if(isset($enum)){
             return $enum;
         }
@@ -49,6 +49,6 @@ class SystemColumn extends EnumBase
                 return parent::getEnum($key);
             }
         }
-        return null;
+        return $default;
     }
 }
