@@ -1079,7 +1079,7 @@ if (!function_exists('getExmentVersion')) {
             if(!$packages){
                 return [null, null];
             }
-            foreach ($packages as $key => $package) {
+            foreach (collect($packages)->reverse() as $key => $package) {
                 // if version is "dev-", continue
                 if(substr($key, 0, 4) == 'dev-'){
                     continue;
