@@ -99,7 +99,7 @@ class CustomValue extends ModelBase
 
         static::saving(function ($model) {
             // re-get field data --------------------------------------------------
-            $model->regetOriginalData();
+            $model->prepareValue();
         });
         static::saved(function ($model) {
             // set auto format
@@ -125,7 +125,7 @@ class CustomValue extends ModelBase
 
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
-    protected function regetOriginalData()
+    protected function prepareValue()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
@@ -133,25 +133,24 @@ class CustomValue extends ModelBase
         $value = $this->value;
         $original = json_decode($this->getOriginal('value'), true);
         // get  columns
-        $file_columns = $this->custom_table
-            ->custom_columns
-            ->pluck('column_name')
-            ->toArray();
+        $custom_columns = $this->custom_table
+            ->custom_columns;
 
         // loop columns
         $update_flg = false;
-        foreach ($file_columns as $file_column) {
+        foreach ($custom_columns as $custom_column) {
+            $column_name = $custom_column->column_name;
+            $v = array_get($value, $column_name);
 
-            // if not key, set from original
-            if (!array_key_exists($file_column, $value)) {
-                // if column has $remove_file_columns, continue.
-                // property "$remove_file_columns" uses user wants to delete file
-                if (in_array($file_column, $this->remove_file_columns())) {
-                    continue;
-                }
+            if($this->setAgainOriginalValue($value, $original, $custom_column)){
+                $update_flg = true;
+            }
 
-                if (array_key_value_exists($file_column, $original)) {
-                    $value[$file_column] = array_get($original, $file_column);
+            // remove comma
+            if(ColumnType::isCalc($custom_column->column_type)){
+                $rmv = rmcomma($v);
+                if($v != $rmv){
+                    $value[$column_name] = $rmv;
                     $update_flg = true;
                 }
             }
@@ -170,6 +169,29 @@ class CustomValue extends ModelBase
         if ($update_flg) {
             $this->setAttribute('value', $value);
         }
+    }
+
+    /**
+     * set original data.
+     */
+    protected function setAgainOriginalValue(&$value, $original, $custom_column){
+        $column_name = $custom_column->column_name;
+        // if not key, set from original
+        if (array_key_exists($column_name, $value)) {
+            return false;
+        }
+        // if column has $remove_file_columns, continue.
+        // property "$remove_file_columns" uses user wants to delete file
+        if (in_array($column_name, $this->remove_file_columns())) {
+            return false;
+        }
+
+        if (!array_key_value_exists($column_name, $original)) {
+            return false;
+        }
+
+        $value[$column_name] = array_get($original, $column_name);
+        return true;
     }
 
     /**

@@ -138,6 +138,16 @@ if (!function_exists('hex2rgb')) {
     }
 }
 
+if (!function_exists('rmcomma')) {
+    /**
+     * remove comma
+     */
+    function rmcomma($value)
+    {
+        return str_replace(",", "", $value);
+    }
+}
+
 // File, path  --------------------------------------------------
 if (!function_exists('admin_urls')) {
     /**

@@ -28,9 +28,9 @@ class ColumnType extends EnumBase
 
     public static function COLUMN_TYPE_CALC(){
         return [
-            "integer",
-            "decimal",
-            "currency",
+            ColumnType::INTEGER,
+            ColumnType::DECIMAL,
+            ColumnType::CURRENCY,
         ];
     }
 
