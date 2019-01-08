@@ -61,11 +61,11 @@ class EnumBase extends Enum
         
         $enums = static::values();
         foreach($enums as $enum){
-            if($enum == $value){
+            if($enum->toString() == $value){
                 return $enum;
             }
             
-            $key = strtolower($enum->getKey());
+            $key = $enum->lowerKey();
             if($key == $value){
                 return $enum;
             }

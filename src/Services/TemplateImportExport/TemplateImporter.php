@@ -834,7 +834,7 @@ class TemplateImporter
                     $obj_view = CustomView::firstOrNew($findArray);
                     $obj_view->custom_table_id = $table->id;
                     $obj_view->suuid = $findArray['suuid'];
-                    $obj_view->view_type = ViewType::getEnum(array_get($view, 'view_type'))->getValue() ?? ViewType::SYSTEM;
+                    $obj_view->view_type = (ViewType::getEnum(array_get($view, 'view_type')) ?? ViewType::SYSTEM())->getValue();
                     $obj_view->view_view_name = array_get($view, 'view_view_name');
                     $obj_view->default_flg = boolval(array_get($view, 'default_flg'));
                     $obj_view->saveOrFail();
