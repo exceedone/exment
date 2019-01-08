@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Form\Field;
 
 class Number extends \Encore\Admin\Form\Field\Number
 {
-    protected $rules = "nullable|integer";
+    protected $rules = "";
 
     protected $disableUpdown = false;
     protected $defaultEmpty = false;

@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Validator;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
 
@@ -362,8 +363,12 @@ class FormHelper
                 $validates[] = 'max:'.array_get($options, 'number_max');
             }
         }
+
+        if ($column_type == ColumnType::INTEGER) {
+            $validates[] = new Validator\IntegerCommaRule;
+        }
         if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
-            $validates[] = 'numeric';
+            $validates[] = new Validator\DecimalCommaRule;
         }
 
         return $validates;
