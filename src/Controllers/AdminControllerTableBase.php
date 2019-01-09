@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomForm;
 
@@ -18,7 +19,7 @@ class AdminControllerTableBase extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->custom_table = getEndpointTable();
+        $this->custom_table = CustomTable::findByEndpoint();
         $this->custom_columns = isset($this->custom_table) ? $this->custom_table->custom_columns : null;
 
         getModelName($this->custom_table);
