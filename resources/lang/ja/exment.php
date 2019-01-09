@@ -525,6 +525,7 @@ return [
         'view_view_name' => 'ビュー表示名',
         'custom_view_columns' => '表示列選択',
         'custom_view_groups' => 'グループ列選択',
+        'view_column_name' => '別名表示',
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',

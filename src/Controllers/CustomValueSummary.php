@@ -10,6 +10,8 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ViewColumnSort;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueSummary
@@ -30,6 +32,7 @@ trait CustomValueSummary
 
         $grid->tools(function (Grid\Tools $tools) use ($grid){
             //$tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid, true));
+            $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });
 
@@ -60,7 +63,6 @@ trait CustomValueSummary
 
         $group_columns = [];
         $select_columns = [];
-        $grid_columns = [];
         $index = 0;
         
         // set grouping columns
@@ -73,11 +75,40 @@ trait CustomValueSummary
                 }
                 // get virtual column name
                 $column_name = $column->getIndexColumnName();
+                $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
+                    array_get($column, 'column_view_name') : array_get($custom_view_column, 'view_column_name');
 
                 $group_columns[] = $column_name;
                 $select_columns[] = "$column_name as column_$index";
-                $grid_columns[] = $column->id;
+
+                $grid->column("column_$index", $column_view_name)->sortable()->display(function ($v) use ($column, $index) {
+                    if (is_null($this)) {
+                        return '';
+                    }
+                    $val = array_get($this, "column_$index");
+                    return esc_html($this->editValue($column, $val, true));
+                });
                 $index++;
+            }
+            elseif ($view_column_type == ViewColumnType::SYSTEM) {
+                $system_info = $form_column_name = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
+                $view_column_target = array_get($system_info, 'name');
+                $view_column_id = ($system_info['type'] == 'user')? 
+                    $view_column_target . '_id': $view_column_target;
+                $column_view_name = exmtrans("common.$view_column_target");
+
+                $group_columns[] = "$table_id.$view_column_id";
+                $select_columns[] = "$table_id.$view_column_id";
+
+                // get column name
+                $grid->column($view_column_target, $column_view_name)->sortable()
+                    ->display(function ($value) use ($view_column_target) {
+                        if (!is_null($value)) {
+                            return esc_html($value);
+                        }
+                        // if cannnot get value, return array_get from this
+                        return esc_html(array_get($this, $view_column_target));
+                    });
             }
         }
         // set summary columns
@@ -89,6 +120,9 @@ trait CustomValueSummary
             }
             $column_table_name = getDBTableName($column->custom_table);
             $column_name = $column->column_name;
+            $column_view_name = is_nullorempty(array_get($custom_view_summary, 'view_column_name'))? 
+                array_get($column, 'column_view_name') : array_get($custom_view_summary, 'view_column_name');
+
             $summary = 'sum';
             switch($custom_view_summary->view_summary_condition) {
                 case 1:
@@ -102,7 +136,14 @@ trait CustomValueSummary
                     break;
             }
             $select_columns[] = \DB::raw("$summary($column_table_name.value->'$.$column_name') AS column_$index");
-            $grid_columns[] = $column_id;
+
+            $grid->column("column_$index", $column_view_name)->sortable()->display(function ($v) use ($column, $index) {
+                if (is_null($this)) {
+                    return '';
+                }
+                $val = array_get($this, "column_$index");
+                return esc_html($this->editValue($column, $val, true));
+            });
             $index++;
         }
  
@@ -111,17 +152,5 @@ trait CustomValueSummary
  
         // set sql grouping columns
         $query->groupBy($group_columns);
-
-        foreach ($grid_columns as $index => $column_id) {
-            $column = CustomColumn::find($column_id);
-            $grid->column("column_$index", $column->column_view_name)->display(function ($v) use ($column, $index) {
-                if (is_null($this)) {
-                    return '';
-                }
-                $val = array_get($this, "column_$index");
-                return esc_html($this->editValue($column, $val, true));
-            });
-        }
-
     }
 }

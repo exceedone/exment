@@ -28,11 +28,16 @@ class CreateSummaryEtc extends Migration
             $table->integer('view_column_type')->default(0);
             $table->integer('view_column_target_id')->nullable();
             $table->integer('view_summary_condition')->unsigned()->default(0);
+            $table->string('view_column_name', 40)->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
+        });
+
+        $schema->table('custom_view_columns', function($table) {
+            $table->string('view_column_name', 40)->nullable();
         });
     }
 
@@ -44,5 +49,9 @@ class CreateSummaryEtc extends Migration
     public function down()
     {
         Schema::dropIfExists('custom_view_summaries');
+
+        Schema::table('custom_view_columns', function($table) {
+            $table->dropColumn('view_column_name');
+        });
     }
 }

@@ -93,7 +93,8 @@ class CustomView extends ModelBase
                     continue;
                 }
                 $column_type = array_get($column, 'column_type');
-                $column_view_name = array_get($column, 'column_view_name');
+                $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
+                    array_get($column, 'column_view_name') : array_get($custom_view_column, 'view_column_name');
 
                 // get grid column name. if hasindex, set as index name, else set as default column name
                 $isGridIndex = $column->indexEnabled();
@@ -115,7 +116,9 @@ class CustomView extends ModelBase
                 // get parent data
                 $relation = CustomRelation::getRelationByChild($this->custom_table);
                 if (isset($relation)) {
-                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
+                    $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
+                        $relation->parent_custom_table->table_view_name : array_get($custom_view_column, 'view_column_name');
+                    $grid->column('parent_id', $column_view_name)
                         ->sortable()
                         ->display(function ($value) {
                             if(is_null($value)){
@@ -138,15 +141,19 @@ class CustomView extends ModelBase
                 if(!isset($column)){
                     continue;
                 }
-                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))
+                $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
+                    array_get($column, 'column_view_name') : array_get($custom_view_column, 'view_column_name');
+                $grid->column(array_get($column, 'column_name'), $column_view_name)
                     ->display(function ($value) use ($column) {
                         return $this->getSum($column);
                     });
             }
             // system column
             else {
+                $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
+                    exmtrans("common.$view_column_target") : array_get($custom_view_column, 'view_column_name');
                 // get column name
-                $grid->column($view_column_target, exmtrans("common.$view_column_target"))->sortable()
+                $grid->column($view_column_target, $column_view_name)->sortable()
                     ->display(function ($value) use ($view_column_target) {
                         if (!is_null($value)) {
                             return esc_html($value);
