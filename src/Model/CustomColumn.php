@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Items;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
@@ -41,6 +42,10 @@ class CustomColumn extends ModelBase
         return $query
             ->whereNotIn('options->use_label_flg', [0, "0"])
             ->orderBy('options->use_label_flg');
+    }
+
+    public function getItemAttribute(){
+        return Items\CustomItem::getItem($this, null);
     }
 
     /**

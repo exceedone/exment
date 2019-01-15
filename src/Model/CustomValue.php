@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Model;
 
+use Illuminate\Database\Eloquent\Collection;
+use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Items\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
-use Encore\Admin\Facades\Admin;
-
-use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
@@ -460,6 +460,10 @@ class CustomValue extends ModelBase
     
     public function getValue($column, $label = false, $options = [])
     {
+        if (is_null($column)) {
+            return null;
+        }
+
         $options = array_merge(
             [
                 'format' => null,
@@ -467,9 +471,6 @@ class CustomValue extends ModelBase
             ], $options
         );
         $custom_table = $this->custom_table;
-        if (is_null($column)) {
-            return null;
-        }
 
         // if $column is string and  and contains comma
         if (is_string($column) && str_contains($column, ',')) {
@@ -520,170 +521,181 @@ class CustomValue extends ModelBase
             return null;
         }
 
-        // get database value
-        $val = array_get($this, "value.{$column->column_name}");
-        if (is_null($val)) {
+        $item = CustomItem::getItem($column, $this);
+        if(!isset($item)){
             return null;
         }
 
-        $column_type = array_get($column, 'column_type');
-        // calcurate  --------------------------------------------------
-        if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
-            $val = parseFloat($val);
-            if (array_has($column, 'options.decimal_digit')) {
-                $digit = intval(array_get($column, 'options.decimal_digit'));
-                $val = floor($val * pow(10, $digit)) / pow(10, $digit);
-            }
+        $item->options($options);
+        if ($label) {
+            return $item->text();
         }
+        return $item->value();
 
-        // return finally value --------------------------------------------------
-        // get value as select
-        // get value as select_valtext
-        if (in_array($column_type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT])) {
-            $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
-            $select_item = array_get($column, $array_get_key);
-            $select_options = CustomColumn::getEloquent($column, $custom_table)->createSelectOptions();
-            if (!array_keys_exists($val, $select_options)) {
-                return null;
-            }
+        // // get database value
+        // $val = array_get($this, "value.{$column->column_name}");
+        // if (is_null($val)) {
+        //     return null;
+        // }
 
-            // if $val is array
-            $multiple = true;
-            if (!is_array($val)) {
-                $val = [$val];
-                $multiple = false;
-            }
-            // switch column_type and get return value
-            $returns = [];
-            switch ($column_type) {
-                case ColumnType::SELECT:
-                    $returns = $val;
-                    break;
-                case ColumnType::SELECT_VALTEXT:
-                    // loop keyvalue
-                    foreach ($val as $v) {
-                        // set whether $label
-                        $returns[] = $label ? array_get($select_options, $v) : $v;
-                    }
-                    break;
-            }
-            if ($multiple) {
-                return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
-            } else {
-                return $returns[0];
-            }
-        }
+        // $column_type = array_get($column, 'column_type');
+        // // calcurate  --------------------------------------------------
+        // if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
+        //     $val = parseFloat($val);
+        //     if (array_has($column, 'options.decimal_digit')) {
+        //         $digit = intval(array_get($column, 'options.decimal_digit'));
+        //         $val = floor($val * pow(10, $digit)) / pow(10, $digit);
+        //     }
+        // }
 
-        // get value as select_table
-        elseif (in_array($column_type, [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
-            // get target table
-            $target_table_key = null;
-            if ($column_type == ColumnType::SELECT_TABLE) {
-                $target_table_key = array_get($column, 'options.select_target_table');
-            } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-                $target_table_key = $column_type;
-            }
-            $target_table = CustomTable::getEloquent($target_table_key);
+        // // return finally value --------------------------------------------------
+        // // get value as select
+        // // get value as select_valtext
+        // if (in_array($column_type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT])) {
+        //     $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
+        //     $select_item = array_get($column, $array_get_key);
+        //     $select_options = CustomColumn::getEloquent($column, $custom_table)->createSelectOptions();
+        //     if (!array_keys_exists($val, $select_options)) {
+        //         return null;
+        //     }
 
-            $model = getModelName(array_get($target_table, 'table_name'))::find($val);
-            if (is_null($model)) {
-                return null;
-            }
-            if ($label === false) {
-                return $model;
-            }
+        //     // if $val is array
+        //     $multiple = true;
+        //     if (!is_array($val)) {
+        //         $val = [$val];
+        //         $multiple = false;
+        //     }
+        //     // switch column_type and get return value
+        //     $returns = [];
+        //     switch ($column_type) {
+        //         case ColumnType::SELECT:
+        //             $returns = $val;
+        //             break;
+        //         case ColumnType::SELECT_VALTEXT:
+        //             // loop keyvalue
+        //             foreach ($val as $v) {
+        //                 // set whether $label
+        //                 $returns[] = $label ? array_get($select_options, $v) : $v;
+        //             }
+        //             break;
+        //     }
+        //     if ($multiple) {
+        //         return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
+        //     } else {
+        //         return $returns[0];
+        //     }
+        // }
+
+        // // get value as select_table
+        // elseif (in_array($column_type, [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
+        //     // get target table
+        //     $target_table_key = null;
+        //     if ($column_type == ColumnType::SELECT_TABLE) {
+        //         $target_table_key = array_get($column, 'options.select_target_table');
+        //     } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
+        //         $target_table_key = $column_type;
+        //     }
+        //     $target_table = CustomTable::getEloquent($target_table_key);
+
+        //     $model = getModelName(array_get($target_table, 'table_name'))::find($val);
+        //     if (is_null($model)) {
+        //         return null;
+        //     }
+        //     if ($label === false) {
+        //         return $model;
+        //     }
             
-            // if $model is array multiple, set as array
-            if (!($model instanceof Collection)) {
-                $model = [$model];
-            }
+        //     // if $model is array multiple, set as array
+        //     if (!($model instanceof Collection)) {
+        //         $model = [$model];
+        //     }
 
-            $labels = [];
-            foreach ($model as $m) {
-                if (is_null($m)) {
-                    continue;
-                }
+        //     $labels = [];
+        //     foreach ($model as $m) {
+        //         if (is_null($m)) {
+        //             continue;
+        //         }
                 
-                // get label column
-                // if label is true, return getLabel
-                if ($label === true) {
-                    $labels[] = $m->label;
-                }
-                // if label is selecting column name, get target label
-                elseif (is_string($label)) {
-                    $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
-                }
-            }
-            return implode(exmtrans('common.separate_word'), $labels);
-        } elseif (in_array($column_type, [ColumnType::FILE, ColumnType::IMAGE])) {
-            // get file
-            if ($label !== true) {
-                $file = File::getFile($val);
-                return $file;
-            }
-            return $val;
-        }
-        // yesno
-        elseif (in_array($column_type, [ColumnType::YESNO])) {
-            if ($label !== true) {
-                return $val;
-            }
-            // convert label
-            return boolval($val) ? 'YES' : 'NO';
-        }
-        // boolean
-        elseif (in_array($column_type, [ColumnType::BOOLEAN])) {
-            if ($label !== true) {
-                return $val;
-            }
-            // convert label
-            // check matched true and false value
-            if (array_get($column, 'options.true_value') == $val) {
-                return array_get($column, 'options.true_label');
-            } elseif (array_get($column, 'options.false_value') == $val) {
-                return array_get($column, 'options.false_label');
-            }
-            return null;
-        }
-        // currency
-        elseif (in_array($column_type, [ColumnType::CURRENCY])) {
-            // if not label, return
-            if ($label !== true) {
-                return $val;
-            }
-            if (boolval(array_get($column, 'options.number_format')) 
-                && is_numeric($val) 
-                && !boolval(array_get($options, 'disable_number_format')))
-            {
-                $val = number_format($val);
-            }
-            if(boolval(array_get($options, 'disable_currency_symbol'))){
-                return $val;
-            }
-            // get symbol
-            $symbol = array_get($column, 'options.currency_symbol');
-            return getCurrencySymbolLabel($symbol, $val);
-        }
-        // datetime, date
-        elseif (in_array($column_type, [ColumnType::DATETIME, ColumnType::DATE])) {
-            // if not empty format, using carbon
-            $format = array_get($options, 'format');
-            if (!is_nullorempty($format)) {
-                return (new \Carbon\Carbon($val))->format($format) ?? null;
-            }
-            // else, return
-            return $val;
-        }
-        else {
-            // if not label, return
-            if ($label !== true) {
-                return $val;
-            }
-            if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
-                $val = number_format($val);
-            }
-            return $val;
-        }
+        //         // get label column
+        //         // if label is true, return getLabel
+        //         if ($label === true) {
+        //             $labels[] = $m->label;
+        //         }
+        //         // if label is selecting column name, get target label
+        //         elseif (is_string($label)) {
+        //             $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
+        //         }
+        //     }
+        //     return implode(exmtrans('common.separate_word'), $labels);
+        // } elseif (in_array($column_type, [ColumnType::FILE, ColumnType::IMAGE])) {
+        //     // get file
+        //     if ($label !== true) {
+        //         $file = File::getFile($val);
+        //         return $file;
+        //     }
+        //     return $val;
+        // }
+        // // yesno
+        // elseif (in_array($column_type, [ColumnType::YESNO])) {
+        //     if ($label !== true) {
+        //         return $val;
+        //     }
+        //     // convert label
+        //     return boolval($val) ? 'YES' : 'NO';
+        // }
+        // // boolean
+        // elseif (in_array($column_type, [ColumnType::BOOLEAN])) {
+        //     if ($label !== true) {
+        //         return $val;
+        //     }
+        //     // convert label
+        //     // check matched true and false value
+        //     if (array_get($column, 'options.true_value') == $val) {
+        //         return array_get($column, 'options.true_label');
+        //     } elseif (array_get($column, 'options.false_value') == $val) {
+        //         return array_get($column, 'options.false_label');
+        //     }
+        //     return null;
+        // }
+        // // currency
+        // elseif (in_array($column_type, [ColumnType::CURRENCY])) {
+        //     // if not label, return
+        //     if ($label !== true) {
+        //         return $val;
+        //     }
+        //     if (boolval(array_get($column, 'options.number_format')) 
+        //         && is_numeric($val) 
+        //         && !boolval(array_get($options, 'disable_number_format')))
+        //     {
+        //         $val = number_format($val);
+        //     }
+        //     if(boolval(array_get($options, 'disable_currency_symbol'))){
+        //         return $val;
+        //     }
+        //     // get symbol
+        //     $symbol = array_get($column, 'options.currency_symbol');
+        //     return getCurrencySymbolLabel($symbol, $val);
+        // }
+        // // datetime, date
+        // elseif (in_array($column_type, [ColumnType::DATETIME, ColumnType::DATE])) {
+        //     // if not empty format, using carbon
+        //     $format = array_get($options, 'format');
+        //     if (!is_nullorempty($format)) {
+        //         return (new \Carbon\Carbon($val))->format($format) ?? null;
+        //     }
+        //     // else, return
+        //     return $val;
+        // }
+        // else {
+        //     // if not label, return
+        //     if ($label !== true) {
+        //         return $val;
+        //     }
+        //     if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
+        //         $val = number_format($val);
+        //     }
+        //     return $val;
+        // }
     }
         
     /**

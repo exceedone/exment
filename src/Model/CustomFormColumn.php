@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Items;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -42,17 +43,33 @@ class CustomFormColumn extends ModelBase
     }
     
     protected function getFormColumnTargetAttribute(){
-        if($this->form_column_target_id == FormColumnType::SYSTEM){
+        if($this->form_column_type == FormColumnType::SYSTEM){
             return SystemColumn::getOption(['id' => $this->form_column_target_id])['name'] ?? null;
         }
-        elseif($this->form_column_target_id == FormColumnType::COLUMN){
+        elseif($this->form_column_type == FormColumnType::COLUMN){
             return $this->view_column_target_id;
         }
-        elseif($this->form_column_target_id == FormColumnType::OTHER){
+        elseif($this->form_column_type == FormColumnType::OTHER){
             $form_column_obj = FormColumnType::getOption(['id' => $this->form_column_target_id])['column_name'] ?? null;
         }
         return null;
     }
+    
+    public function getItemAttribute(){
+        // if tagret is number, column type is column.
+        if ($this->form_column_type == FormColumnType::COLUMN) {
+            return $this->custom_column->item;
+        }
+        // system
+        elseif ($this->form_column_type == FormColumnType::SYSTEM) {
+            return Items\SystemItem::getItem($this->form_column_target, null);
+        }
+        // other column
+        else {
+            return null;
+        }   
+    }
+    
 
     protected static function boot()
     {

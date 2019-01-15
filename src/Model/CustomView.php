@@ -78,78 +78,13 @@ class CustomView extends ModelBase
         // get view columns
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
-            $view_column_type = array_get($custom_view_column, 'view_column_type');
-            $view_column_target = array_get($custom_view_column, 'view_column_target');
-            // if tagret is number, column type is column.
-            if ($view_column_type == Enums\ViewColumnType::COLUMN) {
-                
-                $column = $custom_view_column->custom_column;
-                if(!isset($column)){
-                    continue;
+            $item = $custom_view_column->item;
+            $grid->column($item->name(), $item->label())->display(function ($v) use ($item) {
+                if (is_null($this)) {
+                    return '';
                 }
-                $column_type = array_get($column, 'column_type');
-                $column_view_name = array_get($column, 'column_view_name');
-
-                // get grid column name. if hasindex, set as index name, else set as default column name
-                $isGridIndex = $column->indexEnabled();
-                $column_name = $isGridIndex ? $column->getIndexColumnName() : array_get($column, 'column_name');
-                
-                $grid->column($column_name, $column_view_name)->sort($isGridIndex)->display(function ($v) use ($column, $column_type) {
-                    if (is_null($this)) {
-                        return '';
-                    }
-                    $isUrl = ColumnType::isUrl($column_type);
-                    if ($isUrl) {
-                        return $this->getColumnUrl($column, true);
-                    }
-                    return esc_html($this->getValue($column, true));
-                });
-            }
-            // parent_id
-            elseif ($view_column_type == ViewColumnType::PARENT_ID) {
-                // get parent data
-                $relation = CustomRelation::getRelationByChild($this->custom_table);
-                if (isset($relation)) {
-                    $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
-                        ->sortable()
-                        ->display(function ($value) {
-                            if(is_null($value)){
-                                return null;
-                            }
-                            // get parent_type
-                            $parent_type = $this->parent_type;
-                            if (is_null($parent_type)) {
-                                return null;
-                            }
-                            // get value
-                            $custom_value = getModelName($parent_type)::find($value);
-                            return $custom_value->getUrl(true);
-                        });
-                }
-            }
-            // child_summary
-            elseif ($view_column_type == ViewColumnType::CHILD_SUM) {
-                $column = $custom_view_column->custom_column;
-                if(!isset($column)){
-                    continue;
-                }
-                $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))
-                    ->display(function ($value) use ($column) {
-                        return $this->getSum($column);
-                    });
-            }
-            // system column
-            else {
-                // get column name
-                $grid->column($view_column_target, exmtrans("common.$view_column_target"))->sortable()
-                    ->display(function ($value) use ($view_column_target) {
-                        if (!is_null($value)) {
-                            return esc_html($value);
-                        }
-                        // if cannnot get value, return array_get from this
-                        return esc_html(array_get($this, $view_column_target));
-                    });
-            }
+                return $item->setCustomValue($this)->html();
+            });
         }
     }
     
@@ -172,60 +107,18 @@ class CustomView extends ModelBase
         // create headers
         $headers = [];
         foreach ($custom_view_columns as $custom_view_column) {
-            // get column --------------------------------------------------
-            // if number, get custom column
-            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
-                $custom_column = $custom_view_column->custom_column;
-                if (isset($custom_column)) {
-                    $headers[] = $custom_column->column_view_name;
-                }
-            } elseif ($custom_view_column->view_column_type == ViewColumnType::PARENT_ID) {
-                // get parent data
-                $relation = CustomRelation::getRelationByChild($custom_table);
-                if (isset($relation)) {
-                    $headers[] = $relation->parent_custom_table->table_view_name;
-                }
-            } else {
-                $name = $custom_view_column->view_column_target;
-                // add headers transaction
-                $headers[] = exmtrans('common.'.$name);
-            }
+            $headers[] = $custom_view_column->item->label();
         }
         $headers[] = trans('admin.action');
-
+        
         // get table bodies
         $bodies = [];
         if (isset($datalist)) {
             foreach ($datalist as $data) {
                 $body_items = [];
                 foreach ($custom_view_columns as $custom_view_column) {
-                    // get column --------------------------------------------------
-                    // if number, get custom column
-                    if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
-                        $custom_column = $custom_view_column->custom_column;
-                        if (isset($custom_column)) {
-                            $isUrl = in_array(array_get($custom_column, 'column_type'), ['url', 'select_table']);
-                            if ($isUrl) {
-                                $body_items[] = $data->getColumnUrl($custom_column, true);
-                            } else {
-                                $body_items[] = esc_html($data->getValue($custom_column, true));
-                            }
-                        }
-                    }
-                    // parent id
-                    elseif ($custom_view_column->view_column_type == ViewColumnType::PARENT_ID) {
-                        // get parent data
-                        $relation = CustomRelation::getRelationByChild($custom_table);
-                        if (isset($relation)) {
-                            $body_items[] = getModelName(array_get($data, 'parent_type'))::find(array_get($data, 'parent_id'))->getUrl(true) ?? null;
-                        }
-                    } else {
-                        // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-                        $name = SystemColumn::getEnum(array_get($custom_view_column, 'view_column_target'))->name() ?? null;
-                        if (isset($name)) {
-                            $body_items[] = esc_html(array_get($data, $name));
-                        }
-                    }
+                    $item = $custom_view_column->item;
+                    $body_items[] = $item->setCustomValue($data)->html();
                 }
 
                 ///// add show and edit link

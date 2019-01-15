@@ -35,19 +35,10 @@ class Morph
                     // morphmap
                     $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
 
-                    // Define Modelname.
-                    //$tables = [SystemTableName::USER, SystemTableName::ORGANIZATION];
-                    //$tables = CustomTable::all();
+                    // Define Modelname
                     getModelName($table_name);
                 }
                 Relation::morphMap($morphMaps);
-
-                // Define Modelname user and org.
-                //$tables = [SystemTableName::USER, SystemTableName::ORGANIZATION];
-                //$tables = CustomTable::all();
-                // foreach ($tables as $table) {
-                //     getModelName($table);
-                // }
             }
         }catch(\Exception $ex)
         {
