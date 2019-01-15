@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Items;
 
+use Exceedone\Exment\Form\Field;
+
 class SystemItem implements ItemInterface
 {
     use ItemTrait;
@@ -51,6 +53,13 @@ class SystemItem implements ItemInterface
         return array_get($custom_value, $this->column_name);
     }   
     
+    public function getAdminField($form_column = null, $column_name_prefix = null){
+        $field = new Field\Display($this->name(), [$this->label()]);
+        $field->default($this->value);
+
+        return $field;
+    }
+
     public static function getItem(...$args){
         list($column_name, $custom_value) = $args;
         return new self($column_name, $custom_value);

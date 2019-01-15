@@ -14,7 +14,6 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SystemColumn;
 use Carbon\Carbon;
 
-
 class CustomView extends ModelBase
 {
     use Traits\AutoSUuidTrait;

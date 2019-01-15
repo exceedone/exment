@@ -66,7 +66,7 @@ class CustomFormColumn extends ModelBase
         }
         // other column
         else {
-            return null;
+            return Items\FormOtherItem::getItem($this);
         }   
     }
     
