@@ -492,42 +492,36 @@ if (!function_exists('getModelName')) {
      */
     function getModelName($obj, $get_name_only = false)
     {
-        ///// get request session
-        // stop db access too much
-        if (is_numeric($obj) || is_string($obj)) {
-            // has request session, set suuid
-            if (!is_null(System::requestSession('getModelName_'.$obj))) {
-                $suuid = System::requestSession('getModelName_'.$obj);
-            }
+        if ($obj instanceof CustomValue) {
+            $table = $obj->custom_table;
+            $suuid = $table->suuid;
         }
-
-        // not has suuid(first call), set suuid and request session
-        if (!isset($suuid)) {
-            if (is_numeric($obj)) {
-                // Get suuid.
+        elseif ($obj instanceof CustomTable) {
+            $suuid = $obj->suuid;
+        }
+        elseif (is_numeric($obj) || is_string($obj)) {
+            // get all table info
+            $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function(){
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
-                //$table = CustomTable::find($obj);
-                $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
-                System::requestSession('getModelName_'.$obj, $suuid);
-            } elseif (is_string($obj)) {
-                // get by table_name
-                // $table = CustomTable::getEloquent($obj);
-                $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
-                System::requestSession('getModelName_'.$obj, $suuid);
-            } elseif ($obj instanceof CustomValue) {
-                $table = $obj->custom_table;
-                $suuid = $table->suuid;
-            } elseif (is_null($obj)) {
-                return null; // TODO: It's OK???
-            } else {
-                $table = $obj;
-                $suuid = $table->suuid;
-            }
+                return DB::table(SystemTableName::CUSTOM_TABLE)->get(['id', 'suuid', 'table_name']);
+            }) ?? [];
+            $table = collect($tables)->first(function($table) use($obj){
+                if(is_numeric($obj)){
+                    return array_get((array)$table, 'id') == $obj;
+                }
+                return array_get((array)$table, 'table_name') == $obj;
+            });
+            $suuid = array_get((array)$table, 'suuid');
         }
 
-        $namespace = "Exceedone\\Exment\\Model";
+        if(!isset($suuid)){
+            return null;
+        }
+
+        $namespace = namespace_join("Exceedone", "Exment", "Model");
         $className = "Class_{$suuid}";
-        $fillpath = "{$namespace}\\{$className}";
+        $fillpath = namespace_join($namespace, $className);
+
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
@@ -560,6 +554,42 @@ if (!function_exists('getCustomTableTrait')) {
         }
 
         return "\\".$fillpath;
+    }
+}
+
+if (!function_exists('hasTable')) {
+    /**
+     * whether database has table
+     * @param string $table_name *only table name
+     * @return string
+     */
+    function hasTable($table_name)
+    {
+        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function(){
+            // get all table names
+            return DB::connection()->getDoctrineSchemaManager()->listTableNames();
+        });
+
+        return in_array($table_name, $tables);
+    }
+}
+
+if (!function_exists('hasColumn')) {
+    /**
+     * whether database has column using table
+     * @param string $table_name *only table name string. not object
+     * @param string $column_name *only column name string. not object
+     * @return string
+     */
+    function hasColumn($table_name, $column_name)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, $table_name);
+        $columns = System::requestSession($key, function() use($table_name){
+            // get all table names
+            return DB::connection()->getSchemaBuilder()->getColumnListing($table_name);
+        });
+
+        return in_array($column_name, $columns);
     }
 }
 
@@ -771,7 +801,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                 }
                                 // get value from model
                                 elseif (count($length_array) <= 1) {
-                                    $str = $target_value->getLabel();
+                                    $str = $target_value->getText();
                                 } else {
                                     // get comma string from index 1.
                                     $length_array = array_slice($length_array, 1);

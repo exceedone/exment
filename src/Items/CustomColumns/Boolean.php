@@ -8,9 +8,9 @@ use Encore\Admin\Form\Field;
 class Boolean extends CustomItem 
 {
     public function text(){
-        if (array_get($this->custom_column, 'options.true_value') == $this->value) {
+        if (array_get($this->custom_column, 'options.true_value') == $this->value()) {
             return array_get($this->custom_column, 'options.true_label');
-        } elseif (array_get($this->custom_column, 'options.false_value') == $this->value) {
+        } elseif (array_get($this->custom_column, 'options.false_value') == $this->value()) {
             return array_get($this->custom_column, 'options.false_label');
         }
         return null;

@@ -11,14 +11,14 @@ class Date extends CustomItem
         // if not empty format, using carbon
         $format = array_get($this->custom_column, 'options.format');
         if (!is_nullorempty($format)) {
-            return (new \Carbon\Carbon($this->value))->format($format) ?? null;
+            return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
         }
         // else, return
-        return $this->value;
+        return $this->value();
     }
 
     protected function getAdminFieldClass(){
-        return Field\Datetime::class;
+        return Field\Date::class;
     }
     
     protected function setAdminOptions(&$field, $form_column_options){

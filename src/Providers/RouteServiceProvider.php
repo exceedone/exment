@@ -98,7 +98,7 @@ class RouteServiceProvider extends ServiceProvider
             
             // set static name. because this function is called composer install.
             try {
-                if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+                if (hasTable(SystemTableName::CUSTOM_TABLE)) {
                     foreach (CustomTable::all()->pluck('table_name') as $value) {
                         $router->post("data/{$value}/import", 'CustomValueController@import');
                         $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
@@ -191,7 +191,7 @@ class RouteServiceProvider extends ServiceProvider
             ], function (Router $router) {
                 // set static name. because this function is called composer install.
                 try {
-                    if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+                    if (hasTable(SystemTableName::CUSTOM_TABLE)) {
                         foreach (CustomTable::all()->pluck('table_name') as $value) {
                             $router->get("data/{$value}", 'ApiTableController@list');
                             $router->post("data/{$value}", 'ApiTableController@createData');

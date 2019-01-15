@@ -18,6 +18,20 @@ class Decimal extends CustomItem
         return $this;
     }
     
+    public function text(){
+        if(is_null($this->value())){
+            return null;
+        }
+
+        if (boolval(array_get($this->custom_column, 'options.number_format')) 
+        && is_numeric($this->value()) 
+        && !boolval(array_get($this->options, 'disable_number_format')))
+        {
+            return number_format($this->value());
+        }
+        return $this->value();
+    }
+
     protected function getAdminFieldClass(){
         return Field\Text::class;
     }

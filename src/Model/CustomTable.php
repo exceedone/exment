@@ -392,7 +392,7 @@ class CustomTable extends ModelBase
         }
 
         // CREATE TABLE from custom value table.
-        if(Schema::hasTable($table_name)){
+        if(hasTable($table_name)){
             return;
         }
         $db = DB::connection();

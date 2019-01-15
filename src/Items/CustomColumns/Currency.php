@@ -7,14 +7,18 @@ use Encore\Admin\Form\Field;
 
 class Currency extends Decimal 
 {
-    public function value(){
+    public function text(){
+        if(is_null($this->value())){
+            return null;
+        }
+
         if (boolval(array_get($this->custom_column, 'options.number_format')) 
-        && is_numeric($this->value) 
+        && is_numeric($this->value()) 
         && !boolval(array_get($this->options, 'disable_number_format')))
         {
-            $value = number_format($this->value);
+            $value = number_format($this->value());
         }else{
-            $value = $this->value;
+            $value = $this->value();
         }
 
         if(boolval(array_get($this->options, 'disable_currency_symbol'))){

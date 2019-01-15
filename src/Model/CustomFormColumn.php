@@ -13,8 +13,9 @@ class CustomFormColumn extends ModelBase
     use Traits\DatabaseJsonTrait;
     
     protected $casts = ['options' => 'json'];
-    protected $appends = ['form_column_target']
-    ;
+    protected $appends = ['form_column_target'];
+    protected $with = ['custom_column'];
+
     public function custom_form_block()
     {
         return $this->belongsTo(CustomFormBlock::class, 'custom_form_block_id');

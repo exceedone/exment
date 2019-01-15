@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\RelationType;
 class CustomRelation extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+
+    protected $with = ['parent_custom_table', 'child_custom_table'];
     
     public function parent_custom_table()
     {
@@ -33,12 +35,11 @@ class CustomRelation extends ModelBase
      * get relation by child table. (Only one record)
      */
     public static function getRelationByChild($child_table, $relation_type = null){
-        $child_table = CustomTable::getEloquent($child_table);
-        $query = static::where('child_custom_table_id', array_get($child_table, 'id'));
-        if(isset($relation_type)){
-            $query = $query->where('relation_type', $relation_type);
+        $items = static::getRelationsByChild($child_table, $relation_type);
+        if(isset($items)){
+            return $items->first();
         }
-        return $query->first();
+        return null;
     }
 
     /**

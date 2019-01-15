@@ -60,6 +60,7 @@ class Define
         'layout_mini' => ['sidebar-collapse', 'sidebar-mini'],
     ];
 
+    public const SYSTEM_KEY_SESSION_SYSTEM_CONFIG = "setting.%s";
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "role";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
@@ -71,6 +72,9 @@ class Define
     public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT = "custom_table_get_eloquent_%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT = "custom_column_get_eloquent_%s";
+    public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
+    public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
+    public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
 
     // Dashboard --------------------------------------------------
     

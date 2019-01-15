@@ -9,15 +9,19 @@ use Exceedone\Exment\Validator;
 class Integer extends CustomItem 
 {
     public function text(){
-        // if not empty format, using carbon
-        $format = array_get($this->custom_column, 'options.format');
-        if (!is_nullorempty($format)) {
-            return (new \Carbon\Carbon($this->value))->format($format) ?? null;
+        if(is_null($this->value())){
+            return null;
         }
-        // else, return
-        return $this->value;
+
+        if (boolval(array_get($this->custom_column, 'options.number_format')) 
+            && is_numeric($this->value()) 
+            && !boolval(array_get($this->options, 'disable_number_format')))
+        {
+            return number_format($this->value());
+        }
+        return $this->value();
     }
-    
+
     protected function getAdminFieldClass(){
         return Field\Number::class;
     }

@@ -165,7 +165,7 @@ class CustomColumn extends ModelBase
         $db_table_name = getDBTableName($this->custom_table);
 
         // if not exists, execute alter column
-        if($alterColumn && !Schema::hasColumn($db_table_name, $name)){
+        if($alterColumn && !hasColumn($db_table_name, $name)){
             $this->alterColumn();
         }
         return $name;

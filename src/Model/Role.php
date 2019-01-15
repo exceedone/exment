@@ -29,7 +29,7 @@ class Role extends ModelBase
      */
     public static function roleLoop($related_type, $callback)
     {
-        if (!Schema::hasTable(System::getTableName()) || !Schema::hasTable(static::getTableName())) {
+        if (!hasTable(System::getTableName()) || !hasTable(static::getTableName())) {
             return;
         }
         if (!System::permission_available()) {

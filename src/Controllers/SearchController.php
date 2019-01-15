@@ -75,7 +75,7 @@ class SearchController extends AdminControllerBase
                     var div = $('<div/>', {
                         'tabindex' : -1,
                         'class' : 'ui-menu-item-wrapper',
-                        'html' : [p, $('<span/>', {'text':item.label})]
+                        'html' : [p, $('<span/>', {'text':item.text})]
                     });
                     return $('<li class="ui-menu-item-with-icon"></li>')
                         .data("item.autocomplete", item)
@@ -121,10 +121,10 @@ EOT;
 
             foreach ($data as $d) {
                 // get label
-                $label = $d->label;
+                $text = $d->text;
                 array_push($results, [
-                    'label' => $label
-                    , 'value' => $label
+                    'value' => $text
+                    , 'text' => $text
                     , 'icon' =>array_get($table, 'options.icon')
                     , 'table_view_name' => array_get($table, 'table_view_name')
                     , 'table_name' => array_get($table, 'table_name')
@@ -320,7 +320,7 @@ EOT;
         // get seleted name
         $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
-        $value = $model->label;
+        $value = $model->text;
         $content->body(view('exment::search.index', [
             'table_name' => $request->input('table_name'),
             'value_id' => $request->input('value_id'),
