@@ -834,7 +834,7 @@ class TemplateImporter
                     $obj_view = CustomView::firstOrNew($findArray);
                     $obj_view->custom_table_id = $table->id;
                     $obj_view->suuid = $findArray['suuid'];
-                    $obj_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM);
+                    $obj_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM());
                     $obj_view->view_view_name = array_get($view, 'view_view_name');
                     $obj_view->default_flg = boolval(array_get($view, 'default_flg'));
                     $obj_view->saveOrFail();
@@ -1025,7 +1025,7 @@ class TemplateImporter
                         'dashboard_name' => array_get($dashboard, "dashboard_name")
                     ]);
 
-                    $dashboard_type = DashboardType::getEnumValue(array_get($dashboard, 'dashboard_type'), DashboardType::SYSTEM);
+                    $dashboard_type = DashboardType::getEnumValue(array_get($dashboard, 'dashboard_type'), DashboardType::SYSTEM());
                     $obj_dashboard->dashboard_type = $dashboard_type;
                     $obj_dashboard->dashboard_view_name = array_get($dashboard, 'dashboard_view_name');
                     $obj_dashboard->setOption('row1', array_get($dashboard, 'options.row1'), 1);

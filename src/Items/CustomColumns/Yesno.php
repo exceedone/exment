@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Items\CustomColumns;
 
 use Exceedone\Exment\Items\CustomItem;
 use Exceedone\Exment\Form\Field;
+use Encore\Admin\Grid\Filter;
 
 class Yesno extends CustomItem 
 {
@@ -13,5 +14,17 @@ class Yesno extends CustomItem
 
     protected function getAdminFieldClass(){
         return Field\SwitchBoolField::class;
+    }
+    
+    protected function getAdminFilterClass(){
+        return Filter\Equal::class;
+    }
+
+    protected function setAdminFilterOptions(&$filter){
+        $filter->radio([
+            ''   => 'All',
+            0    => 'NO',
+            1    => 'YES',
+        ]);
     }
 }

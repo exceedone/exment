@@ -27,6 +27,13 @@ class ParentItem implements ItemInterface
     }
 
     /**
+     * get index name
+     */
+    public function index(){
+        return null;
+    }
+
+    /**
      * get text(for display) 
      */
     public function text(){
@@ -41,6 +48,13 @@ class ParentItem implements ItemInterface
         $value = $this->value->label;
         $url = $this->value->getUrl();
         return "<a href='{$url}' target='_blank'>$value</a>";
+    }
+
+    /**
+     * sortable for grid
+     */
+    public function sortable(){
+        return true;
     }
 
     public function setCustomValue($custom_value){

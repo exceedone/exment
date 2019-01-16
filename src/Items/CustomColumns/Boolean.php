@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Items\CustomColumns;
 
 use Exceedone\Exment\Items\CustomItem;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid\Filter;
 
 class Boolean extends CustomItem 
 {
@@ -20,6 +21,10 @@ class Boolean extends CustomItem
         return Field\SwitchField::class;
     }
     
+    protected function getAdminFilterClass(){
+        return Filter\Equal::class;
+    }
+
     protected function setAdminOptions(&$field, $form_column_options){
         $options = $this->custom_column->options;
         
@@ -29,5 +34,14 @@ class Boolean extends CustomItem
             'off' => ['value' => array_get($options, 'false_value'), 'text' => array_get($options, 'false_label')],
         ];
         $field->states($states);
+    }
+    
+    protected function setAdminFilterOptions(&$filter){
+        $column = $this->custom_column;
+        $filter->radio([
+            ''   => 'All',
+            array_get($column, 'options.false_value')    => array_get($column, 'options.false_label'),
+            array_get($column, 'options.true_value')    => array_get($column, 'options.true_label'),
+        ]);
     }
 }

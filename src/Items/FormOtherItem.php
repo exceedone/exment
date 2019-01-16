@@ -37,6 +37,13 @@ abstract class FormOtherItem implements ItemInterface
     }
 
     /**
+     * get index name
+     */
+    public function index(){
+        return null;
+    }
+
+    /**
      * get Text(for display) 
      */
     public function text(){
@@ -49,6 +56,13 @@ abstract class FormOtherItem implements ItemInterface
     public function html(){
         // default escapes text
         return esc_script_tag($this->text());
+    }
+
+    /**
+     * sortable for grid
+     */
+    public function sortable(){
+        return false;
     }
 
     public function setCustomValue($custom_value){

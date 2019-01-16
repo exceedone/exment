@@ -10,4 +10,8 @@ class Time extends Date
     protected function getAdminFieldClass(){
         return Field\Time::class;
     }
+    
+    protected function setAdminFilterOptions(&$filter){
+        $filter->time();
+    }
 }

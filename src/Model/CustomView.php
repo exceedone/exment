@@ -78,11 +78,13 @@ class CustomView extends ModelBase
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->item;
-            $grid->column($item->name(), $item->label())->display(function ($v) use ($item) {
-                if (is_null($this)) {
-                    return '';
-                }
-                return $item->setCustomValue($this)->html();
+            $grid->column($item->name(), $item->label())
+                ->sort($item->sortable())
+                ->display(function ($v) use ($item) {
+                    if (is_null($this)) {
+                        return '';
+                    }
+                    return $item->setCustomValue($this)->html();
             });
         }
     }

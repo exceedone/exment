@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Items\CustomColumns;
 
 use Exceedone\Exment\Items\CustomItem;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid\Filter;
 
 class Select extends CustomItem 
 {
@@ -47,7 +48,19 @@ class Select extends CustomItem
         }
     }
     
+    protected function getAdminFilterClass(){
+        if(boolval($this->custom_column->getOption('multiple_enabled'))){
+            return Filter\Where::class;
+        }
+        return Filter\Equal::class;
+    }
+
     protected function setAdminOptions(&$field, $form_column_options){
         $field->options($this->custom_column->createSelectOptions());
+    }
+    
+    protected function setAdminFilterOptions(&$filter){
+        $options = $this->custom_column->createSelectOptions();
+        $filter->select($options);
     }
 }

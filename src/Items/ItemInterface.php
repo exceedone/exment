@@ -10,6 +10,11 @@ interface ItemInterface
     public function name();
 
     /**
+     * get column index name 
+     */
+    public function index();
+
+    /**
      * get value. (only this column's value. not custom_value) 
      */
     public function value();
@@ -33,6 +38,11 @@ interface ItemInterface
      * get or set header label.
      */
     public function label($label = null);
+
+    /**
+     * sortable grid
+     */
+    public function sortable();
 
     /**
      * set custom value

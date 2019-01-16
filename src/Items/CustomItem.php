@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Items;
 
 use Exceedone\Exment\Items\CustomColumns;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid\Filter;
+use Encore\Admin\Grid\Filter\Where;
 
 abstract class CustomItem implements ItemInterface
 {
@@ -54,6 +56,13 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
+     * get index name
+     */
+    public function index(){
+        return $this->custom_column->getIndexColumnName();
+    }
+
+    /**
      * get Text(for display) 
      */
     public function text(){
@@ -82,6 +91,13 @@ abstract class CustomItem implements ItemInterface
         );
 
         return $this;
+    }
+
+    /**
+     * sortable for grid
+     */
+    public function sortable(){
+        return $this->custom_column->indexEnabled();
     }
 
     public function setCustomValue($custom_value){
@@ -168,9 +184,33 @@ abstract class CustomItem implements ItemInterface
         return $field;
     }
 
+    public function getAdminFilter(){
+        $classname = $this->getAdminFilterClass();
+
+        // if where query, call Cloquire
+        if($classname == Where::class){
+            $item = $this;
+            $filter = new $classname(function($query) use($item){
+                $item->getAdminFilterWhereQuery($query, $this->input);
+            }, $this->label());
+        }else{
+            $filter = new $classname($this->index(), $this->label());
+        }
+        $this->setAdminFilterOptions($filter);
+
+        return $filter;
+    }
+
     abstract protected function getAdminFieldClass();
 
+    protected function getAdminFilterClass(){
+        return Filter\Like::class;
+    }
+
     protected function setAdminOptions(&$field, $form_column_options){
+    }
+
+    protected function setAdminFilterOptions(&$filter){
     }
     
     protected function setValidates(&$validates){

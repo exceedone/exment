@@ -24,6 +24,13 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get index name
+     */
+    public function index(){
+        return $this->name();
+    }
+
+    /**
      * get text(for display) 
      */
     public function text(){
@@ -36,6 +43,13 @@ class SystemItem implements ItemInterface
      */
     public function html(){
         return esc_html($this->text());
+    }
+
+    /**
+     * sortable for grid
+     */
+    public function sortable(){
+        return true;
     }
 
     public function setCustomValue($custom_value){

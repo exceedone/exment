@@ -25,6 +25,13 @@ class AgreegateChildItem implements ItemInterface
     }
 
     /**
+     * get index name
+     */
+    public function index(){
+        return $this->custom_column->getIndexColumnName();
+    }
+
+    /**
      * get text(for display) 
      */
     public function text(){
@@ -37,6 +44,13 @@ class AgreegateChildItem implements ItemInterface
      */
     public function html(){
         return $this->value();
+    }
+
+    /**
+     * sortable for grid
+     */
+    public function sortable(){
+        return false;
     }
 
     public function setCustomValue($custom_value){

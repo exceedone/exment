@@ -480,7 +480,7 @@ class CustomTable extends ModelBase
                 return [];
             }
         }
-        return $query->get()->pluck("label", "id");
+        return $query->get()->pluck("text", "id");
     }
 
     /**

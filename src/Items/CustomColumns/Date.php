@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Items\CustomColumns;
 
 use Exceedone\Exment\Items\CustomItem;
 use Encore\Admin\Form\Field;
+use Encore\Admin\Grid\Filter;
 
 class Date extends CustomItem 
 {
@@ -21,7 +22,15 @@ class Date extends CustomItem
         return Field\Date::class;
     }
     
+    protected function getAdminFilterClass(){
+        return Filter\Between::class;
+    }
+
     protected function setAdminOptions(&$field, $form_column_options){
         $field->options(['useCurrent' => false]);
+    }
+    
+    protected function setAdminFilterOptions(&$filter){
+        $filter->date();
     }
 }
