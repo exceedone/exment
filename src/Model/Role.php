@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 class Role extends ModelBase
 {
     use Traits\AutoSUuidTrait;
+    use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $casts = ['permissions' => 'json'];
@@ -37,7 +38,9 @@ class Role extends ModelBase
         }
         
         // get Role setting
-        $roles = Role::where('role_type', $related_type)->get();
+        $roles = static::allRecords()->filter(function($record) use($related_type){
+            return $record->role_type == $related_type;
+        });
         foreach ($roles as $role) {
             $related_types = [SystemTableName::USER];
             // if use organization, add

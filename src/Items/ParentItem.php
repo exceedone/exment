@@ -45,9 +45,7 @@ class ParentItem implements ItemInterface
      * *this function calls from non-escaping value method. So please escape if not necessary unescape. 
      */
     public function html(){
-        $value = $this->value->label;
-        $url = $this->value->getUrl();
-        return "<a href='{$url}' target='_blank'>$value</a>";
+        return $this->value->getUrl(true);
     }
 
     /**

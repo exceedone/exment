@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Model;
 
 class CustomViewColumn extends ModelBase
 {
-    
+    use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
 

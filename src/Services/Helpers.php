@@ -501,6 +501,7 @@ if (!function_exists('getModelName')) {
         }
         elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
+            // cannot use CustomTable::allRecords function
             $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function(){
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
                 return DB::table(SystemTableName::CUSTOM_TABLE)->get(['id', 'suuid', 'table_name']);

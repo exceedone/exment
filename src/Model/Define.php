@@ -73,6 +73,7 @@ class Define
     public const SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT = "custom_table_get_eloquent_%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT = "custom_column_get_eloquent_%s";
     public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
+    public const SYSTEM_KEY_SESSION_ALL_RECORDS = "all_records_%s";
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
 

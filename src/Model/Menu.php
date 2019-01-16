@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\DB;
  */
 class Menu extends AdminMenu
 {
+    use Traits\UseRequestSessionTrait;
+    
     /**
      * @var string
      */

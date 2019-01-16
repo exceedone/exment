@@ -83,6 +83,5 @@ class ModelBase extends Model
             return exmtrans('common.trashed_user');
         }
         return $value->getText();
-
     }
 }

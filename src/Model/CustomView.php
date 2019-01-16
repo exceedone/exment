@@ -16,6 +16,7 @@ use Carbon\Carbon;
 
 class CustomView extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;

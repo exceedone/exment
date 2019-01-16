@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,7 @@ getCustomTableTrait();
 
 class CustomTable extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
@@ -395,9 +397,8 @@ class CustomTable extends ModelBase
         if(hasTable($table_name)){
             return;
         }
-        $db = DB::connection();
-        $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
-        
+
+        DynamicDBHelper::createValueTable($table_name);        
         System::requestSession($key, 1);
     }
     

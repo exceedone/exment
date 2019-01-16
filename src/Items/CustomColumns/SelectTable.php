@@ -18,18 +18,18 @@ class SelectTable extends CustomItem
     }
 
     public function value(){
-        return $this->getValue(false);
+        return $this->getValue(false, false);
     }
 
     public function text(){
-        return $this->getValue(true);
+        return $this->getValue(true, false);
     }
 
     public function html(){
-        return $this->getValue(true);
+        return $this->getValue(true, true);
     }
 
-    protected function getValue($text){
+    protected function getValue($text, $html){
         $model = getModelName($this->target_table)::find($this->value);
         if (is_null($model)) {
             return null;
@@ -49,8 +49,12 @@ class SelectTable extends CustomItem
                 continue;
             }
             
-            // get label column
-            $texts[] = $m->label;
+            // get text column
+            if($html){
+                $texts[] = $m->getUrl(true);
+            }else{
+                $texts[] = $m->text;
+            }
         }
         return implode(exmtrans('common.separate_word'), $texts);
     }

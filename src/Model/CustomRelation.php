@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\RelationType;
 class CustomRelation extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\UseRequestSessionTrait;
 
     protected $with = ['parent_custom_table', 'child_custom_table'];
     
@@ -24,11 +25,17 @@ class CustomRelation extends ModelBase
      */
     public static function getRelationsByParent($parent_table, $relation_type = null){
         $parent_table = CustomTable::getEloquent($parent_table);
-        $query = static::where('parent_custom_table_id', array_get($parent_table, 'id'));
-        if(isset($relation_type)){
-            $query = $query->where('relation_type', $relation_type);
-        }
-        return $query->get();
+
+        $records = static::allRecords();
+        return $records->filter(function($record) use($parent_table, $relation_type){
+            if($record->parent_custom_table_id != array_get($parent_table, 'id')){
+                return false;
+            }
+            if(isset($relation_type) && $record->relation_type != $relation_type){
+                return false;
+            }
+            return true;
+        });
     }
 
     /**
@@ -47,11 +54,17 @@ class CustomRelation extends ModelBase
      */
     public static function getRelationsByChild($child_table, $relation_type = null){
         $child_table = CustomTable::getEloquent($child_table);
-        $query = static::where('child_custom_table_id', array_get($child_table, 'id'));
-        if(isset($relation_type)){
-            $query = $query->where('relation_type', $relation_type);
-        }
-        return $query->get();
+
+        $records = static::allRecords();
+        return $records->filter(function($record) use($child_table, $relation_type){
+            if($record->child_custom_table_id != array_get($child_table, 'id')){
+                return false;
+            }
+            if(isset($relation_type) && $record->relation_type != $relation_type){
+                return false;
+            }
+            return true;
+        });
     }
 
     /**

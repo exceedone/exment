@@ -10,6 +10,7 @@ use Illuminate\Http\Request as Req;
 
 class CustomForm extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;

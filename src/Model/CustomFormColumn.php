@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 class CustomFormColumn extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     
     protected $casts = ['options' => 'json'];
