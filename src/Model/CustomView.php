@@ -389,7 +389,7 @@ class CustomView extends ModelBase
             }
             elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
-                $view_column_target = array_get($system_info, 'name');
+                $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
             }
             //set order
             $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
@@ -441,13 +441,10 @@ class CustomView extends ModelBase
             }
             elseif ($view_column_type == ViewColumnType::SYSTEM) {
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
-                $view_column_target = array_get($system_info, 'name');
-                $view_column_id = ($system_info['type'] == 'user')? 
-                    $view_column_target . '_id': $view_column_target;
-                // $column_view_name = exmtrans("common.$view_column_target");
-
-                $group_columns[] = "$table_id.$view_column_id";
-                $select_columns[] = "$table_id.$view_column_id as $alter_column_id";
+                $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
+                
+                $group_columns[] = "$table_id.$view_column_target";
+                $select_columns[] = "$table_id.$view_column_target as $alter_column_id";
             }
         }
         // set summary columns

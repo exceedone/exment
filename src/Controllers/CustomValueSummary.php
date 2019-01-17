@@ -39,6 +39,10 @@ trait CustomValueSummary
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $grid;
     }
+
+    /**
+     * set summary grid
+     */
     protected function setSummaryGrid($grid) {
         // get target table
         $table_name = $this->custom_table->table_name;
@@ -57,9 +61,6 @@ trait CustomValueSummary
 
         // set filter
         $query = $view->setValueFilter($query, $table_id);
-        // // whereはcustom_viewのfilterで実施する
-        // $column = new CustomColumn;
-        // $query->where($column->getIndexColumnName(), 'aaaa');
 
         $group_columns = [];
         $select_columns = [];
