@@ -142,12 +142,15 @@ return [
         'dashboard_box_type_options' => [
             'list' => 'データ一覧',
             'system' => 'システム',
+            'chart' => 'チャート',
         ],
         
         'dashboard_box_options' => [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
             'target_system_id' => '表示アイテム',
+            'chart_axisx' => '横軸の項目名',
+            'chart_axisy' => '縦軸の項目名',
         ],
 
         'dashboard_box_system_pages' => [

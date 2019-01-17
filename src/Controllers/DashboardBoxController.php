@@ -15,8 +15,12 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\SystemColumn;
 
 class DashboardBoxController extends AdminControllerBase
 {
@@ -142,6 +146,55 @@ class DashboardBoxController extends AdminControllerBase
 
                     }
                     break;
+                // chart
+                case DashboardBoxType::CHART:
+                    // get target table and view and axis
+                    $table_id = array_get($box, 'options.target_table_id');
+                    $view_id = array_get($box, 'options.target_view_id');
+                    $axis_x = array_get($box, 'options.chart_axisx');
+                    $axis_y = array_get($box, 'options.chart_axisy');
+                    $column_keys = explode('_', $axis_x);
+
+                    $table = CustomTable::find($table_id);
+                    $view = CustomView::find($view_id);
+                    if ($column_keys[0] == ViewKindType::AGGREGATE) {
+                        $view_column = CustomViewSummary::find($column_keys[1]);
+                    } else {
+                        $view_column = CustomViewColumn::find($column_keys[1]);
+                    }
+                    $column = $view_column->custom_column;
+
+                    // create model for getting data --------------------------------------------------
+                    $classname = getModelName($table);
+                    $model = new $classname();
+
+                    if (array_get($view, 'view_kind_type') == ViewKindType::AGGREGATE) {
+                        // get data
+                        $datalist = $view->getValueSummary($model, $table->table_name);
+                        $chart_label = $datalist->pluck("column_$axis_x")->map(function($val) use($model, $column) {
+                            $data = $model->editValue($column, $val, true);
+                            return $data;
+                        });
+                        $chart_data = $datalist->pluck("column_$axis_y");
+                    } else {
+                        // filter model
+                        $model = Admin::user()->filterModel($model, $table->table_name, $view);
+                        // get data
+                        $datalist = $model->all();
+                        $x_keys = explode('_', $axis_x);
+                        if ($x_keys[0] == ViewKindType::AGGREGATE) {
+                            $view_column = CustomViewSummary::find($x_keys[1]);
+                        } else {
+                            $view_column = CustomViewColumn::find($x_keys[1]);
+                        }
+                        $chart_data = array_column($datalist, '');
+                    }
+
+                    $html = view('exment::dashboard.chart.chart', [
+                        'chart_data' => json_encode($chart_data, JSON_UNESCAPED_SLASHES),
+                        'chart_labels' => json_encode($chart_label, JSON_UNESCAPED_SLASHES),
+                    ])->render();
+                    break;
             }
         }
         // get dashboard box
@@ -188,6 +241,7 @@ class DashboardBoxController extends AdminControllerBase
             //$dashboard_box_type is list
             switch ($dashboard_box_type) {
                 case DashboardBoxType::LIST:
+                case DashboardBoxType::CHART:
                     $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
                         ->required()
                         ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
@@ -201,7 +255,42 @@ class DashboardBoxController extends AdminControllerBase
                             }
 
                             return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
-                        });
+                        })
+                        ->loads(['options_chart_axisx', 'options_chart_axisy'], 
+                            [admin_base_path('dashboardbox/chart_axis').'/x', admin_base_path('dashboardbox/chart_axis').'/y']);
+
+                    if ($dashboard_box_type == DashboardBoxType::CHART){
+                        $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
+                            ->required()
+                            ->options(function ($value) {
+                                if (!isset($value)) {
+                                    return [];
+                                }
+                                $keys = explode("_", $value);
+                                if ($keys[0] == ViewKindType::DEFAULT) {
+                                    $view_column = CustomViewColumn::find($keys[1]);
+                                } else {
+                                    $view_column = CustomViewSummary::find($keys[1]);
+                                }
+                                $options = $view_column->custom_view->getColumnsSelectOptions();
+                                return array_column($options, 'text', 'id');
+                            });
+                        $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
+                            ->required()
+                            ->options(function ($value) {
+                                if (!isset($value)) {
+                                    return [];
+                                }
+                                $keys = explode("_", $value);
+                                if ($keys[0] == ViewKindType::DEFAULT) {
+                                    $view_column = CustomViewColumn::find($keys[1]);
+                                } else {
+                                    $view_column = CustomViewSummary::find($keys[1]);
+                                }
+                                $options = $view_column->custom_view->getColumnsSelectOptions(true);
+                                return array_column($options, 'text', 'id');
+                            });
+                }
                     break;
                 
                 // $dashboard_box_type is system
@@ -305,5 +394,21 @@ class DashboardBoxController extends AdminControllerBase
         $view = createDefaultView($custom_table);
         createDefaultViewColumns($view);
         return [['id' => $view->id, 'text' => $view->view_view_name]];
+    }
+    
+    /**
+     * get view columns using view id
+     * @param mixed custon_view id
+     */
+    public function chartAxis(Request $request, $axis_type)
+    {
+        $id = $request->get('q');
+        if (!isset($id)) {
+            return [];
+        }
+        // get custom views
+        $custom_view = CustomView::find($id);
+
+        return $custom_view->getColumnsSelectOptions($axis_type == 'y');
     }
 }

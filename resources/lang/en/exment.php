@@ -136,6 +136,7 @@ return [
         'dashboard_box_type_options' => [
             'list' => 'Data List',
             'system' => 'System',
+            'chart' => 'Chart',
         ],
         
         'dashboard_box_options' => [
@@ -518,6 +519,9 @@ return [
         'description' => 'Define the custom view setting.',
         'view_view_name' => 'View Display Name',
         'custom_view_columns' => 'Select View Columns',
+        'custom_view_groups' => 'Select grouping Columns',
+        'view_column_name' => 'Alter name',
+        'custom_view_summaries' => 'Select summary Columns',
         'custom_view_sorts' => 'Sort Data',
         'view_column_target' => 'View Target Column',
         'order' => 'Order',
@@ -526,8 +530,14 @@ return [
         'custom_view_filters' => 'View Filter',
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
+        'view_summary_condition' => 'summary type',
+        'view_summary_total' => 'Total',
+        'view_summary_average' => 'Average',
+        'view_summary_count' => 'Count',
         'default_view_name' => 'Default View',
         'description_custom_view_columns' => 'Select display columns.',
+        'description_custom_view_groups' => 'Sets the grouping key columns displayed in the view.',
+        'description_custom_view_summaries' => 'Sets the summary columns of data displayed in the view.',
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.',
 

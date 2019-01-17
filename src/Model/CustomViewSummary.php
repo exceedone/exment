@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ViewColumnType;
+
 class CustomViewSummary extends ModelBase
 {
     protected $guarded = ['id'];
@@ -16,6 +18,9 @@ class CustomViewSummary extends ModelBase
     
     public function custom_column()
     {
+        if ($this->view_column_type == ViewColumnType::SYSTEM) {
+            return null;
+        }
         return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
 }
