@@ -82,11 +82,7 @@ trait CustomValueGrid
             // loop custom column
             $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
                 foreach ($search_enabled_columns as $search_column) {
-                    $filterItem = $search_column->column_item->getAdminFilter() ?? null;
-                    if(is_null($filterItem)){
-                        continue;
-                    }
-                    $filter->use($filterItem);
+                    $search_column->column_item->setAdminFilter($filter);
                 }
             });
         });

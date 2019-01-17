@@ -81,6 +81,14 @@ if (!function_exists('esc_script_tag')) {
     }
 }
 
+if (!function_exists('esc_sql'))
+{
+    function esc_sql($string)
+    {
+        return app('db')->getPdo()->quote($string);
+    }
+}
+
 if (!function_exists('is_nullorempty')) {
     function is_nullorempty($obj)
     {

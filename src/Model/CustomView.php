@@ -232,7 +232,7 @@ class CustomView extends ModelBase
     /**
      * set value filter 
      */
-    public function setValueFilter($model, $table_name = null){
+    public function setValueFilter($model, $db_table_name = null){
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
@@ -242,8 +242,8 @@ class CustomView extends ModelBase
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
             }
-            if (isset($table_name)) {
-                $view_column_target = $table_name.'.'.$view_column_target;
+            if (isset($db_table_name)) {
+                $view_column_target = $db_table_name.'.'.$view_column_target;
             }
             $condition_value_text = $filter->view_filter_condition_value_text;
             $view_filter_condition = $filter->view_filter_condition;

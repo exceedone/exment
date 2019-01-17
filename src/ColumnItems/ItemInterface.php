@@ -10,6 +10,11 @@ interface ItemInterface
     public function name();
 
     /**
+     * get column key sql name.
+     */
+    public function sqlname();
+
+    /**
      * get column index name 
      */
     public function index();

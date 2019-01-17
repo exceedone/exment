@@ -9,8 +9,11 @@ class SystemItem implements ItemInterface
     use ItemTrait;
     
     protected $column_name;
-
-    public function __construct($column_name, $custom_value){
+    
+    protected $custom_table;
+    
+    public function __construct($custom_table, $column_name, $custom_value){
+        $this->custom_table = $custom_table;
         $this->column_name = $column_name;
         $this->value = $this->getTargetValue($custom_value);
         $this->label = exmtrans("common.$this->column_name");
@@ -21,6 +24,13 @@ class SystemItem implements ItemInterface
      */
     public function name(){
         return $this->column_name;
+    }
+
+    /**
+     * get column key sql name.
+     */
+    public function sqlname(){
+        return getDBTableName($this->custom_table) .'.'. $this->column_name;
     }
 
     /**
@@ -75,7 +85,7 @@ class SystemItem implements ItemInterface
     }
 
     public static function getItem(...$args){
-        list($column_name, $custom_value) = $args;
-        return new self($column_name, $custom_value);
+        list($custom_table, $column_name, $custom_value) = $args;
+        return new self($custom_table, $column_name, $custom_value);
     }
 }

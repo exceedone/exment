@@ -27,6 +27,13 @@ class ParentItem implements ItemInterface
     }
 
     /**
+     * get column name
+     */
+    public function sqlname(){
+        return getDBTableName($this->custom_table) .'.'. 'parent_id';
+    }
+
+    /**
      * get index name
      */
     public function index(){

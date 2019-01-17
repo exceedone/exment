@@ -56,6 +56,23 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
+     * sqlname
+     */
+    public function sqlname(){
+        // $db_table_name = getDBTableName($this->custom_column->custom_table);
+        // // check option
+        // // if has options agreegate, return as DB.row
+        // $agreegate = array_get($this->options, 'agreegate');
+        // if(isset($agreegate)){
+        //     $agreegate_index = array_get($this->options, 'agreegate_index');
+        //     $column_name = $this->custom_column->column_name;
+        //     $raw = "$agreegate($db_table_name.value->'$.$column_name') AS column_$agreegate_index";
+        //     return \DB::raw($raw);
+        // }
+        return $this->index();
+    }
+
+    /**
      * get index name
      */
     public function index(){
@@ -184,21 +201,27 @@ abstract class CustomItem implements ItemInterface
         return $field;
     }
 
-    public function getAdminFilter(){
+    /**
+     * set admin filter
+     */
+    public function setAdminFilter(&$filter){
         $classname = $this->getAdminFilterClass();
 
         // if where query, call Cloquire
         if($classname == Where::class){
             $item = $this;
-            $filter = new $classname(function($query) use($item){
+            $filteritem = new $classname(function($query) use($item){
                 $item->getAdminFilterWhereQuery($query, $this->input);
             }, $this->label());
         }else{
-            $filter = new $classname($this->index(), $this->label());
+            $filteritem = new $classname($this->index(), $this->label());
         }
-        $this->setAdminFilterOptions($filter);
 
-        return $filter;
+        // first, set $filter->use
+        $filter->use($filteritem);
+
+        // next, set admin filter options
+        $this->setAdminFilterOptions($filteritem);
     }
 
     abstract protected function getAdminFieldClass();

@@ -64,7 +64,7 @@ class CustomFormColumn extends ModelBase
         }
         // system
         elseif ($this->form_column_type == FormColumnType::SYSTEM) {
-            return ColumnItems\SystemItem::getItem($this->form_column_target, null);
+            return ColumnItems\SystemItem::getItem($this->custom_form_block->target_table, $this->form_column_target, null);
         }
         // other column
         else {

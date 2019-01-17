@@ -32,7 +32,7 @@ trait CustomViewColumnTrait
         }
         // system column
         else {
-            return ColumnItems\SystemItem::getItem($this->view_column_target, null);
+            return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target, null);
         }   
     }
     
