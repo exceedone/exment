@@ -6,6 +6,7 @@ class DashboardBox extends ModelBase
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];

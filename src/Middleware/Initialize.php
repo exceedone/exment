@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\Items\CustomItem;
+use Exceedone\Exment\Items\CustomColumns;
 use Encore\Admin\Form;
 use \Html;
 use PDO;
@@ -115,8 +117,37 @@ class Initialize
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
         Config::set('admin.enable_default_breadcrumb', false);
-        Config::set('admin.show_version', false);
         Config::set('admin.show_environment', false);
+
+
+        ///// set Exment-item class
+        $map = [
+            'auto_number'        => CustomColumns\AutoNumber::class,
+            'boolean'        => CustomColumns\Boolean::class,
+            'currency'        => CustomColumns\Currency::class,
+            'date'        => CustomColumns\Date::class,
+            'datetime'        => CustomColumns\Datetime::class,
+            'decimal'        => CustomColumns\Decimal::class,
+            'editor'        => CustomColumns\Editor::class,
+            'email'        => CustomColumns\Email::class,
+            'file'        => CustomColumns\File::class,
+            'hidden'        => CustomColumns\Hidden::class,
+            'image'        => CustomColumns\Image::class,
+            'integer'        => CustomColumns\Integer::class,
+            'organization'        => CustomColumns\Organization::class,
+            'select'        => CustomColumns\Select::class,
+            'select_table'        => CustomColumns\SelectTable::class,
+            'select_valtext'        => CustomColumns\SelectValtext::class,
+            'text'        => CustomColumns\Text::class,
+            'textarea'        => CustomColumns\Textarea::class,
+            'time'        => CustomColumns\Time::class,
+            'url'        => CustomColumns\Url::class,
+            'user'        => CustomColumns\User::class,
+            'yesno'        => CustomColumns\Yesno::class,
+        ];
+        foreach ($map as $abstract => $class) {
+            CustomItem::extend($abstract, $class);
+        }
 
         if ($setDatabase) {
             // Set system setting to config --------------------------------------------------
@@ -168,7 +199,7 @@ class Initialize
     public static function initializeFormField(){
         $map = [
             'number'        => Field\Number::class,
-            'editor'        => Field\Tinymce::class, //TODO
+            'editor'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,

@@ -342,8 +342,8 @@ class CustomFormController extends AdminControllerTableBase
             $custom_form_columns = [];
             
             // set VIEW_COLUMN_SYSTEM_OPTIONS as header and footer
-            $system_columns_header = SystemColumn::getOptions(['header' => $option]) ?? [];
-            $system_columns_footer = SystemColumn::getOptions(['footer' => $option]) ?? [];
+            $system_columns_header = SystemColumn::getOptions(['header' => true]) ?? [];
+            $system_columns_footer = SystemColumn::getOptions(['footer' => true]) ?? [];
 
             $loops = [
                 ['form_column_type' => FormColumnType::SYSTEM , 'columns' => $system_columns_header],

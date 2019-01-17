@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 class CustomCopyColumn extends ModelBase
 {
     protected $appends = ['view_column_target'];
+    use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
 

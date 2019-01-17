@@ -8,6 +8,7 @@ class CustomViewFilter extends ModelBase
     protected $appends = ['view_column_target'];
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
+    use Traits\UseRequestSessionTrait;
 
     public function custom_view()
     {

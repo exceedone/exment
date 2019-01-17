@@ -13,6 +13,12 @@ trait AutoSUuidTrait
      * find by string suuid
      */
     public static function findBySuuid($suuid){
+        // if exists "allRecords" class, call this
+        if(method_exists(get_called_class(), "allRecords")){
+            return static::allRecords()->filter(function($record) use($suuid){
+                return array_get($record, 'suuid') == $suuid;
+            })->first();
+        }
         return static::where('suuid', $suuid)->first();
     }
 }

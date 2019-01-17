@@ -44,9 +44,12 @@ class ApiTableController extends AdminControllerTableBase
         if (!$this->custom_table->hasPermissionData($id)) {
             abort(403);
         }
-        $result = getModelName($this->custom_table->table_name)::findOrFail($id)
-            ->makeHidden($this->getMakeHiddenArray())
-            ->toArray();
+        $model = getModelName($this->custom_table->table_name)::find($id);
+        if(!isset($model)){
+            return [];
+        }
+        $result = $model->makeHidden($this->getMakeHiddenArray())
+                    ->toArray();
         if ($request->has('dot') && boolval($request->get('dot'))) {
             $result = array_dot($result);
         }
@@ -129,7 +132,7 @@ class ApiTableController extends AdminControllerTableBase
         $datalist = getModelName($child_table)
             ::where('parent_id', $q)
             ->where('parent_type', $this->custom_table->table_name)
-            ->get()->pluck('label', 'id');
+            ->get()->pluck('text', 'id');
         return collect($datalist)->map(function ($value, $key) {
             return ['id' => $key, 'text' => $value];
         });

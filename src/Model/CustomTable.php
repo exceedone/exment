@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -17,6 +18,7 @@ getCustomTableTrait();
 
 class CustomTable extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
@@ -120,40 +122,38 @@ class CustomTable extends ModelBase
         });
     }
 
-    
-    /**
-     * Find record using table name
-     * @param mixed $model_name
-     * @return mixed
-     */
-    public static function findByName($model_name, $with_custom_columns = false)
+    public static function findByEndpoint($endpoint = null, $withs = [])
     {
-        $query = static::where('table_name', $model_name);
-        if ($with_custom_columns) {
-            $query = $query->with('custom_columns');
+        $table_names = static::all()->pluck('table_name')->toArray();
+        if (!isset($endpoint)) {
+            $endpoint = url()->current();
         }
-        return $query->first();
-    }
+        $urls = array_reverse(explode("/", $endpoint));
+        foreach ($urls as $url) {
+            if (!isset($url)) {
+                continue;
+            }
+            if (mb_substr($url, 0, 1) === "?") {
+                continue;
+            }
+            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
+                continue;
+            }
 
-    /**
-     * Find record using database table name
-     * @param mixed $table_name
-     * @return mixed
-     */
-    public static function findByDBTableName($db_table_name, $with_custom_columns = false)
-    {
-        $query = static::where('suuid', preg_replace('/^exm__/', '', $db_table_name))->remember(120);
-        if ($with_custom_columns) {
-            $query = $query->with('custom_columns');
+            // joint table
+            if(in_array($url, $table_names)){
+                return static::getEloquent($url, $withs);
+            }
         }
-        return $query->first();
+
+        return null;
     }
 
     /**
      * get custom table eloquent.
      * @param mixed $obj id, table_name, CustomTable object, CustomValue object.
      */
-    public static function getEloquent($obj, $with_custom_columns = false)
+    public static function getEloquent($obj, $withs = [])
     {
         if ($obj instanceof CustomTable) {
             return $obj;
@@ -178,19 +178,36 @@ class CustomTable extends ModelBase
             }
         }
 
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT, $obj);
         // get eloquent model
         if (is_numeric($obj)) {
-            $obj = System::requestSession($key, function () use ($obj) {
-                return static::find($obj);
-            });
+            $query_key = 'id';
         } elseif (is_string($obj)) {
-            $obj = System::requestSession($key, function () use ($obj, $with_custom_columns) {
-                return static::findByName($obj, $with_custom_columns);
+            $query_key = 'table_name';
+        }
+        if(isset($query_key)){
+            $withs = static::getWiths($withs);
+            $query = static::query();
+            foreach($withs as $with){
+                $query->with($with);
+            }
+            
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT, $obj);
+            return System::requestSession($key, function() use($query_key, $obj, $query){
+                return $query->where($query_key, $obj)->first();
             });
         }
 
         return $obj;
+    }
+
+    protected static function getWiths($withs){
+        if(is_array($withs)){
+            return $withs;
+        }
+        if($withs === true){
+            return ['custom_columns'];
+        }
+        return [];
     }
 
     /**
@@ -380,12 +397,11 @@ class CustomTable extends ModelBase
         }
 
         // CREATE TABLE from custom value table.
-        if (Schema::hasTable($table_name)) {
+        if(hasTable($table_name)){
             return;
         }
-        $db = DB::connection();
-        $db->statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
-        
+
+        DynamicDBHelper::createValueTable($table_name);        
         System::requestSession($key, 1);
     }
     
@@ -467,7 +483,7 @@ class CustomTable extends ModelBase
                 return [];
             }
         }
-        return $query->get()->pluck("label", "id");
+        return $query->get()->pluck("text", "id");
     }
 
     /**

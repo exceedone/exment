@@ -117,41 +117,39 @@ class System extends ModelBase
     protected static function get_system_value($name, $setting)
     {
         $config_key = static::getConfigKey($name);
-        if (!is_null(static::requestSession($config_key))) {
-            return static::requestSession($config_key);
-        }
-        $system = System::find($name);
-        $value = null;
-        
-        // if has data, return setting value or default value
-        if (isset($system)) {
-            $value = $system->system_value;
-        }
-        // if don't has data, but has default value in Define, return default value
-        elseif (!is_null(array_get($setting, 'default'))) {
-            $value = array_get($setting, 'default');
-        }
-        // if don't has data, but has config value in Define, return value from config
-        elseif (!is_null(array_get($setting, 'config'))) {
-            $value = Config::get(array_get($setting, 'config'));
-        }
-
-        $type = array_get($setting, 'type');
-        if ($type == 'boolean') {
-            $value = boolval($value);
-        } elseif ($type == 'int') {
-            $value = is_null($value) ? null : intval($value);
-        } elseif ($type == 'datetime') {
-            $value = is_null($value) ? null : new Carbon($value);
-        } elseif ($type == 'json') {
-            $value = is_null($value) ? [] : json_decode($value);
-        } elseif ($type == 'array') {
-            $value = is_null($value) ? [] : explode(',', $value);
-        } elseif ($type == 'file') {
-            $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
-        }
-        System::requestSession($config_key, $value);
-        return $value;
+        return static::requestSession($config_key, function() use($name, $setting){
+            $system = System::find($name);
+            $value = null;
+            
+            // if has data, return setting value or default value
+            if (isset($system)) {
+                $value = $system->system_value;
+            }
+            // if don't has data, but has default value in Define, return default value
+            elseif (!is_null(array_get($setting, 'default'))) {
+                $value = array_get($setting, 'default');
+            }
+            // if don't has data, but has config value in Define, return value from config
+            elseif (!is_null(array_get($setting, 'config'))) {
+                $value = Config::get(array_get($setting, 'config'));
+            }
+    
+            $type = array_get($setting, 'type');
+            if ($type == 'boolean') {
+                $value = boolval($value);
+            } elseif ($type == 'int') {
+                $value = is_null($value) ? null : intval($value);
+            } elseif ($type == 'datetime') {
+                $value = is_null($value) ? null : new Carbon($value);
+            } elseif ($type == 'json') {
+                $value = is_null($value) ? [] : json_decode($value);
+            } elseif ($type == 'array') {
+                $value = is_null($value) ? [] : explode(',', $value);
+            } elseif ($type == 'file') {
+                $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
+            }
+            return $value;
+        });
     }
 
     protected static function set_system_value($name, $setting, $value)
@@ -203,10 +201,12 @@ class System extends ModelBase
         // update config
         $config_key = static::getConfigKey($name);
         static::requestSession($config_key, $system->system_value);
+
+        return $system;
     }
 
     protected static function getConfigKey($name)
     {
-        return "setting.$name";
+        return sprintf(Define::SYSTEM_KEY_SESSION_SYSTEM_CONFIG,$name);
     }
 }

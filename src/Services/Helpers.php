@@ -59,11 +59,11 @@ if (!function_exists('esc_script_tag')) {
     /**
      * escape only script tag
      */
-    function esc_script_tag($str)
+    function esc_script_tag($html)
     {
         $dom = new \DOMDocument();
 
-        $dom->loadHTML($html);
+        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
 
         $script = $dom->getElementsByTagName('script');
 
@@ -135,6 +135,16 @@ if (!function_exists('hex2rgb')) {
             $hex = substr($hex, 0, 1) . substr($hex, 0, 1) . substr($hex, 1, 1) . substr($hex, 1, 1) . substr($hex, 2, 1) . substr($hex, 2, 1) ;
         }
         return array_map("hexdec", [ substr($hex, 0, 2), substr($hex, 2, 2), substr($hex, 4, 2) ]) ;
+    }
+}
+
+if (!function_exists('rmcomma')) {
+    /**
+     * remove comma
+     */
+    function rmcomma($value)
+    {
+        return str_replace(",", "", $value);
     }
 }
 
@@ -482,42 +492,37 @@ if (!function_exists('getModelName')) {
      */
     function getModelName($obj, $get_name_only = false)
     {
-        ///// get request session
-        // stop db access too much
-        if (is_numeric($obj) || is_string($obj)) {
-            // has request session, set suuid
-            if (!is_null(System::requestSession('getModelName_'.$obj))) {
-                $suuid = System::requestSession('getModelName_'.$obj);
-            }
+        if ($obj instanceof CustomValue) {
+            $table = $obj->custom_table;
+            $suuid = $table->suuid;
         }
-
-        // not has suuid(first call), set suuid and request session
-        if (!isset($suuid)) {
-            if (is_numeric($obj)) {
-                // Get suuid.
+        elseif ($obj instanceof CustomTable) {
+            $suuid = $obj->suuid;
+        }
+        elseif (is_numeric($obj) || is_string($obj)) {
+            // get all table info
+            // cannot use CustomTable::allRecords function
+            $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function(){
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
-                //$table = CustomTable::find($obj);
-                $suuid = DB::table('custom_tables')->where('id', $obj)->first()->suuid ?? null;
-                System::requestSession('getModelName_'.$obj, $suuid);
-            } elseif (is_string($obj)) {
-                // get by table_name
-                // $table = CustomTable::getEloquent($obj);
-                $suuid = DB::table('custom_tables')->where('table_name', $obj)->first()->suuid ?? null;
-                System::requestSession('getModelName_'.$obj, $suuid);
-            } elseif ($obj instanceof CustomValue) {
-                $table = $obj->custom_table;
-                $suuid = $table->suuid;
-            } elseif (is_null($obj)) {
-                return null; // TODO: It's OK???
-            } else {
-                $table = $obj;
-                $suuid = $table->suuid;
-            }
+                return DB::table(SystemTableName::CUSTOM_TABLE)->get(['id', 'suuid', 'table_name']);
+            }) ?? [];
+            $table = collect($tables)->first(function($table) use($obj){
+                if(is_numeric($obj)){
+                    return array_get((array)$table, 'id') == $obj;
+                }
+                return array_get((array)$table, 'table_name') == $obj;
+            });
+            $suuid = array_get((array)$table, 'suuid');
         }
 
-        $namespace = "Exceedone\\Exment\\Model";
+        if(!isset($suuid)){
+            return null;
+        }
+
+        $namespace = namespace_join("Exceedone", "Exment", "Model");
         $className = "Class_{$suuid}";
-        $fillpath = "{$namespace}\\{$className}";
+        $fillpath = namespace_join($namespace, $className);
+
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
@@ -550,6 +555,42 @@ if (!function_exists('getCustomTableTrait')) {
         }
 
         return "\\".$fillpath;
+    }
+}
+
+if (!function_exists('hasTable')) {
+    /**
+     * whether database has table
+     * @param string $table_name *only table name
+     * @return string
+     */
+    function hasTable($table_name)
+    {
+        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function(){
+            // get all table names
+            return DB::connection()->getDoctrineSchemaManager()->listTableNames();
+        });
+
+        return in_array($table_name, $tables);
+    }
+}
+
+if (!function_exists('hasColumn')) {
+    /**
+     * whether database has column using table
+     * @param string $table_name *only table name string. not object
+     * @param string $column_name *only column name string. not object
+     * @return string
+     */
+    function hasColumn($table_name, $column_name)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, $table_name);
+        $columns = System::requestSession($key, function() use($table_name){
+            // get all table names
+            return DB::connection()->getSchemaBuilder()->getColumnListing($table_name);
+        });
+
+        return in_array($column_name, $columns);
     }
 }
 
@@ -761,7 +802,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                 }
                                 // get value from model
                                 elseif (count($length_array) <= 1) {
-                                    $str = $target_value->getLabel();
+                                    $str = $target_value->getText();
                                 } else {
                                     // get comma string from index 1.
                                     $length_array = array_slice($length_array, 1);
@@ -910,37 +951,6 @@ if (!function_exists('shouldPassThrough')) {
         return false;
     }
 }
-if (!function_exists('getEndpointTable')) {
-    /**
-     * Get table object using endpoint name.
-     */
-    function getEndpointTable($endpoint = null)
-    {
-        $table_names = CustomTable::all()->pluck('table_name')->toArray();
-        if (!isset($endpoint)) {
-            $endpoint = url()->current();
-        }
-        $urls = array_reverse(explode("/", $endpoint));
-        foreach ($urls as $url) {
-            if (!isset($url)) {
-                continue;
-            }
-            if (mb_substr($url, 0, 1) === "?") {
-                continue;
-            }
-            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
-                continue;
-            }
-
-            // joint table
-            if(in_array($url, $table_names)){
-                return CustomTable::getEloquent($url);
-            }
-        }
-
-        return null;
-    }
-}
 
 if (!function_exists('getTransArray')) {
     /**
@@ -1025,45 +1035,70 @@ if (!function_exists('getExmentVersion')) {
      */
     function getExmentVersion($getFromComposer = true)
     {
-        //TODO: reconsider how to get current version.
-        return [null, null];
-        // $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
-        // if (isset($version_json)) {
-        //     $version = json_decode($version_json, true);
-        //     $latest = array_get($version, 'latest');
-        //     $current = array_get($version, 'current');
-        // }
+        $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+        if (isset($version_json)) {
+            $version = json_decode($version_json, true);
+            $latest = array_get($version, 'latest');
+            $current = array_get($version, 'current');
+        }
         
-        // if ((empty($latest) || empty($current)) && $getFromComposer) {
-        //     $output = [];
-        //     $cmd = 'cd ' . base_path() . ' && composer outdated exceedone/exment';
-        //     exec($cmd, $output, $result);
-        //     if ($result === 0) {
-        //         // get version from output
-        //         $latest = '';
-        //         $current = '';
-        //         foreach ($output as $data) {
-        //             $items = explode(':', $data);
-        //             if (trim($items[0]) === 'latest') {
-        //                 $latest = trim($items[1]);
-        //             } elseif (trim($items[0]) === 'versions') {
-        //                 $current = trim($items[1], " *\t\n\r\0\x0B");
-        //             }
-        //         }
+        if ((empty($latest) || empty($current)) && $getFromComposer) {
+            // get current version from composer.lock
+            $composer_lock = base_path('composer.lock');
+            if(!\File::exists($composer_lock)){
+                return [null, null];
+            }
 
-        //         app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-        //             'latest' => $latest, 'current' => $current
-        //         ]));
-        //     }
-        // }
+            $contents = \File::get($composer_lock);
+            $json = json_decode($contents, true);
+            if(!$json){
+                return [null, null];
+            }
+            
+            // get exment info
+            $packages = array_get($json, 'packages');
+            $exment = collect($packages)->filter(function($package){
+                return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+            })->first();
+            if(!isset($exment)){
+                return [null, null];
+            }
+            $current = array_get($exment, 'version');
+            
+            //// get latest version
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
+                'http_errors' => false,
+            ]);
+            $contents = $response->getBody()->getContents();
+            $json = json_decode($contents, true);
+            if(!$json){
+                return [null, null];
+            }
+            $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
+            if(!$packages){
+                return [null, null];
+            }
+            foreach (collect($packages)->reverse() as $key => $package) {
+                // if version is "dev-", continue
+                if(substr($key, 0, 4) == 'dev-'){
+                    continue;
+                }
+                $latest = $key;
+                break;
+            }
+
+            app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                'latest' => $latest, 'current' => $current
+            ]));
+        }
         
-        // if (empty($latest) || empty($current)) {
-        //     return [null, null];
-        // }
-        // return [$latest, $current];
+        if (empty($latest) || empty($current)) {
+            return [null, null];
+        }
+        return [$latest, $current];
     }
 }
-
 
 
 // Excel --------------------------------------------------

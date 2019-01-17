@@ -21,12 +21,11 @@ class Exment
         return (new Menu())->toTree();
     }
 
-    public static function error($request, $exception, $callback){
+    /**
+     * return custom error
+     */
+    public function error($request, $exception, $callback){
         try {
-            // if (!($exception instanceof HttpException)) {
-            //     return $callback($request, $exception);
-            // }
-        
             // whether has User
             $user = \Exment::user();
             if (!isset($user)) {
@@ -64,6 +63,9 @@ class Exment
         return null;
     }
 
+    /**
+     * get exment version
+     */
     public function version($getFromComposer = true){
         list($latest, $current) = getExmentVersion($getFromComposer);
         return $current;

@@ -313,6 +313,6 @@ class Revision extends Eloquent
         if (!isset($value)) {
             return 'system';
         }
-        return $value->getLabel();
+        return $value->getText();
     }
 }

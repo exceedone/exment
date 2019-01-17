@@ -2,8 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
-use Encore\Admin\Facades\Admin;
 use Illuminate\Database\Eloquent\Collection;
+use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Items\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -20,7 +21,7 @@ class CustomValue extends ModelBase
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
-    protected $appends = ['label'];
+    protected $appends = ['text'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
     /**
@@ -35,9 +36,9 @@ class CustomValue extends ModelBase
      */
     protected $saved_notify = true;
     
-    public function getLabelAttribute()
+    public function getTextAttribute()
     {
-        return $this->getLabel();
+        return $this->getText();
     }
 
     public function getCustomTableAttribute()
@@ -98,11 +99,10 @@ class CustomValue extends ModelBase
 
         static::saving(function ($model) {
             // re-get field data --------------------------------------------------
-            $model->regetOriginalData();
+            $model->prepareValue();
         });
         static::saved(function ($model) {
-            // set auto format
-            $model->setAutoNumber();
+            $model->savedValue();
             $model->setValueAuthoritable();
         });
         static::created(function ($model) {
@@ -124,7 +124,7 @@ class CustomValue extends ModelBase
 
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
-    protected function regetOriginalData()
+    protected function prepareValue()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
@@ -132,25 +132,24 @@ class CustomValue extends ModelBase
         $value = $this->value;
         $original = json_decode($this->getOriginal('value'), true);
         // get  columns
-        $file_columns = $this->custom_table
-            ->custom_columns
-            ->pluck('column_name')
-            ->toArray();
+        $custom_columns = $this->custom_table
+            ->custom_columns;
 
         // loop columns
         $update_flg = false;
-        foreach ($file_columns as $file_column) {
+        foreach ($custom_columns as $custom_column) {
+            $column_name = $custom_column->column_name;
+            $v = array_get($value, $column_name);
 
-            // if not key, set from original
-            if (!array_key_exists($file_column, $value)) {
-                // if column has $remove_file_columns, continue.
-                // property "$remove_file_columns" uses user wants to delete file
-                if (in_array($file_column, $this->remove_file_columns())) {
-                    continue;
-                }
+            if($this->setAgainOriginalValue($value, $original, $custom_column)){
+                $update_flg = true;
+            }
 
-                if (array_key_value_exists($file_column, $original)) {
-                    $value[$file_column] = array_get($original, $file_column);
+            // remove comma
+            if(ColumnType::isCalc($custom_column->column_type)){
+                $rmv = rmcomma($v);
+                if($v != $rmv){
+                    $value[$column_name] = $rmv;
                     $update_flg = true;
                 }
             }
@@ -172,9 +171,32 @@ class CustomValue extends ModelBase
     }
 
     /**
+     * set original data.
+     */
+    protected function setAgainOriginalValue(&$value, $original, $custom_column){
+        $column_name = $custom_column->column_name;
+        // if not key, set from original
+        if (array_key_exists($column_name, $value)) {
+            return false;
+        }
+        // if column has $remove_file_columns, continue.
+        // property "$remove_file_columns" uses user wants to delete file
+        if (in_array($column_name, $this->remove_file_columns())) {
+            return false;
+        }
+
+        if (!array_key_value_exists($column_name, $original)) {
+            return false;
+        }
+
+        $value[$column_name] = array_get($original, $column_name);
+        return true;
+    }
+
+    /**
      * set auto number
      */
-    protected function setAutoNumber()
+    protected function savedValue()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
@@ -194,27 +216,7 @@ class CustomValue extends ModelBase
             switch (array_get($custom_column, 'column_type')) {
                 // if column type is auto_number, set auto number.
                 case ColumnType::AUTO_NUMBER:
-                    // already set value, break
-                    if (!is_null($this->getValue($column_name))) {
-                        break;
-                    }
-                    $options = $custom_column->options;
-                    if (!isset($options)) {
-                        break;
-                    }
-                    
-                    if (array_get($options, 'auto_number_type') == 'format') {
-                        $auto_number = $this->createAutoNumberFormat($id, $options);
-                    }
-                    // if auto_number_type is random25, set value
-                    elseif (array_get($options, 'auto_number_type') == 'random25') {
-                        $auto_number = make_licensecode();
-                    }
-                    // if auto_number_type is UUID, set value
-                    elseif (array_get($options, 'auto_number_type') == 'random32') {
-                        $auto_number = make_uuid();
-                    }
-
+                    $auto_number = $custom_column->item->setCustomValue($this)->getAutoNumber();
                     if (isset($auto_number)) {
                         $this->setValue($column_name, $auto_number);
                         $update_flg = true;
@@ -282,89 +284,6 @@ class CustomValue extends ModelBase
         foreach ($notifies as $notify) {
             $notify->notifyCreateUpdateUser($this, $create);
         }
-    }
-
-    /**
-     * Create Auto Number value using format.
-     */
-    protected function createAutoNumberFormat($id, $options)
-    {
-        // get format
-        $format = array_get($options, "auto_number_format");
-        try {
-            // check string
-            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
-            if (isset($matches)) {
-                // loop for matches. because we want to get inner {}, loop $matches[1].
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    try {
-                        $match = strtolower($matches[1][$i]);
-                    
-                        // get length
-                        $length_array = explode(":", $match);
-                        
-                        ///// id
-                        if (strpos($match, "id") !== false) {
-                            // replace add zero using id.
-                            if (count($length_array) > 1) {
-                                $id_string = sprintf('%0'.$length_array[1].'d', $id);
-                            } else {
-                                $id_string = $id;
-                            }
-                            $format = str_replace($matches[0][$i], $id_string, $format);
-                        }
-
-                        ///// Year
-                        elseif (strpos($match, "y") !== false) {
-                            $str = Carbon::now()->year;
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-
-                        ///// Month
-                        elseif (strpos($match, "m") !== false) {
-                            $str = Carbon::now()->month;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-                    
-                        ///// Day
-                        elseif (strpos($match, "d") !== false) {
-                            $str = Carbon::now()->day;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-
-                        ///// value
-                        elseif (strpos($match, "value") !== false) {
-                            // get value from model
-                            if (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                $str = $this->getValue($length_array);
-                            }
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-                    } catch (Exception $e) {
-                    }
-                }
-            }
-        } catch (Exception $e) {
-        }
-        return $format;
     }
 
     /**
@@ -437,6 +356,10 @@ class CustomValue extends ModelBase
     
     public function getValue($column, $label = false, $options = [])
     {
+        if (is_null($column)) {
+            return null;
+        }
+
         $options = array_merge(
             [
                 'format' => null,
@@ -444,9 +367,6 @@ class CustomValue extends ModelBase
             ], $options
         );
         $custom_table = $this->custom_table;
-        if (is_null($column)) {
-            return null;
-        }
 
         // if $column is string and  and contains comma
         if (is_string($column) && str_contains($column, ',')) {
@@ -497,175 +417,16 @@ class CustomValue extends ModelBase
             return null;
         }
 
-        // get database value
-        $val = array_get($this, "value.{$column->column_name}");
-        if (is_null($val)) {
+        $item = CustomItem::getItem($column, $this);
+        if(!isset($item)){
             return null;
         }
-        
-        return $this->editValue($column, $val, $label, $options);
-    }
-    
-    public function editValue($column, $val, $label = false, $options = []) {
-        $custom_table = $this->custom_table;
-        $column_type = array_get($column, 'column_type');
-        // calcurate  --------------------------------------------------
-        if (in_array($column_type, [ColumnType::DECIMAL, ColumnType::CURRENCY])) {
-            $val = parseFloat($val);
-            if (array_has($column, 'options.decimal_digit')) {
-                $digit = intval(array_get($column, 'options.decimal_digit'));
-                $val = floor($val * pow(10, $digit)) / pow(10, $digit);
-            }
-        }
 
-        // return finally value --------------------------------------------------
-        // get value as select
-        // get value as select_valtext
-        if (in_array($column_type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT])) {
-            $array_get_key = $column_type == 'select' ? 'options.select_item' : 'options.select_item_valtext';
-            $select_item = array_get($column, $array_get_key);
-            $select_options = CustomColumn::getEloquent($column, $custom_table)->createSelectOptions();
-            if (!array_keys_exists($val, $select_options)) {
-                return null;
-            }
-
-            // if $val is array
-            $multiple = true;
-            if (!is_array($val)) {
-                $val = [$val];
-                $multiple = false;
-            }
-            // switch column_type and get return value
-            $returns = [];
-            switch ($column_type) {
-                case ColumnType::SELECT:
-                    $returns = $val;
-                    break;
-                case ColumnType::SELECT_VALTEXT:
-                    // loop keyvalue
-                    foreach ($val as $v) {
-                        // set whether $label
-                        $returns[] = $label ? array_get($select_options, $v) : $v;
-                    }
-                    break;
-            }
-            if ($multiple) {
-                return $label ? implode(exmtrans('common.separate_word'), $returns) : $returns;
-            } else {
-                return $returns[0];
-            }
+        $item->options($options);
+        if ($label) {
+            return $item->text();
         }
-
-        // get value as select_table
-        elseif (in_array($column_type, [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
-            // get target table
-            $target_table_key = null;
-            if ($column_type == ColumnType::SELECT_TABLE) {
-                $target_table_key = array_get($column, 'options.select_target_table');
-            } elseif (in_array($column_type, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-                $target_table_key = $column_type;
-            }
-            $target_table = CustomTable::getEloquent($target_table_key);
-
-            $model = getModelName(array_get($target_table, 'table_name'))::find($val);
-            if (is_null($model)) {
-                return null;
-            }
-            if ($label === false) {
-                return $model;
-            }
-            
-            // if $model is array multiple, set as array
-            if (!($model instanceof Collection)) {
-                $model = [$model];
-            }
-
-            $labels = [];
-            foreach ($model as $m) {
-                if (is_null($m)) {
-                    continue;
-                }
-                
-                // get label column
-                // if label is true, return getLabel
-                if ($label === true) {
-                    $labels[] = $m->label;
-                }
-                // if label is selecting column name, get target label
-                elseif (is_string($label)) {
-                    $labels[] = CustomColumn::where('custom_table_id', $target_table['id'])->where('column_name', $label)->first();
-                }
-            }
-            return implode(exmtrans('common.separate_word'), $labels);
-        } elseif (in_array($column_type, [ColumnType::FILE, ColumnType::IMAGE])) {
-            // get file
-            if ($label !== true) {
-                $file = File::getFile($val);
-                return $file;
-            }
-            return $val;
-        }
-        // yesno
-        elseif (in_array($column_type, [ColumnType::YESNO])) {
-            if ($label !== true) {
-                return $val;
-            }
-            // convert label
-            return boolval($val) ? 'YES' : 'NO';
-        }
-        // boolean
-        elseif (in_array($column_type, [ColumnType::BOOLEAN])) {
-            if ($label !== true) {
-                return $val;
-            }
-            // convert label
-            // check matched true and false value
-            if (array_get($column, 'options.true_value') == $val) {
-                return array_get($column, 'options.true_label');
-            } elseif (array_get($column, 'options.false_value') == $val) {
-                return array_get($column, 'options.false_label');
-            }
-            return null;
-        }
-        // currency
-        elseif (in_array($column_type, [ColumnType::CURRENCY])) {
-            // if not label, return
-            if ($label !== true) {
-                return $val;
-            }
-            if (boolval(array_get($column, 'options.number_format')) 
-                && is_numeric($val) 
-                && !boolval(array_get($options, 'disable_number_format')))
-            {
-                $val = number_format($val);
-            }
-            if(boolval(array_get($options, 'disable_currency_symbol'))){
-                return $val;
-            }
-            // get symbol
-            $symbol = array_get($column, 'options.currency_symbol');
-            return getCurrencySymbolLabel($symbol, $val);
-        }
-        // datetime, date
-        elseif (in_array($column_type, [ColumnType::DATETIME, ColumnType::DATE])) {
-            // if not empty format, using carbon
-            $format = array_get($options, 'format');
-            if (!is_nullorempty($format)) {
-                return (new \Carbon\Carbon($val))->format($format) ?? null;
-            }
-            // else, return
-            return $val;
-        }
-        else {
-            // if not label, return
-            if ($label !== true) {
-                return $val;
-            }
-            if (boolval(array_get($column, 'options.number_format')) && is_numeric($val)) {
-                $val = number_format($val);
-            }
-            return $val;
-        }
+        return $item->value();
     }
         
     /**
@@ -673,7 +434,7 @@ class CustomValue extends ModelBase
      * @param CustomValue $custom_value
      * @return string
      */
-    public function getLabel()
+    public function getText()
     {
         $custom_table = $this->custom_table;
 
@@ -752,7 +513,7 @@ class CustomValue extends ModelBase
         if(boolval($options['external-link'])){
             $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
         }else{
-            $label = esc_html($this->getLabel());
+            $label = esc_html($this->getText());
         }
 
         if (boolval($options['modal'])) {
@@ -765,51 +526,6 @@ class CustomValue extends ModelBase
         }
 
         return "<a href='$href'$widgetmodal_url>$label</a>";
-    }
-
-    /**
-     * Get url for column_type is url, select_table.
-     * @param CustomValue $custom_value
-     * @param CustomColumn $column
-     * @return string
-     */
-    public function getColumnUrl($column, $tag = false)
-    {
-        $url = null;
-        $value = esc_html($this->getValue($column, true));
-        switch ($column->column_type) {
-            case ColumnType::URL:
-                $url = $this->getValue($column);
-                if (!$tag) {
-                    return $url;
-                }
-                return "<a href='{$url}' target='_blank'>$value</a>";
-            case ColumnType::SELECT_TABLE:
-            case ColumnType::USER:
-            case ColumnType::ORGANIZATION:
-                $target_value = $this->getValue($column);
-                    
-                // if $target_value is not array multiple, set as array
-                if (!($target_value instanceof Collection)) {
-                    $target_value = [$target_value];
-                }
-                $urls = [];
-                foreach ($target_value as $m) {
-                    if (is_null($m)) {
-                        continue;
-                    }
-
-                    $id = $m->id ?? null;
-                    if (!isset($id)) {
-                        continue;
-                    }
-                    // create url
-                    $urls[] = $m->getUrl($tag);
-                }
-                return implode(exmtrans('common.separate_word'), $urls);
-        }
- 
-        return null;
     }
 
     /**
@@ -838,7 +554,7 @@ class CustomValue extends ModelBase
 
     /**
      * Get Custom children Value.
-     * v1.3.0 changes ... get children values using relation or select_table
+     * v1.1.0 changes ... get children values using relation or select_table
      */
     public function getChildrenValues($relation, $returnBuilder = false)
     {

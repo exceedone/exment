@@ -63,10 +63,7 @@ trait CustomValueGrid
             $filter->column(1/2, function ($filter) {
                 $filter->between('created_at', exmtrans('common.created_at'))->date();
                 $filter->between('updated_at', exmtrans('common.updated_at'))->date();
-            });
-
-            // loop custom column
-            $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
+                
                 // check 1:n relation
                 $relation = CustomRelation::getRelationByChild($this->custom_table);
                 // if set, create select
@@ -80,85 +77,16 @@ trait CustomValueGrid
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select($options);
                     }
                 }
+            });
 
+            // loop custom column
+            $filter->column(1/2, function ($filter) use ($search_enabled_columns) {
                 foreach ($search_enabled_columns as $search_column) {
-                    $column_name = $search_column->getIndexColumnName();
-                    $column_view_name = array_get($search_column, 'column_view_name');
-                    // filter type
-                    $column_type = array_get($search_column, 'column_type');
-
-                    // if multiple enabled column
-                    if(ColumnType::isMultipleEnabled($column_type)){
-                        //get options and ajax.
-                        $options = null;
-                        $ajax = null;
-                        switch ($column_type) {
-                            case ColumnType::SELECT:
-                            case ColumnType::SELECT_VALTEXT:
-                                $options = $search_column->createSelectOptions();
-                                break;
-                            case ColumnType::SELECT_TABLE:
-                            case ColumnType::USER:
-                            case ColumnType::ORGANIZATION:
-                                // get select_target_table
-                                if ($column_type == ColumnType::SELECT_TABLE) {
-                                    $select_target_table_id = array_get($search_column, 'options.select_target_table');
-                                    if (isset($select_target_table_id)) {
-                                        $select_target_table = CustomTable::find($select_target_table_id);
-                                    } else {
-                                        $select_target_table = null;
-                                    }
-                                } elseif ($column_type == ColumnType::USER) {
-                                    $select_target_table = CustomTable::getEloquent(SystemTableName::USER);
-                                } elseif ($column_type == ColumnType::ORGANIZATION) {
-                                    $select_target_table = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
-                                }
-    
-                                // get options and ajax url
-                                $options = $select_target_table->getOptions();
-                                $ajax = $select_target_table->getOptionAjaxUrl();
-                                break;
-                        }
-
-                        // if multiple, create where
-                        if(boolval($search_column->getOption('multiple_enabled'))){
-                            $filter->where(function ($query) use($column_name) {
-                                $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$column_name`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $this->input);
-                            }, $column_view_name)->select($options);
-                        }else{
-                            if (isset($ajax)) {
-                                $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
-                            } else {
-                                $filter->equal($column_name, $column_view_name)->select($options);
-                            }
-                        }
+                    $filterItem = $search_column->item->getAdminFilter() ?? null;
+                    if(is_null($filterItem)){
+                        continue;
                     }
-                    else{
-                        switch ($column_type) {
-                        case ColumnType::YESNO:
-                            $filter->equal($column_name, $column_view_name)->radio([
-                                ''   => 'All',
-                                0    => 'NO',
-                                1    => 'YES',
-                            ]);
-                            break;
-                        case ColumnType::BOOLEAN:
-                            $filter->equal($column_name, $column_view_name)->radio([
-                                ''   => 'All',
-                                array_get($search_column, 'options.false_value')    => array_get($search_column, 'options.false_label'),
-                                array_get($search_column, 'options.true_value')    => array_get($search_column, 'options.true_label'),
-                            ]);
-                            break;
-                        
-                        case ColumnType::DATE:
-                        case ColumnType::DATETIME:
-                            $filter->between($column_name, $column_view_name)->date();
-                            break;
-                        default:
-                            $filter->like($column_name, $column_view_name);
-                            break;
-                        }
-                    }
+                    $filter->use($filterItem);
                 }
             });
         });

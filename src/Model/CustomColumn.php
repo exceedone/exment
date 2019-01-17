@@ -1,12 +1,15 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+use Exceedone\Exment\Items;
+use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -41,6 +44,10 @@ class CustomColumn extends ModelBase
         return $query
             ->whereNotIn('options->use_label_flg', [0, "0"])
             ->orderBy('options->use_label_flg');
+    }
+
+    public function getItemAttribute(){
+        return Items\CustomItem::getItem($this, null);
     }
 
     /**
@@ -119,32 +126,11 @@ class CustomColumn extends ModelBase
         //  if index_enabled = false, and exists, then drop index
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
-            DB::beginTransaction();
-            try {
-                // ALTER TABLE
-                DB::statement("ALTER TABLE $db_table_name DROP INDEX $index_name;");
-                DB::statement("ALTER TABLE $db_table_name DROP COLUMN $db_column_name;");
-                DB::commit();
-            } catch (Exception $exception) {
-                DB::rollback();
-                throw $exception;
-            }
+            DynamicDBHelper::dropIndexColumn($db_table_name, $db_column_name, $index_name);
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
-            DB::beginTransaction();
-            try {
-                // ALTER TABLE
-                $as_value = "json_unquote(json_extract(`value`,'$.$column_name'))";
-
-                DB::statement("ALTER TABLE $db_table_name ADD $db_column_name nvarchar(768) GENERATED ALWAYS AS ($as_value) VIRTUAL;");
-                DB::statement("ALTER TABLE $db_table_name ADD index $index_name($db_column_name)");
-    
-                DB::commit();
-            } catch (Exception $exception) {
-                DB::rollback();
-                throw $exception;
-            }
+            DynamicDBHelper::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
     }
     
@@ -160,7 +146,7 @@ class CustomColumn extends ModelBase
         $db_table_name = getDBTableName($this->custom_table);
 
         // if not exists, execute alter column
-        if($alterColumn && !Schema::hasColumn($db_table_name, $name)){
+        if($alterColumn && !hasColumn($db_table_name, $name)){
             $this->alterColumn();
         }
         return $name;

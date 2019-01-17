@@ -13,6 +13,9 @@ use Exceedone\Exment\Enums\RoleValue;
  */
 class Define
 {
+    public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
+    public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
+
     public const RULES_REGEX_VALUE_FORMAT = '\${(.*?)\}';
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';
     public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z]{1,32})[a-zA-Z][-_a-zA-Z0-9]+$';
@@ -57,6 +60,7 @@ class Define
         'layout_mini' => ['sidebar-collapse', 'sidebar-mini'],
     ];
 
+    public const SYSTEM_KEY_SESSION_SYSTEM_CONFIG = "setting.%s";
     public const SYSTEM_KEY_SESSION_INITIALIZE = "initialize";
     public const SYSTEM_KEY_SESSION_AUTHORITY = "role";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
@@ -66,8 +70,11 @@ class Define
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS = "table_accessible_users_%s";
     public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
-    public const SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT = "custom_table_get_eloquent_%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT = "custom_column_get_eloquent_%s";
+    public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
+    public const SYSTEM_KEY_SESSION_ALL_RECORDS = "all_records_%s";
+    public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
+    public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
 
     // Dashboard --------------------------------------------------
     

@@ -6,6 +6,7 @@ namespace Exceedone\Exment\Model;
 class CustomFormBlock extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     
     protected $casts = ['options' => 'json'];

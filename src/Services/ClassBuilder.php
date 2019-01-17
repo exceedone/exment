@@ -1,13 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use \Exceedone\Exment\Model\System;
-use \Exceedone\Exment\Model\Role;
-use \Exceedone\Exment\Model\CustomTable;
-use \Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Role;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Services\DynamicDBHelper;
 use Illuminate\Support\Facades\DB;
 
 class ClassBuilder
@@ -216,8 +217,7 @@ class ClassBuilder
             // case many to many
             else {
                 // Create pivot table
-                $db = DB::connection();
-                $db->statement("CREATE TABLE IF NOT EXISTS ".$pivot_table_name." LIKE custom_relation_values");
+                DynamicDBHelper::createRelationValueTable($pivot_table_name);
 
                 $function_string = 'return $this->belongsToMany("'.getModelName($relation->child_custom_table).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
             }
@@ -236,8 +236,7 @@ class ClassBuilder
             // case many to many
             else {
                 // Create pivot table
-                $db = DB::connection();
-                $db->statement("CREATE TABLE IF NOT EXISTS ".$pivot_table_name." LIKE custom_relation_values");
+                DynamicDBHelper::createRelationValueTable($pivot_table_name);
 
                 $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
             }

@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\RelationType;
 
 class CustomCopy extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;

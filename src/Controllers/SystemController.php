@@ -38,20 +38,20 @@ class SystemController extends AdminControllerBase
         $this->addRoleForm($form, RoleType::SYSTEM);
 
         // Version infomation
-        // $infoBox = new InfoBox(
-        //     exmtrans("system.current_version") . '---',
-        //     'refresh',
-        //     'gray',
-        //     config('exment.manual_url'),
-        //     exmtrans("system.version_progress")
-        // );
-        // $class = $infoBox->getAttributes()['class'];
-        // $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
+        $infoBox = new InfoBox(
+            exmtrans("system.current_version") . '---',
+            'refresh',
+            'gray',
+            getManualUrl('update'),
+            exmtrans("system.version_progress")
+        );
+        $class = $infoBox->getAttributes()['class'];
+        $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
 
         $content->row(new Box(trans('admin.edit'), $form));
-        //$content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+        $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
 
-        //Admin::script($this->getVersionScript());
+        Admin::script($this->getVersionScript());
         return $content;
     }
 
@@ -62,7 +62,7 @@ class SystemController extends AdminControllerBase
      */
     protected function getVersionScript()
     {
-        $install = exmtrans("system.install_guide");
+        $install = exmtrans("system.update_guide");
         $script = <<<EOT
         $(function () {
             $('div.box-version .small-box-footer').hide();

@@ -38,38 +38,16 @@ trait CustomValueShow
                 ////// default block(no relation block)
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        //// change value using custom form value
-                        switch (array_get($form_column, 'form_column_type')) {
-                            // for table column
-                            case FormColumnType::COLUMN:
-                                $column = $form_column->custom_column;
-                                // set escape.
-                                // select_table, url is false
-                                $isEscape = ColumnType::isNotEscape(array_get($column, 'column_type'));
-                                $show->field(array_get($column, 'column_name'), array_get($column, 'column_view_name'))->as(function ($v) use ($form_column, $column) {
-                                    if (is_null($this)) {
-                                        return '';
-                                    }
-                                    $column_type = array_get($column, 'column_type');
-                                    if (ColumnType::isUrl($column_type)) {
-                                        return $this->getColumnUrl($column, true);
-                                    }
-                                    if ($column_type == ColumnType::EDITOR || $column_type == ColumnType::TEXTAREA) {
-                                        return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $this->getValue($column, true)).'</div>' ?? null;
-                                    }
-                                    return $this->getValue($column, true);
-                                })->setEscape(!$isEscape);
-                                break;
-                            case FormColumnType::SYSTEM:
-                                $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
-                                $column_view_name =  exmtrans("common.".$form_column_name);
-                                $show->field($form_column_name, $column_view_name)->as(function ($v) use ($form_column_name) {
-                                    return array_get($this, $form_column_name);
-                                });
-                                break;
-                            default:
-                                continue;
+                        $item = $form_column->item;
+                        if(!isset($item)){
+                            continue;
                         }
+                        $show->field($item->name(), $item->label())->as(function ($v) use ($form_column, $item) {
+                            if (is_null($this)) {
+                                return '';
+                            }
+                            return $item->setCustomValue($this)->html();
+                        })->setEscape(false);
                     }
                 }
                 ////// relation block

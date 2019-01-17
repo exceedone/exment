@@ -214,54 +214,8 @@ EOT;
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $form_column_options = $form_column->options;
-            switch ($form_column->form_column_type) {
-                case FormColumnType::COLUMN:
-                    $column = $form_column->custom_column;
-                    $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
-                    $fields[] = $field;
-                    break;
-                case FormColumnType::SYSTEM:
-                    // id is null, as create, so continue
-                    if (!isset($id)) {
-                        break;
-                    }
-                    $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
-                    $column_view_name =  exmtrans("common.".$form_column_name);
-                    // get model. we can get model is id almost has.
-                    $model = $this->getModelNameDV()::find($id);
-                    $field = new ExmentField\Display($form_column_name, [$column_view_name]);
-                    $field->default(array_get($model, $form_column_name));
-                    $fields[] = $field;
-                    break;
-                case FormColumnType::OTHER:
-                    $options = [];
-                    $form_column_name = FormColumnType::getOption(['id' => $form_column->form_column_target_id])['column_name'] ?? null;
-                    switch ($form_column_name) {
-                        case 'header':
-                            $field = new ExmentField\Header(array_get($form_column_options, 'text'));
-                            $field->hr();
-                            $fields[] = $field;
-                            break;
-                        case 'explain':
-                            $field = new ExmentField\Description(array_get($form_column_options, 'text'));
-                            $fields[] = $field;
-                            break;
-                        case 'html':
-                            $field = new Field\Html(array_get($form_column_options, 'html'));
-                            $fields[] = $field;
-                            break;
-                        default:
-                            continue;
-                            break;
-                    }
-                break;
-            }
-        }
-
-        foreach ($fields as $field) {
-            // push field to form
-            $form->pushField($field);
+            $item = $form_column->item;
+            $form->pushField($item->id($id)->getAdminField($form_column));
         }
     }
 
@@ -271,47 +225,10 @@ EOT;
     protected function getCustomFormColumns($form, $custom_form_block, $id = null)
     {
         $closures = [[], []];
+        $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $field = null;
-            $form_column_options = $form_column->options;
-            switch ($form_column->form_column_type) {
-                case FormColumnType::COLUMN:
-                    $column = $form_column->custom_column;
-                    $field = FormHelper::getFormField($this->custom_table, $column, $id, $form_column);
-                    break;
-                case FormColumnType::SYSTEM:
-                    // id is null, as create, so continue
-                    if (!isset($id)) {
-                        break;
-                    }
-                    $form_column_name = SystemColumn::getOption(['id' => array_get($form_column, 'form_column_target_id')])['name'] ?? null;
-                    $column_view_name =  exmtrans("common.".$form_column_name);
-                    // get model. we can get model is id almost has.
-                    $model = $this->getModelNameDV()::find($id);
-                    $field = new ExmentField\Display($form_column_name, [$column_view_name]);
-                    $field->default(array_get($model, $form_column_name));
-                    break;
-                case FormColumnType::OTHER:
-                    $options = [];
-                    $form_column_name = FormColumnType::getOption(['id' => $form_column->form_column_target_id])['column_name'] ?? null;
-                    switch ($form_column_name) {
-                        case 'header':
-                            $field = new ExmentField\Header(array_get($form_column_options, 'text'));
-                            $field->hr();
-                            break;
-                        case 'explain':
-                            $field = new ExmentField\Description(array_get($form_column_options, 'text'));
-                            break;
-                        case 'html':
-                            $field = new Field\Html(array_get($form_column_options, 'html'));
-                            break;
-                        default:
-                            continue;
-                            break;
-                    }
-                break;
-            }
+            $field = $form_column->item->setCustomValue($custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {

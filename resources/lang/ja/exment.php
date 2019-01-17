@@ -82,7 +82,7 @@ return [
         'version_develope' => 'このシステムは開発バージョンです。',
         'version_old' => '新しいバージョンがあります。',
         'version_error' => 'バージョンの取得に失敗しました。',
-        'install_guide' => 'インストールはこちらから',
+        'update_guide' => 'アップデート手順はこちらから',
         'current_version' => '現在のバージョン：',
         
         'site_skin_options' => [

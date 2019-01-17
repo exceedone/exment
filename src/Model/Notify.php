@@ -12,6 +12,7 @@ use Carbon\Carbon;
 
 class Notify extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;

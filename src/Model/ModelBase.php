@@ -82,7 +82,6 @@ class ModelBase extends Model
         if($value->trashed()){
             return exmtrans('common.trashed_user');
         }
-        return $value->getLabel();
-
+        return $value->getText();
     }
 }

@@ -12,6 +12,7 @@ class Dashboard extends ModelBase
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\DefaultFlgTrait;
+    use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];

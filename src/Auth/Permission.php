@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleValue;
@@ -217,7 +218,7 @@ class Permission
     protected function matchEndPointTable($endpoint)
     {
         // Get Endpoint
-        $table = getEndpointTable($endpoint);
+        $table = CustomTable::findByEndpoint($endpoint);
         if (!isset($table)) {
             return false;
         }
