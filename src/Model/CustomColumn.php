@@ -28,7 +28,7 @@ class CustomColumn extends ModelBase
 
     public function custom_view_columns()
     {
-        return $this->hasMany(CustomViewColumn::class, 'view_column_target');
+        return $this->hasMany(CustomViewColumn::class, 'view_column_target_id');
     }
 
     public function scopeIndexEnabled($query)

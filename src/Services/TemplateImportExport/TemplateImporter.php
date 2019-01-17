@@ -974,7 +974,7 @@ class TemplateImporter
                                 continue;
                             }
 
-                            $from_column_type = CopyColumnType::getEnum(array_get($copy_column, "from_column_type"))->getValue() ?? null;
+                            $from_column_type = array_get($copy_column, "from_column_type")? CopyColumnType::getEnum(array_get($copy_column, "from_column_type"))->getValue() : null;
                             $to_column_type = CopyColumnType::getEnum(array_get($copy_column, "to_column_type"))->getValue() ?? null;
                             $obj_copy_column = CustomCopyColumn::firstOrNew([
                                 'custom_copy_id' => $obj_copy->id,

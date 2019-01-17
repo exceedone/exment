@@ -37,8 +37,8 @@ class CopyMenuButton
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
-            if($('#modal-form').length > 0){
-                $('#modal-form').modal();
+            if($("#modal-form-$uuid").length > 0){
+                $("#modal-form-$uuid").modal();
                 return;
             }
             swal({
@@ -85,6 +85,7 @@ EOT;
         $form->action($path);
         $form->method('POST');
         $form->modalHeader($label);
+        $form->modalAttribute('id', 'modal-form-'.$uuid);
 
         // add form
         $form->description(sprintf(exmtrans('custom_copy.dialog_description'), $from_table_view_name, $to_table_view_name, $to_table_view_name));
