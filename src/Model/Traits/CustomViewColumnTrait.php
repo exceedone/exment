@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model\Traits;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Items;
+use Exceedone\Exment\ColumnItems;
 
 trait CustomViewColumnTrait
 {
@@ -17,22 +17,22 @@ trait CustomViewColumnTrait
         return $this->getViewColumnTarget();
     }
 
-    public function getItemAttribute(){
+    public function getColumnItemAttribute(){
         // if tagret is number, column type is column.
         if ($this->view_column_type == ViewColumnType::COLUMN) {
-            return $this->custom_column->item;
+            return $this->custom_column->column_item;
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
-            return Items\ParentItem::getItem($this->custom_view->custom_table, null);
+            return ColumnItems\ParentItem::getItem($this->custom_view->custom_table, null);
         }
         // child_summary
         elseif ($this->view_column_type == ViewColumnType::CHILD_SUM) {
-            return Items\AgreegateChildItem::getItem($this->custom_column, null);
+            return ColumnItems\AgreegateChildItem::getItem($this->custom_column, null);
         }
         // system column
         else {
-            return Items\SystemItem::getItem($this->view_column_target, null);
+            return ColumnItems\SystemItem::getItem($this->view_column_target, null);
         }   
     }
     

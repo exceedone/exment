@@ -84,7 +84,7 @@ class CustomView extends ModelBase
         // get view columns
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->item;
+            $item = $custom_view_column->column_item;
             $grid->column($item->name(), $item->label())
                 ->sort($item->sortable())
                 ->display(function ($v) use ($item) {
@@ -115,7 +115,7 @@ class CustomView extends ModelBase
         // create headers
         $headers = [];
         foreach ($custom_view_columns as $custom_view_column) {
-            $headers[] = $custom_view_column->item->label();
+            $headers[] = $custom_view_column->column_item->label();
         }
         $headers[] = trans('admin.action');
         
@@ -125,7 +125,7 @@ class CustomView extends ModelBase
             foreach ($datalist as $data) {
                 $body_items = [];
                 foreach ($custom_view_columns as $custom_view_column) {
-                    $item = $custom_view_column->item;
+                    $item = $custom_view_column->column_item;
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 

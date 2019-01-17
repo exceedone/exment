@@ -1,7 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-use Exceedone\Exment\Items;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
@@ -46,8 +46,8 @@ class CustomColumn extends ModelBase
             ->orderBy('options->use_label_flg');
     }
 
-    public function getItemAttribute(){
-        return Items\CustomItem::getItem($this, null);
+    public function getColumnItemAttribute(){
+        return ColumnItems\CustomItem::getItem($this, null);
     }
 
     /**

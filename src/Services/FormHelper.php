@@ -9,7 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Items\CustomItem;
+use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Validator;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
@@ -25,8 +25,8 @@ class FormHelper
     public static function getFormField($custom_table, $column, $id = null, $form_column = null, $column_name_prefix = null)
     {
         if(isset($form_column)){
-            return $form_column->item->getAdminField($form_column, $column_name_prefix);
+            return $form_column->column_item->getAdminField($form_column, $column_name_prefix);
         }
-        return $column->item->getAdminField(null, $column_name_prefix);
+        return $column->column_item->getAdminField(null, $column_name_prefix);
     }
 }
