@@ -119,6 +119,36 @@ class Initialize
         Config::set('admin.enable_default_breadcrumb', false);
         Config::set('admin.show_environment', false);
 
+
+        ///// set Exment-item class
+        $map = [
+            'auto_number'        => CustomColumns\AutoNumber::class,
+            'boolean'        => CustomColumns\Boolean::class,
+            'currency'        => CustomColumns\Currency::class,
+            'date'        => CustomColumns\Date::class,
+            'datetime'        => CustomColumns\Datetime::class,
+            'decimal'        => CustomColumns\Decimal::class,
+            'editor'        => CustomColumns\Editor::class,
+            'email'        => CustomColumns\Email::class,
+            'file'        => CustomColumns\File::class,
+            'hidden'        => CustomColumns\Hidden::class,
+            'image'        => CustomColumns\Image::class,
+            'integer'        => CustomColumns\Integer::class,
+            'organization'        => CustomColumns\Organization::class,
+            'select'        => CustomColumns\Select::class,
+            'select_table'        => CustomColumns\SelectTable::class,
+            'select_valtext'        => CustomColumns\SelectValtext::class,
+            'text'        => CustomColumns\Text::class,
+            'textarea'        => CustomColumns\Textarea::class,
+            'time'        => CustomColumns\Time::class,
+            'url'        => CustomColumns\Url::class,
+            'user'        => CustomColumns\User::class,
+            'yesno'        => CustomColumns\Yesno::class,
+        ];
+        foreach ($map as $abstract => $class) {
+            CustomItem::extend($abstract, $class);
+        }
+
         if ($setDatabase) {
             // Set system setting to config --------------------------------------------------
             // Site Name
@@ -188,34 +218,6 @@ class Initialize
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
-        }
-
-        $map = [
-            'auto_number'        => CustomColumns\AutoNumber::class,
-            'boolean'        => CustomColumns\Boolean::class,
-            'currency'        => CustomColumns\Currency::class,
-            'date'        => CustomColumns\Date::class,
-            'datetime'        => CustomColumns\Datetime::class,
-            'decimal'        => CustomColumns\Decimal::class,
-            'editor'        => CustomColumns\Editor::class,
-            'email'        => CustomColumns\Email::class,
-            'file'        => CustomColumns\File::class,
-            'hidden'        => CustomColumns\Hidden::class,
-            'image'        => CustomColumns\Image::class,
-            'integer'        => CustomColumns\Integer::class,
-            'organization'        => CustomColumns\Organization::class,
-            'select'        => CustomColumns\Select::class,
-            'select_table'        => CustomColumns\SelectTable::class,
-            'select_valtext'        => CustomColumns\SelectValtext::class,
-            'text'        => CustomColumns\Text::class,
-            'textarea'        => CustomColumns\Textarea::class,
-            'time'        => CustomColumns\Time::class,
-            'url'        => CustomColumns\Url::class,
-            'user'        => CustomColumns\User::class,
-            'yesno'        => CustomColumns\Yesno::class,
-        ];
-        foreach ($map as $abstract => $class) {
-            CustomItem::extend($abstract, $class);
         }
     }
 }

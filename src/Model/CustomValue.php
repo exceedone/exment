@@ -102,8 +102,7 @@ class CustomValue extends ModelBase
             $model->prepareValue();
         });
         static::saved(function ($model) {
-            // set auto format
-            $model->setAutoNumber();
+            $model->savedValue();
             $model->setValueAuthoritable();
         });
         static::created(function ($model) {
@@ -197,7 +196,7 @@ class CustomValue extends ModelBase
     /**
      * set auto number
      */
-    protected function setAutoNumber()
+    protected function savedValue()
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
@@ -217,27 +216,7 @@ class CustomValue extends ModelBase
             switch (array_get($custom_column, 'column_type')) {
                 // if column type is auto_number, set auto number.
                 case ColumnType::AUTO_NUMBER:
-                    // already set value, break
-                    if (!is_null($this->getValue($column_name))) {
-                        break;
-                    }
-                    $options = $custom_column->options;
-                    if (!isset($options)) {
-                        break;
-                    }
-                    
-                    if (array_get($options, 'auto_number_type') == 'format') {
-                        $auto_number = $this->createAutoNumberFormat($id, $options);
-                    }
-                    // if auto_number_type is random25, set value
-                    elseif (array_get($options, 'auto_number_type') == 'random25') {
-                        $auto_number = make_licensecode();
-                    }
-                    // if auto_number_type is UUID, set value
-                    elseif (array_get($options, 'auto_number_type') == 'random32') {
-                        $auto_number = make_uuid();
-                    }
-
+                    $auto_number = $custom_column->item->setCustomValue($this)->getAutoNumber();
                     if (isset($auto_number)) {
                         $this->setValue($column_name, $auto_number);
                         $update_flg = true;
@@ -305,89 +284,6 @@ class CustomValue extends ModelBase
         foreach ($notifies as $notify) {
             $notify->notifyCreateUpdateUser($this, $create);
         }
-    }
-
-    /**
-     * Create Auto Number value using format.
-     */
-    protected function createAutoNumberFormat($id, $options)
-    {
-        // get format
-        $format = array_get($options, "auto_number_format");
-        try {
-            // check string
-            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
-            if (isset($matches)) {
-                // loop for matches. because we want to get inner {}, loop $matches[1].
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    try {
-                        $match = strtolower($matches[1][$i]);
-                    
-                        // get length
-                        $length_array = explode(":", $match);
-                        
-                        ///// id
-                        if (strpos($match, "id") !== false) {
-                            // replace add zero using id.
-                            if (count($length_array) > 1) {
-                                $id_string = sprintf('%0'.$length_array[1].'d', $id);
-                            } else {
-                                $id_string = $id;
-                            }
-                            $format = str_replace($matches[0][$i], $id_string, $format);
-                        }
-
-                        ///// Year
-                        elseif (strpos($match, "y") !== false) {
-                            $str = Carbon::now()->year;
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-
-                        ///// Month
-                        elseif (strpos($match, "m") !== false) {
-                            $str = Carbon::now()->month;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-                    
-                        ///// Day
-                        elseif (strpos($match, "d") !== false) {
-                            $str = Carbon::now()->day;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-
-                        ///// value
-                        elseif (strpos($match, "value") !== false) {
-                            // get value from model
-                            if (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                $str = $this->getValue($length_array);
-                            }
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-                    } catch (Exception $e) {
-                    }
-                }
-            }
-        } catch (Exception $e) {
-        }
-        return $format;
     }
 
     /**
@@ -633,51 +529,6 @@ class CustomValue extends ModelBase
     }
 
     /**
-     * Get url for column_type is url, select_table.
-     * @param CustomValue $custom_value
-     * @param CustomColumn $column
-     * @return string
-     */
-    public function getColumnUrl($column, $tag = false)
-    {
-        $url = null;
-        $value = esc_html($this->getValue($column, true));
-        switch ($column->column_type) {
-            case ColumnType::URL:
-                $url = $this->getValue($column);
-                if (!$tag) {
-                    return $url;
-                }
-                return "<a href='{$url}' target='_blank'>$value</a>";
-            case ColumnType::SELECT_TABLE:
-            case ColumnType::USER:
-            case ColumnType::ORGANIZATION:
-                $target_value = $this->getValue($column);
-                    
-                // if $target_value is not array multiple, set as array
-                if (!($target_value instanceof Collection)) {
-                    $target_value = [$target_value];
-                }
-                $urls = [];
-                foreach ($target_value as $m) {
-                    if (is_null($m)) {
-                        continue;
-                    }
-
-                    $id = $m->id ?? null;
-                    if (!isset($id)) {
-                        continue;
-                    }
-                    // create url
-                    $urls[] = $m->getUrl($tag);
-                }
-                return implode(exmtrans('common.separate_word'), $urls);
-        }
- 
-        return null;
-    }
-
-    /**
      * get parent value
      */
     public function getParentValue($isonly_label = false)
@@ -703,7 +554,7 @@ class CustomValue extends ModelBase
 
     /**
      * Get Custom children Value.
-     * v1.3.0 changes ... get children values using relation or select_table
+     * v1.1.0 changes ... get children values using relation or select_table
      */
     public function getChildrenValues($relation, $returnBuilder = false)
     {
