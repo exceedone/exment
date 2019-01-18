@@ -36,7 +36,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\DataImportExport\DataImporterBase;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
-use \File;
 
 /**
  * Import Template
@@ -439,7 +438,7 @@ class TemplateImporter
         $basePath = pathinfo($basePath)['dirname'];
         $dataPath = path_join($basePath, 'data');
         // if exists, execute data copy
-        if(File::exists($dataPath)){
+        if(\File::exists($dataPath)){
             static::importData($dataPath);
         }
     }

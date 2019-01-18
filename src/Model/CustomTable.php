@@ -156,11 +156,11 @@ class CustomTable extends ModelBase
     public static function getEloquent($obj, $withs = [])
     {
         if ($obj instanceof CustomTable) {
-            return $obj;
+            return static::withLoad($obj, $withs);
         }elseif ($obj instanceof CustomColumn) {
-            return $obj->custom_table;
+            return static::withLoad($obj->custom_table, $withs);
         }elseif ($obj instanceof CustomValue) {
-            return $obj->custom_table;
+            return static::withLoad($obj->custom_table, $withs);
         }
 
         if ($obj instanceof \stdClass) {
@@ -185,19 +185,17 @@ class CustomTable extends ModelBase
             $query_key = 'table_name';
         }
         if(isset($query_key)){
-            $withs = static::getWiths($withs);
-            $query = static::query();
-            foreach($withs as $with){
-                $query->with($with);
-            }
             
-            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT, $obj);
-            return System::requestSession($key, function() use($query_key, $obj, $query){
-                return $query->where($query_key, $obj)->first();
+            // get table
+            $obj = static::allRecords()->first(function($table) use($query_key, $obj){
+                return array_get($table, $query_key) == $obj;
             });
+            if(!isset($obj)){
+                return null;
+            }
         }
 
-        return $obj;
+        return static::withLoad($obj, $withs);
     }
 
     protected static function getWiths($withs){
@@ -208,6 +206,17 @@ class CustomTable extends ModelBase
             return ['custom_columns'];
         }
         return [];
+    }
+    
+    /**
+     * set lazy load and return
+     */
+    protected static function withLoad($obj, $withs = []){
+        $withs = static::getWiths($withs);
+        if (count($withs) > 0) {
+            $obj->load($withs);
+        }
+        return $obj;
     }
 
     /**
