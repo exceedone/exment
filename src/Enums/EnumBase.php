@@ -70,6 +70,11 @@ class EnumBase extends Enum
                 return $enum;
             }
         }
+
+        // if if int, return as enum
+        if(is_int($default)){
+            return self::getEnum($default);
+        }
         return $default;
     }
     
