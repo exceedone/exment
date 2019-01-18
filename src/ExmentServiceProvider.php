@@ -5,18 +5,18 @@ namespace Exceedone\Exment;
 use Storage;
 use Request;
 use Encore\Admin\Admin;
+use Exceedone\Exment\Adapter;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Adapter\ExmentAdapterLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\UniqueInTableValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
+use League\Flysystem\Filesystem;
 
 class ExmentServiceProvider extends ServiceProvider
 {
@@ -216,11 +216,16 @@ class ExmentServiceProvider extends ServiceProvider
         Storage::extend('exment-driver', function ($app, $config) {
             switch(config('exment.driver.default', 'local')){
                 case 'local':
-                    return new Filesystem(new ExmentAdapterLocal(array_get($config, 'root')));
+                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
+                    break;
                 case 's3':
-                    return new Filesystem(new ExmentAdapterS3(array_get($config, 'root')));
+                    $adaper = Adapter\ExmentAdapterS3::getAdapter($app, $config);
+                    break;
+                default:
+                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
+                    break;
             }
-            return new Filesystem(new ExmentAdapterLocal(array_get($config, 'root')));
+            return new Filesystem($adaper);
         });
 
         Initialize::initializeConfig(false);
