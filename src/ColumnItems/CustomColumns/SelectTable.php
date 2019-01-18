@@ -100,11 +100,10 @@ class SelectTable extends CustomItem
         $options = $this->target_table->getOptions();
         $ajax = $this->target_table->getOptionAjaxUrl();
 
-        // if (isset($ajax)) {
-        //     $filter->select([])->ajax($ajax);
-        // } else {
-        //     $filter->select($options);
-        // }
-        $filter->select([])->ajax($ajax);
+        if (isset($ajax)) {
+            $filter->select([])->ajax($ajax);
+        } else {
+            $filter->select($options);
+        }
     }
 }
