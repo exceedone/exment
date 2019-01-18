@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\ColumnItems\FormOtherItem;
+use Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form;
@@ -147,6 +149,16 @@ class Initialize
         ];
         foreach ($map as $abstract => $class) {
             CustomItem::extend($abstract, $class);
+        }
+
+        ///// set Exment-item class
+        $map = [
+            'header'        => FormOthers\Header::class,
+            'description'        => FormOthers\Description::class,
+            'html'        => FormOthers\Html::class,
+        ];
+        foreach ($map as $abstract => $class) {
+            FormOtherItem::extend($abstract, $class);
         }
 
         if ($setDatabase) {
