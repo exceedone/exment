@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Adapter;
 
-use League\Flysystem\Adapter\Local;
+use League\Flysystem\AwsS3v3;
 
 use Exceedone\Exment\Model\File;
 
-class AdminLocal extends Local
+class ExmentAdapterS3 extends AwsS3Adapter
 {
     /**
      * Get URL using File class

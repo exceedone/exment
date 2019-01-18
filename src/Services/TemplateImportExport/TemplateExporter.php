@@ -60,7 +60,7 @@ class TemplateExporter
         
         // create ZIP file --------------------------------------------------
         $tmpdir = getTmpFolderPath('template', false);
-        $tmpFulldir = getFullpath($tmpdir, 'local', true);
+        $tmpFulldir = getFullpath($tmpdir, 'admin_tmp', true);
         $tmpfilename = make_uuid();
 
         $zip = new ZipArchive();
@@ -74,11 +74,11 @@ class TemplateExporter
         if (isset($thumbnail)) {
             // save thumbnail
             $thumbnail_dir = path_join($tmpdir, short_uuid());
-            $thumbnail_dirpath = getFullpath($thumbnail_dir, 'local');
+            $thumbnail_dirpath = getFullpath($thumbnail_dir, 'admin_tmp');
 
             $thumbnail_name = 'thumbnail.' . $thumbnail->extension();
-            $thumbnail_path = $thumbnail->store($thumbnail_dir, 'local');
-            $thumbnail_fullpath = getFullpath($thumbnail_path, 'local');
+            $thumbnail_path = $thumbnail->store($thumbnail_dir, 'admin_tmp');
+            $thumbnail_fullpath = getFullpath($thumbnail_path, 'admin_tmp');
             $zip->addFile($thumbnail_fullpath, $thumbnail_name);
 
             $config['thumbnail'] = $thumbnail_name;

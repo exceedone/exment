@@ -259,7 +259,7 @@ if (!function_exists('getTmpFolderPath')) {
         if(!$fullpath){
             return $path;
         }
-        $tmppath = getFullpath($path, 'local');
+        $tmppath = getFullpath($path, 'admin_tmp');
         if(!\File::exists($tmppath)){
             $aa = \File::makeDirectory($tmppath, 0755, true);
         }
@@ -267,7 +267,6 @@ if (!function_exists('getTmpFolderPath')) {
         return $tmppath;
     }
 }
-
 
 if (!function_exists('mb_basename')) {
     function mb_basename($str, $suffix=null)

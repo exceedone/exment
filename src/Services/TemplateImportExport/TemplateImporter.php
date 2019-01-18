@@ -117,10 +117,10 @@ class TemplateImporter
     {
         // store uploaded file
         $tmpdir = getTmpFolderPath('template', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'admin_tmp', true);
 
-        $filename = $uploadFile->store($tmpdir, 'local');
-        $fullpath = getFullpath($filename, 'local');
+        $filename = $uploadFile->store($tmpdir, 'admin_tmp');
+        $fullpath = getFullpath($filename, 'admin_tmp');
 
         // zip
         $zip = new ZipArchive;

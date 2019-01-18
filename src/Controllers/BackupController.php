@@ -144,8 +144,8 @@ class BackupController extends AdminControllerBase
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file
-            $filename = $file->store('upload_tmp', 'local');
-            $fullpath = getFullpath($filename, 'local');
+            $filename = $file->store('upload_tmp', 'admin_tmp');
+            $fullpath = getFullpath($filename, 'admin_tmp');
             \Artisan::call('down');
             $result = \Artisan::call('exment:restore', ['file' => $fullpath] );
             \Artisan::call('up');

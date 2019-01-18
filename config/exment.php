@@ -31,4 +31,8 @@ return [
 
     'notify_saved_skip_minutes' => env('EXMENT_NOTIFY_SAVED_SKIP_MINUTES', 5),
 
+    'driver' => [
+      'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+      'tmp' => env('EXMENT_DISK_TMP', 'local'),
+    ],
 ];

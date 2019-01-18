@@ -92,14 +92,14 @@ class Initialize
     
         if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [
-                'driver' => 'admin-local',
+                'driver' => 'exment-driver',
                 'root' => storage_path('app/admin'),
-                'url' => env('APP_URL').'/'.env('ADMIN_ROUTE_PREFIX'),
+                'url' => config('app.url').'/'.config('admin.route.prefix'),
             ]);
         }
         if (!Config::has('filesystems.disks.backup')) {
             Config::set('filesystems.disks.backup', [
-                'driver' => 'local',
+                'driver' => config('exment.driver.tmp', 'local'),
                 'root' => storage_path('app/backup'),
             ]);
         }

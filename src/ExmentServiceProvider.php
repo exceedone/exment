@@ -7,7 +7,7 @@ use Request;
 use Encore\Admin\Admin;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Adapter\AdminLocal;
+use Exceedone\Exment\Adapter\ExmentAdapterLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\UniqueInTableValidator;
@@ -213,8 +213,14 @@ class ExmentServiceProvider extends ServiceProvider
             return new UniqueInTableValidator($translator, $data, $rules, $messages);
         });
 
-        Storage::extend('admin-local', function ($app, $config) {
-            return new Filesystem(new AdminLocal(array_get($config, 'root')));
+        Storage::extend('exment-driver', function ($app, $config) {
+            switch(config('exment.driver.default', 'local')){
+                case 'local':
+                    return new Filesystem(new ExmentAdapterLocal(array_get($config, 'root')));
+                case 's3':
+                    return new Filesystem(new ExmentAdapterS3(array_get($config, 'root')));
+            }
+            return new Filesystem(new ExmentAdapterLocal(array_get($config, 'root')));
         });
 
         Initialize::initializeConfig(false);
