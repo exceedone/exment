@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Database\Eloquent\Collection;
 use Encore\Admin\Facades\Admin;
-use Exceedone\Exment\Items\CustomItem;
+use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -216,7 +216,7 @@ class CustomValue extends ModelBase
             switch (array_get($custom_column, 'column_type')) {
                 // if column type is auto_number, set auto number.
                 case ColumnType::AUTO_NUMBER:
-                    $auto_number = $custom_column->item->setCustomValue($this)->getAutoNumber();
+                    $auto_number = $custom_column->column_item->setCustomValue($this)->getAutoNumber();
                     if (isset($auto_number)) {
                         $this->setValue($column_name, $auto_number);
                         $update_flg = true;

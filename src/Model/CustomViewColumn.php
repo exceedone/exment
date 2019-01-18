@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ViewColumnType;
+
 class CustomViewColumn extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
@@ -19,6 +21,10 @@ class CustomViewColumn extends ModelBase
     
     public function custom_column()
     {
+        if ($this->view_column_type == ViewColumnType::SYSTEM) {
+            return null;
+        }
         return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
+        
 }

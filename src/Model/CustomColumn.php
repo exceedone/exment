@@ -1,7 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-use Exceedone\Exment\Items;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Support\Facades\Schema;
@@ -31,7 +31,7 @@ class CustomColumn extends ModelBase
 
     public function custom_view_columns()
     {
-        return $this->hasMany(CustomViewColumn::class, 'view_column_target');
+        return $this->hasMany(CustomViewColumn::class, 'view_column_target_id');
     }
 
     public function scopeIndexEnabled($query)
@@ -46,8 +46,8 @@ class CustomColumn extends ModelBase
             ->orderBy('options->use_label_flg');
     }
 
-    public function getItemAttribute(){
-        return Items\CustomItem::getItem($this, null);
+    public function getColumnItemAttribute(){
+        return ColumnItems\CustomItem::getItem($this);
     }
 
     /**
@@ -120,7 +120,7 @@ class CustomColumn extends ModelBase
         $index_enabled = $this->indexEnabled();
         
         // check table column field exists.
-        $exists = Schema::hasColumn($db_table_name, $db_column_name);
+        $exists = hasColumn($db_table_name, $db_column_name);
 
         $index_name = "index_$db_column_name";
         //  if index_enabled = false, and exists, then drop index

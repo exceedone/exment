@@ -142,12 +142,15 @@ return [
         'dashboard_box_type_options' => [
             'list' => 'データ一覧',
             'system' => 'システム',
+            'chart' => 'チャート',
         ],
         
         'dashboard_box_options' => [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
             'target_system_id' => '表示アイテム',
+            'chart_axisx' => '横軸の項目名',
+            'chart_axisy' => '縦軸の項目名',
         ],
 
         'dashboard_box_system_pages' => [
@@ -524,6 +527,9 @@ return [
         'description' => 'カスタムビューの設定を行います。',
         'view_view_name' => 'ビュー表示名',
         'custom_view_columns' => '表示列選択',
+        'custom_view_groups' => 'グループ列選択',
+        'view_column_name' => '別名表示',
+        'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
         'order' => '表示順',
@@ -532,8 +538,14 @@ return [
         'custom_view_filters' => '表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
+        'view_summary_condition' => '集計タイプ',
+        'view_summary_total' => '合計',
+        'view_summary_average' => '平均',
+        'view_summary_count' => '件数',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
+        'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。',
+        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。',
 
@@ -567,6 +579,7 @@ return [
         'custom_view_menulist' => [
             'current_view_edit' => '現在のビュー設定変更',
             'create' => 'ビュー新規作成',
+            'create_sum' => '集計ビュー新規作成',
         ],
 
         'custom_view_button_label' => 'ビュー',
@@ -748,6 +761,7 @@ return [
     'custom_value' => [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
+        'export' => 'エクスポート',
         'import' => [
             'import_file' => 'インポートファイル',
             'import_file_select' => 'CSVもしくはExcelファイルを選択',

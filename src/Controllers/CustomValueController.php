@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -22,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
+    use HasResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow, CustomValueSummary;
     protected $plugins = [];
 
     /**
@@ -72,7 +73,11 @@ class CustomValueController extends AdminControllerTableBase
                 $content->body($form);
             }
         } else {
-            $content->body($this->grid());
+            if ($this->custom_view->view_kind_type == ViewKindType::AGGREGATE) {
+                $content->body($this->gridSummary());
+            } else {
+                $content->body($this->grid());
+            }
         }
         return $content;
     }

@@ -38,7 +38,7 @@ trait CustomValueShow
                 ////// default block(no relation block)
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
-                        $item = $form_column->item;
+                        $item = $form_column->column_item;
                         if(!isset($item)){
                             continue;
                         }

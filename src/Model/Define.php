@@ -70,6 +70,7 @@ class Define
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS = "table_accessible_users_%s";
     public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
+    public const SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT = "custom_table_get_eloquent_%s";
     public const SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT = "custom_column_get_eloquent_%s";
     public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
     public const SYSTEM_KEY_SESSION_ALL_RECORDS = "all_records_%s";
@@ -198,8 +199,11 @@ class Define
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
 
-    public const FILE_OPTION = [
-        'showPreview' => false,
-        'showCancel' => false,
-    ];
+    public static function FILE_OPTION(){
+        return [
+            'showPreview' => false,
+            'showCancel' => false,
+            'browseLabel' => trans('admin.browse'),
+        ];
+    }
 }

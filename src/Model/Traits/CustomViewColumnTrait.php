@@ -2,10 +2,11 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Items;
+use Exceedone\Exment\ColumnItems;
 
 trait CustomViewColumnTrait
 {
@@ -17,22 +18,25 @@ trait CustomViewColumnTrait
         return $this->getViewColumnTarget();
     }
 
-    public function getItemAttribute(){
+    public function getColumnItemAttribute(){
         // if tagret is number, column type is column.
         if ($this->view_column_type == ViewColumnType::COLUMN) {
-            return $this->custom_column->item;
+            return $this->custom_column->column_item;
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
-            return Items\ParentItem::getItem($this->custom_view->custom_table, null);
+            return ColumnItems\ParentItem::getItem($this->custom_view->custom_table);
         }
         // child_summary
         elseif ($this->view_column_type == ViewColumnType::CHILD_SUM) {
-            return Items\AgreegateChildItem::getItem($this->custom_column, null);
+            return ColumnItems\CustomItem::getItem($this->custom_column)
+                ->options([
+                    'summary_child' => true,
+                ]);
         }
         // system column
         else {
-            return Items\SystemItem::getItem($this->view_column_target, null);
+            return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target);
         }   
     }
     
@@ -72,7 +76,7 @@ trait CustomViewColumnTrait
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
                 $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif(preg_match('/^\d+_\d+$/u', $view_column_target)) {
+            } elseif(preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
                 $items = explode('_', $view_column_target);
                 $this->{$column_type_key} = ViewColumnType::CHILD_SUM;
                 $this->{$column_type_target_key} = $items[1];

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SystemColumn;
 use Carbon\Carbon;
@@ -41,6 +42,11 @@ class CustomView extends ModelBase
     public function custom_view_sorts()
     {
         return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
+    }
+
+    public function custom_view_summaries()
+    {
+        return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
     }
 
     public function deletingChildren()
@@ -78,7 +84,7 @@ class CustomView extends ModelBase
         // get view columns
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->item;
+            $item = $custom_view_column->column_item;
             $grid->column($item->name(), $item->label())
                 ->sort($item->sortable())
                 ->display(function ($v) use ($item) {
@@ -109,7 +115,7 @@ class CustomView extends ModelBase
         // create headers
         $headers = [];
         foreach ($custom_view_columns as $custom_view_column) {
-            $headers[] = $custom_view_column->item->label();
+            $headers[] = $custom_view_column->column_item->label();
         }
         $headers[] = trans('admin.action');
         
@@ -119,7 +125,7 @@ class CustomView extends ModelBase
             foreach ($datalist as $data) {
                 $body_items = [];
                 foreach ($custom_view_columns as $custom_view_column) {
-                    $item = $custom_view_column->item;
+                    $item = $custom_view_column->column_item;
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
@@ -226,15 +232,18 @@ class CustomView extends ModelBase
     /**
      * set value filter 
      */
-    public function setValueFilter($model){
+    public function setValueFilter($model, $db_table_name = null){
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
-            if ($filter->column_view_type == ViewColumnType::COLUMN) {
+            if ($filter->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
-            }elseif($filter->column_view_type == ViewColumnType::PARENT_ID) {
+            }elseif($filter->view_column_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
+            }
+            if (isset($db_table_name)) {
+                $view_column_target = $db_table_name.'.'.$view_column_target;
             }
             $condition_value_text = $filter->view_filter_condition_value_text;
             $view_filter_condition = $filter->view_filter_condition;
@@ -364,7 +373,7 @@ class CustomView extends ModelBase
 
         return $model;
     }
-    
+
     /**
      * set value sort 
      */
@@ -378,10 +387,178 @@ class CustomView extends ModelBase
             if ($custom_view_sort->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = $custom_view_sort->custom_column->getIndexColumnName() ?? null;
             }
+            elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
+                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
+                $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
+            }
             //set order
             $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
         }
 
         return $model;
+    }
+
+    /**
+     * set value summary 
+     */
+    public function getValueSummary($model, $table_name){
+        // get table id
+        $table_id = getDBTableName($table_name);
+
+        // get join tables
+        $relations = CustomRelation::getRelationsByParent($table_name);
+        foreach($relations as $relation){
+            $child_name = getDBTableName($relation->child_custom_table);
+            $model = $model->join($child_name, $table_id.'.id', "$child_name.parent_id");
+            $model = $model->where("$child_name.parent_type", $table_name);
+        }
+
+        // set filter
+        $model = $this->setValueFilter($model, $table_id);
+
+        $group_columns = [];
+        $select_columns = [];
+        $index = 0;
+        
+        // set grouping columns
+        foreach ($this->custom_view_columns as $custom_view_column) {
+            $view_column_type = array_get($custom_view_column, 'view_column_type');
+            $alter_column_id = 'column_' . ViewKindType::DEFAULT . '_' . $custom_view_column->id;
+            if ($view_column_type == ViewColumnType::COLUMN) {
+                $column = $custom_view_column->custom_column;
+                if(!isset($column)){
+                    continue;
+                }
+                // get virtual column name
+                $column_name = $column->getIndexColumnName();
+                // $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
+                //     array_get($column, 'column_view_name') : array_get($custom_view_column, 'view_column_name');
+
+                $group_columns[] = $column_name;
+                $select_columns[] = "$column_name as $alter_column_id";
+
+                $index++;
+            }
+            elseif ($view_column_type == ViewColumnType::SYSTEM) {
+                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
+                $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
+                
+                $group_columns[] = "$table_id.$view_column_target";
+                $select_columns[] = "$table_id.$view_column_target as $alter_column_id";
+            }
+        }
+        // set summary columns
+        foreach ($this->custom_view_summaries as $custom_view_summary) {
+            $column = $custom_view_summary->custom_column;
+            $alter_column_id = 'column_' . ViewKindType::AGGREGATE . '_' . $custom_view_summary->id;
+            if (!isset($column)) {
+                continue;
+            }
+            $column_table_name = getDBTableName($column->custom_table);
+            $column_name = $column->column_name;
+            // $column_view_name = is_nullorempty(array_get($custom_view_summary, 'view_column_name'))? 
+            //     array_get($column, 'column_view_name') : array_get($custom_view_summary, 'view_column_name');
+
+            $summary = 'sum';
+            switch($custom_view_summary->view_summary_condition) {
+                case 1:
+                    $summary = 'sum';
+                    break;
+                case 2:
+                    $summary = 'avg';
+                    break;
+                case 3:
+                    $summary = 'count';
+                    break;
+            }
+            $select_columns[] = \DB::raw("$summary($column_table_name.value->'$.$column_name') AS $alter_column_id");
+            $index++;
+        }
+ 
+        // set sql select columns
+        $model = $model->select($select_columns);
+ 
+        // set sql grouping columns
+        $model = $model->groupBy($group_columns);
+
+        $datalist = $model->get();
+
+        return $datalist;
+    }
+
+    /**
+     * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
+     * @param $number_only
+     */
+    public function getColumnsSelectOptions($number_only = false)
+    {
+        $options = [];
+        
+        foreach($this->custom_view_columns as $custom_view_column) {
+            $option = $this->getSelectColumn(ViewKindType::DEFAULT, $custom_view_column, $number_only);
+            if (!is_null($option)) {
+                $options[] = $option;
+            }
+        }
+
+        foreach($this->custom_view_summaries as $custom_view_summary) {
+            $option = $this->getSelectColumn(ViewKindType::AGGREGATE, $custom_view_summary, $number_only);
+            if (!is_null($option)) {
+                $options[] = $option;
+            }
+        }
+
+        return $options;
+    }
+
+    public function getSelectColumn($column_type, $custom_view_column, $number_only)
+    {
+        $view_column_type = array_get($custom_view_column, 'view_column_type');
+        $view_column_id = $column_type . '_' . array_get($custom_view_column, 'id');
+
+        $custom_table_id = $this->custom_table_id;
+        $column_view_name = array_get($custom_view_column, 'view_column_name');
+
+        switch($view_column_type) {
+            case ViewColumnType::COLUMN:
+            case ViewColumnType::CHILD_SUM:
+                $column = $custom_view_column->custom_column;
+                if ($number_only) {
+                    switch (array_get($column, 'column_type')) {
+                        case ColumnType::INTEGER:
+                        case ColumnType::DECIMAL:
+                        case ColumnType::CURRENCY:
+                            break;
+                        default:
+                            return null;
+                    }
+                }
+                if (is_nullorempty($column_view_name)) {
+                    $column_view_name = array_get($column, 'column_view_name');
+                    if ($custom_table_id != array_get($column, 'custom_table_id')) {
+                        $column_view_name = array_get($column->custom_table, 'table_view_name') . '::' . $column_view_name;
+                    }
+                }
+                break;
+            case ViewColumnType::SYSTEM:
+                if ($number_only) return null;
+                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
+                if (is_nullorempty($column_view_name)) {
+                    $column_view_name = exmtrans('common.'.$system_info['name']);
+                }
+            case ViewColumnType::PARENT_ID:
+                if ($number_only) return null;
+                $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table_id)->first();
+                ///// if this table is child relation(1:n), add parent table
+                if (isset($relation)) {
+                    $column_view_name = array_get($relation, 'parent_custom_table.table_view_name');
+                }
+        }
+
+        if (is_nullorempty($column_view_name)) {
+            return null;
+        } else {
+            return ['id' => $view_column_id, 'text' => $column_view_name];
+        }
     }
 }

@@ -50,6 +50,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('dashboardbox/delete/{suuid}', 'DashboardBoxController@delete');
             $router->resource('dashboard', 'DashboardController');
             $router->get("dashboardbox/table_views", 'DashboardBoxController@tableViews');
+            $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
             $router->resource('dashboardbox', 'DashboardBoxController');
 
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
@@ -95,7 +96,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('backup/download/{ymdhms}', function($ymdhms){
                 return BackupController::download($ymdhms);
             });
-            
+            $router->get('testpath', function () { return public_path(); }); 
             // set static name. because this function is called composer install.
             try {
                 if (hasTable(SystemTableName::CUSTOM_TABLE)) {

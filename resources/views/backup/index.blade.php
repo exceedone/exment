@@ -24,7 +24,7 @@
                     <li><a href="#" class="grid-batch-0">{{trans('admin.delete')}}</a></li>
                 </ul>
             </div>
-            <a class="btn btn-sm btn-primary grid-refresh" title="{{exmtrans('backup.reload')}}">
+            <a class="btn btn-sm btn-primary grid-refresh" title="{{trans('admin.refresh')}}">
                 <i class="fa fa-refresh"></i>
                 <span class="hidden-xs"> {{trans('admin.refresh')}}</span>
             </a> 

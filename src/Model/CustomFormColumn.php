@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Items;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -57,18 +57,18 @@ class CustomFormColumn extends ModelBase
         return null;
     }
     
-    public function getItemAttribute(){
+    public function getColumnItemAttribute(){
         // if tagret is number, column type is column.
         if ($this->form_column_type == FormColumnType::COLUMN) {
-            return $this->custom_column->item;
+            return $this->custom_column->column_item;
         }
         // system
         elseif ($this->form_column_type == FormColumnType::SYSTEM) {
-            return Items\SystemItem::getItem($this->form_column_target, null);
+            return ColumnItems\SystemItem::getItem($this->custom_form_block->target_table, $this->form_column_target, null);
         }
         // other column
         else {
-            return Items\FormOtherItem::getItem($this);
+            return ColumnItems\FormOtherItem::getItem($this);
         }   
     }
     

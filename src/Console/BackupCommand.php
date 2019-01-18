@@ -199,6 +199,9 @@ class BackupCommand extends Command
         if (is_array($settings)) {
             foreach($settings as $setting) {
                 $from = base_path($setting);
+                if(!\File::exists($from)) {
+                    continue;
+                }
                 $to = path_join($this->tempdir, $setting);
                 if(!File::exists($from)){
                     continue;

@@ -89,13 +89,18 @@ class CustomViewController extends AdminControllerTableBase
         
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
+            $table_name = $this->custom_table->table_name;
         }
 
         //  $grid->disableCreateButton();
         $grid->disableExport();
-        $grid->actions(function (Grid\Displayers\Actions $actions) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
             if (boolval($actions->row->system_flg)) {
                 $actions->disableDelete();
+            }
+            if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE) {
+                $actions->disableEdit();
+                $actions->prepend('<a href="'.admin_base_paths('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.Enums\ViewKindType::AGGREGATE.'"><i class="fa fa-edit"></i></a>');
             }
             $actions->disableView();
         });
@@ -113,9 +118,18 @@ class CustomViewController extends AdminControllerTableBase
      */
     protected function form($id = null)
     {
+        // get request
+        $request = Request::capture();
+        if (!is_null($request->input('view_kind_type'))) {
+            $view_kind_type = $request->input('view_kind_type');
+        } else {
+            $view_kind_type = $request->query('view_kind_type')?? '0';
+        }
+
         $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
+        $form->hidden('view_kind_type')->default($view_kind_type);
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
@@ -125,13 +139,38 @@ class CustomViewController extends AdminControllerTableBase
         
         $custom_table = $this->custom_table;
 
-        // columns setting
-        $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions());
-            $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-        })->setTableColumnWidth(6, 4, 2)
-        ->description(exmtrans("custom_view.description_custom_view_columns"));
+        if (intval($view_kind_type) === Enums\ViewKindType::AGGREGATE) {
+            // group columns setting
+            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options($this->custom_table->getColumnsSelectOptions(true, true));
+                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
+            })->setTableColumnWidth(4, 3, 2, 1)
+            ->description(exmtrans("custom_view.description_custom_view_groups"));
+
+            // summary columns setting
+            $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options($this->custom_table->getNumberColumnsSelectOptions());
+                $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
+                    ->options([
+                        1 => exmtrans("custom_view.view_summary_total"), 
+                        2 => exmtrans("custom_view.view_summary_average"), 
+                        3 => exmtrans("custom_view.view_summary_count")])->required()->default(1);
+                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+            })->setTableColumnWidth(4, 2, 3, 1)
+            ->description(exmtrans("custom_view.description_custom_view_summaries"));
+        } else {
+            // columns setting
+            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options($this->custom_table->getColumnsSelectOptions());
+                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
+            })->setTableColumnWidth(4, 3, 2, 1)
+            ->description(exmtrans("custom_view.description_custom_view_columns"));
+        }
 
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
@@ -165,13 +204,15 @@ class CustomViewController extends AdminControllerTableBase
         ->description(exmtrans("custom_view.description_custom_view_filters"));
 
         // sort setting
-        $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
+        if (intval($view_kind_type) != Enums\ViewKindType::AGGREGATE) {
+            $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true));
             $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
             $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
-        ->description(exmtrans("custom_view.description_custom_view_sorts"));
+            ->description(exmtrans("custom_view.description_custom_view_sorts"));
+        }
 
         if (!isset($id)) {
             $id = $form->model()->id;

@@ -214,7 +214,7 @@ EOT;
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $item = $form_column->item;
+            $item = $form_column->column_item;
             $form->pushField($item->id($id)->getAdminField($form_column));
         }
     }
@@ -228,7 +228,7 @@ EOT;
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $field = $form_column->item->setCustomValue($custom_value)->getAdminField($form_column);
+            $field = $form_column->column_item->setCustomValue($custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
             if (isset($field)) {
