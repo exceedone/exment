@@ -476,109 +476,25 @@ class TemplateImporter
             // Loop by tables
             foreach (array_get($json, "custom_tables") as $table) {
                 // Create tables. --------------------------------------------------
-                $table_name = array_get($table, 'table_name');
-                $obj_table = CustomTable::firstOrNew(['table_name' => $table_name]);
-                $obj_table->table_name = $table_name;
-                $obj_table->description = array_get($table, 'description');
-                // system flg checks 1. whether import from system, 2. table setting sets 1
-                $table_system_flg = array_get($table, 'system_flg');
-                $obj_table->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
-
-                // set showlist_flg
-                if (!array_has($table, 'showlist_flg')) {
-                    $obj_table->showlist_flg = true;
-                } elseif (boolval(array_get($table, 'showlist_flg'))) {
-                    $obj_table->showlist_flg = true;
-                } else {
-                    $obj_table->showlist_flg = false;
-                }
-
-                // if contains table view name in config
-                if (array_key_value_exists('table_view_name', $table)) {
-                    $obj_table->table_view_name = array_get($table, 'table_view_name');
-                }
-                // not exists, get lang using app config
-                else {
-                    $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
-                }
-                $obj_table->setOption(array_get($table, 'options', []));                    
-                $obj_table->saveOrFail();
-
-                // Create database table.
-                $table_name = array_get($table, 'table_name');
-                $obj_table->createTable();
+                $obj_table = CustomTable::importTemplate($table, [
+                    'system_flg' => $system_flg
+                ]);
             }
 
             // Re-Loop by tables and create columns
             foreach (array_get($json, "custom_tables") as $table) {
                 // find tables. --------------------------------------------------
                 $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
-                
                 // Create columns. --------------------------------------------------
                 if (array_key_exists('custom_columns', $table)) {
-                    $table_columns = [];
                     foreach (array_get($table, 'custom_columns') as $column) {
-                        $column_name = array_get($column, 'column_name');
-                        $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
-                        $obj_column->column_name = $column_name;
-                        $obj_column->column_type = array_get($column, 'column_type');
-                        // system flg checks 1. whether import from system, 2. table setting sets 1
-                        $column_system_flg = array_get($column, 'system_flg');
-                        $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
-
-                        ///// set options
-                        collect(array_get($column, 'options', []))->each(function ($option, $key) use($obj_column) {
-                            $obj_column->setOption($key, $option, true);
-                        });
-
-                        // if options has select_target_table_name, get id
-                        if (array_key_value_exists('options.select_target_table_name', $column)) {
-                            if (is_nullorempty(array_get($column, 'options.select_target_table_name'))) {
-                                $obj_column->forgetOption('select_target_table');
-                            } else {
-                                $custom_table = CustomTable::getEloquent(array_get($column, 'options.select_target_table_name'));
-                                $id = $custom_table->id ?? null;
-                                // not set id, continue
-                                if (!isset($id)) {
-                                    continue;
-                                }
-                                $obj_column->setOption('select_target_table', $id);
-                            }
-                        }else{
-                            $obj_column->forgetOption('select_target_table');
-                        }
-                        $obj_column->forgetOption('select_target_table_name');
-
-                        // set characters
-                        if (array_key_value_exists('options.available_characters', $column)) {
-                            $available_characters = array_get($column, 'options.available_characters');
-                            // if string, convert to array
-                            if (is_string($available_characters)) {
-                                $obj_column->setOption('available_characters', explode(",", $available_characters));
-                            }
-                        }
-
-                        ///// set view name
-                        // if contains column view name in config
-                        if (array_key_value_exists('column_view_name', $column)) {
-                            $obj_column->column_view_name = array_get($column, 'column_view_name');
-                        }
-                        // not exists, get lang using app config
-                        else {
-                            $obj_column->column_view_name = exmtrans("custom_column.system_definitions.$column_name");
-                        }
-
-                        array_push($table_columns, $obj_column);
-                    }
-
-                    if (count($table_columns) > 0) {
-                        $obj_table->custom_columns()->saveMany($table_columns);
+                        $obj_column = CustomColumn::importTemplate($column, [
+                            'system_flg' => $system_flg,
+                            'custom_table' => $obj_table,
+                        ]);
                     }
                 }
 
-                // Create database table.
-                $table_name = array_get($table, 'table_name');
-                
                 // alter table
                 $columns = $obj_table->getSearchEnabledColumns();
                 foreach ($columns as $column) {
@@ -593,50 +509,10 @@ class TemplateImporter
                 // get columns. --------------------------------------------------
                 if (array_key_exists('custom_columns', $table)) {
                     foreach (array_get($table, 'custom_columns') as $column) {
-                        $column_name = array_get($column, 'column_name');
-                        $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
-                        
-                        ///// set options                        
-                        // check need update
-                        $update_flg = false;
-                        // if column type is calc, set dynamic val
-                        if (ColumnType::isCalc(array_get($column, 'column_type'))) {
-                            $calc_formula = array_get($column, 'options.calc_formula', []);
-                            if (is_null($calc_formula)) {
-                                $obj_column->forgetOption('calc_formula');
-                                continue;
-                            }
-                            // if $calc_formula is string, convert to json
-                            if (is_string($calc_formula)) {
-                                $calc_formula = json_decode($calc_formula, true);
-                            }
-                            if (is_array($calc_formula)) {
-                                foreach ($calc_formula as &$c) {
-                                    $val = $c['val'];
-                                    // if dynamic or select table
-                                    if (in_array(array_get($c, 'type'), ['dynamic', 'select_table'])) {
-                                        $c['val'] = $obj_table->custom_columns()->where('column_name', $val)->first()->id ?? null;
-                                    }
-                                    
-                                    // if select_table
-                                    if (array_get($c, 'type') == 'select_table') {
-                                        // get select table
-                                        $select_table_id = CustomColumn::find($c['val'])->getOption('select_target_table') ?? null;
-                                        $select_table = CustomTable::find($select_table_id) ?? null;
-                                        // get select from column
-                                        $from_column_id = $select_table->custom_columns()->where('column_name', array_get($c, 'from'))->first()->id ?? null;
-                                        $c['from'] = $from_column_id;
-                                    }
-                                }
-                            }
-                            // set as json string
-                            $obj_column->setOption('calc_formula', $calc_formula);
-                            $update_flg = true;
-                        }
-
-                        if ($update_flg) {
-                            $obj_column->save();
-                        }
+                        $obj_column = CustomColumn::importTemplateRelationColumn($column, [
+                            'system_flg' => $system_flg,
+                            'custom_table' => $obj_table,
+                        ]);
                     }
                 }
             }
@@ -644,179 +520,17 @@ class TemplateImporter
             // Loop relations.
             if (array_key_exists('custom_relations', $json)) {
                 foreach (array_get($json, "custom_relations") as $relation) {
-                    $parent_id = CustomTable::getEloquent(array_get($relation, 'parent_custom_table_name'))->id ?? null;
-                    $child_id = CustomTable::getEloquent(array_get($relation, 'child_custom_table_name'))->id ?? null;
-                    if (!isset($parent_id) || !isset($child_id)) {
-                        continue;
-                    }
-                    
-                    // Create relations. --------------------------------------------------
-                    $obj_relation = CustomRelation::firstOrNew([
-                        'parent_custom_table_id' => $parent_id
-                        , 'child_custom_table_id' => $child_id
-                        ]);
-                    $obj_relation->parent_custom_table_id = $parent_id;
-                    $obj_relation->child_custom_table_id = $child_id;
-                    $obj_relation->relation_type = RelationType::getEnumValue(array_get($relation, 'relation_type'));
-                    $obj_relation->saveOrFail();
+                    $obj_relation = CustomRelation::importTemplate($relation);
                 }
             }
 
             // loop for form
             if (array_key_exists('custom_forms', $json)) {
                 foreach (array_get($json, "custom_forms") as $form) {
-                    $table = CustomTable::getEloquent(array_get($form, 'table_name'));
-                    // Create form --------------------------------------------------
-                    $obj_form = CustomForm::firstOrNew([
-                        'custom_table_id' => $table->id
-                        ]);
-                    $obj_form->form_view_name = array_get($form, 'form_view_name');
-                    $obj_form->default_flg = boolval(array_get($form, 'default_flg'));
-                    $obj_form->saveOrFail();
-
-                    // Create form block
-                    if (array_get($form, "custom_form_blocks")) {
-                        foreach (array_get($form, "custom_form_blocks") as $form_block) {
-                            // target block id
-                            if (isset($form_block['form_block_target_table_name'])) {
-                                $target_table = CustomTable::getEloquent($form_block['form_block_target_table_name']);
-                            } else {
-                                $target_table = $table;
-                            }
-
-                            // get form_block_type
-                            if (isset($form_block['form_block_type'])) {
-                                $form_block_type = $form_block['form_block_type'];
-                            } else {
-                                $self = $target_table->id == $table->id;
-                                if ($self) {
-                                    $form_block_type = FormBlockType::DEFAULT;
-                                } else {
-                                    // get relation
-                                    $block_relation = CustomRelation
-                                                    ::where('parent_custom_table_id', $table->id)
-                                                    ->where('child_custom_table_id', $target_table->id)
-                                                    ->first();
-                                    if (isset($block_relation)) {
-                                        $form_block_type = $block_relation->relation_type;
-                                    } else {
-                                        $form_block_type = FormBlockType::ONE_TO_MANY;
-                                    }
-                                }
-                            }
-
-                            $obj_form_block = CustomFormBlock::firstOrNew([
-                            'custom_form_id' => $obj_form->id,
-                            'form_block_target_table_id' => $target_table->id,
-                        ]);
-                            $obj_form_block->custom_form_id = $obj_form->id;
-                            $obj_form_block->form_block_type = FormBlockType::getEnumValue($form_block_type);
-                            $obj_form_block->form_block_view_name = array_get($form_block, 'form_block_view_name');
-                            $obj_form_block->form_block_target_table_id = $target_table->id;
-                            if (!$obj_form_block->exists) {
-                                $obj_form_block->available = true;
-                            }
-
-                            // set option
-                            collect(array_get($form_block, 'options', []))->each(function ($option, $key) use($obj_form_block) {
-                                $obj_form_block->setOption($key, $option, true);
-                            });
-                            $obj_form_block->saveOrFail();
-
-                            // create form colunms --------------------------------------------------
-                            if (array_key_exists('custom_form_columns', $form_block)) {
-                                // get column counts
-                                $count = count($obj_form_block->custom_form_columns);
-                                foreach (array_get($form_block, "custom_form_columns") as $form_column) {
-                                    //
-                                    if (array_key_exists('form_column_type', $form_column)) {
-                                        $form_column_type = FormColumnType::getEnumValue(array_get($form_column, "form_column_type"));
-                                    } else {
-                                        $form_column_type = FormColumnType::COLUMN;
-                                    }
-
-                                    $form_column_name = array_get($form_column, "form_column_target_name");
-                                    switch ($form_column_type) {
-                                    // for table column
-                                    case FormColumnType::COLUMN:
-                                        // get column name
-                                        $form_column_target = CustomColumn
-                                            ::where('column_name', $form_column_name)
-                                            ->where('custom_table_id', $target_table->id)
-                                            ->first();
-                                        $form_column_target_id = isset($form_column_target) ? $form_column_target->id : null;
-                                        break;
-                                    case FormColumnType::SYSTEM:
-                                        $form_column_target_id = SystemColumn::getOption(['name' => $form_column_name])['id'] ?? null;
-                                        break;
-                                    default:
-                                        $form_column_target_id = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
-                                        break;
-                                }
-
-                                    // if not set column id, continue
-                                    if (!isset($form_column_target_id)) {
-                                        continue;
-                                    }
-
-                                    $obj_form_column = CustomFormColumn::firstOrNew([
-                                        'custom_form_block_id' => $obj_form_block->id,
-                                        'form_column_type' => $form_column_type,
-                                        'form_column_target_id' => $form_column_target_id,
-                                    ]);
-                                    $obj_form_column->custom_form_block_id = $obj_form_block->id;
-                                    $obj_form_column->form_column_type = $form_column_type;
-                                    $obj_form_column->form_column_target_id = $form_column_target_id;
-                                    if (!$obj_form_column->exists) {
-                                        $obj_form_column->order = ++$count;
-                                    }
-                                    $obj_form_column->column_no = array_get($form_column, 'column_no', 1) ?? 1;
-                                
-                                    // set option
-                                    collect(array_get($form_column, 'options', []))->each(function ($option, $key) use($obj_form_column) {
-                                        $obj_form_column->setOption($key, $option, true);
-                                    });
-
-                                    // if has changedata_column_name and changedata_target_column_name, set id
-                                    if (array_key_value_exists('options.changedata_column_name', $form_column) && array_key_value_exists('options.changedata_column_table_name', $form_column)) {
-                                        // get using changedata_column_table_name
-                                        $id = CustomTable::getEloquent(array_get($form_column, 'options.changedata_column_table_name'))
-                                            ->custom_columns()
-                                            ->where('column_name', array_get($form_column, 'options.changedata_column_name'))
-                                            ->first()
-                                            ->id
-                                        ?? null;
-                                        $obj_form_column->setOption('changedata_column_id', $id);
-                                        $obj_form_column->forgetOption('changedata_column_name');
-                                    }
-                                    if (array_key_value_exists('options.changedata_target_column_name', $form_column)) {
-                                        $changedata_target_column_name = array_get($form_column, 'options.changedata_target_column_name');
-                                        // get changedata target table name and column
-                                        // if changedata_target_column_name value has dotted, get parent table name
-                                        if (str_contains($changedata_target_column_name, ".")) {
-                                            list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
-                                            $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
-                                        } else {
-                                            $changedata_target_table = $target_table;
-                                            $changedata_target_column_name = $changedata_target_column_name;
-                                        }
-                                        $id = $changedata_target_table
-                                            ->custom_columns()
-                                            ->where('column_name', $changedata_target_column_name)
-                                            ->first()
-                                            ->id
-                                        ?? null;
-                                        $obj_form_column->setOption('changedata_target_column_id', $id);
-                                        $obj_form_column->forgetOption('changedata_target_column_name');
-                                    }
-                                
-                                    $obj_form_column->saveOrFail();
-                                }
-                            }
-                        }
-                    }
+                    $obj_form = CustomForm::importTemplate($form);
                 }
             }
+
             // loop for view
             if (array_key_value_exists('custom_views', $json)) {
                 foreach (array_get($json, "custom_views") as $view) {
@@ -881,7 +595,7 @@ class TemplateImporter
                             }
 
                             $view_column_type = ViewColumnType::getEnumValue(array_get($view_filter, "view_column_type"));
-                            $obj_view_filter = CustomviewFilter::firstOrNew([
+                            $obj_view_filter = CustomViewFilter::firstOrNew([
                                 'custom_view_id' => $obj_view->id,
                                 'view_column_type' => $view_column_type,
                                 'view_column_target_id' => $view_column_target,

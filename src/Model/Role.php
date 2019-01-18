@@ -38,7 +38,7 @@ class Role extends ModelBase
         }
         
         // get Role setting
-        $roles = static::allRecords()->filter(function($record) use($related_type){
+        $roles = static::allRecords(function($record) use($related_type){
             return $record->role_type == $related_type;
         });
         foreach ($roles as $role) {

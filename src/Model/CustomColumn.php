@@ -4,10 +4,11 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\ColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-class CustomColumn extends ModelBase
+class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
@@ -59,41 +60,36 @@ class CustomColumn extends ModelBase
             return null;
         }
 
-        if ($column_obj instanceof \stdClass) {
-            $column_obj = array_get((array)$column_obj, 'id');
-        }
-
         // get column eloquent model
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
         } 
+
+        if ($column_obj instanceof \stdClass) {
+            $column_obj = array_get((array)$column_obj, 'id');
+        }
         
         if (is_array($column_obj)) {
             $column_obj = array_get($column_obj, 'id');
         }
         
         if (is_numeric($column_obj)) {
-            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $column_obj), function() use($column_obj){
-                return static::find($column_obj);
-            });
+            return static::allRecords(function($record) use($column_obj){
+                return $record->id == $column_obj;
+            })->first();
         }
         // else,call $table_obj
         else {
             // get table Eloquent
-            if ($table_obj instanceof CustomTable) {
-                $table_obj = CustomTable::getEloquent($table_obj);
-            }elseif($table_obj instanceof CustomValue){
-                $table_obj = $table_obj->custom_table;
-            }
+            $table_obj = CustomTable::getEloquent($table_obj);
             // if not exists $table_obj, return null.
             if (!isset($table_obj)) {
                 return null;
             }
             
-            // get column name
-            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $table_obj->table_name . '_'.$column_obj), function() use($table_obj, $column_obj){
-                return $table_obj->custom_columns()->where('column_name', $column_obj)->first() ?? null;
-            });
+            return static::allRecords(function($record) use($table_obj, $column_obj){
+                return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
+            })->first();
         }
         return null;
     }
@@ -218,6 +214,125 @@ class CustomColumn extends ModelBase
         }
     }
 
+    /**
+     * import template
+     */
+    public static function importTemplate($json, $options = []){
+        $system_flg = array_get($options, 'system_flg', false);
+        $custom_table = array_get($options, 'custom_table');
+
+        $column_name = array_get($json, 'column_name');
+        $obj_column = CustomColumn::firstOrNew([
+            'custom_table_id' => $custom_table->id, 
+            'column_name' => $column_name
+        ]);
+        $obj_column->column_name = $column_name;
+        $obj_column->column_type = array_get($json, 'column_type');
+        // system flg checks 1. whether import from system, 2. table setting sets 1
+        $column_system_flg = array_get($json, 'system_flg');
+        $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
+
+        ///// set options
+        collect(array_get($json, 'options', []))->each(function ($option, $key) use($obj_column) {
+            $obj_column->setOption($key, $option, true);
+        });
+
+        // if options has select_target_table_name, get id
+        if (array_key_value_exists('options.select_target_table_name', $json)) {
+            if (is_nullorempty(array_get($json, 'options.select_target_table_name'))) {
+                $obj_column->forgetOption('select_target_table');
+            } else {
+                $id = CustomTable::getEloquent(array_get($json, 'options.select_target_table_name'))->id ?? null;
+                // not set id, continue
+                if (!isset($id)) {
+                    return;
+                }
+                $obj_column->setOption('select_target_table', $id);
+            }
+        }else{
+            $obj_column->forgetOption('select_target_table');
+        }
+        $obj_column->forgetOption('select_target_table_name');
+
+        // set characters
+        if (array_key_value_exists('options.available_characters', $json)) {
+            $available_characters = array_get($json, 'options.available_characters');
+            // if string, convert to array
+            if (is_string($available_characters)) {
+                $obj_column->setOption('available_characters', explode(",", $available_characters));
+            }
+        }
+
+        ///// set view name
+        // if contains column view name in config
+        if (array_key_value_exists('column_view_name', $json)) {
+            $obj_column->column_view_name = array_get($json, 'column_view_name');
+        }
+        // not exists, get lang using app config
+        else {
+            $obj_column->column_view_name = exmtrans("custom_column.system_definitions.$column_name");
+        }
+
+        $obj_column->save();
+        return $obj_column;
+    }
+
+    /**
+     * import template (for setting other custom column id)
+     */
+    public static function importTemplateRelationColumn($json, $options = []){
+        $custom_table = array_get($options, 'custom_table');
+        $column_name = array_get($json, 'column_name');
+
+        $obj_column = CustomColumn::firstOrNew([
+            'custom_table_id' => $custom_table->id, 
+            'column_name' => $column_name
+        ]);
+        
+        ///// set options                        
+        // check need update
+        $update_flg = false;
+        // if column type is calc, set dynamic val
+        if (ColumnType::isCalc(array_get($json, 'column_type'))) {
+            $calc_formula = array_get($json, 'options.calc_formula', []);
+            if (is_null($calc_formula)) {
+                $obj_column->forgetOption('calc_formula');
+                $obj_column->save();
+                return $obj_column;
+            }
+            // if $calc_formula is string, convert to json
+            if (is_string($calc_formula)) {
+                $calc_formula = json_decode($calc_formula, true);
+            }
+            if (is_array($calc_formula)) {
+                foreach ($calc_formula as &$c) {
+                    $val = $c['val'];
+                    // if dynamic or select table
+                    if (in_array(array_get($c, 'type'), ['dynamic', 'select_table'])) {
+                        $c['val'] = static::getEloquent($val, $custom_table)->id ?? null;
+                    }
+                    
+                    // if select_table
+                    if (array_get($c, 'type') == 'select_table') {
+                        // get select table
+                        $select_table_id = CustomColumn::find($c['val'])->getOption('select_target_table') ?? null;
+                        $select_table = CustomTable::find($select_table_id) ?? null;
+                        // get select from column
+                        $from_column_id = $select_table->custom_columns()->where('column_name', array_get($c, 'from'))->first()->id ?? null;
+                        $c['from'] = $from_column_id;
+                    }
+                }
+            }
+            // set as json string
+            $obj_column->setOption('calc_formula', $calc_formula);
+            $update_flg = true;
+        }
+
+        if ($update_flg) {
+            $obj_column->save();
+        }
+        return $obj_column;
+    }
 
     public function getOption($key, $default = null)
     {

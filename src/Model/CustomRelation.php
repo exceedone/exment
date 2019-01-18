@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\RelationType;
 
-class CustomRelation extends ModelBase
+class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\UseRequestSessionTrait;
@@ -26,8 +26,7 @@ class CustomRelation extends ModelBase
     public static function getRelationsByParent($parent_table, $relation_type = null){
         $parent_table = CustomTable::getEloquent($parent_table);
 
-        $records = static::allRecords();
-        return $records->filter(function($record) use($parent_table, $relation_type){
+        return static::allRecords(function($record) use($parent_table, $relation_type){
             if($record->parent_custom_table_id != array_get($parent_table, 'id')){
                 return false;
             }
@@ -55,8 +54,7 @@ class CustomRelation extends ModelBase
     public static function getRelationsByChild($child_table, $relation_type = null){
         $child_table = CustomTable::getEloquent($child_table);
 
-        $records = static::allRecords();
-        return $records->filter(function($record) use($child_table, $relation_type){
+        return static::allRecords(function($record) use($child_table, $relation_type){
             if($record->child_custom_table_id != array_get($child_table, 'id')){
                 return false;
             }
@@ -101,5 +99,28 @@ class CustomRelation extends ModelBase
             return $this->parent_custom_table->table_name . '_' . $this->child_custom_table->table_name;
         }
         return $this->child_custom_table->table_name;
+    }
+    
+    /**
+     * import template
+     */
+    public static function importTemplate($json, $options = []){
+        $parent_id = CustomTable::getEloquent(array_get($json, 'parent_custom_table_name'))->id ?? null;
+        $child_id = CustomTable::getEloquent(array_get($json, 'child_custom_table_name'))->id ?? null;
+        if (!isset($parent_id) || !isset($child_id)) {
+            return;
+        }
+        
+        // Create relations. --------------------------------------------------
+        $custom_relation = CustomRelation::firstOrNew([
+            'parent_custom_table_id' => $parent_id,
+            'child_custom_table_id' => $child_id
+            ]);
+        $custom_relation->parent_custom_table_id = $parent_id;
+        $custom_relation->child_custom_table_id = $child_id;
+        $custom_relation->relation_type = RelationType::getEnumValue(array_get($json, 'relation_type'));
+        $custom_relation->save();
+
+        return $custom_relation;
     }
 }

@@ -15,7 +15,7 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SystemColumn;
 use Carbon\Carbon;
 
-class CustomView extends ModelBase
+class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
@@ -561,4 +561,111 @@ class CustomView extends ModelBase
             return ['id' => $view_column_id, 'text' => $column_view_name];
         }
     }
+    
+    /**
+     * import template
+     */
+    public static function importTemplate($form, $options = []){
+        $custom_table = CustomTable::getEloquent(array_get($view, 'table_name'));
+        $findArray = [
+            'custom_table_id' => $custom_table->id
+        ];
+        // if set suuid in json, set suuid(for dashbrord list)
+        if (array_key_value_exists('suuid', $view)) {
+            $findArray['suuid'] =  array_get($view, 'suuid');
+        } else {
+            $findArray['suuid'] =  short_uuid();
+        }
+        // Create view --------------------------------------------------
+        $custom_view = CustomView::firstOrNew($findArray);
+        $custom_view->custom_table_id = $custom_table->id;
+        $custom_view->suuid = $findArray['suuid'];
+        $custom_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM());
+        $custom_view->view_view_name = array_get($view, 'view_view_name');
+        $custom_view->default_flg = boolval(array_get($view, 'default_flg'));
+        $custom_view->saveOrFail();
+        
+        // create view columns --------------------------------------------------
+        if (array_key_exists('custom_view_columns', $view)) {
+            foreach (array_get($view, "custom_view_columns") as $view_column) {
+                $view_column_type = array_get($view_column, "view_column_type");
+                $view_column_target_id = static::getColumnIdOrName(
+                    $view_column_type, 
+                    array_get($view_column, "view_column_target_name"), 
+                    $custom_table,
+                    true
+                );
+                // if not set column id, continue
+                if ($view_column_type != ViewColumnType::PARENT_ID && !isset($view_column_target_id)) {
+                    continue;
+                }
+
+                $view_column_type = ViewColumnType::getEnumValue($view_column_type);
+                $custom_view_column = CustomViewColumn::firstOrNew([
+                    'custom_view_id' => $custom_view->id,
+                    'view_column_type' => $view_column_type,
+                    'view_column_target_id' => $view_column_target_id,
+                ]);
+                $custom_view_column->order = array_get($view_column, "order");
+                $custom_view_column->saveOrFail();
+            }
+        }
+        
+        // create view filters --------------------------------------------------
+        if (array_key_exists('custom_view_filters', $view)) {
+            foreach (array_get($view, "custom_view_filters") as $view_filter) {
+                // if not set filter_target id, continue
+                $view_column_target = static::getColumnIdOrName(
+                    array_get($view_filter, "view_column_type"), 
+                    array_get($view_filter, "view_column_target_name"), 
+                    $custom_table,
+                    true
+                );
+
+                if (!isset($view_column_target)) {
+                    continue;
+                }
+
+                $view_column_type = ViewColumnType::getEnumValue(array_get($view_filter, "view_column_type"));
+                $custom_view_filter = CustomViewFilter::firstOrNew([
+                    'custom_view_id' => $custom_view->id,
+                    'view_column_type' => $view_column_type,
+                    'view_column_target_id' => $view_column_target,
+                    'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
+                ]);
+                $custom_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
+                $custom_view_filter->saveOrFail();
+            }
+        }
+        
+        // create view sorts --------------------------------------------------
+        if (array_key_exists('custom_view_sorts', $view)) {
+            foreach (array_get($view, "custom_view_sorts") as $view_column) {
+                $view_column_target = static::getColumnIdOrName(
+                    array_get($view_column, "view_column_type"), 
+                    array_get($view_column, "view_column_target_name"), 
+                    $custom_table,
+                    true
+                );
+                // if not set filter_target id, continue
+                if (!isset($view_column_target)) {
+                    continue;
+                }
+
+                $view_column_type = ViewColumnType::getEnumValue(array_get($view_column, "view_column_type"));
+                $custom_view_sort = CustomviewSort::firstOrNew([
+                    'custom_view_id' => $custom_view->id,
+                    'view_column_type' => $view_column_type,
+                    'view_column_target_id' => $view_column_target,
+                ]);
+                
+                $custom_view_sort->sort = array_get($view_column, "sort", 1);
+                $custom_view_sort->priority = array_get($view_column, "priority", 0);
+                $custom_view_sort->saveOrFail();
+            }
+        }
+
+        return $custom_view;
+    }
+    
 }

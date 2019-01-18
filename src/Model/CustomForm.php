@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\FormColumnType;
 use Illuminate\Http\Request as Req;
 
-class CustomForm extends ModelBase
+class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
@@ -108,7 +108,7 @@ class CustomForm extends ModelBase
                 $form_column->custom_form_block_id = $form_block->id;
                 $form_column->form_column_type = FormColumnType::COLUMN;
                 $form_column->form_column_target_id = array_get($search_enabled_column, 'id');
-                $form_column->order = $index+1;
+                $form_column->order = $index + 1;
                 array_push($form_columns, $form_column);
             }
             $form_block->custom_form_columns()->saveMany($form_columns);
@@ -120,6 +120,32 @@ class CustomForm extends ModelBase
         return $form;
     }
     
+    /**
+     * import template
+     */
+    public static function importTemplate($form, $options = []){
+        $custom_table = CustomTable::getEloquent(array_get($form, 'table_name'));
+
+        // Create form --------------------------------------------------
+        $custom_form = CustomForm::firstOrNew([
+            'custom_table_id' => $custom_table->id
+            ]);
+        $custom_form->form_view_name = array_get($form, 'form_view_name');
+        $custom_form->default_flg = boolval(array_get($form, 'default_flg'));
+        $custom_form->saveOrFail();
+
+        // Create form block
+        if (array_get($form, "custom_form_blocks")) {
+            foreach (array_get($form, "custom_form_blocks") as $form_block) {
+                CustomFormBlock::importTemplate($form_block, [
+                    'custom_table' => $custom_table,
+                    'custom_form' => $custom_form,
+                ]);
+            }
+        }
+
+        return $custom_form;
+    }
     
     public function deletingChildren()
     {
