@@ -6,6 +6,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
@@ -67,19 +68,28 @@ trait CustomValueSummary
         // set grouping columns
         foreach ($view->custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item;
-            $grid->column("column_$index", $item->label())
+
+            $group_columns[] = $item->sqlname();
+
+            $item->options([
+                'summary' => true,
+                'summary_condition' => $custom_view_column->view_summary_condition,
+                'summary_index' => $index
+            ]);
+
+            $grid->column($item->name(), $item->label())
                 ->sort($item->sortable())
                 ->display(function ($v) use ($index, $item) {
-                    if (is_null($this)) {
-                        return '';
-                    }
-                    $val = array_get($this, "column_$index");
-                    return null;
+                    return $item->setCustomValue($this)->html();
+                    // if (is_null($this)) {
+                    //     return '';
+                    // }
+                    // $val = array_get($this, "column_$index");
+                    // return null;
                     //return esc_html($this->editValue($column, $val, true));
             });
         
-            $group_columns[] = $custom_view_column->column_item->sqlname();
-            $select_columns[] = $custom_view_column->column_item->sqlname() . " AS column_$index";
+            $select_columns[] = $item->sqlname();
 
             $index++;
 
@@ -152,22 +162,22 @@ trait CustomValueSummary
             //         $summary = 'count';
             //         break;
             // }
-            $item = $custom_view_column->column_item;
-            if(method_exists($item, 'options')){
-                $item->options([
-                    'agreegate' => SummaryCondition::getEnum($custom_view_summary->view_summary_condition, SummaryCondition::SUM)->lowerKey(),
-                    'agreegate_index' => $index
-                ]);
-            }
+            $item = $custom_view_summary->column_item;
+            $item->options([
+                'summary' => true,
+                'summary_condition' => $custom_view_summary->view_summary_condition,
+                'summary_index' => $index
+            ]);
 
-            $grid->column("column_$index", $item->label())
+            $grid->column($item->name(), $item->label())
                 ->sort($item->sortable())
-                ->display(function ($v) use ($index) {
-                    if (is_null($this)) {
-                        return '';
-                    }
-                    $val = array_get($this, "column_$index");
-                    return esc_html($this->editValue($column, $val, true));
+                ->display(function ($v) use ($index, $item) {
+                    return $item->setCustomValue($this)->html();
+                    // if (is_null($this)) {
+                    //     return '';
+                    // }
+                    // $val = array_get($this, "column_$index");
+                    // return esc_html($this->editValue($column, $val, true));
             });
 
             $select_columns[] = $item->sqlname();

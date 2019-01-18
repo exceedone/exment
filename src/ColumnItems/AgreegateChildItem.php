@@ -8,6 +8,7 @@ use Encore\Admin\Form\Field;
 class AgreegateChildItem implements ItemInterface
 {
     use ItemTrait;
+    use SummaryItemTrait;
     
     protected $custom_column;
 
@@ -22,6 +23,16 @@ class AgreegateChildItem implements ItemInterface
      */
     public function name(){
         return 'agreegate_child_'.$this->custom_column->column_name;
+    }
+
+    /**
+     * get column key sql name.
+     */
+    public function sqlname(){
+        if(boolval(array_get($this->options, 'summary'))) {
+            return $this->getSummarySqlName();
+        }
+        return getDBTableName($this->custom_column) .'.'. $this->custom_column->column_name;
     }
 
     /**
@@ -65,6 +76,9 @@ class AgreegateChildItem implements ItemInterface
     }
 
     protected function getTargetValue($custom_value){
+        if(boolval(array_get($this->options, 'summary'))){
+            return array_get($custom_value, $this->sqlAsName());
+        }
         if(isset($custom_value)){
             return $custom_value->getSum($this->custom_column);
         }

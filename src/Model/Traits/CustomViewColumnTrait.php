@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;

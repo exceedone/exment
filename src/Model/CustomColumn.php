@@ -120,7 +120,7 @@ class CustomColumn extends ModelBase
         $index_enabled = $this->indexEnabled();
         
         // check table column field exists.
-        $exists = Schema::hasColumn($db_table_name, $db_column_name);
+        $exists = hasColumn($db_table_name, $db_column_name);
 
         $index_name = "index_$db_column_name";
         //  if index_enabled = false, and exists, then drop index

@@ -13,11 +13,29 @@ trait ItemTrait
 
     protected $id;
 
+    protected $options;
+
     /**
      * get value 
      */
     public function value(){
         return $this->value;
+    }
+
+    /**
+     * get or set option for convert
+     */
+    public function options($options = null){
+        if(is_null($options)){
+            return $this->options ?? [];
+        }
+
+        $this->options = array_merge(
+            $options,
+            $this->options ?? []
+        );
+
+        return $this;
     }
 
     /**

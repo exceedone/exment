@@ -45,6 +45,11 @@ interface ItemInterface
     public function label($label = null);
 
     /**
+     * get or set option for convert
+     */
+    public function options($options = null);
+
+    /**
      * sortable grid
      */
     public function sortable();

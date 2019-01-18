@@ -6,14 +6,14 @@ use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Enums\SummaryCondition;
 
 abstract class CustomItem implements ItemInterface
 {
     use ItemTrait;
+    use SummaryItemTrait;
     
     protected $custom_column;
-
-    protected $options;
 
     /**
      * laravel-admin set required. if false, always not-set required
@@ -59,16 +59,12 @@ abstract class CustomItem implements ItemInterface
      * sqlname
      */
     public function sqlname(){
-        // $db_table_name = getDBTableName($this->custom_column->custom_table);
-        // // check option
-        // // if has options agreegate, return as DB.row
-        // $agreegate = array_get($this->options, 'agreegate');
-        // if(isset($agreegate)){
-        //     $agreegate_index = array_get($this->options, 'agreegate_index');
-        //     $column_name = $this->custom_column->column_name;
-        //     $raw = "$agreegate($db_table_name.value->'$.$column_name') AS column_$agreegate_index";
-        //     return \DB::raw($raw);
-        // }
+        if(boolval(array_get($this->options, 'summary'))) {
+            return $this->getSummarySqlName();
+        }
+        if(!$this->custom_column->indexEnabled()) {
+            return 'value->'.$this->custom_column->column_name;
+        }
         return $this->index();
     }
 
@@ -95,22 +91,6 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
-     * get or set option for convert
-     */
-    public function options($options = null){
-        if(is_null($options)){
-            return $this->options;
-        }
-
-        $this->options = array_merge(
-            $options,
-            $this->options
-        );
-
-        return $this;
-    }
-
-    /**
      * sortable for grid
      */
     public function sortable(){
@@ -129,6 +109,9 @@ abstract class CustomItem implements ItemInterface
     }
 
     protected function getTargetValue($custom_value){
+        if(boolval(array_get($this->options, 'summary'))){
+            return array_get($custom_value, $this->sqlAsName());
+        }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
 
@@ -348,4 +331,5 @@ abstract class CustomItem implements ItemInterface
 
         return $validates;
     }
+
 }
