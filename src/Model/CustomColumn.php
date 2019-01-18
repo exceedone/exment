@@ -47,7 +47,7 @@ class CustomColumn extends ModelBase
     }
 
     public function getColumnItemAttribute(){
-        return ColumnItems\CustomItem::getItem($this, null);
+        return ColumnItems\CustomItem::getItem($this);
     }
 
     /**

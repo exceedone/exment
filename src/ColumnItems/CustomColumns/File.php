@@ -22,33 +22,35 @@ class File extends CustomItem
     protected function setAdminOptions(&$field, $form_column_options){
         // set file options
         $field->options(
-            File::getFileOptions($custom_table, $column, $id)
+            File::getFileOptions($this->custom_column, $this->id)
         )->removable();
         // set filename rule
-        $field->move($custom_table->table_name);
+        $field->move($this->getCustomTable()->table_name);
         $field->name(function ($file) {
             return File::setFileInfo($this, $file);
         });
     }
     
-    protected static function getFileOptions($custom_table, $custom_column, $id)
+    protected static function getFileOptions($custom_column, $id)
     {
-        return 
+        return array_merge(
+            Define::FILE_OPTION(),
             [
-                'showCancel' => false,
-                'deleteUrl' => admin_urls('data', $custom_table->table_name, $id, 'filedelete'),
+                'showPreview' => true,
+                'deleteUrl' => admin_urls('data', $custom_column->custom_table->table_name, $id, 'filedelete'),
                 'deleteExtraData'      => [
                     Field::FILE_DELETE_FLAG         => $custom_column->column_name,
                     '_token'                         => csrf_token(),
                     '_method'                        => 'PUT',
                 ]
-            ];
+            ]   
+        );
     }
 
     /**
-     *
+     * save file info to database
      */
-    protected static function setFileInfo($field, $file)
+    public static function setFileInfo($field, $file)
     {
         // get local filename
         $dirname = $field->getDirectory();

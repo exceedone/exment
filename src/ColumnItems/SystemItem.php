@@ -73,6 +73,10 @@ class SystemItem implements ItemInterface
         return $this;
     }
 
+    public function getCustomTable(){
+        return $this->custom_table;
+    }
+
     protected function getTargetValue($custom_value){
         return array_get($custom_value, $this->column_name);
     }   
@@ -85,7 +89,7 @@ class SystemItem implements ItemInterface
     }
 
     public static function getItem(...$args){
-        list($custom_table, $column_name, $custom_value) = $args;
+        list($custom_table, $column_name, $custom_value) = $args + [null, null, null];
         return new self($custom_table, $column_name, $custom_value);
     }
 }

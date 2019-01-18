@@ -65,6 +65,11 @@ interface ItemInterface
     public function prepare();
 
     /**
+     * get custom table
+     */
+    public function getCustomTable();
+
+    /**
      * get item model
      */
     public static function getItem(...$options);

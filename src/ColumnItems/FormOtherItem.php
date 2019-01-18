@@ -68,6 +68,10 @@ abstract class FormOtherItem implements ItemInterface
     public function setCustomValue($custom_value){
     }
 
+    public function getCustomTable(){
+        return $this->custom_column->custom_table;
+    }
+
     protected function getTargetValue($custom_value){
         return null;
     }

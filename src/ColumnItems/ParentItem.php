@@ -77,6 +77,10 @@ class ParentItem implements ItemInterface
         return $this;
     }
 
+    public function getCustomTable(){
+        return $this->custom_table;
+    }
+
     protected function getTargetValue($custom_value){
         if(is_null($custom_value)){
             return;
@@ -90,7 +94,7 @@ class ParentItem implements ItemInterface
     }   
     
     public static function getItem(...$args){
-        list($custom_table, $custom_value) = $args;
+        list($custom_table, $custom_value) = $args + [null, null];
         return new self($custom_table, $custom_value);
     }
 }

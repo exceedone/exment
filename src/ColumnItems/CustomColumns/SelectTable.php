@@ -6,6 +6,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Illuminate\Support\Collection;
 
 class SelectTable extends CustomItem 
 {

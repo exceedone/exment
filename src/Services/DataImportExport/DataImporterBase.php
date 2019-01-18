@@ -451,7 +451,7 @@ abstract class DataImporterBase
         $form->action(admin_base_path('data/'.$table_name.'/import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
-            ->options(Define::FILE_OPTION)
+            ->options(Define::FILE_OPTION())
             ->help(exmtrans('custom_value.import.help.custom_table_file'));
         
         // get import primary key list

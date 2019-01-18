@@ -199,8 +199,11 @@ class Define
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
 
-    public const FILE_OPTION = [
-        'showPreview' => false,
-        'showCancel' => false,
-    ];
+    public static function FILE_OPTION(){
+        return [
+            'showPreview' => false,
+            'showCancel' => false,
+            'browseLabel' => trans('admin.browse'),
+        ];
+    }
 }

@@ -26,11 +26,11 @@ trait InitializeForm
             
         $form->image('site_logo', exmtrans("system.site_logo"))
            ->help(exmtrans("system.help.site_logo"))
-           ->options(Define::FILE_OPTION)
+           ->options(Define::FILE_OPTION())
            ;
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
            ->help(exmtrans("system.help.site_logo_mini"))
-           ->options(Define::FILE_OPTION)
+           ->options(Define::FILE_OPTION())
            ;
 
         $form->select('site_skin', exmtrans("system.site_skin"))
@@ -151,12 +151,12 @@ trait InitializeForm
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
             ->help(exmtrans('template.help.upload_template'))
-            ->options(Define::FILE_OPTION);
+            ->options(Define::FILE_OPTION());
 
         $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
             ->rules('mimes:xlsx|nullable')
             ->help(exmtrans('template.help.upload_template_excel'))
-            ->options(Define::FILE_OPTION);
+            ->options(Define::FILE_OPTION());
     }
 
     /**

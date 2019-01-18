@@ -108,9 +108,18 @@ abstract class CustomItem implements ItemInterface
         return $this;
     }
 
+    public function getCustomTable(){
+        return $this->custom_column->custom_table;
+    }
+
     protected function getTargetValue($custom_value){
+        // if options has "summary" (for summary view)
         if(boolval(array_get($this->options, 'summary'))){
             return array_get($custom_value, $this->sqlAsName());
+        }
+        // if options has "summary_child" (for not only summary view, but also default view)
+        if(isset($custom_value) && boolval(array_get($this->options, 'summary_child'))){
+            return $custom_value->getSum($this->custom_column);
         }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
@@ -223,7 +232,7 @@ abstract class CustomItem implements ItemInterface
     }
 
     public static function getItem(...$args){
-        list($custom_column, $custom_value) = $args;
+        list($custom_column, $custom_value) = $args + [null, null];
         $column_type = $custom_column->column_type;
 
         if ($className = static::findItemClass($column_type)) {

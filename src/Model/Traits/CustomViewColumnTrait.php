@@ -25,15 +25,18 @@ trait CustomViewColumnTrait
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
-            return ColumnItems\ParentItem::getItem($this->custom_view->custom_table, null);
+            return ColumnItems\ParentItem::getItem($this->custom_view->custom_table);
         }
         // child_summary
         elseif ($this->view_column_type == ViewColumnType::CHILD_SUM) {
-            return ColumnItems\AgreegateChildItem::getItem($this->custom_column, null);
+            return ColumnItems\CustomItem::getItem($this->custom_column)
+                ->options([
+                    'summary_child' => true,
+                ]);
         }
         // system column
         else {
-            return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target, null);
+            return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target);
         }   
     }
     
