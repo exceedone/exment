@@ -241,8 +241,8 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
         $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-        if($mkdir && !is_dir($path)){
-            mkdir($path, 0755, true);
+        if($mkdir && !\File::exists($path)){
+            \File::makeDirectory($path, 0755, true);
         }
         return $path;
     }
@@ -260,8 +260,8 @@ if (!function_exists('getTmpFolderPath')) {
             return $path;
         }
         $tmppath = getFullpath($path, 'local');
-        if(!is_dir($tmppath)){
-            $aa = mkdir($tmppath, 0755, true);
+        if(!\File::exists($tmppath)){
+            $aa = \File::makeDirectory($tmppath, 0755, true);
         }
 
         return $tmppath;

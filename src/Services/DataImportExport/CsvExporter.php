@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use \File;
 
 class CsvExporter extends DataExporterBase
 {
@@ -22,8 +23,8 @@ class CsvExporter extends DataExporterBase
             $res = $zip->open($zipfillpath, \ZipArchive::CREATE);
             
             $csvdir = path_join($tmpdir, short_uuid());
-            if (!is_dir($csvdir)) {
-                mkdir($csvdir, 0755, true);
+            if (!File::exists($csvdir)) {
+                File::makeDirectory($csvdir, 0755, true);
             }
 
             $csv_paths = [];

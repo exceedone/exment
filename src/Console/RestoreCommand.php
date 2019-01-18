@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use \File;
 
 class RestoreCommand extends Command
 {
@@ -139,8 +140,8 @@ __EOT__;
         $tempdir = path_join($backup, 'tmp', pathinfo($file, PATHINFO_FILENAME));
 
         // create temporary folder if not exists
-        if (!is_dir($tempdir)) {
-            mkdir($tempdir, 0755, true);
+        if (!File::exists($tempdir)) {
+            File::makeDirectory($tempdir, 0755, true);
         }
 
         // open new zip file

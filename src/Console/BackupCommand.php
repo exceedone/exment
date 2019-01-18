@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Enums\BackupTarget;
+use \File;
 
 class BackupCommand extends Command
 {
@@ -169,12 +170,12 @@ class BackupCommand extends Command
         // edit zip folder path 
         $this->listdir = storage_paths('app', 'backup', 'list');
         // create temporary folder if not exists
-        if (!is_dir($this->tempdir)) {
-            mkdir($this->tempdir, 0755, true);
+        if (!File::exists($this->tempdir)) {
+            File::makeDirectory($this->tempdir, 0755, true);
         }
         // create zip folder if not exists
-        if (!is_dir($this->listdir)) {
-            mkdir($this->listdir, 0755, true);
+        if (!File::exists($this->listdir)) {
+            File::makeDirectory($this->listdir, 0755, true);
         }
     }
     /**
@@ -199,11 +200,11 @@ class BackupCommand extends Command
             foreach($settings as $setting) {
                 $from = base_path($setting);
                 $to = path_join($this->tempdir, $setting);
-                if(!is_dir($from)){
+                if(!File::exists($from)){
                     continue;
                 }
-                if(!is_dir($to)){
-                    mkdir($to, 0755, true);
+                if(!File::exists($to)){
+                    File::makeDirectory($to, 0755, true);
                 }
 
                 $success = \File::copyDirectory($from, $to);
