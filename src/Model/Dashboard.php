@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\UserSetting;
 use Illuminate\Http\Request as Req;
 
-class Dashboard extends ModelBase
+class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
@@ -97,6 +97,40 @@ class Dashboard extends ModelBase
         }
 
         return $dashboard;
+    }
+    
+    /**
+     * import template
+     */
+    public static function importTemplate($dashboard, $options = []){
+        // Create dashboard --------------------------------------------------
+        $obj_dashboard = Dashboard::firstOrNew([
+            'dashboard_name' => array_get($dashboard, "dashboard_name")
+        ]);
+
+        $dashboard_type = DashboardType::getEnumValue(array_get($dashboard, 'dashboard_type'), DashboardType::SYSTEM());
+        $obj_dashboard->dashboard_type = $dashboard_type;
+        $obj_dashboard->dashboard_view_name = array_get($dashboard, 'dashboard_view_name');
+        $obj_dashboard->setOption('row1', array_get($dashboard, 'options.row1'), 1);
+        $obj_dashboard->setOption('row2', array_get($dashboard, 'options.row2'), 2);
+        $obj_dashboard->setOption('row3', array_get($dashboard, 'options.row3'), 0);
+        $obj_dashboard->setOption('row4', array_get($dashboard, 'options.row4'), 0);
+        $obj_dashboard->default_flg = boolval(array_get($dashboard, 'default_flg'));
+        // if set suuid in json, set suuid(for dashbrord list)
+        if (array_key_value_exists('suuid', $dashboard)) {
+            $obj_dashboard->suuid = array_get($dashboard, 'dashboard_suuid');
+        }
+        $obj_dashboard->saveOrFail();
+        
+        // create dashboard boxes --------------------------------------------------
+        if (array_key_exists('dashboard_boxes', $dashboard)) {
+            foreach (array_get($dashboard, "dashboard_boxes") as $dashboard_box) {
+                DashboardBox::importTemplate($dashboard_box, [
+                    'obj_dashboard' => $obj_dashboard,
+                ]);
+            }
+        }
+        return $obj_dashboard;
     }
     
     public function getOption($key, $default = null)
