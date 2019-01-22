@@ -26,7 +26,7 @@ trait ItemTrait
      * get or set option for convert
      */
     public function options($options = null){
-        if(is_null($options)){
+        if(!func_num_args()){
             return $this->options ?? [];
         }
 
@@ -42,7 +42,7 @@ trait ItemTrait
      * get label. (user theader, form label etc...)
      */
     public function label($label = null){
-        if(is_null($label)){
+        if(!func_num_args()){
             return $this->label;
         }
         $this->label = $label;
@@ -53,7 +53,7 @@ trait ItemTrait
      * get value's id.
      */
     public function id($id = null){
-        if(is_null($id)){
+        if(!func_num_args()){
             return $this->id;
         }
         $this->id = $id;

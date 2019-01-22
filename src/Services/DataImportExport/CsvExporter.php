@@ -60,5 +60,4 @@ class CsvExporter extends DataExporterBase
         // check relations
         return count($this->relations) > 0;
     }
-
 }

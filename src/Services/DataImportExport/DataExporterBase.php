@@ -90,7 +90,7 @@ abstract class DataExporterBase extends AbstractExporter
         if ($this->template) {
             $bodies = [];
         } else {
-            $bodies = $this->getBodies($this->getRecords($target_table, $relation), $columnDefines, $relation);
+            $bodies = $this->getBodies($this->getRecords(), $columnDefines, $relation);
         }
         // get output items
         $outputs = array_merge($headers, $bodies);
@@ -123,7 +123,7 @@ abstract class DataExporterBase extends AbstractExporter
     /**
      * get target chunk records
      */
-    protected function getRecords($target_table, $relation = null)
+    protected function getRecords()
     {
         // get base records
         if (isset($relation)) {
