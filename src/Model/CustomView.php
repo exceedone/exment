@@ -8,6 +8,7 @@ use Illuminate\Http\Request as Req;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -207,7 +208,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $view = new CustomView;
         $view->custom_table_id = $tableObj->id;
-        $view->view_type = Enums\ViewType::SYSTEM;
+        $view->view_type = ViewType::SYSTEM;
         $view->view_view_name = exmtrans('custom_view.default_view_name');
         $view->saveOrFail();
         
@@ -565,7 +566,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * import template
      */
-    public static function importTemplate($form, $options = []){
+    public static function importTemplate($view, $options = []){
         $custom_table = CustomTable::getEloquent(array_get($view, 'table_name'));
         $findArray = [
             'custom_table_id' => $custom_table->id
@@ -588,84 +589,43 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // create view columns --------------------------------------------------
         if (array_key_exists('custom_view_columns', $view)) {
             foreach (array_get($view, "custom_view_columns") as $view_column) {
-                $view_column_type = array_get($view_column, "view_column_type");
-                $view_column_target_id = static::getColumnIdOrName(
-                    $view_column_type, 
-                    array_get($view_column, "view_column_target_name"), 
-                    $custom_table,
-                    true
-                );
-                // if not set column id, continue
-                if ($view_column_type != ViewColumnType::PARENT_ID && !isset($view_column_target_id)) {
-                    continue;
-                }
-
-                $view_column_type = ViewColumnType::getEnumValue($view_column_type);
-                $custom_view_column = CustomViewColumn::firstOrNew([
-                    'custom_view_id' => $custom_view->id,
-                    'view_column_type' => $view_column_type,
-                    'view_column_target_id' => $view_column_target_id,
+                CustomViewColumn::importTemplate($view_column, [
+                    'custom_table' => $custom_table,
+                    'custom_view' => $custom_view,
                 ]);
-                $custom_view_column->order = array_get($view_column, "order");
-                $custom_view_column->saveOrFail();
             }
         }
         
         // create view filters --------------------------------------------------
         if (array_key_exists('custom_view_filters', $view)) {
-            foreach (array_get($view, "custom_view_filters") as $view_filter) {
-                // if not set filter_target id, continue
-                $view_column_target = static::getColumnIdOrName(
-                    array_get($view_filter, "view_column_type"), 
-                    array_get($view_filter, "view_column_target_name"), 
-                    $custom_table,
-                    true
-                );
-
-                if (!isset($view_column_target)) {
-                    continue;
-                }
-
-                $view_column_type = ViewColumnType::getEnumValue(array_get($view_filter, "view_column_type"));
-                $custom_view_filter = CustomViewFilter::firstOrNew([
-                    'custom_view_id' => $custom_view->id,
-                    'view_column_type' => $view_column_type,
-                    'view_column_target_id' => $view_column_target,
-                    'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
+            foreach (array_get($view, "custom_view_filters") as $view_column) {
+                CustomViewFilter::importTemplate($view_column, [
+                    'custom_table' => $custom_table,
+                    'custom_view' => $custom_view,
                 ]);
-                $custom_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
-                $custom_view_filter->saveOrFail();
             }
         }
         
         // create view sorts --------------------------------------------------
         if (array_key_exists('custom_view_sorts', $view)) {
             foreach (array_get($view, "custom_view_sorts") as $view_column) {
-                $view_column_target = static::getColumnIdOrName(
-                    array_get($view_column, "view_column_type"), 
-                    array_get($view_column, "view_column_target_name"), 
-                    $custom_table,
-                    true
-                );
-                // if not set filter_target id, continue
-                if (!isset($view_column_target)) {
-                    continue;
-                }
-
-                $view_column_type = ViewColumnType::getEnumValue(array_get($view_column, "view_column_type"));
-                $custom_view_sort = CustomviewSort::firstOrNew([
-                    'custom_view_id' => $custom_view->id,
-                    'view_column_type' => $view_column_type,
-                    'view_column_target_id' => $view_column_target,
+                CustomViewSort::importTemplate($view_column, [
+                    'custom_table' => $custom_table,
+                    'custom_view' => $custom_view,
                 ]);
-                
-                $custom_view_sort->sort = array_get($view_column, "sort", 1);
-                $custom_view_sort->priority = array_get($view_column, "priority", 0);
-                $custom_view_sort->saveOrFail();
+            }
+        }
+
+        // create view summary --------------------------------------------------
+        if (array_key_exists('custom_view_summaries', $view)) {
+            foreach (array_get($view, "custom_view_summaries") as $view_column) {
+                CustomViewSummary::importTemplate($view_column, [
+                    'custom_table' => $custom_table,
+                    'custom_view' => $custom_view,
+                ]);
             }
         }
 
         return $custom_view;
     }
-    
 }

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\ColumnItems;
@@ -89,4 +90,30 @@ trait CustomViewColumnTrait
             $this->{$column_type_target_key} = $view_column_target;
         }
     }
+    
+    /**
+     * get column name or id.
+     * if column_type is string
+     */
+    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false){
+        if(!isset($column_type)){
+            $column_type = ViewColumnType::COLUMN;
+        }
+
+        switch ($column_type) {
+            // for table column
+            case ViewColumnType::COLUMN:
+                // get column name
+                return CustomColumn::getEloquent($column_name, $custom_table)->id ?? null;
+            // system column
+            default:
+                // set parent id
+                if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
+                    return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
+                } 
+                return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
+        }
+        return null;
+    }
+
 }

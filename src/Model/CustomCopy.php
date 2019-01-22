@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\RelationType;
 
-class CustomCopy extends ModelBase
+class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -186,5 +186,52 @@ class CustomCopy extends ModelBase
         // save
         $to_custom_value->saveOrFail();
         return $to_custom_value;
+    }
+    
+    /**
+     * import template
+     */
+    public static function importTemplate($copy, $options = []){
+        $from_table = CustomTable::getEloquent(array_get($copy, 'from_custom_table_name'));
+        $to_table = CustomTable::getEloquent(array_get($copy, 'to_custom_table_name'));
+
+        // id not funnd
+        if (!isset($from_table) && !isset($to_table)) {
+            return null;
+        }
+        $findArray = [
+            'from_custom_table_id' => $from_table->id,
+            'to_custom_table_id' => $to_table->id,
+        ];
+        // if set suuid in json, set suuid(for dashbrord list)
+        if (array_key_value_exists('suuid', $copy)) {
+            $findArray['suuid'] =  array_get($copy, 'suuid');
+        } else {
+            $findArray['suuid'] =  short_uuid();
+        }
+        // Create copy --------------------------------------------------
+        $custom_copy = CustomCopy::firstOrNew($findArray);
+        $custom_copy->from_custom_table_id = $from_table->id;
+        $custom_copy->to_custom_table_id = $to_table->id;
+        $custom_copy->suuid = $findArray['suuid'];
+        
+        // set option
+        collect(array_get($copy, 'options', []))->each(function ($option, $key) use($custom_copy) {
+            $custom_copy->setOption($key, $option, true);
+        });
+        $custom_copy->saveOrFail();
+        
+        // create copy columns --------------------------------------------------
+        if (array_key_exists('custom_copy_columns', $copy)) {
+            foreach (array_get($copy, "custom_copy_columns") as $copy_column) {
+                CustomCopyColumn::importTemplate($copy_column, [
+                    'custom_copy' => $custom_copy,
+                    'from_table' => $from_table,
+                    'to_table' => $to_table 
+                ]);
+            }
+        }
+
+        return $custom_copy;
     }
 }

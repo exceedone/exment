@@ -215,7 +215,10 @@ EOT;
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             $item = $form_column->column_item;
-            $form->pushField($item->id($id)->getAdminField($form_column));
+            if(isset($id)){
+                $item->id($id);
+            }
+            $form->pushField($item->getAdminField($form_column));
         }
     }
 

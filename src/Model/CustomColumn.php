@@ -5,6 +5,7 @@ use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\CalcFormulaType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
@@ -306,20 +307,18 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             }
             if (is_array($calc_formula)) {
                 foreach ($calc_formula as &$c) {
-                    $val = $c['val'];
                     // if dynamic or select table
-                    if (in_array(array_get($c, 'type'), ['dynamic', 'select_table'])) {
-                        $c['val'] = static::getEloquent($val, $custom_table)->id ?? null;
+                    if (in_array(array_get($c, 'type'), [CalcFormulaType::DYNAMIC, CalcFormulaType::SELECT_TABLE])) {
+                        $c['val'] = static::getEloquent($c['val'], $custom_table)->id ?? null;
                     }
                     
                     // if select_table
-                    if (array_get($c, 'type') == 'select_table') {
+                    if (array_get($c, 'type') == CalcFormulaType::SELECT_TABLE) {
                         // get select table
-                        $select_table_id = CustomColumn::find($c['val'])->getOption('select_target_table') ?? null;
-                        $select_table = CustomTable::find($select_table_id) ?? null;
+                        $select_table_id = CustomColumn::getEloquent($c['val'])->getOption('select_target_table') ?? null;
                         // get select from column
-                        $from_column_id = $select_table->custom_columns()->where('column_name', array_get($c, 'from'))->first()->id ?? null;
-                        $c['from'] = $from_column_id;
+                        $from_column = CustomColumn::getEloquent(array_get($c, 'from'), $select_table_id);
+                        $c['from'] = $from_column->id ?? null;
                     }
                 }
             }

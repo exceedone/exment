@@ -4,8 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\RoleType;
 
-class Role extends ModelBase
+class Role extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;
     use Traits\UseRequestSessionTrait;
@@ -53,4 +54,29 @@ class Role extends ModelBase
         }
     }
     
+    /**
+     * import template
+     */
+    public static function importTemplate($copy, $options = []){
+        // Create role. --------------------------------------------------
+        $role_type = RoleType::getEnumValue(array_get($role, 'role_type'));
+        $obj_role = Role::firstOrNew(['role_type' => $role_type, 'role_name' => array_get($role, 'role_name')]);
+        $obj_role->role_type = $role_type;
+        $obj_role->role_name = array_get($role, 'role_name');
+        $obj_role->role_view_name = array_get($role, 'role_view_name');
+        $obj_role->description = array_get($role, 'description');
+        $obj_role->default_flg = boolval(array_get($role, 'default_flg'));
+
+        // Create role detail.
+        if (array_key_exists('permissions', $role)) {
+            $permissions = [];
+            foreach (array_get($role, "permissions") as $permission) {
+                $permissions[$permission] = "1";
+            }
+            $obj_role->permissions = $permissions;
+        }
+        $obj_role->saveOrFail();
+
+        return $obj_role;
+    }
 }

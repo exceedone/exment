@@ -114,7 +114,6 @@ class DashboardBoxController extends AdminControllerBase
                         $html = view('exment::dashboard.list.header')->render();
                         $html .= trans('admin.deny');
                     }else{
-
                         // create model for getting data --------------------------------------------------
                         $classname = getModelName($table);
                         $model = new $classname();
@@ -253,7 +252,6 @@ class DashboardBoxController extends AdminControllerBase
                             if (!isset($value)) {
                                 return [];
                             }
-
                             return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
                         })
                         ->loads(['options_chart_axisx', 'options_chart_axisy'], 

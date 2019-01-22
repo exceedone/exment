@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
-class CustomCopyColumn extends ModelBase
+use Exceedone\Exment\Enums\CopyColumnType;
+
+class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     protected $appends = ['view_column_target'];
     use Traits\UseRequestSessionTrait;
@@ -56,4 +58,48 @@ class CustomCopyColumn extends ModelBase
         $this->setViewColumnTarget($view_column_target, 'to_column_type', 'to_column_target_id');
     }
 
+    /**
+     * import template
+     */
+    public static function importTemplate($copy_column, $options = []){
+        // create copy columns --------------------------------------------------
+        $custom_copy = array_get($options, "custom_copy");
+        $from_table = array_get($options, "from_table");
+        $to_table = array_get($options, "to_table");
+
+        $from_column_type = array_get($copy_column, "from_column_type");
+        $to_column_type = array_get($copy_column, "to_column_type");
+
+        // get from and to column
+        $from_column_target = static::getColumnIdOrName(
+            $from_column_type, 
+            array_get($copy_column, "from_column_name"), 
+            $from_table,
+            true
+        );
+        $to_column_target = static::getColumnIdOrName(
+            $to_column_type, 
+            array_get($copy_column, "to_column_name"), 
+            $to_table,
+            true
+        );
+
+        if(is_null($to_column_target)){
+            return null;
+        }
+
+        $from_column_type = $from_column_type ?: CopyColumnType::getEnumValue($from_column_type);
+        $to_column_type = CopyColumnType::getEnumValue($to_column_type);
+        $obj_copy_column = CustomCopyColumn::firstOrNew([
+            'custom_copy_id' => $custom_copy->id,
+            'from_column_type' => $from_column_type,
+            'from_column_target_id' => $from_column_target ?? null,
+            'to_column_type' => $to_column_type,
+            'to_column_target_id' => $to_column_target ?? null,
+            'copy_column_type' => array_get($copy_column, "copy_column_type"),
+        ]);
+        $obj_copy_column->saveOrFail();
+
+        return $obj_copy_column;
+    }
 }

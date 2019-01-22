@@ -488,7 +488,7 @@ class TemplateImporter
                 // Create columns. --------------------------------------------------
                 if (array_key_exists('custom_columns', $table)) {
                     foreach (array_get($table, 'custom_columns') as $column) {
-                        $obj_column = CustomColumn::importTemplate($column, [
+                        CustomColumn::importTemplate($column, [
                             'system_flg' => $system_flg,
                             'custom_table' => $obj_table,
                         ]);
@@ -509,7 +509,7 @@ class TemplateImporter
                 // get columns. --------------------------------------------------
                 if (array_key_exists('custom_columns', $table)) {
                     foreach (array_get($table, 'custom_columns') as $column) {
-                        $obj_column = CustomColumn::importTemplateRelationColumn($column, [
+                        CustomColumn::importTemplateRelationColumn($column, [
                             'system_flg' => $system_flg,
                             'custom_table' => $obj_table,
                         ]);
@@ -520,190 +520,28 @@ class TemplateImporter
             // Loop relations.
             if (array_key_exists('custom_relations', $json)) {
                 foreach (array_get($json, "custom_relations") as $relation) {
-                    $obj_relation = CustomRelation::importTemplate($relation);
+                    CustomRelation::importTemplate($relation);
                 }
             }
 
             // loop for form
             if (array_key_exists('custom_forms', $json)) {
                 foreach (array_get($json, "custom_forms") as $form) {
-                    $obj_form = CustomForm::importTemplate($form);
+                    CustomForm::importTemplate($form);
                 }
             }
 
             // loop for view
             if (array_key_value_exists('custom_views', $json)) {
                 foreach (array_get($json, "custom_views") as $view) {
-                    $table = CustomTable::getEloquent(array_get($view, 'table_name'));
-                    $findArray = [
-                        'custom_table_id' => $table->id
-                    ];
-                    // if set suuid in json, set suuid(for dashbrord list)
-                    if (array_key_value_exists('suuid', $view)) {
-                        $findArray['suuid'] =  array_get($view, 'suuid');
-                    } else {
-                        $findArray['suuid'] =  short_uuid();
-                    }
-                    // Create view --------------------------------------------------
-                    $obj_view = CustomView::firstOrNew($findArray);
-                    $obj_view->custom_table_id = $table->id;
-                    $obj_view->suuid = $findArray['suuid'];
-                    $obj_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM());
-                    $obj_view->view_view_name = array_get($view, 'view_view_name');
-                    $obj_view->default_flg = boolval(array_get($view, 'default_flg'));
-                    $obj_view->saveOrFail();
-                    
-                    // create view columns --------------------------------------------------
-                    if (array_key_exists('custom_view_columns', $view)) {
-                        foreach (array_get($view, "custom_view_columns") as $view_column) {
-                            $view_column_type = array_get($view_column, "view_column_type");
-                            $view_column_target_id = static::getColumnIdOrName(
-                                $view_column_type, 
-                                array_get($view_column, "view_column_target_name"), 
-                                $table,
-                                true
-                            );
-                            // if not set column id, continue
-                            if ($view_column_type != ViewColumnType::PARENT_ID && !isset($view_column_target_id)) {
-                                continue;
-                            }
-
-                            $view_column_type = ViewColumnType::getEnumValue($view_column_type);
-                            $obj_view_column = CustomViewColumn::firstOrNew([
-                                'custom_view_id' => $obj_view->id,
-                                'view_column_type' => $view_column_type,
-                                'view_column_target_id' => $view_column_target_id,
-                            ]);
-                            $obj_view_column->order = array_get($view_column, "order");
-                            $obj_view_column->saveOrFail();
-                        }
-                    }
-                    
-                    // create view filters --------------------------------------------------
-                    if (array_key_exists('custom_view_filters', $view)) {
-                        foreach (array_get($view, "custom_view_filters") as $view_filter) {
-                            // if not set filter_target id, continue
-                            $view_column_target = static::getColumnIdOrName(
-                                array_get($view_filter, "view_column_type"), 
-                                array_get($view_filter, "view_column_target_name"), 
-                                $table,
-                                true
-                            );
-
-                            if (!isset($view_column_target)) {
-                                continue;
-                            }
-
-                            $view_column_type = ViewColumnType::getEnumValue(array_get($view_filter, "view_column_type"));
-                            $obj_view_filter = CustomViewFilter::firstOrNew([
-                                'custom_view_id' => $obj_view->id,
-                                'view_column_type' => $view_column_type,
-                                'view_column_target_id' => $view_column_target,
-                                'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
-                            ]);
-                            $obj_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
-                            $obj_view_filter->saveOrFail();
-                        }
-                    }
-                    
-                    // create view sorts --------------------------------------------------
-                    if (array_key_exists('custom_view_sorts', $view)) {
-                        foreach (array_get($view, "custom_view_sorts") as $view_column) {
-                            $view_column_target = static::getColumnIdOrName(
-                                array_get($view_column, "view_column_type"), 
-                                array_get($view_column, "view_column_target_name"), 
-                                $table,
-                                true
-                            );
-                            // if not set filter_target id, continue
-                            if (!isset($view_column_target)) {
-                                continue;
-                            }
-
-                            $view_column_type = ViewColumnType::getEnumValue(array_get($view_column, "view_column_type"));
-                            $obj_view_sort = CustomviewSort::firstOrNew([
-                                'custom_view_id' => $obj_view->id,
-                                'view_column_type' => $view_column_type,
-                                'view_column_target_id' => $view_column_target,
-                            ]);
-                            
-                            $obj_view_sort->sort = array_get($view_column, "sort", 1);
-                            $obj_view_sort->priority = array_get($view_column, "priority", 0);
-                            $obj_view_sort->saveOrFail();
-                        }
-                    }
+                    CustomView::importTemplate($view);
                 }
             }
 
             // loop for copy
             if (array_key_value_exists('custom_copies', $json)) {
                 foreach (array_get($json, "custom_copies") as $copy) {
-                    $from_table = CustomTable::getEloquent(array_get($copy, 'from_custom_table_name'));
-                    $to_table = CustomTable::getEloquent(array_get($copy, 'to_custom_table_name'));
-
-                    // id not funnd
-                    if (!isset($from_table) && !isset($to_table)) {
-                        continue;
-                    }
-                    $findArray = [
-                        'from_custom_table_id' => $from_table->id,
-                        'to_custom_table_id' => $to_table->id,
-                    ];
-                    // if set suuid in json, set suuid(for dashbrord list)
-                    if (array_key_value_exists('suuid', $copy)) {
-                        $findArray['suuid'] =  array_get($copy, 'suuid');
-                    } else {
-                        $findArray['suuid'] =  short_uuid();
-                    }
-                    // Create copy --------------------------------------------------
-                    $obj_copy = CustomCopy::firstOrNew($findArray);
-                    $obj_copy->from_custom_table_id = $from_table->id;
-                    $obj_copy->to_custom_table_id = $to_table->id;
-                    $obj_copy->suuid = $findArray['suuid'];
-                    
-                    // set option
-                    collect(array_get($copy, 'options', []))->each(function ($option, $key) use($obj_copy) {
-                        $obj_copy->setOption($key, $option, true);
-                    });
-                    $obj_copy->saveOrFail();
-                    
-                    // create copy columns --------------------------------------------------
-                    if (array_key_exists('custom_copy_columns', $copy)) {
-                        foreach (array_get($copy, "custom_copy_columns") as $copy_column) {
-                            $from_column_type = array_get($copy_column, "from_column_type");
-                            $to_column_type = array_get($copy_column, "to_column_type");
-
-                            // get from and to column
-                            $from_column_target = static::getColumnIdOrName(
-                                $from_column_type, 
-                                array_get($copy_column, "from_column_name"), 
-                                $from_table,
-                                true
-                            );
-                            $to_column_target = static::getColumnIdOrName(
-                                $to_column_type, 
-                                array_get($copy_column, "to_column_name"), 
-                                $to_table,
-                                true
-                            );
-
-                            if(is_null($to_column_target)){
-                                continue;
-                            }
-
-                            $from_column_type = $from_column_type ?: CopyColumnType::getEnumValue($from_column_type);
-                            $to_column_type = CopyColumnType::getEnumValue($to_column_type);
-                            $obj_copy_column = CustomCopyColumn::firstOrNew([
-                                'custom_copy_id' => $obj_copy->id,
-                                'from_column_type' => $from_column_type,
-                                'from_column_target_id' => $from_column_target ?? null,
-                                'to_column_type' => $to_column_type,
-                                'to_column_target_id' => $to_column_target ?? null,
-                                'copy_column_type' => array_get($copy_column, "copy_column_type"),
-                            ]);
-                            $obj_copy_column->saveOrFail();
-                        }
-                    }
+                    CustomCopy::importTemplate($copy);
                 }
             }
 
@@ -711,23 +549,7 @@ class TemplateImporter
             if (array_key_exists('roles', $json)) {
                 foreach (array_get($json, "roles") as $role) {
                     // Create role. --------------------------------------------------
-                    $role_type = RoleType::getEnumValue(array_get($role, 'role_type'));
-                    $obj_role = Role::firstOrNew(['role_type' => $role_type, 'role_name' => array_get($role, 'role_name')]);
-                    $obj_role->role_type = $role_type;
-                    $obj_role->role_name = array_get($role, 'role_name');
-                    $obj_role->role_view_name = array_get($role, 'role_view_name');
-                    $obj_role->description = array_get($role, 'description');
-                    $obj_role->default_flg = boolval(array_get($role, 'default_flg'));
-
-                    // Create role detail.
-                    if (array_key_exists('permissions', $role)) {
-                        $permissions = [];
-                        foreach (array_get($role, "permissions") as $permission) {
-                            $permissions[$permission] = "1";
-                        }
-                        $obj_role->permissions = $permissions;
-                    }
-                    $obj_role->saveOrFail();
+                    Role::importTemplate($role);
                 }
             }
 
@@ -921,31 +743,6 @@ class TemplateImporter
                 }
             }
         });
-    }
-
-    /**
-     * get column name or id.
-     * if column_type is string
-     */
-    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false){
-        if(!isset($column_type)){
-            $column_type = ViewColumnType::COLUMN;
-        }
-
-        switch ($column_type) {
-            // for table column
-            case ViewColumnType::COLUMN:
-                // get column name
-                return CustomColumn::getEloquent($column_name, $custom_table)->id ?? null;
-            // system column
-            default:
-                // set parent id
-                if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
-                    return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
-                } 
-                return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
-        }
-        return null;
     }
 
     protected static function getTemplateBasePaths()
