@@ -94,7 +94,7 @@ class RelationPivotTable extends ProviderBase
         $relation_name = $this->relation->getRelationName();
         $this->grid->model()->with($relation_name);
 
-        $this->grid()->model->chunk(function ($data) use (&$records, $relation_name) {
+        $this->grid->model()->chunk(function ($data) use (&$records, $relation_name) {
             if (!isset($records)) {
                 $records = new Collection;
             }

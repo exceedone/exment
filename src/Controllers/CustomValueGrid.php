@@ -48,10 +48,10 @@ trait CustomValueGrid
         $this->manageMenuToolButton($grid, $listButton);
 
         // create exporter
-        //$grid->exporter(DataImportExport\DataExporterBase::getModel($grid, $this->custom_table, $search_enabled_columns));
         $action = new DataImportExport\Actions\Export\CustomTableAction(
             [
                 'custom_table' => $this->custom_table,
+                'grid' => $grid,
             ]
         );
         $service = (new DataImportExport\ExportService())->action($action);
