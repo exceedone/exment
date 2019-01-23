@@ -82,4 +82,7 @@ abstract class FormatBase
         }
         return $files;
     }
+
+    abstract public function createResponse($files);
+    abstract protected function getDefaultHeaders();
 }

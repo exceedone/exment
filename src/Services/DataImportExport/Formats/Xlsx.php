@@ -12,6 +12,20 @@ class Xlsx extends FormatBase
         return $this->filebasename.date('YmdHis'). ".xlsx";
     }
 
+    public function createResponse($files){
+        return response()->stream(function () use ($files) {
+            $files[0]['writer']->save('php://output');
+        }, 200, $this->getDefaultHeaders());
+    }
+
+    protected function getDefaultHeaders(){
+        $filename = $this->getFileName();
+        return [
+            'Content-Type'        => 'application/force-download',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+    }
+
     /**
      * get data table list. contains self table, and relations (if contains)
      */
@@ -52,6 +66,4 @@ class Xlsx extends FormatBase
     protected function createReader(){
         return IOFactory::createReader('Xlsx');
     }
-
-    
 }

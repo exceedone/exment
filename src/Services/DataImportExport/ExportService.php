@@ -41,23 +41,8 @@ class ExportService extends AbstractExporter
             ->filebasename($this->action->filebasename())
             ->createFile();
         
-        $response = $this->createResponse($files);
+        $response = $this->format->createResponse($files);
         $response->send();
         exit;
     }
-    
-    protected function createResponse($files){
-        return response()->stream(function () use ($files) {
-            $files[0]['writer']->save('php://output');
-        }, 200, $this->getDefaultHeaders());
-    }
-
-    protected function getDefaultHeaders(){
-        $filename = $this->format->getFileName();
-        return [
-            'Content-Type'        => 'application/force-download',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-    }
-
 }
