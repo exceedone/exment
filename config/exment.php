@@ -33,6 +33,7 @@ return [
 
     'driver' => [
       'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+      'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
       'tmp' => env('EXMENT_DISK_TMP', 'local'),
     ],
 ];

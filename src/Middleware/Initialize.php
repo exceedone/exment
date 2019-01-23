@@ -99,9 +99,17 @@ class Initialize
                 'url' => config('app.url').'/'.config('admin.route.prefix'),
             ]);
         }
+        
+        if (!Config::has('filesystems.disks.admin_tmp')) {
+            Config::set('filesystems.disks.admin_tmp', [
+                'driver' => config('exment.driver.tmp', 'local'),
+                'root' => storage_path('app/admin_tmp'),
+            ]);
+        }
+        
         if (!Config::has('filesystems.disks.backup')) {
             Config::set('filesystems.disks.backup', [
-                'driver' => config('exment.driver.tmp', 'local'),
+                'driver' => config('exment.driver.backup', 'local'),
                 'root' => storage_path('app/backup'),
             ]);
         }

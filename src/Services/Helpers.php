@@ -273,7 +273,7 @@ if (!function_exists('getTmpFolderPath')) {
         }
         $tmppath = getFullpath($path, 'admin_tmp');
         if(!\File::exists($tmppath)){
-            $aa = \File::makeDirectory($tmppath, 0755, true);
+            \File::makeDirectory($tmppath, 0755, true);
         }
 
         return $tmppath;
