@@ -55,15 +55,6 @@ class RelationPivotTable extends ProviderBase
     }
     
     /**
-     * @param $data
-     * @return array
-     */
-    public function dataProcessing($data)
-    {
-        return $data;
-    }
-
-    /**
      * import data (n:n relation)
      */
     public function importdata($dataPivot)
