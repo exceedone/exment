@@ -285,7 +285,7 @@ abstract class CustomItem implements ItemInterface
             
             $uniqueRules = [$unique_table_name, $unique_column_name];
             // create rules.if isset id, add
-            $uniqueRules[] = (isset($value_id) ? "$value_id" : "");
+            $uniqueRules[] = $this->id ?? '';
             $uniqueRules[] = 'id';
             // and ignore data deleted_at is NULL 
             $uniqueRules[] = 'deleted_at';

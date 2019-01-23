@@ -9,6 +9,7 @@ abstract class FormatBase
 {
     protected $datalist;
     protected $filebasename;
+    protected $accept_extension = '*';
 
     public function datalist($datalist = []){
         if(!func_num_args()){
@@ -28,6 +29,10 @@ abstract class FormatBase
         $this->filebasename = $filebasename;
         
         return $this;
+    }
+
+    public function accept_extension(){
+        return $this->accept_extension;
     }
 
     /**

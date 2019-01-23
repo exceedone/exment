@@ -49,10 +49,13 @@ trait CustomValueGrid
 
         // create exporter
         //$grid->exporter(DataImportExport\DataExporterBase::getModel($grid, $this->custom_table, $search_enabled_columns));
-        $grid->exporter(DataImportExport\ExportService::getService([
-            'custom_table' => $this->custom_table,
-            'grid' => $grid,
-        ]));
+        $action = new DataImportExport\Actions\Export\CustomTableAction(
+            [
+                'custom_table' => $this->custom_table,
+            ]
+        );
+        $service = (new DataImportExport\ExportService())->action($action);
+        $grid->exporter($service);
         
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $grid;
@@ -162,10 +165,17 @@ trait CustomValueGrid
      */
     public function import(Request $request)
     {
-        // get file extenstion
-        $format = DataImportExport\DataImporterBase::getFileExtension($request);
-        $result = DataImportExport\DataImporterBase::getModel(CustomTable::find($request->custom_table_id), $format)
-            ->import($request);
+        // action is TableAction
+        $action = new DataImportExport\Actions\Import\CustomTableAction(
+            [
+                'custom_table' => CustomTable::getEloquent($request->custom_table_id),
+                'primary_key' => $request->input('select_primary_key'),
+            ]
+        );
+        $service = (new DataImportExport\ImportService)
+            ->format($request->file('custom_table_file'))
+            ->action($action);
+        $result = $service->import($request);
 
         return getAjaxResponse($result);
     }
@@ -173,7 +183,6 @@ trait CustomValueGrid
 
     public function ImportSettingModal()
     {
-        $exmenImporter = DataImportExport\DataImporterBase::getModel($this->custom_table);
-        return $exmenImporter->importModal();
+        return DataImportExport\ImportService::importModal($this->custom_table);
     }
 }

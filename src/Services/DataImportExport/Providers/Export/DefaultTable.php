@@ -1,18 +1,27 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\ExportProviders;
+namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
+use Validator;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Services\FormHelper;
+use Exceedone\Exment\Services\DataImportExport\Providers\Traits\DefaultTableTrait;
 
 class DefaultTable extends ProviderBase
 {
-    protected $custom_table;
+    use DefaultTableTrait{
+        DefaultTableTrait::__construct as traitconstruct;
+    }
+    
     protected $grid;
 
-    public function __construct(...$args){
+    public function __construct($args = []){
         parent::__construct();
-        $this->custom_table = $args[0];
-        $this->grid = $args[1];
+        $this->traitconstruct($args);
+
+        $this->grid = array_get($args, 'grid');
     }
 
     /**
@@ -147,5 +156,4 @@ class DefaultTable extends ProviderBase
         }
         return $body_items;
     }
-
 }

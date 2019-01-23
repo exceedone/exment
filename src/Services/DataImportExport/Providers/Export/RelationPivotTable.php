@@ -1,28 +1,54 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\ExportProviders;
+namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
+use Exceedone\Exment\Services\DataImportExport\Providers\Traits\RelationPivotTableTrait;
 
 /**
  * Relation Pivot table (n:n)
  */
 class RelationPivotTable extends ProviderBase
 {
-    protected $relation;
+    use RelationPivotTableTrait{
+        RelationPivotTableTrait::__construct as traitconstruct;
+    }
+    
     protected $grid;
 
-    public function __construct(...$args){
+    public function __construct($args = []){
         parent::__construct();  
-        $this->custom_table = $args[0];
-        $this->grid = $args[1];
+        $this->traitconstruct($args);
+
+        $this->grid = array_get($args, 'grid');
     }
 
     /**
      * get data name
      */
     public function name(){
-        return $relation->getSheetName();
+        return $this->relation->getSheetName();
+    }
+
+    /**
+     * get data
+     */
+    public function data(){
+        // get header info
+        $columnDefines = $this->getColumnDefines();
+        // get header and body
+        $headers = $this->getHeaders($columnDefines);
+
+        // if only template, output only headers
+        if ($this->template) {
+            $bodies = [];
+        } else {
+            $bodies = $this->getBodies($this->getRecords(), $columnDefines);
+        }
+        // get output items
+        $outputs = array_merge($headers, $bodies);
+
+        return $outputs;
     }
 
     /**
@@ -119,5 +145,4 @@ class RelationPivotTable extends ProviderBase
         }
         return $body_items;
     }
-
 }

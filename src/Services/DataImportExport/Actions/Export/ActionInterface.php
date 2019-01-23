@@ -1,8 +1,8 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\Services;
+namespace Exceedone\Exment\Services\DataImportExport\Actions\Export;
 
-interface ServiceInterface
+interface ActionInterface
 {
     /**
      * get output data list

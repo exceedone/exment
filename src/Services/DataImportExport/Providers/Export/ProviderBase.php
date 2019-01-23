@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Services\DataImportExport\ExportProviders;
+namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 abstract class ProviderBase
 {
