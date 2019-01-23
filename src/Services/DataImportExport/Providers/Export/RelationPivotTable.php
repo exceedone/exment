@@ -3,23 +3,21 @@
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Services\DataImportExport\Providers\Traits\RelationPivotTableTrait;
 
 /**
  * Relation Pivot table (n:n)
  */
 class RelationPivotTable extends ProviderBase
 {
-    use RelationPivotTableTrait{
-        RelationPivotTableTrait::__construct as traitconstruct;
-    }
-    
+    protected $relation;
+
     protected $grid;
 
     public function __construct($args = []){
         parent::__construct();  
-        $this->traitconstruct($args);
 
+        $this->relation = array_get($args, 'relation');
+        
         $this->grid = array_get($args, 'grid');
     }
 

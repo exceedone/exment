@@ -7,19 +7,14 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Services\FormHelper;
-use Exceedone\Exment\Services\DataImportExport\Providers\Traits\DefaultTableTrait;
 
 class DefaultTable extends ProviderBase
 {
-    use DefaultTableTrait{
-        DefaultTableTrait::__construct as traitconstruct;
-    }
-    
     protected $grid;
 
     public function __construct($args = []){
         parent::__construct();
-        $this->traitconstruct($args);
+        $this->custom_table = array_get($args, 'custom_table');
 
         $this->grid = array_get($args, 'grid');
     }

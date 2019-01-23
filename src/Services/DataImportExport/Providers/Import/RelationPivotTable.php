@@ -10,13 +10,11 @@ use Exceedone\Exment\Services\DataImportExport\Providers\Traits\RelationPivotTab
  */
 class RelationPivotTable extends ProviderBase
 {
-    use RelationPivotTableTrait{
-        RelationPivotTableTrait::__construct as traitconstruct;
-    }
-    
+    protected $relation;
+
     public function __construct($args = []){
         parent::__construct();  
-        $this->traitconstruct($args);
+        $this->relation = array_get($args, 'relation');
     }
 
     /**
@@ -64,7 +62,7 @@ class RelationPivotTable extends ProviderBase
     {
         return $data;
     }
-    
+
     /**
      * import data (n:n relation)
      */

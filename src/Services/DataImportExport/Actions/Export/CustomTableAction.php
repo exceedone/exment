@@ -5,23 +5,32 @@ namespace Exceedone\Exment\Services\DataImportExport\Actions\Export;
 use Exceedone\Exment\Services\DataImportExport\ExportService;
 use Exceedone\Exment\Services\DataImportExport\ExportProviders;
 use Exceedone\Exment\Services\DataImportExport\Providers\Export;
-use Exceedone\Exment\Services\DataImportExport\Actions\Traits\CustomTableTrait;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomTableAction implements ActionInterface
 {
-    use CustomTableTrait{
-        CustomTableTrait::__construct as traitconstruct;
-    }
-    
+    /**
+     * target custom table
+     */
+    protected $custom_table;
+
+    /**
+     * custom_table's relations
+     */
+    protected $relations;
+
     /**
      * laravel-admin grid
      */
     protected $grid;
 
     public function __construct($args = []){
-        $this->traitconstruct($args);
+        $this->custom_table = array_get($args, 'custom_table');
+
+        // get relations
+        $this->relations = CustomRelation::getRelationsByParent($this->custom_table);
+        
         $this->grid = array_get($args, 'grid');
     }
 
