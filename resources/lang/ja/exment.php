@@ -149,8 +149,16 @@ return [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
             'target_system_id' => '表示アイテム',
-            'chart_axisx' => '横軸の項目名',
-            'chart_axisy' => '縦軸の項目名',
+            'chart_axisx' => 'X軸の項目',
+            'chart_axisy' => 'Y軸の項目',
+            'chart_axis_label' => 'ラベルを表示する',
+            'chart_axis_name' => '項目名を表示する',
+            'chart_axisx_short' => 'X軸',
+            'chart_axisy_short' => 'Y軸',
+            'chart_type' => 'チャートの種類',
+            'chart_begin_zero' => '０を起点にする',
+            'chart_legend' => '凡例を表示する',
+            'chart_options' => 'オプション設定',
         ],
 
         'dashboard_box_system_pages' => [
@@ -836,6 +844,13 @@ return [
 
         'notify_action_target_options' => [
             'has_roles' => '権限のあるユーザー',
+        ],
+    ],
+    'chart' => [
+        'chart_type_options' => [
+            'bar' => '棒グラフ',
+            'line' => '折れ線グラフ',
+            'pie' => '円グラフ',
         ],
     ],
 ];

@@ -31,4 +31,12 @@ return [
 
     'notify_saved_skip_minutes' => env('EXMENT_NOTIFY_SAVED_SKIP_MINUTES', 5),
 
+    'chart_backgroundColor' => [
+      "#FF6384",
+      "#36A2EB",
+      "#FFCE56",
+      "#339900",
+      "#ff6633",
+      "#cc0099"
+  ],
 ];

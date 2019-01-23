@@ -143,6 +143,16 @@ return [
             'target_table_id' => 'Target Table',
             'target_view_id' => 'Target View',
             'target_system_id' => 'Target Item',
+            'chart_axisx' => 'Axis X',
+            'chart_axisy' => 'Axis Y',
+            'chart_axis_label' => 'Show axis label',
+            'chart_axis_name' => 'Show axis name',
+            'chart_axisx_short' => 'Axis X',
+            'chart_axisy_short' => 'Axis Y',
+            'chart_type' => 'Chart Type',
+            'chart_begin_zero' => 'Start at zero',
+            'chart_legend' => 'Show legend',
+            'chart_options' => 'Option settings',
         ],
 
         'dashboard_box_system_pages' => [
@@ -826,6 +836,13 @@ return [
 
         'notify_action_target_options' => [
             'has_roles' => 'Have the Role User',
+        ],
+        'chart' => [
+            'chart_type_options' => [
+                'bar' => 'Bar chart',
+                'line' => 'Line chart',
+                'pie' => 'Pie chart',
+            ],
         ],
     ],
 ];

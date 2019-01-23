@@ -403,78 +403,45 @@ class CustomView extends ModelBase
      */
     public function getValueSummary($model, $table_name){
         // get table id
-        $table_id = getDBTableName($table_name);
-
-        // get join tables
-        $relations = CustomRelation::getRelationsByParent($table_name);
-        foreach($relations as $relation){
-            $child_name = getDBTableName($relation->child_custom_table);
-            $model = $model->join($child_name, $table_id.'.id', "$child_name.parent_id");
-            $model = $model->where("$child_name.parent_type", $table_name);
-        }
-
-        // set filter
-        $model = $this->setValueFilter($model, $table_id);
+        $db_table_name = getDBTableName($table_name);
 
         $group_columns = [];
         $select_columns = [];
-        $index = 0;
-        
+        $custom_tables = [];
         // set grouping columns
         foreach ($this->custom_view_columns as $custom_view_column) {
-            $view_column_type = array_get($custom_view_column, 'view_column_type');
-            $alter_column_id = 'column_' . ViewKindType::DEFAULT . '_' . $custom_view_column->id;
-            if ($view_column_type == ViewColumnType::COLUMN) {
-                $column = $custom_view_column->custom_column;
-                if(!isset($column)){
-                    continue;
-                }
-                // get virtual column name
-                $column_name = $column->getIndexColumnName();
-                // $column_view_name = is_nullorempty(array_get($custom_view_column, 'view_column_name'))? 
-                //     array_get($column, 'column_view_name') : array_get($custom_view_column, 'view_column_name');
+            $item = $custom_view_column->column_item;
 
-                $group_columns[] = $column_name;
-                $select_columns[] = "$column_name as $alter_column_id";
+            // first, set group_column. this column's name uses index.
+            $group_columns[] = $item->sqlname();
+            $alter_column_index = ViewKindType::DEFAULT . '_' . $custom_view_column->id;
 
-                $index++;
-            }
-            elseif ($view_column_type == ViewColumnType::SYSTEM) {
-                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
-                $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
-                
-                $group_columns[] = "$table_id.$view_column_target";
-                $select_columns[] = "$table_id.$view_column_target as $alter_column_id";
-            }
+            $this->setSummaryItem($item, $alter_column_index, $select_columns, $custom_tables);
         }
         // set summary columns
         foreach ($this->custom_view_summaries as $custom_view_summary) {
-            $column = $custom_view_summary->custom_column;
-            $alter_column_id = 'column_' . ViewKindType::AGGREGATE . '_' . $custom_view_summary->id;
-            if (!isset($column)) {
+            $item = $custom_view_summary->column_item;
+
+            $alter_column_index = ViewKindType::AGGREGATE . '_' . $custom_view_summary->id;
+            $this->setSummaryItem($item, $alter_column_index, $select_columns, $custom_tables, $custom_view_summary->view_summary_condition);
+        }
+
+        // get join tables
+        $relations = CustomRelation::getRelationsByParent($this->custom_table);
+        foreach($relations as $relation){
+            // if not contains group or select column, continue
+            if(!in_array($relation->child_custom_table->id, $custom_tables)){
                 continue;
             }
-            $column_table_name = getDBTableName($column->custom_table);
-            $column_name = $column->column_name;
-            // $column_view_name = is_nullorempty(array_get($custom_view_summary, 'view_column_name'))? 
-            //     array_get($column, 'column_view_name') : array_get($custom_view_summary, 'view_column_name');
 
-            $summary = 'sum';
-            switch($custom_view_summary->view_summary_condition) {
-                case 1:
-                    $summary = 'sum';
-                    break;
-                case 2:
-                    $summary = 'avg';
-                    break;
-                case 3:
-                    $summary = 'count';
-                    break;
-            }
-            $select_columns[] = \DB::raw("$summary($column_table_name.value->'$.$column_name') AS $alter_column_id");
-            $index++;
+            $child_name = getDBTableName($relation->child_custom_table);
+            $model = $model->join($child_name, $db_table_name.'.id', "$child_name.parent_id");
+            $model = $model->where("$child_name.parent_type", $this->custom_table->table_name);
         }
- 
+
+        // set filter
+        $model = $this->setValueFilter($model, $db_table_name);
+
         // set sql select columns
         $model = $model->select($select_columns);
  
@@ -484,6 +451,21 @@ class CustomView extends ModelBase
         $datalist = $model->get();
 
         return $datalist;
+    }
+    /**
+     * set summary grid item
+     */
+    protected function setSummaryItem($item, $index, &$select_columns, &$custom_tables, $summary_condition = null){
+        $item->options([
+            'summary' => true,
+            'summary_condition' => $summary_condition,
+            'summary_index' => $index
+        ]);
+
+        $select_columns[] = $item->sqlname();
+
+        // set custom_tables
+        $custom_tables[] = $item->getCustomTable()->id;
     }
 
     /**
