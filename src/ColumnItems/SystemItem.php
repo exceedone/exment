@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Form\Field;
+use Exceedone\Exment\Enums\SummaryCondition;
 
 class SystemItem implements ItemInterface
 {
@@ -30,7 +31,25 @@ class SystemItem implements ItemInterface
      * get column key sql name.
      */
     public function sqlname(){
+        if(boolval(array_get($this->options, 'summary'))) {
+            return $this->getSummarySqlName();
+        }
         return getDBTableName($this->custom_table) .'.'. $this->column_name;
+    }
+
+    /**
+     * get sqlname for summary
+     */
+    protected function getSummarySqlName(){
+        $db_table_name = getDBTableName($this->custom_table);
+
+        $summary_condition = SummaryCondition::getEnum(array_get($this->options, 'summary_condition'), SummaryCondition::MIN)->lowerKey();
+        $raw = "$summary_condition($db_table_name.$this->column_name) AS ".$this->sqlAsName();
+
+        return \DB::raw($raw);
+    }
+    protected function sqlAsName(){
+        return "column_".array_get($this->options, 'summary_index');
     }
 
     /**
@@ -78,6 +97,10 @@ class SystemItem implements ItemInterface
     }
 
     protected function getTargetValue($custom_value){
+        // if options has "summary" (for summary view)
+        if(boolval(array_get($this->options, 'summary'))){
+            return array_get($custom_value, $this->sqlAsName());
+        }
         return array_get($custom_value, $this->column_name);
     }   
     

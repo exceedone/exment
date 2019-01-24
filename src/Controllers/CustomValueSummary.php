@@ -10,6 +10,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -60,16 +61,17 @@ trait CustomValueSummary
 
             // first, set group_column. this column's name uses index.
             $group_columns[] = $item->sqlname();
-
-            $this->setSummaryGridItem($item, $index, $grid, $select_columns, $custom_tables);
+            $column_label = array_get($custom_view_column, 'view_column_name')?? $item->label();
+            $this->setSummaryGridItem($item, $index, $column_label, $grid, $select_columns, $custom_tables);
 
             $index++;
         }
         // set summary columns
         foreach ($view->custom_view_summaries as $custom_view_summary) {
             $item = $custom_view_summary->column_item;
+            $column_label = array_get($custom_view_summary, 'view_column_name')?? $item->label();
 
-            $this->setSummaryGridItem($item, $index, $grid, $select_columns, $custom_tables, $custom_view_summary->view_summary_condition);
+            $this->setSummaryGridItem($item, $index, $column_label, $grid, $select_columns, $custom_tables, $custom_view_summary->view_summary_condition);
 
             $index++;
         }
@@ -77,9 +79,22 @@ trait CustomValueSummary
         // create query
         $query = $grid->model();
 
-        // get join tables
-        $relations = CustomRelation::getRelationsByParent($this->custom_table);
-        foreach($relations as $relation){
+        // get relation parent tables
+        $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
+        foreach($parent_relations as $relation){
+            // if not contains group or select column, continue
+            if(!in_array($relation->parent_custom_table->id, $custom_tables)){
+                continue;
+            }
+            $parent_table = $relation->parent_custom_table;
+            $parent_name = getDBTableName($parent_table);
+            $query->join($parent_name, "$db_table_name.parent_id", "$parent_name.id");
+            $query->where("$db_table_name.parent_type", $parent_table->table_name);
+        }
+
+        // get relation child tables
+        $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
+        foreach($child_relations as $relation){
             // if not contains group or select column, continue
             if(!in_array($relation->child_custom_table->id, $custom_tables)){
                 continue;
@@ -88,6 +103,26 @@ trait CustomValueSummary
             $child_name = getDBTableName($relation->child_custom_table);
             $query->join($child_name, $db_table_name.'.id', "$child_name.parent_id");
             $query->where("$child_name.parent_type", $this->custom_table->table_name);
+        }
+
+        // join select table refered from this table.
+        $select_table_columns = $this->custom_table->getSelectTableColumns();
+        foreach($select_table_columns as $column_key => $select_table_id){
+            if(!in_array($select_table_id, $custom_tables)){
+                continue;
+            }
+            $table_name = getDBTableName($select_table_id);
+            $query->join($table_name, "$db_table_name.$column_key", "$table_name.id");
+        }
+
+        // join table refer to this table as select.
+        $selected_table_columns = $this->custom_table->getSelectedTableColumns();
+        foreach($selected_table_columns as $column_key => $select_table_id){
+            if(!in_array($select_table_id, $custom_tables)){
+                continue;
+            }
+            $table_name = getDBTableName($select_table_id);
+            $query->join($table_name, "$db_table_name.id", "$table_name.$column_key");
         }
 
         // set filter
@@ -103,14 +138,14 @@ trait CustomValueSummary
     /**
      * set summary grid item
      */
-    protected function setSummaryGridItem($item, $index, &$grid, &$select_columns, &$custom_tables, $summary_condition = null){
+    protected function setSummaryGridItem($item, $index, $column_label, &$grid, &$select_columns, &$custom_tables, $summary_condition = null){
         $item->options([
             'summary' => true,
             'summary_condition' => $summary_condition,
             'summary_index' => $index
         ]);
 
-        $grid->column($item->name(), $item->label())
+        $grid->column('column_'.$index, $column_label)
             ->sort($item->sortable())
             ->display(function ($v) use ($index, $item) {
                 return $item->setCustomValue($this)->html();

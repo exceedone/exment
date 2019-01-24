@@ -44,7 +44,7 @@ class SystemColumn extends EnumBase
             return $enum;
         }
 
-        foreach ($options as $key => $v) {
+        foreach (self::$options as $key => $v) {
             if(array_get($v, 'id') == $value){
                 return parent::getEnum($key);
             }

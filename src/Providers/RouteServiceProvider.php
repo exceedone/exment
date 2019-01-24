@@ -117,6 +117,7 @@ class RouteServiceProvider extends ServiceProvider
                         $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
                         
                         $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
+                        $router->get("view/{$value}/summary-condition", 'CustomViewController@getSummaryCondition');
                         $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
                         
                         $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
