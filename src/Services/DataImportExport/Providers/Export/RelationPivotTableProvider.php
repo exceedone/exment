@@ -2,20 +2,22 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
-use Validator;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Services\FormHelper;
 
-class DefaultTable extends ProviderBase
+/**
+ * Relation Pivot table (n:n)
+ */
+class RelationPivotTableProvider extends ProviderBase
 {
+    protected $relation;
+
     protected $grid;
 
     public function __construct($args = []){
-        parent::__construct();
-        $this->custom_table = array_get($args, 'custom_table');
+        parent::__construct();  
 
+        $this->relation = array_get($args, 'relation');
+        
         $this->grid = array_get($args, 'grid');
     }
 
@@ -23,7 +25,7 @@ class DefaultTable extends ProviderBase
      * get data name
      */
     public function name(){
-        return $this->custom_table->table_name;
+        return $this->relation->getSheetName();
     }
 
     /**
@@ -53,12 +55,11 @@ class DefaultTable extends ProviderBase
      */
     protected function getColumnDefines()
     {
-        $firstColumns = ['id','suuid','parent_id','parent_type'];
-        $lastColumns = ['created_at','updated_at','deleted_at'];
-
-        // get custom columns
-        $custom_columns = $this->custom_table->custom_columns()->get(['column_name', 'column_view_name'])->toArray();
-        return [$firstColumns, $custom_columns, $lastColumns];
+        $columnDefines = ['parent_id','child_id'];
+        if($this->template){
+            $columnDefines[] = 'delete_flg';
+        }
+        return $columnDefines;
     }
 
     /**
@@ -69,30 +70,18 @@ class DefaultTable extends ProviderBase
     {
         // create 2 rows.
         $rows = [];
-
-        list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;
         
-        // 1st row, column name
-        $rows[] = array_merge(
-            $firstColumns,
-            collect($custom_columns)->map(function ($value) {
-                return "value.".array_get($value, 'column_name');
-            })->toArray(),
-            $lastColumns
-        );
-
-        // 2st row, column view name
-        $rows[] = array_merge(
-            collect($firstColumns)->map(function ($value) {
-                return exmtrans("common.$value");
-            })->toArray(),
-            collect($custom_columns)->map(function ($value) {
-                return array_get($value, 'column_view_name');
-            })->toArray(),
-            collect($lastColumns)->map(function ($value) {
-                return exmtrans("common.$value");
-            })->toArray()
-        );
+        $rows[] = $columnDefines;
+        // column_view_names
+        $column_view_names =  [
+            $this->relation->parent_custom_table->table_view_name . '_'. exmtrans("common.id"),
+            $this->relation->child_custom_table->table_view_name . '_'. exmtrans("common.id"),
+        ];
+        if($this->template){
+            $column_view_names[] = trans('admin.delete');
+        }
+        $rows[] = $column_view_names;
+        
         return $rows;
     }
 
@@ -101,11 +90,20 @@ class DefaultTable extends ProviderBase
      */
     protected function getRecords()
     {
-        $this->grid->model()->chunk(function ($data) use (&$records) {
+        // get base records
+        $relation_name = $this->relation->getRelationName();
+        $this->grid->model()->with($relation_name);
+
+        $this->grid->model()->chunk(function ($data) use (&$records, $relation_name) {
             if (!isset($records)) {
                 $records = new Collection;
             }
-            $records = $records->merge($data);
+            $datalist = $data->map(function ($d) use ($relation_name) {
+                return $d->{$relation_name};
+            });
+            foreach ($datalist as $d) {
+                $records = $records->merge($d);
+            }
         }) ?? [];
 
         return $records;
@@ -118,16 +116,10 @@ class DefaultTable extends ProviderBase
     {
         $bodies = [];
 
-        list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;
-        // convert $custom_columns to pluck column_name array
-        $custom_column_names = collect($custom_columns)->pluck('column_name')->toArray();
         foreach ($records as $record) {
             $body_items = [];
             // add items
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value."));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
-
+            $body_items = array_merge($body_items, $this->getBodyItems($record, $columnDefines, "pivot."));
             $bodies[] = $body_items;
         }
 

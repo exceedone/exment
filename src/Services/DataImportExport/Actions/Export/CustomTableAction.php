@@ -39,7 +39,7 @@ class CustomTableAction implements ActionInterface
         $providers = [];
 
         // get default data
-        $providers[] = new Export\DefaultTable([
+        $providers[] = new Export\DefaultTableProvider([
             'custom_table' => $this->custom_table,
             'grid' => $this->grid
         ]);
@@ -47,7 +47,7 @@ class CustomTableAction implements ActionInterface
         foreach ($this->relations as $relation) {
             // if n:n, create as RelationPivotTable
             if($relation->relation_type == RelationType::MANY_TO_MANY){
-                $providers[] = new Export\RelationPivotTable
+                $providers[] = new Export\RelationPivotTableProvider
                 (
                     [
                         'relation' => $relation,
@@ -55,7 +55,7 @@ class CustomTableAction implements ActionInterface
                     ]
                 );
             }else{
-                $providers[] = new Export\DefaultTable(
+                $providers[] = new Export\DefaultTableProvider(
                     [
                         'custom_table' => $relation->child_custom_table,
                         'grid' => $this->grid

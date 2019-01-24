@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Services\FormHelper;
 
-class DefaultTable extends ProviderBase
+class DefaultTableProvider extends ProviderBase
 {
     protected $primary_key;
 

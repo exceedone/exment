@@ -103,7 +103,7 @@ class CustomTableAction implements ActionInterface
     public function getProvider($keyname){
         // get providers
         if($keyname == $this->custom_table->table_name){
-            return new Import\DefaultTable([
+            return new Import\DefaultTableProvider([
                 'custom_table' => $this->custom_table,
                 'promary_key' => $this->primary_key,
             ]);
@@ -111,11 +111,11 @@ class CustomTableAction implements ActionInterface
             // get relations
             foreach ($this->relations as $relation) {
                 if ($relation->relation_type == RelationType::MANY_TO_MANY) {
-                    return new Import\RelationPivotTable([
+                    return new Import\RelationPivotTableProvider([
                         'relation' => $relation,
                     ]);
                 } else {
-                    return new Import\DefaultTable([
+                    return new Import\DefaultTableProvider([
                         'custom_table' => $relation->child_custom_table,
                         'promary_key' => 'id',
                     ]);

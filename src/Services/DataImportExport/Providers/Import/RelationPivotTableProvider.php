@@ -8,7 +8,7 @@ use Exceedone\Exment\Services\DataImportExport\Providers\Traits\RelationPivotTab
 /**
  * Relation Pivot table (n:n)
  */
-class RelationPivotTable extends ProviderBase
+class RelationPivotTableProvider extends ProviderBase
 {
     protected $relation;
 
