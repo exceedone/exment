@@ -5,13 +5,16 @@ namespace Exceedone\Exment\Controllers;
 use Validator;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\HasResourceActions;
+use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -24,6 +27,18 @@ class LoginUserController extends AdminControllerBase
         $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"));
     }
     
+    /**
+     * Show interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function show(Request $request, $id, Content $content)
+    {
+        return redirect(admin_base_paths('loginuser', $id, 'edit'));
+    }
+
     /**
      * Make a grid builder.
      *
@@ -50,11 +65,30 @@ class LoginUserController extends AdminControllerBase
             $actions->disableView();
         });
 
-        $grid->tools(function (Grid\Tools $tools) {
+        
+        // create exporter
+        $service = (new DataImportExport\DataImportExportService())
+            ->exportAction(new DataImportExport\Actions\Export\LoginUserAction(
+                [
+                    'grid' => $grid,
+                ]
+            ))->importAction(new DataImportExport\Actions\Import\LoginUserAction(
+                [
+                    'primary_key' => app('request')->input('select_primary_key') ?? null,
+                ]
+            ));
+        $grid->exporter($service);
+        
+        $grid->tools(function (Grid\Tools $tools) use($grid, $service) {
+            $tools->append(new Tools\ExportImportButton(admin_base_path('loginuser'), $grid));
+            $tools->append($service->getImportModal());
+
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
                 $actions->disableDelete();
             });
         });
+        
+        
         return $grid;
     }
 
@@ -191,19 +225,12 @@ class LoginUserController extends AdminControllerBase
             }
 
             if ($has_change) {
-                $login_user->save();
-
                 // mailsend
                 if (array_key_exists('send_password', $data)) {
-                    $prms = [];
-                    $prms['user'] = $user->toArray()['value'];
-                    $prms['user']['password'] = $password;
-                    MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
-                        ->prms($prms)
-                        ->user($user)
-                        ->disableHistoryBody()
-                        ->send();
+                    $login_user->sendPassword($password);
                 }
+                $login_user->save();
+
                 DB::commit();
             }
             DB::commit();
@@ -213,6 +240,25 @@ class LoginUserController extends AdminControllerBase
         }
 
         return $this->response();
+    }
+    
+    /**
+     * @param Request $request
+     */
+    public function import(Request $request)
+    {
+        // create exporter
+        $service = (new DataImportExport\DataImportExportService())
+            ->exportAction(new DataImportExport\Actions\Export\LoginUserAction)
+            ->importAction(new DataImportExport\Actions\Import\LoginUserAction(
+                [
+                    'primary_key' => app('request')->input('select_primary_key') ?? null,
+                ]
+            )
+            )->format($request->file('custom_table_file'));
+        $result = $service->import($request);
+
+        return getAjaxResponse($result);
     }
 
     protected function response()

@@ -47,16 +47,6 @@ trait CustomValueGrid
         $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
         $this->manageMenuToolButton($grid, $listButton);
 
-        // create exporter
-        $action = new DataImportExport\Actions\Export\CustomTableAction(
-            [
-                'custom_table' => $this->custom_table,
-                'grid' => $grid,
-            ]
-        );
-        $service = (new DataImportExport\ExportService())->action($action);
-        $grid->exporter($service);
-        
         PluginInstaller::pluginPreparing($this->plugins, 'loaded');
         return $grid;
     }
@@ -104,14 +94,19 @@ trait CustomValueGrid
         $custom_table = $this->custom_table;
         $grid->disableCreateButton();
         $grid->disableExport();
-        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid) {
+        
+        // create exporter
+        $service = $this->getImportExportService($grid);
+        $grid->exporter($service);
+        
+        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid, $service) {
             // have edit flg
             $edit_flg = $this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid));
+                $tools->append(new Tools\ExportImportButton(admin_base_paths('data', $this->custom_table->table_name), $grid));
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
-                $tools->append($this->ImportSettingModal($this->custom_table->table_name));
+                $tools->append($service->getImportModal());
             }
             
             // add page change button(contains view seting)
@@ -165,24 +160,27 @@ trait CustomValueGrid
      */
     public function import(Request $request)
     {
-        // action is TableAction
-        $action = new DataImportExport\Actions\Import\CustomTableAction(
-            [
-                'custom_table' => CustomTable::getEloquent($request->custom_table_id),
-                'primary_key' => $request->input('select_primary_key'),
-            ]
-        );
-        $service = (new DataImportExport\ImportService)
-            ->format($request->file('custom_table_file'))
-            ->action($action);
+        $service = $this->getImportExportService()
+            ->format($request->file('custom_table_file'));
         $result = $service->import($request);
 
         return getAjaxResponse($result);
     }
 
-
-    public function ImportSettingModal()
-    {
-        return DataImportExport\ImportService::importModal($this->custom_table);
+    // create import and exporter
+    protected function getImportExportService($grid = null){
+        $service = (new DataImportExport\DataImportExportService())
+            ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'grid' => $grid,
+                ]
+            ))->importAction(new DataImportExport\Actions\Import\CustomTableAction(
+                [
+                    'custom_table' => $this->custom_table,
+                    'primary_key' => app('request')->input('select_primary_key') ?? null,
+                ]
+            ));
+        return $service;
     }
 }

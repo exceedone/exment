@@ -79,6 +79,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role', 'RoleController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
+            $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             $router->resource('mail', 'MailTemplateController', ['except' => ['show']]);
         

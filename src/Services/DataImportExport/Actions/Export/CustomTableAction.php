@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport\Actions\Export;
 use Exceedone\Exment\Services\DataImportExport\ExportService;
 use Exceedone\Exment\Services\DataImportExport\ExportProviders;
 use Exceedone\Exment\Services\DataImportExport\Providers\Export;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\RelationType;
 
@@ -74,4 +75,6 @@ class CustomTableAction implements ActionInterface
     public function filebasename(){
         return $this->custom_table->table_view_name;
     }
+
+    
 }

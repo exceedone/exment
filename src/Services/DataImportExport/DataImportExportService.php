@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport;
 
+use Encore\Admin\Grid\Exporters\AbstractExporter;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\Define;
@@ -9,18 +10,108 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Services\DataImportExport\Services;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Validator;
 use Carbon\Carbon;
 
-class ImportService
+class DataImportExportService extends AbstractExporter
 {
-    use ImportExportTrait;
+    //use ImportExportTrait;
 
-    public function __construct($args = [])
-    {
+    const SCOPE_ALL = 'all';
+    const SCOPE_TEMPLATE = 'temp';
+    const SCOPE_CURRENT_PAGE = 'page';
+    const SCOPE_SELECTED_ROWS = 'selected';
+
+    public static $queryName = '_export_';
+    
+    /**
+     * csv or excel format model
+     */
+    protected $format;
+    
+    /**
+     * import action.
+     */
+    protected $importAction;
+
+    /**
+     * export action.
+     */
+    protected $exportAction;
+
+    public function __construct($args = []){
         $this->format = static::getFormat($args);
+        
+        if (array_has($args, 'grid')) {
+            $this->setGrid(array_get($args, 'grid'));
+        }
     }
 
+    public function format($format = null){
+        if(!func_num_args()){
+            return $this->format;
+        }
+
+        $this->format = static::getFormat($format);
+
+        return $this;
+    }
+
+    public static function getFormat($args = []){
+        if($args instanceof FormatBase){
+            return $args;
+        }
+        
+        if($args instanceof UploadedFile){
+            $format = $args->extension();
+        }
+        elseif(array_has($args, 'format')){
+            $format = array_get($args, 'format');
+        }else{
+            $format = app('request')->input('format');
+        }
+
+        switch ($format) {
+            case 'excel':
+            case 'xlsx':
+                return new Formats\Xlsx();
+            default:
+                return new Formats\Csv();
+        }
+    }
+
+    public function importAction($importAction){
+        $this->importAction = $importAction;
+
+        return $this;
+    }
+    
+    public function exportAction($exportAction){
+        $this->exportAction = $exportAction;
+
+        return $this;
+    }
+    
+    /**
+     * execute export
+     */
+    public function export()
+    {
+        $datalist = $this->exportAction->datalist();
+
+        $files = $this->format
+            ->datalist($datalist)
+            ->filebasename($this->exportAction->filebasename())
+            ->createFile();
+        
+        $response = $this->format->createResponse($files);
+        $response->send();
+        exit;
+    }
+
+
+    
     /**
      * @param $request
      * @return mixed|void error message or success message etc...
@@ -38,16 +129,16 @@ class ImportService
         }
 
         // get table data
-        if(method_exists($this->action, 'getDataTable')){
-            $datalist = $this->action->getDataTable($request);
+        if(method_exists($this->importAction, 'getDataTable')){
+            $datalist = $this->importAction->getDataTable($request);
         }else{
             $datalist = $this->format->getDataTable($request);
         }
 
         // filter data
-        $datalist = $this->action->filterDatalist($datalist);
+        $datalist = $this->importAction->filterDatalist($datalist);
         
-        $response = $this->action->import($datalist);
+        $response = $this->importAction->import($datalist);
 
         return $response;
     }
@@ -96,20 +187,16 @@ class ImportService
         return true;
     }
 
-
-
     // Import Modal --------------------------------------------------
-    public static function importModal($custom_table)
+    public function getImportModal()
     {
-        $table_name = $custom_table->table_name;
-        $import_path = admin_base_paths('data', $table_name, 'import');
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset();
         $form->modalAttribute('id', 'data_import_modal');
-        $form->modalHeader(exmtrans('common.import') . ' - ' . $custom_table->table_view_name);
+        $form->modalHeader(exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName());
 
-        $form->action(admin_base_path('data/'.$table_name.'/import'))
+        $form->action(admin_base_paths($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options(Define::FILE_OPTION())
@@ -117,7 +204,7 @@ class ImportService
         
         // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))
-            ->options(static::getPrimaryKeys($custom_table))
+            ->options($this->importAction->getPrimaryKeys())
             ->default('id')
             ->setWidth(8, 3)
             ->addElementClass('select_primary_key')
@@ -137,32 +224,11 @@ class ImportService
             ->rows(4)
             ->addElementClass('import_error_message')
             ->help(exmtrans('custom_value.import.help.import_error_message'));
-    
-        $form->hidden('custom_table_name')->default($table_name);
-        $form->hidden('custom_table_suuid')->default($custom_table->suuid);
-        $form->hidden('custom_table_id')->default($custom_table->id);
 
+        $this->importAction->setImportModalItems($form);
+            
         return $form->render()->render();
     }
-    
-    /**
-     * get importer model
-     */
-    public static function getModel($custom_table, $format = null)
-    {
-        switch ($format) {
-            case 'excel':
-            case 'xlsx':
-                return new ExcelImporter($custom_table);
-            default:
-                return new CsvImporter($custom_table);
-        }
-    }
-
-    /**
-     * get table from excel or csv.
-     */
-    //abstract protected function getDataTable($request);
     
     /**
      * get primary key list.
@@ -189,4 +255,5 @@ class ImportService
 
         return $keys;
     }
+    
 }

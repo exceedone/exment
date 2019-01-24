@@ -8,6 +8,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
+use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Enums\MailKeyName;
 
 class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword
 {
@@ -20,6 +22,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     protected $guarded = ['id'];
 
     protected $hidden = ['password'];
+
+    /**
+     * send password
+     */
+    protected $send_password = null;
 
     /**
      * taale "user"
@@ -52,6 +59,33 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
     public function validateForPassportPasswordGrant($password){
         return CustomUserProvider::ValidateCredential($this, ['password' => $password]);
+    }
+
+    /**
+     * set sendPassword param
+     */
+    public function sendPassword($sendPassword){
+        $this->send_password = $sendPassword;
+
+        return $this;
+    }
+
+    /**
+     * send Password
+     */
+    protected function send($is_newuser){
+        if(!isset($this->send_password)){
+            return;
+        }
+        $user = $this->base_user;
+        $prms = [];
+        $prms['user'] = $this->base_user->value;
+        $prms['user']['password'] = $this->send_password;
+        MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
+            ->prms($prms)
+            ->user($user)
+            ->disableHistoryBody()
+            ->send();
     }
 
     /**
@@ -89,6 +123,19 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
         // put session
         Session::put("user_setting.$key", $settings);
+    }
+
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($model) {
+            $model->send(true);
+        });
+        static::updated(function ($model) {
+            $model->send(false);
+        });
     }
 
 }
