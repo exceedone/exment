@@ -18,6 +18,13 @@ class SelectTable extends CustomItem
         $this->target_table = CustomTable::getEloquent(array_get($custom_column, 'options.select_target_table'));
     }
 
+    public function selectTableColumnList(){
+        $table_name = $this->target_table->table_view_name;
+        return $this->target_table->custom_columns->mapWithKeys(function ($item) use($table_name) {
+            return [$item['id'] => $table_name . ' : ' . $item['column_view_name']];
+        })->all();
+    }
+
     public function value(){
         return $this->getValue(false, false);
     }

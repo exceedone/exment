@@ -31,9 +31,18 @@ return [
 
     'notify_saved_skip_minutes' => env('EXMENT_NOTIFY_SAVED_SKIP_MINUTES', 5),
 
-    'driver' => [
-      'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
-      'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
-      'tmp' => env('EXMENT_DISK_TMP', 'local'),
-    ],
+    'chart_backgroundColor' => [
+      "#FF6384",
+      "#36A2EB",
+      "#FFCE56",
+      "#339900",
+      "#ff6633",
+      "#cc0099"
+  ],
+
+  'driver' => [
+    'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+    'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
+    'tmp' => env('EXMENT_DISK_TMP', 'local'),
+  ],
 ];

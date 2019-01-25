@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
@@ -151,21 +152,28 @@ class CustomViewController extends AdminControllerTableBase
 
             // summary columns setting
             $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getNumberColumnsSelectOptions());
                 $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
                     ->options([
                         1 => exmtrans("custom_view.view_summary_total"), 
                         2 => exmtrans("custom_view.view_summary_average"), 
-                        3 => exmtrans("custom_view.view_summary_count")])->required()->default(1);
+                        3 => exmtrans("custom_view.view_summary_count")])->required()
+                    ->attribute(['data-linkage' => json_encode(['view_column_target' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    ->options(function ($val) {
+                        // if null, return empty array.
+                        if (!isset($val)) {
+                            return [];
+                        }
+                        return $this->custom_table->getNumberColumnsSelectOptions(!is_numeric($val));
+                    });
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-            })->setTableColumnWidth(4, 2, 3, 1)
+            })->setTableColumnWidth(2, 4, 3, 1)
             ->description(exmtrans("custom_view.description_custom_view_summaries"));
         } else {
             // columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions());
+                    ->options($this->custom_table->getColumnsSelectOptions(false, true));
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 2, 1)
@@ -175,7 +183,7 @@ class CustomViewController extends AdminControllerTableBase
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true))
+                ->options($this->custom_table->getColumnsSelectOptions(true, true, true))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')])]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
@@ -200,7 +208,7 @@ class CustomViewController extends AdminControllerTableBase
                     return [];
                 });
             $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"));
-        })->setTableColumnWidth(3, 4, 4, 1)
+        })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_view.description_custom_view_filters"));
 
         // sort setting
@@ -227,7 +235,21 @@ class CustomViewController extends AdminControllerTableBase
         });
         return $form;
     }
-    
+    /**
+     * get filter condition
+     */
+    public function getSummaryCondition(Request $request)
+    {
+        $view_summary_condition = $request->get('q');
+        if (!isset($view_summary_condition)) {
+            return [];
+        }
+        $is_system = ($view_summary_condition == SummaryCondition::COUNT);
+        $options = $this->custom_table->getNumberColumnsSelectOptions($is_system);
+        return collect($options)->map(function ($text, $id) {
+            return ['id' => $id, 'text' => $text];
+        });
+    }    
     /**
      * get filter condition
      */

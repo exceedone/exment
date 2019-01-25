@@ -16,9 +16,9 @@ trait SummaryItemTrait
         $db_table_name = getDBTableName($this->custom_column->custom_table);
         $column_name = $this->custom_column->column_name;
 
-        $summary_condition = SummaryCondition::getEnum(array_get($this->options, 'summary_condition'), SummaryCondition::SUM)->lowerKey();
+        $summary_condition = SummaryCondition::getEnum(array_get($this->options, 'summary_condition'), SummaryCondition::MIN)->lowerKey();
+        $raw = "$summary_condition(json_unquote($db_table_name.value->'$.$column_name')) AS ".$this->sqlAsName();
 
-        $raw = "$summary_condition($db_table_name.value->'$.$column_name') AS ".$this->sqlAsName();
         return \DB::raw($raw);
     }
     
