@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\DashboardBoxItems;
 
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -36,6 +37,11 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return $this->clearJson('options');
     }
     
+    public function getDashboardBoxItemAttribute(){
+        $enum_class = DashboardBoxType::getEnum($this->dashboard_box_type)->getDashboardBoxItemClass();
+        return $enum_class::getItem($this) ?? null;
+    }
+
     /**
      * import template
      */

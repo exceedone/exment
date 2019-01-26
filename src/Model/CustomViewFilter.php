@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ViewColumnType;
+
 class CustomViewFilter extends ModelBase
 {
     protected $guarded = ['id'];
