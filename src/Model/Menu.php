@@ -104,7 +104,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
         return $rows;
     }
-    
+
     /**
      * import template
      */

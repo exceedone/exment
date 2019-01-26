@@ -272,14 +272,14 @@ class MenuController extends AdminControllerBase
                     'uri' => array_get($item, 'uri'),
                 ];
             case MenuType::PLUGIN:
-                $item = Plugin::find($value);
+                $item = Plugin::getEloquent($value);
                 return [
                     'menu_name' => array_get($item, 'plugin_name'),
                     'title' => array_get($item, 'plugin_view_name'),
                     'icon' => array_get($item, 'icon'),
                     'uri' => array_get($item, 'options.uri'),
                 ];
-                return Plugin::find($value);
+                return Plugin::getEloquent($value);
             case MenuType::TABLE:
                 $item = CustomTable::getEloquent($value);
                 return [

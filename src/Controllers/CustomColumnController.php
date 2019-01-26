@@ -159,7 +159,7 @@ class CustomColumnController extends AdminControllerTableBase
             $id = $form->model()->id;
         }
 
-        $column_type = isset($id) ? CustomColumn::find($id)->column_type : null;
+        $column_type = isset($id) ? CustomColumn::getEloquent($id)->column_type : null;
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
@@ -318,7 +318,7 @@ class CustomColumnController extends AdminControllerTableBase
                         $val = array_get($v, 'val');
                         switch (array_get($v, 'type')) {
                             case 'dynamic':
-                                $texts[] = CustomColumn::find(array_get($v, 'val'))->column_view_name ?? null;
+                                $texts[] = CustomColumn::getEloquent(array_get($v, 'val'))->column_view_name ?? null;
                                 break;
                             case 'symbol':
                                 $texts[] = array_get($symbols, $val);
@@ -360,7 +360,7 @@ class CustomColumnController extends AdminControllerTableBase
                         $val = array_get($v, 'val');
                         switch (array_get($v, 'type')) {
                             case 'dynamic':
-                                $v['text'] = CustomColumn::find(array_get($v, 'val'))->column_view_name ?? null;
+                                $v['text'] = CustomColumn::getEloquent(array_get($v, 'val'))->column_view_name ?? null;
                                 break;
                             case 'symbol':
                                 $v['text'] = array_get($symbols, $val);

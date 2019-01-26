@@ -109,7 +109,7 @@ class Notify extends ModelBase
 
         // get target table and column
         $table = $this->custom_table;
-        $column = CustomColumn::find(array_get($this, 'trigger_settings.notify_target_column'));
+        $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
         // find data. where equal target_date
         $datalist = getModelName($table)

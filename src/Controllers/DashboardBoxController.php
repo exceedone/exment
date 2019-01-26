@@ -163,13 +163,13 @@ class DashboardBoxController extends AdminControllerBase
         $request = request();
         // get dashboard_id from query "dashboard_suuid"
         if (isset($id)) {
-            $dashboard_box = DashboardBox::find($id);
+            $dashboard_box = DashboardBox::getEloquent($id);
             $dashboard = $dashboard_box->dashboard;
             return [$dashboard, $dashboard_box->dashboard_box_type, $dashboard_box->row_no, $dashboard_box->column_no];
         }
             
         if (!is_null($request->input('dashboard_id'))) {
-            $dashboard = Dashboard::find($request->input('dashboard_id'));
+            $dashboard = Dashboard::getEloquent($request->input('dashboard_id'));
         } else {
             // get dashboard_suuid from query
             $dashboard_suuid = $request->query('dashboard_suuid');

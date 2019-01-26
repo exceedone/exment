@@ -381,7 +381,7 @@ EOT;
                 continue;
             }
             // set column name
-            $formula_column = CustomColumn::find(array_get($option_calc_formula, 'val'));
+            $formula_column = CustomColumn::getEloquent(array_get($option_calc_formula, 'val'));
             // get column name as key
             $key = $formula_column->column_name ?? null;
             if (!isset($key)) {
@@ -393,7 +393,7 @@ EOT;
 
             // if select table, set from value
             if ($option_calc_formula['type'] == 'select_table') {
-                $column_from = CustomColumn::find(array_get($option_calc_formula, 'from'));
+                $column_from = CustomColumn::getEloquent(array_get($option_calc_formula, 'from'));
                 $option_calc_formula['from'] = $column_from->column_name ?? null;
             }
         }
@@ -423,12 +423,12 @@ EOT;
 
         // get getting target model name
         $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
-        $changedata_target_column = CustomColumn::find($changedata_target_column_id);
+        $changedata_target_column = CustomColumn::getEloquent($changedata_target_column_id);
         $changedata_target_table = $changedata_target_column->custom_table;
         
         // get table column. It's that when get model data, copied from column
         $changedata_column_id = array_get($form_column_options, 'changedata_column_id');
-        $changedata_column = CustomColumn::find($changedata_column_id);
+        $changedata_column = CustomColumn::getEloquent($changedata_column_id);
         $changedata_table = $changedata_column->custom_table;
 
         // get select target table

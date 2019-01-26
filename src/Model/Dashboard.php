@@ -100,6 +100,14 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     }
     
     /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = []){
+        return static::getEloquentDefault($id, $withs);
+    }
+
+    /**
      * import template
      */
     public static function importTemplate($dashboard, $options = []){

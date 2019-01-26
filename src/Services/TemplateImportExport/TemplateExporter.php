@@ -139,7 +139,7 @@ class TemplateExporter
                                     continue;
                                 }
                                 // get custom column name
-                                $calc_formula_column_name = CustomColumn::find(array_get($c, 'val'))->column_name ?? null;
+                                $calc_formula_column_name = CustomColumn::getEloquent(array_get($c, 'val'))->column_name ?? null;
                                 // set value
                                 $c['val'] = $calc_formula_column_name;
                             }
@@ -214,7 +214,7 @@ class TemplateExporter
                             }
                             // set as changedata_column_id to changedata_column_name
                             if (array_key_value_exists('changedata_column_id', $custom_form_column['options'])) {
-                                $changedata_column = CustomColumn::find($custom_form_column['options']['changedata_column_id']);
+                                $changedata_column = CustomColumn::getEloquent($custom_form_column['options']['changedata_column_id']);
                                 $custom_form_column['options']['changedata_column_name'] = $changedata_column->column_name ?? null;
                                 // set changedata_column table name
                                 $custom_form_column['options']['changedata_column_table_name'] = $changedata_column->custom_table->table_name ?? null;
@@ -222,7 +222,7 @@ class TemplateExporter
                             array_forget($custom_form_column['options'], 'changedata_column_id');
                             // set as changedata_target_column_id to changedata_target_column_name
                             if (array_key_value_exists('changedata_target_column_id', $custom_form_column['options'])) {
-                                $custom_form_column['options']['changedata_target_column_name'] = CustomColumn::find($custom_form_column['options']['changedata_target_column_id'])->column_name ?? null;
+                                $custom_form_column['options']['changedata_target_column_name'] = CustomColumn::getEloquent($custom_form_column['options']['changedata_target_column_id'])->column_name ?? null;
                             }
                             array_forget($custom_form_column['options'], 'changedata_target_column_id');
 
@@ -430,7 +430,7 @@ class TemplateExporter
         if (MenuType::TABLE == $menu_type) {
             $menu['menu_target_name'] = CustomTable::getEloquent($menu['menu_target'])->table_name ?? null;
         } elseif (MenuType::PLUGIN == $menu_type) {
-            $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
+            $menu['menu_target_name'] = Plugin::getEloquent($menu['menu_target'])->plugin_name;
         } elseif (MenuType::SYSTEM == $menu_type) {
             $menu['menu_target_name'] = $menu['menu_name'];
         }

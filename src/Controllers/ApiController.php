@@ -38,7 +38,7 @@ class ApiController extends AdminControllerBase
             return [];
         }
         // get custom column
-        $custom_column = CustomColumn::find($id);
+        $custom_column = CustomColumn::getEloquent($id);
 
         // if column_type is not select_table, return []
         if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {

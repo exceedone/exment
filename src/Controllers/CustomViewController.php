@@ -265,7 +265,7 @@ class CustomViewController extends AdminControllerTableBase
         // if $view_column_target is number, get database_column_type
         if (is_numeric($view_column_target)) {
             // get column_type
-            $database_column_type = CustomColumn::find($view_column_target)->column_type;
+            $database_column_type = CustomColumn::getEloquent($view_column_target)->column_type;
             switch ($database_column_type) {
                 case 'date':
                 case 'datetime':

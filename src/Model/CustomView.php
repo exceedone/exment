@@ -246,7 +246,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // get filter target column
             $view_column_target = $filter->view_column_target;
             if ($filter->view_column_type == ViewColumnType::COLUMN) {
-                $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
+                $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
             }elseif($filter->view_column_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';

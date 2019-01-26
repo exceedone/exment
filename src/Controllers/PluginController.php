@@ -110,7 +110,7 @@ class PluginController extends AdminControllerBase
     {
         $idlist = explode(",", $id);
         foreach($idlist as $id){
-            $plugin = Plugin::find($id);
+            $plugin = Plugin::getEloquent($id);
             if(!isset($plugin)){
                 continue;
             }
@@ -141,7 +141,7 @@ class PluginController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        $plugin = Plugin::find($id);
+        $plugin = Plugin::getEloquent($id);
 
         // create form
         $form = new Form(new Plugin);

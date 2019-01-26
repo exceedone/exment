@@ -95,7 +95,7 @@ class NotifyController extends AdminControllerBase
                 if (!isset($val)) {
                     return [];
                 }
-                return $controller->getTargetColumnOptions(CustomColumn::find($val)->custom_table, false);
+                return $controller->getTargetColumnOptions(CustomColumn::getEloquent($val)->custom_table, false);
             })
             ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
             ->help(exmtrans("notify.help.trigger_settings"));
