@@ -281,7 +281,7 @@ class MenuController extends AdminControllerBase
                 ];
                 return Plugin::find($value);
             case MenuType::TABLE:
-                $item = CustomTable::find($value);
+                $item = CustomTable::getEloquent($value);
                 return [
                     'menu_name' => array_get($item, 'table_name'),
                     'title' => array_get($item, 'table_view_name'),

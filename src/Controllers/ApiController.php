@@ -18,7 +18,7 @@ class ApiController extends AdminControllerBase
      */
     public function table($id, Request $request)
     {
-        $table = CustomTable::find($id);
+        $table = CustomTable::getEloquent($id);
         if (!$table->hasPermission(RoleValue::CUSTOM_TABLE)) {
             abort(403);
         }
@@ -49,6 +49,6 @@ class ApiController extends AdminControllerBase
         if (!isset($select_target_table)) {
             return [];
         }
-        return CustomTable::find($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
+        return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
 }

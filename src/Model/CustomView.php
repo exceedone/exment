@@ -75,6 +75,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     // custom function --------------------------------------------------
+    
+    /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = []){
+        return static::getEloquentDefault($id, $withs);
+    }
 
     /**
      * set laravel-admin grid using custom_view

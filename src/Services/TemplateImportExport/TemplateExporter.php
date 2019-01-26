@@ -119,9 +119,9 @@ class TemplateExporter
                 foreach ($table['custom_columns'] as &$custom_column) {
                     // if select_table, change select_target_table to select_target_table_name
                     if (array_get($custom_column, 'column_type') == 'select_table') {
-                        $select_target_table = CustomTable::find(array_get($custom_column['options'], 'select_target_table'));
+                        $select_target_table = CustomTable::getEloquent(array_get($custom_column['options'], 'select_target_table'));
                         if (isset($select_target_table)) {
-                            $custom_column['options']['select_target_table_name'] = CustomTable::find(array_get($custom_column['options'], 'select_target_table'))->table_name;
+                            $custom_column['options']['select_target_table_name'] = CustomTable::getEloquent(array_get($custom_column['options'], 'select_target_table'))->table_name;
                             array_forget($custom_column['options'], 'select_target_table');
                         }
                     }
@@ -148,9 +148,9 @@ class TemplateExporter
                         $custom_column['options']['calc_formula'] = $calc_formula;
                     }
                     
-                    $select_target_table = CustomTable::find(array_get($custom_column['options'], 'select_target_table'));
+                    $select_target_table = CustomTable::getEloquent(array_get($custom_column['options'], 'select_target_table'));
                     if (isset($select_target_table)) {
-                        $custom_column['options']['select_target_table_name'] = CustomTable::find(array_get($custom_column['options'], 'select_target_table'))->table_name;
+                        $custom_column['options']['select_target_table_name'] = CustomTable::getEloquent(array_get($custom_column['options'], 'select_target_table'))->table_name;
                         array_forget($custom_column['options'], 'select_target_table');
                     }
                     
@@ -238,7 +238,7 @@ class TemplateExporter
                     if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                         $custom_form_block['form_block_target_table_name'] = null;
                     } else {
-                        $custom_form_block['form_block_target_table_name'] = CustomTable::find(array_get($custom_form_block, 'form_block_target_table_id'))->table_name;
+                        $custom_form_block['form_block_target_table_name'] = CustomTable::getEloquent(array_get($custom_form_block, 'form_block_target_table_id'))->table_name;
                     }
 
                     $custom_form_block = array_only($custom_form_block, [
@@ -308,7 +308,7 @@ class TemplateExporter
                 foreach ($view['custom_view_filters'] as &$custom_view_filter) {
                     // if has value view_filter_condition_value_table_id
                     if (array_key_value_exists('view_filter_condition_value_table_id', $custom_view_filter)) {
-                        $custom_view_filter['view_filter_condition_value_table_name'] = CustomTable::find($custom_view_filter['view_filter_condition_value_table_id'])->table_name ?? null;
+                        $custom_view_filter['view_filter_condition_value_table_name'] = CustomTable::getEloquent($custom_view_filter['view_filter_condition_value_table_id'])->table_name ?? null;
                         // TODO:how to set value id
                     }
 
@@ -428,7 +428,7 @@ class TemplateExporter
         // menu_target
         $menu_type = $menu['menu_type'];
         if (MenuType::TABLE == $menu_type) {
-            $menu['menu_target_name'] = CustomTable::find($menu['menu_target'])->table_name ?? null;
+            $menu['menu_target_name'] = CustomTable::getEloquent($menu['menu_target'])->table_name ?? null;
         } elseif (MenuType::PLUGIN == $menu_type) {
             $menu['menu_target_name'] = Plugin::find($menu['menu_target'])->plugin_name;
         } elseif (MenuType::SYSTEM == $menu_type) {
@@ -477,11 +477,11 @@ class TemplateExporter
                         case DashboardBoxType::LIST:
                             // get table name and view
                             $table_id = array_get($dashboard_box, 'options.target_table_id');
-                            $table_name = CustomTable::find($table_id)->table_name ?? null;
+                            $table_name = CustomTable::getEloquent($table_id)->table_name ?? null;
                             // TODO:if null
 
                             $view_id = array_get($dashboard_box, 'options.target_view_id');
-                            $view_suuid = CustomView::find($view_id)->suuid ?? null;
+                            $view_suuid = CustomView::getEloquent($view_id)->suuid ?? null;
                             // TODO:null
                             $options = [
                                 'target_table_name' => $table_name,

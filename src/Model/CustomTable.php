@@ -624,7 +624,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ///// get select table columns
             $select_columns = CustomColumn::where('options->select_target_table', $this->id)->get();
             foreach ($select_columns as $select_column) {
-                $child_table = CustomTable::find($select_column->custom_table_id);
+                $child_table = CustomTable::getEloquent($select_column->custom_table_id);
                 foreach ($child_table->custom_columns as $custom_column) {
                     // if $index_enabled_only = true and options.index_enabled_only is false, continue
                     if ($index_enabled_only && !$custom_column->indexEnabled()) {

@@ -120,10 +120,10 @@ class CustomCopyController extends AdminControllerTableBase
         $request = request();
         // if set posted to_custom_table_id, get from posted data
         if ($request->has('to_custom_table_id')) {
-            $to_table = CustomTable::find($request->get('to_custom_table_id'));
+            $to_table = CustomTable::getEloquent($request->get('to_custom_table_id'));
             $form->hidden('to_custom_table_id')->default($request->get('to_custom_table_id'));
         } elseif (isset($id)) {
-            $copy = CustomCopy::find($id);
+            $copy = CustomCopy::getEloquent($id);
             $to_table = $copy->to_custom_table;
         }
         // if not set, get query

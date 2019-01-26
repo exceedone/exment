@@ -36,7 +36,7 @@ class AdminControllerBase extends Controller
     protected function getColumns(Request $request)
     {
         $id = $request->input('q');
-        $options = CustomTable::find($id)->custom_columns()->get(['id', DB::raw('column_view_name as text')]);
+        $options = CustomTable::getEloquent($id)->custom_columns()->get(['id', DB::raw('column_view_name as text')]);
         return $options;
     }
 
@@ -47,7 +47,7 @@ class AdminControllerBase extends Controller
     protected function validateTable($table, $role_name)
     {
         if (is_numeric($table)) {
-            $table = CustomTable::find($table);
+            $table = CustomTable::getEloquent($table);
         } elseif ($table instanceof CustomTable) {
             // nothing
         }

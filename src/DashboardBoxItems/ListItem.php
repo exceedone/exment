@@ -23,9 +23,7 @@ class ListItem implements ItemInterface
 
         // get table and view
         $this->custom_table = CustomTable::getEloquent($table_id);
-        $this->custom_view = CustomView::allRecords(function($record) use($view_id){
-            return $record->id == $view_id;
-        })->first();
+        $this->custom_view = CustomView::getEloquent($view_id);
     }
 
     /**
@@ -40,7 +38,7 @@ class ListItem implements ItemInterface
 
         // if view not found, set view first data
         if (!isset($this->custom_view)) {
-            $this->custom_view = $this->custom_table->custom_views()->first();
+            $this->custom_view = $this->custom_table->getDefault();
         }
         if (!isset($this->custom_view)) {
             return null;
@@ -100,7 +98,7 @@ class ListItem implements ItemInterface
                     return [];
                 }
 
-                return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
             });
     }
 

@@ -218,7 +218,7 @@ class DashboardBoxController extends AdminControllerBase
             return [];
         }
         // get custom views
-        $custom_table = CustomTable::find($id);
+        $custom_table = CustomTable::getEloquent($id);
         $views = $custom_table->custom_views()->get(['id', 'view_view_name as text']);
         // if count > 0, return value.
         if (!is_null($views) && count($views) > 0) {
@@ -242,7 +242,7 @@ class DashboardBoxController extends AdminControllerBase
             return [];
         }
         // get custom views
-        $custom_view = CustomView::find($id);
+        $custom_view = CustomView::getEloquent($id);
 
         return $custom_view->getColumnsSelectOptions($axis_type == 'y');
     }

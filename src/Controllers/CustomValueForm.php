@@ -432,7 +432,7 @@ EOT;
         $changedata_table = $changedata_column->custom_table;
 
         // get select target table
-        $select_target_table = CustomTable::find(array_get($changedata_target_column, 'options.select_target_table'));
+        $select_target_table = CustomTable::getEloquent(array_get($changedata_target_column, 'options.select_target_table'));
 
         // if different $column_table and changedata_target_table, get to_target block name using relation
         if ($column_table->id != $changedata_target_table->id) {

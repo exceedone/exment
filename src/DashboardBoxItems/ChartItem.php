@@ -41,9 +41,7 @@ class ChartItem implements ItemInterface
 
         // get table and view
         $this->custom_table = CustomTable::getEloquent($table_id);
-        $this->custom_view = CustomView::allRecords(function($record) use($view_id){
-            return $record->id == $view_id;
-        })->first();
+        $this->custom_view = CustomView::getEloquent($view_id);
 
         $this->axis_x = array_get($this->dashboard_box, 'options.chart_axisx');
         $this->axis_y = array_get($this->dashboard_box, 'options.chart_axisy');
@@ -112,9 +110,9 @@ class ChartItem implements ItemInterface
             $keys = explode('_', $column_keys);
             if (count($keys) === 2) {
                 if ($keys[0] == ViewKindType::AGGREGATE) {
-                    $view_column = CustomViewSummary::find($keys[1]);
+                    $view_column = CustomViewSummary::getEloquent($keys[1]);
                 } else {
-                    $view_column = CustomViewColumn::find($keys[1]);
+                    $view_column = CustomViewColumn::getEloquent($keys[1]);
                 }
                 return $view_column;
             }
@@ -137,7 +135,7 @@ class ChartItem implements ItemInterface
                 if (!isset($value)) {
                     return [];
                 }
-                return CustomView::find($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
             })
             ->loads(['options_chart_axisx', 'options_chart_axisy'], 
                 [admin_base_path('dashboardbox/chart_axis').'/x', admin_base_path('dashboardbox/chart_axis').'/y']);
@@ -154,9 +152,9 @@ class ChartItem implements ItemInterface
                 }
                 $keys = explode("_", $value);
                 if ($keys[0] == ViewKindType::DEFAULT) {
-                    $view_column = CustomViewColumn::find($keys[1]);
+                    $view_column = CustomViewColumn::getEloquent($keys[1]);
                 } else {
-                    $view_column = CustomViewSummary::find($keys[1]);
+                    $view_column = CustomViewSummary::getEloquent($keys[1]);
                 }
                 $options = $view_column->custom_view->getColumnsSelectOptions();
                 return array_column($options, 'text', 'id');

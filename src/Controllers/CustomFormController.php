@@ -159,7 +159,7 @@ class CustomFormController extends AdminControllerTableBase
     protected function droppableForm($content, $id = null)
     {
         // get form
-        $form = CustomForm::find($id);
+        $form = CustomForm::getEloquent($id);
         if (is_null($form)) {
             $form = new CustomForm;
         }
@@ -297,12 +297,12 @@ class CustomFormController extends AdminControllerTableBase
             $select_table_columns = [];
             // get custom columns
             $form_block_target_table_id = array_get($custom_form_block, 'form_block_target_table_id');
-            $custom_columns = CustomTable::find($form_block_target_table_id)->custom_columns->toArray();
+            $custom_columns = CustomTable::getEloquent($form_block_target_table_id)->custom_columns->toArray();
             
             // if form block type is 1:n or n:n, get parent tables columns too. use parent_table_id.
             if (in_array(array_get($custom_form_block, 'form_block_type'), [FormBlockType::ONE_TO_MANY, FormBlockType::MANY_TO_MANY])) {
                 $custom_columns = array_merge(
-                    CustomTable::find($parent_table_id)->custom_columns->toArray(),
+                    CustomTable::getEloquent($parent_table_id)->custom_columns->toArray(),
                     $custom_columns
                 );
             }
@@ -449,7 +449,7 @@ class CustomFormController extends AdminControllerTableBase
                 $form = new CustomForm;
                 $form->custom_table_id = $this->custom_table->id;
             } else {
-                $form = CustomForm::findOrFail($id);
+                $form = CustomForm::getEloquent($id);
             }
             $form->form_view_name = $request->input('form_view_name');
             $form->saveOrFail();

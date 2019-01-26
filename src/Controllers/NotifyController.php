@@ -38,7 +38,7 @@ class NotifyController extends AdminControllerBase
         $grid = new Grid(new Notify);
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
         $grid->column('custom_table_id', exmtrans("notify.custom_table_id"))->sortable()->display(function ($val) {
-            return esc_html(CustomTable::find($val)->table_view_name);
+            return esc_html(CustomTable::getEloquent($val)->table_view_name);
         }); 
         $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function ($val) {
             return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');

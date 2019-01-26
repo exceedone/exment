@@ -124,7 +124,7 @@ class ApiTableController extends AdminControllerTableBase
     {
         // get children table id
         $child_table_id = $request->get('child_table_id');
-        $child_table = CustomTable::find($child_table_id);
+        $child_table = CustomTable::getEloquent($child_table_id);
         // get selected custom_value id(q)
         $q = $request->get('q');
 
