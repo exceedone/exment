@@ -24,7 +24,7 @@ class SystemColumn extends EnumBase
         'parent_type' => ['id' => 4, 'name' => 'parent_type', 'default' => false, 'order' => 4],
         'created_at' => ['id' => 96, 'type' => 'datetime', 'name' => 'created_at', 'default' => true, 'order' => 81, 'footer' => true],
         'updated_at' => ['id' => 97, 'type' => 'datetime', 'name' => 'updated_at', 'default' => true, 'order' => 82, 'footer' => true],
-        'deleted_at' => ['id' => 101, 'type' => 'datetime', 'name' => 'deleted_at', 'default' => true, 'order' => 83],
+        'deleted_at' => ['id' => 101, 'type' => 'datetime', 'name' => 'deleted_at', 'default' => false, 'order' => 83],
         'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'default' => false, 'order' => 91, 'footer' => true],
         'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'default' => false, 'order' => 92, 'footer' => true],
         'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'default' => false, 'order' => 93],
