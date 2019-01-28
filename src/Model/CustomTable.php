@@ -245,7 +245,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             [
                 'isLike' => true,
                 'maxCount' => 5,
-                'paginate' => false
+                'paginate' => false,
+                'makeHidden' => false,
             ],
             $options
         );
@@ -267,7 +268,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // return as paginate
         if($paginate){
-            return $query->paginate(null);
+            $paginates = $query->paginate(null);
+            if(boolval($makeHidden)){
+                $data = $paginates->makeHidden($this->getMakeHiddenArray());
+                $paginates->data = $data;
+            }
+
+            return $paginates;
         }
 
         // return default
@@ -771,5 +778,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $obj_table->createTable();
 
         return $obj_table;
+    }
+    
+    /**
+     * get array for "makeHidden" function
+     */
+    public function getMakeHiddenArray()
+    {
+        return $this->getSearchEnabledColumns()->map(function ($columns) {
+            return $columns->getIndexColumnName();
+        })->toArray();
     }
 }

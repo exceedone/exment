@@ -10,6 +10,13 @@ use Exceedone\Exment\Model\Define;
 
 class File extends CustomItem
 {
+    /**
+     * get file info
+     */
+    public function file(){
+        return ExmentFile::getFile($this->value);
+    }
+
     protected function getAdminFieldClass()
     {
         if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
