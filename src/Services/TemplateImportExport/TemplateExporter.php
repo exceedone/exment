@@ -200,7 +200,7 @@ class TemplateExporter
                         foreach ($custom_form_block['custom_form_columns'] as &$custom_form_column) {
                             // replace id to name
                             $form_column_target_id = array_get($custom_form_column, 'form_column_target_id');
-                            switch(array_get($custom_form_column, 'form_column_type')){
+                            switch (array_get($custom_form_column, 'form_column_type')) {
                                 case FormColumnType::COLUMN:
                                     $custom_form_column['form_column_target_name'] = array_get($custom_form_column, 'custom_column.column_name', null);
                                     break;
@@ -283,7 +283,7 @@ class TemplateExporter
             // loop custom_view_columns
             if (array_key_value_exists('custom_view_columns', $view)) {
                 foreach ($view['custom_view_columns'] as &$custom_view_column) {
-                    switch(array_get($custom_view_column, 'view_column_type')){
+                    switch (array_get($custom_view_column, 'view_column_type')) {
                         case ViewColumnType::COLUMN:
                             $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
                             break;
@@ -326,7 +326,7 @@ class TemplateExporter
             // loop custom_view_columns
             if (array_key_value_exists('custom_view_sorts', $view)) {
                 foreach ($view['custom_view_sorts'] as &$custom_view_column) {
-                    switch(array_get($custom_view_column, 'view_column_type')){
+                    switch (array_get($custom_view_column, 'view_column_type')) {
                         case ViewColumnType::COLUMN:
                             $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
                             break;

@@ -149,25 +149,23 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // loop for custom_copy_columns
         foreach ($custom_copy_columns as $custom_copy_column) {
-            ///// get from_custom_value 
+            ///// get from_custom_value
             // check number
-            if(is_numeric($custom_copy_column->from_column_target_id)){
+            if (is_numeric($custom_copy_column->from_column_target_id)) {
                 // get column
                 $from_custom_column = $custom_copy_column->from_custom_column;
                 // get value. (NOT use getValue function because don't want convert value. get $custom_value->value['column'] value.)
                 $val = array_get($from_custom_value, "value.{$from_custom_column->column_name}");
-            }
-            else{
+            } else {
                 $val = $from_custom_value->{$custom_copy_column->from_column_target_id};
             }
 
-            ///// get tom_custom_value 
+            ///// get tom_custom_value
             // check number
-            if(is_numeric($custom_copy_column->to_column_target_id)){
+            if (is_numeric($custom_copy_column->to_column_target_id)) {
                 $to_custom_column = $custom_copy_column->to_custom_column;
                 $to_custom_value->setValue($to_custom_column->column_name, $val);
-            }
-            else{
+            } else {
                 $to_custom_value->{$custom_copy_column->to_column_target_id} = $val;
             }
         }
@@ -192,14 +190,16 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
     /**
      * import template
      */
-    public static function importTemplate($copy, $options = []){
+    public static function importTemplate($copy, $options = [])
+    {
         $from_table = CustomTable::getEloquent(array_get($copy, 'from_custom_table_name'));
         $to_table = CustomTable::getEloquent(array_get($copy, 'to_custom_table_name'));
 
@@ -224,7 +224,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_copy->suuid = $findArray['suuid'];
         
         // set option
-        collect(array_get($copy, 'options', []))->each(function ($option, $key) use($custom_copy) {
+        collect(array_get($copy, 'options', []))->each(function ($option, $key) use ($custom_copy) {
             $custom_copy->setOption($key, $option, true);
         });
         $custom_copy->saveOrFail();
@@ -235,7 +235,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
                 CustomCopyColumn::importTemplate($copy_column, [
                     'custom_copy' => $custom_copy,
                     'from_table' => $from_table,
-                    'to_table' => $to_table 
+                    'to_table' => $to_table
                 ]);
             }
         }

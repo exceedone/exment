@@ -39,7 +39,7 @@ class NotifyController extends AdminControllerBase
         $grid->column('notify_view_name', exmtrans("notify.notify_view_name"))->sortable();
         $grid->column('custom_table_id', exmtrans("notify.custom_table_id"))->sortable()->display(function ($val) {
             return esc_html(CustomTable::getEloquent($val)->table_view_name);
-        }); 
+        });
         $grid->column('notify_trigger', exmtrans("notify.notify_trigger"))->sortable()->display(function ($val) {
             return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');
         });
@@ -91,7 +91,7 @@ class NotifyController extends AdminControllerBase
             // Notify Time --------------------------------------------------
             $controller = $this;
             $form->select('notify_target_column', exmtrans("notify.notify_target_column"))
-            ->options(function ($val) use($controller) {
+            ->options(function ($val) use ($controller) {
                 if (!isset($val)) {
                     return [];
                 }
@@ -128,7 +128,7 @@ class NotifyController extends AdminControllerBase
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
             $controller = $this;
             $form->select('notify_action_target', exmtrans("notify.notify_action_target"))
-                ->options(function ($val) use($controller) {
+                ->options(function ($val) use ($controller) {
                     return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
                 })
                 ->default(NotifyActionTarget::HAS_ROLES)
@@ -161,7 +161,8 @@ class NotifyController extends AdminControllerBase
         return $this->getNotifyActionTargetOptions($request->get('q'), true);
     }
 
-    protected function getTargetColumnOptions($custom_table, $isApi){
+    protected function getTargetColumnOptions($custom_table, $isApi)
+    {
         $custom_table = CustomTable::getEloquent($custom_table);
 
         $options = CustomColumn
@@ -169,14 +170,15 @@ class NotifyController extends AdminControllerBase
             ->whereIn('column_type', [ColumnType::DATE, ColumnType::DATETIME])
             ->get(['id', DB::raw('column_view_name as text')]);
 
-        if($isApi){
+        if ($isApi) {
             return $options;
-        }else{
+        } else {
             return $options->pluck('text', 'id');
         }
     }
 
-    protected function getNotifyActionTargetOptions($custom_table, $isApi){
+    protected function getNotifyActionTargetOptions($custom_table, $isApi)
+    {
         $array = NotifyActionTarget::transArray('notify.notify_action_target_options');
         $options = [];
         foreach ($array as $k => $v) {
@@ -192,9 +194,9 @@ class NotifyController extends AdminControllerBase
                 ['id', DB::raw('column_view_name as text')]
             )->toArray());
         }
-        if($isApi){
+        if ($isApi) {
             return $options;
-        }else{
+        } else {
             return collect($options)->pluck('text', 'id')->toArray();
         }
     }

@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
@@ -47,7 +48,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             ->orderBy('options->use_label_flg');
     }
 
-    public function getColumnItemAttribute(){
+    public function getColumnItemAttribute()
+    {
         return ColumnItems\CustomItem::getItem($this);
     }
 
@@ -63,7 +65,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         // get column eloquent model
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
-        } 
+        }
 
         if ($column_obj instanceof \stdClass) {
             $column_obj = array_get((array)$column_obj, 'id');
@@ -74,7 +76,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
         
         if (is_numeric($column_obj)) {
-            return static::allRecords(function($record) use($column_obj){
+            return static::allRecords(function ($record) use ($column_obj) {
                 return $record->id == $column_obj;
             })->first();
         }
@@ -87,7 +89,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 return null;
             }
             
-            return static::allRecords(function($record) use($table_obj, $column_obj){
+            return static::allRecords(function ($record) use ($table_obj, $column_obj) {
                 return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
             })->first();
         }
@@ -142,7 +144,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $db_table_name = getDBTableName($this->custom_table);
 
         // if not exists, execute alter column
-        if($alterColumn && !hasColumn($db_table_name, $name)){
+        if ($alterColumn && !hasColumn($db_table_name, $name)) {
             $this->alterColumn();
         }
         return $name;
@@ -217,13 +219,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * import template
      */
-    public static function importTemplate($json, $options = []){
+    public static function importTemplate($json, $options = [])
+    {
         $system_flg = array_get($options, 'system_flg', false);
         $custom_table = array_get($options, 'custom_table');
 
         $column_name = array_get($json, 'column_name');
         $obj_column = CustomColumn::firstOrNew([
-            'custom_table_id' => $custom_table->id, 
+            'custom_table_id' => $custom_table->id,
             'column_name' => $column_name
         ]);
         $obj_column->column_name = $column_name;
@@ -233,7 +236,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
 
         ///// set options
-        collect(array_get($json, 'options', []))->each(function ($option, $key) use($obj_column) {
+        collect(array_get($json, 'options', []))->each(function ($option, $key) use ($obj_column) {
             $obj_column->setOption($key, $option, true);
         });
 
@@ -249,7 +252,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 }
                 $obj_column->setOption('select_target_table', $id);
             }
-        }else{
+        } else {
             $obj_column->forgetOption('select_target_table');
         }
         $obj_column->forgetOption('select_target_table_name');
@@ -280,16 +283,17 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * import template (for setting other custom column id)
      */
-    public static function importTemplateRelationColumn($json, $options = []){
+    public static function importTemplateRelationColumn($json, $options = [])
+    {
         $custom_table = array_get($options, 'custom_table');
         $column_name = array_get($json, 'column_name');
 
         $obj_column = CustomColumn::firstOrNew([
-            'custom_table_id' => $custom_table->id, 
+            'custom_table_id' => $custom_table->id,
             'column_name' => $column_name
         ]);
         
-        ///// set options                        
+        ///// set options
         // check need update
         $update_flg = false;
         // if column type is calc, set dynamic val

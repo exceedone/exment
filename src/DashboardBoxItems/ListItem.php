@@ -15,7 +15,8 @@ class ListItem implements ItemInterface
     
     protected $custom_view;
     
-    public function __construct($dashboard_box){
+    public function __construct($dashboard_box)
+    {
         $this->dashboard_box = $dashboard_box;
 
         $table_id = array_get($this->dashboard_box, 'options.target_table_id');
@@ -27,10 +28,11 @@ class ListItem implements ItemInterface
     }
 
     /**
-     * get html(for display) 
-     * *this function calls from non-value method. So please escape if not necessary unescape. 
+     * get html(for display)
+     * *this function calls from non-value method. So please escape if not necessary unescape.
      */
-    public function html(){
+    public function html()
+    {
         // if table not found, break
         if (!isset($this->custom_table)) {
             return null;
@@ -45,10 +47,10 @@ class ListItem implements ItemInterface
         }
 
         // if not access permission
-        if(!$this->custom_table->hasPermission()){
+        if (!$this->custom_table->hasPermission()) {
             $html = view('exment::dashboard.list.header')->render();
             $html .= trans('admin.deny');
-        }else{
+        } else {
             // create model for getting data --------------------------------------------------
             $classname = getModelName($this->custom_table);
             $model = new $classname();
@@ -64,10 +66,10 @@ class ListItem implements ItemInterface
             $widgetTable->class('table table-hover');
 
             // check edit permission
-            if($this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            if ($this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
                 $new_url= admin_base_path("data/{$this->custom_table->table_name}/create");
                 $list_url = admin_base_path("data/{$this->custom_table->table_name}");
-            }else{
+            } else {
                 $new_url = null;
                 $list_url = null;
             }
@@ -85,7 +87,8 @@ class ListItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form){
+    public static function setAdminOptions(&$form)
+    {
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
             ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
@@ -105,10 +108,12 @@ class ListItem implements ItemInterface
     /**
      * saving event
      */
-    public static function saving(&$form){
+    public static function saving(&$form)
+    {
     }
 
-    public static function getItem(...$args){
+    public static function getItem(...$args)
+    {
         list($dashboard_box) = $args + [null];
         return new self($dashboard_box);
     }

@@ -5,13 +5,15 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 
-class Text extends CustomItem 
+class Text extends CustomItem
 {
-    protected function getAdminFieldClass(){
+    protected function getAdminFieldClass()
+    {
         return Field\Text::class;
     }
     
-    protected function setValidates(&$validates){
+    protected function setValidates(&$validates)
+    {
         $options = $this->custom_column->options;
         
         // value size

@@ -17,7 +17,6 @@ use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\UserSetting;
 
-
 class DashboardController extends AdminControllerBase
 {
     use HasResourceActions;
@@ -64,7 +63,7 @@ class DashboardController extends AdminControllerBase
     public function home(Request $request, Content $content)
     {
         // check permission. if not permission, show message
-        if(\Exment::user()->noPermission()){
+        if (\Exment::user()->noPermission()) {
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
         }
 

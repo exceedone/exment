@@ -36,7 +36,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return $this->clearJson('options');
     }
     
-    public function getDashboardBoxItemAttribute(){
+    public function getDashboardBoxItemAttribute()
+    {
         $enum_class = DashboardBoxType::getEnum($this->dashboard_box_type)->getDashboardBoxItemClass();
         return $enum_class::getItem($this) ?? null;
     }
@@ -45,14 +46,16 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
     /**
      * import template
      */
-    public static function importTemplate($dashboard_box, $options = []){
+    public static function importTemplate($dashboard_box, $options = [])
+    {
         // Create dashboard --------------------------------------------------
         $obj_dashboard = array_get($options, 'obj_dashboard');
 
@@ -66,7 +69,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         $obj_dashboard_box->dashboard_box_type = DashboardBoxType::getEnumValue(array_get($dashboard_box, "dashboard_box_type"));
 
         // set options
-        collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use($obj_dashboard_box) {
+        collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use ($obj_dashboard_box) {
             $obj_dashboard_box->setOption($key, $option);
         });
         

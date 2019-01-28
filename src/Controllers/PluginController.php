@@ -109,9 +109,9 @@ class PluginController extends AdminControllerBase
     protected function deleteFolder($id)
     {
         $idlist = explode(",", $id);
-        foreach($idlist as $id){
+        foreach ($idlist as $id) {
             $plugin = Plugin::getEloquent($id);
-            if(!isset($plugin)){
+            if (!isset($plugin)) {
                 continue;
             }
             $folder = $plugin->getFullPath();

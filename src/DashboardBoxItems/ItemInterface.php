@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\DashboardBoxItems;
 
-interface ItemInterface 
+interface ItemInterface
 {
     /**
      * get html

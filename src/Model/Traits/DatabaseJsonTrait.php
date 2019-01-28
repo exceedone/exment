@@ -10,15 +10,18 @@ trait DatabaseJsonTrait
     protected function getJson($dbcolumnname, $key, $default = null)
     {
         $json = $this->{$dbcolumnname};
-        if(!isset($json)){return $default;}
+        if (!isset($json)) {
+            return $default;
+        }
         return array_get($json, $key, $default);
     }
 
     /**
      * set value from json
-     * 
+     *
      */
-    protected function setJson($dbcolumnname, $key, $val = null, $forgetIfNull = false){
+    protected function setJson($dbcolumnname, $key, $val = null, $forgetIfNull = false)
+    {
         if (!isset($key)) {
             return $this;
         }
@@ -31,7 +34,7 @@ trait DatabaseJsonTrait
         }
 
         // if $val is null and $forgetIfNull is true, forget value
-        if($forgetIfNull && is_null($val)){
+        if ($forgetIfNull && is_null($val)) {
             return $this->forgetJson($dbcolumnname, $key);
         }
 
@@ -47,9 +50,10 @@ trait DatabaseJsonTrait
     
     /**
      * forget value from json
-     * 
+     *
      */
-    protected function forgetJson($dbcolumnname, $key){
+    protected function forgetJson($dbcolumnname, $key)
+    {
         if (!isset($key)) {
             return $this;
         }
@@ -65,9 +69,10 @@ trait DatabaseJsonTrait
     }
     /**
      * clear value from json
-     * 
+     *
      */
-    protected function clearJson($dbcolumnname){
+    protected function clearJson($dbcolumnname)
+    {
         $this->{$dbcolumnname} = [];
         return $this;
     }

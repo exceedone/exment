@@ -9,18 +9,19 @@ class Csv extends FormatBase
 {
     protected $accept_extension = 'csv,zip';
 
-    public function getFileName(){
+    public function getFileName()
+    {
         return $this->filebasename.date('YmdHis'). ($this->isOutputAsZip() ? ".zip" : ".csv");
     }
     
     public function getDataTable($request)
     {
         // get file
-        if(is_string($request)){
+        if (is_string($request)) {
             $path = $request;
             $extension = pathinfo($path)['extension'];
             $originalName = pathinfo($path, PATHINFO_BASENAME);
-        }else{
+        } else {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
             $extension = $file->extension();
@@ -28,7 +29,7 @@ class Csv extends FormatBase
         }
 
         // if zip, extract
-        if($extension == 'zip'){
+        if ($extension == 'zip') {
             $tmpdir = getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'admin_tmp', true);
             
@@ -45,11 +46,11 @@ class Csv extends FormatBase
             $zip->extractTo($tmpfolderpath);
 
             // get all files
-            $files = collect(\File::files($tmpfolderpath))->filter(function($value){
+            $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
                 return pathinfo($value)['extension'] == 'csv';
             });
 
-            foreach($files as $csvfile){
+            foreach ($files as $csvfile) {
                 $basename = $csvfile->getBasename('.csv');
                 $datalist[$basename] = $this->getCsvArray($csvfile->getRealPath());
             }
@@ -59,7 +60,7 @@ class Csv extends FormatBase
             // delete zip
             \File::deleteDirectory($tmpfolderpath);
             \File::delete($fullpath);
-        }else{
+        } else {
             $basename = file_ext_strip($originalName);
             $datalist[$basename] = $this->getCsvArray($path);
         }
@@ -71,20 +72,22 @@ class Csv extends FormatBase
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
      */
-    protected function isOutputAsZip(){
+    protected function isOutputAsZip()
+    {
         // check relations
         return count($this->datalist) > 1;
     }
     
-    public function createResponse($files){
+    public function createResponse($files)
+    {
         // save as csv
-        if(count($files) == 1){
+        if (count($files) == 1) {
             return response()->stream(function () use ($files) {
                 $files[0]['writer']->save('php://output');
             }, 200, $this->getDefaultHeaders());
         }
         // save as zip
-        else{
+        else {
             $tmpdir = getTmpFolderPath('data');
 
             $zip = new \ZipArchive();
@@ -98,7 +101,7 @@ class Csv extends FormatBase
             }
 
             $csv_paths = [];
-            foreach($files as $f){
+            foreach ($files as $f) {
                 // csv path
                 $csv_name = $f['name'] . '.csv';
                 $csv_path = path_join($csvdir, $csv_name);
@@ -114,7 +117,8 @@ class Csv extends FormatBase
         }
     }
 
-    protected function getDefaultHeaders(){
+    protected function getDefaultHeaders()
+    {
         $filename = $this->getFileName();
         return [
             'Content-Type'        => 'application/force-download',
@@ -123,15 +127,18 @@ class Csv extends FormatBase
     }
 
 
-    protected function createWriter($spreadsheet){
+    protected function createWriter($spreadsheet)
+    {
         return IOFactory::createWriter($spreadsheet, 'Csv');
     }
     
-    protected function createReader(){
+    protected function createReader()
+    {
         return IOFactory::createReader('Csv');
     }
 
-    protected function getCsvArray($file){
+    protected function getCsvArray($file)
+    {
         $reader = $this->createReader();
         $reader->setInputEncoding('UTF-8');
         $reader->setDelimiter("\t");

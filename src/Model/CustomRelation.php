@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -23,14 +24,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     /**
      * get relations by parent table
      */
-    public static function getRelationsByParent($parent_table, $relation_type = null){
+    public static function getRelationsByParent($parent_table, $relation_type = null)
+    {
         $parent_table = CustomTable::getEloquent($parent_table);
 
-        return static::allRecords(function($record) use($parent_table, $relation_type){
-            if($record->parent_custom_table_id != array_get($parent_table, 'id')){
+        return static::allRecords(function ($record) use ($parent_table, $relation_type) {
+            if ($record->parent_custom_table_id != array_get($parent_table, 'id')) {
                 return false;
             }
-            if(isset($relation_type) && $record->relation_type != $relation_type){
+            if (isset($relation_type) && $record->relation_type != $relation_type) {
                 return false;
             }
             return true;
@@ -40,9 +42,10 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     /**
      * get relation by child table. (Only one record)
      */
-    public static function getRelationByChild($child_table, $relation_type = null){
+    public static function getRelationByChild($child_table, $relation_type = null)
+    {
         $items = static::getRelationsByChild($child_table, $relation_type);
-        if(isset($items)){
+        if (isset($items)) {
             return $items->first();
         }
         return null;
@@ -51,14 +54,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     /**
      * get relation by child table.
      */
-    public static function getRelationsByChild($child_table, $relation_type = null){
+    public static function getRelationsByChild($child_table, $relation_type = null)
+    {
         $child_table = CustomTable::getEloquent($child_table);
 
-        return static::allRecords(function($record) use($child_table, $relation_type){
-            if($record->child_custom_table_id != array_get($child_table, 'id')){
+        return static::allRecords(function ($record) use ($child_table, $relation_type) {
+            if ($record->child_custom_table_id != array_get($child_table, 'id')) {
                 return false;
             }
-            if(isset($relation_type) && $record->relation_type != $relation_type){
+            if (isset($relation_type) && $record->relation_type != $relation_type) {
                 return false;
             }
             return true;
@@ -94,8 +98,9 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     /**
      * get sheet name for excel, csv
      */
-    public function getSheetName(){
-        if($this->relation_type == RelationType::MANY_TO_MANY){
+    public function getSheetName()
+    {
+        if ($this->relation_type == RelationType::MANY_TO_MANY) {
             return $this->parent_custom_table->table_name . '_' . $this->child_custom_table->table_name;
         }
         return $this->child_custom_table->table_name;
@@ -105,14 +110,16 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
     /**
      * import template
      */
-    public static function importTemplate($json, $options = []){
+    public static function importTemplate($json, $options = [])
+    {
         $parent_id = CustomTable::getEloquent(array_get($json, 'parent_custom_table_name'))->id ?? null;
         $child_id = CustomTable::getEloquent(array_get($json, 'child_custom_table_name'))->id ?? null;
         if (!isset($parent_id) || !isset($child_id)) {

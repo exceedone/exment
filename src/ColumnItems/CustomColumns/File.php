@@ -8,9 +8,10 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 
-class File extends CustomItem 
+class File extends CustomItem
 {
-    protected function getAdminFieldClass(){
+    protected function getAdminFieldClass()
+    {
         if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
             return Field\MultipleFile::class;
         } else {
@@ -18,7 +19,8 @@ class File extends CustomItem
         }
     }
     
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
         // set file options
         $field->options(
             File::getFileOptions($this->custom_column, $this->id)
@@ -42,7 +44,7 @@ class File extends CustomItem
                     '_token'                         => csrf_token(),
                     '_method'                        => 'PUT',
                 ]
-            ]   
+            ]
         );
     }
 

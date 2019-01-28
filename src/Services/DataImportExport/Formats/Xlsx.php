@@ -8,17 +8,20 @@ class Xlsx extends FormatBase
 {
     protected $accept_extension = 'xlsx';
 
-    public function getFileName(){
+    public function getFileName()
+    {
         return $this->filebasename.date('YmdHis'). ".xlsx";
     }
 
-    public function createResponse($files){
+    public function createResponse($files)
+    {
         return response()->stream(function () use ($files) {
             $files[0]['writer']->save('php://output');
         }, 200, $this->getDefaultHeaders());
     }
 
-    protected function getDefaultHeaders(){
+    protected function getDefaultHeaders()
+    {
         $filename = $this->getFileName();
         return [
             'Content-Type'        => 'application/force-download',
@@ -32,9 +35,9 @@ class Xlsx extends FormatBase
     public function getDataTable($request)
     {
         // get file
-        if(is_string($request)){
+        if (is_string($request)) {
             $path = $request;
-        }else{
+        } else {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
         }
@@ -44,7 +47,7 @@ class Xlsx extends FormatBase
 
         $datalist = [];
         // get all data
-        foreach($spreadsheet->getSheetNames() as $sheetName){
+        foreach ($spreadsheet->getSheetNames() as $sheetName) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
             $datalist[$sheetName] = getDataFromSheet($sheet);
         }
@@ -55,15 +58,18 @@ class Xlsx extends FormatBase
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
      */
-    protected function isOutputAsZip(){
+    protected function isOutputAsZip()
+    {
         return false;
     }
     
-    protected function createWriter($spreadsheet){
+    protected function createWriter($spreadsheet)
+    {
         return IOFactory::createWriter($spreadsheet, 'Xlsx');
     }
     
-    protected function createReader(){
+    protected function createReader()
+    {
         return IOFactory::createReader('Xlsx');
     }
 }

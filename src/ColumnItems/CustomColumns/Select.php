@@ -6,25 +6,28 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 
-class Select extends CustomItem 
+class Select extends CustomItem
 {
-    public function value(){
+    public function value()
+    {
         return $this->getResultForSelect(false);
     }
 
-    public function text(){
+    public function text()
+    {
         return $this->getResultForSelect(true);
     }
 
-    protected function getResultForSelect($label){
+    protected function getResultForSelect($label)
+    {
         $select_options = $this->custom_column->createSelectOptions();
         // if $value is array
         $multiple = true;
         if (!is_array($this->value)) {
             $val = [$this->value];
             $multiple = false;
-        }else{
-            $val = $this->value;   
+        } else {
+            $val = $this->value;
         }
         // switch column_type and get return value
         $returns = $this->getReturnsValue($select_options, $val, $label);
@@ -36,11 +39,13 @@ class Select extends CustomItem
         }
     }
 
-    protected function getReturnsValue($select_options, $val, $label){
+    protected function getReturnsValue($select_options, $val, $label)
+    {
         return $val;
     }
     
-    protected function getAdminFieldClass(){
+    protected function getAdminFieldClass()
+    {
         if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
             return Field\MultipleSelect::class;
         } else {
@@ -48,18 +53,21 @@ class Select extends CustomItem
         }
     }
     
-    protected function getAdminFilterClass(){
-        if(boolval($this->custom_column->getOption('multiple_enabled'))){
+    protected function getAdminFilterClass()
+    {
+        if (boolval($this->custom_column->getOption('multiple_enabled'))) {
             return Filter\Where::class;
         }
         return Filter\Equal::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
         $field->options($this->custom_column->createSelectOptions());
     }
     
-    protected function setAdminFilterOptions(&$filter){
+    protected function setAdminFilterOptions(&$filter)
+    {
         $options = $this->custom_column->createSelectOptions();
         $filter->select($options);
     }

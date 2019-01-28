@@ -36,7 +36,7 @@ trait CustomValueShow
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         $item = $form_column->column_item;
-                        if(!isset($item)){
+                        if (!isset($item)) {
                             continue;
                         }
                         $show->field($item->name(), $item->label())->as(function ($v) use ($form_column, $item) {
@@ -87,7 +87,7 @@ trait CustomValueShow
                     $tools->disableList();
                     $tools->disableDelete();
                 });
-            }else{
+            } else {
                 $show->panel()->tools(function ($tools) {
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
                 });
@@ -123,8 +123,7 @@ trait CustomValueShow
  
         $revisions = $this->getRevisions($id, $modal);
 
-        if(count($documents) > 0 || $useFileUpload){
-                
+        if (count($documents) > 0 || $useFileUpload) {
             $form = new WidgetForm;
             $form->disableReset();
             //$form->action($custom_value->getUrl(['uri' => 'fileupload']));
@@ -142,7 +141,7 @@ trait CustomValueShow
                     // loop and add as link
                     $form->html(implode("", $html))
                         ->plain()
-                        ->setWidth(8,3);
+                        ->setWidth(8, 3);
                 }
             }
 
@@ -163,9 +162,9 @@ trait CustomValueShow
                 $form->file($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
-                ->setWidth(12,0);
+                ->setWidth(12, 0);
                 // // create file upload option
-    //             $form->html('<input type="file" id="'.$input_id.'" />')->plain();
+                //             $form->html('<input type="file" id="'.$input_id.'" />')->plain();
                 $script = <<<EOT
     $(".$input_id").on('fileuploaded', function(e, params) {
         console.log('file uploaded', e, params);
@@ -175,10 +174,10 @@ trait CustomValueShow
 EOT;
                 Admin::script($script);
             }
-            $row->column(6, (new Box(exmtrans("common.attachment"), $form))->style('info'));        
+            $row->column(6, (new Box(exmtrans("common.attachment"), $form))->style('info'));
         }
 
-        if(count($revisions) > 0){
+        if (count($revisions) > 0) {
             $form = new WidgetForm;
             $form->disableReset();
             $form->disableSubmit();
@@ -190,11 +189,11 @@ EOT;
                         'revision' => $revision,
                         'link' => admin_base_paths('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
                         'index' => $index,
-                    ])->render()
-                    , 'No.'.($revision->revision_no)
-                )->setWidth(9,2);
+                    ])->render(),
+                    'No.'.($revision->revision_no)
+                )->setWidth(9, 2);
             }
-            $row->column(6, (new Box('更新履歴', $form))->style('info'));        
+            $row->column(6, (new Box('更新履歴', $form))->style('info'));
         }
     }
     
@@ -241,7 +240,7 @@ EOT;
         $revisions = $this->getRevisions($id, false, true);
         $newest_revision = $revisions->first();
         $newest_revision_suuid = $newest_revision->suuid;
-        if(!isset($revision_suuid)){
+        if (!isset($revision_suuid)) {
             $revision_suuid = $newest_revision_suuid ?? null;
         }
 
@@ -252,7 +251,7 @@ EOT;
 
         // set table columns
         $table_columns = [];
-        foreach($this->custom_table->custom_columns as $custom_column){
+        foreach ($this->custom_table->custom_columns as $custom_column) {
             $revision_value_column = $revision_value->getValue($custom_column, true);
             $custom_value_column = $custom_value->getValue($custom_column, true);
 
@@ -274,13 +273,13 @@ EOT;
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
             'form_url' => admin_base_paths('data', $table_name, $id, 'compare'),
-            'has_diff' => collect($table_columns)->filter(function($table_column){
+            'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);
             })->count() > 0
         ];
 
-        if($pjax){
-            return view("exment::custom-value.revision-compare-inner", $prms);    
+        if ($pjax) {
+            return view("exment::custom-value.revision-compare-inner", $prms);
         }
         
         $script = <<<EOT
@@ -301,11 +300,13 @@ EOT;
     /**
      * whether file upload field
      */
-    protected function useFileUpload($modal = false){
+    protected function useFileUpload($modal = false)
+    {
         return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
     
-    protected function getDocuments($id, $modal = false){
+    protected function getDocuments($id, $modal = false)
+    {
         if ($modal) {
             return [];
         }
@@ -318,7 +319,8 @@ EOT;
     /**
      * get target data revisions
      */
-    protected function getRevisions($id, $modal = false, $all = false){
+    protected function getRevisions($id, $modal = false, $all = false)
+    {
         if ($modal || !boolval($this->custom_table->getOption('revision_flg'))) {
             return [];
         }
@@ -328,7 +330,7 @@ EOT;
             ->orderby('id', 'desc');
         
         // if not all
-        if(!$all){
+        if (!$all) {
             $query = $query->take(10);
         }
         return $query->get() ?? [];

@@ -79,7 +79,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
@@ -100,7 +101,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                         return '';
                     }
                     return $item->setCustomValue($this)->html();
-            });
+                });
         }
     }
     
@@ -143,7 +144,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
                     $link .= '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit').'"><i class="fa fa-edit"></i></a>';
                 }
-                if(isset($options['action_callback'])){
+                if (isset($options['action_callback'])) {
                     $options['action_callback']($link, $custom_table, $data);
                 }
                 // add hidden item about data id
@@ -238,15 +239,16 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     /**
-     * set value filter 
+     * set value filter
      */
-    public function setValueFilter($model, $db_table_name = null){
+    public function setValueFilter($model, $db_table_name = null)
+    {
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
             if ($filter->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
-            }elseif($filter->view_column_type == ViewColumnType::PARENT_ID) {
+            } elseif ($filter->view_column_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
             }
@@ -383,19 +385,19 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     /**
-     * set value sort 
+     * set value sort
      */
-    public function setValueSort($model){
+    public function setValueSort($model)
+    {
         // if request has "_sort", not executing
-        if(request()->has('_sort')){
+        if (request()->has('_sort')) {
             return $model;
         }
         foreach ($this->custom_view_sorts as $custom_view_sort) {
             // get column target column
             if ($custom_view_sort->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = $custom_view_sort->custom_column->getIndexColumnName() ?? null;
-            }
-            elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
+            } elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
                 $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
             }
@@ -407,9 +409,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     /**
-     * set value summary 
+     * set value summary
      */
-    public function getValueSummary($model, $table_name){
+    public function getValueSummary($model, $table_name)
+    {
         // get table id
         $db_table_name = getDBTableName($table_name);
 
@@ -436,9 +439,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // get join tables
         $relations = CustomRelation::getRelationsByParent($this->custom_table);
-        foreach($relations as $relation){
+        foreach ($relations as $relation) {
             // if not contains group or select column, continue
-            if(!in_array($relation->child_custom_table->id, $custom_tables)){
+            if (!in_array($relation->child_custom_table->id, $custom_tables)) {
                 continue;
             }
 
@@ -463,7 +466,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set summary grid item
      */
-    protected function setSummaryItem($item, $index, &$select_columns, &$custom_tables, $summary_condition = null){
+    protected function setSummaryItem($item, $index, &$select_columns, &$custom_tables, $summary_condition = null)
+    {
         $item->options([
             'summary' => true,
             'summary_condition' => $summary_condition,
@@ -484,14 +488,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $options = [];
         
-        foreach($this->custom_view_columns as $custom_view_column) {
+        foreach ($this->custom_view_columns as $custom_view_column) {
             $option = $this->getSelectColumn(ViewKindType::DEFAULT, $custom_view_column, $number_only);
             if (!is_null($option)) {
                 $options[] = $option;
             }
         }
 
-        foreach($this->custom_view_summaries as $custom_view_summary) {
+        foreach ($this->custom_view_summaries as $custom_view_summary) {
             $option = $this->getSelectColumn(ViewKindType::AGGREGATE, $custom_view_summary, $number_only);
             if (!is_null($option)) {
                 $options[] = $option;
@@ -509,7 +513,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_table_id = $this->custom_table_id;
         $column_view_name = array_get($custom_view_column, 'view_column_name');
 
-        switch($view_column_type) {
+        switch ($view_column_type) {
             case ViewColumnType::COLUMN:
             case ViewColumnType::CHILD_SUM:
                 $column = $custom_view_column->custom_column;
@@ -531,13 +535,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
                 break;
             case ViewColumnType::SYSTEM:
-                if ($number_only) return null;
+                if ($number_only) {
+                    return null;
+                }
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
                 if (is_nullorempty($column_view_name)) {
                     $column_view_name = exmtrans('common.'.$system_info['name']);
                 }
+                // no break
             case ViewColumnType::PARENT_ID:
-                if ($number_only) return null;
+                if ($number_only) {
+                    return null;
+                }
                 $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table_id)->first();
                 ///// if this table is child relation(1:n), add parent table
                 if (isset($relation)) {
@@ -555,7 +564,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * import template
      */
-    public static function importTemplate($view, $options = []){
+    public static function importTemplate($view, $options = [])
+    {
         $custom_table = CustomTable::getEloquent(array_get($view, 'table_name'));
         $findArray = [
             'custom_table_id' => $custom_table->id

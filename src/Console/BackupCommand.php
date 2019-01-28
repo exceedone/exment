@@ -66,8 +66,8 @@ class BackupCommand extends Command
 
         $target = $this->option("target") ?? BackupTarget::arrays();
 
-        if(is_string($target)){
-            $target = collect(explode(",", $target))->map(function($t){
+        if (is_string($target)) {
+            $target = collect(explode(",", $target))->map(function ($t) {
                 return new BackupTarget($t) ?? null;
             })->filter()->toArray();
         }
@@ -95,9 +95,9 @@ class BackupCommand extends Command
 
     /**
      * export table definition and table data
-     * 
+     *
      */
-    private function backupTables() 
+    private function backupTables()
     {
         // export table definition
         $this->dumpDatabase();
@@ -106,12 +106,9 @@ class BackupCommand extends Command
         $tables = \DB::select('SHOW TABLES');
 
         // backup each table
-        foreach($tables as $table)
-        {
-            foreach ($table as $key => $name)
-            {
-                if (stripos($name, 'exm__') === 0)
-                {
+        foreach ($tables as $table) {
+            foreach ($table as $key => $name) {
+                if (stripos($name, 'exm__') === 0) {
                     // backup table data which has virtual column
                     $this->backupTable($name);
                 } else {
@@ -124,7 +121,7 @@ class BackupCommand extends Command
 
     /**
      * backup table data except virtual generated column.
-     * 
+     *
      * @param string backup target table
      */
     private function backupTable($table)
@@ -151,7 +148,7 @@ class BackupCommand extends Command
         \DB::table($table)->orderBy('id')->chunk(100, function ($rows) use ($file, $outcols) {
             foreach ($rows as $row) {
                 $array = (array)$row;
-                $row = array_map(function($key) use ($array) {
+                $row = array_map(function ($key) use ($array) {
                     return $array[$key];
                 }, $outcols);
                 // write detail data
@@ -161,13 +158,13 @@ class BackupCommand extends Command
     }
     /**
      * get and create backup folder path
-     * 
+     *
      */
     private function getBackupPath()
     {
-        // edit temporary folder path for store archive file 
-        $this->tempdir = storage_paths('app','backup','tmp', $this->starttime);
-        // edit zip folder path 
+        // edit temporary folder path for store archive file
+        $this->tempdir = storage_paths('app', 'backup', 'tmp', $this->starttime);
+        // edit zip folder path
         $this->listdir = storage_paths('app', 'backup', 'list');
         // create temporary folder if not exists
         if (!File::exists($this->tempdir)) {
@@ -180,15 +177,15 @@ class BackupCommand extends Command
     }
     /**
      * copy folder to temp directory
-     * 
+     *
      * @return bool true:success/false:fail
      */
     private function copyFiles($target)
     {
         // get directory paths
-        $settings = collect($target)->map(function($val){
+        $settings = collect($target)->map(function ($val) {
             return BackupTarget::dir($val);
-        })->filter(function($val){
+        })->filter(function ($val) {
             return isset($val);
         })->toArray();
         $settings = array_merge(
@@ -197,16 +194,16 @@ class BackupCommand extends Command
         );
         
         if (is_array($settings)) {
-            foreach($settings as $setting) {
+            foreach ($settings as $setting) {
                 $from = base_path($setting);
-                if(!\File::exists($from)) {
+                if (!\File::exists($from)) {
                     continue;
                 }
                 $to = path_join($this->tempdir, $setting);
-                if(!File::exists($from)){
+                if (!File::exists($from)) {
                     continue;
                 }
-                if(!File::exists($to)){
+                if (!File::exists($to)) {
                     File::makeDirectory($to, 0755, true);
                 }
 
@@ -220,7 +217,7 @@ class BackupCommand extends Command
     }
     /**
      * archive whole folder(sql and tsv only) to zip.
-     * 
+     *
      */
     private function createZip()
     {
@@ -231,11 +228,10 @@ class BackupCommand extends Command
         $zip = new \ZipArchive();
         $res = $zip->open(path_join($this->listdir, $filename), \ZipArchive::CREATE);
 
-        if ($res === TRUE) {
+        if ($res === true) {
             // iterator all files in folder
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tempdir));
-            foreach ($files as $name => $file)
-            {
+            foreach ($files as $name => $file) {
                 if (!$file->isDir()) {
                     $filePath = $file->getRealPath();
                     $relativePath = substr($filePath, strlen($this->tempdir));
@@ -247,7 +243,7 @@ class BackupCommand extends Command
     }
     /**
      * exec mysqldump for backup table definition or table data.
-     * 
+     *
      * @param string backup target table (default:null)
      */
     private function dumpDatabase($table=null)
@@ -260,11 +256,17 @@ class BackupCommand extends Command
         $dbport = config('database.connections.mysql.port', '');
 
         $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
-        $command = sprintf('%s -h %s -u %s --password=%s -P %s', 
-            $mysqldump, $host, $username, $password, $dbport);
+        $command = sprintf(
+            '%s -h %s -u %s --password=%s -P %s',
+            $mysqldump,
+            $host,
+            $username,
+            $password,
+            $dbport
+        );
 
         if ($table == null) {
-            $file = path_join($this->tempdir , config('exment.backup_info.def_file', 'table_definition.sql'));
+            $file = path_join($this->tempdir, config('exment.backup_info.def_file', 'table_definition.sql'));
             $command = sprintf('%s -d %s > %s', $command, $database, $file);
         } else {
             $file = sprintf('%s.sql', path_join($this->tempdir, $table));

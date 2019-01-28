@@ -117,7 +117,7 @@ class DocumentExcelService
                     if (!array_has($loops, $key)) {
                         array_set($loops, $key, [
                             'text' => null,
-                            'formats' => [], 
+                            'formats' => [],
                         ]);
                     }
                     $loops[$table_name]['columns'][$cell_column]['text'] = getCellValue($cell, $sheet);
@@ -155,7 +155,7 @@ class DocumentExcelService
                 foreach ($loop_item['columns'] as $cell_column => &$column_item) {
                     $text = $column_item['text'];
                     // loop formats
-                    foreach($column_item['formats'] as $format){
+                    foreach ($column_item['formats'] as $format) {
                         // replace using format
                         $text = str_replace($format['format_text'], $child->getValue($format['column_name'], true, [
                             'disable_currency_symbol' => true,
@@ -214,7 +214,7 @@ class DocumentExcelService
     {
         $options['disable_currency_symbol'] = true;
         $options['disable_number_format'] = true;
-        $options['afterCallback'] = function($text, $custom_value, $options){
+        $options['afterCallback'] = function ($text, $custom_value, $options) {
             return $this->replaceText($text, $options);
         };
         return replaceTextFromFormat($text, $this->model, $options);

@@ -8,36 +8,42 @@ use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
 
-class SelectTable extends CustomItem 
+class SelectTable extends CustomItem
 {
     protected $target_table;
     
-    public function __construct($custom_column, $custom_value){
+    public function __construct($custom_column, $custom_value)
+    {
         parent::__construct($custom_column, $custom_value);
 
         $this->target_table = CustomTable::getEloquent(array_get($custom_column, 'options.select_target_table'));
     }
 
-    public function selectTableColumnList(){
+    public function selectTableColumnList()
+    {
         $table_name = $this->target_table->table_view_name;
-        return $this->target_table->custom_columns->mapWithKeys(function ($item) use($table_name) {
+        return $this->target_table->custom_columns->mapWithKeys(function ($item) use ($table_name) {
             return [$item['id'] => $table_name . ' : ' . $item['column_view_name']];
         })->all();
     }
 
-    public function value(){
+    public function value()
+    {
         return $this->getValue(false, false);
     }
 
-    public function text(){
+    public function text()
+    {
         return $this->getValue(true, false);
     }
 
-    public function html(){
+    public function html()
+    {
         return $this->getValue(true, true);
     }
 
-    protected function getValue($text, $html){
+    protected function getValue($text, $html)
+    {
         $model = getModelName($this->target_table)::find($this->value);
         if (is_null($model)) {
             return null;
@@ -58,16 +64,17 @@ class SelectTable extends CustomItem
             }
             
             // get text column
-            if($html){
+            if ($html) {
                 $texts[] = $m->getUrl(true);
-            }else{
+            } else {
                 $texts[] = $m->text;
             }
         }
         return implode(exmtrans('common.separate_word'), $texts);
     }
     
-    protected function getAdminFieldClass(){
+    protected function getAdminFieldClass()
+    {
         if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
             return Field\MultipleSelect::class;
         } else {
@@ -75,14 +82,16 @@ class SelectTable extends CustomItem
         }
     }
     
-    protected function getAdminFilterClass(){
-        if(boolval($this->custom_column->getOption('multiple_enabled'))){
+    protected function getAdminFilterClass()
+    {
+        if (boolval($this->custom_column->getOption('multiple_enabled'))) {
             return Filter\Where::class;
         }
         return Filter\Equal::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
         $field->options(function ($value) {
             // get DB option value
             return $this->target_table->getOptions($value, $this->custom_column->custom_table);
@@ -98,12 +107,14 @@ class SelectTable extends CustomItem
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
     }
     
-    public function getAdminFilterWhereQuery($query, $input){
+    public function getAdminFilterWhereQuery($query, $input)
+    {
         $index = $this->index();
         $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$index`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $input);
     }
 
-    protected function setAdminFilterOptions(&$filter){
+    protected function setAdminFilterOptions(&$filter)
+    {
         $options = $this->target_table->getOptions();
         $ajax = $this->target_table->getOptionAjaxUrl();
 

@@ -10,8 +10,9 @@ class DashboardBoxType extends EnumBase
     const LIST = 'list';
     const CHART = 'chart';
 
-    public static function DASHBOARD_BOX_TYPE_OPTIONS(){
-        return 
+    public static function DASHBOARD_BOX_TYPE_OPTIONS()
+    {
+        return
         [
             ['dashboard_box_type' => self::LIST, 'icon' => 'fa-list'],
             ['dashboard_box_type' => self::SYSTEM, 'icon' => 'fa-wrench'],
@@ -19,8 +20,9 @@ class DashboardBoxType extends EnumBase
         ];
     }
 
-    public function getDashboardBoxItemClass(){
-        switch($this){
+    public function getDashboardBoxItemClass()
+    {
+        switch ($this) {
             case DashboardBoxType::SYSTEM:
                 return DashboardBoxItems\SystemItem::class;
             case DashboardBoxType::LIST:

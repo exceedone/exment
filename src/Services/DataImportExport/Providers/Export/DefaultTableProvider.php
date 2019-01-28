@@ -8,7 +8,8 @@ class DefaultTableProvider extends ProviderBase
 {
     protected $grid;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         parent::__construct();
         $this->custom_table = array_get($args, 'custom_table');
 
@@ -18,14 +19,16 @@ class DefaultTableProvider extends ProviderBase
     /**
      * get data name
      */
-    public function name(){
+    public function name()
+    {
         return $this->custom_table->table_name;
     }
 
     /**
      * get data
      */
-    public function data(){
+    public function data()
+    {
         // get header info
         $columnDefines = $this->getColumnDefines();
         // get header and body

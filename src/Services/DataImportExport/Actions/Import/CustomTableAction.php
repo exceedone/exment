@@ -21,7 +21,8 @@ class CustomTableAction implements ActionInterface
 
     protected $primary_key;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->custom_table = array_get($args, 'custom_table');
 
         // get relations
@@ -30,13 +31,14 @@ class CustomTableAction implements ActionInterface
         $this->primary_key = array_get($args, 'primary_key', 'id');
     }
 
-    public function import($datalist, $options = []){
+    public function import($datalist, $options = [])
+    {
         // get target data and model list
         $data_imports = [];
         foreach ($datalist as $table_name => &$data) {
             //$target_table = $data['custom_table'];
             $provider = $this->getProvider($table_name);
-            if(!isset($provider)){
+            if (!isset($provider)) {
                 continue;
             }
 
@@ -64,7 +66,7 @@ class CustomTableAction implements ActionInterface
             $provider = $data_import['provider'];
             foreach ($data_import['data_import'] as $index => &$row) {
                 // call dataProcessing if method exists
-                if(method_exists($provider, 'dataProcessing')){
+                if (method_exists($provider, 'dataProcessing')) {
                     $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
                 }
 
@@ -81,7 +83,8 @@ class CustomTableAction implements ActionInterface
     /**
      * filter only custom_table or relations datalist.
      */
-    public function filterDatalist($datalist){
+    public function filterDatalist($datalist)
+    {
         // get tablenames
         $table_names = [$this->custom_table->table_name];
 
@@ -89,7 +92,7 @@ class CustomTableAction implements ActionInterface
             $table_names[] = $relation->getSheetName();
         }
 
-        return collect($datalist)->filter(function($data, $keyname) use($table_names){
+        return collect($datalist)->filter(function ($data, $keyname) use ($table_names) {
             return in_array($keyname, $table_names);
         })->toArray();
     }
@@ -97,14 +100,15 @@ class CustomTableAction implements ActionInterface
     /**
      * get provider
      */
-    public function getProvider($keyname){
+    public function getProvider($keyname)
+    {
         // get providers
-        if($keyname == $this->custom_table->table_name){
+        if ($keyname == $this->custom_table->table_name) {
             return new Import\DefaultTableProvider([
                 'custom_table' => $this->custom_table,
                 'promary_key' => $this->primary_key,
             ]);
-        }else{
+        } else {
             // get relations
             foreach ($this->relations as $relation) {
                 if ($relation->relation_type == RelationType::MANY_TO_MANY) {
@@ -173,5 +177,4 @@ class CustomTableAction implements ActionInterface
 
         return $this;
     }
-    
 }

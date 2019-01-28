@@ -44,20 +44,20 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         return $this->clearJson('options');
     }
     
-    protected function getFormColumnTargetAttribute(){
-        if($this->form_column_type == FormColumnType::SYSTEM){
+    protected function getFormColumnTargetAttribute()
+    {
+        if ($this->form_column_type == FormColumnType::SYSTEM) {
             return SystemColumn::getOption(['id' => $this->form_column_target_id])['name'] ?? null;
-        }
-        elseif($this->form_column_type == FormColumnType::COLUMN){
+        } elseif ($this->form_column_type == FormColumnType::COLUMN) {
             return $this->view_column_target_id;
-        }
-        elseif($this->form_column_type == FormColumnType::OTHER){
+        } elseif ($this->form_column_type == FormColumnType::OTHER) {
             $form_column_obj = FormColumnType::getOption(['id' => $this->form_column_target_id])['column_name'] ?? null;
         }
         return null;
     }
     
-    public function getColumnItemAttribute(){
+    public function getColumnItemAttribute()
+    {
         // if tagret is number, column type is column.
         if ($this->form_column_type == FormColumnType::COLUMN) {
             return $this->custom_column->column_item;
@@ -69,13 +69,14 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         // other column
         else {
             return ColumnItems\FormOtherItem::getItem($this);
-        }   
+        }
     }
 
     /**
      * import template
      */
-    public static function importTemplate($form_column, $options = []){
+    public static function importTemplate($form_column, $options = [])
+    {
         $custom_table = array_get($options, 'custom_table');
         $custom_form = array_get($options, 'custom_form');
         $custom_form_block = array_get($options, 'custom_form_block');
@@ -123,7 +124,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         $custom_form_column->column_no = array_get($form_column, 'column_no', 1) ?? 1;
     
         // set option
-        collect(array_get($form_column, 'options', []))->each(function ($option, $key) use($custom_form_column) {
+        collect(array_get($form_column, 'options', []))->each(function ($option, $key) use ($custom_form_column) {
             $custom_form_column->setOption($key, $option, true);
         });
 

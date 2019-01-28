@@ -26,7 +26,8 @@ abstract class CustomItem implements ItemInterface
     public static $availableFields = [];
 
 
-    public function __construct($custom_column, $custom_value){
+    public function __construct($custom_column, $custom_value)
+    {
         $this->custom_column = $custom_column;
         $this->label = $this->custom_column->column_view_name;
         $this->setCustomValue($custom_value);
@@ -49,18 +50,20 @@ abstract class CustomItem implements ItemInterface
     /**
      * get column name
      */
-    public function name(){
+    public function name()
+    {
         return $this->custom_column->column_name;
     }
 
     /**
      * sqlname
      */
-    public function sqlname(){
-        if(boolval(array_get($this->options, 'summary'))) {
+    public function sqlname()
+    {
+        if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
-        if(!$this->custom_column->indexEnabled()) {
+        if (!$this->custom_column->indexEnabled()) {
             return 'value->'.$this->custom_column->column_name;
         }
         return $this->index();
@@ -69,21 +72,24 @@ abstract class CustomItem implements ItemInterface
     /**
      * get index name
      */
-    public function index(){
+    public function index()
+    {
         return $this->custom_column->getIndexColumnName();
     }
 
     /**
-     * get Text(for display) 
+     * get Text(for display)
      */
-    public function text(){
+    public function text()
+    {
         return $this->value;
     }
 
     /**
-     * get html(for display) 
+     * get html(for display)
      */
-    public function html(){
+    public function html()
+    {
         // default escapes text
         return esc_html($this->text());
     }
@@ -91,13 +97,15 @@ abstract class CustomItem implements ItemInterface
     /**
      * sortable for grid
      */
-    public function sortable(){
+    public function sortable()
+    {
         return $this->custom_column->indexEnabled();
     }
 
-    public function setCustomValue($custom_value){
+    public function setCustomValue($custom_value)
+    {
         $this->value = $this->getTargetValue($custom_value);
-        if(isset($custom_value)){
+        if (isset($custom_value)) {
             $this->id = $custom_value->id;
         }
 
@@ -106,23 +114,26 @@ abstract class CustomItem implements ItemInterface
         return $this;
     }
 
-    public function getCustomTable(){
+    public function getCustomTable()
+    {
         return $this->custom_column->custom_table;
     }
 
-    protected function getTargetValue($custom_value){
+    protected function getTargetValue($custom_value)
+    {
         // if options has "summary" (for summary view)
-        if(boolval(array_get($this->options, 'summary'))){
+        if (boolval(array_get($this->options, 'summary'))) {
             return array_get($custom_value, $this->sqlAsName());
         }
         // if options has "summary_child" (for not only summary view, but also default view)
-        if(isset($custom_value) && boolval(array_get($this->options, 'summary_child'))){
+        if (isset($custom_value) && boolval(array_get($this->options, 'summary_child'))) {
             return $custom_value->getSum($this->custom_column);
         }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
 
-    public function getAdminField($form_column = null, $column_name_prefix = null){
+    public function getAdminField($form_column = null, $column_name_prefix = null)
+    {
         $options = $this->custom_column->options;
         $form_column_options = $form_column->options ?? null;
         // form column name. join $column_name_prefix and $column_name
@@ -131,7 +142,7 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
-        }else{
+        } else {
             // get field
             $classname = $this->getAdminFieldClass();
         }
@@ -194,16 +205,17 @@ abstract class CustomItem implements ItemInterface
     /**
      * set admin filter
      */
-    public function setAdminFilter(&$filter){
+    public function setAdminFilter(&$filter)
+    {
         $classname = $this->getAdminFilterClass();
 
         // if where query, call Cloquire
-        if($classname == Where::class){
+        if ($classname == Where::class) {
             $item = $this;
-            $filteritem = new $classname(function($query) use($item){
+            $filteritem = new $classname(function ($query) use ($item) {
                 $item->getAdminFilterWhereQuery($query, $this->input);
             }, $this->label());
-        }else{
+        } else {
             $filteritem = new $classname($this->index(), $this->label());
         }
 
@@ -216,20 +228,25 @@ abstract class CustomItem implements ItemInterface
 
     abstract protected function getAdminFieldClass();
 
-    protected function getAdminFilterClass(){
+    protected function getAdminFilterClass()
+    {
         return Filter\Like::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
     }
 
-    protected function setAdminFilterOptions(&$filter){
+    protected function setAdminFilterOptions(&$filter)
+    {
     }
     
-    protected function setValidates(&$validates){
+    protected function setValidates(&$validates)
+    {
     }
 
-    public static function getItem(...$args){
+    public static function getItem(...$args)
+    {
         list($custom_column, $custom_value) = $args + [null, null];
         $column_type = $custom_column->column_type;
 
@@ -285,7 +302,7 @@ abstract class CustomItem implements ItemInterface
             // create rules.if isset id, add
             $uniqueRules[] = $this->id ?? '';
             $uniqueRules[] = 'id';
-            // and ignore data deleted_at is NULL 
+            // and ignore data deleted_at is NULL
             $uniqueRules[] = 'deleted_at';
             $uniqueRules[] = 'NULL';
             $rules = "unique:".implode(",", $uniqueRules);
@@ -338,5 +355,4 @@ abstract class CustomItem implements ItemInterface
 
         return $validates;
     }
-
 }

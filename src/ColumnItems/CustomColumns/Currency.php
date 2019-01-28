@@ -2,24 +2,23 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-
-class Currency extends Decimal 
+class Currency extends Decimal
 {
-    public function text(){
-        if(is_null($this->value())){
+    public function text()
+    {
+        if (is_null($this->value())) {
             return null;
         }
 
-        if (boolval(array_get($this->custom_column, 'options.number_format')) 
-        && is_numeric($this->value()) 
-        && !boolval(array_get($this->options, 'disable_number_format')))
-        {
+        if (boolval(array_get($this->custom_column, 'options.number_format'))
+        && is_numeric($this->value())
+        && !boolval(array_get($this->options, 'disable_number_format'))) {
             $value = number_format($this->value());
-        }else{
+        } else {
             $value = $this->value();
         }
 
-        if(boolval(array_get($this->options, 'disable_currency_symbol'))){
+        if (boolval(array_get($this->options, 'disable_currency_symbol'))) {
             return $value;
         }
         // get symbol
@@ -27,7 +26,8 @@ class Currency extends Decimal
         return getCurrencySymbolLabel($symbol, $value);
     }
 
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
         $options = $this->custom_column->options;
         
         // get symbol

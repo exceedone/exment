@@ -20,7 +20,8 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config){
+    public static function getAdapter($app, $config)
+    {
         $client = new S3Client([
             'credentials' => [
                 'key'    => config('filesystems.disks.s3.key'),

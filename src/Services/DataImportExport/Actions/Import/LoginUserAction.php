@@ -9,11 +9,13 @@ class LoginUserAction implements ActionInterface
 {
     protected $primary_key;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->primary_key = array_get($args, 'primary_key', 'id');
     }
 
-    public function import($datalist, $options = []){
+    public function import($datalist, $options = [])
+    {
         // get target data and model list
         $data_imports = [];
         foreach ($datalist as $table_name => &$data) {
@@ -46,7 +48,7 @@ class LoginUserAction implements ActionInterface
             $provider = $data_import['provider'];
             foreach ($data_import['data_import'] as $index => &$row) {
                 // call dataProcessing if method exists
-                if(method_exists($provider, 'dataProcessing')){
+                if (method_exists($provider, 'dataProcessing')) {
                     $row['data'] = $provider->dataProcessing(array_get($row, 'data'));
                 }
 
@@ -61,9 +63,10 @@ class LoginUserAction implements ActionInterface
     }
 
     /**
-     * filter 
+     * filter
      */
-    public function filterDatalist($datalist){
+    public function filterDatalist($datalist)
+    {
         return $datalist;
     }
     
@@ -99,5 +102,4 @@ class LoginUserAction implements ActionInterface
     {
         return $this;
     }
-    
 }

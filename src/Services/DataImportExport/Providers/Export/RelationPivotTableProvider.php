@@ -13,8 +13,9 @@ class RelationPivotTableProvider extends ProviderBase
 
     protected $grid;
 
-    public function __construct($args = []){
-        parent::__construct();  
+    public function __construct($args = [])
+    {
+        parent::__construct();
 
         $this->relation = array_get($args, 'relation');
         
@@ -24,14 +25,16 @@ class RelationPivotTableProvider extends ProviderBase
     /**
      * get data name
      */
-    public function name(){
+    public function name()
+    {
         return $this->relation->getSheetName();
     }
 
     /**
      * get data
      */
-    public function data(){
+    public function data()
+    {
         // get header info
         $columnDefines = $this->getColumnDefines();
         // get header and body
@@ -56,7 +59,7 @@ class RelationPivotTableProvider extends ProviderBase
     protected function getColumnDefines()
     {
         $columnDefines = ['parent_id','child_id'];
-        if($this->template){
+        if ($this->template) {
             $columnDefines[] = 'delete_flg';
         }
         return $columnDefines;
@@ -77,7 +80,7 @@ class RelationPivotTableProvider extends ProviderBase
             $this->relation->parent_custom_table->table_view_name . '_'. exmtrans("common.id"),
             $this->relation->child_custom_table->table_view_name . '_'. exmtrans("common.id"),
         ];
-        if($this->template){
+        if ($this->template) {
             $column_view_names[] = trans('admin.delete');
         }
         $rows[] = $column_view_names;

@@ -24,8 +24,8 @@ class Plugin extends ModelBase
         $array = ["App", "Plugins", pascalize($this->plugin_name)];
         if (count($pass_array) > 0) {
             $array = array_merge(
-                $array
-                , $pass_array
+                $array,
+                $pass_array
             );
         }
         return namespace_join(...$array);
@@ -49,10 +49,10 @@ class Plugin extends ModelBase
 
         if (count($pass_array) > 0) {
             $pluginPath = array_merge(
-                [$pluginPath]
-                , $pass_array
+                [$pluginPath],
+                $pass_array
             );
-        }else{
+        } else {
             $pluginPath = [$pluginPath];
         }
         return path_join(...$pluginPath);
@@ -62,8 +62,8 @@ class Plugin extends ModelBase
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
-
 }

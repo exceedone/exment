@@ -18,7 +18,6 @@ use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
-
 class CustomViewController extends AdminControllerTableBase
 {
     use HasResourceActions;
@@ -154,8 +153,8 @@ class CustomViewController extends AdminControllerTableBase
             $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
                 $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
                     ->options([
-                        1 => exmtrans("custom_view.view_summary_total"), 
-                        2 => exmtrans("custom_view.view_summary_average"), 
+                        1 => exmtrans("custom_view.view_summary_total"),
+                        2 => exmtrans("custom_view.view_summary_average"),
                         3 => exmtrans("custom_view.view_summary_count")])->required()
                     ->attribute(['data-linkage' => json_encode(['view_column_target' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
@@ -214,10 +213,10 @@ class CustomViewController extends AdminControllerTableBase
         // sort setting
         if (intval($view_kind_type) != Enums\ViewKindType::AGGREGATE) {
             $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
-            $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true));
-            $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
-            $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
+                $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
+                $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
             ->description(exmtrans("custom_view.description_custom_view_sorts"));
         }
@@ -249,7 +248,7 @@ class CustomViewController extends AdminControllerTableBase
         return collect($options)->map(function ($text, $id) {
             return ['id' => $id, 'text' => $text];
         });
-    }    
+    }
     /**
      * get filter condition
      */

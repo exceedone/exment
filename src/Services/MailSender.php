@@ -3,7 +3,7 @@ namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\System;  
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
@@ -35,10 +35,9 @@ class MailSender
         $this->history_body = true;
 
         // get mail template
-        if($mail_key_name instanceof CustomValue){
-            $this->mail_template = $mail_key_name; 
-        }
-        elseif (is_numeric($mail_key_name)) {
+        if ($mail_key_name instanceof CustomValue) {
+            $this->mail_template = $mail_key_name;
+        } elseif (is_numeric($mail_key_name)) {
             $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_key_name);
         } else {
             $this->mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
@@ -130,22 +129,22 @@ class MailSender
 
         // total body
         $mail_bodies = [];
-        if(isset($header)){
+        if (isset($header)) {
             $mail_bodies[]  = $header;
         }
         $mail_bodies[]  = $body;
-        if(isset($footer)){
+        if (isset($footer)) {
             $mail_bodies[]  = $footer;
         }
-        if(!isset($this->from)){
+        if (!isset($this->from)) {
             $this->from = [System::system_mail_from()];
         }
 
         // dispatch jobs
         MailSendJob::dispatch(
-            $this->from, 
-            $this->to, 
-            $subject, 
+            $this->from,
+            $this->to,
+            $subject,
             implode("\n\n", $mail_bodies),
             $this->mail_template,
             [
@@ -161,10 +160,11 @@ class MailSender
     /**
      * get mail template type
      */
-    protected function getHeaderFooter($mailTemplateType){
+    protected function getHeaderFooter($mailTemplateType)
+    {
         $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
             ::where('value->mail_template_type', $mailTemplateType)->first();
-        if(!isset($mail_template)){
+        if (!isset($mail_template)) {
             return null;
         }
         return $this->replaceWord($mail_template->getValue('mail_body'));
@@ -176,10 +176,10 @@ class MailSender
     protected function replaceWord(string $target)
     {
         $target = replaceTextFromFormat($target, $this->custom_value, [
-            'matchBeforeCallback' => function($length_array, $matchKey, $format, $custom_value, $options){
+            'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) {
                 // if has prms using $match, return value
                 $matchKey = str_replace(":", ".", $matchKey);
-                if(array_has($this->prms, $matchKey)){
+                if (array_has($this->prms, $matchKey)) {
                     return array_get($this->prms, $matchKey);
                 }
                 return null;

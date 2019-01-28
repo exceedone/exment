@@ -11,7 +11,8 @@ class DefaultTableProvider extends ProviderBase
 {
     protected $primary_key;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->custom_table = array_get($args, 'custom_table');
 
         $this->primary_key = array_get($args, 'primary_key', 'id');
@@ -19,7 +20,7 @@ class DefaultTableProvider extends ProviderBase
 
     /**
      * get data and object.
-     * set matched model data 
+     * set matched model data
      */
     public function getDataObject($data, $options = [])
     {
@@ -165,7 +166,7 @@ class DefaultTableProvider extends ProviderBase
 
     /**
      * Data processing before getting model using imported data
-     * 
+     *
      * @param $data
      * @return array
      */
@@ -175,16 +176,15 @@ class DefaultTableProvider extends ProviderBase
             if (strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
                 // get target column
-                $target_column = $custom_columns->first(function($custom_column) use($new_key){
+                $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
                     return array_get($custom_column, 'column_name') == $new_key;
                 });
-                if(!isset($target_column)){
+                if (!isset($target_column)) {
                     continue;
                 }
 
-                if(ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
-                    && boolval(array_get($target_column, 'options.multiple_enabled')))
-                {
+                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
+                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
                     $value = explode(",", $value);
                 }
             }
@@ -255,7 +255,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // if not has deleted_at value, remove deleted_at value
-        if(!array_key_value_exists('deleted_at', $data)){
+        if (!array_key_value_exists('deleted_at', $data)) {
             $model->deleted_at = null;
         }
 
@@ -264,5 +264,4 @@ class DefaultTableProvider extends ProviderBase
 
         return $model;
     }
-
 }

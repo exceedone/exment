@@ -38,7 +38,8 @@ class ViewColumnFilterOption extends EnumBase
     const USER_EQ_USER = 2011;
     const USER_NE_USER = 2012;
 
-    public static function VIEW_COLUMN_FILTER_OPTIONS(){
+    public static function VIEW_COLUMN_FILTER_OPTIONS()
+    {
         return [
             ViewColumnFilterType::DEFAULT => [
                 ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],

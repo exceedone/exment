@@ -93,10 +93,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
-            $router->get('backup/download/{ymdhms}', function($ymdhms){
+            $router->get('backup/download/{ymdhms}', function ($ymdhms) {
                 return BackupController::download($ymdhms);
             });
-            $router->get('testpath', function () { return public_path(); }); 
+            $router->get('testpath', function () {
+                return public_path();
+            });
             // set static name. because this function is called composer install.
             try {
                 if (hasTable(SystemTableName::CUSTOM_TABLE)) {
@@ -208,7 +210,7 @@ class RouteServiceProvider extends ServiceProvider
                 } catch (\Exception $e) {
                 }
     
-                $router->get("version", function(){
+                $router->get("version", function () {
                     return (new \Exceedone\Exment\Exment)->version();
                 });
                 $router->get("table/{id}", 'ApiController@table');

@@ -70,19 +70,18 @@ class RestoreCommand extends Command
     }
     /**
      * insert table data from backup tsv files.
-     * 
+     *
      * @param string unzip restore file path
      */
     private function importTsv($path)
     {
         // get tsv files in target folder
-        $files = array_filter(\File::files($path), function ($file)
-        {
+        $files = array_filter(\File::files($path), function ($file) {
             return preg_match('/.+\.tsv$/i', $file);
         });
 
         // load table data from tsv file
-        foreach($files as $file) {
+        foreach ($files as $file) {
             $table = $file->getBasename('.' . $file->getExtension());
             $cmd =<<<__EOT__
             LOAD DATA local INFILE '%s' 
@@ -108,7 +107,7 @@ __EOT__;
 
     /**
      * copy folder from temp directory
-     * 
+     *
      * @return bool true:success/false:fail
      */
     private function copyFiles($path)
@@ -117,7 +116,7 @@ __EOT__;
 
         $directories = \File::directories($path);
 
-        foreach($directories as $directory) {
+        foreach ($directories as $directory) {
             $topath = base_path(mb_basename($directory));
             $success = \File::copyDirectory($directory, $topath);
             if (!$success) {
@@ -129,7 +128,7 @@ __EOT__;
     }
     /**
      * unzip backup file to temporary folder path.
-     * 
+     *
      * @param string restore filename(no extension)
      */
     private function unzipFile($file)
@@ -146,17 +145,17 @@ __EOT__;
 
         // open new zip file
         $zip = new \ZipArchive();
-        if ($zip->open($file) === TRUE) {
+        if ($zip->open($file) === true) {
             $zip->extractTo($tempdir);
             $zip->close();
             return $tempdir;
         }
 
-        return NULL;
+        return null;
     }
     /**
      * restore backup table definition and table data.
-     * 
+     *
      * @param string unzip folder path
      */
     private function restoreDatabase($path)
@@ -168,9 +167,16 @@ __EOT__;
         $database = config('database.connections.mysql.database', '');
         $dbport = config('database.connections.mysql.port', '');
 
-        $mysqlcmd = sprintf('%s%s -h %s -u %s --password=%s -P %s %s', 
-            config('exment.backup_info.mysql_dir'), 'mysql', 
-            $host, $username, $password, $dbport, $database);
+        $mysqlcmd = sprintf(
+            '%s%s -h %s -u %s --password=%s -P %s %s',
+            config('exment.backup_info.mysql_dir'),
+            'mysql',
+            $host,
+            $username,
+            $password,
+            $dbport,
+            $database
+        );
 
         // restore table definition
         $def = path_join($path, config('exment.backup_info.def_file'));
@@ -181,12 +187,11 @@ __EOT__;
         }
 
         // get insert sql file for each tables
-        $files = array_filter(\File::files($path), function ($file)
-        {
+        $files = array_filter(\File::files($path), function ($file) {
             return preg_match('/.+\.sql$/i', $file);
         });
 
-        foreach($files as $file) {
+        foreach ($files as $file) {
             $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
             exec($command);
         }

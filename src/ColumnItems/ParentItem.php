@@ -13,7 +13,8 @@ class ParentItem implements ItemInterface
      */
     protected $custom_table;
     
-    public function __construct($custom_table, $custom_value){
+    public function __construct($custom_table, $custom_value)
+    {
         $this->custom_table = $custom_table;
         $this->value = $this->getTargetValue($custom_value);
         $this->label = $custom_table->table_view_name;
@@ -22,54 +23,61 @@ class ParentItem implements ItemInterface
     /**
      * get column name
      */
-    public function name(){
+    public function name()
+    {
         return 'parent_id_'.$this->custom_table->table_name;
     }
 
     /**
      * get column name
      */
-    public function sqlname(){
+    public function sqlname()
+    {
         return getDBTableName($this->custom_table) .'.'. 'parent_id';
     }
 
     /**
      * get index name
      */
-    public function index(){
+    public function index()
+    {
         return null;
     }
 
     /**
-     * get text(for display) 
+     * get text(for display)
      */
-    public function text(){
+    public function text()
+    {
         return $this->value->getText();
     }
 
     /**
-     * get html(for display) 
-     * *this function calls from non-escaping value method. So please escape if not necessary unescape. 
+     * get html(for display)
+     * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
-    public function html(){
+    public function html()
+    {
         return $this->value->getUrl(true);
     }
 
     /**
      * sortable for grid
      */
-    public function sortable(){
+    public function sortable()
+    {
         return true;
     }
 
-    public function setCustomValue($custom_value){
+    public function setCustomValue($custom_value)
+    {
         $relation = CustomRelation::getRelationByChild($this->custom_table);
         if (!isset($relation)) {
             return;
         }
 
         $this->value = $this->getTargetValue($custom_value);
-        if(isset($custom_value)){
+        if (isset($custom_value)) {
             $this->id = $custom_value->id;
         }
         $this->prepare();
@@ -77,12 +85,14 @@ class ParentItem implements ItemInterface
         return $this;
     }
 
-    public function getCustomTable(){
+    public function getCustomTable()
+    {
         return $this->custom_table;
     }
 
-    protected function getTargetValue($custom_value){
-        if(is_null($custom_value)){
+    protected function getTargetValue($custom_value)
+    {
+        if (is_null($custom_value)) {
             return;
         }
 
@@ -91,9 +101,10 @@ class ParentItem implements ItemInterface
         }
 
         return getModelName($custom_value->parent_type)::find($custom_value->parent_id);
-    }   
+    }
     
-    public static function getItem(...$args){
+    public static function getItem(...$args)
+    {
         list($custom_table, $custom_value) = $args + [null, null];
         return new self($custom_table, $custom_value);
     }

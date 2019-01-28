@@ -39,8 +39,7 @@ class Morph
                 }
                 Relation::morphMap($morphMaps);
             }
-        }catch(\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             logger($ex);
         }
     }

@@ -7,15 +7,18 @@ use \Exception;
 
 class DynamicDBHelper
 {
-    public static function createValueTable($table_name){
+    public static function createValueTable($table_name)
+    {
         DB::statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");
     }
 
-    public static function createRelationValueTable($pivot_table_name){
+    public static function createRelationValueTable($pivot_table_name)
+    {
         DB::statement("CREATE TABLE IF NOT EXISTS ".$pivot_table_name." LIKE custom_relation_values");
     }
     
-    public static function alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name){
+    public static function alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name)
+    {
         DB::beginTransaction();
         try {
             // ALTER TABLE
@@ -31,7 +34,8 @@ class DynamicDBHelper
         }
     }
 
-    public static function dropIndexColumn($db_table_name, $db_column_name, $index_name){
+    public static function dropIndexColumn($db_table_name, $db_column_name, $index_name)
+    {
         DB::beginTransaction();
         try {
             // ALTER TABLE

@@ -124,14 +124,16 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
     /**
      * import template
      */
-    public static function importTemplate($form, $options = []){
+    public static function importTemplate($form, $options = [])
+    {
         $custom_table = CustomTable::getEloquent(array_get($form, 'table_name'));
 
         // Create form --------------------------------------------------

@@ -32,7 +32,8 @@ class ChartItem implements ItemInterface
     
     protected $chart_axis_name;
     
-    public function __construct($dashboard_box){
+    public function __construct($dashboard_box)
+    {
         $this->dashboard_box = $dashboard_box;
 
         $table_id = array_get($this->dashboard_box, 'options.target_table_id');
@@ -51,10 +52,11 @@ class ChartItem implements ItemInterface
     }
 
     /**
-     * get html(for display) 
-     * *this function calls from non-value method. So please escape if not necessary unescape. 
+     * get html(for display)
+     * *this function calls from non-value method. So please escape if not necessary unescape.
      */
-    public function html(){
+    public function html()
+    {
         $item = $this->getViewColumn($this->axis_x)->column_item;
         $item_y = $this->getViewColumn($this->axis_y)->column_item;
 
@@ -69,7 +71,7 @@ class ChartItem implements ItemInterface
             ]);
             // get data
             $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
-            $chart_label = $datalist->map(function($val) use($item) {
+            $chart_label = $datalist->map(function ($val) use ($item) {
                 $data = $item->setCustomValue($val)->text();
                 return $data;
             });
@@ -79,7 +81,7 @@ class ChartItem implements ItemInterface
             $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
             // get data
             $datalist = $model->all();
-            $chart_label = $datalist->map(function($val) use($item) {
+            $chart_label = $datalist->map(function ($val) use ($item) {
                 $data = $item->setCustomValue($val)->text();
                 return $data;
             });
@@ -105,7 +107,7 @@ class ChartItem implements ItemInterface
 
     protected function getViewColumn($column_keys)
     {
-        if(preg_match('/\d+_\d+$/i', $column_keys) === 1) {
+        if (preg_match('/\d+_\d+$/i', $column_keys) === 1) {
             $keys = explode('_', $column_keys);
             if (count($keys) === 2) {
                 if ($keys[0] == ViewKindType::AGGREGATE) {
@@ -122,7 +124,8 @@ class ChartItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form){
+    public static function setAdminOptions(&$form)
+    {
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
         ->required()
         ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
@@ -136,8 +139,10 @@ class ChartItem implements ItemInterface
                 }
                 return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
             })
-            ->loads(['options_chart_axisx', 'options_chart_axisy'], 
-                [admin_base_path('dashboardbox/chart_axis').'/x', admin_base_path('dashboardbox/chart_axis').'/y']);
+            ->loads(
+                ['options_chart_axisx', 'options_chart_axisy'],
+                [admin_base_path('dashboardbox/chart_axis').'/x', admin_base_path('dashboardbox/chart_axis').'/y']
+            );
 
         $form->select('chart_type', exmtrans("dashboard.dashboard_box_options.chart_type"))
                 ->required()
@@ -215,7 +220,8 @@ EOT;
     /**
      * saving event
      */
-    public static function saving(&$form){
+    public static function saving(&$form)
+    {
         // except fields not visible
         $options = $form->options;
         $chart_type = array_get($options, 'chart_type');
@@ -224,13 +230,13 @@ EOT;
         if ($chart_type == ChartType::PIE) {
             $options['chart_axis_label'] = [];
             $options['chart_axis_name'] = [];
-            foreach($chart_options as $chart_option) {
+            foreach ($chart_options as $chart_option) {
                 if ($chart_option == ChartOptionType::LEGEND) {
                     $new_options[] = $chart_option;
                 }
             }
         } else {
-            foreach($chart_options as $chart_option) {
+            foreach ($chart_options as $chart_option) {
                 if ($chart_option == ChartOptionType::BEGIN_ZERO) {
                     $new_options[] = $chart_option;
                 }
@@ -245,7 +251,8 @@ EOT;
      *
      * @return chart color array
      */
-    protected function getChartColor($datacnt) {
+    protected function getChartColor($datacnt)
+    {
         $chart_color = config('exment.chart_backgroundColor', ['red']);
         if ($this->chart_type == ChartType::PIE) {
             while (count($chart_color) < $datacnt) {
@@ -257,7 +264,8 @@ EOT;
         return $chart_color;
     }
 
-    public static function getItem(...$args){
+    public static function getItem(...$args)
+    {
         list($dashboard_box) = $args + [null];
         return new self($dashboard_box);
     }

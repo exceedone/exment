@@ -49,22 +49,26 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         return $this->base_user->value['email'] ?? null;
     }
 
-    public function isLoginProvider(){
+    public function isLoginProvider()
+    {
         return !is_nullorempty($this->login_provider);
     }
     
-    public function findForPassport($username){
+    public function findForPassport($username)
+    {
         return CustomUserProvider::RetrieveByCredential(['username' => $username]);
     }
 
-    public function validateForPassportPasswordGrant($password){
+    public function validateForPassportPasswordGrant($password)
+    {
         return CustomUserProvider::ValidateCredential($this, ['password' => $password]);
     }
 
     /**
      * set sendPassword param
      */
-    public function sendPassword($sendPassword){
+    public function sendPassword($sendPassword)
+    {
         $this->send_password = $sendPassword;
 
         return $this;
@@ -73,8 +77,9 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     /**
      * send Password
      */
-    protected function send($is_newuser){
-        if(!isset($this->send_password)){
+    protected function send($is_newuser)
+    {
+        if (!isset($this->send_password)) {
             return;
         }
         $user = $this->base_user;
@@ -137,5 +142,4 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             $model->send(false);
         });
     }
-
 }

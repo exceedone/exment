@@ -2,7 +2,7 @@
 namespace Exceedone\Exment\Validator;
 
 class UniqueInTableValidator extends \Illuminate\Validation\Validator
-{ 
+{
     /**
     * Validation in table
     *

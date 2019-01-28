@@ -5,17 +5,19 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
 
-class AutoNumber extends CustomItem 
+class AutoNumber extends CustomItem
 {
     protected $required = false;
 
-    protected function getAdminFieldClass(){
+    protected function getAdminFieldClass()
+    {
         return Field\Display::class;
     }
 
-    public function getAutoNumber(){
+    public function getAutoNumber()
+    {
         // already set value, break
-        if(isset($this->value)){
+        if (isset($this->value)) {
             return null;
         }
         

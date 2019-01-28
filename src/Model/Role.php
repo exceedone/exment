@@ -38,7 +38,7 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
         }
         
         // get Role setting
-        $roles = static::allRecords(function($record) use($related_type){
+        $roles = static::allRecords(function ($record) use ($related_type) {
             return $record->role_type == $related_type;
         });
         foreach ($roles as $role) {
@@ -56,7 +56,8 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     /**
      * import template
      */
-    public static function importTemplate($copy, $options = []){
+    public static function importTemplate($copy, $options = [])
+    {
         // Create role. --------------------------------------------------
         $role_type = RoleType::getEnumValue(array_get($role, 'role_type'));
         $obj_role = Role::firstOrNew(['role_type' => $role_type, 'role_name' => array_get($role, 'role_name')]);

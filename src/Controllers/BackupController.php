@@ -31,8 +31,7 @@ class BackupController extends AdminControllerBase
     {
         $this->AdminContent($content);
         // get all archive files
-        $files = array_filter(static::disk()->files('list'), function ($file)
-        {
+        $files = array_filter(static::disk()->files('list'), function ($file) {
             return preg_match('/list\/\d+\.zip$/i', $file);
         });
         // edit table row data
@@ -46,19 +45,21 @@ class BackupController extends AdminControllerBase
             ];
         }
 
-        $content->row(view('exment::backup.index', 
+        $content->row(view(
+            'exment::backup.index',
             ['files' => $rows, 'modal' => $this->importModal()]
         ));
 
         // create setting form
         $content->row($this->settingFormBox());
 
-        // $content->body(view('exment::backup.index', 
+        // $content->body(view('exment::backup.index',
         //     ['files' => $rows, 'modal' => $this->importModal()]));
         return $content;
     }
 
-    protected function settingFormBox(){
+    protected function settingFormBox()
+    {
         $form = new WidgetForm(System::get_system_values());
         $form->action(admin_base_paths('backup/setting'));
         $form->disableReset();
@@ -147,9 +148,9 @@ class BackupController extends AdminControllerBase
             $filename = $file->store('upload_tmp', 'admin_tmp');
             $fullpath = getFullpath($filename, 'admin_tmp');
             \Artisan::call('down');
-            $result = \Artisan::call('exment:restore', ['file' => $fullpath] );
+            $result = \Artisan::call('exment:restore', ['file' => $fullpath]);
             \Artisan::call('up');
-        } 
+        }
         
         if (isset($result) && $result === 0) {
             $response = [
@@ -246,7 +247,7 @@ class BackupController extends AdminControllerBase
             $file = path_join($backup, 'list', $data['file'] . '.zip');
 
             \Artisan::call('down');
-            $result = \Artisan::call('exment:restore', ['file' => $file] );
+            $result = \Artisan::call('exment:restore', ['file' => $file]);
             \Artisan::call('up');
         }
 
@@ -279,7 +280,7 @@ class BackupController extends AdminControllerBase
             abort(404);
         }
 
-        $path = path_join("list",  $ymdhms . '.zip');
+        $path = path_join("list", $ymdhms . '.zip');
         $exists = static::disk()->exists($path);
         if (!$exists) {
             abort(404);
@@ -297,7 +298,8 @@ class BackupController extends AdminControllerBase
         return $response;
     }
 
-    protected static function disk(){
+    protected static function disk()
+    {
         return Storage::disk('backup');
     }
 }

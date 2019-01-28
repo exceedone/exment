@@ -16,17 +16,19 @@ trait ItemTrait
     protected $options;
 
     /**
-     * get value 
+     * get value
      */
-    public function value(){
+    public function value()
+    {
         return $this->value;
     }
 
     /**
      * get or set option for convert
      */
-    public function options($options = null){
-        if(!func_num_args()){
+    public function options($options = null)
+    {
+        if (!func_num_args()) {
             return $this->options ?? [];
         }
 
@@ -41,8 +43,9 @@ trait ItemTrait
     /**
      * get label. (user theader, form label etc...)
      */
-    public function label($label = null){
-        if(!func_num_args()){
+    public function label($label = null)
+    {
+        if (!func_num_args()) {
             return $this->label;
         }
         $this->label = $label;
@@ -52,15 +55,16 @@ trait ItemTrait
     /**
      * get value's id.
      */
-    public function id($id = null){
-        if(!func_num_args()){
+    public function id($id = null)
+    {
+        if (!func_num_args()) {
             return $this->id;
         }
         $this->id = $id;
         return $this;
     }
 
-    public function prepare(){
+    public function prepare()
+    {
     }
-
 }

@@ -24,20 +24,22 @@ class CustomViewSort extends ModelBase
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
     /**
      * import template
      */
-    public static function importTemplate($view_column, $options = []){
+    public static function importTemplate($view_column, $options = [])
+    {
         $custom_table = array_get($options, 'custom_table');
         $custom_view = array_get($options, 'custom_view');
 
         $view_column_target = static::getColumnIdOrName(
-            array_get($view_column, "view_column_type"), 
-            array_get($view_column, "view_column_target_name"), 
+            array_get($view_column, "view_column_type"),
+            array_get($view_column, "view_column_target_name"),
             $custom_table,
             true
         );
@@ -58,5 +60,5 @@ class CustomViewSort extends ModelBase
         $custom_view_sort->saveOrFail();
 
         return $custom_view_sort;
-    }    
+    }
 }

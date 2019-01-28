@@ -158,7 +158,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // joint table
-            if(in_array($url, $table_names)){
+            if (in_array($url, $table_names)) {
                 return static::getEloquent($url, $withs);
             }
         }
@@ -174,9 +174,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         if ($obj instanceof CustomTable) {
             return static::withLoad($obj, $withs);
-        }elseif ($obj instanceof CustomColumn) {
+        } elseif ($obj instanceof CustomColumn) {
             return static::withLoad($obj->custom_table, $withs);
-        }elseif ($obj instanceof CustomValue) {
+        } elseif ($obj instanceof CustomValue) {
             return static::withLoad($obj->custom_table, $withs);
         }
 
@@ -201,12 +201,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         } elseif (is_string($obj)) {
             $query_key = 'table_name';
         }
-        if(isset($query_key)){
+        if (isset($query_key)) {
             // get table
-            $obj = static::allRecords(function($table) use($query_key, $obj){
+            $obj = static::allRecords(function ($table) use ($query_key, $obj) {
                 return array_get($table, $query_key) == $obj;
             })->first();
-            if(!isset($obj)){
+            if (!isset($obj)) {
                 return null;
             }
         }
@@ -214,11 +214,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return static::withLoad($obj, $withs);
     }
 
-    protected static function getWiths($withs){
-        if(is_array($withs)){
+    protected static function getWiths($withs)
+    {
+        if (is_array($withs)) {
             return $withs;
         }
-        if($withs === true){
+        if ($withs === true) {
             return ['custom_columns'];
         }
         return [];
@@ -227,7 +228,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * set lazy load and return
      */
-    protected static function withLoad($obj, $withs = []){
+    protected static function withLoad($obj, $withs = [])
+    {
         $withs = static::getWiths($withs);
         if (count($withs) > 0) {
             $obj->load($withs);
@@ -422,11 +424,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // CREATE TABLE from custom value table.
-        if(hasTable($table_name)){
+        if (hasTable($table_name)) {
             return;
         }
 
-        DynamicDBHelper::createValueTable($table_name);        
+        DynamicDBHelper::createValueTable($table_name);
         System::requestSession($key, 1);
     }
     
@@ -693,7 +695,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * import template
      */
-    public static function importTemplate($json, $options = []){
+    public static function importTemplate($json, $options = [])
+    {
         $system_flg = array_get($options, 'system_flg', false);
         // Create tables. --------------------------------------------------
         $table_name = array_get($json, 'table_name');
@@ -721,7 +724,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         else {
             $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
         }
-        $obj_table->setOption(array_get($json, 'options', []));                    
+        $obj_table->setOption(array_get($json, 'options', []));
         $obj_table->saveOrFail();
 
         // Create database table.

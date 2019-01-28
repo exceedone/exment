@@ -74,17 +74,18 @@ class ModelBase extends Model
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquentDefault($obj, $withs = [], $query_key = 'id'){
+    public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
+    {
         // get table
-        $obj = static::allRecords(function($table) use($query_key, $obj){
+        $obj = static::allRecords(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;
         })->first();
 
-        if(!isset($obj)){
+        if (!isset($obj)) {
             return null;
         }
 
-        if(count($withs) > 0){
+        if (count($withs) > 0) {
             $obj->load($withs);
         }
 
@@ -101,7 +102,7 @@ class ModelBase extends Model
             return;
         }
 
-        if($value->trashed()){
+        if ($value->trashed()) {
             return exmtrans('common.trashed_user');
         }
         return $value->getText();

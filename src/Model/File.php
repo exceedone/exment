@@ -23,14 +23,16 @@ class File extends ModelBase
     // increment disable
     public $incrementing = false;
 
-    public function getPathAttribute(){
+    public function getPathAttribute()
+    {
         return path_join($this->local_dirname, $this->local_filename);
     }
 
     /**
      * save document model
      */
-    public function saveDocumentModel($custom_value, $document_name){
+    public function saveDocumentModel($custom_value, $document_name)
+    {
         // save Document Model
         $document_model = CustomTable::getEloquent(SystemTableName::DOCUMENT)->getValueModel();
         $document_model->parent_id = $custom_value->id;
@@ -43,12 +45,13 @@ class File extends ModelBase
         return $document_model;
     }
 
-    public function saveCustomValue($custom_value, $custom_column = null){
-        if(isset($custom_value)){
+    public function saveCustomValue($custom_value, $custom_column = null)
+    {
+        if (isset($custom_value)) {
             $this->parent_id = $custom_value->id;
             $this->parent_type = $custom_value->custom_table->table_name;
         }
-        if(isset($custom_column)){
+        if (isset($custom_column)) {
             $custom_column = CustomColumn::getEloquent($custom_column, $custom_value->custom_table);
             $this->custom_column_id = $custom_column->id;
         }
@@ -79,18 +82,18 @@ class File extends ModelBase
     {
         $uuid = make_uuid();
 
-        if(!isset($filename)){
+        if (!isset($filename)) {
             list($dirname, $filename) = static::getDirAndFileName($dirname);
         }
 
-        if(!isset($local_filename)){
+        if (!isset($local_filename)) {
             //$local_filename = static::getUniqueFileName($dirname, $filename);
             $local_filename = $filename;
         }
         
         // get unique name. if different and not override, change name
         $unique_filename = static::getUniqueFileName($dirname, $filename);
-        if(!$override && $local_filename != $unique_filename){
+        if (!$override && $local_filename != $unique_filename) {
             $local_filename = $unique_filename;
         }
 
@@ -138,9 +141,9 @@ class File extends ModelBase
         }
 
         // if has parent_id, check permission
-        if(isset($data->parent_id) && isset($data->parent_type)){
+        if (isset($data->parent_id) && isset($data->parent_type)) {
             $custom_table = CustomTable::getEloquent($data->parent_type);
-            if(!$custom_table->hasPermissionData($data->parent_id)){
+            if (!$custom_table->hasPermissionData($data->parent_id)) {
                 abort(403);
             }
         }
@@ -192,7 +195,7 @@ class File extends ModelBase
         }
         
         // delete file info
-        if(boolval($options['removeFileInfo'])){
+        if (boolval($options['removeFileInfo'])) {
             $file = static::getData($uuid);
             static::deleteFileInfo($file);
         }
@@ -261,7 +264,7 @@ class File extends ModelBase
      * @param  string  $dirname directory path
      * @param  string  $name file name. the name is shown by display
      * @param  string  $local_filename local file name.
-     * @param  bool  $override if file already exists, override 
+     * @param  bool  $override if file already exists, override
      * @return string|false
      */
     public static function storeAs($content, $dirname, $name, $local_filename = null, $override = false)
@@ -272,7 +275,7 @@ class File extends ModelBase
     }
 
     /**
-     * Get file model using path or uuid 
+     * Get file model using path or uuid
      */
     protected static function getData($pathOrUuid)
     {
@@ -294,8 +297,9 @@ class File extends ModelBase
     /**
      * get unique file name
      */
-    public static function getUniqueFileName($dirname, $filename = null){
-        if(!isset($filename)){
+    public static function getUniqueFileName($dirname, $filename = null)
+    {
+        if (!isset($filename)) {
             list($dirname, $filename) = static::getDirAndFileName($dirname);
         }
 
@@ -305,17 +309,18 @@ class File extends ModelBase
 
         // check file exists
         // if exists, use uuid
-        if(\File::exists(getFullpath($path, config('admin.upload.disk')))){
+        if (\File::exists(getFullpath($path, config('admin.upload.disk')))) {
             $ext = file_ext($filename);
             return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
-        }   
+        }
         return $filename;
     }
 
     /**
      * get directory and filename from path
      */
-    public static function getDirAndFileName($path){
+    public static function getDirAndFileName($path)
+    {
         $dirname = dirname($path);
         $filename = mb_basename($path);
         return [$dirname, $filename];

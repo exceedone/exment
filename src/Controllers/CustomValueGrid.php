@@ -165,7 +165,8 @@ trait CustomValueGrid
     }
 
     // create import and exporter
-    protected function getImportExportService($grid = null){
+    protected function getImportExportService($grid = null)
+    {
         $service = (new DataImportExport\DataImportExportService())
             ->exportAction(new DataImportExport\Actions\Export\CustomTableAction(
                 [

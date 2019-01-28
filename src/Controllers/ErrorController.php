@@ -9,7 +9,6 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Box;
 
-
 class ErrorController extends Controller
 {
     // public function __construct(Request $request)

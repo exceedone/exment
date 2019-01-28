@@ -34,7 +34,8 @@ class DataImportExportService extends AbstractExporter
      */
     protected $exportAction;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->format = static::getFormat($args);
         
         if (array_has($args, 'grid')) {
@@ -42,8 +43,9 @@ class DataImportExportService extends AbstractExporter
         }
     }
 
-    public function format($format = null){
-        if(!func_num_args()){
+    public function format($format = null)
+    {
+        if (!func_num_args()) {
             return $this->format;
         }
 
@@ -52,17 +54,17 @@ class DataImportExportService extends AbstractExporter
         return $this;
     }
 
-    public static function getFormat($args = []){
-        if($args instanceof FormatBase){
+    public static function getFormat($args = [])
+    {
+        if ($args instanceof FormatBase) {
             return $args;
         }
         
-        if($args instanceof UploadedFile){
+        if ($args instanceof UploadedFile) {
             $format = $args->extension();
-        }
-        elseif(array_has($args, 'format')){
+        } elseif (array_has($args, 'format')) {
             $format = array_get($args, 'format');
-        }else{
+        } else {
             $format = app('request')->input('format');
         }
 
@@ -75,13 +77,15 @@ class DataImportExportService extends AbstractExporter
         }
     }
 
-    public function importAction($importAction){
+    public function importAction($importAction)
+    {
         $this->importAction = $importAction;
 
         return $this;
     }
     
-    public function exportAction($exportAction){
+    public function exportAction($exportAction)
+    {
         $this->exportAction = $exportAction;
 
         return $this;
@@ -123,9 +127,9 @@ class DataImportExportService extends AbstractExporter
         }
 
         // get table data
-        if(method_exists($this->importAction, 'getDataTable')){
+        if (method_exists($this->importAction, 'getDataTable')) {
             $datalist = $this->importAction->getDataTable($request);
-        }else{
+        } else {
             $datalist = $this->format->getDataTable($request);
         }
 
@@ -143,7 +147,7 @@ class DataImportExportService extends AbstractExporter
      */
     public function validateRequest($request)
     {
-        if(!($request instanceof Request)){
+        if (!($request instanceof Request)) {
             return true;
         }
         //validate
@@ -249,5 +253,4 @@ class DataImportExportService extends AbstractExporter
 
         return $keys;
     }
-    
 }

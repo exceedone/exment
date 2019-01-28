@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Exceedone\Exment\Enums\RoleValue;
 
 /**
@@ -197,7 +198,8 @@ class Define
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
 
-    public static function FILE_OPTION(){
+    public static function FILE_OPTION()
+    {
         return [
             'showPreview' => false,
             'showCancel' => false,

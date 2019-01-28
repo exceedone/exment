@@ -2,9 +2,10 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-class SelectValtext extends Select 
+class SelectValtext extends Select
 {
-    protected function getReturnsValue($select_options, $val, $label){
+    protected function getReturnsValue($select_options, $val, $label)
+    {
         // switch column_type and get return value
         $returns = [];
         // loop keyvalue

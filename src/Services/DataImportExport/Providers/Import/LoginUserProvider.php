@@ -9,13 +9,14 @@ class LoginUserProvider extends ProviderBase
 {
     protected $primary_key;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->primary_key = array_get($args, 'primary_key', 'id');
     }
 
     /**
      * get data and object.
-     * set matched model data 
+     * set matched model data
      */
     public function getDataObject($data, $options = [])
     {
@@ -101,7 +102,7 @@ class LoginUserProvider extends ProviderBase
         $model = array_get($dataAndModel, 'model');
 
         // if not has key 'use_loginuser' return
-        if(!array_has($data, 'use_loginuser')){
+        if (!array_has($data, 'use_loginuser')) {
             return;
         }
 
@@ -109,37 +110,37 @@ class LoginUserProvider extends ProviderBase
         // get use_loginuser
         $use_loginuser = array_get($data, 'use_loginuser');
         // if not set $login_user and $use_loginuser is true, create
-        if($use_loginuser === '1'  && is_null($model->login_user)){
+        if ($use_loginuser === '1'  && is_null($model->login_user)) {
             $model->login_user = new LoginUser;
         }
         // if set $login_user and $use_loginuser is false, remove
-        elseif($use_loginuser === '0' && !is_null($model->login_user)){
+        elseif ($use_loginuser === '0' && !is_null($model->login_user)) {
             $model->login_user->remove();
         }
         
-        if(is_null($model->login_user)){
+        if (is_null($model->login_user)) {
             return;
         }
         
         // set password
-        if(boolval(array_get($data, 'create_password_auto'))){
+        if (boolval(array_get($data, 'create_password_auto'))) {
             $password = make_password();
             $update_flg = true;
         }
         // set password as input
-        elseif(!is_nullorempty(array_get($data, 'password'))){
+        elseif (!is_nullorempty(array_get($data, 'password'))) {
             $password = array_get($data, 'password');
             $update_flg = true;
-        } 
+        }
 
         // send password
-        if(boolval(array_get($data, 'send_password')) && isset($password)){
+        if (boolval(array_get($data, 'send_password')) && isset($password)) {
             $model->login_user->sendPassword($password);
         }
 
-        if($update_flg){
+        if ($update_flg) {
             $model->login_user->password = bcrypt($password);
-            $model->login_user->save();   
+            $model->login_user->save();
         }
         return $model;
     }

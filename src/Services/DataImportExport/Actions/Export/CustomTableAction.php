@@ -23,7 +23,8 @@ class CustomTableAction implements ActionInterface
      */
     protected $grid;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->custom_table = array_get($args, 'custom_table');
 
         // get relations
@@ -32,7 +33,8 @@ class CustomTableAction implements ActionInterface
         $this->grid = array_get($args, 'grid');
     }
 
-    public function datalist(){
+    public function datalist()
+    {
         $providers = [];
 
         // get default data
@@ -43,15 +45,14 @@ class CustomTableAction implements ActionInterface
         
         foreach ($this->relations as $relation) {
             // if n:n, create as RelationPivotTable
-            if($relation->relation_type == RelationType::MANY_TO_MANY){
-                $providers[] = new Export\RelationPivotTableProvider
-                (
+            if ($relation->relation_type == RelationType::MANY_TO_MANY) {
+                $providers[] = new Export\RelationPivotTableProvider(
                     [
                         'relation' => $relation,
                         'grid' => $this->grid
                     ]
                 );
-            }else{
+            } else {
                 $providers[] = new Export\DefaultTableProvider(
                     [
                         'custom_table' => $relation->child_custom_table,
@@ -69,9 +70,8 @@ class CustomTableAction implements ActionInterface
         return $datalist;
     }
 
-    public function filebasename(){
+    public function filebasename()
+    {
         return $this->custom_table->table_view_name;
     }
-
-    
 }

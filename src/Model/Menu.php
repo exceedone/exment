@@ -108,7 +108,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     /**
      * import template
      */
-    public static function importTemplate($menu, $options = []){
+    public static function importTemplate($menu, $options = [])
+    {
         // Create menu. --------------------------------------------------
         $hasname = array_get($options, 'hasname');
 
@@ -172,9 +173,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function($system_menu, $key) use($menu){
+                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use ($menu) {
                         return $key == $menu['menu_target_name'];
-                    })->each(function($system_menu, $key) use($obj_menu){
+                    })->each(function ($system_menu, $key) use ($obj_menu) {
                         $obj_menu->menu_target = $key;
                     });
                     break;

@@ -10,8 +10,9 @@ class BackupTarget extends EnumBase
     const LOG = 'log';
     const CONFIG = 'config';
 
-    public static function dir($target){
-        switch($target){
+    public static function dir($target)
+    {
+        switch ($target) {
             case static::PLUGIN:
                 return path_join("app", "Plugins");
             case static::ATTACHMENT:

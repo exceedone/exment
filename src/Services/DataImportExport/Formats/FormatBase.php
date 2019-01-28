@@ -11,8 +11,9 @@ abstract class FormatBase
     protected $filebasename;
     protected $accept_extension = '*';
 
-    public function datalist($datalist = []){
-        if(!func_num_args()){
+    public function datalist($datalist = [])
+    {
+        if (!func_num_args()) {
             return $this->datalist;
         }
         
@@ -21,8 +22,9 @@ abstract class FormatBase
         return $this;
     }
 
-    public function filebasename($filebasename = []){
-        if(!func_num_args()){
+    public function filebasename($filebasename = [])
+    {
+        if (!func_num_args()) {
             return $this->filebasename;
         }
         
@@ -31,7 +33,8 @@ abstract class FormatBase
         return $this;
     }
 
-    public function accept_extension(){
+    public function accept_extension()
+    {
         return $this->accept_extension;
     }
 
@@ -60,7 +63,7 @@ abstract class FormatBase
                 }
             }
 
-            if($this->isOutputAsZip()){
+            if ($this->isOutputAsZip()) {
                 $spreadsheet->addSheet($sheet);
                 $spreadsheet->removeSheetByIndex(0);
                 $files[] = [
@@ -68,12 +71,12 @@ abstract class FormatBase
                     'writer' => $this->createWriter($spreadsheet)
                 ];
                 $spreadsheet = new Spreadsheet();
-            }else{
+            } else {
                 $spreadsheet->addSheet($sheet);
             }
         }
 
-        if(!$this->isOutputAsZip()){
+        if (!$this->isOutputAsZip()) {
             $spreadsheet->removeSheetByIndex(0);
             $files[] = [
                 'name' => $sheet_name,

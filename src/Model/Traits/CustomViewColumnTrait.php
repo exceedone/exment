@@ -14,11 +14,13 @@ trait CustomViewColumnTrait
      * get ViewColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
      */
-    public function getViewColumnTargetAttribute(){
+    public function getViewColumnTargetAttribute()
+    {
         return $this->getViewColumnTarget();
     }
 
-    public function getColumnItemAttribute(){
+    public function getColumnItemAttribute()
+    {
         // if tagret is number, column type is column.
         if ($this->view_column_type == ViewColumnType::COLUMN) {
             return $this->custom_column->column_item;
@@ -37,46 +39,46 @@ trait CustomViewColumnTrait
         // system column
         else {
             return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target);
-        }   
+        }
     }
     
     /**
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
      */
-    public function setViewColumnTargetAttribute($view_column_target){
+    public function setViewColumnTargetAttribute($view_column_target)
+    {
         $this->setViewColumnTarget($view_column_target);
     }
 
-    protected function getViewColumnTarget($column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id'){
-        if(!isset($this->{$column_type_key}) || !isset($this->{$column_type_target_key})){
+    protected function getViewColumnTarget($column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
+    {
+        if (!isset($this->{$column_type_key}) || !isset($this->{$column_type_target_key})) {
             return null;
         }
-        if($this->{$column_type_key} == ViewColumnType::SYSTEM){
+        if ($this->{$column_type_key} == ViewColumnType::SYSTEM) {
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
             return SystemColumn::getOption(['id' => $this->{$column_type_target_key}])['name'] ?? null;
-        }
-        elseif($this->{$column_type_key} == ViewColumnType::PARENT_ID){
+        } elseif ($this->{$column_type_key} == ViewColumnType::PARENT_ID) {
             return 'parent_id';
-        }
-        elseif($this->{$column_type_key} == ViewColumnType::CHILD_SUM){
+        } elseif ($this->{$column_type_key} == ViewColumnType::CHILD_SUM) {
             $custom_column = $this->custom_column;
-            if(is_null($custom_column)){
+            if (is_null($custom_column)) {
                 return null;
             }
             return $custom_column->custom_table->id . '_' . $this->view_column_target_id;
-        }
-        else{
+        } else {
             return $this->view_column_target_id;
         }
     }
 
-    protected function setViewColumnTarget($view_column_target, $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id'){
+    protected function setViewColumnTarget($view_column_target, $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
+    {
         if (!is_numeric($view_column_target)) {
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
                 $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif(preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
+            } elseif (preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
                 $items = explode('_', $view_column_target);
                 $this->{$column_type_key} = ViewColumnType::CHILD_SUM;
                 $this->{$column_type_target_key} = $items[1];
@@ -94,8 +96,9 @@ trait CustomViewColumnTrait
      * get column name or id.
      * if column_type is string
      */
-    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false){
-        if(!isset($column_type)){
+    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false)
+    {
+        if (!isset($column_type)) {
             $column_type = ViewColumnType::COLUMN;
         }
 
@@ -109,10 +112,9 @@ trait CustomViewColumnTrait
                 // set parent id
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
                     return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
-                } 
+                }
                 return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
         }
         return null;
     }
-
 }

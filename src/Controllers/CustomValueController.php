@@ -150,7 +150,7 @@ class CustomValueController extends AdminControllerTableBase
 
         $this->AdminContent($content);
         $content->row($this->createShowForm($id));
-        $content->row(function($row) use($id){
+        $content->row(function ($row) use ($id) {
             $this->setOptionBoxes($row, $id, false);
         });
         return $content;
@@ -340,7 +340,7 @@ class CustomValueController extends AdminControllerTableBase
         }
             
         // id set, checking as update.
-        if(isset($id)){
+        if (isset($id)) {
             // if user doesn't have role for target id data, show deny error.
             if (!$this->custom_table->hasPermissionData($id)) {
                 Checker::error();

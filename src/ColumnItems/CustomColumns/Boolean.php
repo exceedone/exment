@@ -6,9 +6,10 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 
-class Boolean extends CustomItem 
+class Boolean extends CustomItem
 {
-    public function text(){
+    public function text()
+    {
         if (array_get($this->custom_column, 'options.true_value') == $this->value()) {
             return array_get($this->custom_column, 'options.true_label');
         } elseif (array_get($this->custom_column, 'options.false_value') == $this->value()) {
@@ -17,15 +18,18 @@ class Boolean extends CustomItem
         return null;
     }
 
-    protected function getAdminFieldClass(){
+    protected function getAdminFieldClass()
+    {
         return Field\SwitchField::class;
     }
     
-    protected function getAdminFilterClass(){
+    protected function getAdminFilterClass()
+    {
         return Filter\Equal::class;
     }
 
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
         $options = $this->custom_column->options;
         
         // set options
@@ -36,7 +40,8 @@ class Boolean extends CustomItem
         $field->states($states);
     }
     
-    protected function setAdminFilterOptions(&$filter){
+    protected function setAdminFilterOptions(&$filter)
+    {
         $column = $this->custom_column;
         $filter->radio([
             ''   => 'All',

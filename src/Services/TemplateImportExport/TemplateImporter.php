@@ -150,7 +150,6 @@ class TemplateImporter
             if (isset($thumbnail_path)) {
                 File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
             }
-            
         }
 
         // delete zip
@@ -322,7 +321,7 @@ class TemplateImporter
         array_forget($settings, 'custom_form_blocks');
 
         $targets = ['custom_view_columns', 'custom_view_filters', 'custom_view_sorts'];
-        foreach($targets as $multi){
+        foreach ($targets as $multi) {
             // convert custom_view_columns to custom_views->custom_view_columns
             if (array_key_exists($multi, $settings) && array_key_exists('custom_views', $settings)) {
                 $custom_view_columns = array_get($settings, $multi);
@@ -418,7 +417,7 @@ class TemplateImporter
         $basePath = pathinfo($basePath)['dirname'];
         $dataPath = path_join($basePath, 'data');
         // if exists, execute data copy
-        if(\File::exists($dataPath)){
+        if (\File::exists($dataPath)) {
             static::importData($dataPath);
         }
     }
@@ -426,18 +425,19 @@ class TemplateImporter
     /**
      * import data using csv, xlsx
      */
-    public static function importData($dataPath){
+    public static function importData($dataPath)
+    {
         // get all csv files
-        $files = collect(\File::files($dataPath))->filter(function($value){
+        $files = collect(\File::files($dataPath))->filter(function ($value) {
             return in_array(pathinfo($value)['extension'], ['csv', 'xlsx']);
         });
         
         // loop csv file
-        foreach($files as $file){
+        foreach ($files as $file) {
             $table_name = file_ext_strip($file->getBasename());
             $format = file_ext($file->getBasename());
             $custom_table = CustomTable::getEloquent($table_name);
-            if(!isset($custom_table)){
+            if (!isset($custom_table)) {
                 continue;
             }
 

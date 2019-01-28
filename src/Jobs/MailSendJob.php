@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomValue;
-use Illuminate\Database\Eloquent\Collection;  
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
@@ -23,7 +23,8 @@ class MailSendJob extends JobBase
     protected $user;
     protected $history_body;
 
-    public function __construct($from, $to, $subject, $body, $mail_template, $options = []){
+    public function __construct($from, $to, $subject, $body, $mail_template, $options = [])
+    {
         $this->from = $from;
         $this->to = $to;
         $this->subject = $subject;
@@ -38,7 +39,7 @@ class MailSendJob extends JobBase
 
     public function handle()
     {
-        Mail::send([], [], function ($message){
+        Mail::send([], [], function ($message) {
             $message->to($this->getAddress($this->to))->subject($this->subject);
             $message->from($this->getAddress($this->from));
             if (count($this->cc) > 0) {
@@ -54,15 +55,16 @@ class MailSendJob extends JobBase
         $this->saveMailSendHistory();
     }
     
-    protected function getAddress($users){
-        if(!($users instanceof Collection) && !is_array($users)){
+    protected function getAddress($users)
+    {
+        if (!($users instanceof Collection) && !is_array($users)) {
             $users = [$users];
         }
         $addresses = [];
         foreach ($users as $user) {
             if ($user instanceof CustomValue) {
                 $addresses[] = $user->getValue('email');
-            }else{
+            } else {
                 $addresses[] = $user;
             }
         }
@@ -70,7 +72,8 @@ class MailSendJob extends JobBase
         return $addresses;
     }
 
-    protected function saveMailSendHistory(){
+    protected function saveMailSendHistory()
+    {
         $modelname = getModelName(SystemTableName::MAIL_SEND_LOG);
         $model = new $modelname;
 
@@ -82,18 +85,18 @@ class MailSendJob extends JobBase
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));
         
-        if(isset($this->user)){
+        if (isset($this->user)) {
             $model->setValue('user', $this->user->id);
         }
 
-        if(isset($this->custom_value)){
+        if (isset($this->custom_value)) {
             $model->parent_id = $this->custom_value->id;
             $model->parent_type = $this->custom_value->custom_table->table_name;
         }
         
         if ($this->history_body) {
             $model->setValue('mail_body', $this->body);
-        }else{
+        } else {
             $model->setValue('mail_body', exmtrans('mail_template.disable_body'));
         }
         

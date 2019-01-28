@@ -22,7 +22,7 @@ trait CustomValueSummary
         $grid->disableRowSelector();
         $grid->disableExport();
 
-        $grid->tools(function (Grid\Tools $tools) use ($grid){
+        $grid->tools(function (Grid\Tools $tools) use ($grid) {
             //$tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid, true));
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
@@ -35,7 +35,8 @@ trait CustomValueSummary
     /**
      * set summary grid
      */
-    protected function setSummaryGrid($grid) {
+    protected function setSummaryGrid($grid)
+    {
         // get target table
         $db_table_name = getDBTableName($this->custom_table);
 
@@ -71,9 +72,9 @@ trait CustomValueSummary
 
         // get relation parent tables
         $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
-        foreach($parent_relations as $relation){
+        foreach ($parent_relations as $relation) {
             // if not contains group or select column, continue
-            if(!in_array($relation->parent_custom_table->id, $custom_tables)){
+            if (!in_array($relation->parent_custom_table->id, $custom_tables)) {
                 continue;
             }
             $parent_table = $relation->parent_custom_table;
@@ -84,9 +85,9 @@ trait CustomValueSummary
 
         // get relation child tables
         $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
-        foreach($child_relations as $relation){
+        foreach ($child_relations as $relation) {
             // if not contains group or select column, continue
-            if(!in_array($relation->child_custom_table->id, $custom_tables)){
+            if (!in_array($relation->child_custom_table->id, $custom_tables)) {
                 continue;
             }
 
@@ -97,8 +98,8 @@ trait CustomValueSummary
 
         // join select table refered from this table.
         $select_table_columns = $this->custom_table->getSelectTableColumns();
-        foreach($select_table_columns as $column_key => $select_table_id){
-            if(!in_array($select_table_id, $custom_tables)){
+        foreach ($select_table_columns as $column_key => $select_table_id) {
+            if (!in_array($select_table_id, $custom_tables)) {
                 continue;
             }
             $table_name = getDBTableName($select_table_id);
@@ -107,8 +108,8 @@ trait CustomValueSummary
 
         // join table refer to this table as select.
         $selected_table_columns = $this->custom_table->getSelectedTableColumns();
-        foreach($selected_table_columns as $column_key => $select_table_id){
-            if(!in_array($select_table_id, $custom_tables)){
+        foreach ($selected_table_columns as $column_key => $select_table_id) {
+            if (!in_array($select_table_id, $custom_tables)) {
                 continue;
             }
             $table_name = getDBTableName($select_table_id);
@@ -128,7 +129,8 @@ trait CustomValueSummary
     /**
      * set summary grid item
      */
-    protected function setSummaryGridItem($item, $index, $column_label, &$grid, &$select_columns, &$custom_tables, $summary_condition = null){
+    protected function setSummaryGridItem($item, $index, $column_label, &$grid, &$select_columns, &$custom_tables, $summary_condition = null)
+    {
         $item->options([
             'summary' => true,
             'summary_condition' => $summary_condition,
@@ -139,7 +141,7 @@ trait CustomValueSummary
             ->sort($item->sortable())
             ->display(function ($v) use ($index, $item) {
                 return $item->setCustomValue($this)->html();
-        });
+            });
 
         $select_columns[] = $item->sqlname();
 

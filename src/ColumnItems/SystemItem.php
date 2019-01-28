@@ -13,7 +13,8 @@ class SystemItem implements ItemInterface
     
     protected $custom_table;
     
-    public function __construct($custom_table, $column_name, $custom_value){
+    public function __construct($custom_table, $column_name, $custom_value)
+    {
         $this->custom_table = $custom_table;
         $this->column_name = $column_name;
         $this->value = $this->getTargetValue($custom_value);
@@ -23,15 +24,17 @@ class SystemItem implements ItemInterface
     /**
      * get column name
      */
-    public function name(){
+    public function name()
+    {
         return $this->column_name;
     }
 
     /**
      * get column key sql name.
      */
-    public function sqlname(){
-        if(boolval(array_get($this->options, 'summary'))) {
+    public function sqlname()
+    {
+        if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
         return getDBTableName($this->custom_table) .'.'. $this->column_name;
@@ -40,7 +43,8 @@ class SystemItem implements ItemInterface
     /**
      * get sqlname for summary
      */
-    protected function getSummarySqlName(){
+    protected function getSummarySqlName()
+    {
         $db_table_name = getDBTableName($this->custom_table);
 
         $summary_condition = SummaryCondition::getEnum(array_get($this->options, 'summary_condition'), SummaryCondition::MIN)->lowerKey();
@@ -48,42 +52,48 @@ class SystemItem implements ItemInterface
 
         return \DB::raw($raw);
     }
-    protected function sqlAsName(){
+    protected function sqlAsName()
+    {
         return "column_".array_get($this->options, 'summary_index');
     }
 
     /**
      * get index name
      */
-    public function index(){
+    public function index()
+    {
         return $this->name();
     }
 
     /**
-     * get text(for display) 
+     * get text(for display)
      */
-    public function text(){
+    public function text()
+    {
         return $this->value;
     }
 
     /**
-     * get html(for display) 
-     * *this function calls from non-escaping value method. So please escape if not necessary unescape. 
+     * get html(for display)
+     * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
-    public function html(){
+    public function html()
+    {
         return esc_html($this->text());
     }
 
     /**
      * sortable for grid
      */
-    public function sortable(){
+    public function sortable()
+    {
         return true;
     }
 
-    public function setCustomValue($custom_value){
+    public function setCustomValue($custom_value)
+    {
         $this->value = $this->getTargetValue($custom_value);
-        if(isset($custom_value)){
+        if (isset($custom_value)) {
             $this->id = $custom_value->id;
         }
 
@@ -92,26 +102,30 @@ class SystemItem implements ItemInterface
         return $this;
     }
 
-    public function getCustomTable(){
+    public function getCustomTable()
+    {
         return $this->custom_table;
     }
 
-    protected function getTargetValue($custom_value){
+    protected function getTargetValue($custom_value)
+    {
         // if options has "summary" (for summary view)
-        if(boolval(array_get($this->options, 'summary'))){
+        if (boolval(array_get($this->options, 'summary'))) {
             return array_get($custom_value, $this->sqlAsName());
         }
         return array_get($custom_value, $this->column_name);
-    }   
+    }
     
-    public function getAdminField($form_column = null, $column_name_prefix = null){
+    public function getAdminField($form_column = null, $column_name_prefix = null)
+    {
         $field = new Field\Display($this->name(), [$this->label()]);
         $field->default($this->value);
 
         return $field;
     }
 
-    public static function getItem(...$args){
+    public static function getItem(...$args)
+    {
         list($custom_table, $column_name, $custom_value) = $args + [null, null, null];
         return new self($custom_table, $column_name, $custom_value);
     }

@@ -11,11 +11,13 @@ class LoginUserAction implements ActionInterface
      */
     protected $grid;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         $this->grid = array_get($args, 'grid');
     }
 
-    public function datalist(){
+    public function datalist()
+    {
         $provider = new Export\LoginUserProvider([
             'grid' => $this->grid
         ]);
@@ -25,7 +27,8 @@ class LoginUserAction implements ActionInterface
         return $datalist;
     }
 
-    public function filebasename(){
+    public function filebasename()
+    {
         return 'login_user';
     }
 }

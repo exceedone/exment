@@ -18,7 +18,8 @@ abstract class FormOtherItem implements ItemInterface
      */
     public static $availableFields = [];
 
-    public function __construct($form_column){
+    public function __construct($form_column)
+    {
         $this->form_column = $form_column;
     }
 
@@ -38,35 +39,40 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get column name
      */
-    public function name(){
+    public function name()
+    {
         return null;
     }
 
     /**
      * sqlname
      */
-    public function sqlname(){
+    public function sqlname()
+    {
         return null;
     }
 
     /**
      * get index name
      */
-    public function index(){
+    public function index()
+    {
         return null;
     }
 
     /**
-     * get Text(for display) 
+     * get Text(for display)
      */
-    public function text(){
+    public function text()
+    {
         return array_get($this->form_column, 'options.text');
     }
 
     /**
-     * get html(for display) 
+     * get html(for display)
      */
-    public function html(){
+    public function html()
+    {
         // default escapes text
         return esc_script_tag($this->text());
     }
@@ -74,23 +80,28 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * sortable for grid
      */
-    public function sortable(){
+    public function sortable()
+    {
         return false;
     }
 
-    public function setCustomValue($custom_value){
+    public function setCustomValue($custom_value)
+    {
         return $this;
     }
 
-    public function getCustomTable(){
+    public function getCustomTable()
+    {
         return $this->custom_column->custom_table;
     }
 
-    protected function getTargetValue($custom_value){
+    protected function getTargetValue($custom_value)
+    {
         return null;
     }
 
-    public function getAdminField($form_column = null, $column_name_prefix = null){
+    public function getAdminField($form_column = null, $column_name_prefix = null)
+    {
         $classname = $this->getAdminFieldClass();
         $field = new $classname($this->html());
 
@@ -99,10 +110,12 @@ abstract class FormOtherItem implements ItemInterface
 
     abstract protected function getAdminFieldClass();
 
-    protected function setAdminOptions(&$field, $form_column_options){
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
     }
 
-    public static function getItem(...$args){
+    public static function getItem(...$args)
+    {
         list($form_column) = $args + [null];
         $form_column_name = FormColumnType::getOption(['id' => $form_column->form_column_target_id])['column_name'] ?? null;
                     

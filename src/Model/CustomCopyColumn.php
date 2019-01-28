@@ -30,7 +30,8 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      * get ViewColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
      */
-    public function getFromViewColumnTargetAttribute(){
+    public function getFromViewColumnTargetAttribute()
+    {
         return $this->getViewColumnTarget('from_column_type', 'from_column_target_id');
     }
     
@@ -38,7 +39,8 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
      */
-    public function setFromViewColumnTargetAttribute($view_column_target){
+    public function setFromViewColumnTargetAttribute($view_column_target)
+    {
         $this->setViewColumnTarget($view_column_target, 'from_column_type', 'from_column_target_id');
     }
 
@@ -46,7 +48,8 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      * get ViewColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
      */
-    public function getToViewColumnTargetAttribute(){
+    public function getToViewColumnTargetAttribute()
+    {
         return $this->getViewColumnTarget('to_column_type', 'to_column_target_id');
     }
     
@@ -54,14 +57,16 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
      */
-    public function setToViewColumnTargetAttribute($view_column_target){
+    public function setToViewColumnTargetAttribute($view_column_target)
+    {
         $this->setViewColumnTarget($view_column_target, 'to_column_type', 'to_column_target_id');
     }
 
     /**
      * import template
      */
-    public static function importTemplate($copy_column, $options = []){
+    public static function importTemplate($copy_column, $options = [])
+    {
         // create copy columns --------------------------------------------------
         $custom_copy = array_get($options, "custom_copy");
         $from_table = array_get($options, "from_table");
@@ -72,19 +77,19 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 
         // get from and to column
         $from_column_target = static::getColumnIdOrName(
-            $from_column_type, 
-            array_get($copy_column, "from_column_name"), 
+            $from_column_type,
+            array_get($copy_column, "from_column_name"),
             $from_table,
             true
         );
         $to_column_target = static::getColumnIdOrName(
-            $to_column_type, 
-            array_get($copy_column, "to_column_name"), 
+            $to_column_type,
+            array_get($copy_column, "to_column_name"),
             $to_table,
             true
         );
 
-        if(is_null($to_column_target)){
+        if (is_null($to_column_target)) {
             return null;
         }
 

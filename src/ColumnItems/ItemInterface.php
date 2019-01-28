@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-interface ItemInterface 
+interface ItemInterface
 {
     /**
-     * get column key name 
+     * get column key name
      */
     public function name();
 
@@ -15,17 +15,17 @@ interface ItemInterface
     public function sqlname();
 
     /**
-     * get column index name 
+     * get column index name
      */
     public function index();
 
     /**
-     * get value. (only this column's value. not custom_value) 
+     * get value. (only this column's value. not custom_value)
      */
     public function value();
 
     /**
-     * get text(for display) 
+     * get text(for display)
      */
     public function text();
 

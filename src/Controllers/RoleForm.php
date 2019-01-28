@@ -22,7 +22,7 @@ trait RoleForm
         if (!System::permission_available()) {
             return;
         }
-        if($role_type instanceof RoleType){
+        if ($role_type instanceof RoleType) {
             $role_type = $role_type->toString();
         }
 
@@ -65,7 +65,7 @@ trait RoleForm
 
             $field = new PivotMultiSelect($role_name, [$role_view_name]);
             $field->options(function ($options) use ($role_type, $related_type_table, $related_types) {
-                if(RoleType::VALUE == $role_type){
+                if (RoleType::VALUE == $role_type) {
                     return $related_type_table->getOptions($options, $this->custom_table);
                 }
                 return $related_type_table->getOptions($options, null, true);

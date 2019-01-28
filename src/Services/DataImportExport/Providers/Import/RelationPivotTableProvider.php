@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
-
 /**
  * Relation Pivot table (n:n)
  */
@@ -10,15 +9,17 @@ class RelationPivotTableProvider extends ProviderBase
 {
     protected $relation;
 
-    public function __construct($args = []){
-        parent::__construct();  
+    public function __construct($args = [])
+    {
+        parent::__construct();
         $this->relation = array_get($args, 'relation');
     }
 
     /**
      * get pivot data for n:n
      */
-    public function getDataObject($data, $options = []){
+    public function getDataObject($data, $options = [])
+    {
         $results = [];
         $headers = [];
         foreach ($data as $key => $value) {
@@ -72,9 +73,8 @@ class RelationPivotTableProvider extends ProviderBase
         // if delete
         if (isset($id) && $delete) {
             \DB::table($table_name)->where('id', $id)->delete();
-        }elseif(!isset($id)){
+        } elseif (!isset($id)) {
             \DB::table($table_name)->insert($data);
         }
     }
-
 }

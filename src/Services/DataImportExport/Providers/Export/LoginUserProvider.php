@@ -11,7 +11,8 @@ class LoginUserProvider extends ProviderBase
 {
     protected $grid;
 
-    public function __construct($args = []){
+    public function __construct($args = [])
+    {
         parent::__construct();
         $this->grid = array_get($args, 'grid');
     }
@@ -19,14 +20,16 @@ class LoginUserProvider extends ProviderBase
     /**
      * get data name
      */
-    public function name(){
+    public function name()
+    {
         return 'login_user';
     }
 
     /**
      * get data
      */
-    public function data(){
+    public function data()
+    {
         $headers = $this->getHeaders();
 
         $bodies = $this->getBodies($this->getRecords());

@@ -18,7 +18,8 @@ class SystemTableName extends EnumBase
     const SYSTEM_AUTHORITABLE = 'system_authoritable';
     const VALUE_AUTHORITABLE = 'value_authoritable';
 
-    public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY(){
+    public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()
+    {
         return [
             SystemTableName::USER,
             SystemTableName::ORGANIZATION,

@@ -60,7 +60,7 @@ class TemplateController extends AdminControllerBase
             ->options(CustomTable::filterList()->pluck('table_view_name', 'table_name'))
             ->help(exmtrans('template.help.target_tables'))
             ->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
-            ;
+        ;
 
         $form->hidden('_token')->default(csrf_token());
 

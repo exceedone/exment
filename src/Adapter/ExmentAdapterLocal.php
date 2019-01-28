@@ -19,7 +19,8 @@ class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
     /**
      * get adapter class
      */
-    public static function getAdapter($app, $config){
+    public static function getAdapter($app, $config)
+    {
         return new self(array_get($config, 'root'));
     }
 }

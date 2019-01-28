@@ -26,21 +26,23 @@ class CustomViewFilter extends ModelBase
      * get eloquent using request settion.
      * now only support only id.
      */
-    public static function getEloquent($id, $withs = []){
+    public static function getEloquent($id, $withs = [])
+    {
         return static::getEloquentDefault($id, $withs);
     }
 
     /**
      * import template
      */
-    public static function importTemplate($view_filter, $options = []){
+    public static function importTemplate($view_filter, $options = [])
+    {
         $custom_table = array_get($options, 'custom_table');
         $custom_view = array_get($options, 'custom_view');
 
         // if not set filter_target id, continue
         $view_column_target = static::getColumnIdOrName(
-            array_get($view_filter, "view_column_type"), 
-            array_get($view_filter, "view_column_target_name"), 
+            array_get($view_filter, "view_column_type"),
+            array_get($view_filter, "view_column_target_name"),
             $custom_table,
             true
         );
@@ -60,5 +62,5 @@ class CustomViewFilter extends ModelBase
         $custom_view_filter->saveOrFail();
 
         return $custom_view_filter;
-    }    
+    }
 }

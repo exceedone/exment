@@ -109,7 +109,7 @@ EOT;
                 'message'  => exmtrans("system.version_error"),
                 'current'  => exmtrans("system.current_version") . '---',
             ]);
-        }   
+        }
         if (strpos($current, 'dev-') === 0) {
             return response()->json([
                 'status'  => 3,

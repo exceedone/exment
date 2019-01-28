@@ -45,7 +45,7 @@ class ApiTableController extends AdminControllerTableBase
             abort(403);
         }
         $model = getModelName($this->custom_table->table_name)::find($id);
-        if(!isset($model)){
+        if (!isset($model)) {
             return [];
         }
         $result = $model->makeHidden($this->getMakeHiddenArray())
@@ -91,7 +91,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function createData(Request $request)
     {
-        if (!$this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             abort(403);
         }
 
@@ -105,12 +105,12 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function updateData($key, Request $request)
     {
-        if(!is_numeric($key)){
+        if (!is_numeric($key)) {
             $custom_value = getModelName($this->custom_table)::findBySuuid($key);
-        }else{
+        } else {
             $custom_value = getModelName($this->custom_table)::find($key);
         }
-        if (!$this->custom_table->hasPermissionData($custom_value)){
+        if (!$this->custom_table->hasPermissionData($custom_value)) {
             abort(403);
         }
 
@@ -138,14 +138,15 @@ class ApiTableController extends AdminControllerTableBase
         });
     }
 
-    protected function saveData($custom_value, $request){
-        if(is_null($value = $request->get('value'))){
+    protected function saveData($custom_value, $request)
+    {
+        if (is_null($value = $request->get('value'))) {
             abort(400);
         }
 
         // // get fields for validation
         $validate = $this->validateData($value, $custom_value->id);
-        if($validate !== true){
+        if ($validate !== true) {
             return false;
         }
 
@@ -158,7 +159,8 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * validate requested data
      */
-    protected function validateData($value, $id = null){
+    protected function validateData($value, $id = null)
+    {
         // get fields for validation
         $fields = [];
         foreach ($this->custom_table->custom_columns as $custom_column) {
@@ -195,8 +197,9 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * get array for "makeHidden" function
      */
-    protected function getMakeHiddenArray(){
-        return $this->custom_table->getSearchEnabledColumns()->map(function($columns){
+    protected function getMakeHiddenArray()
+    {
+        return $this->custom_table->getSearchEnabledColumns()->map(function ($columns) {
             return $columns->getIndexColumnName();
         })->toArray();
     }

@@ -61,7 +61,7 @@ if (!function_exists('esc_script_tag')) {
      */
     function esc_script_tag($html)
     {
-        if(is_nullorempty($html)){
+        if (is_nullorempty($html)) {
             return $html;
         }
         
@@ -85,8 +85,7 @@ if (!function_exists('esc_script_tag')) {
     }
 }
 
-if (!function_exists('esc_sql'))
-{
+if (!function_exists('esc_sql')) {
     function esc_sql($string)
     {
         return app('db')->getPdo()->quote($string);
@@ -253,7 +252,7 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
         $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-        if($mkdir && !\File::exists($path)){
+        if ($mkdir && !\File::exists($path)) {
             \File::makeDirectory($path, 0755, true);
         }
         return $path;
@@ -262,17 +261,17 @@ if (!function_exists('getFullpath')) {
 
 if (!function_exists('getTmpFolderPath')) {
     /**
-     * get tmp folder path. Uses for 
+     * get tmp folder path. Uses for
      * @param string $type "plugin", "template", "backup", "data".
      */
     function getTmpFolderPath($type, $fullpath = true)
     {
         $path = path_join('tmp', $type);
-        if(!$fullpath){
+        if (!$fullpath) {
             return $path;
         }
         $tmppath = getFullpath($path, 'admin_tmp');
-        if(!\File::exists($tmppath)){
+        if (!\File::exists($tmppath)) {
             \File::makeDirectory($tmppath, 0755, true);
         }
 
@@ -506,19 +505,17 @@ if (!function_exists('getModelName')) {
         if ($obj instanceof CustomValue) {
             $table = $obj->custom_table;
             $suuid = $table->suuid;
-        }
-        elseif ($obj instanceof CustomTable) {
+        } elseif ($obj instanceof CustomTable) {
             $suuid = $obj->suuid;
-        }
-        elseif (is_numeric($obj) || is_string($obj)) {
+        } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
             // cannot use CustomTable::allRecords function
-            $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function(){
+            $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
                 // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
                 return DB::table(SystemTableName::CUSTOM_TABLE)->get(['id', 'suuid', 'table_name']);
             }) ?? [];
-            $table = collect($tables)->first(function($table) use($obj){
-                if(is_numeric($obj)){
+            $table = collect($tables)->first(function ($table) use ($obj) {
+                if (is_numeric($obj)) {
                     return array_get((array)$table, 'id') == $obj;
                 }
                 return array_get((array)$table, 'table_name') == $obj;
@@ -526,7 +523,7 @@ if (!function_exists('getModelName')) {
             $suuid = array_get((array)$table, 'suuid');
         }
 
-        if(!isset($suuid)){
+        if (!isset($suuid)) {
             return null;
         }
 
@@ -537,7 +534,7 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
-            if(!isset($suuid)){
+            if (!isset($suuid)) {
                 return null;
             }
             // get table. this block isn't called by createCustomTableTrait
@@ -577,7 +574,7 @@ if (!function_exists('hasTable')) {
      */
     function hasTable($table_name)
     {
-        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function(){
+        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES, function () {
             // get all table names
             return DB::connection()->getDoctrineSchemaManager()->listTableNames();
         });
@@ -596,7 +593,7 @@ if (!function_exists('hasColumn')) {
     function hasColumn($table_name, $column_name)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE, $table_name);
-        $columns = System::requestSession($key, function() use($table_name){
+        $columns = System::requestSession($key, function () use ($table_name) {
             // get all table names
             return DB::connection()->getSchemaBuilder()->getColumnListing($table_name);
         });
@@ -780,7 +777,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                     $str = '';
                                 }
                                 //else, get system value
-                                else{
+                                else {
                                     $str = $custom_value->{$key};
                                     if (count($length_array) > 1) {
                                         $str = sprintf('%0'.$length_array[1].'d', $str);
@@ -888,8 +885,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                     // get static value
                                     elseif ($key_system == "login_url") {
                                         $str = admin_url("auth/login");
-                                    }
-                                    elseif ($key_system == "system_url") {
+                                    } elseif ($key_system == "system_url") {
                                         $str = admin_url("");
                                     }
                                 }
@@ -916,7 +912,7 @@ if (!function_exists('replaceTextFromFormat')) {
                         $str = '';
                     }
 
-                    if(array_key_value_exists('link', $matchOptions)){
+                    if (array_key_value_exists('link', $matchOptions)) {
                         $str = "<a href='$str'>$str</a>";
                     }
 
@@ -1056,22 +1052,22 @@ if (!function_exists('getExmentVersion')) {
         if ((empty($latest) || empty($current)) && $getFromComposer) {
             // get current version from composer.lock
             $composer_lock = base_path('composer.lock');
-            if(!\File::exists($composer_lock)){
+            if (!\File::exists($composer_lock)) {
                 return [null, null];
             }
 
             $contents = \File::get($composer_lock);
             $json = json_decode($contents, true);
-            if(!$json){
+            if (!$json) {
                 return [null, null];
             }
             
             // get exment info
             $packages = array_get($json, 'packages');
-            $exment = collect($packages)->filter(function($package){
+            $exment = collect($packages)->filter(function ($package) {
                 return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
             })->first();
-            if(!isset($exment)){
+            if (!isset($exment)) {
                 return [null, null];
             }
             $current = array_get($exment, 'version');
@@ -1083,16 +1079,16 @@ if (!function_exists('getExmentVersion')) {
             ]);
             $contents = $response->getBody()->getContents();
             $json = json_decode($contents, true);
-            if(!$json){
+            if (!$json) {
                 return [null, null];
             }
             $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
-            if(!$packages){
+            if (!$packages) {
                 return [null, null];
             }
             foreach (collect($packages)->reverse() as $key => $package) {
                 // if version is "dev-", continue
-                if(substr($key, 0, 4) == 'dev-'){
+                if (substr($key, 0, 4) == 'dev-') {
                     continue;
                 }
                 $latest = $key;

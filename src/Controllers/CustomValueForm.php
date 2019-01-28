@@ -212,7 +212,7 @@ EOT;
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             $item = $form_column->column_item;
-            if(isset($id)){
+            if (isset($id)) {
                 $item->id($id);
             }
             $form->pushField($item->getAdminField($form_column));
@@ -310,15 +310,15 @@ EOT;
 
             // if requestsession "file upload uuid"(for set data this value's id and type into files)
             $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
-            if(isset($uuids)){
-                foreach($uuids as $uuid){
+            if (isset($uuids)) {
+                foreach ($uuids as $uuid) {
                     File::getData(array_get($uuid, 'uuid'))->saveCustomValue($form->model(), array_get($uuid, 'column_name'));
                 }
             }
 
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
-            if($one_record_flg){
+            if ($one_record_flg) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect(admin_base_paths('data', $this->custom_table->table_name));
             }

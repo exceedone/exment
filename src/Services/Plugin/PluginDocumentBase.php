@@ -92,11 +92,11 @@ abstract class PluginDocumentBase
         $dir_path = $this->plugin->getFullPath();
         // read config.json
         $document_json_path = $this->plugin->getFullPath('config.json');
-        if(!File::exists($document_json_path)){
+        if (!File::exists($document_json_path)) {
             $filename = $default_document_name;
-        }else{
+        } else {
             $json = json_decode(File::get($document_json_path), true);
-            $filename = array_get($json, "filename", $default_document_name);   
+            $filename = array_get($json, "filename", $default_document_name);
         }
         // return "filename" value
         // if not exists, document and date time

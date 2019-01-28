@@ -12,15 +12,18 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     protected $casts = ['options' => 'json'];
 
-    public function custom_form(){
+    public function custom_form()
+    {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
-    public function custom_form_columns(){
+    public function custom_form_columns()
+    {
         return $this->hasMany(CustomFormColumn::class, 'custom_form_block_id');
     }
 
-    public function target_table(){
+    public function target_table()
+    {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
     
@@ -44,7 +47,8 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     /**
      * import template
      */
-    public static function importTemplate($form_block, $options = []){
+    public static function importTemplate($form_block, $options = [])
+    {
         $custom_table = array_get($options, 'custom_table');
         $custom_form = array_get($options, 'custom_form');
 
@@ -89,7 +93,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
 
         // set option
         collect(array_get($form_block, 'options', []))
-            ->each(function ($option, $key) use($custom_form_block) {
+            ->each(function ($option, $key) use ($custom_form_block) {
                 $custom_form_block->setOption($key, $option, true);
             });
         $custom_form_block->saveOrFail();
@@ -110,14 +114,16 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         }
     }
     
-    public function deletingChildren(){
+    public function deletingChildren()
+    {
         $this->custom_form_columns()->delete();
     }
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
         
-        static::deleting(function($model) {
+        static::deleting(function ($model) {
             $model->deletingChildren();
         });
     }
