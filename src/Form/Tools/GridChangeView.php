@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\ViewType;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;

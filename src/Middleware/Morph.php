@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;

@@ -2,11 +2,9 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Encore\Admin\Grid\Filter\Where;
-use Exceedone\Exment\Enums\SummaryCondition;
 
 abstract class CustomItem implements ItemInterface
 {

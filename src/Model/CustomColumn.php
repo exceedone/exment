@@ -6,7 +6,6 @@ use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CalcFormulaType;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface

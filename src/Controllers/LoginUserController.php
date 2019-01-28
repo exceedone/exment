@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\DataImportExport;
-use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class LoginUserController extends AdminControllerBase

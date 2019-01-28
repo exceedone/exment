@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DashboardBoxType;
-use Exceedone\Exment\DashboardBoxItems;
 
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {

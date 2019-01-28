@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Database\Eloquent\Collection;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -11,7 +10,6 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleValue;
-use Carbon\Carbon;
 
 class CustomValue extends ModelBase
 {

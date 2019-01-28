@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
-use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Enums\FormColumnType;
 

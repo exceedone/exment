@@ -3,27 +3,16 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\Table as WidgetTable;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\CustomViewColumn;
-use Exceedone\Exment\Model\CustomViewSummary;
-use Exceedone\Exment\Enums\ChartType;
-use Exceedone\Exment\Enums\ChartAxisType;
-use Exceedone\Exment\Enums\ChartOptionType;
-use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\DashboardBoxType;
-use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Enums\SystemColumn;
 
 class DashboardBoxController extends AdminControllerBase
 {

@@ -5,7 +5,6 @@ namespace Exceedone\Exment;
 use Storage;
 use Request;
 use Encore\Admin\Admin;
-use Exceedone\Exment\Adapter;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;

@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 

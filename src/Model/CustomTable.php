@@ -11,8 +11,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 getCustomTableTrait();
 

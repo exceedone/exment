@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Illuminate\Http\Request as Req;
-use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewType;

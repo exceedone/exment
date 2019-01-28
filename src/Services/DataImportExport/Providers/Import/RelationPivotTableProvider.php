@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
-use Illuminate\Support\Collection;
-use Exceedone\Exment\Services\DataImportExport\Providers\Traits\RelationPivotTableTrait;
 
 /**
  * Relation Pivot table (n:n)

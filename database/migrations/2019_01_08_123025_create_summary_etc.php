@@ -3,8 +3,6 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
-use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Enums;
 use Illuminate\Support\Facades\DB;
 
 class CreateSummaryEtc extends Migration

@@ -4,7 +4,6 @@ namespace Exceedone\Exment;
 
 use Exceedone\Exment\Model\Menu;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Encore\Admin\Admin;
 /**
  * Class Admin.

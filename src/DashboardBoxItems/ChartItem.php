@@ -5,7 +5,6 @@ namespace Exceedone\Exment\DashboardBoxItems;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Enums\ViewKindType;
