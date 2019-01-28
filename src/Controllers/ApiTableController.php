@@ -62,27 +62,20 @@ class ApiTableController extends AdminControllerTableBase
      * @param mixed $id
      * @return mixed
      */
-    public function query(Request $request)
+    public function search(Request $request)
     {
-        // get model filtered using role
-        $model = getModelName($this->custom_table)::query();
-        $model = \Exment::user()->filterModel($model, $this->custom_table);
-
         // filtered query
         $q = $request->get('q');
         if (!isset($q)) {
             return [];
         }
 
-        // get search target columns
-        $columns = $this->custom_table->getSearchEnabledColumns();
-        foreach ($columns as $column) {
-            $column_name = $column->getIndexColumnName();
-            $model = $model->orWhere($column_name, 'like', "%$q%");
-        }
-        $paginate = $model->paginate(null);
-
-        return $paginate;
+        $paginator = $this->custom_table->searchValue($q, [
+            'paginate' => true
+        ]);
+        $data = $paginator->makeHidden($this->getMakeHiddenArray());
+        $paginator->data = $data;
+        return $paginator;
     }
     
     /**

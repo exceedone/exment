@@ -128,10 +128,6 @@ class RouteServiceProvider extends ServiceProvider
                         
                         $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
                         $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
-                        
-                        // $router->get("api/{$value}/query", 'ApiAdminTableController@query');
-                        // $router->get("api/{$value}/relatedLinkage", 'ApiAdminTableController@relatedLinkage');
-                        // $router->post("api/{$value}/{id}", 'ApiAdminTableController@find');
                     }
                 }
             } catch (\Exception $e) {
@@ -201,7 +197,7 @@ class RouteServiceProvider extends ServiceProvider
                             $router->get("data/{$value}", 'ApiTableController@list');
                             $router->post("data/{$value}", 'ApiTableController@createData');
                             $router->put("data/{$value}/{key}", 'ApiTableController@updateData');
-                            $router->get("data/{$value}/query", 'ApiTableController@query');
+                            $router->get("data/{$value}/search", 'ApiTableController@search');
                             $router->get("data/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
                             $router->get("data/{$value}/{id}", 'ApiTableController@find');
                             $router->post("data/{$value}/{id}", 'ApiTableController@find');

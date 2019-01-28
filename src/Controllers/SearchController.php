@@ -106,18 +106,10 @@ EOT;
         // Get table list
         $tables = CustomTable::searchEnabled()->get();
         foreach ($tables as $table) {
-            if (count($results) >= 10) {
-                break;
-            }
-
-            // Get search enabled columns.
-            $search_columns = $table->getSearchEnabledColumns();
-            if (count($search_columns) == 0) {
-                continue;
-            }
-
             // search all data using index --------------------------------------------------
-            $data = $this->searchValue($q, $table, $search_columns, 10);
+            $data = $table->searchValue($q, [
+                'maxCount' => 10,
+            ]);
 
             foreach ($data as $d) {
                 // get label
@@ -278,15 +270,9 @@ EOT;
     {
         $q = $request->input('query');
         $table = CustomTable::getEloquent($request->input('table_name'), true);
-        // Get search enabled columns.
-        $search_columns = $table->getSearchEnabledColumns();
-
-        if (count($search_columns) == 0) {
-            return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
-        }
 
         // search all data using index --------------------------------------------------
-        $datalist = $this->searchValue($q, $table, $search_columns, 5);
+        $datalist = $table->searchValue($q);
         
         // Get result HTML.
         if (count($datalist) == 0) {
@@ -391,9 +377,6 @@ EOT;
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
-        // Get search enabled columns.
-        $search_columns = $search_table->getSearchEnabledColumns();
-
         switch ($search_type) {
             // self table
             case SearchType::SELF:
@@ -407,11 +390,9 @@ EOT;
                     ->whereIn('options->select_target_table', [$value_table_id, strval($value_table_id)])
                     ->get();
 
-                if (count($search_columns) == 0) {
-                    return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
-                }
-
-                $data = $this->searchValue($value_id, $search_table, $selecttable_columns, 5, false);
+                $data = $search_table->searchValue($value_id, [
+                    'isLike' => false
+                ]);
                 break;
             
             // one_to_many
@@ -492,43 +473,6 @@ EOT;
         }
 
         return $results;
-    }
-
-    /**
-     * search value using search-enabld column
-     */
-    protected function searchValue($q, $table, $search_columns, $max_count, $isLike = true)
-    {
-        $data = [];
-        $query = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        $mark = ($isLike ? 'LIKE' : '=');
-
-        // get data
-        $foodata = getModelName($table)
-            ::where(function ($wherequery) use ($search_columns, $mark, $query) {
-                foreach ($search_columns as $search_column) {
-                    $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $query);
-                }
-            })
-            ->take($max_count - count($data))
-            ->get();
-        
-        foreach ($foodata as $foo) {
-            if (count($data) >= $max_count) {
-                break;
-            }
-
-            // if exists id, continue
-            if (!is_null(collect($data)->first(function ($value, $key) use ($foo) {
-                return array_get($value, 'id') == array_get($foo, 'id');
-            }))) {
-                continue;
-            }
-
-            $data[] = $foo;
-        }
-
-        return $data;
     }
 
     protected function getTableArray($table, $search_type = null)

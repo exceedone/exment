@@ -238,6 +238,45 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * search value
+     */
+    public function searchValue($q, $options = []){
+        $options = array_merge(
+            [
+                'isLike' => true,
+                'maxCount' => 5,
+                'paginate' => false
+            ],
+            $options
+        );
+        extract($options);
+
+        $search_columns = $this->getSearchEnabledColumns();
+
+        $data = [];
+        $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        $mark = ($isLike ? 'LIKE' : '=');
+
+        // get data
+        $query = getModelName($this)
+            ::where(function ($wherequery) use ($search_columns, $mark, $value) {
+                foreach ($search_columns as $search_column) {
+                    $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $value);
+                }
+            });
+        
+        // return as paginate
+        if($paginate){
+            return $query->paginate(null);
+        }
+
+        // return default
+        return $query
+            ->take($maxCount)
+            ->get();
+    }
+
+    /**
      * get table list.
      * But filter these:
      *     Get only has role
@@ -527,7 +566,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($count <= 100) {
             return null;
         }
-        return admin_base_paths("webapi", 'data', array_get($this, 'table_name'), "query");
+        return admin_base_paths("webapi", 'data', array_get($this, 'table_name'), "search");
     }
 
     /**
