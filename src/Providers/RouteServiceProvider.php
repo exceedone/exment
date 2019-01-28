@@ -137,8 +137,6 @@ class RouteServiceProvider extends ServiceProvider
         
             $router->get('api/table/{id}', 'ApiController@table');
             $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
-            $router->get('api/menu/menutype', 'MenuController@menutype');
-            $router->post('api/menu/menutargetvalue', 'MenuController@menutargetvalue');
         
             $router->get('files/{uuid}', function ($uuid) {
                 return File::downloadFile($uuid);
@@ -146,6 +144,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('files/{uuid}', function ($uuid) {
                 return File::deleteFile($uuid);
             });
+            
+            $router->get('webapi/menu/menutype', 'MenuController@menutype');
+            $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
         });
     }
 

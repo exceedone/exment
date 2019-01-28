@@ -405,10 +405,10 @@ namespace Exment {
                         continue;
                     }
                     CommonEvent.setValue($e, data[key]);
-
+                    
                     // if target-item is "iconpicker-input", set icon
-                    if ($e.hasClass('iconpicker-input')) {
-                        $e.closest('.iconpicker-container').find('i').removeClass().addClass('fa ' + val);
+                    if ($e.hasClass('icon')) {
+                        $e.data('iconpicker').update(data['icon']);
                     }
                 }
             }
@@ -577,8 +577,8 @@ namespace Exment {
 
                         // change readonly attribute
                         if (!isReadOnly && a.readonlyValue) {
-                            if(!CommonEvent.findValue(filterVal, a.readonlyValue)){
-                                isShow = false;
+                            if(CommonEvent.findValue(filterVal, a.readonlyValue)){
+                                isReadOnly = true;
                             }
                         }
                     }
