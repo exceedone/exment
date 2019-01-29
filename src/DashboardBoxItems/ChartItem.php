@@ -61,8 +61,7 @@ class ChartItem implements ItemInterface
         $item_y = $this->getViewColumn($this->axis_y)->column_item;
 
         // create model for getting data --------------------------------------------------
-        $classname = getModelName($this->custom_table);
-        $model = new $classname();
+        $model = $this->custom_table->getValueModel();
 
         if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
             $item->options([
@@ -75,7 +74,7 @@ class ChartItem implements ItemInterface
                 $data = $item->setCustomValue($val)->text();
                 return $data;
             });
-            $chart_data = $datalist->pluck("column_$axis_y");
+            $chart_data = $datalist->pluck("column_$this->axis_y");
         } else {
             // filter model
             $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
@@ -89,7 +88,8 @@ class ChartItem implements ItemInterface
             $chart_data = $datalist->pluck('value.'.$axis_y_name);
         }
 
-        $html = view('exment::dashboard.chart.chart', [
+        return view('exment::dashboard.chart.chart', [
+            'suuid' => $this->dashboard_box->suuid,
             'chart_data' => json_encode($chart_data, JSON_UNESCAPED_SLASHES),
             'chart_labels' => json_encode($chart_label, JSON_UNESCAPED_SLASHES),
             'chart_type' => $this->chart_type,
@@ -103,6 +103,7 @@ class ChartItem implements ItemInterface
             'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
             'chart_color' => json_encode($this->getChartColor(count($chart_data)))
         ])->render();
+
     }
 
     protected function getViewColumn($column_keys)
@@ -255,13 +256,18 @@ EOT;
     {
         $chart_color = config('exment.chart_backgroundColor', ['red']);
         if ($this->chart_type == ChartType::PIE) {
-            while (count($chart_color) < $datacnt) {
-                $chart_color .= $chart_color;
-            };
+            $colors = [];
+            for($i = 0; $i < $datacnt; $i++){
+                if(count($colors) >= $datacnt){
+                    break;
+                }
+
+                $colors[] = $chart_color[$i % count($chart_color)];
+            }
+            return $colors;
         } else {
-            $chart_color = (count($chart_color) > 0)? $chart_color[0]: '';
+            return (count($chart_color) > 0)? $chart_color[0]: '';
         }
-        return $chart_color;
     }
 
     public static function getItem(...$args)

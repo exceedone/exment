@@ -1,9 +1,9 @@
 <div>
-    <canvas id="chart_container"></canvas>
+    <canvas data-canvas-id="{{$suuid}}"></canvas>
 </div>
 <script type="text/javascript">
     $(function () {
-        var ctx = document.getElementById("chart_container").getContext('2d');
+        var ctx = $('[data-canvas-id="{{$suuid}}"]')[0].getContext('2d');
         var myChart = new Chart(ctx, {
             type: '{{ $chart_type }}',
             data: {
