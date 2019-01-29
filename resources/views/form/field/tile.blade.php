@@ -1,4 +1,4 @@
-<div class="{{$viewClass['form-group']}} {!! !$errors->has($errorKey) ? '' : 'has-error' !!}">
+<div class="{{$viewClass['form-group']}} {!! !$errors->has($errorKey) ? '' : 'has-error' !!}" style="margin-bottom:30px;">
 
     <label for="{{$id}}" class="{{$viewClass['label']}} control-label">{{$label}}</label>
 
@@ -7,6 +7,12 @@
         @include('admin::form.error')
 
         <div id="tile-{{$column}}" class="row-eq-height row tile-group" style="margin:0;">
+            <div class="col-xs-12 col-sm-12" style="margin: 0 -10px;">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
+                    <input type="text" id="template_search" name="template_search" value="" class="form-control template_search" placeholder="{{trans('admin.search')}}">
+                </div>
+            </div>
             @foreach($options as $option)
             <div class="col-xs-12 col-sm-6 tile-group-item">
                 <div id="tile-{{$column}}-{{$loop->index}}" class="row tile" data-id="{{array_get($option, 'id')}}">
@@ -15,7 +21,7 @@
                         <img src="{{ array_get($option, 'thumbnail') }}" />
                     </div>
                     @endif
-                    <div class="{{ array_key_exists('thumbnail', $option) ? " col-xs-8" : "col-xs-12" }}">
+                    <div class="{{ array_key_exists('thumbnail', $option) ? 'col-xs-8' : 'col-xs-12' }}">
                         <p class="tile-title">{{ array_get($option, 'title') }}</p>
                         @if(array_key_exists('description', $option))
                         <p class="tile-description">{{ array_get($option, 'description') }}</p>
@@ -23,12 +29,17 @@
                         @if(array_key_exists('author', $option))
                         <p class="tile-author">{{ array_get($option, 'author') }}</p>
                         @endif
+                        <p><a href="javascript:void(0);" class="btn btn-sm btn-info">{{ trans('admin.detail') }}</a></p>
                     </div>
                     <input type="hidden" class="tile-value" name="{{$name}}[]" />
                 </div>
             </div>
             @endforeach
         </div>
+
+        @if($options)
+        {{ $options->links() }}
+        @endif
 
         @include('admin::form.help-block')
 
@@ -65,10 +76,10 @@
             font-weight: bold;
         }
         .tile .tile-description {
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
 
-        .row-eq-height, .row-eq-height .tile-group-item {
+        .row-eq-height .tile-group-item {
             display: flex;
             flex-wrap: wrap;
         }

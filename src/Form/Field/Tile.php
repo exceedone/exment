@@ -96,6 +96,25 @@ class Tile extends Field
             tile.find('.tile-value').val('');
         }
     });
+    
+    var template_search_timeout;
+    $('#tile-{$this->column} #template_search').keyup(function(event) {
+        console.log('call template_search');
+        clearTimeout(template_search_timeout);
+        template_search_timeout = setTimeout(function(){
+            console.log('execute template_search');
+            $.ajax({
+                method: 'GET',
+                url: admin_base_path('template/search'),
+                data: {
+                    q: $(event.target).val()
+                },
+                success: function (data) {
+                    console.log(data);
+                }
+            });
+        }, 300);
+    });
 EOT;
         Admin::script($script);
 

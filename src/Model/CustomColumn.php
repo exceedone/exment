@@ -298,11 +298,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $update_flg = false;
         // if column type is calc, set dynamic val
         if (ColumnType::isCalc(array_get($json, 'column_type'))) {
-            $calc_formula = array_get($json, 'options.calc_formula', []);
+            $calc_formula = array_get($json, 'options.calc_formula');
             if (is_null($calc_formula)) {
                 $obj_column->forgetOption('calc_formula');
-                $obj_column->save();
-                return $obj_column;
             }
             // if $calc_formula is string, convert to json
             if (is_string($calc_formula)) {
@@ -318,9 +316,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                     // if select_table
                     if (array_get($c, 'type') == CalcFormulaType::SELECT_TABLE) {
                         // get select table
-                        $select_table_id = CustomColumn::getEloquent($c['val'])->getOption('select_target_table') ?? null;
+                        $select_table_id = static::getEloquent($c['val'])->getOption('select_target_table') ?? null;
                         // get select from column
-                        $from_column = CustomColumn::getEloquent(array_get($c, 'from'), $select_table_id);
+                        $from_column = static::getEloquent(array_get($c, 'from'), $select_table_id);
                         $c['from'] = $from_column->id ?? null;
                     }
                 }

@@ -18,9 +18,10 @@ trait UseRequestSessionTrait
         $records = System::requestSession($key, function () {
             return self::all();
         });
-        if (!isset($records)) {
-            return null;
-        }
+
+        // if (!isset($records)) {
+        //     return null;
+        // }
 
         // execute filter
         if (isset($filter)) {
@@ -30,7 +31,7 @@ trait UseRequestSessionTrait
         }
 
         // if exists, return
-        if (isset($records)) {
+        if (count($records) > 0) {
             return $records;
         }
 

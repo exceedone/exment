@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -25,17 +26,17 @@ trait InitializeForm
             ->help(exmtrans("system.help.site_name_short"));
             
         $form->image('site_logo', exmtrans("system.site_logo"))
-           ->help(exmtrans("system.help.site_logo"))
-           ->options(Define::FILE_OPTION())
-           ;
+            ->help(exmtrans("system.help.site_logo"))
+            ->options(Define::FILE_OPTION())
+            ;
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
-           ->help(exmtrans("system.help.site_logo_mini"))
-           ->options(Define::FILE_OPTION())
-           ;
+            ->help(exmtrans("system.help.site_logo_mini"))
+            ->options(Define::FILE_OPTION())
+            ;
 
         $form->select('site_skin', exmtrans("system.site_skin"))
-           ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
-           ->help(exmtrans("system.help.site_skin"));
+            ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
+            ->help(exmtrans("system.help.site_skin"));
 
         $form->select('site_layout', exmtrans("system.site_layout"))
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
@@ -77,7 +78,7 @@ trait InitializeForm
 
         $inputs = $request->all(System::get_system_keys('initialize'));
         array_forget($inputs, 'initialized');
-       
+        
         // set system_key and value
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
@@ -94,6 +95,24 @@ trait InitializeForm
         return true;
     }
     
+    /**
+     * search template
+     */
+    public function searchTemplate(Request $request){
+        // search from exment api
+        $client = new Client();
+        $response = $client->request('GET', 'http://127.0.0.1:8000/api/template', [
+            'http_errors' => false,
+        ]);
+        $contents = $response->getBody()->getContents();
+        $json = json_decode($contents, true);
+        if (!$json) {
+            return [];
+        }
+
+
+    }
+
     /**
      * get system template list
      */
@@ -114,7 +133,7 @@ trait InitializeForm
 
         return collect($templates);
     }
-     
+    
     protected function addTemplateTile($form)
     {
         $form->header(exmtrans('template.header'))->hr();
@@ -122,28 +141,30 @@ trait InitializeForm
         // template list
         $form->tile('template', exmtrans("system.template"))
             ->options(function ($template) {
-                $array = TemplateImportExport\TemplateImporter::getTemplates();
-                if (is_null($array)) {
-                    return [];
-                }
-                $options = [];
-                foreach ($array as $a) {
-                    // get thumbnail_path
-                    if (isset($a['thumbnail_fullpath'])) {
-                        $thumbnail_path = $a['thumbnail_fullpath'];
-                    } else {
-                        $thumbnail_path = base_path() . '/vendor/exceedone/exment/templates/noimage.png';
-                    }
-                    array_push($options, [
-                        'id' => array_get($a, 'template_name'),
-                        'title' => array_get($a, 'template_view_name'),
-                        'description' => array_get($a, 'description'),
-                        'author' => array_get($a, 'author'),
-                        'thumbnail' => 'data:image/png;base64,'.base64_encode(file_get_contents($thumbnail_path))
-                    ]);
-                }
+                // $array = TemplateImportExport\TemplateImporter::getTemplates();
+                // if (is_null($array)) {
+                //     return [];
+                // }
+                // $options = [];
+                // foreach ($array as $a) {
+                //     // get thumbnail_path
+                //     if (isset($a['thumbnail_fullpath'])) {
+                //         $thumbnail_path = $a['thumbnail_fullpath'];
+                //     } else {
+                //         $thumbnail_path = base_path() . '/vendor/exceedone/exment/templates/noimage.png';
+                //     }
+                //     array_push($options, [
+                //         'id' => array_get($a, 'template_name'),
+                //         'title' => array_get($a, 'template_view_name'),
+                //         'description' => array_get($a, 'description'),
+                //         'author' => array_get($a, 'author'),
+                //         'thumbnail' => 'data:image/png;base64,'.base64_encode(file_get_contents($thumbnail_path))
+                //     ]);
+                // }
 
-                return $options;
+                // return $options;
+
+                return [];
             })
             ->help(exmtrans("system.help.template"))
             ;

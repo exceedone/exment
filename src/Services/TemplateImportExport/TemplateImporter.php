@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\DataImportExport\DataImporterBase;
+use Exceedone\Exment\Services\DataImportExport;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use ZipArchive;
 
@@ -442,8 +442,14 @@ class TemplateImporter
             }
 
             // execute import
-            $importer = DataImporterBase::getModel($custom_table, $format);
-            $importer->import($file->getRealPath());
+            $service = (new DataImportExport\DataImportExportService())
+                ->importAction(new DataImportExport\Actions\Import\CustomTableAction(
+                    [
+                        'custom_table' => $custom_table,
+                    ]
+                ))
+                ->format($format);
+            $service->import($file->getRealPath());
         }
     }
 

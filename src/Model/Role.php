@@ -56,7 +56,7 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     /**
      * import template
      */
-    public static function importTemplate($copy, $options = [])
+    public static function importTemplate($role, $options = [])
     {
         // Create role. --------------------------------------------------
         $role_type = RoleType::getEnumValue(array_get($role, 'role_type'));
