@@ -90,6 +90,8 @@ class DashboardController extends AdminControllerBase
         $(function () {
             // get suuid inputs
             var suuids = $('[data-suuid]');
+            // add 'row-eq-height' class
+            suuids.parents('.row').addClass('row-eq-height row-dashboard');
             suuids.each(function(index, element){
                 var suuid = $(element).data('suuid');
                 loadDashboardBox(suuid);
@@ -138,7 +140,7 @@ class DashboardController extends AdminControllerBase
             $('[data-exment-widget="reload"]').off('click').on('click', function(ev){
                 // get suuid
                 var target = $(ev.target).closest('[data-suuid]');
-                target.find('.box-body .box-body-inner').html('');
+                target.find('.box-body-inner-header,.box-body-inner-body').html('');
                 target.find('.overlay').show();
                 var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
                 loadDashboardBox(suuid);
@@ -159,11 +161,21 @@ class DashboardController extends AdminControllerBase
                 type: "GET",
                 success: function (data) {
                     var suuid = data.suuid;
-                    var html = data.html;
+                    var header = data.header;
+                    var body = data.body;
 
                     // get target object
                     var target = $('[data-suuid="' + suuid + '"]');
-                    target.find('.box-body .box-body-inner').html(html);
+                    target.find('.box-body-inner-header,.box-body-inner-body').html('');
+
+                    // if set header
+                    if(header){
+                        target.find('.box-body .box-body-inner-header').html(header);
+                    }
+                    // if set body
+                    if(body){
+                        target.find('.box-body .box-body-inner-body').html(body);
+                    }
                     target.find('.overlay').hide();
                     target.removeClass('loading');
 

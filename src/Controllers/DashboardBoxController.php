@@ -68,7 +68,6 @@ class DashboardBoxController extends AdminControllerBase
         $box = DashBoardBox::findBySuuid($suuid);
         
         // get box html --------------------------------------------------
-        $html = null;
         if (isset($box)) {
             // swicth dashboard_box_type
             switch ($box->dashboard_box_type) {
@@ -79,7 +78,7 @@ class DashboardBoxController extends AdminControllerBase
                         return array_get($value, 'id') == array_get($box, 'options.target_system_id');
                     });
                     if (isset($item)) {
-                        $html = view('exment::dashboard.system.'.array_get($item, 'name'))->render() ?? null;
+                        $body = view('exment::dashboard.system.'.array_get($item, 'name'))->render() ?? null;
                     }
                     break;
                 // list
@@ -107,8 +106,8 @@ class DashboardBoxController extends AdminControllerBase
 
                     // if not access permission
                     if(!$table->hasPermission()){
-                        $html = view('exment::dashboard.list.header')->render();
-                        $html .= trans('admin.deny');
+                        $header = view('exment::dashboard.list.header')->render();
+                        $body = trans('admin.deny');
                     }else{
 
                         // create model for getting data --------------------------------------------------
@@ -134,11 +133,11 @@ class DashboardBoxController extends AdminControllerBase
                             $list_url = null;
                         }
 
-                        $html = view('exment::dashboard.list.header', [
+                        $header = view('exment::dashboard.list.header', [
                             'new_url' => $new_url,
                             'list_url' => $list_url,
                         ])->render();
-                        $html .= $widgetTable->render();
+                        $body = $widgetTable->render();
 
                     }
                     break;
@@ -146,7 +145,8 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get dashboard box
         return [
-            'html' => $html,
+            'header' => $header ?? null,
+            'body' => $body ?? null,
             'suuid' => $suuid,
         ];
     }
