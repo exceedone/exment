@@ -51,11 +51,20 @@ class ChartItem implements ItemInterface
         $this->chart_axis_name = array_get($this->dashboard_box, 'options.chart_axis_name')?? [];
     }
 
+    
+    /**
+     * get header
+     */
+    public function header()
+    {
+        return null;
+    }
+    
     /**
      * get html(for display)
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */
-    public function html()
+    public function body()
     {
         $item = $this->getViewColumn($this->axis_x)->column_item;
         $item_y = $this->getViewColumn($this->axis_y)->column_item;
@@ -103,7 +112,6 @@ class ChartItem implements ItemInterface
             'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
             'chart_color' => json_encode($this->getChartColor(count($chart_data)))
         ])->render();
-
     }
 
     protected function getViewColumn($column_keys)

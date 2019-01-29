@@ -5,9 +5,14 @@ namespace Exceedone\Exment\DashboardBoxItems;
 interface ItemInterface
 {
     /**
-     * get html
+     * get header
      */
-    public function html();
+    public function header();
+
+    /**
+     * get body
+     */
+    public function body();
 
     /**
      * set laravel admin embeds option

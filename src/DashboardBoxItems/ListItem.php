@@ -28,10 +28,40 @@ class ListItem implements ItemInterface
     }
 
     /**
-     * get html(for display)
+     * get header
+     */
+    public function header()
+    {
+        // if table not found, break
+        if (!isset($this->custom_table)) {
+            return null;
+        }
+
+        // if not access permission
+        if (!$this->custom_table->hasPermission()) {
+            return view('exment::dashboard.list.header')->render();
+        }
+    
+        // check edit permission
+        if ($this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            $new_url= admin_base_path("data/{$this->custom_table->table_name}/create");
+            $list_url = admin_base_path("data/{$this->custom_table->table_name}");
+        } else {
+            $new_url = null;
+            $list_url = null;
+        }
+
+        return view('exment::dashboard.list.header', [
+            'new_url' => $new_url,
+            'list_url' => $list_url,
+        ])->render();
+    }
+    
+    /**
+     * get body
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */
-    public function html()
+    public function body()
     {
         // if table not found, break
         if (!isset($this->custom_table)) {
@@ -48,12 +78,10 @@ class ListItem implements ItemInterface
 
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
-            $html = view('exment::dashboard.list.header')->render();
-            $html .= trans('admin.deny');
+            return trans('admin.deny');
         } else {
             // create model for getting data --------------------------------------------------
-            $classname = getModelName($this->custom_table);
-            $model = new $classname();
+            $model = $this->custom_table->getValueModel();
             // filter model
             $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
             // get data
@@ -65,20 +93,7 @@ class ListItem implements ItemInterface
             $widgetTable = new WidgetTable($headers, $bodies);
             $widgetTable->class('table table-hover');
 
-            // check edit permission
-            if ($this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-                $new_url= admin_base_path("data/{$this->custom_table->table_name}/create");
-                $list_url = admin_base_path("data/{$this->custom_table->table_name}");
-            } else {
-                $new_url = null;
-                $list_url = null;
-            }
-
-            $html = view('exment::dashboard.list.header', [
-                'new_url' => $new_url,
-                'list_url' => $list_url,
-            ])->render();
-            $html .= $widgetTable->render();
+            return $widgetTable->render();
         }
 
         return $html;

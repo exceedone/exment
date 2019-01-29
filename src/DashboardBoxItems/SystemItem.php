@@ -14,10 +14,17 @@ class SystemItem implements ItemInterface
     }
 
     /**
-     * get html(for display)
-     * *this function calls from non-value method. So please escape if not necessary unescape.
+     * get header
      */
-    public function html()
+    public function header()
+    {
+        return null;
+    }
+    
+    /**
+     * get html body
+     */
+    public function body()
     {
         $item = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) {
             return array_get($value, 'id') == array_get($this->dashboard_box, 'options.target_system_id');
@@ -26,7 +33,7 @@ class SystemItem implements ItemInterface
             $html = view('exment::dashboard.system.'.array_get($item, 'name'))->render() ?? null;
         }
         
-        return $html;
+        return $html ?? null;
     }
 
     /**
