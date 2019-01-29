@@ -65,8 +65,18 @@ class DashboardBoxController extends AdminControllerBase
         
         // get box html --------------------------------------------------
         if (isset($box)) {
-            $html = $box->dashboard_box_item->html() ?? null;
+            $dashboard_box_item = $box->dashboard_box_item;
+            $header = $dashboard_box_item->header() ?? null;
+            $body = $dashboard_box_item->body() ?? null;
         }
+
+        // get dashboard box
+        return [
+            'header' => $header ?? null,
+            'body' => $body ?? null,
+            'suuid' => $suuid,
+        ];
+
         // get dashboard box
         return [
             'html' => $html ?? null,

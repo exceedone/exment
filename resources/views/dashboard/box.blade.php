@@ -35,7 +35,10 @@
         </div><!-- /.box-tools -->
     </div><!-- /.box-header -->
     <div class="box-body" style="display: block;">
-        <div class="box-body-inner"></div>
+        <div class="box-body-inner">
+            <div class="box-body-inner-header"></div>
+            <div class="box-body-inner-body"></div>
+        </div>
     </div><!-- /.box-body -->
 
     @if(isset($suuid))

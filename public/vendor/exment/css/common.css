@@ -3360,6 +3360,11 @@
   }
 }
 
+.row-eq-height {
+  display: flex;
+  flex-wrap: wrap;
+}
+
 .sidebar-menu > li > a > .fa, .sidebar-menu > li > a > .glyphicon, .sidebar-menu > li > a > .ion, .sidebar-menu .treeview-menu > li > a > .fa, .sidebar-menu .treeview-menu > li > a > .glyphicon, .sidebar-menu .treeview-menu > li > a > .ion {
   text-align: center;
   margin-right: 2px;
@@ -3436,25 +3441,39 @@
 }
 
 /* box-dashboard */
-.box-dashboard {
+.row.row-dashboard {
+  margin-bottom: 20px;
+}
+
+.box.box-dashboard {
   height: 100%;
+  margin-bottom: 20px;
+}
+
+.box.box-dashboard .box-body {
+  padding-bottom: 0;
+}
+
+.box.box-dashboard .box-body .box-body-inner-header {
+  overflow: hidden;
+}
+
+.box.box-dashboard .box-body .box-body-inner-body {
+  overflow: auto;
+  min-height: 150px;
+  max-height: 300px;
+  margin-top: 1em;
+}
+
+.box.box-dashboard table {
   margin-bottom: 0;
 }
 
-.box-dashboard .box-body {
-  min-height: 150px;
-  max-height: 300px;
-}
-
-.box-dashboard .box-body .box-body-inner {
-  overflow-x: auto;
-}
-
-.box-dashboard table td, .box-dashboard .box-dashboard table th {
+.box.box-dashboard table td, .box.box-dashboard table th {
   white-space: nowrap;
 }
 
-.box-dashboard [class^="col-"] {
+.box.box-dashboard [class^="col-"] {
   margin-bottom: 20px;
 }
 

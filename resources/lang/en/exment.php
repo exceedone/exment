@@ -330,6 +330,8 @@ return [
         'all_user_editable_flg' => 'All Users Can Edit',
         'all_user_viewable_flg' => 'All Users Can View',
         'all_user_accessable_flg' => 'All Users Can Access',
+        'add_parent_menu_flg' => 'Add Menu',
+        'add_parent_menu' => 'Target Parent Menu',
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
@@ -342,6 +344,8 @@ return [
             'all_user_editable_flg' => 'If set to YES, all users will be able to edit all the data in this table.',
             'all_user_viewable_flg' => 'If set to YES, all users will be able to view all the data in this table.',
             'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.',
+            'add_parent_menu_flg' => 'After creating custom table, you can add it to the menu. To add it, please set it to YES. *It will be displayed after updating the browser. <br /> *It can be set only when new table is created. When updating please set it from "Menu" page.',
+            'add_parent_menu' => 'Please select the menu name to be parent.',
         ],
         
         'system_definitions' => [
@@ -358,6 +362,8 @@ return [
         'column_name' => 'Column Name',
         'column_view_name' => 'Column View Name',
         'column_type' => 'Column Type',
+        'add_custom_form_flg' => 'Add to the Default Form',
+        'add_custom_view_flg' => 'Add to the Default View',
         'options' => [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
@@ -435,6 +441,8 @@ return [
             'auto_number_format' => 'Set the numbering rule to be registered. For details of rules, please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'calc_formula' => 'Enter the calculation formula using other fields. *It is currently beta version.',
             'currency_symbol' => 'Please select the format of the currency displayed on the screen.',
+            'add_custom_form_flg' => 'After creating custom column, you can add it to the default custom form. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Form" page.',
+            'add_custom_view_flg' => 'After creating custom column, you can add it to the default custom view. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "View" page.',
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
