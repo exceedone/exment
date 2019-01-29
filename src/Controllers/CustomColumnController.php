@@ -12,9 +12,17 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormBlock;
+use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RoleValue;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -385,11 +393,28 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
+        // if create column, add custom form and view
+        if(!isset($id)){
+            $form->switchbool('add_custom_form_flg', exmtrans("custom_column.add_custom_form_flg"))->help(exmtrans("custom_column.help.add_custom_form_flg"))
+                ->default("1")
+                ->attribute(['data-filtertrigger' =>true])
+            ;
+            $form->switchbool('add_custom_view_flg', exmtrans("custom_column.add_custom_view_flg"))->help(exmtrans("custom_column.help.add_custom_view_flg"))
+                ->default("0")
+                ->attribute(['data-filtertrigger' =>true])
+            ;
+            $form->ignore('add_custom_form_flg');
+            $form->ignore('add_custom_view_flg');
+        }
+
         $form->saved(function (Form $form) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->alterColumn();
+
+            $this->addColumnAfterSaved($model);
         });
+
         disableFormFooter($form);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
@@ -397,5 +422,52 @@ class CustomColumnController extends AdminControllerTableBase
             $tools->add((new Tools\GridChangePageMenu('column', $custom_table, false))->render());
         });
         return $form;
+    }
+    
+    /**
+     * add column form and view after saved
+     */
+    protected function addColumnAfterSaved($model){
+        // set custom form columns --------------------------------------------------
+        $add_custom_form_flg = app('request')->input('add_custom_form_flg');
+        if(boolval($add_custom_form_flg)){
+            $form = CustomForm::getDefault($this->custom_table);
+            $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
+            
+            // get order
+            $order = $form_block->custom_form_columns()
+                ->where('column_no', 1)
+                ->where('form_column_type', FormColumnType::COLUMN)
+                ->max('order') ?? 0;
+            $order++;
+
+            $custom_form_column = new CustomFormColumn;
+            $custom_form_column->custom_form_block_id = $form_block->id;
+            $custom_form_column->form_column_type = FormColumnType::COLUMN;
+            $custom_form_column->form_column_target_id = $model->id;
+            $custom_form_column->column_no = 1;
+            $custom_form_column->order = $order;
+            $custom_form_column->save();
+        }
+
+        // set custom form columns --------------------------------------------------
+        $add_custom_view_flg = app('request')->input('add_custom_view_flg');
+        if(boolval($add_custom_view_flg)){
+            $view = CustomView::getDefault($this->custom_table);
+            
+            // get order
+            $order = $view->custom_view_columns()
+                ->where('view_column_type', ViewColumnType::COLUMN)
+                ->max('order') ?? 0;
+            $order++;
+
+            $custom_view_column = new CustomViewColumn;
+            $custom_view_column->custom_view_id = $view->id;
+            $custom_view_column->view_column_type = ViewColumnType::COLUMN;
+            $custom_view_column->view_column_target_id = $model->id;
+            $custom_view_column->order = $order;
+
+            $custom_view_column->save();
+        }
     }
 }

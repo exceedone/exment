@@ -325,6 +325,8 @@ return [
         'all_user_editable_flg' => 'すべてのユーザーが編集可能',
         'all_user_viewable_flg' => 'すべてのユーザーが閲覧可能',
         'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
+        'add_parent_menu_flg' => 'メニューに追加する',
+        'add_parent_menu' => '追加先の親メニュー',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
@@ -337,6 +339,8 @@ return [
             'all_user_editable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを編集可能になります。',
             'all_user_viewable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを閲覧可能になります。',
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
+            'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
+            'add_parent_menu' => '親にするメニュー名を選択してください。',
         ],
         
         'system_definitions' => [
@@ -353,6 +357,8 @@ return [
         'column_name' => '列名(英数字)',
         'column_view_name' => '列表示名',
         'column_type' => '列種類',
+        'add_custom_form_flg' => '既定のフォームに追加する',
+        'add_custom_view_flg' => '既定のビューに追加する',
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
@@ -430,6 +436,8 @@ return [
             'auto_number_format' => '登録する採番のルールを設定します。詳細のルールは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'calc_formula' => '他のフィールドを使用した、計算式を入力します。※現在β版です。',
             'currency_symbol' => '画面に表示する通貨の形式を選択してください。',
+            'add_custom_form_flg' => '新規作成後、既定のフォームに列を追加することができます。追加する場合はYESにしてください。<br/>※列の新規作成時のみ設定できます。更新時は「フォーム」画面より設定してください。',
+            'add_custom_view_flg' => '新規作成後、既定のビューに列を追加することができます。追加する場合はYESにしてください。<br/>※列の新規作成時のみ設定できます。更新時は「ビュー」画面より設定してください。',
         ],
         'available_characters' => [
             'lower' => '英小文字', 

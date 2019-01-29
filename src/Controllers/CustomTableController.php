@@ -10,7 +10,9 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RoleValue;
 
@@ -110,6 +112,23 @@ class CustomTableController extends AdminControllerBase
             ;
         })->disableHeader();
 
+        // if create table, show menulist
+        if(!isset($id)){
+            $form->switchbool('add_parent_menu_flg', exmtrans("custom_table.add_parent_menu_flg"))->help(exmtrans("custom_table.help.add_parent_menu_flg"))
+                ->default("0")
+                ->attribute(['data-filtertrigger' =>true])
+            ;
+            $form->select('add_parent_menu', exmtrans("custom_table.add_parent_menu"))->help(exmtrans("custom_table.help.add_parent_menu"))
+            ->options(function($value){
+                $options = Menu::selectOptions();
+                return $options;
+            })
+            ->attribute(['data-filter' => json_encode(['key' => 'add_parent_menu_flg', 'value' => '1'])]);
+            ;
+            $form->ignore('add_parent_menu');
+            $form->ignore('add_parent_menu_flg');
+        }
+
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);
         
@@ -127,6 +146,9 @@ class CustomTableController extends AdminControllerBase
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->createTable();
+
+            // if has value 'add_parent_menu', add menu
+            $this->addMenuAfterSaved($model);
         });
 
         return $form;
@@ -145,5 +167,44 @@ class CustomTableController extends AdminControllerBase
             return;
         }
         return parent::edit($request, $id, $content);
+    }
+
+    /**
+     * add menu after saved
+     */
+    protected function addMenuAfterSaved($model){
+        // if has value 'add_parent_menu', add menu
+        if (!app('request')->has('add_parent_menu_flg') || !app('request')->has('add_parent_menu')) {
+            return;
+        }
+        
+        $add_parent_menu_flg = app('request')->input('add_parent_menu_flg');
+        if(!boolval($add_parent_menu_flg)){
+            return;
+        }
+
+        $add_parent_menu = app('request')->input('add_parent_menu');
+        if(!isset($add_parent_menu)){
+            return;
+        }
+
+        // get order
+        $order = Menu::where('parent_id', $add_parent_menu)->max('order');
+        if(!isset($order)){
+            $order = 0;
+        }
+        $order++;
+
+        // insert
+        Menu::insert([
+            'parent_id' => $add_parent_menu,
+            'order' => $order,
+            'title' => $model->table_view_name,
+            'icon' => $model->getOption('icon'),
+            'uri' => $model->table_name,
+            'menu_type' => MenuType::TABLE,
+            'menu_name' => $model->table_name,
+            'menu_target' => $model->id,
+        ]);
     }
 }
