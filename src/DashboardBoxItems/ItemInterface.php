@@ -15,6 +15,11 @@ interface ItemInterface
     public function body();
 
     /**
+     * get footer
+     */
+    public function footer();
+
+    /**
      * set laravel admin embeds option
      */
     public static function setAdminOptions(&$form);

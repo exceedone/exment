@@ -15,6 +15,8 @@ class ListItem implements ItemInterface
     
     protected $custom_view;
     
+    protected $paginate;
+    
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
@@ -25,6 +27,14 @@ class ListItem implements ItemInterface
         // get table and view
         $this->custom_table = CustomTable::getEloquent($table_id);
         $this->custom_view = CustomView::getEloquent($view_id);
+
+        // if view not found, set view first data
+        if (!isset($this->custom_view)) {
+            $this->custom_view = $this->custom_table->getDefault();
+        }
+
+        // get paginate
+        $this->setPaginate();
     }
 
     /**
@@ -33,13 +43,13 @@ class ListItem implements ItemInterface
     public function header()
     {
         // if table not found, break
-        if (!isset($this->custom_table)) {
+        if (!isset($this->custom_table) || !isset($this->custom_view)) {
             return null;
         }
 
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
-            return view('exment::dashboard.list.header')->render();
+            return null;
         }
     
         // check edit permission
@@ -64,39 +74,43 @@ class ListItem implements ItemInterface
     public function body()
     {
         // if table not found, break
-        if (!isset($this->custom_table)) {
-            return null;
-        }
-
-        // if view not found, set view first data
-        if (!isset($this->custom_view)) {
-            $this->custom_view = $this->custom_table->getDefault();
-        }
-        if (!isset($this->custom_view)) {
+        if (!isset($this->custom_table) || !isset($this->custom_view)) {
             return null;
         }
 
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
             return trans('admin.deny');
-        } else {
-            // create model for getting data --------------------------------------------------
-            $model = $this->custom_table->getValueModel();
-            // filter model
-            $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
-            // get data
-            // TODO:only take 5 rows. add function that changing take and skip records.
-            $datalist = $model->take(5)->get();
+        } 
+        
+        $datalist = $this->paginate->items();
 
-            // get widget table
-            list($headers, $bodies) = $this->custom_view->getDataTable($datalist);
-            $widgetTable = new WidgetTable($headers, $bodies);
-            $widgetTable->class('table table-hover');
+        // get widget table
+        list($headers, $bodies) = $this->custom_view->getDataTable($datalist);
+        $widgetTable = new WidgetTable($headers, $bodies);
+        $widgetTable->class('table table-hover');
 
-            return $widgetTable->render();
+        return $widgetTable->render();
+    }
+    
+    /**
+     * get footer
+     * *this function calls from non-value method. So please escape if not necessary unescape.
+     */
+    public function footer()
+    {
+        // if table not found, break
+        if (!isset($this->custom_table) || !isset($this->custom_view)) {
+            return null;
         }
 
-        return $html;
+        // if not access permission
+        if (!$this->custom_table->hasPermission()) {
+            return null;
+        } 
+
+        // add link
+        return $this->paginate->links('exment::dashboard.list.links')->toHtml();
     }
 
     /**
@@ -104,6 +118,12 @@ class ListItem implements ItemInterface
      */
     public static function setAdminOptions(&$form)
     {
+        
+        $form->select('pager_count', trans("admin.show"))
+            ->required()
+            ->options(static::getPagerOptions())
+            ->default(5);
+
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
             ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
@@ -131,5 +151,43 @@ class ListItem implements ItemInterface
     {
         list($dashboard_box) = $args + [null];
         return new self($dashboard_box);
+    }
+
+    /**
+     * set paginate
+     */
+    protected function setPaginate(){
+        // if table not found, break
+        if (!isset($this->custom_table) || !isset($this->custom_view)) {
+            return null;
+        }
+
+        // if not access permission
+        if (!$this->custom_table->hasPermission()) {
+            return;
+        } 
+        
+        // create model for getting data --------------------------------------------------
+        $model = $this->custom_table->getValueModel();
+        // filter model
+        $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+        
+        // pager count
+        $pager_count = $this->dashboard_box->getOption('pager_count') ?? 5;
+        // get data
+        $this->paginate = $model->paginate($pager_count);
+    }
+
+    /**
+     * get pager select options
+     */
+    protected static function getPagerOptions(){
+        $counts = [5, 10, 20];
+        
+        $options = [];
+        foreach($counts as $count){
+            $options[$count] = $count. ' ' . trans('admin.entries');
+        }
+        return $options;
     }
 }

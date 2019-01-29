@@ -184,6 +184,10 @@
             white-space: nowrap;
         }
     } 
+
+    .pagination{
+        margin-bottom: 0;
+    }
         
     [class^="col-"] {
         margin-bottom: 20px;
@@ -226,4 +230,8 @@
 
 .swal2-container {
     zoom: 1.3;
+}
+
+.form-group .radio-inline:first-child{
+    padding-left: 0;
 }

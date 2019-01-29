@@ -61,6 +61,14 @@ class ChartItem implements ItemInterface
     }
     
     /**
+     * get footer
+     */
+    public function footer()
+    {
+        return null;
+    }
+    
+    /**
      * get html(for display)
      * *this function calls from non-value method. So please escape if not necessary unescape.
      */

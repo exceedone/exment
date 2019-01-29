@@ -22,6 +22,14 @@ class SystemItem implements ItemInterface
     }
     
     /**
+     * get footer
+     */
+    public function footer()
+    {
+        return null;
+    }
+    
+    /**
      * get html body
      */
     public function body()

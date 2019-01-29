@@ -139,42 +139,68 @@ class DashboardController extends AdminControllerBase
             $('[data-exment-widget="reload"]').off('click').on('click', function(ev){
                 // get suuid
                 var target = $(ev.target).closest('[data-suuid]');
-                target.find('.box-body-inner-header,.box-body-inner-body').html('');
-                target.find('.overlay').show();
-                var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
+                var suuid = target.data('suuid');
                 loadDashboardBox(suuid);
+            });
+
+            ///// click dashboard link event
+            $(document).off('click', '[data-dashboard-link]').on('click', '[data-dashboard-link]', [], function(ev){
+                // get link
+                var url = $(ev.target).closest('[data-dashboard-link]').data('dashboard-link');
+                var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
+                loadDashboardBox(suuid, url);
             });
         });
 
-        function loadDashboardBox(suuid){
+        function loadDashboardBox(suuid, url){
             if(!hasValue(suuid)){
                 return true;
+            }
+            if(!hasValue(url)){
+                url = admin_base_path('dashboardbox/html/' + suuid);
             }
             var target = $('[data-suuid="' + suuid + '"]');
             if(target.hasClass('loading')){
                 return true;
             }
             target.addClass('loading');
+            
+            // set height
+            var inner_body = target.find('.box-body-inner-body');
+            var height = inner_body.height();
+            inner_body.css('height', height);
+
+            target.find('.box-body-inneritem').html('');
+            target.find('.overlay').show();
+
             $.ajax({
-                url: admin_base_path('dashboardbox/html/' + suuid),
+                url: url,
                 type: "GET",
+                context: {
+                    'inner_body': inner_body,
+                },
                 success: function (data) {
                     var suuid = data.suuid;
-                    var header = data.header;
-                    var body = data.body;
 
                     // get target object
                     var target = $('[data-suuid="' + suuid + '"]');
-                    target.find('.box-body-inner-header,.box-body-inner-body').html('');
 
                     // if set header
-                    if(header){
-                        target.find('.box-body .box-body-inner-header').html(header);
+                    if(data.header){
+                        target.find('.box-body .box-body-inner-header').html(data.header);
                     }
                     // if set body
-                    if(body){
-                        target.find('.box-body .box-body-inner-body').html(body);
+                    if(data.body){
+                        target.find('.box-body .box-body-inner-body').html(data.body);
                     }
+                    // if set footer
+                    if(data.footer){
+                        target.find('.box-body .box-body-inner-footer').html(data.footer);
+                    }
+
+                    // remove height
+                    this.inner_body.css('height', '');
+
                     target.find('.overlay').hide();
                     target.removeClass('loading');
 
@@ -208,6 +234,8 @@ EOT;
 
         $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->required();
 
+        $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
+
         // create row select options
         $form->embeds('options', exmtrans("dashboard.row"), function ($form) {
             for ($row_count = 1; $row_count <= intval(config('exment.dashboard_rows', 4)); $row_count++) {
@@ -239,8 +267,6 @@ EOT;
                     ->default($default);
             }
         })->disableHeader();
-
-        $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 
         disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
