@@ -4,7 +4,7 @@
     "type": "library",
     "keywords": ["CMS", "SFA", "Dynamic Table", "Free", "Custom Database", "Custom Table"],
     "homepage": "https://exment.net",
-    "license": "LGPL-3.0-or-later",
+    "license": "GNU General Public License v3.0",
     "authors": [
         {
             "name": "Exceed One Co.,Ltd.",
