@@ -22,7 +22,6 @@
                 @endif
             </p>
             @endif
-            <p><a href="javascript:void(0);" class="btn btn-sm btn-info">{{ trans('admin.detail') }}</a></p>
         </div>
         <input type="hidden" class="tile-value" name="{{$name}}[]" />
     </div>
