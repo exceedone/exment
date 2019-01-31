@@ -112,16 +112,23 @@ class Tile extends Field
             }, 300);
         }
     });
+    
+    $(document).on('click', '[data-ajax-link]', {}, function(ev){
+        searchTemplate(null, $(ev.target).data('ajax-link'));
+    });
 
     $(function(){
         searchTemplate(null);
     });
 
-    function searchTemplate(q){
+    function searchTemplate(q, url){
+        if(!hasValue(url)){
+            url = '$template_search_url';
+        }
         $('#tile-{$this->column} .overlay').show();
         $.ajax({
             method: 'POST',
-            url: '$template_search_url',
+            url: url,
             data: {
                 q: q,
                 name: '{$name}',

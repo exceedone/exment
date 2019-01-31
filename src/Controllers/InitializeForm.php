@@ -7,10 +7,8 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Encore\Admin\Widgets\Form as WidgetForm;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 trait InitializeForm
 {
@@ -96,59 +94,6 @@ trait InitializeForm
         return true;
     }
     
-    /**
-     * search template
-     */
-    public function searchTemplate(Request $request){
-        // search from exment api
-        $client = new Client();
-
-        $q = $request->get('q');
-        $name = $request->get('name');
-        $column = $request->get('column');
-        $page = $request->get('page') ?? 1;
-
-        $query = [
-            'q' => $q,
-            'page' => $page,
-        ];
-
-        $response = $client->request('GET', config('exment.template_search_url', 'https://exment-manage.exment.net/api/template'), [
-            'http_errors' => false,
-            'query' => $query,
-        ]);
-        $contents = $response->getBody()->getContents();
-        $json = json_decode($contents, true);
-
-        // create paginator
-        $paginator = new LengthAwarePaginator(
-            collect($json['data']),
-            $json['total'],
-            $json['per_page'], 
-            $json['current_page']
-        );
-        
-        // create datalist
-        $datalist = [];
-        foreach($json['data'] as $d){
-            $datalist[] = [
-                'thumbnail' => array_get($d, 'value.thumbnail'),
-                'template_name' => array_get($d, 'value.template_name'),
-                'description' => array_get($d, 'value.description'),
-                'author' => array_get($d, 'value.author'),
-                'author_url' => array_get($d, 'value.author_url'),
-            ];
-        }
-
-        // return body and footer
-        return view('exment::form.field.tile-items', [
-            'paginator' => $paginator,
-            'datalist' => $datalist,
-            'name' => $name,
-            'column' => $column,
-        ])->render();
-    }
-
     /**
      * get system template list
      */

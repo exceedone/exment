@@ -30,5 +30,7 @@
 @endforeach
 
 @if($paginator)
+<div class="col-xs-12 col-sm-12 text-center">
 {{ $paginator->links('exment::search.links') }}
+</div>
 @endif
