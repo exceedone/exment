@@ -14,6 +14,8 @@ return [
 
     'manual_url' => env('EXMENT_MANUAL_URL', 'https://exment.net/docs/#/'),
 
+    'template_search_url' => env('EXMENT_TEMPLATE_SEARCH_URL', 'https://exment-manage.exment.net/api/template'),
+
     'show_default_login_provider' => env('EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER', true),
     
     'login_providers' => env('EXMENT_LOGIN_PROVIDERS', []),

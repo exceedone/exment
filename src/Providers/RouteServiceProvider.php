@@ -62,7 +62,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/version', 'SystemController@version');
             
             $router->get('template', 'TemplateController@index');
-            $router->get('template/search', 'TemplateController@searchTemplate');
+            $router->post('template/search', 'TemplateController@searchTemplate');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
             $router->get('template/import', function () {
