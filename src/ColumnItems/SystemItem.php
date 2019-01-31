@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SummaryCondition;
+use Exceedone\Exment\Enums\SystemColumn;
 
 class SystemItem implements ItemInterface
 {
@@ -37,7 +38,14 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
-        return getDBTableName($this->custom_table) .'.'. $this->column_name;
+        // geyt SystemColumn enum
+        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        if(!isset($option)){
+            $sqlname = $this->column_name;
+        }else{
+            $sqlname = array_get($option, 'sqlname');
+        }
+        return getDBTableName($this->custom_table) .'.'. $sqlname;
     }
 
     /**
