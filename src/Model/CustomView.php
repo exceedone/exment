@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnSort;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Carbon\Carbon;
 
@@ -239,146 +240,154 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     /**
-     * set value filter
+     * set value filters
      */
-    public function setValueFilter($model, $db_table_name = null)
+    public function setValueFilters($model, $db_table_name = null)
     {
         foreach ($this->custom_view_filters as $filter) {
-            // get filter target column
-            $view_column_target = $filter->view_column_target;
-            if ($filter->view_column_type == ViewColumnType::COLUMN) {
-                $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
-            } elseif ($filter->view_column_type == ViewColumnType::PARENT_ID) {
-                //TODO: set as 1:n. develop as n:n
-                $view_column_target = 'parent_id';
-            }
-            if (isset($db_table_name)) {
-                $view_column_target = $db_table_name.'.'.$view_column_target;
-            }
-            $condition_value_text = $filter->view_filter_condition_value_text;
-            $view_filter_condition = $filter->view_filter_condition;
-            // get filter condition
-            switch ($view_filter_condition) {
-                // equal
-                case ViewColumnFilterOption::EQ:
-                    $model = $model->where($view_column_target, $condition_value_text);
-                    break;
-                // not equal
-                case ViewColumnFilterOption::NE:
-                    $model = $model->where($view_column_target, '<>', $condition_value_text);
-                    break;
-                // not null
-                case ViewColumnFilterOption::NOT_NULL:
-                case ViewColumnFilterOption::DAY_NOT_NULL:
-                case ViewColumnFilterOption::USER_NOT_NULL:
-                    $model = $model->whereNotNull($view_column_target);
-                    break;
-                // null
-                case ViewColumnFilterOption::NULL:
-                case ViewColumnFilterOption::DAY_NULL:
-                case ViewColumnFilterOption::USER_NULL:
-                    $model = $model->whereNull($view_column_target);
-                    break;
+            $model = $this->setValueFilter($model, $filter, $db_table_name);
+        }
+        return $model;
+    }
+    /**
+     * set value filter
+     */
+    public function setValueFilter($model, $filter, $db_table_name = null)
+    {
+        // get filter target column
+        $view_column_target = $filter->view_column_target;
+        if ($filter->view_column_type == ViewColumnType::COLUMN) {
+            $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
+        } elseif ($filter->view_column_type == ViewColumnType::PARENT_ID) {
+            //TODO: set as 1:n. develop as n:n
+            $view_column_target = 'parent_id';
+        }
+        if (isset($db_table_name)) {
+            $view_column_target = $db_table_name.'.'.$view_column_target;
+        }
+        $condition_value_text = $filter->view_filter_condition_value_text;
+        $view_filter_condition = $filter->view_filter_condition;
+        // get filter condition
+        switch ($view_filter_condition) {
+            // equal
+            case ViewColumnFilterOption::EQ:
+                $model = $model->where($view_column_target, $condition_value_text);
+                break;
+            // not equal
+            case ViewColumnFilterOption::NE:
+                $model = $model->where($view_column_target, '<>', $condition_value_text);
+                break;
+            // not null
+            case ViewColumnFilterOption::NOT_NULL:
+            case ViewColumnFilterOption::DAY_NOT_NULL:
+            case ViewColumnFilterOption::USER_NOT_NULL:
+                $model = $model->whereNotNull($view_column_target);
+                break;
+            // null
+            case ViewColumnFilterOption::NULL:
+            case ViewColumnFilterOption::DAY_NULL:
+            case ViewColumnFilterOption::USER_NULL:
+                $model = $model->whereNull($view_column_target);
+                break;
+            
+            // for date --------------------------------------------------
+            // date equal day
+            case ViewColumnFilterOption::DAY_ON:
+            case ViewColumnFilterOption::DAY_YESTERDAY:
+            case ViewColumnFilterOption::DAY_TODAY:
+            case ViewColumnFilterOption::DAY_TOMORROW:
+                // get target day
+                switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::DAY_ON:
+                        $value_day = Carbon::parse($condition_value_text);
+                        break;
+                    case ViewColumnFilterOption::DAY_YESTERDAY:
+                        $value_day = Carbon::yesterday();
+                        break;
+                    case ViewColumnFilterOption::DAY_TODAY:
+                        $value_day = Carbon::today();
+                        break;
+                    case ViewColumnFilterOption::DAY_TOMORROW:
+                        $value_day = Carbon::tomorow();
+                        break;
+                }
+                $model = $model->whereDate($view_column_target, $value_day);
+                break;
                 
-                // for date --------------------------------------------------
-                // date equal day
-                case ViewColumnFilterOption::DAY_ON:
-                case ViewColumnFilterOption::DAY_YESTERDAY:
-                case ViewColumnFilterOption::DAY_TODAY:
-                case ViewColumnFilterOption::DAY_TOMORROW:
-                    // get target day
-                    switch ($view_filter_condition) {
-                        case ViewColumnFilterOption::DAY_ON:
-                            $value_day = Carbon::parse($condition_value_text);
-                            break;
-                        case ViewColumnFilterOption::DAY_YESTERDAY:
-                            $value_day = Carbon::yesterday();
-                            break;
-                        case ViewColumnFilterOption::DAY_TODAY:
-                            $value_day = Carbon::today();
-                            break;
-                        case ViewColumnFilterOption::DAY_TOMORROW:
-                            $value_day = Carbon::tomorow();
-                            break;
-                    }
-                    $model = $model->whereDate($view_column_target, $value_day);
-                    break;
-                    
-                // date equal month
-                case ViewColumnFilterOption::DAY_THIS_MONTH:
-                case ViewColumnFilterOption::DAY_LAST_MONTH:
-                case ViewColumnFilterOption::DAY_NEXT_MONTH:
-                    // get target month
-                    switch ($view_filter_condition) {
-                        case ViewColumnFilterOption::DAY_THIS_MONTH:
-                            $value_day = new Carbon('first day of this month');
-                            break;
-                        case ViewColumnFilterOption::DAY_LAST_MONTH:
-                            $value_day = new Carbon('first day of last month');
-                            break;
-                        case ViewColumnFilterOption::DAY_NEXT_MONTH:
-                            $value_day = new Carbon('first day of next month');
-                            break;
-                    }
-                    $model = $model
-                        ->whereYear($view_column_target, $value_day->year)
-                        ->whereMonth($view_column_target, $value_day->month);
-                    break;
-                    
-                // date equal year
-                case ViewColumnFilterOption::DAY_THIS_YEAR:
-                case ViewColumnFilterOption::DAY_LAST_YEAR:
-                case ViewColumnFilterOption::DAY_NEXT_YEAR:
-                    // get target year
-                    switch ($view_filter_condition) {
-                        case ViewColumnFilterOption::DAY_THIS_YEAR:
-                            $value_day = new Carbon('first day of this year');
-                            break;
-                        case ViewColumnFilterOption::DAY_LAST_YEAR:
-                            $value_day = new Carbon('first day of last year');
-                            break;
-                        case ViewColumnFilterOption::DAY_NEXT_YEAR:
-                            $value_day = new Carbon('first day of next year');
-                            break;
-                    }
-                    $model = $model->whereYear($view_column_target, $value_day->year);
-                    break;
-                    
-                // date and X days before or after
-                case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
-                case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-                case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-                case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                    $today = Carbon::today();
-                    // get target day and where mark
-                    switch ($view_filter_condition) {
-                        case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
-                            $target_day = $today->addDay(-1 * intval($condition_value_text));
-                            $mark = ">=";
-                            break;
-                        case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-                            $target_day = $today->addDay(intval($condition_value_text));
-                            $mark = ">=";
-                            break;
-                        case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-                            $target_day = $today->addDay(-1 * intval($condition_value_text));
-                            $mark = "<=";
-                            break;
-                        case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                            $target_day = $today->addDay(intval($condition_value_text));
-                            $mark = "<=";
-                            break;
-                    }
-                    $model = $model->whereDate($view_column_target, $mark, $target_day);
-                    break;
-                    
-                // for user --------------------------------------------------
-                case ViewColumnFilterOption::USER_EQ_USER:
-                    $model = $model->where($view_column_target, Admin::user()->base_user()->id);
-                    break;
-                case ViewColumnFilterOption::USER_NE_USER:
-                    $model = $model->where($view_column_target, '<>', Admin::user()->base_user()->id);
-            }
+            // date equal month
+            case ViewColumnFilterOption::DAY_THIS_MONTH:
+            case ViewColumnFilterOption::DAY_LAST_MONTH:
+            case ViewColumnFilterOption::DAY_NEXT_MONTH:
+                // get target month
+                switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::DAY_THIS_MONTH:
+                        $value_day = new Carbon('first day of this month');
+                        break;
+                    case ViewColumnFilterOption::DAY_LAST_MONTH:
+                        $value_day = new Carbon('first day of last month');
+                        break;
+                    case ViewColumnFilterOption::DAY_NEXT_MONTH:
+                        $value_day = new Carbon('first day of next month');
+                        break;
+                }
+                $model = $model
+                    ->whereYear($view_column_target, $value_day->year)
+                    ->whereMonth($view_column_target, $value_day->month);
+                break;
+                
+            // date equal year
+            case ViewColumnFilterOption::DAY_THIS_YEAR:
+            case ViewColumnFilterOption::DAY_LAST_YEAR:
+            case ViewColumnFilterOption::DAY_NEXT_YEAR:
+                // get target year
+                switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::DAY_THIS_YEAR:
+                        $value_day = new Carbon('first day of this year');
+                        break;
+                    case ViewColumnFilterOption::DAY_LAST_YEAR:
+                        $value_day = new Carbon('first day of last year');
+                        break;
+                    case ViewColumnFilterOption::DAY_NEXT_YEAR:
+                        $value_day = new Carbon('first day of next year');
+                        break;
+                }
+                $model = $model->whereYear($view_column_target, $value_day->year);
+                break;
+                
+            // date and X days before or after
+            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
+                $today = Carbon::today();
+                // get target day and where mark
+                switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+                        $target_day = $today->addDay(-1 * intval($condition_value_text));
+                        $mark = ">=";
+                        break;
+                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+                        $target_day = $today->addDay(intval($condition_value_text));
+                        $mark = ">=";
+                        break;
+                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+                        $target_day = $today->addDay(-1 * intval($condition_value_text));
+                        $mark = "<=";
+                        break;
+                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
+                        $target_day = $today->addDay(intval($condition_value_text));
+                        $mark = "<=";
+                        break;
+                }
+                $model = $model->whereDate($view_column_target, $mark, $target_day);
+                break;
+                
+            // for user --------------------------------------------------
+            case ViewColumnFilterOption::USER_EQ_USER:
+                $model = $model->where($view_column_target, Admin::user()->base_user()->id);
+                break;
+            case ViewColumnFilterOption::USER_NE_USER:
+                $model = $model->where($view_column_target, '<>', Admin::user()->base_user()->id);
         }
 
         return $model;
@@ -437,9 +446,22 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $this->setSummaryItem($item, $alter_column_index, $select_columns, $custom_tables, $custom_view_summary->view_summary_condition);
         }
 
+        // get relation parent tables
+        $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
+        foreach ($parent_relations as $relation) {
+            // if not contains group or select column, continue
+            if (!in_array($relation->parent_custom_table->id, $custom_tables)) {
+                continue;
+            }
+            $parent_table = $relation->parent_custom_table;
+            $parent_name = getDBTableName($parent_table);
+            $model = $model->join($parent_name, "$db_table_name.parent_id", "$parent_name.id");
+            $model = $model->where("$db_table_name.parent_type", $parent_table->table_name);
+        }
+
         // get join tables
-        $relations = CustomRelation::getRelationsByParent($this->custom_table);
-        foreach ($relations as $relation) {
+        $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
+        foreach ($child_relations as $relation) {
             // if not contains group or select column, continue
             if (!in_array($relation->child_custom_table->id, $custom_tables)) {
                 continue;
@@ -448,6 +470,26 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $child_name = getDBTableName($relation->child_custom_table);
             $model = $model->join($child_name, $db_table_name.'.id', "$child_name.parent_id");
             $model = $model->where("$child_name.parent_type", $this->custom_table->table_name);
+        }
+
+        // join select table refered from this table.
+        $select_tables = $this->custom_table->getSelectTables();
+        foreach ($select_tables as $column_key => $select_table_id) {
+            if (!in_array($select_table_id, $custom_tables)) {
+                continue;
+            }
+            $table_name = getDBTableName($select_table_id);
+            $model = $model->join($table_name, "$db_table_name.$column_key", "$table_name.id");
+        }
+
+        // join table refer to this table as select.
+        $selected_tables = $this->custom_table->getSelectedTables();
+        foreach ($selected_tables as $column_key => $select_table_id) {
+            if (!in_array($select_table_id, $custom_tables)) {
+                continue;
+            }
+            $table_name = getDBTableName($select_table_id);
+            $model = $model->join($table_name, "$db_table_name.id", "$table_name.$column_key");
         }
 
         // set filter
@@ -482,22 +524,22 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param $number_only
+     * @param $is_number
      */
-    public function getColumnsSelectOptions($number_only = false)
+    public function getColumnsSelectOptions($is_number = null)
     {
         $options = [];
         
         foreach ($this->custom_view_columns as $custom_view_column) {
-            $option = $this->getSelectColumn(ViewKindType::DEFAULT, $custom_view_column, $number_only);
-            if (!is_null($option)) {
+            $option = $this->getSelectColumn(ViewKindType::DEFAULT, $custom_view_column);
+            if (is_null($is_number) || array_get($option, 'is_number') == $is_number) {
                 $options[] = $option;
             }
         }
 
         foreach ($this->custom_view_summaries as $custom_view_summary) {
-            $option = $this->getSelectColumn(ViewKindType::AGGREGATE, $custom_view_summary, $number_only);
-            if (!is_null($option)) {
+            $option = $this->getSelectColumn(ViewKindType::AGGREGATE, $custom_view_summary);
+            if (is_null($is_number) || array_get($option, 'is_number') == $is_number) {
                 $options[] = $option;
             }
         }
@@ -505,48 +547,35 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $options;
     }
 
-    public function getSelectColumn($column_type, $custom_view_column, $number_only)
+    protected function getSelectColumn($column_type, $custom_view_column)
     {
         $view_column_type = array_get($custom_view_column, 'view_column_type');
         $view_column_id = $column_type . '_' . array_get($custom_view_column, 'id');
 
         $custom_table_id = $this->custom_table_id;
         $column_view_name = array_get($custom_view_column, 'view_column_name');
+        $is_number = false;
 
         switch ($view_column_type) {
             case ViewColumnType::COLUMN:
-            case ViewColumnType::CHILD_SUM:
                 $column = $custom_view_column->custom_column;
-                if ($number_only) {
-                    switch (array_get($column, 'column_type')) {
-                        case ColumnType::INTEGER:
-                        case ColumnType::DECIMAL:
-                        case ColumnType::CURRENCY:
-                            break;
-                        default:
-                            return null;
-                    }
-                }
+                $is_number = ColumnType::isCalc(array_get($column, 'column_type'));
+
                 if (is_nullorempty($column_view_name)) {
                     $column_view_name = array_get($column, 'column_view_name');
+                    // if table is not equal target table, add table name to column name.
                     if ($custom_table_id != array_get($column, 'custom_table_id')) {
                         $column_view_name = array_get($column->custom_table, 'table_view_name') . '::' . $column_view_name;
                     }
                 }
                 break;
             case ViewColumnType::SYSTEM:
-                if ($number_only) {
-                    return null;
-                }
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
                 if (is_nullorempty($column_view_name)) {
                     $column_view_name = exmtrans('common.'.$system_info['name']);
                 }
                 // no break
             case ViewColumnType::PARENT_ID:
-                if ($number_only) {
-                    return null;
-                }
                 $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table_id)->first();
                 ///// if this table is child relation(1:n), add parent table
                 if (isset($relation)) {
@@ -554,11 +583,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
         }
 
-        if (is_nullorempty($column_view_name)) {
-            return null;
-        } else {
-            return ['id' => $view_column_id, 'text' => $column_view_name];
+        if (array_get($custom_view_column, 'view_summary_condition') == SummaryCondition::COUNT) {
+            $is_number = true;
         }
+        return ['id' => $view_column_id, 'text' => $column_view_name, 'is_number' => $is_number];
     }
     
     /**

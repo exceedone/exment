@@ -29,13 +29,6 @@ trait CustomViewColumnTrait
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
             return ColumnItems\ParentItem::getItem($this->custom_view->custom_table);
         }
-        // child_summary
-        elseif ($this->view_column_type == ViewColumnType::CHILD_SUM) {
-            return ColumnItems\CustomItem::getItem($this->custom_column)
-                ->options([
-                    'summary_child' => true,
-                ]);
-        }
         // system column
         else {
             return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target);
@@ -61,12 +54,6 @@ trait CustomViewColumnTrait
             return SystemColumn::getOption(['id' => $this->{$column_type_target_key}])['name'] ?? null;
         } elseif ($this->{$column_type_key} == ViewColumnType::PARENT_ID) {
             return 'parent_id';
-        } elseif ($this->{$column_type_key} == ViewColumnType::CHILD_SUM) {
-            $custom_column = $this->custom_column;
-            if (is_null($custom_column)) {
-                return null;
-            }
-            return $custom_column->custom_table->id . '_' . $this->view_column_target_id;
         } else {
             return $this->view_column_target_id;
         }
@@ -78,10 +65,6 @@ trait CustomViewColumnTrait
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
                 $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif (preg_match('/\d+_\d+$/i', $view_column_target) === 1) {
-                $items = explode('_', $view_column_target);
-                $this->{$column_type_key} = ViewColumnType::CHILD_SUM;
-                $this->{$column_type_target_key} = $items[1];
             } else {
                 $this->{$column_type_key} = ViewColumnType::SYSTEM;
                 $this->{$column_type_target_key} = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;

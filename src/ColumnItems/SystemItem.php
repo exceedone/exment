@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SummaryCondition;
+use Exceedone\Exment\Enums\SystemColumn;
 
 class SystemItem implements ItemInterface
 {
@@ -37,7 +38,7 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
-        return getDBTableName($this->custom_table) .'.'. $this->column_name;
+        return $this->getSqlColumnName();
     }
 
     /**
@@ -45,13 +46,28 @@ class SystemItem implements ItemInterface
      */
     protected function getSummarySqlName()
     {
-        $db_table_name = getDBTableName($this->custom_table);
+        $column_name = $this->getSqlColumnName();
 
         $summary_condition = SummaryCondition::getEnum(array_get($this->options, 'summary_condition'), SummaryCondition::MIN)->lowerKey();
-        $raw = "$summary_condition($db_table_name.$this->column_name) AS ".$this->sqlAsName();
+        $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
 
         return \DB::raw($raw);
     }
+
+    /**
+     * get sql query column name
+     */
+    protected function getSqlColumnName(){
+        // get SystemColumn enum
+        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        if(!isset($option)){
+            $sqlname = $this->column_name;
+        }else{
+            $sqlname = array_get($option, 'sqlname');
+        }
+        return getDBTableName($this->custom_table) .'.'. $sqlname;
+    }
+
     protected function sqlAsName()
     {
         return "column_".array_get($this->options, 'summary_index');

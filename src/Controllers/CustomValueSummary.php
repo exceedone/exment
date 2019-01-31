@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Grid;
+use Exceedone\Exment\Enums\SummaryCondition;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -70,6 +73,18 @@ trait CustomValueSummary
         // create query
         $query = $grid->model();
 
+        // set filter columns
+        foreach ($view->custom_view_filters as $custom_view_filter) {
+            $column = $custom_view_filter->custom_column;
+            $custom_table_id = array_get($column, 'custom_table_id');
+            $custom_table_name = $db_table_name;
+            if ($custom_table_id != $this->custom_table->id) {
+                $custom_table_name = getDBTableName($custom_table_id);
+            }
+            $custom_tables[] = $custom_table_id;
+            $query = $view->setValueFilter($query, $custom_view_filter, $custom_table_name);
+        }
+
         // get relation parent tables
         $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
         foreach ($parent_relations as $relation) {
@@ -97,7 +112,7 @@ trait CustomValueSummary
         }
 
         // join select table refered from this table.
-        $select_table_columns = $this->custom_table->getSelectTableColumns();
+        $select_table_columns = $this->custom_table->getSelectTables();
         foreach ($select_table_columns as $column_key => $select_table_id) {
             if (!in_array($select_table_id, $custom_tables)) {
                 continue;
@@ -107,7 +122,7 @@ trait CustomValueSummary
         }
 
         // join table refer to this table as select.
-        $selected_table_columns = $this->custom_table->getSelectedTableColumns();
+        $selected_table_columns = $this->custom_table->getSelectedTables();
         foreach ($selected_table_columns as $column_key => $select_table_id) {
             if (!in_array($select_table_id, $custom_tables)) {
                 continue;
@@ -115,9 +130,6 @@ trait CustomValueSummary
             $table_name = getDBTableName($select_table_id);
             $query->join($table_name, "$db_table_name.id", "$table_name.$column_key");
         }
-
-        // set filter
-        $query = $view->setValueFilter($query, $db_table_name);
 
         // set sql select columns
         $query->select($select_columns);
@@ -134,13 +146,19 @@ trait CustomValueSummary
         $item->options([
             'summary' => true,
             'summary_condition' => $summary_condition,
-            'summary_index' => $index
+            'summary_index' => $index,
+            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT)
         ]);
 
         $grid->column('column_'.$index, $column_label)
             ->sort($item->sortable())
-            ->display(function ($v) use ($index, $item) {
-                return $item->setCustomValue($this)->html();
+            ->display(function ($id) use ($item) {
+                $option = SystemColumn::getOption(['name' => $item->name()]);
+                if (array_get($option, 'type') == 'user') {
+                    return esc_html(getUserName($id));
+                } else {
+                    return $item->setCustomValue($this)->html();
+                }
             });
 
         $select_columns[] = $item->sqlname();
@@ -148,4 +166,5 @@ trait CustomValueSummary
         // set custom_tables
         $custom_tables[] = $item->getCustomTable()->id;
     }
+
 }

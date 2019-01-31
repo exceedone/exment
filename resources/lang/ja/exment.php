@@ -555,9 +555,6 @@ return [
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
         'view_summary_condition' => '集計タイプ',
-        'view_summary_total' => '合計',
-        'view_summary_average' => '平均',
-        'view_summary_count' => '件数',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。',
@@ -565,6 +562,13 @@ return [
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。',
 
+        'summary_condition_options' => [
+            'sum' => '合計',
+            'avg' => '平均',
+            'count' => '件数',
+            'min' => '最小値',
+            'max' => '最大値',
+        ],
         'filter_condition_options' => [
             'eq' => '以下の値と合致する', 
             'ne' => '以下の値と合致しない', 

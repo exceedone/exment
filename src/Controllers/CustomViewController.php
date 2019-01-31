@@ -151,22 +151,18 @@ class CustomViewController extends AdminControllerTableBase
 
             // summary columns setting
             $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
-                $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
-                    ->options([
-                        1 => exmtrans("custom_view.view_summary_total"),
-                        2 => exmtrans("custom_view.view_summary_average"),
-                        3 => exmtrans("custom_view.view_summary_count")])->required()
-                    ->attribute(['data-linkage' => json_encode(['view_column_target' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options(function ($val) {
-                        // if null, return empty array.
-                        if (!isset($val)) {
-                            return [];
-                        }
-                        return $this->custom_table->getNumberColumnsSelectOptions(!is_numeric($val));
-                    });
+                    ->options($this->custom_table->getSummaryColumnsSelectOptions());
+//                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
+                $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
+                ->options(function ($val) {
+                    return array_map(function ($array) {
+                        return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                    }, SummaryCondition::getOptions());
+                })
+                ->rules('required|summaryCondition');
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-            })->setTableColumnWidth(2, 4, 3, 1)
+            })->setTableColumnWidth(4, 2, 3, 1)
             ->description(exmtrans("custom_view.description_custom_view_summaries"));
         } else {
             // columns setting
@@ -239,14 +235,18 @@ class CustomViewController extends AdminControllerTableBase
      */
     public function getSummaryCondition(Request $request)
     {
-        $view_summary_condition = $request->get('q');
-        if (!isset($view_summary_condition)) {
+        $view_column_target = $request->get('q');
+        if (!isset($view_column_target)) {
             return [];
         }
-        $is_system = ($view_summary_condition == SummaryCondition::COUNT);
-        $options = $this->custom_table->getNumberColumnsSelectOptions($is_system);
-        return collect($options)->map(function ($text, $id) {
-            return ['id' => $id, 'text' => $text];
+        // target column type for summary is numeric or system only
+        if (is_numeric($view_column_target)) {
+            $options = SummaryCondition::getOptions();
+        } else {
+            $options = SummaryCondition::getOptions(['numeric' => false]);
+        }
+        return collect($options)->map(function ($array) {
+            return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'))];
         });
     }
     /**

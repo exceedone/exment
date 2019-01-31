@@ -19,6 +19,9 @@ class CustomViewFilter extends ModelBase
     
     public function custom_column()
     {
+        if ($this->view_column_type == ViewColumnType::SYSTEM) {
+            return null;
+        }
         return $this->belongsTo(CustomColumn::class, 'view_column_target');
     }
     

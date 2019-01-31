@@ -1192,6 +1192,24 @@ if (!function_exists('getCellAlphabet')) {
     }
 }
 
+if (!function_exists('getUserName')) {
+    /**
+     * Get database user name.
+     * @param string $id
+     * @return string user name
+     */
+    function getUserName($id)
+    {
+        $user = getModelName(SystemTableName::USER)::withTrashed()->find($id);
+        if (!isset($user)) {
+            return null;
+        }
+        if ($user->trashed()) {
+            return exmtrans('common.trashed_user');
+        }
+        return $user->getText();
+    }
+}
 
 if (!function_exists('useLoginProvider')) {
     /**
