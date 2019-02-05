@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\ViewColumnType;
+
 class CustomViewFilter extends ModelBase
 {
     protected $guarded = ['id'];
@@ -16,6 +18,7 @@ class CustomViewFilter extends ModelBase
     
     public function custom_column()
     {
-        return $this->belongsTo(CustomColumn::class, 'view_column_target');
+        return $this->belongsTo(CustomColumn::class, 'view_column_target_id')
+            ->where('view_column_type', ViewColumnType::COLUMN);
     }
 }

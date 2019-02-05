@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +29,8 @@ class CustomColumn extends ModelBase
 
     public function custom_view_columns()
     {
-        return $this->hasMany(CustomViewColumn::class, 'view_column_target');
+        return $this->hasMany(CustomViewColumn::class, 'view_column_target_id')
+        ->where('view_column_type', ViewColumnType::COLUMN);
     }
 
     public function scopeIndexEnabled($query)
