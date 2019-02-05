@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Browser;
+namespace Exceedone\Exment\Tests\Browser;
 
-use Tests\DuskTestCase;
+use Exceedone\Exment\Tests\ExmentDuskTestCase;
 use Laravel\Dusk\Browser;
 
-class LoginTest extends DuskTestCase
+class LoginOutTest extends ExmentDuskTestCase
 {
     /**
      * A Dusk test example.

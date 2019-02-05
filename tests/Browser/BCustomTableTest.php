@@ -1,14 +1,13 @@
 <?php
 
-namespace Tests\Browser;
+namespace Exceedone\Exment\Tests\Browser;
 
-use Tests\DuskTestCase;
+use Exceedone\Exment\Tests\ExmentDuskTestCase;
 use Laravel\Dusk\Browser;
 
-class CustomTableTest extends DuskTestCase
+class CustomTableTest extends ExmentDuskTestCase
 {
-
-// precondition : login success
+    // precondition : login success
     public function testLoginSuccessWithTrueUsername()
     {
         $this->browse(function (Browser $browser) {

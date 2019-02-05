@@ -1,13 +1,12 @@
 <?php
 
-namespace Tests\Browser;
+namespace Exceedone\Exment\Tests\Browser;
 
-use Tests\DuskTestCase;
+use Exceedone\Exment\Tests\ExmentDuskTestCase;
 use Laravel\Dusk\Browser;
 
-class CustomColumnTest extends DuskTestCase
+class CCustomColumnTest extends ExmentDuskTestCase
 {
-
     // precondition : login success
     public function testLoginSuccessWithTrueUsername()
     {

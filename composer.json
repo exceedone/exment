@@ -32,9 +32,17 @@
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0"
     },
+    "require-dev": {
+        "laravel/dusk": "~4.0.0"
+    },
     "autoload": {
         "psr-4": {
             "Exceedone\\Exment\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Exceedone\\ExmentTests\\": "tests/"
         }
     },
     "extra": {

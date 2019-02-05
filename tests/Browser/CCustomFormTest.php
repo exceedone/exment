@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Browser;
+namespace Exceedone\Exment\Tests\Browser;
 
-use Tests\DuskTestCase;
+use Exceedone\Exment\Tests\ExmentDuskTestCase;
 use Laravel\Dusk\Browser;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 
-class CustomRelationTest extends DuskTestCase
+class CCustomFormTest extends ExmentDuskTestCase
 {
     /**
      * A Dusk test example.
@@ -426,7 +426,6 @@ class CustomRelationTest extends DuskTestCase
         });
     }
 
-<<<<<<< Updated upstream
     // AutoTest_Form_22
     public function testCreateRecord1()
     {
@@ -444,7 +443,6 @@ class CustomRelationTest extends DuskTestCase
                 ->assertSee('Showing 1 to 1 of 1 entries');
         });
     }
-=======
 //    // AutoTest_Form_22
 //    public function testCreateRecord1()
 //    {
@@ -459,7 +457,6 @@ class CustomRelationTest extends DuskTestCase
 //            $browser->script('document.querySelector(".value_select2value.la_checkbox").click();');
 //        });
 //    }
->>>>>>> Stashed changes
 
     //	AutoTest_Form_23
     public function testCreateRecord2()

@@ -1,19 +1,19 @@
 <?php
 
-namespace Tests\Browser;
+namespace Exceedone\Exment\Tests\Browser;
 
-use ResetDB\ExmentMigrations;
-use Tests\DuskTestCase;
+use Exceedone\Exment\Tests\Database\ExmentMigrations;
+use Exceedone\Exment\Tests\ExmentDuskTestCase;
 use Laravel\Dusk\Browser;
 
-class AInstallScreenTest extends DuskTestCase
+class AInstallScreenTest extends ExmentDuskTestCase
 {
     /**
      * A Dusk test example.
      *
      * @return void
      */
-    use ExmentMigrations;
+    use \Tests\Database\ExmentMigrations;
 
     //AutoTest_Install_01 : only setting
     //AutoTest_Install_02
