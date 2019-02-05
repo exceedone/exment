@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentDuskTestCase;
+use Tests\DuskTestCase;
 use Laravel\Dusk\Browser;
 
-class DCustomDataTest extends ExmentDuskTestCase
+class DCustomDataTest extends DuskTestCase
 {
 
 // precondition : login success

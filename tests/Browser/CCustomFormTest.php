@@ -2,11 +2,11 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentDuskTestCase;
+use Tests\DuskTestCase;
 use Laravel\Dusk\Browser;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 
-class CCustomFormTest extends ExmentDuskTestCase
+class CCustomFormTest extends DuskTestCase
 {
     /**
      * A Dusk test example.
