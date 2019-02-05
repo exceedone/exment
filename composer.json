@@ -37,12 +37,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Exceedone\\Exment\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Exceedone\\ExmentTests\\": "tests/"
+            "Exceedone\\Exment\\": "src/",
+            "Exceedone\\Exment\\Tests\\": "tests/"
         }
     },
     "extra": {
