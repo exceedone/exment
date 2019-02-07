@@ -50,6 +50,10 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         $field_name = str_replace('.view_summary_condition', '.view_column_target', $attribute);
         $view_column_target = array_get($this->data, $field_name);
 
+        if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
+            list($view_column_table_id, $view_column_target) = explode("-", $view_column_target);
+        }
+
         if (is_numeric($view_column_target)) {
             // get column_type
             $column_type = CustomColumn::getEloquent($view_column_target)->column_type;

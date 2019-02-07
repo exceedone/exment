@@ -144,7 +144,7 @@ class CustomViewController extends AdminControllerTableBase
             // group columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(true, true));
+                    ->options($this->custom_table->getColumnsSelectOptions(true, true, true));
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 2, 1)
@@ -171,7 +171,7 @@ class CustomViewController extends AdminControllerTableBase
             // columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions());
+                    ->options($this->custom_table->getColumnsSelectOptions(true));
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 2, 1)
@@ -181,7 +181,7 @@ class CustomViewController extends AdminControllerTableBase
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, $is_aggregate, $is_aggregate))
+                ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')])]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
@@ -213,7 +213,7 @@ class CustomViewController extends AdminControllerTableBase
         if (intval($view_kind_type) != Enums\ViewKindType::AGGREGATE) {
             $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true));
+                ->options($this->custom_table->getColumnsSelectOptions(true, true));
                 $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
                 $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)

@@ -549,9 +549,6 @@ return [
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'view_summary_condition' => 'summary type',
-        'view_summary_total' => 'Total',
-        'view_summary_average' => 'Average',
-        'view_summary_count' => 'Count',
         'default_view_name' => 'Default View',
         'description_custom_view_columns' => 'Select display columns.',
         'description_custom_view_groups' => 'Sets the grouping key columns displayed in the view.',
@@ -559,6 +556,13 @@ return [
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.',
 
+        'summary_condition_options' => [
+            'sum' => 'Summary',
+            'avg' => 'Average',
+            'count' => 'Count',
+            'min' => 'Min',
+            'max' => 'Max',
+        ],
         'filter_condition_options' => [
             'eq' => 'Equal', 
             'ne' => 'Not Equal', 
@@ -589,6 +593,7 @@ return [
         'custom_view_menulist' => [
             'current_view_edit' => 'Edit Current View Setting',
             'create' => 'Create View',
+            'create_sum' => 'Create Summary View',
         ],
         
         'custom_view_button_label' => 'View',

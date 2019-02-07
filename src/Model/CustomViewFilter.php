@@ -23,7 +23,7 @@ class CustomViewFilter extends ModelBase
         if ($this->view_column_type == ViewColumnType::SYSTEM) {
             return null;
         }
-        return $this->belongsTo(CustomColumn::class, 'view_column_target');
+        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
     
     /**
@@ -74,7 +74,7 @@ class CustomViewFilter extends ModelBase
     public function setValueFilter($model, $db_table_name = null)
     {
         // get filter target column
-        $view_column_target = $this->view_column_target;
+        $view_column_target = $this->getViewColumnTarget();
         if ($this->view_column_type == ViewColumnType::COLUMN) {
             $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
         } elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {

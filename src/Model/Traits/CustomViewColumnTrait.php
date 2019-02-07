@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\ColumnItems;
@@ -16,7 +17,7 @@ trait CustomViewColumnTrait
      */
     public function getViewColumnTargetAttribute()
     {
-        return $this->getViewColumnTarget();
+        return $this->getViewColumnTargetWithTable();
     }
 
     public function getColumnItemAttribute()
@@ -31,7 +32,8 @@ trait CustomViewColumnTrait
         }
         // system column
         else {
-            return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target);
+            $target_table = CustomTable::getEloquent($this->view_column_table_id);
+            return ColumnItems\SystemItem::getItem($target_table, $this->view_column_target);
         }
     }
     
@@ -43,10 +45,16 @@ trait CustomViewColumnTrait
     {
         $this->setViewColumnTarget($view_column_target);
     }
-
+    protected function getViewColumnTargetWithTable() {
+        if (!isset($this->view_column_table_id)) {
+            return null;
+        }
+        return $this->view_column_table_id . '-' . $this->getViewColumnTarget();
+    }
     protected function getViewColumnTarget($column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
-        if (!isset($this->{$column_type_key}) || !isset($this->{$column_type_target_key})) {
+        if (!isset($this->{$column_type_key}) || 
+            !isset($this->{$column_type_target_key})) {
             return null;
         }
         if ($this->{$column_type_key} == ViewColumnType::SYSTEM) {
@@ -61,6 +69,12 @@ trait CustomViewColumnTrait
 
     protected function setViewColumnTarget($view_column_target, $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
+        if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
+            list($this->view_column_table_id, $view_column_target) = explode("-", $view_column_target);
+        } else {
+            $this->view_column_table_id = $this->custom_view->custom_table_id;
+        }
+
         if (!is_numeric($view_column_target)) {
             if ($view_column_target === 'parent_id') {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;

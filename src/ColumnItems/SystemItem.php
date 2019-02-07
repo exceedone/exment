@@ -17,7 +17,11 @@ class SystemItem implements ItemInterface
     public function __construct($custom_table, $column_name, $custom_value)
     {
         $this->custom_table = $custom_table;
-        $this->column_name = $column_name;
+        if (preg_match('/\d+-.+$/i', $column_name) === 1) {
+            list($table_name, $this->column_name) = explode("-", $column_name);
+        } else {
+            $this->column_name = $column_name;
+        }
         $this->value = $this->getTargetValue($custom_value);
         $this->label = exmtrans("common.$this->column_name");
     }

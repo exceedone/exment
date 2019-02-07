@@ -19,7 +19,7 @@ class CustomViewSort extends ModelBase
     
     public function custom_column()
     {
-        return $this->belongsTo(CustomColumn::class, 'view_column_target');
+        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
     
     /**
