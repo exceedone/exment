@@ -10,7 +10,9 @@ class CustomTableTest extends ExmentDuskTestCase
     public function testLoginSuccessWithTrueUsername()
     {
         $this->browse(function ($browser) {
-            $browser->visit('/admin/auth/login')
+            $browser
+                ->visit('/admin/auth/logout')
+                ->visit('/admin/auth/login')
                 ->type('username', 'testuser')
                 ->type('password', 'test123456')
                 ->press('Login')
@@ -26,7 +28,6 @@ class CustomTableTest extends ExmentDuskTestCase
         $this->browse(function ($browser) {
             $browser
                 ->visit('/admin/table')
-                ->assertTitle('Auto Test | Custom Table Setting')
                 ->assertPathIs('/admin/table')
                 ;
         });
@@ -37,9 +38,7 @@ class CustomTableTest extends ExmentDuskTestCase
     public function testDisplayInstalledTable()
     {
         $this->browse(function ($browser) {
-            $browser->assertSee('document')
-                ->assertSee('Document')
-                ->assertSee('base_info')
+            $browser->assertSee('base_info')
                 ->assertSee('Base Info')
                 ->assertSee('user')
                 ->assertSee('User')
@@ -56,7 +55,7 @@ class CustomTableTest extends ExmentDuskTestCase
             $browser
                 ->waitForText('New')
                 ->clickLink('New')
-                ->pause(3000)
+                ->pause(2000)
                 ->assertPathIs('/admin/table/create')
                 ;
         });
@@ -67,18 +66,15 @@ class CustomTableTest extends ExmentDuskTestCase
     {
         $this->browse(function ($browser) {
             $browser
-                ->clickLink('New')
-                ->pause(3000)
                 ->type('table_name', 'test')
                 ->type('table_view_name', 'test table')
                 ->type('description', 'test table')
                 ->type('options[color]', '#ff0000')
-                ->type('options[icon]', 'fa-automobile')
-                ->click('.fa.fa-automobile');
-            $browser->script('document.querySelector(".search_enabled.la_checkbox").click();');
-            $browser->script('document.querySelector(".one_record_flg.la_checkbox").click();');
+                ->type('options[icon]', 'fa-automobile');
+            $browser->script('document.querySelector(".options_search_enabled.la_checkbox").click();');
+            $browser->script('document.querySelector(".options_one_record_flg.la_checkbox").click();');
             $browser->press('Submit')
-                ->pause(5000)
+                ->pause(3000)
                 ->assertMissing('.has-error')
                 ->assertPathIs('/admin/table')
                 ->assertSee('test')
@@ -86,6 +82,39 @@ class CustomTableTest extends ExmentDuskTestCase
         });
     }
 
+    public function testDisplayEditScreen()
+    {
+        $this->browse(function ($browser) {
+            $browser
+                ->visit('/admin/table')
+                ->waitForText('New')
+                ->clickLink('New')
+                ->pause(2000)
+                ->assertPathIs('/admin/table/create')
+                ;
+        });
+    }
+
+    public function testEditCustomTableSuccess()
+    {
+        $this->browse(function ($browser) {
+            $browser
+                ->visit('/admin/table')
+                ->type('table_name', 'test')
+                ->type('table_view_name', 'test table')
+                ->type('description', 'test table')
+                ->type('options[color]', '#ff0000')
+                ->type('options[icon]', 'fa-automobile');
+            $browser->script('document.querySelector(".options_search_enabled.la_checkbox").click();');
+            $browser->script('document.querySelector(".options_one_record_flg.la_checkbox").click();');
+            $browser->press('Submit')
+                ->pause(3000)
+                ->assertMissing('.has-error')
+                ->assertPathIs('/admin/table')
+                ->assertSee('test')
+                ->assertSee('test table');
+        });
+    }
     // AutoTest_Table_06
     public function testDisplayColummSetting()
     {
@@ -94,11 +123,8 @@ class CustomTableTest extends ExmentDuskTestCase
                 ->click('table tr:last-child .iCheck-helper')
                 ->press('Change Page')
                 ->clickLink('Column Detail Setting')
-                ->pause(5000);
-            $browser->assertPathIs('/admin/column/test')
-                ->assertSee('Custom Column Detail Setting')
-                ->assertSee('Setting details with customer list. these define required fields, searchable fields, etc.')
-                ->assertSee('Showing to of 0 entries');
+                ->pause(3000);
+            $browser->assertPathIs('/admin/column/test');
         });
     }
 
