@@ -138,6 +138,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         
         $custom_table = $this->custom_table;
+        $is_aggregate = false;
 
         if (intval($view_kind_type) === Enums\ViewKindType::AGGREGATE) {
             // group columns setting
@@ -164,11 +165,13 @@ class CustomViewController extends AdminControllerTableBase
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
             })->setTableColumnWidth(4, 2, 3, 1)
             ->description(exmtrans("custom_view.description_custom_view_summaries"));
+
+            $is_aggregate = true;
         } else {
             // columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(false, true));
+                    ->options($this->custom_table->getColumnsSelectOptions());
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 2, 1)
@@ -176,9 +179,9 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // filter setting
-        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
+        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, true, true))
+                ->options($this->custom_table->getColumnsSelectOptions(true, $is_aggregate, $is_aggregate))
                 ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')])]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()

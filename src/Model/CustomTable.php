@@ -67,11 +67,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectTables()
     {
-        return $this->custom_columns->mapWithKeys(function ($item) {
+        $list = $this->custom_columns->mapWithKeys(function ($item) {
             $key = $item->getIndexColumnName();
             $val = array_get($item->options, 'select_target_table');
             return [$key => (is_numeric($val)? intval($val): null)];
-        })->filter();
+        });
+        $list = $list->filter()->toArray();
+        return $list;
     }
 
     public function getSelectTableColumns()
@@ -86,17 +88,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedTables()
     {
-        return CustomColumn::where('options->select_target_table', $this->id)
+        $raw = "json_unquote(options->'$.select_target_table')";
+        return CustomColumn::where(\DB::raw($raw), $this->id)
             ->get()
             ->mapWithKeys(function ($item) {
                 $key = $item->getIndexColumnName();
                 return [$key => $item->custom_table_id];
-            })->filter();
+            })->filter()->toArray();
     }
 
     public function getSelectedTableColumns()
     {
-        return CustomColumn::where('options->select_target_table', $this->id)
+        $raw = "json_unquote(options->'$.select_target_table')";
+        return CustomColumn::where(\DB::raw($raw), $this->id)
             ->get()
             ->mapWithKeys(function ($item) {
                 $key = $item->getIndexColumnName();
@@ -622,15 +626,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
-        if (!$include_parent) {
+        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
+        ///// if this table is child relation(1:n), add parent table
+        if (isset($relation)) {
             $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
-            ///// if this table is child relation(1:n), add parent table
+            $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
             if (isset($relation)) {
-                $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
                 $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
-                if (isset($relation)) {
-                    $options['parent_id'] = array_get($relation, 'parent_custom_table.table_view_name');
-                }
             }
         }
 
@@ -686,8 +688,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             ///// get selected table columns
             $selected_table_columns = $this->getSelectedTableColumns();
-            foreach ($selected_table_columns as $column_key => $selected_table_column) {
-                $options += $selected_table_column->column_item->selectTableColumnList($index_enabled_only);
+            foreach ($selected_table_columns as $selected_table_column) {
+                $custom_table = $selected_table_column->custom_table;
+                $tablename = array_get($custom_table, 'table_view_name');
+                foreach ($custom_table->custom_columns as $custom_column) {
+                    // if $index_enabled_only = true and options.index_enabled_only is false, continue
+                    if ($index_enabled_only && !$custom_column->indexEnabled()) {
+                        continue;
+                    }
+                    $options[array_get($custom_column, 'id')] = $tablename . ' : ' . array_get($custom_column, 'column_view_name');
+                }
             }
         }
     
@@ -728,6 +738,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $tablename = array_get($child, 'table_view_name');
             $child_columns = $child->custom_columns;
             foreach ($child_columns as $option) {
+                $column_type = array_get($option, 'column_type');
+                if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
+                    $options[array_get($option, 'id')] = $tablename . ' : ' . array_get($option, 'column_view_name');
+                }
+            }
+        }
+        ///// get selected table columns
+        $selected_table_columns = $this->getSelectedTableColumns();
+        foreach ($selected_table_columns as $selected_table_column) {
+            $custom_table = $selected_table_column->custom_table;
+            $tablename = array_get($custom_table, 'table_view_name');
+            foreach ($custom_table->custom_columns as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
                     $options[array_get($option, 'id')] = $tablename . ' : ' . array_get($option, 'column_view_name');

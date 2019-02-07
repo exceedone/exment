@@ -245,151 +245,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function setValueFilters($model, $db_table_name = null)
     {
         foreach ($this->custom_view_filters as $filter) {
-            $model = $this->setValueFilter($model, $filter, $db_table_name);
+            $model = $filter->setValueFilter($model, $db_table_name);
         }
-        return $model;
-    }
-    /**
-     * set value filter
-     */
-    public function setValueFilter($model, $filter, $db_table_name = null)
-    {
-        // get filter target column
-        $view_column_target = $filter->view_column_target;
-        if ($filter->view_column_type == ViewColumnType::COLUMN) {
-            $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
-        } elseif ($filter->view_column_type == ViewColumnType::PARENT_ID) {
-            //TODO: set as 1:n. develop as n:n
-            $view_column_target = 'parent_id';
-        }
-        if (isset($db_table_name)) {
-            $view_column_target = $db_table_name.'.'.$view_column_target;
-        }
-        $condition_value_text = $filter->view_filter_condition_value_text;
-        $view_filter_condition = $filter->view_filter_condition;
-        // get filter condition
-        switch ($view_filter_condition) {
-            // equal
-            case ViewColumnFilterOption::EQ:
-                $model = $model->where($view_column_target, $condition_value_text);
-                break;
-            // not equal
-            case ViewColumnFilterOption::NE:
-                $model = $model->where($view_column_target, '<>', $condition_value_text);
-                break;
-            // not null
-            case ViewColumnFilterOption::NOT_NULL:
-            case ViewColumnFilterOption::DAY_NOT_NULL:
-            case ViewColumnFilterOption::USER_NOT_NULL:
-                $model = $model->whereNotNull($view_column_target);
-                break;
-            // null
-            case ViewColumnFilterOption::NULL:
-            case ViewColumnFilterOption::DAY_NULL:
-            case ViewColumnFilterOption::USER_NULL:
-                $model = $model->whereNull($view_column_target);
-                break;
-            
-            // for date --------------------------------------------------
-            // date equal day
-            case ViewColumnFilterOption::DAY_ON:
-            case ViewColumnFilterOption::DAY_YESTERDAY:
-            case ViewColumnFilterOption::DAY_TODAY:
-            case ViewColumnFilterOption::DAY_TOMORROW:
-                // get target day
-                switch ($view_filter_condition) {
-                    case ViewColumnFilterOption::DAY_ON:
-                        $value_day = Carbon::parse($condition_value_text);
-                        break;
-                    case ViewColumnFilterOption::DAY_YESTERDAY:
-                        $value_day = Carbon::yesterday();
-                        break;
-                    case ViewColumnFilterOption::DAY_TODAY:
-                        $value_day = Carbon::today();
-                        break;
-                    case ViewColumnFilterOption::DAY_TOMORROW:
-                        $value_day = Carbon::tomorow();
-                        break;
-                }
-                $model = $model->whereDate($view_column_target, $value_day);
-                break;
-                
-            // date equal month
-            case ViewColumnFilterOption::DAY_THIS_MONTH:
-            case ViewColumnFilterOption::DAY_LAST_MONTH:
-            case ViewColumnFilterOption::DAY_NEXT_MONTH:
-                // get target month
-                switch ($view_filter_condition) {
-                    case ViewColumnFilterOption::DAY_THIS_MONTH:
-                        $value_day = new Carbon('first day of this month');
-                        break;
-                    case ViewColumnFilterOption::DAY_LAST_MONTH:
-                        $value_day = new Carbon('first day of last month');
-                        break;
-                    case ViewColumnFilterOption::DAY_NEXT_MONTH:
-                        $value_day = new Carbon('first day of next month');
-                        break;
-                }
-                $model = $model
-                    ->whereYear($view_column_target, $value_day->year)
-                    ->whereMonth($view_column_target, $value_day->month);
-                break;
-                
-            // date equal year
-            case ViewColumnFilterOption::DAY_THIS_YEAR:
-            case ViewColumnFilterOption::DAY_LAST_YEAR:
-            case ViewColumnFilterOption::DAY_NEXT_YEAR:
-                // get target year
-                switch ($view_filter_condition) {
-                    case ViewColumnFilterOption::DAY_THIS_YEAR:
-                        $value_day = new Carbon('first day of this year');
-                        break;
-                    case ViewColumnFilterOption::DAY_LAST_YEAR:
-                        $value_day = new Carbon('first day of last year');
-                        break;
-                    case ViewColumnFilterOption::DAY_NEXT_YEAR:
-                        $value_day = new Carbon('first day of next year');
-                        break;
-                }
-                $model = $model->whereYear($view_column_target, $value_day->year);
-                break;
-                
-            // date and X days before or after
-            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
-            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                $today = Carbon::today();
-                // get target day and where mark
-                switch ($view_filter_condition) {
-                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
-                        $target_day = $today->addDay(-1 * intval($condition_value_text));
-                        $mark = ">=";
-                        break;
-                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
-                        $target_day = $today->addDay(intval($condition_value_text));
-                        $mark = ">=";
-                        break;
-                    case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
-                        $target_day = $today->addDay(-1 * intval($condition_value_text));
-                        $mark = "<=";
-                        break;
-                    case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                        $target_day = $today->addDay(intval($condition_value_text));
-                        $mark = "<=";
-                        break;
-                }
-                $model = $model->whereDate($view_column_target, $mark, $target_day);
-                break;
-                
-            // for user --------------------------------------------------
-            case ViewColumnFilterOption::USER_EQ_USER:
-                $model = $model->where($view_column_target, Admin::user()->base_user()->id);
-                break;
-            case ViewColumnFilterOption::USER_NE_USER:
-                $model = $model->where($view_column_target, '<>', Admin::user()->base_user()->id);
-        }
-
         return $model;
     }
 
@@ -426,78 +283,106 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $db_table_name = getDBTableName($table_name);
 
         $group_columns = [];
-        $select_columns = [];
         $custom_tables = [];
+
         // set grouping columns
         foreach ($this->custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item;
 
             // first, set group_column. this column's name uses index.
             $group_columns[] = $item->sqlname();
+            // parent_id need parent_type
+            if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
+                $group_columns[] = $item->sqltypename();
+            }
+
             $alter_column_index = ViewKindType::DEFAULT . '_' . $custom_view_column->id;
 
-            $this->setSummaryItem($item, $alter_column_index, $select_columns, $custom_tables);
+            $this->setSummaryItem($item, $alter_column_index, $custom_tables);
         }
         // set summary columns
         foreach ($this->custom_view_summaries as $custom_view_summary) {
             $item = $custom_view_summary->column_item;
 
             $alter_column_index = ViewKindType::AGGREGATE . '_' . $custom_view_summary->id;
-            $this->setSummaryItem($item, $alter_column_index, $select_columns, $custom_tables, $custom_view_summary->view_summary_condition);
+            $this->setSummaryItem($item, $alter_column_index, $custom_tables, $custom_view_summary->view_summary_condition);
         }
 
+        // set filter columns
+        foreach ($this->custom_view_filters as $custom_view_filter) {
+            $column = $custom_view_filter->custom_column;
+            $custom_table_id = array_get($column, 'custom_table_id');
+
+            if (array_key_exists($custom_table_id, $custom_tables)) {
+                $custom_tables[$custom_table_id]['filter'][] = $custom_view_filter;
+            } else {
+                $custom_tables[$custom_table_id] = [ 
+                    'table_name' => getDBTableName($custom_table_id),
+                    'filter' => [$custom_view_filter]
+                ];
+            }
+        }
+
+        $sub_queries = [];
         // get relation parent tables
         $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
-        foreach ($parent_relations as $relation) {
-            // if not contains group or select column, continue
-            if (!in_array($relation->parent_custom_table->id, $custom_tables)) {
-                continue;
-            }
-            $parent_table = $relation->parent_custom_table;
-            $parent_name = getDBTableName($parent_table);
-            $model = $model->join($parent_name, "$db_table_name.parent_id", "$parent_name.id");
-            $model = $model->where("$db_table_name.parent_type", $parent_table->table_name);
-        }
-
-        // get join tables
+        // get relation child tables
         $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
-        foreach ($child_relations as $relation) {
-            // if not contains group or select column, continue
-            if (!in_array($relation->child_custom_table->id, $custom_tables)) {
-                continue;
-            }
-
-            $child_name = getDBTableName($relation->child_custom_table);
-            $model = $model->join($child_name, $db_table_name.'.id', "$child_name.parent_id");
-            $model = $model->where("$child_name.parent_type", $this->custom_table->table_name);
-        }
-
         // join select table refered from this table.
-        $select_tables = $this->custom_table->getSelectTables();
-        foreach ($select_tables as $column_key => $select_table_id) {
-            if (!in_array($select_table_id, $custom_tables)) {
-                continue;
-            }
-            $table_name = getDBTableName($select_table_id);
-            $model = $model->join($table_name, "$db_table_name.$column_key", "$table_name.id");
-        }
-
+        $select_table_columns = $this->custom_table->getSelectTables();
         // join table refer to this table as select.
-        $selected_tables = $this->custom_table->getSelectedTables();
-        foreach ($selected_tables as $column_key => $select_table_id) {
-            if (!in_array($select_table_id, $custom_tables)) {
+        $selected_table_columns = $this->custom_table->getSelectedTables();
+
+        $custom_table_id = $this->custom_table->id;
+
+        foreach ($custom_tables as $table_id => $custom_table) {
+            // add select column and filter
+            if ($table_id == $custom_table_id) {
+                $this->addQuery($model, $db_table_name, $custom_table);
                 continue;
             }
-            $table_name = getDBTableName($select_table_id);
-            $model = $model->join($table_name, "$db_table_name.id", "$table_name.$column_key");
+            // join parent table
+            if ($parent_relations->contains(function ($value, $key) use($table_id) {
+                return $value->parent_custom_table->id == $table_id;
+            })) {
+                $this->addQuery($model, $db_table_name, $custom_table, 'parent_id', 'id');
+                continue;
+            } 
+            // create subquery grouping child table
+            if ($child_relations->contains(function ($value, $key) use($table_id) {
+                return $value->child_custom_table->id == $table_id;
+            })) {
+                $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $custom_table);
+                if (array_key_exists('select_group', $custom_table)) {
+                    $model = $model->addSelect($custom_table['select_group']);
+                }
+                $sub_queries[] = $sub_query;
+                continue;
+            }
+            // join table refered from target table
+            if (in_array($table_id, $select_table_columns)) {
+                $column_key = array_search($table_id, $select_table_columns);
+                $this->addQuery($model, $db_table_name, $custom_table, $column_key, 'id');
+                continue;
+            }
+            // create subquery grouping table refer to target table
+            if (in_array($table_id, $selected_table_columns)) {
+                $column_key = array_search($table_id, $selected_table_columns);
+                $sub_query = $this->getSubQuery($db_table_name, 'id', $column_key, $custom_table);
+                if (array_key_exists('select_group', $custom_table)) {
+                    $model = $model->addSelect($custom_table['select_group']);
+                }
+                $sub_queries[] = $sub_query;
+                continue;
+            }
         }
 
-        // set filter
-        $model = $this->setValueFilter($model, $db_table_name);
+        // join subquery
+        foreach($sub_queries as $table_no => $sub_query) {
+            $model = $model->join(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            $model = $model->mergeBindings($sub_query);
+        }
 
-        // set sql select columns
-        $model = $model->select($select_columns);
- 
         // set sql grouping columns
         $model = $model->groupBy($group_columns);
 
@@ -508,7 +393,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set summary grid item
      */
-    protected function setSummaryItem($item, $index, &$select_columns, &$custom_tables, $summary_condition = null)
+    protected function setSummaryItem($item, $index, &$custom_tables, $summary_condition = null)
     {
         $item->options([
             'summary' => true,
@@ -516,10 +401,60 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             'summary_index' => $index
         ]);
 
-        $select_columns[] = $item->sqlname();
+        $table_id = $item->getCustomTable()->id;
+        $db_table_name = getDBTableName($table_id);
 
-        // set custom_tables
-        $custom_tables[] = $item->getCustomTable()->id;
+        // set sql parts for custom table
+        if (!array_key_exists($table_id, $custom_tables)) {
+            $custom_tables[$table_id] = [ 'table_name' => $db_table_name ];
+        }
+
+        $custom_tables[$table_id]['select'][] = $item->sqlname();
+        if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
+            $custom_tables[$table_id]['select'][] = $item->sqltypename();
+        }
+
+        if (isset($summary_condition)) {
+            $custom_tables[$table_id]['select_group'][] = $item->getGroupName();
+        }
+    }
+    /**
+     * add select column and filter and join table to main query
+     */
+    protected function addQuery(&$model, $table_main, $custom_table, $key_main = null, $key_sub = null) {
+        $table_name = array_get($custom_table, 'table_name');
+        if ($table_name != $table_main) {
+            $model = $model->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
+            $model = $model->whereNull("$table_name.deleted_at");
+        }
+        if (array_key_exists('select', $custom_table)) {
+            $model = $model->addSelect($custom_table['select']);
+        }
+        if (array_key_exists('filter', $custom_table)) {
+            foreach ($custom_table['filter'] as $filter) {
+                $filter->setValueFilter($model, $table_name);
+            }
+        }
+    }
+    /**
+     * add select column and filter and join table to sub query
+     */
+    protected function getSubQuery($table_main, $key_main, $key_sub, $custom_table) {
+        $table_name = array_get($custom_table, 'table_name');
+        $sub_query = \DB::table($table_main)
+            ->select("$table_main.id")
+            ->join($table_name, "$table_main.$key_main", "$table_name.$key_sub")
+            ->whereNull("$table_name.deleted_at")
+            ->groupBy("$table_main.id");
+        if (array_key_exists('select', $custom_table)) {
+            $sub_query->addSelect($custom_table['select']);
+        }
+        if (array_key_exists('filter', $custom_table)) {
+            foreach ($custom_table['filter'] as $filter) {
+                $filter->setValueFilter($sub_query, $table_name);
+            }
+        }
+        return $sub_query;
     }
 
     /**
@@ -574,13 +509,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 if (is_nullorempty($column_view_name)) {
                     $column_view_name = exmtrans('common.'.$system_info['name']);
                 }
-                // no break
+                break;
             case ViewColumnType::PARENT_ID:
                 $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table_id)->first();
                 ///// if this table is child relation(1:n), add parent table
                 if (isset($relation)) {
                     $column_view_name = array_get($relation, 'parent_custom_table.table_view_name');
                 }
+                break;
         }
 
         if (array_get($custom_view_column, 'view_summary_condition') == SummaryCondition::COUNT) {

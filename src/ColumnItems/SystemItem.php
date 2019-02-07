@@ -42,13 +42,28 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get column key refer to subquery.
+     */
+    public function getGroupName()
+    {
+        if (boolval(array_get($this->options, 'summary'))) {
+            $summary_condition = SummaryCondition::getGroupCondition(array_get($this->options, 'summary_condition'));
+            $alter_name = $this->sqlAsName();
+            $raw = "$summary_condition($alter_name) AS $alter_name";
+            return \DB::raw($raw);        
+        }
+        return null;
+    }
+
+    /**
      * get sqlname for summary
      */
     protected function getSummarySqlName()
     {
         $column_name = $this->getSqlColumnName();
 
-        $summary_condition = SummaryCondition::getEnum(array_get($this->options, 'summary_condition'), SummaryCondition::MIN)->lowerKey();
+        $summary_option = array_get($this->options, 'summary_condition');
+        $summary_condition = is_null($summary_option)? '': SummaryCondition::getEnum($summary_option)->lowerKey();
         $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
 
         return \DB::raw($raw);

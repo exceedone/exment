@@ -96,7 +96,7 @@ class ChartItem implements ItemInterface
                 if (array_get($option, 'type') == 'user') {
                     return getUserName($item->text());
                 } else {
-                    return $item->html();
+                    return esc_html($item->text());
                 }
             });
             $chart_data = $datalist->pluck("column_$this->axis_y");
@@ -106,7 +106,7 @@ class ChartItem implements ItemInterface
             // get data
             $datalist = $model->all();
             $chart_label = $datalist->map(function ($val) use ($item_x) {
-                return $item_x->setCustomValue($val)->text();
+                return esc_html($item_x->setCustomValue($val)->text());
             });
             $axis_y_name = $view_column_y->custom_column->column_name;
             $chart_data = $datalist->pluck('value.'.$axis_y_name);
@@ -117,6 +117,7 @@ class ChartItem implements ItemInterface
             'chart_data' => json_encode($chart_data, JSON_UNESCAPED_SLASHES),
             'chart_labels' => json_encode($chart_label, JSON_UNESCAPED_SLASHES),
             'chart_type' => $this->chart_type,
+            'chart_height' => 300,
             'chart_axisx_label' => in_array(ChartAxisType::X, $this->chart_axis_label),
             'chart_axisy_label' => in_array(ChartAxisType::Y, $this->chart_axis_label),
             'chart_axisx_name' => in_array(ChartAxisType::X, $this->chart_axis_name),
