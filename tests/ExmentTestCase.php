@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Tests;
 
-use Tests\DuskTestCase;
+use Tests\TestCase;
 use Facebook\WebDriver\Chrome\ChromeOptions;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
 use Facebook\WebDriver\Remote\DesiredCapabilities;
@@ -11,7 +11,7 @@ use Illuminate\Contracts\Console\Kernel;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Middleware\Morph;
 
-abstract class ExmentDuskTestCase extends DuskTestCase
+abstract class ExmentTestCase extends TestCase
 {
     static $databaseSetup = false;
     

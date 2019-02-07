@@ -896,16 +896,23 @@ if (!function_exists('replaceTextFromFormat')) {
 
 // Database Difinition --------------------------------------------------
 if (!function_exists('shouldPassThrough')) {
-    function shouldPassThrough()
+    function shouldPassThrough($initialize = false)
     {
         $request = app('request');
-        $excepts = [
-            admin_base_path('auth/login'),
-            admin_base_path('auth/logout'),
-            admin_base_path('auth/reset'),
-            admin_base_path('auth/forget'),
-            admin_base_path('initialize'),
-        ];
+        
+        if($initialize){
+            $excepts = [
+                admin_base_path('initialize'),
+            ];
+        }else{
+            $excepts = [
+                admin_base_path('auth/login'),
+                admin_base_path('auth/logout'),
+                admin_base_path('auth/reset'),
+                admin_base_path('auth/forget'),
+                admin_base_path('initialize'),
+            ];
+        }
 
         foreach ($excepts as $except) {
             if ($except !== '/') {
