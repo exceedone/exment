@@ -4,7 +4,7 @@
     "type": "library",
     "keywords": ["CMS", "SFA", "Dynamic Table", "Free", "Custom Database", "Custom Table"],
     "homepage": "https://exment.net",
-    "license": "LGPL-3.0-or-later",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Exceed One Co.,Ltd.",
@@ -32,9 +32,13 @@
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0"
     },
+    "require-dev": {
+        "laravel/dusk": "~4.0.0"
+    },
     "autoload": {
         "psr-4": {
-            "Exceedone\\Exment\\": "src/"
+            "Exceedone\\Exment\\": "src/",
+            "Exceedone\\Exment\\Tests\\": "tests/"
         }
     },
     "extra": {

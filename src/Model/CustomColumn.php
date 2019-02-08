@@ -7,6 +7,8 @@ use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CalcFormulaType;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -33,7 +35,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     public function custom_view_columns()
     {
-        return $this->hasMany(CustomViewColumn::class, 'view_column_target_id');
+        return $this->hasMany(CustomViewColumn::class, 'view_column_target_id')
+            ->where('view_column_type', ViewColumnType::COLUMN);
     }
 
     public function scopeIndexEnabled($query)

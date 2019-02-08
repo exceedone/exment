@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Middleware;
 
 use Closure;
+use Exceedone\Exment\Model\System;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {
@@ -16,9 +17,18 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        $shouldPassThrough = shouldPassThrough();
-        if ($shouldPassThrough) {
+        // Get System config
+        $shouldPassThrough = shouldPassThrough(false);
+        if($shouldPassThrough){
             return $next($request);
+        }
+        
+        // Get System config
+        $initialized = System::initialized();
+        // if path is not "initialize" and not installed, then redirect to initialize
+        if (!shouldPassThrough(true) && !$initialized) {
+            $request->session()->invalidate();
+            return redirect()->guest(admin_base_path('initialize'));
         }
 
         $user = \Admin::user();

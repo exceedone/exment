@@ -23,46 +23,18 @@ class Initialize
         $initialized = System::initialized();
 
         // if path is not "initialize" and not installed, then redirect to initialize
-        if (!$this->shouldPassThrough($request) && !$initialized) {
+        if (!shouldPassThrough(true) && !$initialized) {
             $request->session()->invalidate();
             return redirect()->guest(admin_base_path('initialize'));
         }
         // if path is "initialize" and installed, redirect to login
-        elseif ($this->shouldPassThrough($request) && $initialized) {
+        elseif (shouldPassThrough(true) && $initialized) {
             return redirect()->guest(admin_base_path('auth/login'));
         }
 
         static::initializeConfig();
 
         return $next($request);
-    }
-
-    /**
-     * Determine if the request has a URI that should pass through verification.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return bool
-     */
-    protected function shouldPassThrough($request)
-    {
-        $excepts = [
-            //admin_base_path('auth/login'),
-            //admin_base_path('auth/logout'),
-            admin_base_path('initialize')
-        ];
-
-        foreach ($excepts as $except) {
-            if ($except !== '/') {
-                $except = trim($except, '/');
-            }
-
-            if ($request->is($except)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static function initializeConfig($setDatabase = true)

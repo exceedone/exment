@@ -46,6 +46,13 @@ class System extends ModelBase
     }
 
     /**
+     * reset all request settion
+     */
+    public static function resetRequestSession(){
+        static::$requestSession = [];
+    }
+
+    /**
      * whether System_function keyname
      */
     public static function hasFunction($name)
