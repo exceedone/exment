@@ -4,6 +4,7 @@
 <script type="text/javascript">
     $(function () {
         var ctx = $('[data-canvas-id="{{$suuid}}"]')[0].getContext('2d');
+        ctx.canvas.height = {!! $chart_height !!};
         var myChart = new Chart(ctx, {
             type: '{{ $chart_type }}',
             data: {
@@ -14,6 +15,7 @@
                     backgroundColor: {!! $chart_color !!},
                     fill: true,
                     @else
+                    lineTension: 0, // draw straightline
                     borderColor: {!! $chart_color !!},
                     pointBackgroundColor: {!! $chart_color !!},
                     fill: false,
@@ -23,6 +25,7 @@
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 @if(!$chart_legend)
                 legend : {
                     display: false

@@ -7,10 +7,11 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomViewColumn;
-use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewKindType;
 
 class ChartItem implements ItemInterface
 {
@@ -74,22 +75,29 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
-        $item = $this->getViewColumn($this->axis_x)->column_item;
-        $item_y = $this->getViewColumn($this->axis_y)->column_item;
+        $view_column_x = $this->getViewColumn($this->axis_x);
+        $view_column_y = $this->getViewColumn($this->axis_y);
+        $item_x = $view_column_x->column_item;
+        $item_y = $view_column_y->column_item;
 
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel();
 
         if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
-            $item->options([
+            $item_x->options([
                 'summary' => true,
                 'summary_index' => $this->axis_x
             ]);
             // get data
             $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
-            $chart_label = $datalist->map(function ($val) use ($item) {
-                $data = $item->setCustomValue($val)->text();
-                return $data;
+            $chart_label = $datalist->map(function ($val) use ($item_x) {
+                $item = $item_x->setCustomValue($val);
+                $option = SystemColumn::getOption(['name' => $item->name()]);
+                if (array_get($option, 'type') == 'user') {
+                    return getUserName($item->text());
+                } else {
+                    return esc_html($item->text());
+                }
             });
             $chart_data = $datalist->pluck("column_$this->axis_y");
         } else {
@@ -97,11 +105,10 @@ class ChartItem implements ItemInterface
             $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
             // get data
             $datalist = $model->all();
-            $chart_label = $datalist->map(function ($val) use ($item) {
-                $data = $item->setCustomValue($val)->text();
-                return $data;
+            $chart_label = $datalist->map(function ($val) use ($item_x) {
+                return esc_html($item_x->setCustomValue($val)->text());
             });
-            $axis_y_name = $this->getViewColumn($this->axis_y)->custom_column->column_name;
+            $axis_y_name = $view_column_y->custom_column->column_name;
             $chart_data = $datalist->pluck('value.'.$axis_y_name);
         }
 
@@ -110,18 +117,22 @@ class ChartItem implements ItemInterface
             'chart_data' => json_encode($chart_data, JSON_UNESCAPED_SLASHES),
             'chart_labels' => json_encode($chart_label, JSON_UNESCAPED_SLASHES),
             'chart_type' => $this->chart_type,
+            'chart_height' => 300,
             'chart_axisx_label' => in_array(ChartAxisType::X, $this->chart_axis_label),
             'chart_axisy_label' => in_array(ChartAxisType::Y, $this->chart_axis_label),
             'chart_axisx_name' => in_array(ChartAxisType::X, $this->chart_axis_name),
             'chart_axisy_name' => in_array(ChartAxisType::Y, $this->chart_axis_name),
-            'chart_axisx' => $item->label(),
-            'chart_axisy' => $item_y->label(),
+            'chart_axisx' => array_get($view_column_x, 'view_column_name')?? $item_x->label(),
+            'chart_axisy' => array_get($view_column_y, 'view_column_name')?? $item_y->label(),
             'chart_legend' => in_array(ChartOptionType::LEGEND, $this->chart_options),
             'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
             'chart_color' => json_encode($this->getChartColor(count($chart_data)))
         ])->render();
     }
 
+    /**
+     * get custom view column or summary record.
+     */
     protected function getViewColumn($column_keys)
     {
         if (preg_match('/\d+_\d+$/i', $column_keys) === 1) {
@@ -143,6 +154,10 @@ class ChartItem implements ItemInterface
      */
     public static function setAdminOptions(&$form)
     {
+        $form->select('chart_type', exmtrans("dashboard.dashboard_box_options.chart_type"))
+                ->required()
+                ->options(ChartType::transArray("chart.chart_type_options"));
+
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
         ->required()
         ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
@@ -161,10 +176,6 @@ class ChartItem implements ItemInterface
                 [admin_base_path('dashboardbox/chart_axis').'/x', admin_base_path('dashboardbox/chart_axis').'/y']
             );
 
-        $form->select('chart_type', exmtrans("dashboard.dashboard_box_options.chart_type"))
-                ->required()
-                ->options(ChartType::transArray("chart.chart_type_options"));
-
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
             ->options(function ($value) {
@@ -177,7 +188,7 @@ class ChartItem implements ItemInterface
                 } else {
                     $view_column = CustomViewSummary::getEloquent($keys[1]);
                 }
-                $options = $view_column->custom_view->getColumnsSelectOptions();
+                $options = $view_column->custom_view->getColumnsSelectOptions(false);
                 return array_column($options, 'text', 'id');
             });
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))

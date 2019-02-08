@@ -140,12 +140,13 @@ class CustomViewController extends AdminControllerTableBase
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         
         $custom_table = $this->custom_table;
+        $is_aggregate = false;
 
         if (intval($view_kind_type) === Enums\ViewKindType::AGGREGATE) {
             // group columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(true, true));
+                    ->options($this->custom_table->getColumnsSelectOptions(true, true, true));
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 2, 1)
@@ -153,28 +154,26 @@ class CustomViewController extends AdminControllerTableBase
 
             // summary columns setting
             $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
-                $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
-                    ->options([
-                        1 => exmtrans("custom_view.view_summary_total"),
-                        2 => exmtrans("custom_view.view_summary_average"),
-                        3 => exmtrans("custom_view.view_summary_count")])->required()
-                    ->attribute(['data-linkage' => json_encode(['view_column_target' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options(function ($val) {
-                        // if null, return empty array.
-                        if (!isset($val)) {
-                            return [];
-                        }
-                        return $this->custom_table->getNumberColumnsSelectOptions(!is_numeric($val));
-                    });
+                    ->options($this->custom_table->getSummaryColumnsSelectOptions());
+//                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
+                $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
+                ->options(function ($val) {
+                    return array_map(function ($array) {
+                        return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                    }, SummaryCondition::getOptions());
+                })
+                ->rules('required|summaryCondition');
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-            })->setTableColumnWidth(2, 4, 3, 1)
+            })->setTableColumnWidth(4, 2, 3, 1)
             ->description(exmtrans("custom_view.description_custom_view_summaries"));
+
+            $is_aggregate = true;
         } else {
             // columns setting
             $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(false, true));
+                    ->options($this->custom_table->getColumnsSelectOptions(true));
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 2, 1)
@@ -182,12 +181,12 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // filter setting
-        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
+        $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, true, true))
+                ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate))
                 ->attribute([
                     'data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')]),
-                    'data-change_field_target' => 'view_column_target'
+                    'data-change_field_target' => 'view_column_target',
                 ]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
@@ -220,7 +219,7 @@ class CustomViewController extends AdminControllerTableBase
         if (intval($view_kind_type) != Enums\ViewKindType::AGGREGATE) {
             $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true));
+                ->options($this->custom_table->getColumnsSelectOptions(true, true));
                 $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
                 $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
@@ -245,14 +244,18 @@ class CustomViewController extends AdminControllerTableBase
      */
     public function getSummaryCondition(Request $request)
     {
-        $view_summary_condition = $request->get('q');
-        if (!isset($view_summary_condition)) {
+        $view_column_target = $request->get('q');
+        if (!isset($view_column_target)) {
             return [];
         }
-        $is_system = ($view_summary_condition == SummaryCondition::COUNT);
-        $options = $this->custom_table->getNumberColumnsSelectOptions($is_system);
-        return collect($options)->map(function ($text, $id) {
-            return ['id' => $id, 'text' => $text];
+        // target column type for summary is numeric or system only
+        if (is_numeric($view_column_target)) {
+            $options = SummaryCondition::getOptions();
+        } else {
+            $options = SummaryCondition::getOptions(['numeric' => false]);
+        }
+        return collect($options)->map(function ($array) {
+            return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'))];
         });
     }
 

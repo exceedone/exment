@@ -202,7 +202,7 @@ trait HasPermissions
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if (isset($custom_view)) {
-            $model = $custom_view->setValueFilter($model);
+            $model = $custom_view->setValueFilters($model);
             $model = $custom_view->setValueSort($model);
         }
 

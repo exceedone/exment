@@ -97,14 +97,6 @@ class ModelBase extends Model
      */
     protected function getUser($column)
     {
-        $value = getModelName(SystemTableName::USER)::withTrashed()->find($this->{$column});
-        if (!isset($value)) {
-            return;
-        }
-
-        if ($value->trashed()) {
-            return exmtrans('common.trashed_user');
-        }
-        return $value->getText();
+        return getUserName($this->{$column});
     }
 }

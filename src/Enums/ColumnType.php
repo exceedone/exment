@@ -35,6 +35,15 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_DATETIME()
+    {
+        return [
+            ColumnType::DATE,
+            ColumnType::TIME,
+            ColumnType::DATETIME,
+        ];
+    }
+
     public static function COLUMN_TYPE_URL()
     {
         return [
@@ -80,6 +89,11 @@ class ColumnType extends EnumBase
     public static function isCalc($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_CALC());
+    }
+
+    public static function isDateTime($column_type)
+    {
+        return in_array($column_type, static::COLUMN_TYPE_DATETIME());
     }
     
     public static function isUrl($column_type)
