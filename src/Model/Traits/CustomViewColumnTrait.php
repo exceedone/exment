@@ -27,7 +27,7 @@ trait CustomViewColumnTrait
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
-            return ColumnItems\ParentItem::getItem($this->custom_view->custom_table);
+            return ColumnItems\ParentItem::getItem($this->custom_table);
         }
         // child_summary
         elseif ($this->view_column_type == ViewColumnType::CHILD_SUM) {
@@ -38,7 +38,7 @@ trait CustomViewColumnTrait
         }
         // system column
         else {
-            return ColumnItems\SystemItem::getItem($this->custom_view->custom_table, $this->view_column_target);
+            return ColumnItems\SystemItem::getItem($this->custom_table, $this->view_column_target);
         }
     }
     

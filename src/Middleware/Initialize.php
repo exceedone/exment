@@ -236,6 +236,7 @@ class Initialize
             'embeds'          => Field\Embeds::class,
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,
+            'changeField'          => Field\ChangeField::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);

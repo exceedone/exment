@@ -19,9 +19,17 @@ class CustomViewSort extends ModelBase
     
     public function custom_column()
     {
-        return $this->belongsTo(CustomColumn::class, 'view_column_target');
+        if ($this->view_column_type != ViewColumnType::COLUMN) {
+            return null;
+        }
+        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
     
+    public function custom_table()
+    {
+        return $this->belongsTo(CustomTable::class, 'view_column_table_id');
+    }
+
     /**
      * get eloquent using request settion.
      * now only support only id.
