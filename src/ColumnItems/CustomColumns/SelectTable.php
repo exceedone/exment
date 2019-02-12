@@ -19,16 +19,9 @@ class SelectTable extends CustomItem
         $this->target_table = CustomTable::getEloquent(array_get($custom_column, 'options.select_target_table'));
     }
 
-    public function selectTableColumnList($index_enabled_only = false)
+    public function getSelectTable()
     {
-        $table_id = $this->target_table->id;
-        $table_name = $this->target_table->table_view_name;
-        return $this->target_table->custom_columns
-        ->filter(function ($item) use ($index_enabled_only) {
-            return !$index_enabled_only || $item->indexEnabled();
-        })->mapWithKeys(function ($item) use ($table_id, $table_name) {
-            return [$table_id . '-' . $item['id'] => $table_name . ' : ' . $item['column_view_name']];
-        })->all();
+        return $this->target_table;
     }
 
     public function value()

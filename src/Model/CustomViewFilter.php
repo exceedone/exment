@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Carbon\Carbon;
 
 class CustomViewFilter extends ModelBase
 {
@@ -174,6 +175,8 @@ class CustomViewFilter extends ModelBase
                 break;
                 
             // date and X days before or after
+            case ViewColumnFilterOption::DAY_TODAY_OR_AFTER:
+            case ViewColumnFilterOption::DAY_TODAY_OR_BEFORE:
             case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
             case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
             case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
@@ -181,6 +184,10 @@ class CustomViewFilter extends ModelBase
                 $today = Carbon::today();
                 // get target day and where mark
                 switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::DAY_TODAY_OR_AFTER:
+                        $target_day = $today;
+                        $mark = ">=";
+                        break;
                     case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
                         $target_day = $today->addDay(-1 * intval($condition_value_text));
                         $mark = ">=";
@@ -188,6 +195,10 @@ class CustomViewFilter extends ModelBase
                     case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
                         $target_day = $today->addDay(intval($condition_value_text));
                         $mark = ">=";
+                        break;
+                    case ViewColumnFilterOption::DAY_TODAY_OR_BEFORE:
+                        $target_day = $today;
+                        $mark = "<=";
                         break;
                     case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
                         $target_day = $today->addDay(-1 * intval($condition_value_text));

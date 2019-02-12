@@ -620,52 +620,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = [];
         
-        ///// get system columns
-        foreach (SystemColumn::getOptions(['header' => true]) as $option) {
-            $options[$this->getOptionKey(array_get($option, 'name'), $append_table)] = exmtrans('common.'.array_get($option, 'name'));
-        }
-
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->first();
-        ///// if this table is child relation(1:n), add parent table
-        if (isset($relation)) {
-            $options[$this->getOptionKey('parent_id', $append_table)] = array_get($relation, 'parent_custom_table.table_view_name');
-        }
-
-        ///// get table columns
-        $custom_columns = $this->custom_columns;
-        foreach ($custom_columns as $custom_column) {
-            // if $index_enabled_only = true and options.index_enabled_only is false, continue
-            if ($index_enabled_only && !$custom_column->indexEnabled()) {
-                continue;
-            }
-            $options[$this->getOptionKey(array_get($custom_column, 'id'), $append_table)] = array_get($custom_column, 'column_view_name');
-        }
-        ///// get system columns
-        foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
-            $options[$this->getOptionKey(array_get($option, 'name'), $append_table)] = exmtrans('common.'.array_get($option, 'name'));
-        }
+        $this->setColumnOptions($options, $this->custom_columns, $index_enabled_only, true, true, $this->id);
 
         if ($include_parent) {
             ///// get child table columns
             $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
                 $parent = array_get($rel, 'parent_custom_table');
-                $parent_id = array_get($rel, 'parent_custom_table_id');
+                $parent_id = $append_table? array_get($rel, 'parent_custom_table_id'): null;
                 $tablename = array_get($parent, 'table_view_name');
-                $parent_columns = $parent->custom_columns;
-                foreach ($parent_columns as $parent_column) {
-                    // if $index_enabled_only = true and options.index_enabled_only is false, continue
-                    if ($index_enabled_only && !$parent_column->indexEnabled()) {
-                        continue;
-                    }
-                    $options[$this->getOptionKey(array_get($parent_column, 'id'), $append_table, $parent_id)] 
-                        = $tablename . ' : ' . array_get($parent_column, 'column_view_name');
-                }
+                $this->setColumnOptions($options, $parent->custom_columns, 
+                    $index_enabled_only, true, true, $parent_id, $tablename);
             }
             ///// get select table columns
             $select_table_columns = $this->getSelectTableColumns();
-            foreach ($select_table_columns as $column_key => $select_table_column) {
-                $options += $select_table_column->column_item->selectTableColumnList($index_enabled_only);
+            foreach ($select_table_columns as $select_table_column) {
+                $custom_table = $select_table_column->column_item->getSelectTable();
+                $tablename = array_get($custom_table, 'table_view_name');
+                $table_id = $append_table? $custom_table->id: null;
+                $this->setColumnOptions($options, $custom_table->custom_columns, 
+                    $index_enabled_only, true, true, $table_id, $tablename);
             }
         }
         if ($include_child) {
@@ -673,35 +647,73 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
                 $child = array_get($rel, 'child_custom_table');
-                $child_id = array_get($rel, 'child_custom_table_id');
+                $child_id = $append_table? array_get($rel, 'child_custom_table_id'): null;
                 $tablename = array_get($child, 'table_view_name');
-                $child_columns = $child->custom_columns;
-                foreach ($child_columns as $child_column) {
-                    // if $index_enabled_only = true and options.index_enabled_only is false, continue
-                    if ($index_enabled_only && !$child_column->indexEnabled()) {
-                        continue;
-                    }
-                    $options[$this->getOptionKey(array_get($child_column, 'id'), $append_table, $child_id)] 
-                        = $tablename . ' : ' . array_get($child_column, 'column_view_name');
-                }
+                $this->setColumnOptions($options, $child->custom_columns, 
+                    $index_enabled_only, true, false, $child_id, $tablename);
             }
             ///// get selected table columns
             $selected_table_columns = $this->getSelectedTableColumns();
             foreach ($selected_table_columns as $selected_table_column) {
                 $custom_table = $selected_table_column->custom_table;
                 $tablename = array_get($custom_table, 'table_view_name');
-                foreach ($custom_table->custom_columns as $custom_column) {
-                    // if $index_enabled_only = true and options.index_enabled_only is false, continue
-                    if ($index_enabled_only && !$custom_column->indexEnabled()) {
-                        continue;
-                    }
-                    $options[$this->getOptionKey(array_get($custom_column, 'id'), $append_table, $custom_table->id)] 
-                        = $tablename . ' : ' . array_get($custom_column, 'column_view_name');
-                }
+                $table_id = $append_table? $custom_table->id: null;
+                $this->setColumnOptions($options, $custom_table->custom_columns, 
+                    $index_enabled_only, true, true, $table_id, $tablename);
             }
         }
     
         return $options;
+    }
+    protected function setColumnOptions(&$options, $custom_columns, $index_enabled_only, 
+        $include_system, $include_parent, $table_id, $table_name = null) 
+    {
+        if ($include_system) {
+            /// get system columns
+            foreach (SystemColumn::getOptions(['header' => true]) as $option) {
+                $key = $table_id . '-' . array_get($option, 'name');
+                $value = exmtrans('common.'.array_get($option, 'name'));
+                if (isset($table_name)) {
+                    $value = $table_name . ' : ' . $value;
+                }
+                $options[$key] = $value;
+            }
+        }
+        if ($include_parent) {
+            $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
+            ///// if this table is child relation(1:n), add parent table
+            if (isset($relation)) {
+                $key = $table_id . '-parent_id';
+                $value = array_get($relation, 'parent_custom_table.table_view_name');
+                if (isset($table_name)) {
+                    $value = $table_name . ' : ' . $value;
+                }
+                $options[$key] = $value;
+            }
+        }
+        foreach ($custom_columns as $custom_column) {
+            // if $index_enabled_only = true and options.index_enabled_only is false, continue
+            if ($index_enabled_only && !$custom_column->indexEnabled()) {
+                continue;
+            }
+            $key = $table_id . '-' . array_get($custom_column, 'id');
+            $value = array_get($custom_column, 'column_view_name');
+            if (isset($table_name)) {
+                $value = $table_name . ' : ' . $value;
+            }
+            $options[$key] = $value;
+        }
+        if ($include_system) {
+            ///// get system columns
+            foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
+                $key = $table_id . '-' . array_get($option, 'name');
+                $value = exmtrans('common.'.array_get($option, 'name'));
+                if (isset($table_name)) {
+                    $value = $table_name . ' : ' . $value;
+                }
+                $options[$key] = $value;
+            }
+        }
     }
     protected function getOptionKey($key, $append_table = true, $table_name = null) {
         if ($append_table) {

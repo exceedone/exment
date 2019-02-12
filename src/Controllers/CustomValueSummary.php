@@ -81,12 +81,7 @@ trait CustomValueSummary
 
         // set filter columns
         foreach ($view->custom_view_filters as $custom_view_filter) {
-            if ($custom_view_filter->view_column_type == ViewColumnType::COLUMN) {
-                $column = $custom_view_filter->custom_column;
-                $target_table_id = array_get($column, 'custom_table_id');
-            } else {
-                $target_table_id = $custom_table_id;
-            }
+            $target_table_id = array_get($custom_view_filter, 'view_column_table_id');
 
             if (array_key_exists($target_table_id, $custom_tables)) {
                 $custom_tables[$target_table_id]['filter'][] = $custom_view_filter;
@@ -153,7 +148,7 @@ trait CustomValueSummary
 
         // join subquery
         foreach($sub_queries as $table_no => $sub_query) {
-            $query->join(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $query->mergeBindings($sub_query);
         }
         // set sql grouping columns

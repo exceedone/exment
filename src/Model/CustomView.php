@@ -14,7 +14,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
-use Carbon\Carbon;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -310,8 +309,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // set filter columns
         foreach ($this->custom_view_filters as $custom_view_filter) {
-            $column = $custom_view_filter->custom_column;
-            $custom_table_id = array_get($column, 'custom_table_id');
+            $custom_table_id = array_get($custom_view_filter, 'view_column_table_id');
 
             if (array_key_exists($custom_table_id, $custom_tables)) {
                 $custom_tables[$custom_table_id]['filter'][] = $custom_view_filter;
@@ -379,7 +377,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // join subquery
         foreach($sub_queries as $table_no => $sub_query) {
-            $model = $model->join(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            $model = $model->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $model = $model->mergeBindings($sub_query);
         }
 

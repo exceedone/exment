@@ -57,6 +57,7 @@ Exment uses the following plug-in service etc.
 + [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
 + [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
 + [TinyMCE](https://www.tiny.cloud/)
++ [Chart.js](https://www.chartjs.org/)
 
 ## Screenshots
 ------------

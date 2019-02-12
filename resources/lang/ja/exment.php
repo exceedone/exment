@@ -560,7 +560,7 @@ return [
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。',
         'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。',
-        'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。',
+        'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※子テーブルのフィルターは、集計列で同じテーブルが選択されている場合のみ反映されます。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。',
 
         'summary_condition_options' => [
             'sum' => '合計',

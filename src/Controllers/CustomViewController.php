@@ -262,6 +262,12 @@ class CustomViewController extends AdminControllerTableBase
             return [];
         }
 
+        if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
+            list($view_column_table_id, $view_column_target) = explode("-", $view_column_target);
+        } else {
+            $view_column_table_id = $this->custom_table->id;
+        }
+
         ///// get column_type
         $column_type = null;
         // if $view_column_target is number, get database_column_type
