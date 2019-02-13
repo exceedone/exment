@@ -18,7 +18,10 @@ class CustomViewColumn extends ModelBase
     
     public function custom_column()
     {
-        return $this->belongsTo(CustomColumn::class, 'view_column_target_id')
-            ->where('view_column_type', ViewColumnType::COLUMN);
+        if($this->view_column_type == ViewColumnType::SYSTEM){
+            return null;
+        }
+        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
+            ;
     }
 }
