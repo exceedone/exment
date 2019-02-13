@@ -141,7 +141,6 @@ class CustomForm extends ModelBase
         static::deleting(function ($model) {
             $model->deletingChildren();
             $model->custom_form_blocks()->delete();
-            $model->custom_form_block_target_tables()->delete();
         });
     }
 }
