@@ -46,6 +46,11 @@ class AlterCustomViewColumns extends Migration
                 WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.view_column_target_id)
                 ELSE (SELECT custom_table_id from custom_views where id = a.custom_view_id)
             END)');
+
+        // drop table name unique index from custom table
+        Schema::table('custom_tables', function (Blueprint $table) {
+            $table->dropUnique(['table_name']);
+        });
     }
 
     /**
@@ -66,6 +71,10 @@ class AlterCustomViewColumns extends Migration
         });
         Schema::table('custom_view_sorts', function (Blueprint $table) {
             $table->dropColumn('view_column_table_id');
+        });
+        // add table name unique index from custom table
+        Schema::table('custom_tables', function (Blueprint $table) {
+            $table->unique(['table_name']);
         });
     }
 }
