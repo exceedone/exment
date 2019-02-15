@@ -26,7 +26,10 @@ class Morph
         // morphMap
         try {
             if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-                $table_names = \DB::table(SystemTableName::CUSTOM_TABLE)->get(['table_name'])->pluck('table_name');
+                $table_names = \DB::table(SystemTableName::CUSTOM_TABLE)
+                    ->whereNull('deleted_at')
+                    ->get(['table_name'])
+                    ->pluck('table_name');
                 $morphMaps = [
                     "roles" => Model\Role::class,
                     "table" => Model\CustomTable::class

@@ -147,6 +147,7 @@ class BackupCommand extends Command
         // write column header
         $file->fputcsv($outcols);
 
+        // execute backup. contains soft deleted table
         \DB::table($table)->orderBy('id')->chunk(100, function ($rows) use ($file, $outcols) {
             foreach ($rows as $row) {
                 $array = (array)$row;
