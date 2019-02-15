@@ -126,7 +126,9 @@ class FormHelper
                     // get DB option value
                     return $select_target_table->getOptions($val, $custom_table);
                 });
-                $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
+                if(isset($select_target_table)){
+                    $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
+                }
                 if (isset($ajax)) {
                     $field->attribute([
                         'data-add-select2' => $column_view_name,
