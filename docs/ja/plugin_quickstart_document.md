@@ -16,7 +16,12 @@
     "description": "ドキュメント出力を行うテストです。",
     "author": "(Your Name)",
     "version": "1.0.0",
-    "plugin_type": "document"
+    "plugin_type": "document",
+    "filename": "見積書_${ymdhms}",
+    "target_tables": "estimate",
+    "label": "見積書出力",
+    "icon": "fa-files-o",
+    "button_class": "btn-success"
 }
 ~~~
 
@@ -25,6 +30,11 @@
 以下のURLなどから、作成を行ってください。  
 https://www.famkruithof.net/uuid/uuidgen
 - plugin_typeは、documentと記入してください。  
+- file_nameは、出力する際のファイル名です。[パラメータ変数](/ja/params)を使用できます。
+- target_tablesは、出力対象となるテーブルです。複数ある場合、カンマ区切りで入力してください。※プラグインの設定画面で後から変更できます。
+- labelは、ドキュメント出力のためのボタンのラベルです。※プラグインの設定画面で後から変更できます。
+- iconは、ドキュメント出力のためのボタンのアイコンです。※プラグインの設定画面で後から変更できます。
+- button_classは、ドキュメント出力のためのボタンのクラスです。※プラグインの設定画面で後から変更できます。
 
 
 ### テンプレートExcelファイル作成
@@ -32,6 +42,44 @@ https://www.famkruithof.net/uuid/uuidgen
 テンプレートファイルはExcel形式(xlsx)です。出力されるファイルも同様に、Excel形式(xlsx)です。  
 ※テンプレートExcelファイルのファイル名は、「document.xlsx」としてください。  
 ※テンプレートファイルのパラメータは、下記の「テンプレートExcelファイルのパラメータ」を参照してください。  
+
+#### パラメータ
+テンプレートのExcelファイルに設定するパラメータです。
+Excelセルに、特定の形式の変数を入力することで、ドキュメント出力時に、システムに登録しているパラメータが出力されます。  
+##### 基本ルール
+- 「**${変数名}**」のルールで、Excelのセルに入力します。  
+例：「${year}」「${month}」「${value:estimate_code}」  
+![パラメータ](img/plugin/plugin_document_params.png)  
+
+- 同一のセルに、複数のパラメータを設定することができます。  
+
+- Excelには、関数を設定しておくことができます。※一部関数は正常に動作しない可能性があります。必ず動作確認を行ってください。  
+
+- 設定できるパラメータ変数は、以下のページをご確認ください。  
+[パラメータ変数](/ja/params)
+
+
+##### 子テーブルデータの一覧出力方法
+ドキュメントの種類によっては、対象データの子テーブル一覧表に、データ出力を行う必要があります。  
+例：見積日や顧客情報を登録する「見積」と、見積する製品の一覧を登録する「見積明細」  
+![子テーブル](img/plugin/plugin_document_children.png)  
+この表に、データ一覧出力を行う方法を記載します。  
+
+- 出力する表の1行目の1列目に、以下のパラメータを設定します。  
+**「${loop:(子テーブルのテーブル名):start}」**  
+例：${loop:estimate_detail:start}  
+![子テーブル_パラメータ1](img/plugin/plugin_document_loop1.png)  
+
+- 出力する表の2行目の、出力したい項目の各列に、以下のパラメータを設定します。  
+**「${loop-item:(子テーブルのテーブル名):(子テーブルの列名)}」**  
+例：${loop-item:estimate_detail:product_detail_name}  
+![子テーブル_パラメータ2](img/plugin/plugin_document_loop2.png)  
+
+- 出力する表の最終行の1列目に、以下のパラメータを設定します。  
+**「${loop:(子テーブルのテーブル名):end}」**  
+例：${loop:estimate_detail:end}  
+![子テーブル_パラメータ3](img/plugin/plugin_document_loop3.png)  
+
 
 ### PHPファイル作成(任意)
 - 以下のようなPHPファイルを作成します。名前は「Plugin.php」としてください。  
@@ -81,45 +129,18 @@ zipファイル名は、「(plugin_name).zip」にしてください。
     - Plugin.php(任意)
     - (その他、必要なPHPファイル、画像ファイルなど)
 
-### テンプレートExcelファイルについて
 
-#### パラメータ
-テンプレートのExcelファイルに設定するパラメータです。
-Excelセルに、特定の形式の変数を入力することで、ドキュメント出力時に、システムに登録しているパラメータが出力されます。  
-##### 基本ルール
-- 「**${変数名}**」のルールで、Excelのセルに入力します。  
-例：「${year}」「${month}」「${value:estimate_code}」  
-![パラメータ](img/plugin/plugin_document_params.png)  
-
-- 同一のセルに、複数のパラメータを設定することができます。  
-
-- Excelには、関数を設定しておくことができます。※一部関数は正常に動作しない可能性があります。必ず動作確認を行ってください。  
-
-- 設定できるパラメータ変数は、以下のページをご確認ください。  
-[パラメータ変数](/ja/params)
+### アップロード
+プラグインをアップロードします。  
+※アップロード方法は、[プラグイン](/ja/plugin)をご参照ください。  
 
 
-##### 子テーブルデータの一覧出力方法
-ドキュメントの種類によっては、対象データの子テーブル一覧表に、データ出力を行う必要があります。  
-例：見積日や顧客情報を登録する「見積」と、見積する製品の一覧を登録する「見積明細」  
-![子テーブル](img/plugin/plugin_document_children.png)  
-この表に、データ一覧出力を行う方法を記載します。  
-
-- 出力する表の1行目の1列目に、以下のパラメータを設定します。  
-**「${loop:(子テーブルのテーブル名):start}」**  
-例：${loop:estimate_detail:start}  
-![子テーブル_パラメータ1](img/plugin/plugin_document_loop1.png)  
-
-- 出力する表の2行目の、出力したい項目の各列に、以下のパラメータを設定します。  
-**「${loop-item:(子テーブルのテーブル名):(子テーブルの列名)}」**  
-例：${loop-item:agreement_detail:product_detail_name}  
-![子テーブル_パラメータ2](img/plugin/plugin_document_loop2.png)  
-
-- 出力する表の最終行の1列目に、以下のパラメータを設定します。  
-**「${loop:(子テーブルのテーブル名):end}」**  
-例：${loop:estimate_detail:end}  
-![子テーブル_パラメータ3](img/plugin/plugin_document_loop3.png)  
-
+### ドキュメント出力実行
+すべての設定を正常に完了した場合、データの表示画面にボタンが表示されます。  
+![ドキュメント出力_ボタン](img/plugin/plugin_document_button.png)  
+  
+ボタンをクリックすることで、「添付ファイル」に一覧が表示されます。  
+![ドキュメント出力_添付ファイル](img/plugin/plugin_document_list.png) 
 
 ### サンプルプラグイン
 準備中...
