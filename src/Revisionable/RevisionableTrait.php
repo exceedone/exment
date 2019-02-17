@@ -54,40 +54,40 @@ trait RevisionableTrait
      * if the current installation is a laravel 4 installation
      * Laravel 5 will call bootRevisionableTrait() automatically
      */
-    public static function boot()
-    {
-        parent::boot();
+    // public static function boot()
+    // {
+    //     parent::boot();
 
-        if (!method_exists(get_called_class(), 'bootTraits')) {
-            static::bootRevisionableTrait();
-        }
-    }
+    //     if (!method_exists(get_called_class(), 'bootTraits')) {
+    //         static::bootRevisionableTrait();
+    //     }
+    // }
 
     /**
      * Create the event listeners for the saving and saved events
      * This lets us save revisions whenever a save is made, no matter the
      * http method.
-     *
+     * * define at custom_value
      */
-    public static function bootRevisionableTrait()
-    {
-        static::saving(function ($model) {
-            $model->preSave();
-        });
+    // public static function bootRevisionableTrait()
+    // {
+    //     static::saving(function ($model) {
+    //         $model->preSave();
+    //     });
 
-        static::saved(function ($model) {
-            $model->postSave();
-        });
+    //     static::saved(function ($model) {
+    //         $model->postSave();
+    //     });
 
-        static::created(function ($model) {
-            $model->postCreate();
-        });
+    //     static::created(function ($model) {
+    //         $model->postCreate();
+    //     });
 
-        static::deleted(function ($model) {
-            $model->preSave();
-            $model->postDelete();
-        });
-    }
+    //     static::deleted(function ($model) {
+    //         $model->preSave();
+    //         $model->postDelete();
+    //     });
+    // }
 
     /**
      * @return mixed
@@ -220,7 +220,6 @@ trait RevisionableTrait
     */
     public function postCreate()
     {
-
         // Check if we should store creations in our revision history
         // Set this value to true in your model if you want to
         if (empty($this->revisionCreationsEnabled)) {

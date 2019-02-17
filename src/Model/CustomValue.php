@@ -100,6 +100,9 @@ class CustomValue extends ModelBase
         static::saving(function ($model) {
             // re-get field data --------------------------------------------------
             $model->prepareValue();
+
+            // prepare revision
+            $model->preSave();
         });
         static::saved(function ($model) {
             // set auto format
@@ -109,14 +112,24 @@ class CustomValue extends ModelBase
         static::created(function ($model) {
             // send notify
             $model->notify(true);
+
+            $model->postCreate();
         });
         static::updated(function ($model) {
             // send notify
             $model->notify(false);
+
+            // set revision
+            $model->postSave();
         });
         
         static::deleting(function ($model) {
             $model->deleteRelationValues();
+        });
+
+        static::deleted(function ($model) {
+            $model->preSave();
+            $model->postDelete();
         });
 
         static::addGlobalScope(new CustomValueModelScope);
@@ -314,79 +327,9 @@ class CustomValue extends ModelBase
     {
         // get format
         $format = array_get($options, "auto_number_format");
-        try {
-            // check string
-            preg_match_all('/'.Define::RULES_REGEX_VALUE_FORMAT.'/', $format, $matches);
-            if (isset($matches)) {
-                // loop for matches. because we want to get inner {}, loop $matches[1].
-                for ($i = 0; $i < count($matches[1]); $i++) {
-                    try {
-                        $match = strtolower($matches[1][$i]);
-                    
-                        // get length
-                        $length_array = explode(":", $match);
-                        
-                        ///// id
-                        if (strpos($match, "id") !== false) {
-                            // replace add zero using id.
-                            if (count($length_array) > 1) {
-                                $id_string = sprintf('%0'.$length_array[1].'d', $id);
-                            } else {
-                                $id_string = $id;
-                            }
-                            $format = str_replace($matches[0][$i], $id_string, $format);
-                        }
 
-                        ///// Year
-                        elseif (strpos($match, "y") !== false) {
-                            $str = Carbon::now()->year;
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-
-                        ///// Month
-                        elseif (strpos($match, "m") !== false) {
-                            $str = Carbon::now()->month;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-                    
-                        ///// Day
-                        elseif (strpos($match, "d") !== false) {
-                            $str = Carbon::now()->day;
-                            // if user input length
-                            if (count($length_array) > 1) {
-                                $length = $length_array[1];
-                            }
-                            // default 2
-                            else {
-                                $length = 2;
-                            }
-                            $format = str_replace($matches[0][$i], sprintf('%0'.$length.'d', $str), $format);
-                        }
-
-                        ///// value
-                        elseif (strpos($match, "value") !== false) {
-                            // get value from model
-                            if (count($length_array) <= 1) {
-                                $str = '';
-                            } else {
-                                $str = $this->getValue($length_array);
-                            }
-                            $format = str_replace($matches[0][$i], $str, $format);
-                        }
-                    } catch (Exception $e) {
-                    }
-                }
-            }
-        } catch (Exception $e) {
-        }
+        // replace text
+        $format = replaceTextFromFormat($format, $this);
         return $format;
     }
 

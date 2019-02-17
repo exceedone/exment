@@ -26,6 +26,10 @@
 
 * 【開発者向け】
   * [関数リファレンス](/ja/func_reference.md)
+  * [パラメータ変数](/ja/params.md)
   * [プラグイン開発方法](/ja/plugin_quickstart.md)
+    * [トリガー](/ja/plugin_quickstart_trigger.md)
+    * [ページ](/ja/plugin_quickstart_page.md)
+    * [ドキュメント](/ja/plugin_quickstart_document.md)
   * [プラグインリファレンス](/ja/plugin_reference.md)
   * [リリースノート](/ja/release_note.md)
