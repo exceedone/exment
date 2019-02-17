@@ -228,18 +228,26 @@ trait RevisionableTrait
         }
 
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)) {
-            $revisions[] = array(
-                'revisionable_type' => $this->getMorphClass(),
-                'revisionable_id' => $this->getKey(),
-                'key' => self::CREATED_AT,
-                'old_value' => null,
-                'new_value' => $this->{self::CREATED_AT},
-                'create_user_id' => $this->getSystemUserId(),
-                // 'created_at' => new \DateTime(),
-                // 'updated_at' => new \DateTime(),
-            );
-            $this->saveData($revisions);
-            \Event::fire('revisionable.created', array('model' => $this, 'revisions' => $revisions));
+
+            $changes_to_record = $this->changedRevisionableFields();
+
+            $revisions = array();
+
+            foreach ($changes_to_record as $key => $change) {
+                $revisions[] = array(
+                    'revisionable_type' => $this->getMorphClass(),
+                    'revisionable_id' => $this->getKey(),
+                    'key' => $key,
+                    'old_value' => array_get($this->originalData, $key),
+                    'new_value' => $this->updatedData[$key],
+                    'create_user_id' => $this->getSystemUserId(),
+                );
+            }
+
+            if (count($revisions) > 0) {
+                $this->saveData($revisions);
+                \Event::fire('revisionable.created', array('model' => $this, 'revisions' => $revisions));
+            }
         }
     }
 
