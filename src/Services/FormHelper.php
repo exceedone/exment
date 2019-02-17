@@ -152,6 +152,9 @@ class FormHelper
                 break;
             case ColumnType::AUTO_NUMBER:
                 $field = new ExmentField\Display($form_column_name, [$column_view_name]);
+                if(!isset($id)){
+                    $field->default(exmtrans('custom_value.auto_number_create'));
+                }
                 break;
             case ColumnType::IMAGE:
                 if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {

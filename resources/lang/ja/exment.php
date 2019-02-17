@@ -783,7 +783,8 @@ return [
             'nonSelectedListLabel' => '候補データ一覧',
             'selectedListLabel' => '選択済データ一覧',
             'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
-        ]
+        ],
+        'auto_number_create' => '(※保存後、値が自動的に登録されます)',
     ],
 
     'notify' => [

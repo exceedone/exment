@@ -777,7 +777,8 @@ return [
             'nonSelectedListLabel' => 'Suggest Data List',
             'selectedListLabel' => 'Selected Data List',
             'help' => 'Please select From the left column and move to the right column.',
-        ]
+        ],
+        'auto_number_create' => '(After saving, this value ​​will be registered automatically)',
     ],
 
     'notify' => [
