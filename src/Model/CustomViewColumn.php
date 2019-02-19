@@ -22,6 +22,5 @@ class CustomViewColumn extends ModelBase
             return null;
         }
         return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
-            ;
     }
 }
