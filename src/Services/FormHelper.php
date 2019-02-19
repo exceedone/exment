@@ -49,9 +49,11 @@ class FormHelper
                 break;
             case ColumnType::TEXTAREA:
                 $field = new Field\Textarea($form_column_name, [$column_view_name]);
+                $field->rows(array_get($options, 'rows', 6));
                 break;
             case ColumnType::EDITOR:
                 $field = new ExmentField\Tinymce($form_column_name, [$column_view_name]);
+                $field->rows(array_get($options, 'rows', 6));
                 break;
             case ColumnType::URL:
                 $field = new Field\Url($form_column_name, [$column_view_name]);
