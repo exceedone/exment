@@ -239,7 +239,7 @@ class BackupCommand extends Command
                     continue;
                 }
                 $filePath = $file->getRealPath();
-                $relativePath = trim(substr($filePath, strlen($this->tempdir)), '\\');
+                $relativePath = substr($filePath, strlen($this->tempdir) + 1);
                 $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
