@@ -268,41 +268,15 @@ class CustomViewController extends AdminControllerTableBase
         if (!isset($view_column_target)) {
             return [];
         }
+        
+        // get column item
+        $column_item = CustomViewFilter::getColumnItem($view_column_target)
+            ->options([
+                'view_column_target' => true,
+            ]);
 
         ///// get column_type
-        $column_type = null;
-        // if $view_column_target is number, get database_column_type
-        if (is_numeric($view_column_target)) {
-            // get column_type
-            $database_column_type = CustomColumn::getEloquent($view_column_target)->column_type;
-            switch ($database_column_type) {
-                case 'date':
-                case 'datetime':
-                    $column_type = ViewColumnFilterType::DAY;
-                    break;
-                case SystemTableName::USER:
-                    $column_type = ViewColumnFilterType::USER;
-                    break;
-                default:
-                    $column_type = ViewColumnFilterType::DEFAULT;
-            }
-        } else {
-            switch ($view_column_target) {
-                case 'id':
-                case 'suuid':
-                case 'parent_id':
-                    $column_type = ViewColumnFilterType::DEFAULT;
-                    break;
-                case 'created_at':
-                case 'updated_at':
-                    $column_type = ViewColumnFilterType::DAY;
-                    break;
-                case 'created_user':
-                case 'updated_user':
-                    $column_type = ViewColumnFilterType::USER;
-                    break;
-            }
-        }
+        $column_type = $column_item->getViewFilterType();
 
         // if null, return []
         if (!isset($column_type)) {
@@ -327,12 +301,10 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // get column item
-        $model = new CustomViewFilter;
-        $model->view_column_target = $view_column_target;
-        $column_item = $model->column_item;
-        $column_item->options([
-            'view_column_target' => true,
-        ]);
+        $column_item = CustomViewFilter::getColumnItem($view_column_target)
+            ->options([
+                'view_column_target' => true,
+            ]);
 
         // create modal form
         $form = new ModalForm();

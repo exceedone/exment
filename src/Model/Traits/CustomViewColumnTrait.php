@@ -89,6 +89,16 @@ trait CustomViewColumnTrait
     }
     
     /**
+     * get column item using view_column_target
+     */
+    public static function getColumnItem($view_column_target)
+    {
+        $model = new self;
+        $model->view_column_target = $view_column_target;
+        return $model->column_item;
+    }
+
+    /**
      * get column name or id.
      * if column_type is string
      */
