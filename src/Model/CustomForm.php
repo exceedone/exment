@@ -90,6 +90,28 @@ class CustomForm extends ModelBase
             $form_block->form_block_target_table_id = $tableObj->id;
             $form_block->available = true;
             $form->custom_form_blocks()->save($form_block);
+            
+            // add columns for index_enabled columns.
+            $form_columns = [];
+            $has_index_columns = $tableObj->getSearchEnabledColumns();
+
+            // get target block as default.
+            $form_block = $form->custom_form_blocks()
+                ->where('form_block_type', FormBlockType::DEFAULT)
+                ->first();
+            // loop for index_enabled columns, and add form.
+            foreach ($has_index_columns as $index => $search_enabled_column) {
+                $form_column = new CustomFormColumn;
+                $form_column->custom_form_block_id = $form_block->id;
+                $form_column->form_column_type = FormColumnType::COLUMN;
+                $form_column->form_column_target_id = array_get($search_enabled_column, 'id');
+                $form_column->order = $index+1;
+                array_push($form_columns, $form_column);
+            }
+            $form_block->custom_form_columns()->saveMany($form_columns);
+            
+            // re-get form
+            $form = static::find($form->id);
         }
 
         return $form;

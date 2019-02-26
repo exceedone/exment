@@ -23,6 +23,8 @@ class AdminControllerTableBase extends AdminControllerBase
         $this->custom_columns = isset($this->custom_table) ? $this->custom_table->custom_columns : null;
 
         getModelName($this->custom_table);
+
+        $this->setFormViewInfo($request);
     }
 
     protected function getModelNameDV()
@@ -83,8 +85,6 @@ class AdminControllerTableBase extends AdminControllerBase
      */
     protected function setFormViewInfo(Request $request)
     {
-        // get admin_user
-        $admin_user = Admin::user();
         // set view
         $this->custom_view = CustomView::getDefault($this->custom_table);
 
