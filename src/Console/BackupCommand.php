@@ -52,6 +52,8 @@ class BackupCommand extends Command
     public function __construct()
     {
         parent::__construct();
+        
+        $this->initExmentCommand();
     }
 
     /**
@@ -233,11 +235,12 @@ class BackupCommand extends Command
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tempdir));
             foreach ($files as $name => $file)
             {
-                if (!$file->isDir()) {
-                    $filePath = $file->getRealPath();
-                    $relativePath = substr($filePath, strlen($this->tempdir));
-                    $zip->addFile($filePath, $relativePath);
+                if ($file->isDir()) {
+                    continue;
                 }
+                $filePath = $file->getRealPath();
+                $relativePath = trim(substr($filePath, strlen($this->tempdir)), '\\');
+                $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
         }

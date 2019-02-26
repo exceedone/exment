@@ -31,6 +31,8 @@ class RestoreCommand extends Command
     public function __construct()
     {
         parent::__construct();
+
+        $this->initExmentCommand();
     }
 
     /**
@@ -100,6 +102,9 @@ class RestoreCommand extends Command
                 deleted_user_id = nullif(deleted_user_id, 0),
                 parent_id = nullif(parent_id, 0)
 __EOT__;
+            $pathname = $file->getPathName();
+            \Log::debug('$pathname:' . $pathname);
+            \Log::debug('addslashes($pathname):' . addslashes($pathname));
             $query = sprintf($cmd, addslashes($file->getPathName()), $table);
             $cnt = \DB::connection()->getpdo()->exec($query);
         }

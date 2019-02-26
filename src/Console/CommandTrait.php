@@ -4,15 +4,8 @@ namespace Exceedone\Exment\Console;
 use Exceedone\Exment\Middleware;
 
 trait CommandTrait
-{   /**
-     * Execute the console command.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
+{   
+    protected function initExmentCommand(){
         Middleware\Morph::defineMorphMap();
         Middleware\Initialize::initializeConfig(false);
     }
