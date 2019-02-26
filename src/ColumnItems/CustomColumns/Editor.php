@@ -19,4 +19,10 @@ class Editor extends CustomItem
     {
         return Field\Tinymce::class;
     }
+    
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
+        $options = $this->custom_column->options;
+        $field->rows(array_get($options, 'rows', 6));
+    }
 }

@@ -100,7 +100,7 @@ class SelectTable extends CustomItem
             // get DB option value
             return $this->target_table->getOptions($value, $this->custom_column->custom_table);
         });
-        $ajax = $this->target_table->getOptionAjaxUrl() ?? null;
+        $ajax = $this->target_table ? $this->target_table->getOptionAjaxUrl() : null;
         if (isset($ajax)) {
             $field->attribute([
                 'data-add-select2' => $this->label(),
