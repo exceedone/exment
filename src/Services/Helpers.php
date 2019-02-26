@@ -749,14 +749,25 @@ if (!function_exists('replaceTextFromFormat')) {
                             'ym' => 'Ym',
                             'hms' => 'His',
                             'hm' => 'Hi',
+
+                            'ymdhis' => 'YmdHis',
+                            'ymdhi' => 'YmdHi',
+                            'his' => 'His',
+                            'hi' => 'Hi',
                         ];
                         $dateValues = [
-                            'year',
-                            'month',
-                            'day',
-                            'hour',
-                            'monute',
-                            'second',
+                            'year' => 'year',
+                            'month' => 'month',
+                            'day' => 'day',
+                            'hour' => 'hour',
+                            'minute' => 'minute',
+                            'second' => 'second',
+                            'y' => 'year',
+                            'm' => 'month',
+                            'd' => 'day',
+                            'h' => 'hour',
+                            'i' => 'minute',
+                            's' => 'second',
                         ];
 
                         $callbacked = false;
@@ -770,8 +781,8 @@ if (!function_exists('replaceTextFromFormat')) {
                             }
                         }
 
-                        ///// id
                         if (!$callbacked) {
+                            ///// System value
                             if (in_array($key, $systemValues)) {
                                 if (!isset($custom_value)) {
                                     $str = '';
@@ -894,9 +905,9 @@ if (!function_exists('replaceTextFromFormat')) {
                             elseif (array_key_exists($key, $dateStrings)) {
                                 $str = Carbon::now()->format($dateStrings[$key]);
                             }
-                            // if has $datestrings, conbert using date value
-                            elseif (in_array($key, $dateValues)) {
-                                $str = Carbon::now()->{$key};
+                            // if has $dateValues, conbert using date value
+                            elseif (array_key_exists($key, $dateValues)) {
+                                $str = Carbon::now()->{$dateValues[$key]};
                                 // if user input length
                                 if (count($length_array) > 1) {
                                     $length = $length_array[1];

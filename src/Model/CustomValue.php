@@ -97,6 +97,9 @@ class CustomValue extends ModelBase
         static::saving(function ($model) {
             // re-get field data --------------------------------------------------
             $model->prepareValue();
+
+            // prepare revision
+            $model->preSave();
         });
         static::saved(function ($model) {
             $model->savedValue();
@@ -105,14 +108,24 @@ class CustomValue extends ModelBase
         static::created(function ($model) {
             // send notify
             $model->notify(true);
+
+            $model->postCreate();
         });
         static::updated(function ($model) {
             // send notify
             $model->notify(false);
+
+            // set revision
+            $model->postSave();
         });
         
         static::deleting(function ($model) {
             $model->deleteRelationValues();
+        });
+
+        static::deleted(function ($model) {
+            $model->preSave();
+            $model->postDelete();
         });
 
         static::addGlobalScope(new CustomValueModelScope);
