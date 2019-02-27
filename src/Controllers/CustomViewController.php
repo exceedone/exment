@@ -210,8 +210,10 @@ class CustomViewController extends AdminControllerTableBase
                     }
                     return [];
                 });
-            $form->changeField('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
-                ->ajax(admin_base_paths('view', $this->custom_table->table_name, 'filterDialog'));
+            // $form->changeField('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
+            //     ->ajax(admin_base_paths('view', $this->custom_table->table_name, 'filterDialog'));
+            $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
+                ;
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_view.description_custom_view_filters"));
 
