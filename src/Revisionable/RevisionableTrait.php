@@ -54,40 +54,40 @@ trait RevisionableTrait
      * if the current installation is a laravel 4 installation
      * Laravel 5 will call bootRevisionableTrait() automatically
      */
-    public static function boot()
-    {
-        parent::boot();
+    // public static function boot()
+    // {
+    //     parent::boot();
 
-        if (!method_exists(get_called_class(), 'bootTraits')) {
-            static::bootRevisionableTrait();
-        }
-    }
+    //     if (!method_exists(get_called_class(), 'bootTraits')) {
+    //         static::bootRevisionableTrait();
+    //     }
+    // }
 
     /**
      * Create the event listeners for the saving and saved events
      * This lets us save revisions whenever a save is made, no matter the
      * http method.
-     *
+     * * define at custom_value
      */
-    public static function bootRevisionableTrait()
-    {
-        static::saving(function ($model) {
-            $model->preSave();
-        });
+    // public static function bootRevisionableTrait()
+    // {
+    //     static::saving(function ($model) {
+    //         $model->preSave();
+    //     });
 
-        static::saved(function ($model) {
-            $model->postSave();
-        });
+    //     static::saved(function ($model) {
+    //         $model->postSave();
+    //     });
 
-        static::created(function ($model) {
-            $model->postCreate();
-        });
+    //     static::created(function ($model) {
+    //         $model->postCreate();
+    //     });
 
-        static::deleted(function ($model) {
-            $model->preSave();
-            $model->postDelete();
-        });
-    }
+    //     static::deleted(function ($model) {
+    //         $model->preSave();
+    //         $model->postDelete();
+    //     });
+    // }
 
     /**
      * @return mixed
@@ -220,7 +220,6 @@ trait RevisionableTrait
     */
     public function postCreate()
     {
-
         // Check if we should store creations in our revision history
         // Set this value to true in your model if you want to
         if (empty($this->revisionCreationsEnabled)) {
@@ -229,18 +228,26 @@ trait RevisionableTrait
         }
 
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)) {
-            $revisions[] = array(
-                'revisionable_type' => $this->getMorphClass(),
-                'revisionable_id' => $this->getKey(),
-                'key' => self::CREATED_AT,
-                'old_value' => null,
-                'new_value' => $this->{self::CREATED_AT},
-                'create_user_id' => $this->getSystemUserId(),
-                // 'created_at' => new \DateTime(),
-                // 'updated_at' => new \DateTime(),
-            );
-            $this->saveData($revisions);
-            \Event::fire('revisionable.created', array('model' => $this, 'revisions' => $revisions));
+
+            $changes_to_record = $this->changedRevisionableFields();
+
+            $revisions = array();
+
+            foreach ($changes_to_record as $key => $change) {
+                $revisions[] = array(
+                    'revisionable_type' => $this->getMorphClass(),
+                    'revisionable_id' => $this->getKey(),
+                    'key' => $key,
+                    'old_value' => array_get($this->originalData, $key),
+                    'new_value' => $this->updatedData[$key],
+                    'create_user_id' => $this->getSystemUserId(),
+                );
+            }
+
+            if (count($revisions) > 0) {
+                $this->saveData($revisions);
+                \Event::fire('revisionable.created', array('model' => $this, 'revisions' => $revisions));
+            }
         }
     }
 

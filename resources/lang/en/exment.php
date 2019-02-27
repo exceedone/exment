@@ -361,6 +361,7 @@ return [
             'placeholder' => 'PlaceHolder',
             'help' => 'Help',
             'string_length' => 'Max Length',
+            'rows' => 'Rows',
             'available_characters' => 'Available Characters',
             'number_min' => 'Min Number',
             'number_max' => 'Max Number',
@@ -418,6 +419,7 @@ return [
             'help' => 'Help string displayed below the field.',
             'use_label_flg' => 'When this data is selected, it is a column of wording displayed on the screen. When multiple columns are registered, only one column is reflected.',
             'number_format' => 'By turning YES, the text field will be displayed as a comma value.',
+            'rows' => 'Set input form height.',
             'updown_button' => 'By turning YES, Add "+" and "-" buttons.',
             'select_item' => 'Enter choices by line break separator.',
             'select_item_valtext' => 'Enter choices by line break separator. The word before the comma is the value, the word after the comma is the label.<br/>Ex：「1,Adult<br/>2,Underage」→"1" is the value saving data. "Adult" is the label user selected.',
@@ -777,7 +779,8 @@ return [
             'nonSelectedListLabel' => 'Suggest Data List',
             'selectedListLabel' => 'Selected Data List',
             'help' => 'Please select From the left column and move to the right column.',
-        ]
+        ],
+        'auto_number_create' => '(After saving, this value ​​will be registered automatically)',
     ],
 
     'notify' => [

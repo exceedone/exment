@@ -66,7 +66,7 @@
                         <a href="javascript:void(0);" data-id="{{$file['file_key']}}" class="grid-row-delete">
                             <i class="fa fa-trash"></i>
                         </a>
-                        <a href="/admin/backup/download/{{$file['file_key']}}" target="_blank">
+                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" target="_blank">
                             <i class="fa fa-download"></i>
                         </a>
                     </td>
@@ -92,7 +92,7 @@
                     return new Promise(function(resolve) {
                         $.ajax({
                             method: 'post',
-                            url: '/admin/backup/delete',
+                            url: '{{admin_url("backup/delete")}}',
                             data: {
                                 _method:'delete',
                                 _token:'{{ csrf_token() }}',
@@ -129,7 +129,7 @@
                     return new Promise(function(resolve) {
                         $.ajax({
                             method: 'post',
-                            url: '/admin/backup/restore',
+                            url: '{{admin_url("backup/restore")}}',
                             data: {
                                 _method:'post',
                                 _token:'{{ csrf_token() }}',
@@ -199,7 +199,7 @@
                     return new Promise(function(resolve) {
                         $.ajax({
                             method: 'post',
-                            url: '/admin/backup/save',
+                            url: '{{admin_url("backup/save")}}',
                             data: {
                                 _method:'post',
                                 _token:'{{ csrf_token() }}',

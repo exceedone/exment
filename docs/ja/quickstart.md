@@ -42,9 +42,6 @@ MAIL_ENCRYPTION=null #ssl使用の場合"ssl"と記入
 
 # 以下、特定の場合に追加
 ADMIN_HTTPS=true #https通信の場合に追加
-EXMENT_LOGIN_PROVIDERS=graph,google #SSOログインを実施する場合に追加。プロバイダをカンマ区切りで記入
-EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER=false #SSOログインを実施する場合で、通常のログインフォームを表示しない場合に追加
-EXMENT_API=true #外部APIを使用する場合にtrueに追加
 
 ~~~
 

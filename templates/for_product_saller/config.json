@@ -11,6 +11,7 @@
                 "icon": "fa-user",
                 "color": null,
                 "one_record_flg": "0",
+                "revision_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -45,6 +46,7 @@
             "options": {
                 "icon": "fa-building",
                 "color": null,
+                "revision_flg": "1",
                 "one_record_flg": "0",
                 "search_enabled": "1"
             },
@@ -80,6 +82,7 @@
             "options": {
                 "icon": "fa-shopping-bag",
                 "color": null,
+                "revision_flg": "1",
                 "one_record_flg": "0",
                 "search_enabled": "1"
             },
@@ -115,6 +118,7 @@
             "options": {
                 "icon": "fa-shopping-bag",
                 "color": null,
+                "revision_flg": "1",
                 "one_record_flg": "0",
                 "search_enabled": "1"
             },
@@ -157,6 +161,7 @@
             "options": {
                 "icon": "fa-file-text",
                 "color": null,
+                "revision_flg": "1",
                 "one_record_flg": "0",
                 "search_enabled": "1"
             },
@@ -304,6 +309,7 @@
             "options": {
                 "icon": "fa-file-text-o",
                 "color": null,
+                "revision_flg": "1",
                 "one_record_flg": "0",
                 "search_enabled": "1"
             },

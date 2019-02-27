@@ -90,10 +90,8 @@ class CustomForm extends ModelBase
             $form_block->form_block_target_table_id = $tableObj->id;
             $form_block->available = true;
             $form->custom_form_blocks()->save($form_block);
-        }
-
-        // if target form doesn't have columns, add columns for index_enabled columns.
-        if (!isset($form->custom_form_columns) || count($form->custom_form_columns) == 0) {
+            
+            // add columns for index_enabled columns.
             $form_columns = [];
             $has_index_columns = $tableObj->getSearchEnabledColumns();
 

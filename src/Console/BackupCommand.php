@@ -52,6 +52,8 @@ class BackupCommand extends Command
     public function __construct()
     {
         parent::__construct();
+        
+        $this->initExmentCommand();
     }
 
     /**
@@ -147,6 +149,7 @@ class BackupCommand extends Command
         // write column header
         $file->fputcsv($outcols);
 
+        // execute backup. contains soft deleted table
         \DB::table($table)->orderBy('id')->chunk(100, function ($rows) use ($file, $outcols) {
             foreach ($rows as $row) {
                 $array = (array)$row;
@@ -232,11 +235,12 @@ class BackupCommand extends Command
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tempdir));
             foreach ($files as $name => $file)
             {
-                if (!$file->isDir()) {
-                    $filePath = $file->getRealPath();
-                    $relativePath = substr($filePath, strlen($this->tempdir));
-                    $zip->addFile($filePath, $relativePath);
+                if ($file->isDir()) {
+                    continue;
                 }
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($this->tempdir) + 1);
+                $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
         }

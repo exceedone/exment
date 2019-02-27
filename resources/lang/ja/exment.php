@@ -297,7 +297,7 @@ return [
     'change_page_menu' =>[
         'change_page_label' => 'ページ移動',
         'custom_table' => 'テーブル設定',
-        'custom_column' => '列の詳細設定',
+        'custom_column' => 'カスタム列設定',
         'custom_view' => 'ビュー設定',
         'custom_form' => 'フォーム設定',
         'custom_relation' => '関連テーブル設定',
@@ -352,8 +352,8 @@ return [
     ],
     
     'custom_column' => [
-        'header' => 'カスタム列詳細設定',
-        'description' => 'カスタム列ごとの詳細設定を行います。列の必須項目、検索可能フィールドなどを定義します。',
+        'header' => 'カスタム列設定',
+        'description' => 'カスタム列ごとの設定を行います。列の必須項目、検索可能フィールドなどを定義します。',
         'column_name' => '列名(英数字)',
         'column_view_name' => '列表示名',
         'column_type' => '列種類',
@@ -367,6 +367,7 @@ return [
             'placeholder' => 'プレースホルダー',
             'help' => 'ヘルプ',
             'string_length' => '最大文字数',
+            'rows' => '高さ',
             'available_characters' => '使用可能文字',
             'number_min' => '最小値',
             'number_max' => '最大値',
@@ -424,6 +425,7 @@ return [
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'use_label_flg' => 'データを選択時、画面に表示する文言の列です。1以上を値を入力した場合、1から順に見出しの項目として表示します。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
+            'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',
             'select_item' => '改行区切りで選択肢を入力してください。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
@@ -783,7 +785,8 @@ return [
             'nonSelectedListLabel' => '候補データ一覧',
             'selectedListLabel' => '選択済データ一覧',
             'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
-        ]
+        ],
+        'auto_number_create' => '(※保存後、値が自動的に登録されます)',
     ],
 
     'notify' => [

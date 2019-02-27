@@ -31,6 +31,18 @@ class InstallCommand extends AdminInstallCommand
     protected $directory = '';
 
     /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
+
+    /**
      * Execute the console command.
      *
      * @return void

@@ -49,9 +49,11 @@ class FormHelper
                 break;
             case ColumnType::TEXTAREA:
                 $field = new Field\Textarea($form_column_name, [$column_view_name]);
+                $field->rows(array_get($options, 'rows', 6));
                 break;
             case ColumnType::EDITOR:
                 $field = new ExmentField\Tinymce($form_column_name, [$column_view_name]);
+                $field->rows(array_get($options, 'rows', 6));
                 break;
             case ColumnType::URL:
                 $field = new Field\Url($form_column_name, [$column_view_name]);
@@ -126,7 +128,9 @@ class FormHelper
                     // get DB option value
                     return $select_target_table->getOptions($val, $custom_table);
                 });
-                $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
+                if(isset($select_target_table)){
+                    $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
+                }
                 if (isset($ajax)) {
                     $field->attribute([
                         'data-add-select2' => $column_view_name,
@@ -150,13 +154,12 @@ class FormHelper
                 break;
             case ColumnType::AUTO_NUMBER:
                 $field = new ExmentField\Display($form_column_name, [$column_view_name]);
+                if(!isset($id)){
+                    $field->default(exmtrans('custom_value.auto_number_create'));
+                }
                 break;
             case ColumnType::IMAGE:
-                if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                    $field = new Field\MultipleImage($form_column_name, [$column_view_name]);
-                } else {
-                    $field = new Field\Image($form_column_name, [$column_view_name]);
-                }
+                $field = new Field\Image($form_column_name, [$column_view_name]);
                 // set file options
                 $field->options(
                     static::getFileOptions($custom_table, $column, $id)
@@ -170,11 +173,7 @@ class FormHelper
                 });
                 break;
             case ColumnType::FILE:
-                if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                    $field = new Field\MultipleFile($form_column_name, [$column_view_name]);
-                } else {
-                    $field = new Field\File($form_column_name, [$column_view_name]);
-                }
+                $field = new Field\File($form_column_name, [$column_view_name]);
                 // set file options
                 $field->options(
                     array_merge(
