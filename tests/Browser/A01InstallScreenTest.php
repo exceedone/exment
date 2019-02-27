@@ -2,9 +2,10 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentDuskTestCase;
+use Exceedone\Exment\Tests\ExmentKitTestCase;
+use Exceedone\Exment\Model\System;
 
-class A01InstallScreenTest extends ExmentDuskTestCase
+class A01InstallScreenTest extends ExmentKitTestCase
 {
     //AutoTest_Install_01 : only setting
     //AutoTest_Install_02
@@ -15,8 +16,8 @@ class A01InstallScreenTest extends ExmentDuskTestCase
         //         ->assertPathIs('/admin/initialize');
         // });
 
-        $this->get('/admin')
-            ->assertRedirect('/admin/initialize');
+        $this->visit('/admin')
+            ->seePageIs('/admin/initialize');
     }
 
     //AutoTest_Install_03
@@ -27,8 +28,8 @@ class A01InstallScreenTest extends ExmentDuskTestCase
         //         ->assertPathIs('/admin/initialize');
         // });
     
-        $this->get('/admin/initialize')
-            ->assertSuccessful();
+        $this->visit('/admin/initialize')
+            ->seePageIs('/admin/initialize');
     }
 
     //AutoTest_Install_04
@@ -68,27 +69,28 @@ class A01InstallScreenTest extends ExmentDuskTestCase
             'password' => 'test123456',
             'password_confirmation' => 'test123456',
         ];
+        // Initialize exment
+        $this->visit('/admin/initialize')
+                ->submitForm('送信', $data)
+                ->seePageIs('/admin')
+                ;
         
-        $response = $this->post('/admin/initialize', $data)
-            ->assertRedirect('/admin')
-            ;
-
-        $this->browse(function ($browser) {
-            $browser
+        $this->visit('/admin/auth/logout')
                 ->visit('/admin/auth/login')
-                ->resize(1200, 800)
-                ->type('username', 'testuser')
-                ->type('password', 'test123456')
-                ->press('Login')
-                ->pause(2000)
-                ->assertSee('Auto Test')
-                ->assertDontSee('AT')
-                ->click('.sidebar-toggle')
-                ->pause(2000)
-                ->assertSee('AT')
-                ->assertTitle('Auto Test | Dashboard')
-                ->assertSee('Dashboard');
-        });
+                ->type('testuser', 'username')
+                ->type('test123456', 'password')
+                ->press('ログイン')
+                ->seePageIs('/admin')
+                ->see('Auto Test')
+                ->see('AT')
+                ->see('Auto Test  | ダッシュボード')
+                ->see('ダッシュボード')
+                ->see('メニュー')
+                ->see('HOME')
+                ->see('マスター管理')
+                ->see('管理者設定')
+                ->see('testuser')
+        ;
         
     }
 
