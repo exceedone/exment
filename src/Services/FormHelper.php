@@ -159,11 +159,7 @@ class FormHelper
                 }
                 break;
             case ColumnType::IMAGE:
-                if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                    $field = new Field\MultipleImage($form_column_name, [$column_view_name]);
-                } else {
-                    $field = new Field\Image($form_column_name, [$column_view_name]);
-                }
+                $field = new Field\Image($form_column_name, [$column_view_name]);
                 // set file options
                 $field->options(
                     static::getFileOptions($custom_table, $column, $id)
@@ -177,11 +173,7 @@ class FormHelper
                 });
                 break;
             case ColumnType::FILE:
-                if (isset($options) && boolval(array_get($options, 'multiple_enabled'))) {
-                    $field = new Field\MultipleFile($form_column_name, [$column_view_name]);
-                } else {
-                    $field = new Field\File($form_column_name, [$column_view_name]);
-                }
+                $field = new Field\File($form_column_name, [$column_view_name]);
                 // set file options
                 $field->options(
                     array_merge(
