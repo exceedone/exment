@@ -51,18 +51,18 @@ class ModalForm extends WidgetForm
                     // contentType is false
                     contentType: false
                 }).done(function( res ) {
+                    Exment.CommonEvent.CallbackExmentAjax(res);
                 }).fail(function( res, textStatus, errorThrown ) {
-                }).always(function(res){
                     // reomve class and prop
                     button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
                     // show toastr
-                    if(hasValue(res.toastr)){
-                        toastr.error(res.toastr);
+                    if(hasValue(res.responseJSON.toastr)){
+                        toastr.error(res.responseJSON.toastr);
                     }
                     // show error message
-                    if(hasValue(res.errors)){
-                        for(key in res.errors){
-                            var error = res.errors[key];
+                    if(hasValue(res.responseJSON.errors)){
+                        for(key in res.responseJSON.errors){
+                            var error = res.responseJSON.errors[key];
                             var target = $('.' + key);
                             var parent = target.closest('.form-group').addClass('has-error');
                             // add message
@@ -87,9 +87,8 @@ class ModalForm extends WidgetForm
                                 }));
                             }
                         }
-                    }else{
-                        Exment.CommonEvent.CallbackExmentAjax(res);
                     }
+                }).always(function(res){
                 });
 
                 return false;
