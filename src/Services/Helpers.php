@@ -837,6 +837,19 @@ if (!function_exists('replaceTextFromFormat')) {
                                     }
                                 }
                             }
+                            ///// parent
+                            elseif ($key == 'parent') {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+                                // get value from model
+                                elseif (count($length_array) <= 1) {
+                                    $str = $custom_value->getParentValue(true);
+                                } else {
+                                    $parentModel = $custom_value->getParentValue(false);
+                                    $str = $parentModel->getValue($length_array[1], true, $matchOptions) ?? '';
+                                }
+                            }
                             // suuid
                             elseif ($key == "suuid") {
                                 $str = short_uuid();
