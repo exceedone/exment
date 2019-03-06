@@ -1,7 +1,7 @@
 * [Home](/)
 * 【For System Administrator】
   * [Quick Start](quickstart.md)
-  * [Install](install.md)
+  * [First Setting](first_setting.md)
   * [Base Info](base_info.md)
   * [Custom Table](table.md)
   * [Custom Column](column.md)

@@ -6,7 +6,7 @@
   * [アップデート](/ja/update.md)
 
 * 【管理者向け】
-  * [インストール](/ja/install.md)
+  * [初期設定](/ja/first_setting.md)
   * [基本情報](/ja/base_info.md)
   * [カスタムテーブル](/ja/table.md)
   * [カスタム列](/ja/column.md)
