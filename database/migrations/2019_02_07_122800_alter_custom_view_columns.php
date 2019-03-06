@@ -51,6 +51,13 @@ class AlterCustomViewColumns extends Migration
         Schema::table('custom_tables', function (Blueprint $table) {
             $table->dropUnique(['table_name']);
         });
+        // add order column to custom_tables and custom_columns
+        Schema::table('custom_tables', function (Blueprint $table) {
+            $table->integer('order')->after('showlist_flg')->default(0);
+        });
+        Schema::table('custom_columns', function (Blueprint $table) {
+            $table->integer('order')->after('system_flg')->default(0);
+        });
     }
 
     /**
@@ -75,6 +82,13 @@ class AlterCustomViewColumns extends Migration
         // add table name unique index from custom table
         Schema::table('custom_tables', function (Blueprint $table) {
             $table->unique(['table_name']);
+        });
+        // drop order column to custom_tables and custom_columns
+        Schema::table('custom_tables', function (Blueprint $table) {
+            $table->dropColumn('order');
+        });
+        Schema::table('custom_columns', function (Blueprint $table) {
+            $table->dropColumn('order');
         });
     }
 }

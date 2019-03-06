@@ -39,7 +39,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public function allNodes() : array
     {
         $orderColumn = DB::getQueryGrammar()->wrap($this->orderColumn);
-        $byOrder = $orderColumn.' = 0,'.$orderColumn;
+        $byOrder = "m.$orderColumn = 0, m.$orderColumn";
 
         // get all menu, custom table, plugin table.
         $query = DB::table("{$this->getTable()} as m")

@@ -28,7 +28,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function custom_columns()
     {
-        return $this->hasMany(CustomColumn::class, 'custom_table_id');
+        return $this->hasMany(CustomColumn::class, 'custom_table_id')
+            ->orderBy('order');
     }
     public function custom_views()
     {
@@ -336,6 +337,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model = $model->whereIn('id', $permission_table_ids);
         }
 
+        // add default order
+        $model = $model->orderBy('order', 'asc');
+
         if ($options['getModel']) {
             return $model->get();
         }
@@ -620,26 +624,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = [];
         
-        $this->setColumnOptions($options, $this->custom_columns, $index_enabled_only, true, true, $this->id);
+        $this->setColumnOptions($options, $this->custom_columns, $index_enabled_only, 
+            true, true, $append_table, $this->id);
 
         if ($include_parent) {
             ///// get child table columns
             $relations = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
                 $parent = array_get($rel, 'parent_custom_table');
-                $parent_id = $append_table? array_get($rel, 'parent_custom_table_id'): null;
+                $parent_id = array_get($rel, 'parent_custom_table_id');
                 $tablename = array_get($parent, 'table_view_name');
                 $this->setColumnOptions($options, $parent->custom_columns, 
-                    $index_enabled_only, true, true, $parent_id, $tablename);
+                    $index_enabled_only, true, true, $append_table, $parent_id, $tablename);
             }
             ///// get select table columns
             $select_table_columns = $this->getSelectTableColumns();
             foreach ($select_table_columns as $select_table_column) {
                 $custom_table = $select_table_column->column_item->getSelectTable();
                 $tablename = array_get($custom_table, 'table_view_name');
-                $table_id = $append_table? $custom_table->id: null;
                 $this->setColumnOptions($options, $custom_table->custom_columns, 
-                    $index_enabled_only, true, true, $table_id, $tablename);
+                    $index_enabled_only, true, true, $append_table, $custom_table->id, $tablename);
             }
         }
         if ($include_child) {
@@ -647,31 +651,30 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
             foreach ($relations as $rel) {
                 $child = array_get($rel, 'child_custom_table');
-                $child_id = $append_table? array_get($rel, 'child_custom_table_id'): null;
+                $child_id = array_get($rel, 'child_custom_table_id');
                 $tablename = array_get($child, 'table_view_name');
                 $this->setColumnOptions($options, $child->custom_columns, 
-                    $index_enabled_only, true, false, $child_id, $tablename);
+                    $index_enabled_only, true, false, $append_table, $child_id, $tablename);
             }
             ///// get selected table columns
             $selected_table_columns = $this->getSelectedTableColumns();
             foreach ($selected_table_columns as $selected_table_column) {
                 $custom_table = $selected_table_column->custom_table;
                 $tablename = array_get($custom_table, 'table_view_name');
-                $table_id = $append_table? $custom_table->id: null;
                 $this->setColumnOptions($options, $custom_table->custom_columns, 
-                    $index_enabled_only, true, true, $table_id, $tablename);
+                    $index_enabled_only, true, true, $append_table, $custom_table->id, $tablename);
             }
         }
     
         return $options;
     }
     protected function setColumnOptions(&$options, $custom_columns, $index_enabled_only, 
-        $include_system, $include_parent, $table_id, $table_name = null) 
+        $include_system, $include_parent, $append_table, $table_id, $table_name = null) 
     {
         if ($include_system) {
             /// get system columns
             foreach (SystemColumn::getOptions(['header' => true]) as $option) {
-                $key = $table_id . '-' . array_get($option, 'name');
+                $key = $this->getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 if (isset($table_name)) {
                     $value = $table_name . ' : ' . $value;
@@ -683,7 +686,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
             ///// if this table is child relation(1:n), add parent table
             if (isset($relation)) {
-                $key = $table_id . '-parent_id';
+                $key = $this->getOptionKey('parent_id', $append_table, $table_id);
                 $value = array_get($relation, 'parent_custom_table.table_view_name');
                 if (isset($table_name)) {
                     $value = $table_name . ' : ' . $value;
@@ -696,7 +699,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if ($index_enabled_only && !$custom_column->indexEnabled()) {
                 continue;
             }
-            $key = $table_id . '-' . array_get($custom_column, 'id');
+            $key = $this->getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id);
             $value = array_get($custom_column, 'column_view_name');
             if (isset($table_name)) {
                 $value = $table_name . ' : ' . $value;
@@ -706,7 +709,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($include_system) {
             ///// get system columns
             foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
-                $key = $table_id . '-' . array_get($option, 'name');
+                $key = $this->getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
                 if (isset($table_name)) {
                     $value = $table_name . ' : ' . $value;
