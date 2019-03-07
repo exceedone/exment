@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
 
 abstract class CustomItem implements ItemInterface
 {
@@ -224,6 +225,23 @@ abstract class CustomItem implements ItemInterface
 
         // next, set admin filter options
         $this->setAdminFilterOptions($filteritem);
+    }
+
+    /**
+     * get view filter type
+     */
+    public function getViewFilterType(){
+        // get column_type
+        $database_column_type = $this->custom_column->column_type;
+        switch ($database_column_type) {
+            case 'date':
+            case 'datetime':
+                return ViewColumnFilterType::DAY;
+            case SystemTableName::USER:
+                return ViewColumnFilterType::USER;
+            default:
+                return ViewColumnFilterType::DEFAULT;
+        }
     }
 
     abstract protected function getAdminFieldClass();

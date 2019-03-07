@@ -28,12 +28,11 @@ trait CustomViewColumnTrait
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
-            return ColumnItems\ParentItem::getItem($this->custom_view->custom_table);
+            return ColumnItems\ParentItem::getItem($this->custom_table);
         }
         // system column
         else {
-            $target_table = CustomTable::getEloquent($this->view_column_table_id);
-            return ColumnItems\SystemItem::getItem($target_table, $this->view_column_target);
+            return ColumnItems\SystemItem::getItem($this->custom_table, $this->view_column_target);
         }
     }
     
@@ -89,6 +88,16 @@ trait CustomViewColumnTrait
         }
     }
     
+    /**
+     * get column item using view_column_target
+     */
+    public static function getColumnItem($view_column_target)
+    {
+        $model = new self;
+        $model->view_column_target = $view_column_target;
+        return $model->column_item;
+    }
+
     /**
      * get column name or id.
      * if column_type is string

@@ -144,9 +144,9 @@ class DashboardController extends AdminControllerBase
             });
 
             ///// click dashboard link event
-            $(document).off('click', '[data-dashboard-link]').on('click', '[data-dashboard-link]', [], function(ev){
+            $(document).off('click', '[data-ajax-link]').on('click', '[data-ajax-link]', [], function(ev){
                 // get link
-                var url = $(ev.target).closest('[data-dashboard-link]').data('dashboard-link');
+                var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
                 var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
                 loadDashboardBox(suuid, url);
             });

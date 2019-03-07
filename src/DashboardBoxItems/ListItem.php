@@ -110,7 +110,7 @@ class ListItem implements ItemInterface
         } 
 
         // add link
-        return $this->paginate->links('exment::dashboard.list.links')->toHtml();
+        return $this->paginate->links('exment::search.links')->toHtml();
     }
 
     /**

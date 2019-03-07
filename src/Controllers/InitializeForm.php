@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Encore\Admin\Widgets\Form as WidgetForm;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -96,24 +95,6 @@ trait InitializeForm
     }
     
     /**
-     * search template
-     */
-    public function searchTemplate(Request $request){
-        // search from exment api
-        $client = new Client();
-        $response = $client->request('GET', 'http://127.0.0.1:8000/api/template', [
-            'http_errors' => false,
-        ]);
-        $contents = $response->getBody()->getContents();
-        $json = json_decode($contents, true);
-        if (!$json) {
-            return [];
-        }
-
-
-    }
-
-    /**
      * get system template list
      */
     protected function getTemplates()
@@ -140,32 +121,6 @@ trait InitializeForm
 
         // template list
         $form->tile('template', exmtrans("system.template"))
-            ->options(function ($template) {
-                // $array = TemplateImportExport\TemplateImporter::getTemplates();
-                // if (is_null($array)) {
-                //     return [];
-                // }
-                // $options = [];
-                // foreach ($array as $a) {
-                //     // get thumbnail_path
-                //     if (isset($a['thumbnail_fullpath'])) {
-                //         $thumbnail_path = $a['thumbnail_fullpath'];
-                //     } else {
-                //         $thumbnail_path = base_path() . '/vendor/exceedone/exment/templates/noimage.png';
-                //     }
-                //     array_push($options, [
-                //         'id' => array_get($a, 'template_name'),
-                //         'title' => array_get($a, 'template_view_name'),
-                //         'description' => array_get($a, 'description'),
-                //         'author' => array_get($a, 'author'),
-                //         'thumbnail' => 'data:image/png;base64,'.base64_encode(file_get_contents($thumbnail_path))
-                //     ]);
-                // }
-
-                // return $options;
-
-                return [];
-            })
             ->help(exmtrans("system.help.template"))
             ;
 

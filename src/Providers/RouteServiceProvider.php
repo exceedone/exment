@@ -62,7 +62,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/version', 'SystemController@version');
             
             $router->get('template', 'TemplateController@index');
-            $router->get('template/search', 'TemplateController@searchTemplate');
+            $router->post('template/search', 'TemplateController@searchTemplate');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
             $router->get('template/import', function () {
@@ -119,6 +119,7 @@ class RouteServiceProvider extends ServiceProvider
                         
                         $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
                         
+                        $router->post("view/{$value}/filterDialog", 'CustomViewController@getFilterDialogHtml');
                         $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
                         $router->get("view/{$value}/summary-condition", 'CustomViewController@getSummaryCondition');
                         $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);

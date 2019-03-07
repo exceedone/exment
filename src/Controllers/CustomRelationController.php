@@ -121,8 +121,9 @@ class CustomRelationController extends AdminControllerTableBase
             return CustomTable::filterList()
                 ->where('id', '<>', $custom_table_id)
                 ->pluck('table_view_name', 'id')
-                ->toArray();
-        })->required();
+                ->toArray(); })
+            ->required()
+            ->rules("loopRelation:{$custom_table_id}");
 
         $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
         $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->required();

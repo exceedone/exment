@@ -70,6 +70,11 @@ interface ItemInterface
     public function getCustomTable();
 
     /**
+     * get view filter type
+     */
+    public function getViewFilterType();
+
+    /**
      * get item model
      */
     public static function getItem(...$options);

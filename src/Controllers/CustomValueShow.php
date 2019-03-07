@@ -231,7 +231,7 @@ EOT;
     }
   
     /**
-     * gt revision compare.
+     * get revision compare.
      */
     protected function getRevisionCompare($id, $revision_suuid = null, $pjax = false)
     {

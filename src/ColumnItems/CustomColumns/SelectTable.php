@@ -93,7 +93,7 @@ class SelectTable extends CustomItem
             // get DB option value
             return $this->target_table->getOptions($value, $this->custom_column->custom_table);
         });
-        $ajax = $this->target_table->getOptionAjaxUrl() ?? null;
+        $ajax = $this->target_table ? $this->target_table->getOptionAjaxUrl() : null;
         if (isset($ajax)) {
             $field->attribute([
                 'data-add-select2' => $this->label(),
@@ -112,13 +112,15 @@ class SelectTable extends CustomItem
 
     protected function setAdminFilterOptions(&$filter)
     {
-        $options = $this->target_table->getOptions();
-        $ajax = $this->target_table->getOptionAjaxUrl();
-
-        if (isset($ajax)) {
-            $filter->select([])->ajax($ajax);
-        } else {
-            $filter->select($options);
+        if(isset($this->target_table)){
+            $options = $this->target_table->getOptions();
+            $ajax = $this->target_table->getOptionAjaxUrl();
+    
+            if (isset($ajax)) {
+                $filter->select([])->ajax($ajax);
+            } else {
+                $filter->select($options);
+            }    
         }
     }
 }

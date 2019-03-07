@@ -36,15 +36,14 @@ http(s)://(ExmentのURL)/admin/mail
 変数を使用することで、登録しているデータやシステム名などを、件名・本文に追加することができます。  
 
 ### 変数一覧
-#### 汎用
+#### 共通
+共通のパラメータ変数は、以下のページをご確認ください。  
+[パラメータ変数](/ja/params)
+
+#### 送付先ユーザー
 
 | 項目 | 説明 |
 | ---- | ---- |
-| ${system.site_name} | システムのサイト名 |
-| ${system.site_name_short} | システムのサイト名(短縮) |
-| ${system.system_mail_from} | システムの送信元 |
-| ${system.system_url} | システムのホームURL |
-| ${system.login_url} | システムのログインURL |
 | ${user.user_name} | メール送付先ユーザーの、ユーザー名 |
 | ${user.user_code} | メール送付先ユーザーの、ユーザーコード |
 | ${user.email} | メール送付先ユーザーの、Eメールアドレス |

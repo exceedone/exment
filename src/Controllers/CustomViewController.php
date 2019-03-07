@@ -10,7 +10,9 @@ use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -182,7 +184,10 @@ class CustomViewController extends AdminControllerTableBase
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate))
-                ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')])]);
+                ->attribute([
+                    'data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')]),
+                    'data-change_field_target' => 'view_column_target',
+                ]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
                 ->options(function ($val) {
@@ -205,7 +210,11 @@ class CustomViewController extends AdminControllerTableBase
                     }
                     return [];
                 });
-            $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"));
+            //TODO:temporary Change 
+            // $form->changeField('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
+            //     ->ajax(admin_base_paths('view', $this->custom_table->table_name, 'filterDialog'));
+            $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
+                ;
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_view.description_custom_view_filters"));
 
@@ -252,6 +261,7 @@ class CustomViewController extends AdminControllerTableBase
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'))];
         });
     }
+
     /**
      * get filter condition
      */
@@ -261,6 +271,12 @@ class CustomViewController extends AdminControllerTableBase
         if (!isset($view_column_target)) {
             return [];
         }
+        
+        // get column item
+        $column_item = CustomViewFilter::getColumnItem($view_column_target)
+            ->options([
+                'view_column_target' => true,
+            ]);
 
         if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
             list($view_column_table_id, $view_column_target) = explode("-", $view_column_target);
@@ -269,39 +285,7 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         ///// get column_type
-        $column_type = null;
-        // if $view_column_target is number, get database_column_type
-        if (is_numeric($view_column_target)) {
-            // get column_type
-            $database_column_type = CustomColumn::getEloquent($view_column_target)->column_type;
-            switch ($database_column_type) {
-                case 'date':
-                case 'datetime':
-                    $column_type = ViewColumnFilterType::DAY;
-                    break;
-                case SystemTableName::USER:
-                    $column_type = ViewColumnFilterType::USER;
-                    break;
-                default:
-                    $column_type = ViewColumnFilterType::DEFAULT;
-            }
-        } else {
-            switch ($view_column_target) {
-                case 'id':
-                case 'suuid':
-                case 'parent_id':
-                    $column_type = ViewColumnFilterType::DEFAULT;
-                    break;
-                case 'created_at':
-                case 'updated_at':
-                    $column_type = ViewColumnFilterType::DAY;
-                    break;
-                case 'created_user':
-                case 'updated_user':
-                    $column_type = ViewColumnFilterType::USER;
-                    break;
-            }
-        }
+        $column_type = $column_item->getViewFilterType();
 
         // if null, return []
         if (!isset($column_type)) {
@@ -313,5 +297,32 @@ class CustomViewController extends AdminControllerTableBase
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.filter_condition_options.'.array_get($array, 'name'))];
         });
+    }
+    
+    /**
+     * get filter value dialog html
+     */
+    public function getFilterDialogHtml(Request $request)
+    {
+        $view_column_target = $request->input('view_column_target');
+        if (!isset($view_column_target)) {
+            return null;
+        }
+
+        // get column item
+        $column_item = CustomViewFilter::getColumnItem($view_column_target)
+            ->options([
+                'view_column_target' => true,
+            ]);
+
+        // create modal form
+        $form = new ModalForm();
+        $form->method('POST');
+        $form->modalHeader('');
+
+        // set form
+        $form->pushField($column_item->getAdminField());
+
+        return $form->render()->render();
     }
 }

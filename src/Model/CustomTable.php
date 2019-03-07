@@ -292,7 +292,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // return as paginate
         if($paginate){
-            $paginates = $query->paginate(null);
+            $paginates = $query->paginate($maxCount);
             if(boolval($makeHidden)){
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;

@@ -147,7 +147,7 @@ class CustomCopyController extends AdminControllerTableBase
         ///// get from and to columns
         $custom_table = $this->custom_table;
         $from_custom_column_options = $custom_table->getColumnsSelectOptions();
-        $to_custom_column_options = $to_table->getColumnsSelectOptions();
+        $to_custom_column_options = $to_table? $to_table->getColumnsSelectOptions() : [];
         $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
             $form->select('from_column_target_id', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
             $form->description('▶');

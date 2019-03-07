@@ -198,6 +198,7 @@ class ClassBuilder
         } else {
             $historyLimit = intval($table->getOption('revision_count', 100));
             $builder->addProperty("protected", 'historyLimit', "$historyLimit");
+            $builder->addProperty("protected", 'revisionCreationsEnabled', "true");
         }
 
 

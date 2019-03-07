@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
 
 class SystemItem implements ItemInterface
 {
@@ -157,6 +158,25 @@ class SystemItem implements ItemInterface
         $field->default($this->value);
 
         return $field;
+    }
+
+    /**
+     * get view filter type
+     */
+    public function getViewFilterType(){
+        switch ($this->column_name) {
+            case 'id':
+            case 'suuid':
+            case 'parent_id':
+                return ViewColumnFilterType::DEFAULT;
+            case 'created_at':
+            case 'updated_at':
+                return ViewColumnFilterType::DAY;
+            case 'created_user':
+            case 'updated_user':
+                return ViewColumnFilterType::USER;
+        }
+        return ViewColumnFilterType::DEFAULT;
     }
 
     public static function getItem(...$args)
