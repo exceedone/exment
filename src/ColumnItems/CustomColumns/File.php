@@ -19,11 +19,7 @@ class File extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        if (boolval(array_get($this->custom_column, 'options.multiple_enabled'))) {
-            return Field\MultipleFile::class;
-        } else {
-            return Field\File::class;
-        }
+        return Field\File::class;
     }
     
     protected function setAdminOptions(&$field, $form_column_options)

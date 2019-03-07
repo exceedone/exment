@@ -119,13 +119,15 @@ class SelectTable extends CustomItem
 
     protected function setAdminFilterOptions(&$filter)
     {
-        $options = $this->target_table->getOptions();
-        $ajax = $this->target_table->getOptionAjaxUrl();
-
-        if (isset($ajax)) {
-            $filter->select([])->ajax($ajax);
-        } else {
-            $filter->select($options);
+        if(isset($this->target_table)){
+            $options = $this->target_table->getOptions();
+            $ajax = $this->target_table->getOptionAjaxUrl();
+    
+            if (isset($ajax)) {
+                $filter->select([])->ajax($ajax);
+            } else {
+                $filter->select($options);
+            }    
         }
     }
 }

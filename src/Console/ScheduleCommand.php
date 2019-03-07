@@ -27,6 +27,18 @@ class ScheduleCommand extends Command
     protected $description = 'Execute Schedule Batch';
 
     /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->initExmentCommand();
+    }
+
+    /**
      * Execute the console command.
      *
      * @return void
