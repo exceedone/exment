@@ -2,12 +2,115 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Tests\DuskTestCase;
-use Laravel\Dusk\Browser;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Exceedone\Exment\Tests\ExmentKitTestCase;
+use Exceedone\Exment\Tests\ExmentKitPrepareTrait;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomForm;
 
-class CCustomFormTest extends DuskTestCase
+class CCustomFormTest extends ExmentKitTestCase
 {
+    use ExmentKitPrepareTrait;
+
+    /**
+     * pre-excecute process before test.
+     */
+    protected function setUp()
+    {
+        parent::setUp();
+        $this->login();
+    }
+
+    /**
+     * prepare test table.
+     */
+    public function testPrepareTestTable() {
+        $this->createCustomTable('ntq_form');
+        $this->createCustomTable('ntq_form_relation');
+    }
+
+    /**
+     * prepare test columns.
+     */
+    public function testPrepareTestColumn() {
+        $targets = ['integer', 'text', 'datetime', 'select', 'boolean', 'yesno', 'image'];
+        $this->createCustomColumns('ntq_form', $targets);
+        $this->createCustomColumns('ntq_form_relation', $targets);
+        $this->createCustomRelation('ntq_form', 'ntq_form_relation');
+    }
+
+    /**
+     * Check custom form display.
+     */
+    public function testDisplayFormSetting()
+    {
+        // Check custom column form
+        $this->visit('/admin/form/ntq_form')
+                ->seePageIs('/admin/form/ntq_form')
+                ->see('カスタムフォーム設定')
+                ->seeInElement('th', 'テーブル名(英数字)')
+                ->seeInElement('th', 'テーブル表示名')
+                ->seeInElement('th', 'フォーム表示名')
+                ->seeInElement('th', '操作')
+                ->visit('/admin/form/ntq_form/create')
+                ->seeInElement('h1', 'カスタムフォーム設定')
+                ->seeInElement('label', 'フォーム表示名')
+                ->seeInElement('h3[class=box-title]', 'ヘッダー基本設定')
+                ->seeInElement('h3[class=box-title]', 'テーブル - Ntq Form')
+                ->seeInElement('h3[class=box-title]', '子テーブル - Ntq Form Relation')
+                ->seeInElement('label', 'フォームブロック名')
+                ->seeInElement('h4', 'フォーム項目')
+                ->seeInElement('h5', 'フォーム項目 列1')
+                ->seeInElement('h5', 'フォーム項目 列2')
+                ->seeInElement('h5', 'フォーム項目 候補一覧')
+                ->seeInElement('h5', 'フォーム項目 候補一覧')
+                ->seeInElement('span[class=item-label]', 'ID')
+                ->seeInElement('span[class=item-label]', '内部ID(20桁)')
+                ->seeInElement('span[class=item-label]', 'Integer')
+                ->seeInElement('span[class=item-label]', 'One Line Text')
+                ->seeInElement('span[class=item-label]', 'Date and Time')
+                ->seeInElement('span[class=item-label]', 'Select From Static Value')
+                ->seeInElement('span[class=item-label]', 'Select 2 value')
+                ->seeInElement('span[class=item-label]', 'Yes No')
+                ->seeInElement('span[class=item-label]', 'Image')
+                ->seeInElement('span[class=item-label]', '作成日時')
+                ->seeInElement('span[class=item-label]', '更新日時')
+                ->seeInElement('span[class=item-label]', '作成ユーザー')
+                ->seeInElement('span[class=item-label]', '更新ユーザー')
+                ->seeInElement('span[class=item-label]', '見出し')
+                ->seeInElement('span[class=item-label]', '説明文')
+                ->seeInElement('span[class=item-label]', 'HTML')
+            ;
+    }
+
+    /**
+     * Create custom form.
+     */
+    public function testAddFormSuccess()
+    {
+        $pre_cnt = CustomForm::count();
+
+        // Create custom form
+        $this->visit('/admin/form/ntq_form/create')
+                ->type('新しいフォーム', 'form_view_name')
+                ->press('送信')
+                ->seePageIs('/admin/form/ntq_form')
+                ->seeInElement('td', '新しいフォーム')
+                ->assertEquals($pre_cnt + 1, CustomForm::count())
+                ;
+
+        $raw = CustomForm::orderBy('created_at', 'desc')->first();
+        $id = array_get($raw, 'id');
+
+        // Update custom form
+        $this->visit('/admin/form/ntq_form/'. $id . '/edit')
+                ->seeInField('form_view_name', '新しいフォーム')
+                ->type('更新したフォーム', 'form_view_name')
+                ->press('送信')
+                ->seePageIs('/admin/form/ntq_form')
+                ->seeInElement('td', '更新したフォーム');
+    }
+
+
     /**
      * A Dusk test example.
      *

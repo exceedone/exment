@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Tests\Browser;
 
-use Exceedone\Exment\Tests\ExmentDuskTestCase;
+use Exceedone\Exment\Tests\ExmentKitTestCase;
 
-class A02LoginOutTest extends ExmentDuskTestCase
+class A02LoginOutTest extends ExmentKitTestCase
 {
     
     /**
@@ -13,15 +13,12 @@ class A02LoginOutTest extends ExmentDuskTestCase
      */
     public function testLoginFailWithWrongUsernameAndPass()
     {
-        $this->browse(function ($browser) {
-            $browser
-                ->visit('/admin/auth/logout')
+        $this->visit('/admin/auth/logout')
                 ->visit('/admin/auth/login')
-                ->type('username', 'abcde')
-                ->type('password', 'abcde')
-                ->press('Login')
-                ->assertPathIs('/admin/auth/login');
-        });
+                ->type('abcde', 'username')
+                ->type('abcde', 'password')
+                ->press('ログイン')
+                ->seePageIs('/admin/auth/login');
     }
 
     /**
@@ -30,13 +27,11 @@ class A02LoginOutTest extends ExmentDuskTestCase
      */
     public function testLoginFailWithWrongPass()
     {
-        $this->browse(function ($browser) {
-            $browser->visit('/admin/auth/login')
-                ->type('username', 'testuser')
-                ->type('password', 'abcde')
-                ->press('Login')
-                ->assertPathIs('/admin/auth/login');
-        });
+        $this->visit('/admin/auth/login')
+                ->type('testuser', 'username')
+                ->type('abcde', 'password')
+                ->press('ログイン')
+                ->seePageIs('/admin/auth/login');
     }
 
     /**
@@ -45,13 +40,11 @@ class A02LoginOutTest extends ExmentDuskTestCase
      */
     public function testLoginFailWithWrongId()
     {
-        $this->browse(function ($browser) {
-            $browser->visit('/admin/auth/login')
-                ->type('username', 'abcde')
-                ->type('password', 'test123456')
-                ->press('Login')
-                ->assertPathIs('/admin/auth/login');
-        });
+        $this->visit('/admin/auth/login')
+                ->type('abcde', 'username')
+                ->type('test123456', 'password')
+                ->press('ログイン')
+                ->seePageIs('/admin/auth/login');
     }
 
     /**
@@ -60,13 +53,11 @@ class A02LoginOutTest extends ExmentDuskTestCase
      */
     public function testLoginSuccessUserCode()
     {
-        $this->browse(function ($browser) {
-            $browser->visit('/admin/auth/login')
-                ->type('username', 'testuser')
-                ->type('password', 'test123456')
-                ->press('Login')
-                ->assertPathIs('/admin');
-        });
+        $this->visit('/admin/auth/login')
+                ->type('testuser', 'username')
+                ->type('test123456', 'password')
+                ->press('ログイン')
+                ->seePageIs('/admin');
     }
 
     /**
@@ -75,15 +66,12 @@ class A02LoginOutTest extends ExmentDuskTestCase
      */
     public function testLoginSuccessEmail()
     {
-        $this->browse(function ($browser) {
-            $browser
-                ->visit('/admin/auth/logout')
+        $this->visit('/admin/auth/logout')
                 ->visit('/admin/auth/login')
-                ->type('username', 'aaa@exceedone.co.jp.test')
-                ->type('password', 'test123456')
-                ->press('Login')
-                ->assertPathIs('/admin');
-        });
+                ->type('aaa@exceedone.co.jp.test', 'username')
+                ->type('test123456', 'password')
+                ->press('ログイン')
+                ->seePageIs('/admin');
     }
 
     // /**

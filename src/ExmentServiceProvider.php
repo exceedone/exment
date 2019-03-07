@@ -10,7 +10,7 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
-use Exceedone\Exment\Validator\UniqueInTableValidator;
+use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -210,7 +210,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
         
         \Validator::resolver(function ($translator, $data, $rules, $messages) {
-            return new UniqueInTableValidator($translator, $data, $rules, $messages);
+            return new ExmentCustomValidator($translator, $data, $rules, $messages);
         });
 
         Storage::extend('admin-local', function ($app, $config) {

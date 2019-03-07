@@ -231,6 +231,7 @@ return [
             'config' => '設定ファイル',
         ],
         'message' => [
+            'target_required' => 'バックアップ対象は必ず１つ以上選択してください。',
             'backup_confirm' => 'バックアップを実行しますか？',
             'backup_error' => 'バックアップに失敗しました。',
             'download_error' => 'ダウンロードに失敗しました。',

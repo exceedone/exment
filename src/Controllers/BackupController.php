@@ -92,6 +92,15 @@ class BackupController extends AdminControllerBase
      */
     public function postSetting(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'backup_target.0' => 'required',
+        ]);
+
+        if (!$validator->passes()) {
+            admin_toastr(exmtrans('backup.message.target_required'), 'error');
+            return redirect(admin_base_path('backup'));
+        }
+
         DB::beginTransaction();
         try {
             $inputs = $request->all(System::get_system_keys('backup'));
