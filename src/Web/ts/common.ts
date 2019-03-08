@@ -23,10 +23,6 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
-
-            $(function(){
-                CommonEvent.GetVersion();
-            })
         }
         public static AddEvent() {
             CommonEvent.ToggleHelp();
@@ -64,22 +60,6 @@ namespace Exment {
             // if not exists, default help
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');
-        }
-
-        private static GetVersion() {
-            if($('#version').text().length > 0){
-                return;
-            }
-            $.ajax({
-                url: admin_base_path('webapi/version'),
-                type: 'GET',
-            })
-                .done(function (data) {
-                    $('#version').text(data);
-                })
-                .fail(function (data) {
-                    console.log(data);
-                });
         }
 
         /**

@@ -9,10 +9,11 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemVersion;
+use Exceedone\Exment\Form\Widgets\InfoBox;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Box;
-use Encore\Admin\Widgets\InfoBox;
 
 class SystemController extends AdminControllerBase
 {
@@ -38,97 +39,64 @@ class SystemController extends AdminControllerBase
         $this->addRoleForm($form, RoleType::SYSTEM);
 
         // Version infomation
-        $infoBox = new InfoBox(
-            exmtrans("system.current_version") . '---',
-            'refresh',
-            'gray',
-            getManualUrl('update'),
-            exmtrans("system.version_progress")
-        );
-        $class = $infoBox->getAttributes()['class'];
-        $infoBox->class(isset($class)? $class . ' box-version': 'box-version');
+        $infoBox = $this->getVersionBox();
 
         $content->row(new Box(trans('admin.edit'), $form));
         $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
 
-        Admin::script($this->getVersionScript());
         return $content;
     }
 
     /**
-     * get system version script
-     *
-     * @return script
-     */
-    protected function getVersionScript()
-    {
-        $install = exmtrans("system.update_guide");
-        $script = <<<EOT
-        $(function () {
-            $('div.box-version .small-box-footer').hide();
-            $('div.box-version div.icon > i').addClass('fa-spin');
-            $.ajax({
-                url: admin_base_path('system/version'),
-                type: "GET",
-                success: function (data) {
-                    $('div.box-version div.icon > i').removeClass('fa-spin');
-                    $('div.box-version .small-box-footer').hide();
-                    $('div.box-version div.inner > p').html(data.current);
-                    $('div.box-version div.inner > h3').html(data.message);
-                    if (data.status == 1) {
-                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-check-square');
-                        $('div.box-version').removeClass('bg-gray').addClass('bg-blue');
-                    } else if (data.status == 2) {
-                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-info-circle');
-                        $('div.box-version').removeClass('bg-gray').addClass('bg-teal');
-                        $('div.box-version a.small-box-footer').html('$install&nbsp;<i class="fa fa-arrow-circle-right"></i>');
-                        $('div.box-version a.small-box-footer').show();
-                    } else if (data.status == 3) {
-                        $('div.box-version').removeClass('bg-gray').addClass('bg-olive');
-                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-legal');
-                    } else if (data.status == -1) {
-                        $('div.box-version div.icon > i').removeClass('fa-refresh').addClass('fa-warning');
-                    }
-                },
-            });
-        });
-EOT;
-        return $script;
-    }
-    /**
-     * get exment version command.
+     * get exment version infoBox.
      *
      * @return Content
      */
-    public function version(Request $request)
+    protected function getVersionBox()
     {
         list($latest, $current) = getExmentVersion();
-        if (empty($latest) || empty($current)) {
-            return response()->json([
-                'status'  => -1,
-                'message'  => exmtrans("system.version_error"),
-                'current'  => exmtrans("system.current_version") . '---',
-            ]);
+        $version = checkLatestVersion();
+        $showLink = false;
+
+        if ($version == SystemVersion::ERROR) {
+            $message = exmtrans("system.version_error");
+            $icon = 'warning';
+            $bgColor = 'red';
+            $current = '---';
         }   
-        if (strpos($current, 'dev-') === 0) {
-            return response()->json([
-                'status'  => 3,
-                'message'  => exmtrans("system.version_develope"),
-                'current'  => exmtrans("system.current_version") . $current,
-            ]);
-        } elseif ($latest === $current) {
-            return response()->json([
-                'status'  => 1,
-                'message'  => exmtrans("system.version_latest"),
-                'current'  => exmtrans("system.current_version") . $current,
-            ]);
+        elseif ($version == SystemVersion::DEV) {
+            $message = exmtrans("system.version_develope");
+            $icon = 'legal';
+            $bgColor = 'olive';
+        } elseif ($version == SystemVersion::LATEST) {
+            $message = exmtrans("system.version_latest");
+            $icon = 'check-square';
+            $bgColor = 'blue';
         } else {
-            return response()->json([
-                'status'  => 2,
-                'message'  => exmtrans("system.version_old") . '(' . $latest . ')',
-                'current'  => exmtrans("system.current_version") . $current,
-            ]);
+            $message = exmtrans("system.version_old") . '(' . $latest . ')';
+            $showLink = true;
+            $icon = 'arrow-circle-right';
+            $bgColor = 'teal';
         }
+        
+        // Version infomation
+        $infoBox = new InfoBox(
+            exmtrans("system.current_version") . $current,
+            $icon,
+            $bgColor,
+            getManualUrl('update'),
+            $message
+        );
+        $class = $infoBox->getAttributes()['class'];
+        $infoBox
+            ->class(isset($class)? $class . ' box-version': 'box-version')
+            ->showLink($showLink)
+            ->target('_blank');
+        if($showLink){
+            $infoBox->linkText(exmtrans("system.update_guide"));
+        }
+
+        return $infoBox;
     }
 
     /**

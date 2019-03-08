@@ -4,7 +4,7 @@
     <div class="pull-right hidden-xs">
 
         @if(config('admin.show_version'))
-        <strong>Version</strong>&nbsp;&nbsp; <span id="version">{!! \Exment::version(false) !!}</span>
+        <strong>Version</strong>&nbsp;&nbsp; <span id="version">{!! \Exment::version() !!}</span>
         @endif
     </div>
     <!-- Default to the left -->
