@@ -157,7 +157,9 @@ class CustomColumnController extends AdminControllerTableBase
             $form->display('column_name', exmtrans("custom_column.column_name"));
         }
 
-        $form->text('column_view_name', exmtrans("custom_column.column_view_name"))->required();
+        $form->text('column_view_name', exmtrans("custom_column.column_view_name"))
+            ->required()
+            ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(ColumnType::transArray("custom_column.column_type_options"))
         ->attribute(['data-filtertrigger' =>true])

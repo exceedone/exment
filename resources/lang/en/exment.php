@@ -48,6 +48,7 @@ return [
         ],
 
         'help' =>[
+            'view_name' => 'Please enter the name to be displayed.',
             'input_available_characters' => 'Please enter %s.',
             'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
         ],

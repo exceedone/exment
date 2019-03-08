@@ -72,7 +72,9 @@ class CustomTableController extends AdminControllerBase
         } else {
             $form->display('table_name', exmtrans("custom_table.table_name"));
         }
-        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))->required();
+        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
+            ->required()
+            ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
         $form->header(exmtrans('common.detail_setting'))->hr();

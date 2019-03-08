@@ -47,6 +47,7 @@ return [
         ],
 
         'help' =>[
+            'view_name' => '画面に表示する名前を入力してください。',
             'input_available_characters' => '%sで記入してください。',
             'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
         ],
@@ -301,7 +302,7 @@ return [
         'custom_column' => 'カスタム列設定',
         'custom_view' => 'ビュー設定',
         'custom_form' => 'フォーム設定',
-        'custom_relation' => '関連テーブル設定',
+        'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
@@ -648,8 +649,8 @@ return [
     ],
 
     'custom_relation' => [
-        'header' => '関連テーブル設定',
-        'description' => 'テーブル間同士のリレーションを定義します。',
+        'header' => 'リレーション設定',
+        'description' => 'テーブル間同士の関連性(リレーション)を定義します。',
         'relation_type' => 'リレーション種類',
         'relation_type_options' => [
             'one_to_many'  => '1対多',
