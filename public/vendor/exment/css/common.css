@@ -3365,6 +3365,10 @@
   flex-wrap: wrap;
 }
 
+.help_personal {
+  color: #efef5b;
+}
+
 .sidebar-menu > li > a > .fa, .sidebar-menu > li > a > .glyphicon, .sidebar-menu > li > a > .ion, .sidebar-menu .treeview-menu > li > a > .fa, .sidebar-menu .treeview-menu > li > a > .glyphicon, .sidebar-menu .treeview-menu > li > a > .ion {
   text-align: center;
   margin-right: 2px;

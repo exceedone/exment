@@ -11,10 +11,11 @@ class HelpNav
         return <<<HTML
 
 <li>
-    <a href="$manual_url" target="_blank" style="font-size:25px; padding-top:12.5px; padding-bottom:12.5px;">
+    <a href="$manual_url" target="_blank" id="manual_link" style="font-size:25px; padding-top:12.5px; padding-bottom:12.5px;">
       <i class="fa fa-question-circle"></i>
     </a>
 </li>
+<input type="hidden" value="$manual_url" id="manual_base_uri">
 
 HTML;
     }

@@ -29,11 +29,56 @@ namespace Exment {
             })
         }
         public static AddEvent() {
+            CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
 
             $.numberformat('[number_format]');
+        }
+
+        /**
+         * toggle right-top help link and color
+         */
+        public static ToggleHelp(){
+            var helps = [
+                {'uri': 'template', 'help_uri': 'template'},
+                {'uri': 'table', 'help_uri': 'table'},
+                {'uri': 'column', 'help_uri': 'column'},
+                {'uri': 'relation', 'help_uri': 'relation'},
+                {'uri': 'form', 'help_uri': 'form'},
+                {'uri': 'view', 'help_uri': 'view'},
+                {'uri': 'template', 'help_uri': 'template'},
+                {'uri': 'plugin', 'help_uri': 'plugin'},
+                {'uri': 'auth/menu', 'help_uri': 'menu'},
+                {'uri': 'loginuser', 'help_uri': 'user'},
+                {'uri': 'data/user', 'help_uri': 'user'},
+                {'uri': 'data/mail_template', 'help_uri': 'mail'},
+                {'uri': 'data/base_info', 'help_uri': 'base_info'},
+                {'uri': 'data', 'help_uri': 'data'}
+            ];
+
+            var pathname = location.pathname;
+            var $manual = $('#manual_link');
+            var manual_base_uri = $('#manual_base_uri').val();
+
+            for(var i = 0; i < helps.length; i++){
+                var help = helps[i];
+
+                // if match first current uri and pathname, set help url
+                if(trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0){
+                    // set new url
+                    var help_url = URLJoin(manual_base_uri, help.help_uri);
+                    $manual.prop('href', help_url);
+                    // chenge color
+                    $manual.children('i').addClass('help_personal');
+                    return;
+                }
+            }
+
+            // if not exists, default help
+            $manual.prop('href', manual_base_uri);
+            $manual.children('i').removeClass('help_personal');
         }
 
         private static GetVersion() {
