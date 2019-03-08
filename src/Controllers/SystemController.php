@@ -76,7 +76,7 @@ class SystemController extends AdminControllerBase
             $message = exmtrans("system.version_old") . '(' . $latest . ')';
             $showLink = true;
             $icon = 'arrow-circle-right';
-            $bgColor = 'teal';
+            $bgColor = 'aqua';
         }
         
         // Version infomation

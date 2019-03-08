@@ -15,6 +15,7 @@ use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Enums\RoleValue;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
 
 
@@ -66,6 +67,14 @@ class DashboardController extends AdminControllerBase
         // check permission. if not permission, show message
         if(\Exment::user()->noPermission()){
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
+        }
+        // if system admin, check version
+        elseif(\Exment::user()->hasPermission(RoleValue::SYSTEM)){
+            $versionCheck = checkLatestVersion();
+            if($versionCheck == SystemVersion::HAS_NEXT){
+                list($latest, $current) = getExmentVersion();
+                admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
+            }
         }
 
         $this->setDashboardInfo($request);
