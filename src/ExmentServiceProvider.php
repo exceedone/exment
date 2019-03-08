@@ -80,7 +80,7 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
-            'admin.permission',
+            //'admin.permission',
             'admin.bootstrap2',
             'admin.initialize',
             'admin.morph',
@@ -124,14 +124,14 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
         require_once(__DIR__.'/Services/Helpers.php');
 
         // register route middleware.
-        foreach ($this->routeMiddleware as $key => $middleware) {
-            app('router')->aliasMiddleware($key, $middleware);
-        }
+        // foreach ($this->routeMiddleware as $key => $middleware) {
+        //     app('router')->aliasMiddleware($key, $middleware);
+        // }
 
-        // register middleware group.
-        foreach ($this->middlewareGroups as $key => $middleware) {
-            app('router')->middlewareGroup($key, $middleware);
-        }
+        // // register middleware group.
+        // foreach ($this->middlewareGroups as $key => $middleware) {
+        //     app('router')->middlewareGroup($key, $middleware);
+        // }
     }
 
     protected function publish()
