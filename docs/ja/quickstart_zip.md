@@ -1,6 +1,15 @@
 # クイックスタート(ZIP版)
 Exmentを開始するために必要となる手順です。zipファイルよりインストールする方法です。  
-※MySQLは、json型に対応している5.7以上でのみご利用可能です。  
+※非推奨のインストール方法です。[クイックスタート](/ja/quickstart.md)での導入をおすすめしております。  
+
+## PHP, MySQL環境構築
+Exmentには、PHP7.1.3以上とMySQL5.7以上が必要です。  
+未導入の方は、PHPとMySQLを同時にインストールできる、XAMPPをお試しください。  
+※すでに導入済の方は不要です。  
+- [Windows版 XAMPP](https://www.apachefriends.org/xampp-files/7.1.26/xampp-windows-x64-7.1.26-0-VC14-installer.exe)
+- [Linux版 XAMPP](https://www.apachefriends.org/xampp-files/7.1.26/xampp-linux-x64-7.1.26-0-installer.run)
+- [Mac版 XAMPP](https://www.apachefriends.org/xampp-files/7.1.26/xampp-osx-7.1.26-0-installer.dmg)
+
 
 ## zipダウンロード・展開
 - 以下のURLより、zipファイルをダウンロードします。  
@@ -35,7 +44,7 @@ DB_HOST=127.0.0.1 #MySQLのホスト名
 DB_PORT=3306 #MySQLのポート番号
 DB_DATABASE=homestead #MySQLのExment用データベース名
 DB_USERNAME=homestead #MySQLのExment用データベースのユーザー名
-DB_PASSWORD=secret #MySQLのExment用データベースの1パスワード
+DB_PASSWORD=secret #MySQLのExment用データベースのパスワード
 
 # 以下、メール送信用の設定値変更
 MAIL_DRIVER=smtp
@@ -47,9 +56,6 @@ MAIL_ENCRYPTION=null #ssl使用の場合"ssl"と記入
 
 # 以下、特定の場合に追加
 ADMIN_HTTPS=true #https通信の場合に追加
-EXMENT_LOGIN_PROVIDERS=graph,google #SSOログインを実施する場合に追加。プロバイダをカンマ区切りで記入
-EXMENT_SHOW_DEFAULT_LOGIN_PROVIDER=false #SSOログインを実施する場合で、通常のログインフォームを表示しない場合に追加
-EXMENT_API=true #外部APIを使用する場合にtrueに追加
 ~~~
 
 ## コマンド実行
@@ -59,3 +65,9 @@ EXMENT_API=true #外部APIを使用する場合にtrueに追加
 php artisan passport:keys
 php artisan exment:install
 ~~~
+
+## その他の初期設定
+以上の作業で、Exmentを開始することは可能ですが、一部の機能を使うために、追加で設定が必要になる場合があります。  
+以下のリンクをご確認ください。  
+- [シングルサインオン](/ja/quickstart_more.md#シングルサインオン)
+- [タスクスケジュール機能](/ja/quickstart_more.md#タスクスケジュール機能)

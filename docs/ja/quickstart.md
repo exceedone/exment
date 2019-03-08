@@ -1,7 +1,21 @@
 # クイックスタート
 Exmentを開始するために必要となる手順です。  
-※composerの導入が必要です。
-※MySQLは、json型に対応している5.7以上でのみご利用可能です。
+
+## PHP, MySQL環境構築
+Exmentには、PHP7.1.3以上とMySQL5.7以上が必要です。  
+未導入の方は、PHPとMySQLを同時にインストールできる、XAMPPをお試しください。  
+※すでに導入済の方は不要です。  
+- [Windows版 XAMPP](https://www.apachefriends.org/xampp-files/7.1.26/xampp-windows-x64-7.1.26-0-VC14-installer.exe)
+- [Linux版 XAMPP](https://www.apachefriends.org/xampp-files/7.1.26/xampp-linux-x64-7.1.26-0-installer.run)
+- [Mac版 XAMPP](https://www.apachefriends.org/xampp-files/7.1.26/xampp-osx-7.1.26-0-installer.dmg)
+
+## composer導入
+Exmentには、composerの導入が必要です。導入方法はこちらをご参照ください。  
+※すでに導入済の方は不要です。  
+- [公式サイト](https://getcomposer.org/download/)
+- [Windows版 解説サイト](https://weblabo.oscasierra.net/php-composer-windows-install/)
+- [Linux版 解説サイト](https://weblabo.oscasierra.net/php-composer-centos-install/)
+- [Mac版 解説サイト](https://weblabo.oscasierra.net/php-composer-macos-homebrew-install/)
 
 ## Laravelインストール(プロジェクト作成)
 - コマンドラインで、以下のコマンドを実行します。  
@@ -61,7 +75,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
 
 ## config変更
 
-- "config\admin.php"を開き、 キー "auth.guards.admin.provider" を以下のように修正します。
+- "config/admin.php"を開き、 キー "auth.guards.admin.provider" を以下のように修正します。
 
 ~~~ php
     'auth' => [
@@ -77,7 +91,7 @@ php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" -
     ],
 ~~~
 
-- 言語とタイムゾーンを変更したい場合、"config\app.php"を開き、 以下の行を修正します。
+- 言語とタイムゾーンを変更したい場合、"config/app.php"を開き、 以下の行を修正します。
 
 ~~~ php
 
