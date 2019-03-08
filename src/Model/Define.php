@@ -198,4 +198,21 @@ class Define
         'showPreview' => false,
         'showCancel' => false,
     ];
+
+    public const HELP_URLS = [
+        ['uri'=> 'template', 'help_uri'=> 'template'],
+        ['uri'=> 'table', 'help_uri'=> 'table'],
+        ['uri'=> 'column', 'help_uri'=> 'column'],
+        ['uri'=> 'relation', 'help_uri'=> 'relation'],
+        ['uri'=> 'form', 'help_uri'=> 'form'],
+        ['uri'=> 'view', 'help_uri'=> 'view'],
+        ['uri'=> 'template', 'help_uri'=> 'template'],
+        ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
+        ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
+        ['uri'=> 'loginuser', 'help_uri'=> 'user'],
+        ['uri'=> 'data/user', 'help_uri'=> 'user'],
+        ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
+        ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
+        ['uri'=> 'data', 'help_uri'=> 'data']
+    ];
 }
