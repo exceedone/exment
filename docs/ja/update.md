@@ -17,7 +17,7 @@ cd (プロジェクトのルートディレクトリ)
 composer update exceedone/exment
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=public --force
 php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=lang --force
-php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=views_vendor
+php artisan vendor:publish --provider="Exceedone\Exment\ExmentServiceProvider" --tag=views_vendor --force
 ~~~
 
 ## データベース最新化
