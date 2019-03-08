@@ -1,6 +1,6 @@
 <div class="btn-group pull-right" style="margin-right: 5px">
         <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="fa fa-mail-forward"></i> {{ exmtrans("change_page_menu.change_page_label") }}
+            <i class="fa fa-cog"></i> {{ exmtrans("change_page_menu.change_page_label") }}
             <span class="caret"></span>
         </button>
         <ul id="custom-table-menu" class="dropdown-menu">
