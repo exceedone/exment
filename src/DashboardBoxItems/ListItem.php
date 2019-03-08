@@ -54,8 +54,8 @@ class ListItem implements ItemInterface
     
         // check edit permission
         if ($this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            $new_url= admin_base_path("data/{$this->custom_table->table_name}/create");
-            $list_url = admin_base_path("data/{$this->custom_table->table_name}");
+            $new_url= admin_url("data/{$this->custom_table->table_name}/create");
+            $list_url = admin_url("data/{$this->custom_table->table_name}");
         } else {
             $new_url = null;
             $list_url = null;
@@ -127,7 +127,7 @@ class ListItem implements ItemInterface
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
             ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-            ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
+            ->load('options_target_view_id', admin_url('dashboardbox/table_views'));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()

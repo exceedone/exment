@@ -64,7 +64,7 @@
 
                         <div class="buttons">
                             <!-- Authorize Button -->
-                            <form method="post" action="{{admin_base_paths('admin', 'oauth', 'authorize')}}">
+                            <form method="post" action="{{admin_urls('admin', 'oauth', 'authorize')}}">
                                 {{ csrf_field() }}
 
                                 <input type="hidden" name="state" value="{{ $request->state }}">

@@ -104,7 +104,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         if ($this->saveform($request, $id)) {
             admin_toastr(trans('admin.save_succeeded'));
-            return redirect(admin_base_path("form/{$this->custom_table->table_name}"));
+            return redirect(admin_url("form/{$this->custom_table->table_name}"));
         }
         return null; //TODO
     }
@@ -118,7 +118,7 @@ class CustomFormController extends AdminControllerTableBase
     {
         if ($this->saveform($request)) {
             admin_toastr(trans('admin.save_succeeded'));
-            return redirect(admin_base_path("form/{$this->custom_table->table_name}"));
+            return redirect(admin_url("form/{$this->custom_table->table_name}"));
         }
         return null; //TODO
     }
@@ -176,7 +176,7 @@ class CustomFormController extends AdminControllerTableBase
 
         $date = \Carbon\Carbon::now()->format('YmdHis');
         // create endpoint
-        $formroot = admin_base_path("form/{$this->custom_table->table_name}");
+        $formroot = admin_url("form/{$this->custom_table->table_name}");
         $endpoint = $formroot.(isset($id) ? "/{$id}" : "");
         $content->row(view('exment::custom-form.form', [
             'formroot' => $formroot,

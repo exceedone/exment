@@ -161,7 +161,7 @@ class ChartItem implements ItemInterface
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
         ->required()
         ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-        ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
+        ->load('options_target_view_id', admin_url('dashboardbox/table_views'));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
@@ -173,7 +173,7 @@ class ChartItem implements ItemInterface
             })
             ->loads(
                 ['options_chart_axisx', 'options_chart_axisy'],
-                [admin_base_path('dashboardbox/chart_axis').'/x', admin_base_path('dashboardbox/chart_axis').'/y']
+                [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y']
             );
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))

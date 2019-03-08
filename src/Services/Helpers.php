@@ -170,13 +170,13 @@ if (!function_exists('admin_urls')) {
     }
 }
 
-if (!function_exists('admin_base_paths')) {
+if (!function_exists('admin_urls')) {
     /**
      * Join admin base paths.
      */
-    function admin_base_paths(...$pass_array)
+    function admin_urls(...$pass_array)
     {
-        return admin_base_path(url_join($pass_array));
+        return admin_url(url_join($pass_array));
     }
 }
 
@@ -951,15 +951,15 @@ if (!function_exists('shouldPassThrough')) {
         
         if($initialize){
             $excepts = [
-                admin_base_path('initialize'),
+                admin_url('initialize'),
             ];
         }else{
             $excepts = [
-                admin_base_path('auth/login'),
-                admin_base_path('auth/logout'),
-                admin_base_path('auth/reset'),
-                admin_base_path('auth/forget'),
-                admin_base_path('initialize'),
+                admin_url('auth/login'),
+                admin_url('auth/logout'),
+                admin_url('auth/reset'),
+                admin_url('auth/forget'),
+                admin_url('initialize'),
             ];
         }
 

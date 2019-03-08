@@ -41,7 +41,7 @@ class MenuController extends AdminControllerBase
 
                 $row->column(7, function (Column $column) {
                     $form = new \Encore\Admin\Widgets\Form();
-                    $form->action(admin_base_path('auth/menu'));
+                    $form->action(admin_url('auth/menu'));
 
                     $this->createMenuForm($form);
                     $form->hidden('_token')->default(csrf_token());
@@ -113,7 +113,7 @@ class MenuController extends AdminControllerBase
 
                 if (!isset($branch['children'])) {
                     if (!url()->isValidUrl($uri)) {
-                        $uri = admin_base_path($uri);
+                        $uri = admin_url($uri);
                     }
 
                     $esc_uri = esc_html($uri);
@@ -146,13 +146,13 @@ class MenuController extends AdminControllerBase
         $contoller = $this;
         $form->select('parent_id', trans('admin.parent_id'))->options(Menu::selectOptions());
         $form->select('menu_type', exmtrans("menu.menu_type"))->options(MenuType::transArray("menu.menu_type_options"))
-            ->load('menu_target', admin_base_path('webapi/menu/menutype'))
+            ->load('menu_target', admin_url('webapi/menu/menutype'))
             ->required();
 
         $form->select('menu_target', exmtrans("menu.menu_target"))
             ->attribute(['data-changedata' => json_encode(
                 ['getitem' =>
-                    [  'uri' => admin_base_path('webapi/menu/menutargetvalue')
+                    [  'uri' => admin_url('webapi/menu/menutargetvalue')
                         , 'key' => ['menu_type']
                     ]
                 ]

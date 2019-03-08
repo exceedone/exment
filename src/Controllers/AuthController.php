@@ -64,7 +64,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             return redirect($this->redirectPath());
         }
 
-        $error_url = admin_base_path('auth/login');
+        $error_url = admin_url('auth/login');
         
         $socialiteProvider = $this->getSocialiteProvider($login_provider);
 
@@ -224,7 +224,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
-            $form->setAction(admin_base_path('auth/setting'));
+            $form->setAction(admin_url('auth/setting'));
             $form->ignore(['password_confirmation']);
             disableFormFooter($form);
             $form->tools(function (Form\Tools $tools) {
@@ -260,7 +260,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 
                 admin_toastr(trans('admin.update_succeeded'));
     
-                return redirect(admin_base_path('auth/setting'));
+                return redirect(admin_url('auth/setting'));
             });
         });
     }

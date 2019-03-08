@@ -151,7 +151,7 @@ trait CustomValueShow
                     'showUpload' => true,
                     'showPreview' => false,
                     'showCancel' => false,
-                    'uploadUrl' => admin_base_paths('data', $this->custom_table->table_name, $id, 'fileupload'),
+                    'uploadUrl' => admin_urls('data', $this->custom_table->table_name, $id, 'fileupload'),
                     'uploadExtraData'=> [
                         '_token' => csrf_token()
                     ],
@@ -187,7 +187,7 @@ EOT;
                 $form->html(
                     view('exment::form.field.revisionlink', [
                         'revision' => $revision,
-                        'link' => admin_base_paths('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
+                        'link' => admin_urls('data', $this->custom_table->table_name, $id, 'compare?revision='.$revision->suuid),
                         'index' => $index,
                     ])->render(),
                     'No.'.($revision->revision_no)
@@ -272,7 +272,7 @@ EOT;
             'newest_revision_suuid' => $newest_revision_suuid,
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
-            'form_url' => admin_base_paths('data', $table_name, $id, 'compare'),
+            'form_url' => admin_urls('data', $table_name, $id, 'compare'),
             'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);
             })->count() > 0
@@ -284,7 +284,7 @@ EOT;
         
         $script = <<<EOT
         $("#revisions").off('change').on('change', function(e, params) {
-            var url = admin_base_path(URLJoin('data', '$table_name', '$id', 'compare'));
+            var url = admin_url(URLJoin('data', '$table_name', '$id', 'compare'));
             var query = {'revision': $(e.target).val()};
 
             $.pjax({container:'#pjax-container-revision', url: url +'?' + $.param(query) });

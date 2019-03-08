@@ -61,7 +61,7 @@ class CustomValueController extends AdminControllerTableBase
             if (isset($record)) {
                 $id = $record->id;
                 $form = $this->form($id)->edit($id);
-                $form->setAction(admin_base_path("data/{$this->custom_table->table_name}/$id"));
+                $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
                 disableFormFooter($form);
                 $content->body($form);
             }
@@ -69,7 +69,7 @@ class CustomValueController extends AdminControllerTableBase
             else {
                 $form = $this->form(null);
                 disableFormFooter($form);
-                $form->setAction(admin_base_path("data/{$this->custom_table->table_name}"));
+                $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 $content->body($form);
             }
         } else {
@@ -302,7 +302,7 @@ class CustomValueController extends AdminControllerTableBase
     protected function redirectShow($id)
     {
         if (!$this->custom_table->hasPermissionEditData($id)) {
-            return redirect(admin_base_path("data/{$this->custom_table->table_name}/$id"));
+            return redirect(admin_url("data/{$this->custom_table->table_name}/$id"));
         }
         return null;
     }

@@ -34,7 +34,7 @@ class DashboardController extends AdminControllerBase
 
     public function index(Request $request, Content $content)
     {
-        return redirect(admin_base_path(''));
+        return redirect(admin_url(''));
     }
     
     /**
@@ -113,7 +113,7 @@ class DashboardController extends AdminControllerBase
                         return new Promise(function(resolve) {
                             $.ajax({
                                 method: 'post',
-                                url: admin_base_path('dashboardbox/delete/' + suuid),
+                                url: admin_url('dashboardbox/delete/' + suuid),
                                 data: {
                                     _method:'delete',
                                     _token:LA.token
@@ -157,7 +157,7 @@ class DashboardController extends AdminControllerBase
                 return true;
             }
             if(!hasValue(url)){
-                url = admin_base_path('dashboardbox/html/' + suuid);
+                url = admin_url('dashboardbox/html/' + suuid);
             }
             var target = $('[data-suuid="' + suuid + '"]');
             if(target.hasClass('loading')){
@@ -274,7 +274,7 @@ EOT;
             $tools->disableList();
 
             // addhome button
-            $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
+            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
 
         $form->saved(function ($form) {
@@ -316,7 +316,7 @@ EOT;
                             'column_no' => $i,
                         ]);
                         $dashboardboxes_newbuttons[] = [
-                            'url' => admin_base_path("dashboardbox/create?{$query}"),
+                            'url' => admin_url("dashboardbox/create?{$query}"),
                             'icon' =>  $options['icon'],
                             'view_name' => exmtrans("dashboard.dashboard_box_type_options.{$options['dashboard_box_type']}"),
                         ];
@@ -327,7 +327,7 @@ EOT;
                 $icons = [['widget' => 'reload', 'icon' => 'fa-refresh']];
                 // check role.
                 if ($has_role) {
-                    $icons = array_prepend($icons, ['link' => admin_base_path('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog']);
+                    $icons = array_prepend($icons, ['link' => admin_url('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog']);
                     array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash']);
                 }
                 

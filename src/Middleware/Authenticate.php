@@ -28,12 +28,12 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
         // if path is not "initialize" and not installed, then redirect to initialize
         if (!shouldPassThrough(true) && !$initialized) {
             $request->session()->invalidate();
-            return redirect()->guest(admin_base_path('initialize'));
+            return redirect()->guest(admin_url('initialize'));
         }
 
         $user = \Admin::user();
         if (is_null($user) || is_null($user->base_user)) {
-            return redirect()->guest(admin_base_path('auth/login'));
+            return redirect()->guest(admin_url('auth/login'));
         }
 
         return $next($request);

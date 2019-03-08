@@ -27,7 +27,7 @@
             </div>
             @if(isset($table['show_list']))
             <div class="box-footer">
-                <a href="{{ admin_base_path('data/'.$table['table_name']) }}">{{ exmtrans('search.view_list') }}</a>
+                <a href="{{ admin_url('data/'.$table['table_name']) }}">{{ exmtrans('search.view_list') }}</a>
             </div>
             @endif
         </div>

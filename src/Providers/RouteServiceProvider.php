@@ -66,10 +66,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
             $router->get('template/import', function () {
-                return redirect(admin_base_path('template'));
+                return redirect(admin_url('template'));
             });
             $router->get('template/export', function () {
-                return redirect(admin_base_path('template'));
+                return redirect(admin_url('template'));
             });
             
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');

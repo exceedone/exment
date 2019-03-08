@@ -101,7 +101,7 @@ trait CustomValueGrid
             $edit_flg = $this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
-                $tools->append(new Tools\ExportImportButton(admin_base_paths('data', $this->custom_table->table_name), $grid));
+                $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid));
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
                 $tools->append($service->getImportModal());
             }
@@ -140,7 +140,7 @@ trait CustomValueGrid
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-                    $actions->prepend('<a href="'.admin_base_paths('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
+                    $actions->prepend('<a href="'.admin_urls('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
 
                 // if user does't edit permission disable edit row.

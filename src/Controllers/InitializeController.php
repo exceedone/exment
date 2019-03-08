@@ -88,7 +88,7 @@ class InitializeController extends Controller
 
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);
-            return redirect(admin_base_path('/'));
+            return redirect(admin_url('/'));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();

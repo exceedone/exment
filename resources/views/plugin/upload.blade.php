@@ -12,7 +12,7 @@
     </div>
     <!-- /.box-header -->
     <!-- form start -->
-    <form class="" method="post" action="{{ admin_base_path('plugin') }}" enctype="multipart/form-data">
+    <form class="" method="post" action="{{ admin_url('plugin') }}" enctype="multipart/form-data">
         <!-- box-body -->
         <div class="box-body">
             <div class="fields-group">

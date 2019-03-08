@@ -102,7 +102,7 @@ class CustomViewController extends AdminControllerTableBase
             }
             if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE) {
                 $actions->disableEdit();
-                $actions->prepend('<a href="'.admin_base_paths('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.Enums\ViewKindType::AGGREGATE.'"><i class="fa fa-edit"></i></a>');
+                $actions->prepend('<a href="'.admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.Enums\ViewKindType::AGGREGATE.'"><i class="fa fa-edit"></i></a>');
             }
             $actions->disableView();
         });
@@ -156,7 +156,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                     ->options($this->custom_table->getSummaryColumnsSelectOptions());
-//                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_base_paths('view', $custom_table->table_name, 'summary-condition')])]);
+//                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
                 $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
                 ->options(function ($val) {
                     return array_map(function ($array) {
@@ -185,7 +185,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate))
                 ->attribute([
-                    'data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')]),
+                    'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
                     'data-change_field_target' => 'view_column_target',
                 ]);
 
@@ -212,7 +212,7 @@ class CustomViewController extends AdminControllerTableBase
                 });
             //TODO:temporary Change 
             // $form->changeField('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
-            //     ->ajax(admin_base_paths('view', $this->custom_table->table_name, 'filterDialog'));
+            //     ->ajax(admin_urls('view', $this->custom_table->table_name, 'filterDialog'));
             $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
                 ;
         })->setTableColumnWidth(4, 4, 3, 1)

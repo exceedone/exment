@@ -37,7 +37,7 @@
     }
 </style>
 
-<form action="{{ admin_base_path('search') }}" method="get" class="search-form" pjax-container>
+<form action="{{ admin_url('search') }}" method="get" class="search-form" pjax-container>
     <div class="input-group input-group-sm ">
         <input type="text" name="query" id="query" class="form-control" placeholder="{{ exmtrans('search.placeholder') }}" />
         <span class="input-group-btn">

@@ -34,7 +34,7 @@ class LoginUserController extends AdminControllerBase
      */
     public function show(Request $request, $id, Content $content)
     {
-        return redirect(admin_base_paths('loginuser', $id, 'edit'));
+        return redirect(admin_urls('loginuser', $id, 'edit'));
     }
 
     /**
@@ -78,7 +78,7 @@ class LoginUserController extends AdminControllerBase
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
-            $tools->append(new Tools\ExportImportButton(admin_base_path('loginuser'), $grid));
+            $tools->append(new Tools\ExportImportButton(admin_url('loginuser'), $grid));
             $tools->append($service->getImportModal());
 
             $tools->batch(function (Grid\Tools\BatchActions $actions) {
@@ -272,7 +272,7 @@ class LoginUserController extends AdminControllerBase
         }
 
         admin_toastr($message);
-        $url = admin_base_path('loginuser');
+        $url = admin_url('loginuser');
         return redirect($url);
     }
 

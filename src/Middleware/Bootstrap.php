@@ -31,7 +31,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/chartjs/chart.min.js?ver='.$date));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$date));
         
-        // add admin_base_path and file delete confirm
+        // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
         $base_uri = trim(app('request')->getBaseUrl(), '/') ?? '';
@@ -44,7 +44,7 @@ class Bootstrap
         $script = <<<EOT
         $('body').append($('<input/>', {
             'type':'hidden',
-            'id': 'admin_base_path',
+            'id': 'admin_url',
             'value': '$prefix'
         }));
         $('body').append($('<input/>', {

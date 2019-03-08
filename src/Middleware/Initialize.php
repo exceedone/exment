@@ -25,11 +25,11 @@ class Initialize
         // if path is not "initialize" and not installed, then redirect to initialize
         if (!shouldPassThrough(true) && !$initialized) {
             $request->session()->invalidate();
-            return redirect()->guest(admin_base_path('initialize'));
+            return redirect()->guest(admin_url('initialize'));
         }
         // if path is "initialize" and installed, redirect to login
         elseif (shouldPassThrough(true) && $initialized) {
-            return redirect()->guest(admin_base_path('auth/login'));
+            return redirect()->guest(admin_url('auth/login'));
         }
 
         static::initializeConfig();

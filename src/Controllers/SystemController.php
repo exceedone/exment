@@ -68,7 +68,7 @@ class SystemController extends AdminControllerBase
             $('div.box-version .small-box-footer').hide();
             $('div.box-version div.icon > i').addClass('fa-spin');
             $.ajax({
-                url: admin_base_path('system/version'),
+                url: admin_url('system/version'),
                 type: "GET",
                 success: function (data) {
                     $('div.box-version div.icon > i').removeClass('fa-spin');
@@ -200,7 +200,7 @@ EOT;
 
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_base_path('system'));
+            return redirect(admin_url('system'));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();

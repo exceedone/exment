@@ -80,7 +80,7 @@ var Exment;
                 return;
             }
             $.ajax({
-                url: admin_base_path('webapi/version'),
+                url: admin_url('webapi/version'),
                 type: 'GET',
             })
                 .done(function (data) {
@@ -288,7 +288,7 @@ var Exment;
                                 }
                             });
                             $.ajax({
-                                url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
+                                url: admin_url(URLJoin('webapi', 'data', table_name, value)),
                                 type: 'POST',
                                 context: {
                                     data: target_table_data,
@@ -662,7 +662,7 @@ var Exment;
             }
             else {
                 $.ajax({
-                    url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
+                    url: admin_url(URLJoin('webapi', 'data', table_name, value)),
                     type: 'POST',
                     context: context
                 })
@@ -1058,7 +1058,18 @@ var admin_base_path = function (path) {
     if (admin_base_uri.length > 0) {
         urls.push(admin_base_uri);
     }
-    urls.push(trimAny($('#admin_base_path').val(), '/'));
+    urls.push(trimAny($('#admin_url').val(), '/'));
+    var prefix = '/' + urls.join('/');
+    prefix = (prefix == '/') ? '' : prefix;
+    return prefix + '/' + trimAny(path, '/');
+};
+var admin_url = function (path) {
+    var urls = [];
+    var admin_base_uri = trimAny($('#admin_base_uri').val(), '/');
+    if (admin_base_uri.length > 0) {
+        urls.push(admin_base_uri);
+    }
+    urls.push(trimAny($('#admin_url').val(), '/'));
     var prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');

@@ -29,7 +29,7 @@ class DashboardBoxController extends AdminControllerBase
 
     public function index(Request $request, Content $content)
     {
-        return redirect(admin_base_path(''));
+        return redirect(admin_url(''));
     }
     
     /**
@@ -94,7 +94,7 @@ class DashboardBoxController extends AdminControllerBase
         // get dashboard, row_no, column_no, ... from query "dashboard_suuid"
         list($dashboard, $dashboard_box_type, $row_no, $column_no) = $this->getDashboardInfo($id);
         if (!isset($dashboard)) {
-            return redirect(admin_base_path(''));
+            return redirect(admin_url(''));
         }
 
         $form->display('dashboard_view_name', exmtrans('dashboard.dashboard_view_name'))->default($dashboard->dashboard_view_name);
@@ -125,7 +125,7 @@ class DashboardBoxController extends AdminControllerBase
             $tools->disableDelete();
 
             // addhome button
-            $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
+            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
         // add form saving and saved event
         $this->manageFormSaving($form);
@@ -144,7 +144,7 @@ class DashboardBoxController extends AdminControllerBase
         $form->saved(function ($form) {
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_base_path());
+            return redirect(admin_url());
         });
     }
 

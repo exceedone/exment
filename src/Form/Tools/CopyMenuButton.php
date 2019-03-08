@@ -26,9 +26,9 @@ class CopyMenuButton
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
         if (isset($this->id)) {
-            $url = admin_base_paths("data", $table_name, $this->id, "copyClick");
+            $url = admin_urls("data", $table_name, $this->id, "copyClick");
         } else {
-            $url = admin_base_paths("data", $table_name, "copyClick");
+            $url = admin_urls("data", $table_name, "copyClick");
         }
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
@@ -78,7 +78,7 @@ EOT;
     {
         $from_table_view_name = $this->custom_table->table_view_name;
         $to_table_view_name = $this->copy->to_custom_table->table_view_name;
-        $path = admin_base_paths('data', $this->custom_table->table_name, $this->id, 'copyClick');
+        $path = admin_urls('data', $this->custom_table->table_name, $this->id, 'copyClick');
         
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();

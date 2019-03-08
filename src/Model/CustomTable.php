@@ -600,7 +600,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($count <= 100) {
             return null;
         }
-        return admin_base_paths("webapi", 'data', array_get($this, 'table_name'), "search");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "search");
     }
 
     /**

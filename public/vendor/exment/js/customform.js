@@ -279,7 +279,7 @@ var Exment;
                 var custom_column_id = ev;
             }
             $.ajax({
-                url: admin_base_path(URLJoin('webapi', 'target_table', 'columns', custom_column_id)),
+                url: admin_url(URLJoin('webapi', 'target_table', 'columns', custom_column_id)),
                 type: 'GET'
             })
                 .done(function (data) {

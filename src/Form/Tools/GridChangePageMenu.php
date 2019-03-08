@@ -47,16 +47,16 @@ class GridChangePageMenu extends AbstractTool
                 else{
                     for(var key in tables){
                         if(key == rows[0]){
-                            url = admin_base_path(URLJoin(uri, tables[key]));
+                            url = admin_url(URLJoin(uri, tables[key]));
                             break;
                         }
                     }
                 }
             }else{
                 if($(ev.target).data('edit') == 1){
-                    url = admin_base_path(URLJoin(uri, table_id, 'edit'));
+                    url = admin_url(URLJoin(uri, table_id, 'edit'));
                 }else{
-                    url = admin_base_path(URLJoin(uri, table_name));
+                    url = admin_url(URLJoin(uri, table_name));
                 }
             }
             if(url){
