@@ -48,6 +48,7 @@ return [
         ],
 
         'help' =>[
+            'view_name' => 'Please enter the name to be displayed.',
             'input_available_characters' => 'Please enter %s.',
             'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
         ],
@@ -300,7 +301,7 @@ return [
     ],
 
     'change_page_menu' =>[
-        'change_page_label' => 'Change Page',
+        'change_page_label' => 'Table Detail Setting',
         'custom_table' => 'Table Setting',
         'custom_column' => 'Column Detail Setting',
         'custom_view' => 'View Setting',
@@ -346,6 +347,7 @@ return [
             'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.',
             'add_parent_menu_flg' => 'After creating custom table, you can add it to the menu. To add it, please set it to YES. *It will be displayed after updating the browser. <br /> *It can be set only when new table is created. When updating please set it from "Menu" page.',
             'add_parent_menu' => 'Please select the menu name to be parent.',
+            'saved_redirct_column' => 'Save succeeded ! Please set column column.',
         ],
         
         'system_definitions' => [

@@ -20,6 +20,8 @@ class CustomTableController extends AdminControllerBase
 {
     use HasResourceActions, RoleForm;
 
+    protected $exists = false;
+
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"));
@@ -70,7 +72,9 @@ class CustomTableController extends AdminControllerBase
         } else {
             $form->display('table_name', exmtrans("custom_table.table_name"));
         }
-        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))->required();
+        $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
+            ->required()
+            ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
         $form->header(exmtrans('common.detail_setting'))->hr();
@@ -142,13 +146,27 @@ class CustomTableController extends AdminControllerBase
             }
         });
         
-        $form->saved(function (Form $form) {
+        $form->saving(function (Form $form) {
+            $this->exists = $form->model()->exists;
+        });
+
+        $form->saved(function (Form $form) use($id) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->createTable();
 
             // if has value 'add_parent_menu', add menu
             $this->addMenuAfterSaved($model);
+
+
+            // redirect custom column page
+            if(!$this->exists){
+                $table_name = CustomTable::getEloquent($model->id)->table_name;
+                $custom_column_url = admin_base_paths('column', $table_name);
+    
+                admin_toastr(exmtrans('custom_table.saved_redirct_column'));
+                return redirect($custom_column_url);    
+            }
         });
 
         return $form;

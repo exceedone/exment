@@ -23,12 +23,9 @@ namespace Exment {
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
             });
-
-            $(function(){
-                CommonEvent.GetVersion();
-            })
         }
         public static AddEvent() {
+            CommonEvent.ToggleHelp();
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
@@ -36,20 +33,33 @@ namespace Exment {
             $.numberformat('[number_format]');
         }
 
-        private static GetVersion() {
-            if($('#version').text().length > 0){
-                return;
+        /**
+         * toggle right-top help link and color
+         */
+        public static ToggleHelp(){
+            var helps = JSON.parse($('#help_urls').val());
+
+            var pathname = location.pathname;
+            var $manual = $('#manual_link');
+            var manual_base_uri = $('#manual_base_uri').val();
+
+            for(var i = 0; i < helps.length; i++){
+                var help = helps[i];
+
+                // if match first current uri and pathname, set help url
+                if(trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0){
+                    // set new url
+                    var help_url = URLJoin(manual_base_uri, help.help_uri);
+                    $manual.prop('href', help_url);
+                    // chenge color
+                    $manual.children('i').addClass('help_personal');
+                    return;
+                }
             }
-            $.ajax({
-                url: admin_url('webapi/version'),
-                type: 'GET',
-            })
-                .done(function (data) {
-                    $('#version').text(data);
-                })
-                .fail(function (data) {
-                    console.log(data);
-                });
+            
+            // if not exists, default help
+            $manual.prop('href', manual_base_uri);
+            $manual.children('i').removeClass('help_personal');
         }
 
         /**

@@ -47,6 +47,7 @@ return [
         ],
 
         'help' =>[
+            'view_name' => '画面に表示する名前を入力してください。',
             'input_available_characters' => '%sで記入してください。',
             'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
         ],
@@ -307,12 +308,12 @@ return [
     ],
 
     'change_page_menu' =>[
-        'change_page_label' => 'ページ移動',
+        'change_page_label' => 'テーブル詳細設定',
         'custom_table' => 'テーブル設定',
         'custom_column' => 'カスタム列設定',
         'custom_view' => 'ビュー設定',
         'custom_form' => 'フォーム設定',
-        'custom_relation' => '関連テーブル設定',
+        'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
@@ -353,6 +354,7 @@ return [
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
+            'saved_redirct_column' => '保存しました！次はカスタム列を設定してください。',
         ],
         
         'system_definitions' => [
@@ -672,8 +674,8 @@ return [
     ],
 
     'custom_relation' => [
-        'header' => '関連テーブル設定',
-        'description' => 'テーブル間同士のリレーションを定義します。',
+        'header' => 'リレーション設定',
+        'description' => 'テーブル間同士の関連性(リレーション)を定義します。',
         'relation_type' => 'リレーション種類',
         'relation_type_options' => [
             'one_to_many'  => '1対多',

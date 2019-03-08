@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SystemVersion;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -876,6 +877,19 @@ if (!function_exists('replaceTextFromFormat')) {
                                     }
                                 }
                             }
+                            ///// parent
+                            elseif ($key == 'parent') {
+                                if (!isset($custom_value)) {
+                                    $str = '';
+                                }
+                                // get value from model
+                                elseif (count($length_array) <= 1) {
+                                    $str = $custom_value->getParentValue(true);
+                                } else {
+                                    $parentModel = $custom_value->getParentValue(false);
+                                    $str = $parentModel->getValue($length_array[1], true, $matchOptions) ?? '';
+                                }
+                            }
                             // suuid
                             elseif ($key == "suuid") {
                                 $str = short_uuid();
@@ -1096,6 +1110,10 @@ if (!function_exists('getExmentVersion')) {
                 'http_errors' => false,
             ]);
             $contents = $response->getBody()->getContents();
+            if($response->getStatusCode() != 200){
+                return [null, null];
+            }
+
             $json = json_decode($contents, true);
             if (!$json) {
                 return [null, null];
@@ -1122,6 +1140,34 @@ if (!function_exists('getExmentVersion')) {
             return [null, null];
         }
         return [$latest, $current];
+    }
+}
+
+if (!function_exists('checkLatestVersion')) {
+    /**
+     * check exment's next version
+     *
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    function checkLatestVersion()
+    {
+        list($latest, $current) = getExmentVersion();
+        $latest = trim($latest, 'v');
+        $current = trim($current, 'v');
+        
+        if (empty($latest) || empty($current)) {
+            return SystemVersion::ERROR;
+        }   
+        elseif (strpos($current, 'dev-') === 0) {
+            return SystemVersion::DEV;
+        } elseif ($latest === $current) {
+            return SystemVersion::LATEST;
+            $message = exmtrans("system.version_latest");
+            $icon = 'check-square';
+            $bgColor = 'blue';
+        } else {
+            return SystemVersion::HAS_NEXT;
+        }
     }
 }
 
