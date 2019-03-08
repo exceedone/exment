@@ -35,6 +35,7 @@ class Bootstrap
         $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
         $base_uri = trim(app('request')->getBaseUrl(), '/') ?? '';
+        $admin_url = admin_url();
 
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
@@ -44,13 +45,18 @@ class Bootstrap
         $script = <<<EOT
         $('body').append($('<input/>', {
             'type':'hidden',
-            'id': 'admin_url',
+            'id': 'admin_prefix',
             'value': '$prefix'
         }));
         $('body').append($('<input/>', {
             'type':'hidden',
             'id': 'admin_base_uri',
             'value': '$base_uri'
+        }));
+        $('body').append($('<input/>', {
+            'type':'hidden',
+            'id': 'admin_uri',
+            'value': '$admin_url'
         }));
 $("input[type='file']").on("filepredelete", function(jqXHR) {
     var abort = true;

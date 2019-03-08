@@ -1065,21 +1065,13 @@ var admin_base_path = function (path) {
     if (admin_base_uri.length > 0) {
         urls.push(admin_base_uri);
     }
-    urls.push(trimAny($('#admin_url').val(), '/'));
+    urls.push(trimAny($('#admin_prefix').val(), '/'));
     var prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 };
 var admin_url = function (path) {
-    var urls = [];
-    var admin_base_uri = trimAny($('#admin_base_uri').val(), '/');
-    if (admin_base_uri.length > 0) {
-        urls.push(admin_base_uri);
-    }
-    urls.push(trimAny($('#admin_url').val(), '/'));
-    var prefix = '/' + urls.join('/');
-    prefix = (prefix == '/') ? '' : prefix;
-    return prefix + '/' + trimAny(path, '/');
+    return URLJoin($('#admin_uri').val(), path);
 };
 var getParamFromArray = function (array) {
     array = array.filter(function (x) {
