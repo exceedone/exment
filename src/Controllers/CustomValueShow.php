@@ -9,12 +9,15 @@ use Encore\Admin\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueShow
@@ -26,6 +29,20 @@ trait CustomValueShow
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
         return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+
+            // add parent link if this form is 1:n relation
+            $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+            if (isset($relation)) {
+                $item = ColumnItems\ParentItem::getItem($relation->parent_custom_table);
+
+                $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
+                    if (is_null($this)) {
+                        return '';
+                    }
+                    return $item->setCustomValue($this)->html();
+                })->setEscape(false);
+            }
+
             // loop for custom form blocks
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue

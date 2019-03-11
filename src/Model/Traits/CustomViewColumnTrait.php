@@ -46,12 +46,14 @@ trait CustomViewColumnTrait
     {
         $this->setViewColumnTarget($view_column_target);
     }
+    
     protected function getViewColumnTargetWithTable() {
         if (!isset($this->view_column_table_id)) {
             return null;
         }
         return $this->view_column_table_id . '-' . $this->getViewColumnTarget();
     }
+
     protected function getViewColumnTarget($column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
         if (!isset($this->{$column_type_key}) || 
