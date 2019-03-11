@@ -241,10 +241,10 @@ class AuthUserOrgHelper
             ->where('related_type', $related_type)
             ->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', RoleType::SYSTEM);
+                    $query->where('morph_type', RoleType::SYSTEM()->lowerKey());
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', RoleType::TABLE)
+                    $query->where('morph_type', RoleType::TABLE()->lowerKey())
                     ->where('morph_id', $target_table->id);
                 });
             })->get(['related_id'])->pluck('related_id') ?? [];

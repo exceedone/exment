@@ -77,7 +77,7 @@ class InitializeController extends Controller
                     'related_id' => $user->id,
                     'related_type' => SystemTableName::USER,
                     'morph_id' => null,
-                    'morph_type' =>  RoleType::SYSTEM,
+                    'morph_type' =>  RoleType::SYSTEM()->lowerKey(),
                     'role_id' => Role::where('role_type', RoleType::SYSTEM)->first()->id,
                 ]
             );

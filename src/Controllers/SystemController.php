@@ -126,7 +126,7 @@ class SystemController extends AdminControllerBase
                 // get DB system_authoritable values
                 $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                     ->where('related_type', $related_type)
-                    ->where('morph_type', RoleType::SYSTEM)
+                    ->where('morph_type', RoleType::SYSTEM()->lowerKey())
                     ->where('role_id', $role->id)
                     ->get(['related_id']);
                 foreach ($values as $value) {
@@ -142,7 +142,7 @@ class SystemController extends AdminControllerBase
                             'related_id' => $value,
                             'related_type' => $related_type,
                             'morph_id' => null,
-                            'morph_type' => RoleType::SYSTEM,
+                            'morph_type' => RoleType::SYSTEM()->lowerKey(),
                             'role_id' => $role->id,
                         ]
                     );
