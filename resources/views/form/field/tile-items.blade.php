@@ -3,11 +3,11 @@
     <div id="tile-{{$column}}-{{$loop->index}}" class="row tile" data-id="{{array_get($option, 'id')}}">
         @if(!is_null(array_get($option, 'thumbnail')))
         <div class="col-xs-3 tile-thumbnail">
-            <img src="data:image/png;base64,{{ array_get($option, 'thumbnail') }}" />
+            <img src="{{ array_get($option, 'thumbnail') }}" />
         </div>
         @endif
         <div class="{{ !is_null(array_get($option, 'thumbnail')) ? 'col-xs-9' : 'col-xs-12' }}">
-            <p class="tile-title">{{ array_get($option, 'template_name') }}</p>
+            <p class="tile-title">{{ array_get($option, 'title') }}</p>
             @if(!is_null(array_get($option, 'description')))
             <p class="tile-description">{{ array_get($option, 'description') }}</p>
             @endif

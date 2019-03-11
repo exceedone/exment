@@ -80,7 +80,25 @@ class Tile extends Field
         $template_search_url = admin_urls('template', 'search');
         $name = $this->formatName($this->column);
         $script = <<<EOT
-    $('#tile-{$this->column} .tile').off('click').on('click', function(event) {
+    
+    var template_search_timeout;
+    var before = '';
+    $('#tile-{$this->column} #template_search').keyup(function(event) {
+        var val = $(event.target).val();
+        if(val != before){
+            before = val;
+            clearTimeout(template_search_timeout);
+            template_search_timeout = setTimeout(function(){
+                searchTemplate($(event.target).val());
+            }, 300);
+        }
+    });
+    
+    $(document).on('click', '[data-ajax-link]', {}, function(ev){
+        searchTemplate(null, $(ev.target).data('ajax-link'));
+    });
+
+    $(document).off('click', '#tile-{$this->column} .tile').on('click', '#tile-{$this->column} .tile', {}, function(event){
         var tile = $(event.target).closest('.tile');
         var hasActive = tile.hasClass('active');
         
@@ -98,23 +116,6 @@ class Tile extends Field
             tile.removeClass('active');
             tile.find('.tile-value').val('');
         }
-    });
-    
-    var template_search_timeout;
-    var before = '';
-    $('#tile-{$this->column} #template_search').keyup(function(event) {
-        var val = $(event.target).val();
-        if(val != before){
-            before = val;
-            clearTimeout(template_search_timeout);
-            template_search_timeout = setTimeout(function(){
-                searchTemplate($(event.target).val());
-            }, 300);
-        }
-    });
-    
-    $(document).on('click', '[data-ajax-link]', {}, function(ev){
-        searchTemplate(null, $(ev.target).data('ajax-link'));
     });
 
     $(function(){

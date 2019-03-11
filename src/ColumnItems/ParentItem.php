@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
 
 class ParentItem implements ItemInterface
 {
@@ -111,6 +112,13 @@ class ParentItem implements ItemInterface
         return getModelName($custom_value->parent_type)::find($custom_value->parent_id);
     }
     
+    /**
+     * get view filter type
+     */
+    public function getViewFilterType(){
+        return ViewColumnFilterType::DEFAULT;
+    }
+
     public static function getItem(...$args)
     {
         list($custom_table, $custom_value) = $args + [null, null];

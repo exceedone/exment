@@ -40,49 +40,78 @@ class TemplateController extends AdminControllerBase
      */
     public function searchTemplate(Request $request){
         // search from exment api
-        $client = new Client();
+        // $client = new Client();
 
         $q = $request->get('q');
         $name = $request->get('name');
         $column = $request->get('column');
         $page = $request->get('page') ?? 1;
 
-        $query = [
-            'q' => $q,
-            'page' => $page,
-            'maxCount' => 10,
-        ];
+        // $query = [
+        //     'q' => $q,
+        //     'page' => $page,
+        //     'maxCount' => 10,
+        // ];
 
         try {
-            $response = $client->request('GET', config('exment.template_search_url', 'https://exment-manage.exment.net/api/template'), [
-                'http_errors' => false,
-                'query' => $query,
-            ]);
-            $contents = $response->getBody()->getContents();
-            $json = json_decode($contents, true);
+            // $response = $client->request('GET', config('exment.template_search_url', 'https://exment-manage.exment.net/api/template'), [
+            //     'http_errors' => false,
+            //     'query' => $query,
+            // ]);
+            // $contents = $response->getBody()->getContents();
+            // $json = json_decode($contents, true);
     
-            // create paginator
+            // // create paginator
+            // $paginator = new LengthAwarePaginator(
+            //     collect($json['data']),
+            //     $json['total'],
+            //     $json['per_page'], 
+            //     $json['current_page']
+            // );
+    
+            // $paginator->setPath(admin_urls('template', 'search'));
+            
+            // // create datalist
+            // $datalist = [];
+            // foreach($json['data'] as $d){
+            //     $datalist[] = [
+            //         'thumbnail' => array_get($d, 'value.thumbnail'),
+            //         'template_name' => array_get($d, 'value.template_name'),
+            //         'description' => array_get($d, 'value.description'),
+            //         'author' => array_get($d, 'value.author'),
+            //         'author_url' => array_get($d, 'value.author_url'),
+            //     ];
+            // }
+    
+            $array = TemplateImportExport\TemplateImporter::getTemplates();
+            if (is_null($array)) {
+                $array = [];
+            }
+            $datalist = [];
+            foreach ($array as $a) {
+                // get thumbnail_path
+                if (isset($a['thumbnail_fullpath'])) {
+                    $thumbnail_path = $a['thumbnail_fullpath'];
+                } else {
+                    $thumbnail_path = base_path() . '/vendor/exceedone/exment/templates/noimage.png';
+                }
+                array_push($datalist, [
+                    'id' => array_get($a, 'template_name'),
+                    'title' => array_get($a, 'template_view_name'),
+                    'description' => array_get($a, 'description'),
+                    'author' => array_get($a, 'author'),
+                    'thumbnail' => 'data:image/png;base64,'.base64_encode(file_get_contents($thumbnail_path))
+                ]);
+            }
+
             $paginator = new LengthAwarePaginator(
-                collect($json['data']),
-                $json['total'],
-                $json['per_page'], 
-                $json['current_page']
+                collect($datalist),
+                2,
+                1, 
+                1
             );
     
-            $paginator->setPath(admin_urls('template', 'search'));
-            
-            // create datalist
-            $datalist = [];
-            foreach($json['data'] as $d){
-                $datalist[] = [
-                    'thumbnail' => array_get($d, 'value.thumbnail'),
-                    'template_name' => array_get($d, 'value.template_name'),
-                    'description' => array_get($d, 'value.description'),
-                    'author' => array_get($d, 'value.author'),
-                    'author_url' => array_get($d, 'value.author_url'),
-                ];
-            }
-    
+
             // return body and footer
             return view('exment::form.field.tile-items', [
                 'paginator' => $paginator,
