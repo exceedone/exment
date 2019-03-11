@@ -175,9 +175,9 @@ if (!function_exists('admin_urls')) {
     /**
      * Join admin base paths.
      */
-    function admin_urls(...$pass_array)
+    function admin_base_paths(...$pass_array)
     {
-        return admin_url(url_join($pass_array));
+        return admin_base_path(url_join($pass_array));
     }
 }
 
