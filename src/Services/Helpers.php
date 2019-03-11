@@ -171,7 +171,7 @@ if (!function_exists('admin_urls')) {
     }
 }
 
-if (!function_exists('admin_urls')) {
+if (!function_exists('admin_base_paths')) {
     /**
      * Join admin base paths.
      */
