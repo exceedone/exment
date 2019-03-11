@@ -9,10 +9,11 @@ class Editor extends CustomItem
 {
     public function html()
     {
-        if (is_null($this->text())) {
+        $text = $this->text();
+        if (is_null($text)) {
             return null;
         }
-        return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($this->text())).'</div>';
+        return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text)).'</div>';
     }
     
     protected function getAdminFieldClass()
