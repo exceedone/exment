@@ -3485,10 +3485,6 @@
   margin-bottom: 20px;
 }
 
-.box-show .show-tinymce p, .box-show .show-tinymce hr {
-  margin: 0;
-}
-
 .modal-body {
   max-height: calc(100vh - 200px);
   overflow-y: auto;
