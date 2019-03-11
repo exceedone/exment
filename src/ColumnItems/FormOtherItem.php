@@ -70,6 +70,7 @@ abstract class FormOtherItem implements ItemInterface
 
     /**
      * get html(for display)
+     * *Please escape
      */
     public function html()
     {
@@ -103,7 +104,7 @@ abstract class FormOtherItem implements ItemInterface
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $classname = $this->getAdminFieldClass();
-        $field = new $classname($this->html());
+        $field = new $classname($this->html(), []);
 
         return $field;
     }
@@ -145,4 +146,12 @@ abstract class FormOtherItem implements ItemInterface
 
         return false;
     }
+    
+    /**
+     * get view filter type
+     */
+    public function getViewFilterType(){
+        return ViewColumnFilterType::DEFAULT;
+    }
+
 }

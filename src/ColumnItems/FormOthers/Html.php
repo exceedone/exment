@@ -7,6 +7,14 @@ use Encore\Admin\Form\Field;
 
 class Html extends FormOtherItem
 {
+    /**
+     * get Text(for display)
+     */
+    public function text()
+    {
+        return array_get($this->form_column, 'options.html');
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\Html::class;
