@@ -50,11 +50,10 @@ class CustomViewColumn extends ModelBase
         $custom_view = array_get($options, 'custom_view');
 
         $view_column_type = array_get($view_column, "view_column_type");
-        $view_column_target_id = static::getColumnIdOrName(
+        list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
             $view_column_type,
             array_get($view_column, "view_column_target_name"),
-            $custom_table,
-            true
+            $custom_table
         );
         // if not set column id, continue
         if ($view_column_type != ViewColumnType::PARENT_ID && !isset($view_column_target_id)) {
@@ -66,6 +65,7 @@ class CustomViewColumn extends ModelBase
             'custom_view_id' => $custom_view->id,
             'view_column_type' => $view_column_type,
             'view_column_target_id' => $view_column_target_id,
+            'view_column_table_id' => $view_column_table_id,
         ]);
         $custom_view_column->order = array_get($view_column, "order");
         $custom_view_column->saveOrFail();

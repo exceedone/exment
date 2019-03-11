@@ -76,13 +76,13 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         $to_column_type = array_get($copy_column, "to_column_type");
 
         // get from and to column
-        $from_column_target = static::getColumnIdOrName(
+        $from_column_target = static::getColumnAndTableId(
             $from_column_type,
             array_get($copy_column, "from_column_name"),
             $from_table,
             true
         );
-        $to_column_target = static::getColumnIdOrName(
+        $to_column_target = static::getColumnAndTableId(
             $to_column_type,
             array_get($copy_column, "to_column_name"),
             $to_table,

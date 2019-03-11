@@ -5,8 +5,10 @@ namespace Exceedone\Exment\Model\Traits;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\ColumnItems;
 
 trait CustomViewColumnTrait
@@ -99,28 +101,50 @@ trait CustomViewColumnTrait
     }
 
     /**
-     * get column name or id.
-     * if column_type is string
+     * get column target id and target table id.
+     * 
+     * @return array first, target column id. second, target table id.
      */
-    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false)
+    protected static function getColumnAndTableId($column_type, $column_name, $custom_table = null)
     {
         if (!isset($column_type)) {
             $column_type = ViewColumnType::COLUMN;
         }
 
+        $target_column_id = null;
+        $target_table_id = null;
         switch ($column_type) {
             // for table column
             case ViewColumnType::COLUMN:
-                // get column name
-                return CustomColumn::getEloquent($column_name, $custom_table)->id ?? null;
+                $target_column = CustomColumn::getEloquent($column_name, $custom_table);
+                // get table and column id
+                if(isset($target_column)){
+                    $target_column_id = $target_column->id ?? null;
+                    $target_table_id = $target_column->custom_table_id;
+                }
+                break;
             // system column
             default:
                 // set parent id
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
-                    return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
+                    $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
+                    // get parent table
+                    if(isset($custom_table)){
+                        $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
+
+                        if(isset($relation)){
+                            $target_table_id = $relation->parent_custom_table_id;
+                        }
+                    }
+                }else{
+                    $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'];
+                    // set parent table info
+                    if(isset($custom_table)){
+                        $target_table_id = $custom_table->id;
+                    }
                 }
-                return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
+                break;
         }
-        return null;
+        return [$target_column_id, $target_table_id];
     }
 }

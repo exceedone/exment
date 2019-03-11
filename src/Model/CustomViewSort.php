@@ -47,14 +47,13 @@ class CustomViewSort extends ModelBase
         $custom_table = array_get($options, 'custom_table');
         $custom_view = array_get($options, 'custom_view');
 
-        $view_column_target = static::getColumnIdOrName(
+        list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
             array_get($view_column, "view_column_type"),
             array_get($view_column, "view_column_target_name"),
-            $custom_table,
-            true
+            $custom_table
         );
         // if not set filter_target id, continue
-        if (!isset($view_column_target)) {
+        if (!isset($view_column_target_id)) {
             return null;
         }
 
@@ -62,7 +61,8 @@ class CustomViewSort extends ModelBase
         $custom_view_sort = CustomviewSort::firstOrNew([
             'custom_view_id' => $custom_view->id,
             'view_column_type' => $view_column_type,
-            'view_column_target_id' => $view_column_target,
+            'view_column_target_id' => $view_column_target_id,
+            'view_column_table_id' => $view_column_table_id,
         ]);
         
         $custom_view_sort->sort = array_get($view_column, "sort", 1);
