@@ -28,23 +28,26 @@ trait RoleForm
 
         // role setting --------------------------------------------------
         $form->header(exmtrans('role.permission_header'))->hr();
+        $description = '';
         switch ($role_type) {
             case RoleType::VALUE:
-                $form->description(exmtrans(System::organization_available() ? 'role.description_form.custom_value' : 'role.description_form.custom_value_disableorg'));
+                $description = exmtrans(System::organization_available() ? 'role.description_form.custom_value' : 'role.description_form.custom_value_disableorg');
                 break;
                 
             case RoleType::TABLE:
-                $form->description(exmtrans(System::organization_available() ? 'role.description_form.custom_table' : 'role.description_form.custom_table_disableorg'));
+                $description = exmtrans(System::organization_available() ? 'role.description_form.custom_table' : 'role.description_form.custom_table_disableorg');
             break;
             
             case RoleType::SYSTEM:
-                $form->description(exmtrans(System::organization_available() ? 'role.description_form.system' : 'role.description_form.system_disableorg'));
+                $description = exmtrans(System::organization_available() ? 'role.description_form.system' : 'role.description_form.system_disableorg');
                 break;
             
             case RoleType::PLUGIN:
-                $form->description(exmtrans(System::organization_available() ? 'role.description_form.plugin' : 'role.description_form.plugin_disableorg'));
+                $description = exmtrans(System::organization_available() ? 'role.description_form.plugin' : 'role.description_form.plugin_disableorg');
                 break;
         }
+        $description .= sprintf(exmtrans('role.description_form.manual_link'), getManualUrl('permission'));
+        $form->description($description);
 
         // Add Role --------------------------------------------------
         Role::roleLoop($role_type, function ($role, $related_type) use ($role_type, $form) {
