@@ -259,7 +259,7 @@ trait HasPermissions
             $query = DB::table('roles as a')
                 ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
                 ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
-                ->where('morph_type', RoleType::TABLE())
+                ->where('morph_type', RoleType::TABLE()->lowerKey())
                 ;
             // if $i == 0, then search as user
             if ($i == 0) {
@@ -336,7 +336,7 @@ trait HasPermissions
         // get all permissons for system. --------------------------------------------------
         $roles = DB::table('roles as a')
             ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
-            ->where('morph_type', RoleType::SYSTEM())
+            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
             ->where(function ($query) use ($organization_ids) {
                 $query->orWhere(function ($query) {
                     $query->where('related_type', SystemTableName::USER)

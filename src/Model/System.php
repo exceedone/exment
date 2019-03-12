@@ -90,7 +90,9 @@ class System extends ModelBase
 
         // add system role --------------------------------------------------
         // get system role value
-        $system_role = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->where('morph_type', RoleType::SYSTEM)->get();
+        $system_role = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
+            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
+            ->get();
         // get Role list for system.
         $roles = Role::where('role_type', RoleType::SYSTEM)->get(['id', 'suuid', 'role_name']);
         foreach ($roles as $role) {
