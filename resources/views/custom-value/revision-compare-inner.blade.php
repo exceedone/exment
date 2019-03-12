@@ -37,7 +37,7 @@
 </div>                    
 @endforeach
  
-@if($has_diff)
+@if($has_edit_permission && $has_diff)
 <div class="form-group ">
     <div class="col-sm-5 col-sm-offset-2">
         <form action="{{ $form_url }}" method="POST" pjax-container>

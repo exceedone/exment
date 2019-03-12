@@ -289,8 +289,9 @@ EOT;
             'newest_revision_suuid' => $newest_revision_suuid,
             'old_revision' => $old_revision,
             'revision_suuid' => $revision_suuid,
+            'has_edit_permission' => $this->custom_table->hasPermissionEditData($id),
             'form_url' => admin_urls('data', $table_name, $id, 'compare'),
-            'has_diff' => collect($table_columns)->filter(function ($table_column) {
+            'has_diff' => collect($table_columns)->filter(function($table_column){
                 return array_get($table_column, 'diff', false);
             })->count() > 0
         ];
