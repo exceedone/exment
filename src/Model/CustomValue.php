@@ -51,7 +51,7 @@ class CustomValue extends ModelBase
     public function value_authoritable_users()
     {
         return $this->morphToMany(getModelName(SystemTableName::USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
-            ->withPivot('related_id', 'related_type')
+            ->withPivot('related_id', 'related_type', 'role_id')
             ->wherePivot('related_type', SystemTableName::USER)
             ;
     }
@@ -60,7 +60,7 @@ class CustomValue extends ModelBase
     public function value_authoritable_organizations()
     {
         return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
-            ->withPivot('related_id', 'related_type')
+            ->withPivot('related_id', 'related_type', 'role_id')
             ->wherePivot('related_type', SystemTableName::ORGANIZATION)
             ;
     }

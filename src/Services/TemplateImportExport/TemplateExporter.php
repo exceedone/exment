@@ -536,7 +536,7 @@ class TemplateExporter
             if (isset($role['permissions']) && is_array($role['permissions'])) {
                 $permissions = [];
                 foreach ($role['permissions'] as $key => $value) {
-                    $permissions[] = key($value);
+                    $permissions[$key] = $value;
                 }
                 $role['permissions'] = $permissions;
             }

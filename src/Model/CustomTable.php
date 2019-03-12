@@ -440,7 +440,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // else, get model using value_authoritable.
         // if count > 0, return true.
         $rows = $model->getAuthoritable(SystemTableName::USER);
-        if (isset($rows) && count($rows) > 0) {
+        if($this->checkPermissionWithPivot($rows, $role)){
             return true;
         }
 
@@ -448,7 +448,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if count > 0, return true.
         if (System::organization_available()) {
             $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if (isset($rows) && count($rows) > 0) {
+            if($this->checkPermissionWithPivot($rows, $role)){
                 return true;
             }
         }
@@ -458,11 +458,34 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     *
+     * check permission with pivot
+     */
+    protected function checkPermissionWithPivot($rows, $role_key){
+        if (!isset($rows) || count($rows) == 0) {
+            return false;
+        }
+
+        foreach($rows as $row){
+            // get role 
+            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+
+            // if role type is system, and has key
+            $permissions = $role->permissions;
+            if (array_keys_exists($role_key, $permissions)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 
      */
     public function allUserAccessable()
     {
-        return boolval($this->getOption('all_user_editable_flg'))
+        return boolval($this->getOption('all_user_editable_f
+        lg'))
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
     }
@@ -554,9 +577,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query = $this->getValueModel();
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
-        elseif ($table_name ==SystemTableName::USER && !$all) {
+        elseif ($table_name == SystemTableName::USER && !$all) {
             $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
-        } elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
+        }
+        elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();

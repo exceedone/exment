@@ -79,4 +79,13 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
 
         return $obj_role;
     }
+    
+    /**
+     * get eloquent using request settion.
+     * now only support only id.
+     */
+    public static function getEloquent($id, $withs = [])
+    {
+        return static::getEloquentDefault($id, $withs);
+    }
 }
