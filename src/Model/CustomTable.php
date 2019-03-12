@@ -308,14 +308,34 @@ class CustomTable extends ModelBase
             return true;
         }
 
+        if(!is_array($role)){
+            $role = [$role];
+        }
+
         // if user doesn't have all permissons about target table, return false.
         if (!$this->hasPermission($role)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if ($this->hasPermission(RoleValue::CUSTOM_VALUE_EDIT_ALL)) {
             return true;
+        }
+
+        // if user has all view table, check contains view or access all from $role.
+        if ($this->hasPermission(RoleValue::CUSTOM_VALUE_VIEW_ALL)) {
+            foreach([RoleValue::CUSTOM_VALUE_VIEW_ALL, RoleValue::CUSTOM_VALUE_ACCESS_ALL] as $role_key){
+                if(in_array($role_key, $role)){
+                    return true;
+                }
+            }
+        }
+
+        // if user has all access table, check contains view or access all from $role.
+        if ($this->hasPermission(RoleValue::CUSTOM_VALUE_ACCESS_ALL)) {
+            if(in_array(RoleValue::CUSTOM_VALUE_ACCESS_ALL, $role)){
+                return true;
+            }
         }
 
         // if id is null(for create), return true
@@ -363,7 +383,7 @@ class CustomTable extends ModelBase
 
         foreach($rows as $row){
             // get role 
-            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+            $role = Role::find(array_get($row, 'pivot.role_id'));
 
             // if role type is system, and has key
             $permissions = $role->permissions;

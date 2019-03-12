@@ -291,11 +291,8 @@ trait HasPermissions
             // if different table name, change target array.
             $table_name = array_get($role, 'table_name');
             if ($before_table_name != $table_name) {
-                $permission_tables = [];
-                $permissions[$table_name] = &$permission_tables;
+                $permissions[$table_name] = array_has($permissions, $table_name) ? $permissions[$table_name] : [];
                 $before_table_name = $table_name;
-            } else {
-                $permission_tables = &$permissions[$table_name];
             }
             $permission_details = array_get($role, 'permissions');
             if (is_string($permission_details)) {
@@ -303,8 +300,8 @@ trait HasPermissions
             }
             foreach ($permission_details as $key => $value) {
                 // if permission value is 1, add permission.
-                if (boolval($value) && !array_key_exists($key, $permission_tables)) {
-                    $permission_tables[$key] = $value;
+                if (boolval($value) && !array_key_exists($key, $permissions[$table_name])) {
+                    $permissions[$table_name][$key] = $value;
                 }
             }
         }
@@ -365,18 +362,12 @@ trait HasPermissions
             }
             foreach ($role_details as $key => $value) {
                 // if permission value is 1, add permission.
-                // $key = key($kv);
-                // $value = $kv[$key];
                 if (boolval($value) && !array_key_exists($key, $permissions)) {
                     $permissions[$key] = $value;
                 }
             }
         }
-
-        // if (count($permissions) == 0) {
-        //     $permissions['dashboard'] = [];
-        // }
-
+        
         return $permissions;
     }
 }
