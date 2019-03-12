@@ -126,7 +126,7 @@ class FormHelper
 
                 $field->options(function ($val) use ($select_target_table, $custom_table, $form_column_name) {
                     // get DB option value
-                    return $select_target_table->getOptions($val, $custom_table);
+                    return $select_target_table->getOptions($val, $custom_table, false, true);
                 });
                 if(isset($select_target_table)){
                     $ajax = $select_target_table->getOptionAjaxUrl() ?? null;

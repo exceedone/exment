@@ -459,12 +459,20 @@ class CustomTable extends ModelBase
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false)
+    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false)
     {
         if (is_null($display_table)) {
             $display_table = $this;
         }
         $table_name = $this->table_name;
+        $display_table = CustomTable::getEloquent($display_table);
+        // check table permission. if not exists, show admin_warning
+        if(!$display_table->hasPermission()){
+            if($showMessage_ifDeny){
+                admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
+            }
+            return [];
+        }
 
         // get query.
         // if org

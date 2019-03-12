@@ -64,13 +64,13 @@ trait CustomValueForm
             if ($parent_custom_table->isGetOptions()) {
                 $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getOptions($value);
+                    return $parent_custom_table->getOptions($value, null, false, true);
                 })
                 ->required();
             } else {
                 $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getOptions($value);
+                    return $parent_custom_table->getOptions($value, null, false, true);
                 })
                 ->ajax($parent_custom_table->getOptionAjaxUrl())
                 ->required();

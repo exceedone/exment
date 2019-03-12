@@ -437,6 +437,7 @@ return [
             'currency_symbol' => 'Please select the format of the currency displayed on the screen.',
             'add_custom_form_flg' => 'After creating custom column, you can add it to the default custom form. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Form" page.',
             'add_custom_view_flg' => 'After creating custom column, you can add it to the default custom view. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "View" page.',
+            'select_table_deny' => "You don't have the permissions for the referenced table '%s'. Please contact your system administrator to request additional permissions.",
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
