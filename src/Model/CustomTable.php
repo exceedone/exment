@@ -472,10 +472,10 @@ class CustomTable extends ModelBase
             $query = $this->getValueModel();
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
-        elseif ($table_name ==SystemTableName::USER && !$all) {
+        elseif ($table_name == SystemTableName::USER && !$all) {
             $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
         }
-        elseif ($table_name ==SystemTableName::ORGANIZATION && !$all) {
+        elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
