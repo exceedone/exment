@@ -336,7 +336,7 @@ class CustomTable extends ModelBase
         // else, get model using value_authoritable.
         // if count > 0, return true.
         $rows = $model->getAuthoritable(SystemTableName::USER);
-        if (isset($rows) && count($rows) > 0) {
+        if($this->checkPermissionWithPivot($rows, $role)){
             return true;
         }
 
@@ -344,12 +344,34 @@ class CustomTable extends ModelBase
         // if count > 0, return true.
         if (System::organization_available()) {
             $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if (isset($rows) && count($rows) > 0) {
+            if($this->checkPermissionWithPivot($rows, $role)){
                 return true;
             }
         }
 
         // else, return false.
+        return false;
+    }
+
+    /**
+     * check permission with pivot
+     */
+    protected function checkPermissionWithPivot($rows, $role_key){
+        if (!isset($rows) || count($rows) == 0) {
+            return false;
+        }
+
+        foreach($rows as $row){
+            // get role 
+            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+
+            // if role type is system, and has key
+            $permissions = $role->permissions;
+            if (array_keys_exists($role_key, $permissions)) {
+                return true;
+            }
+        }
+
         return false;
     }
 
