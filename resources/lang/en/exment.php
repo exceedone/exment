@@ -226,6 +226,7 @@ return [
             'config' => 'Config File',
         ],
         'message' => [
+            'target_required' => 'Please select at least one backup target.',
             'backup_confirm' => 'Would you like to perform a backup?',
             'backup_error' => 'Backup failed.',
             'download_error' => 'Download failed.',
@@ -540,8 +541,8 @@ return [
         'view_filter_condition_value_text' => 'Filter Condition Value',
         'default_view_name' => 'Default View',
         'description_custom_view_columns' => 'Select display columns.',
-        'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.',
-        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.',
+        'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">search index</a> has not been set. Please confirm the content of the link destination and set it.',
+        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">search index</a> has not been set. Please confirm the content of the link destination and set it.',
 
         'filter_condition_options' => [
             'eq' => 'Equal', 
@@ -755,6 +756,7 @@ return [
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
         'import' => [
+            'manual_id' => 'Data Import',
             'import_file' => 'Import File',
             'import_file_select' => 'Select CSV File',
             'primary_key' => 'Promary Key',
@@ -762,6 +764,7 @@ return [
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
             'help' => [
+                'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here</a> for details such as the procedure.',
                 'custom_table_file' => 'Select the CSV file that you output the template.',
                 'primary_key' => 'Select the field to narrow down the update data.<br />If this field value matches existing data, it will be imported as update data.<br />If matching data does not exist, it will be imported as new data.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',

@@ -444,13 +444,20 @@ abstract class DataImporterBase
         $import_path = admin_base_paths('data', $table_name, 'import');
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
-        $form->disableReset();
+        $form->disableReset()
+            ->action(admin_base_path('data/'.$table_name.'/import'))
+            ;
         $form->modalAttribute('id', 'data_import_modal');
         $form->modalHeader(exmtrans('common.import') . ' - ' . $this->custom_table->table_view_name);
 
-        $form->action(admin_base_path('data/'.$table_name.'/import'))
-            ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
-            ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
+        $form->description(sprintf(exmtrans("custom_value.import.help.description"), getManualUrl('data_import_export?id='.exmtrans('custom_value.import.manual_id'))))
+            ->setWidth(8, 3)
+            ;
+
+        $form->file('custom_table_file', exmtrans('custom_value.import.import_file'))
+            ->rules('mimes:csv,xlsx')
+            ->setWidth(8, 3)
+            ->addElementClass('custom_table_file')
             ->options(Define::FILE_OPTION)
             ->help(exmtrans('custom_value.import.help.custom_table_file'));
         

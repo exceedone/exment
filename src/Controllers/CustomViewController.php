@@ -162,7 +162,7 @@ class CustomViewController extends AdminControllerTableBase
                 });
             $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"));
         })->setTableColumnWidth(3, 4, 4, 1)
-        ->description(exmtrans("custom_view.description_custom_view_filters"));
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
         // sort setting
         $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
@@ -171,7 +171,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
             $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
-        ->description(exmtrans("custom_view.description_custom_view_sorts"));
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
         if (!isset($id)) {
             $id = $form->model()->id;
