@@ -17,6 +17,20 @@ class File extends CustomItem
         return ExmentFile::getFile($this->value);
     }
 
+    /**
+     * get html. show link to file
+     */
+    public function html(){
+        // get image url 
+        $url = ExmentFile::getUrl($this->value);
+        $file = ExmentFile::getData($this->value);
+        if(!isset($url)){
+            return $url;
+        }
+
+        return '<a href="'.$url.'" target="_blank">'.esc_html($file->filename).'</a>';
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\File::class;
