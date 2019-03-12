@@ -112,6 +112,7 @@ class LoginUserProvider extends ProviderBase
         // if not set $login_user and $use_loginuser is true, create
         if ($use_loginuser === '1'  && is_null($model->login_user)) {
             $model->login_user = new LoginUser;
+            $model->login_user->base_user_id = array_get($data, 'id');
         }
         // if set $login_user and $use_loginuser is false, remove
         elseif ($use_loginuser === '0' && !is_null($model->login_user)) {
