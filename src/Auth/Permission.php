@@ -149,7 +149,7 @@ class Permission
                     return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable()) {
+                if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
                 return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);

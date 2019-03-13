@@ -474,6 +474,9 @@ class CustomTable extends ModelBase
     /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
+     * 
+     * *"$this" is the table targeted on options.
+     * *"$display_table" is the table user shows on display.
      *
      * @param $selected_value the value that already selected.
      * @param CustomTable $display_table Information on the table displayed on the screen
@@ -487,7 +490,7 @@ class CustomTable extends ModelBase
         $table_name = $this->table_name;
         $display_table = CustomTable::getEloquent($display_table);
         // check table permission. if not exists, show admin_warning
-        if(!$display_table->hasPermission()){
+        if(!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()){
             if($showMessage_ifDeny){
                 admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
             }
