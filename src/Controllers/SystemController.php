@@ -157,7 +157,7 @@ class SystemController extends AdminControllerBase
                         DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                         ->where('related_id', $dbValue->related_id)
                         ->where('related_type', $related_type)
-                        ->where('morph_type', RoleType::SYSTEM())
+                        ->where('morph_type', RoleType::SYSTEM()->lowerKey())
                         ->where('role_id', $role->id)
                         ->delete();
                     }
