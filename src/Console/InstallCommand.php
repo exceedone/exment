@@ -49,7 +49,10 @@ class InstallCommand extends AdminInstallCommand
      */
     public function handle()
     {
+        $this->publishStaticFiles();
+
         $this->initDatabase();
+        
         $this->initAdminDirectory();
 
         //$this->call('passport:keys');
