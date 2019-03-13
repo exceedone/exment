@@ -690,6 +690,7 @@ return [
 
     'menu' => [
         'menu_type' => 'メニュー種類',
+        'description' => '左メニューの項目を定義します。ブラウザの更新後、内容が反映されます。',
         'menu_target' => '対象',
         'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',

@@ -69,13 +69,7 @@ class DashboardController extends AdminControllerBase
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
         }
         // if system admin, check version
-        elseif(\Exment::user()->hasPermission(RoleValue::SYSTEM)){
-            $versionCheck = checkLatestVersion();
-            if($versionCheck == SystemVersion::HAS_NEXT){
-                list($latest, $current) = getExmentVersion();
-                admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
-            }
-        }
+        $this->showVersionUpdate();
 
         $this->setDashboardInfo($request);
         $this->AdminContent($content);
@@ -331,5 +325,18 @@ EOT;
                 ]));
             }
         });
+    }
+
+    protected function showVersionUpdate(){
+        // if system admin, check version
+        if(!\Exment::user()->hasPermission(RoleValue::SYSTEM)){
+            return;
+        }
+        
+        $versionCheck = checkLatestVersion();
+        if($versionCheck == SystemVersion::HAS_NEXT){
+            list($latest, $current) = getExmentVersion();
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
+        }
     }
 }
