@@ -422,7 +422,7 @@ return [
             "organization" => "組織",
         ],
         'help' => [
-            'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>※同一のテーブルで、「検索インデックス」を非常に多く設定すると、パフォーマンスが低下する可能性があります。',
+            'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
@@ -529,7 +529,7 @@ return [
 
         'help'=> [
             'items' => 'データフォームに表示する項目を設定します。<br />「フォーム項目 候補一覧」の中から、フォームに表示したい項目を、「フォーム項目 列1」「フォーム項目 列2」にドラッグ＆ドロップで設定してください。',
-            'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+            'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
         ],
     ],
 
@@ -548,8 +548,8 @@ return [
         'view_filter_condition_value_text' => '検索値',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
-        'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス</a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
-        'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス</a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
         'filter_condition_options' => [
             'eq' => '以下の値と合致する', 
@@ -612,7 +612,7 @@ return [
             'custom_value_disableorg' => 'このデータを対象に、権限を付与するユーザーを選択します。',
             'plugin' => 'このプラグインを対象に、権限を付与するユーザー・組織を選択します。',
             'plugin_disableorg' => 'このプラグインを対象に、権限を付与するユーザーを選択します。',
-            'manual_link' => '<br />権限・役割についての詳細は<a href="%s" target="_blank">こちら</a>をご参照ください。'
+            'manual_link' => '<br />権限・役割についての詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。'
         ],
 
         'role_type_options' => [
@@ -690,7 +690,7 @@ return [
 
     'menu' => [
         'menu_type' => 'メニュー種類',
-        'description' => '左メニューの項目を定義します。ブラウザの更新後、内容が反映されます。',
+        'description' => '左メニューの項目を定義します。ブラウザの更新後、変更内容が反映されます。',
         'menu_target' => '対象',
         'menu_name' => 'メニュー名(英数字)',
         'title' => 'メニュー表示名',
@@ -773,7 +773,7 @@ return [
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
             'help' => [
-                'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら</a>をご参照ください。',
+                'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
