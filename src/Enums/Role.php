@@ -5,30 +5,30 @@ namespace Exceedone\Exment\Enums;
 class Role extends EnumBase
 {
     const SYSTEM = [
-        RoleValue::SYSTEM,
-        RoleValue::CUSTOM_TABLE,
-        RoleValue::CUSTOM_FORM,
-        RoleValue::CUSTOM_VIEW,
-        RoleValue::CUSTOM_VALUE_EDIT_ALL,
+        Permission::SYSTEM,
+        Permission::CUSTOM_TABLE,
+        Permission::CUSTOM_FORM,
+        Permission::CUSTOM_VIEW,
+        Permission::CUSTOM_VALUE_EDIT_ALL,
     ];
     const TABLE = [
-        RoleValue::CUSTOM_TABLE,
-        RoleValue::CUSTOM_FORM,
-        RoleValue::CUSTOM_VIEW,
-        RoleValue::CUSTOM_VALUE_EDIT_ALL,
-        RoleValue::CUSTOM_VALUE_VIEW_ALL,
-        RoleValue::CUSTOM_VALUE_ACCESS_ALL,
-        RoleValue::CUSTOM_VALUE_EDIT,
-        RoleValue::CUSTOM_VALUE_VIEW,
-        RoleValue::CUSTOM_VALUE_ACCESS,
+        Permission::CUSTOM_TABLE,
+        Permission::CUSTOM_FORM,
+        Permission::CUSTOM_VIEW,
+        Permission::CUSTOM_VALUE_EDIT_ALL,
+        Permission::CUSTOM_VALUE_VIEW_ALL,
+        Permission::CUSTOM_VALUE_ACCESS_ALL,
+        Permission::CUSTOM_VALUE_EDIT,
+        Permission::CUSTOM_VALUE_VIEW,
+        Permission::CUSTOM_VALUE_ACCESS,
     ];
     const VALUE = [
-        RoleValue::CUSTOM_VALUE_EDIT,
-        RoleValue::CUSTOM_VALUE_VIEW,
+        Permission::CUSTOM_VALUE_EDIT,
+        Permission::CUSTOM_VALUE_VIEW,
     ];
     const PLUGIN = [
-        RoleValue::PLUGIN_ACCESS,
-        RoleValue::PLUGIN_SETTING,
+        Permission::PLUGIN_ACCESS,
+        Permission::PLUGIN_SETTING,
     ];
 
     public static function getRoleType($role_type){

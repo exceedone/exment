@@ -14,7 +14,7 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -181,7 +181,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if (!$this->validateTable($id, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);

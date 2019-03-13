@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Model;
 use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 
 class CustomValueModelScope implements Scope
@@ -41,11 +41,11 @@ class CustomValueModelScope implements Scope
             //TODO
             return;
         }
-        elseif ($model->custom_table->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
         // if user has edit or view table
-        elseif ($model->custom_table->hasPermission(RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             // get only has role
             $builder
                 ->whereHas('value_authoritable_users', function ($q) use($user) {

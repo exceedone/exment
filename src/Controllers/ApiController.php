@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * Api about target table
@@ -19,7 +19,7 @@ class ApiController extends AdminControllerBase
     public function table($id, Request $request)
     {
         $table = CustomTable::find($id);
-        if (!$table->hasPermission(RoleValue::CUSTOM_TABLE)) {
+        if (!$table->hasPermission(Permission::CUSTOM_TABLE)) {
             abort(403);
         }
         return $table;

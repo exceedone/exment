@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -228,9 +228,9 @@ class CustomTable extends ModelBase
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(RoleValue::CUSTOM_TABLE)) {
+        if (!Admin::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(RoleValue::CUSTOM_TABLE);
+            $permission_tables = Admin::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });
@@ -247,7 +247,7 @@ class CustomTable extends ModelBase
     /**
      * whether login user has permission. target is table
      */
-    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE){
+    public function hasPermission($role_key = Permission::AVAILABLE_VIEW_CUSTOM_VALUE){
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -288,7 +288,7 @@ class CustomTable extends ModelBase
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -296,7 +296,7 @@ class CustomTable extends ModelBase
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
     /**
@@ -318,13 +318,13 @@ class CustomTable extends ModelBase
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(RoleValue::CUSTOM_VALUE_EDIT_ALL)) {
+        if ($this->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
             return true;
         }
 
         // if user has all view table, check contains view or access all from $role.
-        if ($this->hasPermission(RoleValue::CUSTOM_VALUE_VIEW_ALL)) {
-            foreach([RoleValue::CUSTOM_VALUE_VIEW_ALL, RoleValue::CUSTOM_VALUE_ACCESS_ALL] as $role_key){
+        if ($this->hasPermission(Permission::CUSTOM_VALUE_VIEW_ALL)) {
+            foreach([Permission::CUSTOM_VALUE_VIEW_ALL, Permission::CUSTOM_VALUE_ACCESS_ALL] as $role_key){
                 if(in_array($role_key, $role)){
                     return true;
                 }
@@ -332,8 +332,8 @@ class CustomTable extends ModelBase
         }
 
         // if user has all access table, check contains view or access all from $role.
-        if ($this->hasPermission(RoleValue::CUSTOM_VALUE_ACCESS_ALL)) {
-            if(in_array(RoleValue::CUSTOM_VALUE_ACCESS_ALL, $role)){
+        if ($this->hasPermission(Permission::CUSTOM_VALUE_ACCESS_ALL)) {
+            if(in_array(Permission::CUSTOM_VALUE_ACCESS_ALL, $role)){
                 return true;
             }
         }

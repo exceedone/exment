@@ -5,7 +5,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 
 class Permission
 {
@@ -146,33 +146,33 @@ class Permission
                 return array_key_exists('custom_form', $this->permission_details);
             case "view":
                 if ($systemRole) {
-                    return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);
+                    return array_keys_exists([Permission::CUSTOM_VIEW], $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
-                return array_keys_exists([RoleValue::CUSTOM_VIEW], $this->permission_details);
+                return array_keys_exists([Permission::CUSTOM_VIEW], $this->permission_details);
             case "data":
                 if ($systemRole) {
-                    return array_keys_exists(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
+                    return array_keys_exists(Permission::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable($endpoint)) {
                     return false;
                 }
-                return array_keys_exists(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
+                return array_keys_exists(Permission::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
         }
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
             if ($systemRole) {
-                return array_keys_exists(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
+                return array_keys_exists(Permission::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             }
             // check endpoint name and checking table_name.
             if (!$this->matchEndPointTable($endpoint)) {
                 return false;
             }
-            return array_keys_exists(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
+            return array_keys_exists(Permission::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
         }
 
         return false;

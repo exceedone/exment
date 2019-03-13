@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
@@ -51,7 +51,7 @@ class CustomViewController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
@@ -69,7 +69,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);

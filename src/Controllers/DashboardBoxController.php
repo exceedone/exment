@@ -15,7 +15,7 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardBoxType;
 
 class DashboardBoxController extends AdminControllerBase
@@ -125,7 +125,7 @@ class DashboardBoxController extends AdminControllerBase
                         $widgetTable->class('table table-hover');
 
                         // check edit permission
-                        if($table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)){
+                        if($table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
                             $new_url= admin_base_path("data/{$table->table_name}/create");
                             $list_url = admin_base_path("data/{$table->table_name}");
                         }else{

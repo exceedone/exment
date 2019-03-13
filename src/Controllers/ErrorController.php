@@ -58,7 +58,7 @@ class ErrorController extends Controller
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
@@ -76,7 +76,7 @@ class ErrorController extends Controller
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);

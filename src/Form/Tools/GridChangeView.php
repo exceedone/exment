@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewType;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;
@@ -36,7 +36,7 @@ class GridChangeView extends AbstractTool
         // setting menu list
         $settings = [];
         //role check
-        if (Admin::user()->hasPermission(RoleValue::CUSTOM_VIEW)) {
+        if (Admin::user()->hasPermission(Permission::CUSTOM_VIEW)) {
             $settings[] = ['url' => admin_base_paths('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
             $settings[] = ['url' => admin_base_paths('view', $this->custom_table->table_name, 'create'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
         }

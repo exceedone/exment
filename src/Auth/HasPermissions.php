@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -311,13 +311,13 @@ trait HasPermissions
         foreach($tables as $table){
             $table_name = $table->table_name;
             if(boolval($table->getOption('all_user_editable_flg'))){
-                $permissions[$table_name][RoleValue::CUSTOM_VALUE_EDIT_ALL] = "1";
+                $permissions[$table_name][Permission::CUSTOM_VALUE_EDIT_ALL] = "1";
             }
             if(boolval($table->getOption('all_user_viewable_flg'))){
-                $permissions[$table_name][RoleValue::CUSTOM_VALUE_VIEW_ALL] = "1";
+                $permissions[$table_name][Permission::CUSTOM_VALUE_VIEW_ALL] = "1";
             }
             if(boolval($table->getOption('all_user_accessable_flg'))){
-                $permissions[$table_name][RoleValue::CUSTOM_VALUE_ACCESS_ALL] = "1";
+                $permissions[$table_name][Permission::CUSTOM_VALUE_ACCESS_ALL] = "1";
             }
         }
 

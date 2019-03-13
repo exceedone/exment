@@ -13,7 +13,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
@@ -342,7 +342,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         // if this custom_table doesn't have custom_columns, redirect custom_column's page(admin) or back
         if(!isset($this->custom_table->custom_columns) || count($this->custom_table->custom_columns) == 0){
-            if($this->custom_table->hasPermission(RoleValue::CUSTOM_TABLE)){
+            if($this->custom_table->hasPermission(Permission::CUSTOM_TABLE)){
                 admin_toastr(exmtrans('custom_value.help.no_columns_admin'), 'error');
                 return redirect(admin_urls('column', $this->custom_table->table_name));
             }
@@ -354,7 +354,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
 
         //Validation table value
-        $roleValue = $show ? RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE : RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE;
+        $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
         if (!$this->validateTable($this->custom_table, $roleValue)) {
             return false;
         }
