@@ -43,6 +43,10 @@ class CustomTableController extends AdminControllerBase
         });
 
         $grid->disableExport();
+        if(\Exment::user()->hasPermission(Permission::SYSTEM)){
+            $grid->disableCreateButton();
+        }
+
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             if (boolval($actions->row->system_flg)) {
                 $actions->disableDelete();
