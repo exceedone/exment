@@ -164,7 +164,7 @@ class CustomTableController extends AdminControllerBase
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_base_paths('column', $table_name);
     
-                admin_toastr(exmtrans('custom_table.saved_redirct_column'));
+                admin_toastr(exmtrans('custom_table.help.saved_redirect_column'));
                 return redirect($custom_column_url);    
             }
         });
