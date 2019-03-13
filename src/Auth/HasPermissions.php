@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
+use Exceedone\Exment\Auth\Permission as AuthPermission;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
@@ -105,7 +106,7 @@ trait HasPermissions
         $permissions = [];
         foreach ($roles as $key => $role) {
             if (RoleType::SYSTEM == $key) {
-                array_push($permissions, new Permission([
+                array_push($permissions, new AuthPermission([
                     'role_type' =>$key,
                     'table_name' => null,
                     'permission_details' =>$role,
@@ -113,7 +114,7 @@ trait HasPermissions
                 continue;
             }
             foreach ($role as $k => $v) {
-                array_push($permissions, new Permission([
+                array_push($permissions, new AuthPermission([
                     'role_type' =>$key,
                     'table_name' =>$k,
                     'permission_details' =>$v,
