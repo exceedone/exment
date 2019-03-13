@@ -37,7 +37,11 @@ namespace Exment {
          * toggle right-top help link and color
          */
         public static ToggleHelp(){
-            var helps = JSON.parse($('#help_urls').val());
+            var help_urls = $('#help_urls').val();
+            if(!hasValue(help_urls)){
+                return;
+            }
+            var helps = JSON.parse(help_urls);
 
             var pathname = location.pathname;
             var $manual = $('#manual_link');
@@ -56,7 +60,7 @@ namespace Exment {
                     return;
                 }
             }
-            
+
             // if not exists, default help
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');

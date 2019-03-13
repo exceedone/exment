@@ -77,7 +77,11 @@ var Exment;
          * toggle right-top help link and color
          */
         CommonEvent.ToggleHelp = function () {
-            var helps = JSON.parse($('#help_urls').val());
+            var help_urls = $('#help_urls').val();
+            if (!hasValue(help_urls)) {
+                return;
+            }
+            var helps = JSON.parse(help_urls);
             var pathname = location.pathname;
             var $manual = $('#manual_link');
             var manual_base_uri = $('#manual_base_uri').val();

@@ -35,7 +35,6 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
      */
     protected $commands = [
         'Exceedone\Exment\Console\InstallCommand',
-        'Exceedone\Exment\Console\UpdateCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
