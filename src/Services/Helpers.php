@@ -966,6 +966,7 @@ if (!function_exists('shouldPassThrough')) {
         if($initialize){
             $excepts = [
                 admin_base_path('initialize'),
+                admin_base_path('template/search'),
             ];
         }else{
             $excepts = [
@@ -974,6 +975,7 @@ if (!function_exists('shouldPassThrough')) {
                 admin_base_path('auth/reset'),
                 admin_base_path('auth/forget'),
                 admin_base_path('initialize'),
+                admin_base_path('template/search'),
             ];
         }
 

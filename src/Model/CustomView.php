@@ -105,7 +105,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // get view columns
         $custom_view_columns = $this->custom_view_columns;
         foreach ($custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->column_item;
+            $item = $custom_view_column->column_item
+                ->label(array_get($custom_view_column, 'view_column_name'));
             $grid->column($item->name(), $item->label())
                 ->sort($item->sortable())
                 ->display(function ($v) use ($item) {
@@ -136,7 +137,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // create headers
         $headers = [];
         foreach ($custom_view_columns as $custom_view_column) {
-            $headers[] = $custom_view_column->column_item->label();
+            $headers[] = $custom_view_column
+                ->column_item
+                ->label(array_get($custom_view_column, 'view_column_name'))
+                ->label();
         }
         $headers[] = trans('admin.action');
         

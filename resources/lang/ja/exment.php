@@ -564,8 +564,8 @@ return [
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。',
         'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。',
-        'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。',
-        'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※子テーブルのフィルターは、集計列で同じテーブルが選択されている場合のみ反映されます。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。',
+        'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス</a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス</a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
         'summary_condition_options' => [
             'sum' => '合計',
@@ -788,6 +788,7 @@ return [
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
         'import' => [
+            'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
             'import_file_select' => 'CSVもしくはExcelファイルを選択',
             'primary_key' => '主キー',
@@ -795,6 +796,7 @@ return [
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
             'help' => [
+                'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら</a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',

@@ -22,8 +22,8 @@ class PatchAuthoritable extends Migration
         }
 
         foreach ($prms as $prm) {
-            \DB::statement('UPDATE '. SystemTableName::SYSTEM_AUTHORITABLE . ' SET morph_type = ? WHERE morph_type = ?;', [$prm['int'], $prm['string']]);
-            \DB::statement('UPDATE '. SystemTableName::VALUE_AUTHORITABLE . ' SET morph_type = ? WHERE morph_type = ?;', [$prm['int'], $prm['string']]);
+            \DB::statement('UPDATE '. SystemTableName::SYSTEM_AUTHORITABLE . ' SET morph_type = ? WHERE morph_type = ?;', [$prm['string'], $prm['int']]);
+            \DB::statement('UPDATE '. SystemTableName::VALUE_AUTHORITABLE . ' SET morph_type = ? WHERE morph_type = ?;', [$prm['string'], $prm['int']]);
         }
     }
 

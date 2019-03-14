@@ -62,7 +62,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/version', 'SystemController@version');
             
             $router->get('template', 'TemplateController@index');
-            $router->post('template/search', 'TemplateController@searchTemplate');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
             $router->get('template/import', function () {
@@ -162,7 +161,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
-        
+            $router->post('template/search', 'TemplateController@searchTemplate');
+
             // get config about login provider
             $login_providers = config('exment.login_providers');
             if (!is_nullorempty($login_providers)) {

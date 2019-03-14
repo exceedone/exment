@@ -48,7 +48,9 @@ trait ItemTrait
         if (!func_num_args()) {
             return $this->label;
         }
-        $this->label = $label;
+        if(isset($label)){
+            $this->label = $label;
+        }
         return $this;
     }
 
