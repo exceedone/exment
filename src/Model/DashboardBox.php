@@ -8,12 +8,21 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
-    
+
+    protected static $templateItems = [
+        'row_no' => ['key' => true],
+        'column_no' => ['key' => true],
+        'dashboard_box_view_name' => ['lang' => true],
+        'dashboard_box_type' => [],
+        'options' => [],
+    ];
+
     public function dashboard()
     {
         return $this->belongsTo(Dashboard::class, 'dashboard_id');

@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
@@ -31,10 +32,18 @@ class TemplateImporter
 
         foreach (static::getTemplateBasePaths() as $templates_path) {
             $paths = File::glob("$templates_path/*/config.json");
+            $locale = \App::getLocale();
             foreach ($paths as $path) {
                 try {
                     $dirname = pathinfo($path)['dirname'];
                     $json = json_decode(File::get($path), true);
+                    // merge language file
+                    $langpath = "$dirname/lang/$locale/lang.json";
+                    if (File::exists($langpath)){
+                        $lang = json_decode(File::get($langpath), true);
+                        $json = static::mergeTemplate($json, $lang);
+                        \Log::debug($templates_path, ["json" => $json]);
+                    }
                     // add thumbnail
                     if (isset($json['thumbnail'])) {
                         $thumbnail_fullpath = path_join($dirname, $json['thumbnail']);
@@ -121,7 +130,8 @@ class TemplateImporter
                 $thumbnail_path = path_join($tmpfolderpath, array_get($stat, 'name'));
             }
         }
-
+        $zip->close();
+        
         //
         if (isset($config_path)) {
             // get config.json
@@ -411,6 +421,15 @@ class TemplateImporter
             return;
         }
 
+        // merge language file
+        $locale = \App::getLocale();
+        $dirname = pathinfo($basePath)['dirname'];
+        $langpath = "$dirname/lang/$locale/lang.json";
+        if (File::exists($langpath)){
+            $lang = json_decode(File::get($langpath), true);
+            $json = static::mergeTemplate($json, $lang);
+        }
+
         static::import($json, $system_flg);
 
         // get data path
@@ -576,5 +595,55 @@ class TemplateImporter
             File::makeDirectory($path, 0775, true);
         }
         return $path;
+    }
+
+    /**
+     * create model path from table name.
+     */
+    public static function getModelPath($tablename)
+    {
+        if (is_string($tablename)) {
+            $classname = Str::studly(Str::singular($tablename));
+            $fillpath = namespace_join("Exceedone", "Exment", "Model", $classname);
+            if (class_exists($fillpath)) {
+                return $fillpath;
+            }
+        }
+        return null;        
+    }
+    /**
+     * update template json by language json.
+     */
+    public static function mergeTemplate($json, $lang, $fillpath = null)
+    {
+        $result = [];
+
+        foreach ($json as $key => $val)
+        {
+            $langdata = null;
+            if (isset($fillpath)) {
+                $langdata = $fillpath::searchLangData($val, $lang);     
+            } else if (isset($lang[$key])) {
+                $langdata = $lang[$key];
+            }
+
+            // substitute the key which is only in template.
+            if (!isset($langdata)) {
+                $result[$key] = $val;
+                continue;
+            }
+
+            if (is_array($json[$key]) && is_array($langdata)) {
+                if ($key === 'custom_form_blocks'){
+                    $langdata = $langdata;
+                }
+                // if values are both array, call this method recursion
+                $result[$key] = static::mergeTemplate($json[$key], $langdata, static::getModelPath($key));
+            } else {
+                // replace if values are both strings
+                $result[$key] = $langdata;
+            }
+        }
+        return $result;
     }
 }

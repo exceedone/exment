@@ -16,11 +16,20 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
-
     protected $guarded = ['id', 'suuid'];
+
+    protected static $templateItems = [
+        'column_name' => ['key' => true],
+        'column_view_name' => ['lang' => true],
+        'column_type' => [],
+        'description' => ['lang' => true, 'emptyskip' => true],
+        'options' => ['lang' => true, 'emptyskip' => true, 'filter' => ['select_item', 'select_item_valtext', 'help', 'placeholder', 'true_label', 'false_label'] ],
+        'order' => [],
+    ];
 
     public function custom_table()
     {

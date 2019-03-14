@@ -12,11 +12,20 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\DefaultFlgTrait;
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
+
+    protected static $templateItems = [
+        'dashboard_name' => ['key' => true],
+        'dashboard_view_name' => ['lang' => true],
+        'dashboard_type' => [],
+        'dashboard_boxes' => ['lang' => true],
+        'options' => [],
+    ];
 
     public function dashboard_boxes()
     {

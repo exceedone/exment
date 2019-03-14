@@ -1,0 +1,325 @@
+{
+    "template_view_name": "システムテンプレート",
+    "description": "システム向けのテンプレートです。必ずインストールする必要があります。",
+    "custom_tables": [
+        {
+            "table_name": "base_info",
+            "custom_columns": [
+                {
+                    "column_name": "tel01",
+                    "options": {
+                        "placeholder": "例：03"
+                    }
+                },
+                {
+                    "column_name": "tel02",
+                    "options": {
+                        "placeholder": "例：1234"
+                    }
+                },
+                {
+                    "column_name": "tel03",
+                    "options": {
+                        "placeholder": "例：5678"
+                    }
+                },
+                {
+                    "column_name": "fax01",
+                    "options": {
+                        "placeholder": "例：03"
+                    }
+                },
+                {
+                    "column_name": "fax02",
+                    "options": {
+                        "placeholder": "例：1234"
+                    }
+                },
+                {
+                    "column_name": "fax03",
+                    "options": {
+                        "placeholder": "例：5678"
+                    }
+                },
+                {
+                    "column_name": "pref",
+                    "options": {
+                        "select_item_valtext": "01,北海道\n02,青森県\n03,岩手県\n04,宮城県\n05,秋田県\n06,山形県\n07,福島県\n08,茨城県\n09,栃木県\n10,群馬県\n11,埼玉県\n12,千葉県\n13,東京都\n14,神奈川県\n15,新潟県\n16,富山県\n17,石川県\n18,福井県\n19,山梨県\n20,長野県\n21,岐阜県\n22,静岡県\n23,愛知県\n24,三重県\n25,滋賀県\n26,京都府\n27,大阪府\n28,兵庫県\n29,奈良県\n30,和歌山県\n31,鳥取県\n32,島根県\n33,岡山県\n34,広島県\n35,山口県\n36,徳島県\n37,香川県\n38,愛媛県\n39,高知県\n40,福岡県\n41,佐賀県\n42,長崎県\n43,熊本県\n44,大分県\n45,宮崎県\n46,鹿児島県\n47,沖縄県"
+                    }
+                },
+                {
+                    "column_name": "company_logo",
+                    "options": {
+                        "help": "最適な画像サイズは200×70です。"
+                    }
+                },
+                {
+                    "column_name": "company_stamp",
+                    "options": {
+                        "help": "最適な画像サイズは200×200です。"
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_type",
+                    "options": {
+                        "help": "「普通」「当座」など、口座の種類をご記入ください。"
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "代表振込先口座-口座名"
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "メールテンプレート",
+            "description": "メール送信時のメッセージの本文などを管理します。",
+            "custom_columns": [
+                {
+                    "column_name": "mail_key_name",
+                    "column_view_name": "メールキー名",
+                    "options": {
+                        "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "メール表示名",
+                    "options": {
+                        "help": "一覧画面で表示する、テンプレート名称です。"
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "テンプレート種類",
+                    "options": {
+                        "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "メール件名",
+                    "options": {
+                        "help": "送付するメールの件名を入力します。変数を利用できます。"
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "メール本文",
+                    "options": {
+                        "help": "送付するメールの本文を入力します。変数を利用できます。"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_send_log",
+            "table_view_name": "メール送信履歴",
+            "description": "メール送信履歴を管理します。",
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "メール送信元"
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "メール送信先"
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "メール送信先(CC)"
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "メール送信先(BCC)"
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "件名"
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "本文"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "送信対象ユーザー"
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "送信メールテンプレート"
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "送信日時"
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "お知らせ",
+            "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "タイトル"
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "本文"
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "表示フラグ",
+                    "options": {
+                        "help": "一覧表示したい場合、YESに設定してください。"
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "表示順",
+                    "options": {
+                        "help": "数値が大きい順に、一覧に表示します。（同じ値の場合は更新日時が新しい順）"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "重要度",
+                    "options": {
+                        "select_item_valtext": "1,非常に低い\r\n2,低い\r\n3,通常\r\n4,高い\r\n5,非常に高い"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+			"suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "フォーム"
+        }, 
+        {
+			"suuid": "c38977fc14800c624894",
+            "form_view_name": "フォーム"
+        },
+        {
+			"suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "フォーム"
+        },
+        {
+			"suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": "子テーブル - ユーザー",
+                    "form_block_target_table_name": "user"
+                }
+            ]
+        },
+        {
+			"suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "フォーム"
+        }
+    ],
+	"custom_views": [
+		{
+			"suuid": "s6j3csfuc4kagb82zna3",
+			"view_view_name": "既定のビュー"
+		},
+		{
+			"suuid": "s6j3csauc4kagb82zna3",
+			"view_view_name": "既定のビュー"
+		},
+        {
+			"suuid": "3471e23fbff8dc65437b",
+			"view_view_name": "既定のビュー"
+		},
+		{
+			"suuid": "24e34126c023857a092e",
+			"view_view_name": "既定のビュー"
+		},
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "既定のビュー"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "お知らせ一覧"
+        }
+	],
+    "dashboards": [
+		{
+			"dashboard_name": "system_default_dashboard",
+			"dashboard_view_name": "既定のダッシュボード",
+			"dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "お知らせ一覧"
+                },
+				{
+					"row_no": "2",
+					"column_no": "1",
+					"dashboard_box_view_name": "ガイドライン"
+				}
+			]
+		}
+	],
+    "roles": [
+        {
+            "role_name": "system_admin",
+            "role_view_name": "システム管理者",
+            "description": "すべての操作が可能なシステム権限です。"
+        },
+        {
+            "role_name": "data_admin",
+            "role_view_name": "データ管理者",
+            "description": "すべてのデータを編集・閲覧可能な権限です。"
+        },
+        {
+            "role_name": "table_admin",
+            "role_view_name": "管理者",
+            "description": "テーブルやフォーム・ビュー設定を編集・削除可能な権限です。"
+        },
+        {
+            "role_name": "table_all_editor",
+            "role_view_name": "全データ編集者",
+            "description": "テーブル内のすべてのデータを編集できます。"
+        },
+        {
+            "role_name": "table_all_viewer",
+            "role_view_name": "全データ閲覧者",
+            "description": "テーブル内のすべてのデータを閲覧できます。"
+        },
+        {
+            "role_name": "table_editor",
+            "role_view_name": "編集者",
+            "description": "自分が担当者のデータを編集できます。"
+        },
+        {
+            "role_name": "table_viewer",
+            "role_view_name": "閲覧者",
+            "description": "自分が担当者のデータを閲覧できます。"
+        },
+        {
+            "role_name": "value_editor",
+            "role_view_name": "編集者",
+            "description": "対象のデータを編集できます。"
+        },
+        {
+            "role_name": "value_viewer",
+            "role_view_name": "閲覧者",
+            "description": "対象のデータを閲覧できます。"
+        },
+        {
+            "role_name": "plugin_manager",
+            "role_view_name": "プラグイン管理者",
+            "description": "プラグインの設定を変更できます。"
+        },
+        {
+            "role_name": "plugin_access",
+            "role_view_name": "プラグイン利用者",
+            "description": "このプラグインを利用できます。"
+        }
+    ]
+}

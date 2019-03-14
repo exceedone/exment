@@ -97,9 +97,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('backup/download/{ymdhms}', function ($ymdhms) {
                 return BackupController::download($ymdhms);
             });
-            $router->get('testpath', function () {
-                return public_path();
-            });
             // set static name. because this function is called composer install.
             try {
                 if (hasTable(SystemTableName::CUSTOM_TABLE)) {

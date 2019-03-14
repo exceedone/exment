@@ -7,9 +7,16 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
@@ -38,25 +45,10 @@ class TemplateExporter
             'target_tables' => [],
         ], $options);
 
-        $config = [];
-
-        $config['template_name'] = $template_name;
-        $config['template_view_name'] = $template_view_name;
-        $config['description'] = $description;
-
-        ///// set config info
-        if (in_array(TemplateExportTarget::TABLE, $options['export_target'])) {
-            static::setTemplateTable($config, $options['target_tables']);
-        }
-        if (in_array(TemplateExportTarget::MENU, $options['export_target'])) {
-            static::setTemplateMenu($config, $options['target_tables']);
-        }
-        if (in_array(TemplateExportTarget::DASHBOARD, $options['export_target'])) {
-            static::setTemplateDashboard($config);
-        }
-        if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
-            static::setTemplateRole($config);
-        }
+        // set config info
+        $config = static::getExportData($template_name, $template_view_name, $description, $options);
+        // set language info
+        $lang = static::getExportData($template_name, $template_view_name, $description, $options, true);
         
         // create ZIP file --------------------------------------------------
         $tmpdir = getTmpFolderPath('template', false);
@@ -85,14 +77,15 @@ class TemplateExporter
         }
 
         // add config array
+        $locale = \App::getLocale();
         $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        $zip->addFromString("lang/$locale/lang.json", json_encode($lang, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         $zip->close();
 
         // isset $thumbnail_fullpath, remove
         if (isset($thumbnail_dirpath)) {
             File::deleteDirectory($thumbnail_dirpath);
         }
-
         // create response
         $filename = $template_name.'.zip';
         $response = response()->download($zipfillpath, $filename)->deleteFileAfterSend(true);
@@ -101,9 +94,38 @@ class TemplateExporter
     }
 
     /**
+     * get export data array
+     */
+    public static function getExportData($template_name, $template_view_name, $description, $options = [], $is_lang = false)
+    {
+        $config = [];
+
+        if (!$is_lang) {
+            $config['template_name'] = $template_name;
+        }
+        $config['template_view_name'] = $template_view_name;
+        $config['description'] = $description;
+
+        ///// set config info
+        if (in_array(TemplateExportTarget::TABLE, $options['export_target'])) {
+            static::setTemplateTable($config, $options['target_tables'], $is_lang);
+        }
+        if (in_array(TemplateExportTarget::MENU, $options['export_target'])) {
+            static::setTemplateMenu($config, $options['target_tables'], $is_lang);
+        }
+        if (in_array(TemplateExportTarget::DASHBOARD, $options['export_target'])) {
+            static::setTemplateDashboard($config, $is_lang);
+        }
+        if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
+            static::setTemplateRole($config, $is_lang);
+        }
+
+        return $config;
+    }
+    /**
      * set table info to config
      */
-    protected static function setTemplateTable(&$config, $target_tables)
+    protected static function setTemplateTable(&$config, $target_tables, $is_lang = false)
     {
         // get customtables --------------------------------------------------
         $tables = CustomTable::with('custom_columns')->get()->toArray();
@@ -154,24 +176,11 @@ class TemplateExporter
                         array_forget($custom_column['options'], 'select_target_table');
                     }
                     
-                    $custom_column = array_only($custom_column, [
-                        'column_name',
-                        'column_view_name',
-                        'column_type',
-                        'description',
-                        'options',
-                    ]);
+                    $custom_column = CustomColumn::filterExportItems($custom_column, $is_lang);
                 }
             }
 
-            $table = array_only($table, [
-                'table_name',
-                'table_view_name',
-                'description',
-                'showlist_flg',
-                'options',
-                'custom_columns',
-            ]);
+            $table = CustomTable::filterExportItems($table, $is_lang);
             $configTables[] = $table;
         }
         $config['custom_tables'] = $configTables;
@@ -226,11 +235,7 @@ class TemplateExporter
                             }
                             array_forget($custom_form_column['options'], 'changedata_target_column_id');
 
-                            $custom_form_column = array_only($custom_form_column, [
-                                'form_column_type',
-                                'form_column_target_name',
-                                'options',
-                            ]);
+                            $custom_form_column = CustomFormColumn::filterExportItems($custom_form_column, $is_lang);
                         }
                     }
 
@@ -241,21 +246,11 @@ class TemplateExporter
                         $custom_form_block['form_block_target_table_name'] = CustomTable::getEloquent(array_get($custom_form_block, 'form_block_target_table_id'))->table_name;
                     }
 
-                    $custom_form_block = array_only($custom_form_block, [
-                        'form_block_type',
-                        'form_block_view_name',
-                        'form_block_target_table_name',
-                        'available',
-                        'custom_form_columns',
-                    ]);
+                    $custom_form_block = CustomFormBlock::filterExportItems($custom_form_block, $is_lang);
                 }
             }
 
-            $form = array_only($form, [
-                'form_view_name',
-                'custom_form_blocks',
-                'table_name',
-            ]);
+            $form = CustomForm::filterExportItems($form, $is_lang);
             $configForms[] = $form;
         }
         $config['custom_forms'] = $configForms;
@@ -265,10 +260,12 @@ class TemplateExporter
             ::with('custom_view_columns')
             ->with('custom_view_filters')
             ->with('custom_view_sorts')
+            ->with('custom_view_summaries')
             ->with('custom_table')
             ->with('custom_view_columns.custom_column')
             ->with('custom_view_filters.custom_column')
             ->with('custom_view_sorts.custom_column')
+            ->with('custom_view_summaries.custom_column')
             ->get()->toArray();
         $configViews = [];
         foreach ($views as &$view) {
@@ -283,29 +280,16 @@ class TemplateExporter
             // loop custom_view_columns
             if (array_key_value_exists('custom_view_columns', $view)) {
                 foreach ($view['custom_view_columns'] as &$custom_view_column) {
-                    switch (array_get($custom_view_column, 'view_column_type')) {
-                        case ViewColumnType::COLUMN:
-                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
-                            break;
-                        case ViewColumnType::SYSTEM:
-                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target');
-                            break;
-                        case ViewColumnType::PARENT_ID:
-                            $custom_view_column['view_column_target_name'] = 'parent_id';
-                            break;
-                    }
+                    static::setViewColumnTargetName($custom_view_column);
                     // set $custom_view_column
-                    $custom_view_column = array_only($custom_view_column, [
-                        'view_column_target_name',
-                        'view_column_type',
-                        'order',
-                    ]);
+                    $custom_view_column = CustomViewColumn::filterExportItems($custom_view_column, $is_lang);
                 }
             }
             
             // loop custom_view_filters
             if (array_key_value_exists('custom_view_filters', $view)) {
                 foreach ($view['custom_view_filters'] as &$custom_view_filter) {
+                    static::setViewColumnTargetName($custom_view_filter);
                     // if has value view_filter_condition_value_table_id
                     if (array_key_value_exists('view_filter_condition_value_table_id', $custom_view_filter)) {
                         $custom_view_filter['view_filter_condition_value_table_name'] = CustomTable::getEloquent($custom_view_filter['view_filter_condition_value_table_id'])->table_name ?? null;
@@ -313,48 +297,29 @@ class TemplateExporter
                     }
 
                     // set $custom_view_filter
-                    $custom_view_filter = array_only($custom_view_filter, [
-                        'view_column_type',
-                        'view_column_target_name',
-                        'view_filter_condition',
-                        'view_filter_condition_value_text',
-                        'view_filter_condition_value_table_name',
-                    ]);
+                    $custom_view_filter = CustomViewFilter::filterExportItems($custom_view_filter, $is_lang);
                 }
             }
 
-            // loop custom_view_columns
+            // loop custom_view_sorts
             if (array_key_value_exists('custom_view_sorts', $view)) {
                 foreach ($view['custom_view_sorts'] as &$custom_view_column) {
-                    switch (array_get($custom_view_column, 'view_column_type')) {
-                        case ViewColumnType::COLUMN:
-                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
-                            break;
-                        case ViewColumnType::SYSTEM:
-                            $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target');
-                            break;
-                        case ViewColumnType::PARENT_ID:
-                            $custom_view_column['view_column_target_name'] = 'parent_id';
-                            break;
-                    }
+                    static::setViewColumnTargetName($custom_view_column);
                     // set $custom_view_column
-                    $custom_view_column = array_only($custom_view_column, [
-                        'view_column_target_name',
-                        'view_column_type',
-                        'sort',
-                        'priority',
-                    ]);
+                    $custom_view_column = CustomViewSort::filterExportItems($custom_view_column, $is_lang);
                 }
             }
             
-            $view = array_only($view, [
-                'view_view_name',
-                'suuid',
-                'custom_view_columns',
-                'custom_view_filters',
-                'custom_view_sorts',
-                'table_name',
-            ]);
+            // loop custom_view_summaries
+            if (array_key_value_exists('custom_view_summaries', $view)) {
+                foreach ($view['custom_view_summaries'] as &$custom_view_summary) {
+                    static::setViewColumnTargetName($custom_view_summary);
+                    // set $custom_view_filter
+                    $custom_view_summary = CustomViewSummary::filterExportItems($custom_view_summary, $is_lang);
+                }
+            }
+            
+            $view = CustomView::filterExportItems($view, $is_lang);
             $configViews[] = $view;
         }
         $config['custom_views'] = $configViews;
@@ -375,16 +340,30 @@ class TemplateExporter
             }
             
             // set only columns
-            $relation = array_only($relation, ['parent_custom_table_name', 'child_custom_table_name', 'relation_type']);
-            $configRelations[] = $relation;
+            $relation = CustomRelation::filterExportItems($relation, $is_lang);
+            if (!empty($relation)) {
+                $configRelations[] = $relation;
+            }
         }
         $config['custom_relations'] = $configRelations;
     }
-
+    protected static function setViewColumnTargetName(&$custom_view_column){
+        switch (array_get($custom_view_column, 'view_column_type')) {
+            case ViewColumnType::COLUMN:
+                $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'custom_column.column_name') ?? null;
+                break;
+            case ViewColumnType::SYSTEM:
+                $custom_view_column['view_column_target_name'] = array_get($custom_view_column, 'view_column_target');
+                break;
+            case ViewColumnType::PARENT_ID:
+                $custom_view_column['view_column_target_name'] = 'parent_id';
+                break;
+        }
+    }
     /**
      * set menu info to config
      */
-    protected static function setTemplateMenu(&$config, $target_tables)
+    protected static function setTemplateMenu(&$config, $target_tables, $is_lang = false)
     {
         // get menu --------------------------------------------------
         $menuTree = (new Menu)->toTree(); // menutree:hierarchy
@@ -399,7 +378,7 @@ class TemplateExporter
         // re-loop and remove others
         foreach ($menus as &$menu) {
             // remove others
-            $menu = array_only($menu, ['parent_name', 'menu_type', 'menu_name', 'title', 'menu_target_name', 'order', 'icon', 'uri']);
+            $menu = Menu::filterExportItems($menu, $is_lang);
         }
         $config['admin_menu'] = $menus;
     }
@@ -461,7 +440,7 @@ class TemplateExporter
     /**
      * set dashboard info to config
      */
-    protected static function setTemplateDashboard(&$config)
+    protected static function setTemplateDashboard(&$config, $is_lang = false)
     {
         // get dashboards --------------------------------------------------
         $dashboards = Dashboard
@@ -502,24 +481,13 @@ class TemplateExporter
                             break;
                     }
 
-                    $dashboard_box = array_only($dashboard_box, [
-                        'row_no',
-                        'column_no',
-                        'dashboard_box_view_name',
-                        'dashboard_box_type',
-                    ]);
                     $dashboard_box['options'] = $options;
+                    $dashboard_box = DashboardBox::filterExportItems($dashboard_box, $is_lang);
                 }
             }
 
             // set only columns
-            $dashboard = array_only($dashboard, [
-                'dashboard_type',
-                'dashboard_name',
-                'dashboard_view_name',
-                'options',
-                'dashboard_boxes',
-            ]);
+            $dashboard = Dashboard::filterExportItems($dashboard, $is_lang);
         }
         $config['dashboards'] = $dashboards;
     }
@@ -527,7 +495,7 @@ class TemplateExporter
     /**
      * set Role info to config
      */
-    protected static function setTemplateRole(&$config)
+    protected static function setTemplateRole(&$config, $is_lang = false)
     {
         // Get Roles --------------------------------------------------
         $roles = Role::all()->toArray();
@@ -540,13 +508,7 @@ class TemplateExporter
                 }
                 $role['permissions'] = $permissions;
             }
-            $role = array_only($role, [
-                'role_type',
-                'role_name',
-                'role_view_name',
-                'description',
-                'permissions',
-            ]);
+            $role = Role::filterExportItems($role, $is_lang);
         }
         $config['roles'] = $roles;
     }

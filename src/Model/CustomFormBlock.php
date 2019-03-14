@@ -9,8 +9,17 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\TemplateTrait;
     
     protected $casts = ['options' => 'json'];
+
+    protected static $templateItems = [
+        'form_block_target_table_name' => ['key' => true],
+        'form_block_view_name' => ['lang' => true],
+        'form_block_type' => [],
+        'available' => [],
+        'custom_form_columns' => ['lang' => true, 'emptyskip' => true],
+    ];
 
     public function custom_form()
     {

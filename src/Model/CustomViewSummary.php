@@ -10,7 +10,15 @@ class CustomViewSummary extends ModelBase
     protected $appends = ['view_column_target'];
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+
+    protected static $templateItems = [
+        'view_column_type' => [],
+        'view_column_target_name' => ['key' => true],
+        'view_summary_condition' => [],
+        'view_column_name' => ['lang' => true],
+    ];
 
     public function custom_view()
     {
@@ -59,15 +67,16 @@ class CustomViewSummary extends ModelBase
         }
 
         $view_column_type = ViewColumnType::getEnumValue($view_column_type);
-        $custom_view_column = CustomViewColumn::firstOrNew([
+        $custom_view_summary = CustomViewSummary::firstOrNew([
             'custom_view_id' => $custom_view->id,
             'view_column_type' => $view_column_type,
             'view_column_target_id' => $view_column_target_id,
             'view_column_table_id' => $view_column_table_id,
         ]);
-        $custom_view_column->order = array_get($view_column, "order");
-        $custom_view_column->saveOrFail();
+        $custom_view_column->view_summary_condition = array_get($view_column, "view_summary_condition");
+        $custom_view_column->view_column_name = array_get($view_column, "view_column_name");
+        $custom_view_summary->saveOrFail();
 
-        return $custom_view_column;
+        return $custom_view_summary;
     }
 }

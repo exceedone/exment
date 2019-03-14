@@ -30,6 +30,9 @@ class SearchController extends AdminControllerBase
 
         $script = <<<EOT
     $(function () {
+        if(!hasValue($('.search-form #query'))){
+            return;
+        }
         var search_suggests = [];
         $('.search-form #query').autocomplete({
             source: function (req, res) {

@@ -1,0 +1,144 @@
+{
+    "template_view_name": "プロジェクト・タスク管理",
+    "description": "プロジェクト・タスク管理を行います。",
+    "custom_tables": [
+        {
+            "table_name": "project",
+            "table_view_name": "プロジェクト管理",
+            "description": "案件プロジェクトを管理します。",
+            "custom_columns": [
+                {
+                    "column_name": "project_code",
+                    "column_view_name": "プロジェクトコード",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                },
+                {
+                    "column_name": "project_name",
+                    "column_view_name": "プロジェクト名",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "task",
+            "table_view_name": "タスク管理",
+            "description": "日々のタスクを管理します。",
+            "custom_columns": [
+                {
+                    "column_name": "task_name",
+                    "column_view_name": "タスク名",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "説明文",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "ステータス",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ",
+                        "select_item_valtext": "1,新規\r\n2,対応中\r\n90,完了\r\n91,保留\r\n97,対応なし"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "優先度",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ",
+                        "select_item_valtext": "1,低め\r\n2,通常\r\n3,高め\r\n4,急いで\r\n5,今すぐ"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "開始日",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "終了日",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "担当者",
+                    "options": {
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                },
+                {
+                    "column_name": "complete_flg",
+                    "column_view_name": "完了フラグ",
+                    "options": {
+                        "help": "タスク完了の場合「YES」を選択してください。",
+                        "true_label": "はい",
+                        "false_label": "いいえ"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "フォーム"
+        },
+        {
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "フォーム"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "7ef66a7fdef45f094079",
+            "view_view_name": "既定のビュー"
+        },
+        {
+            "suuid": "204a26c2f5f8061cd30f",
+            "view_view_name": "未完了タスク一覧"
+        },
+        {
+            "suuid": "356404ddc4d26620fa13",
+            "view_view_name": "全タスク一覧"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "プロジェクト管理",
+            "menu_type": "parent_node",
+            "menu_name": "project_management"
+        },
+        {
+            "title": "プロジェクト",
+            "menu_type": "table",
+            "menu_name": "project"
+        },
+        {
+            "title": "タスク管理",
+            "menu_type": "table",
+            "menu_name": "task"
+        }
+    ]
+}

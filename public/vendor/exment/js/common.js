@@ -77,21 +77,24 @@ var Exment;
          * toggle right-top help link and color
          */
         CommonEvent.ToggleHelp = function () {
-            var helps = JSON.parse($('#help_urls').val());
-            var pathname = location.pathname;
-            var $manual = $('#manual_link');
-            var manual_base_uri = $('#manual_base_uri').val();
-            for (var i = 0; i < helps.length; i++) {
-                var help = helps[i];
-                // if match first current uri and pathname, set help url
-                if (trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0) {
-                    // set new url
-                    var help_url = URLJoin(manual_base_uri, help.help_uri);
-                    $manual.prop('href', help_url);
-                    // chenge color
-                    $manual.children('i').addClass('help_personal');
-                    return;
-                }
+            var help_urls = $('#help_urls').val();
+            if(hasValue(help_urls)){
+                var helps = JSON.parse(help_urls);
+                var pathname = location.pathname;
+                var $manual = $('#manual_link');
+                var manual_base_uri = $('#manual_base_uri').val();
+                for (var i = 0; i < helps.length; i++) {
+                    var help = helps[i];
+                    // if match first current uri and pathname, set help url
+                    if (trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0) {
+                        // set new url
+                        var help_url = URLJoin(manual_base_uri, help.help_uri);
+                        $manual.prop('href', help_url);
+                        // chenge color
+                        $manual.children('i').addClass('help_personal');
+                        return;
+                    }
+                }    
             }
             // if not exists, default help
             $manual.prop('href', manual_base_uri);

@@ -12,10 +12,17 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\TemplateTrait;
     
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
     protected $with = ['custom_column'];
+
+    protected static $templateItems = [
+        'form_column_type' => [],
+        'form_column_target_name' => ['key' => true],
+        'options' => ['lang' => true, 'emptyskip' => true],
+    ];
 
     public function custom_form_block()
     {

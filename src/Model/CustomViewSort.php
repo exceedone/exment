@@ -10,7 +10,15 @@ class CustomViewSort extends ModelBase
     protected $appends = ['view_column_target'];
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+
+    protected static $templateItems = [
+        'view_column_type' => [],
+        'view_column_target_name' => [],
+        'sort' => [],
+        'priority' => [],
+    ];
 
     public function custom_view()
     {

@@ -13,7 +13,15 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
+    use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
+
+    protected static $templateItems = [
+        'suuid' => ['key' => true],
+        'table_name' => [],
+        'form_view_name' => ['lang' => true],
+        'custom_form_blocks' => ['lang' => true],
+    ];
 
     public function custom_table()
     {

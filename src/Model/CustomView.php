@@ -20,9 +20,21 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
+    use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $guarded = ['id', 'suuid'];
+
+    protected static $templateItems = [
+        'suuid' => ['key' => true],
+        'view_view_name' => ['lang' => true],
+        'custom_view_columns' => ['lang' => true, 'emptyskip' => true],
+        'custom_view_filters' => [],
+        'custom_view_sorts' => [],
+        'custom_view_summaries' => ['lang' => true, 'emptyskip' => true],
+        'table_name' => [],
+        'view_kind_type' => [],
+    ];
 
     public function custom_table()
     {
@@ -542,6 +554,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_view = CustomView::firstOrNew($findArray);
         $custom_view->custom_table_id = $custom_table->id;
         $custom_view->suuid = $findArray['suuid'];
+        $custom_view->view_kind_type = ViewKindType::getEnumValue(array_get($view, 'view_kind_type'), ViewKindType::DEFAULT());
         $custom_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM());
         $custom_view->view_view_name = array_get($view, 'view_view_name');
         $custom_view->default_flg = boolval(array_get($view, 'default_flg'));

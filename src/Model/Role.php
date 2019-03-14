@@ -8,13 +8,24 @@ use Exceedone\Exment\Enums\RoleType;
 class Role extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\AutoSUuidTrait;
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
+
+    protected static $templateItems = [
+        'role_name' => ['key' => true],
+        'role_view_name' => ['lang' => true],
+        'description' => ['lang' => true],
+        'role_type' => [],
+        'permissions' => [],
+    ];
     
     protected $casts = ['permissions' => 'json'];
-
     protected $guarded = ['id'];
     
+    protected const EXPORT_TEMPLATE_ITEMS = ['role_type', 'role_name', 'role_view_name', 'description', 'permissions'];
+    protected const EXPORT_LANG_ITEMS = ['role_name', 'role_view_name', 'description'];
+
     /**
      * Get atuhority name.
      * @return string

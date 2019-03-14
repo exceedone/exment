@@ -16,12 +16,24 @@ use Illuminate\Support\Facades\DB;
  */
 class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 {
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
     
     /**
      * @var string
      */
     protected $titleColumn = 'title';
+
+    protected static $templateItems = [
+        'menu_type' => ['key' => true],
+        'menu_name' => ['key' => true],
+        'title' => ['lang' => true],
+        'parent_name' => [],
+        'menu_target_name' => [],
+        'order' => [],
+        'icon' => [],
+        'uri' => [],
+    ];
 
     /**
      * Create a new Eloquent model instance.

@@ -7,9 +7,16 @@ use Exceedone\Exment\Enums\RelationType;
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
+    use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 
     protected $with = ['parent_custom_table', 'child_custom_table'];
+
+    protected static $templateItems = [
+        'parent_custom_table_name' => [],
+        'child_custom_table_name' => [],
+        'relation_type' => [],
+    ];
     
     public function parent_custom_table()
     {

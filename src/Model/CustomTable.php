@@ -20,11 +20,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\DatabaseJsonTrait;
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
+    use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $casts = ['options' => 'json'];
-
     protected $guarded = ['id', 'suuid', 'system_flg'];
+
+    protected static $templateItems = [
+        'table_name' => ['key' => true],
+        'table_view_name' => ['lang' => true],
+        'showlist_flg' => [],
+        'description' => ['lang' => true, 'emptyskip' => true],
+        'options' => [],
+        'custom_columns' => ['lang' => true],
+        'order' => [],
+    ];
 
     public function custom_columns()
     {

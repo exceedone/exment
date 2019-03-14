@@ -1,7 +1,7 @@
 {
     "template_name": "system_template",
-    "template_view_name": "システムテンプレート",
-    "description": "システム向けのテンプレートです。必ずインストールする必要があります。",
+    "template_view_name": "System template",
+    "description": "It is a template for the system. You must install it.",
     "custom_tables": [
         {
             "table_name": "document",
@@ -80,7 +80,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "placeholder": "例：03"
+                        "placeholder": "ex:03"
                     }
                 },
                 {
@@ -88,7 +88,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "placeholder": "例：1234"
+                        "placeholder": "ex:1234"
                     }
                 },
                 {
@@ -96,7 +96,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "placeholder": "例：5678"
+                        "placeholder": "ex:5678"
                     }
                 },
                 {
@@ -104,7 +104,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "placeholder": "例：03"
+                        "placeholder": "ex:03"
                     }
                 },
                 {
@@ -112,7 +112,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "placeholder": "例：1234"
+                        "placeholder": "ex:1234"
                     }
                 },
                 {
@@ -120,7 +120,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "placeholder": "例：5678"
+                        "placeholder": "ex:5678"
                     }
                 },
                 {
@@ -128,7 +128,7 @@
                     "column_type": "select_valtext",
                     "description": null,
                     "options": {
-                        "select_item_valtext": "01,北海道\n02,青森県\n03,岩手県\n04,宮城県\n05,秋田県\n06,山形県\n07,福島県\n08,茨城県\n09,栃木県\n10,群馬県\n11,埼玉県\n12,千葉県\n13,東京都\n14,神奈川県\n15,新潟県\n16,富山県\n17,石川県\n18,福井県\n19,山梨県\n20,長野県\n21,岐阜県\n22,静岡県\n23,愛知県\n24,三重県\n25,滋賀県\n26,京都府\n27,大阪府\n28,兵庫県\n29,奈良県\n30,和歌山県\n31,鳥取県\n32,島根県\n33,岡山県\n34,広島県\n35,山口県\n36,徳島県\n37,香川県\n38,愛媛県\n39,高知県\n40,福岡県\n41,佐賀県\n42,長崎県\n43,熊本県\n44,大分県\n45,宮崎県\n46,鹿児島県\n47,沖縄県"
+                        "select_item_valtext": "01,Hokkaido\n02,Aomori\n03,Iwate\n04,Akita\n05,Akita\n06,Yamagata\n07,Fukushima\n08,Ibaraki\n09,Tochigi\n10,Gunma\n11,Saitama\n12,Chiba\n13,Tokyo\n14,Kanagawa\n15,Niigata\n16,Toyama\n17,Ishikawa\n18,Fukui\n19,Yamanashi\n20,Nagano\n21,Gifu\n22,Shizuoka\n23,Aichi\n24,Mie\n25,Shiga\n26,Kyoto\n27,Osaka\n28,Hyogo\n29,Nara\n30,Wakayama\n31,Tottori\n32,Shimane\n33,Hiroshima\n34,Yamaguchi\n36,Tokushima\n37,Kagawa\n38,Ehime\n39,Kochi\n40,Fukuoka\n41,Saga\n42,Nagasaki\n43,Kumamoto\n44,Oita\n45,Miyazaki\n46,Kagoshima\n47,Okinawa"
                     }
                 },
                 {
@@ -148,7 +148,7 @@
                     "column_type": "image",
                     "description": null,
                     "options": {
-                        "help": "最適な画像サイズは200×70です。"
+                        "help": "The optimal image size is 200 x 70."
                     }
                 },
                 {
@@ -156,7 +156,7 @@
                     "column_type": "image",
                     "description": null,
                     "options": {
-                        "help": "最適な画像サイズは200×200です。"
+                        "help": "The optimal image size is 200 x 200."
                     }
                 },
                 {
@@ -182,7 +182,7 @@
                     "column_type": "text",
                     "description": null,
                     "options": {
-                        "help": "「普通」「当座」など、口座の種類をご記入ください。"
+                        "help": "Please enter the type of account, such as [Normal] or [Current]."
                     }
                 },
                 {
@@ -193,7 +193,7 @@
                 },
                 {
                     "column_name": "transfer_bank_account_name",
-                    "column_view_name": "代表振込先口座-口座名",
+                    "column_view_name": "Representative bank account-account name",
                     "column_type": "text",
                     "description": null,
                     "options": []
@@ -289,8 +289,8 @@
         },
         {
             "table_name": "mail_template",
-            "table_view_name": "メールテンプレート",
-            "description": "メール送信時のメッセージの本文などを管理します。",
+            "table_view_name": "Email template",
+            "description": "Manage the message text etc. when sending mail.",
             "options": {
                 "search_enabled": "0",
                 "icon": "fa-envelope",
@@ -303,61 +303,61 @@
             "custom_columns": [
                 {
                     "column_name": "mail_key_name",
-                    "column_view_name": "メールキー名",
+                    "column_view_name": "Email key name",
                     "column_type": "text",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
                         "unique": "1",
                         "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
-                        "help": "システム上で、メールテンプレートを一意に判別するためのキー名です。"
+                        "help": "It is a key name to uniquely identify the mail template on the system."
                     }
                 },
                 {
                     "column_name": "mail_view_name",
-                    "column_view_name": "メール表示名",
+                    "column_view_name": "Email display name",
                     "column_type": "text",
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
                         "index_enabled": "1",
-                        "help": "一覧画面で表示する、テンプレート名称です。"
+                        "help": "It is a template name displayed on the list screen."
                     }
                 },
                 {
                     "column_name": "mail_template_type",
-                    "column_view_name": "テンプレート種類",
+                    "column_view_name": "Template type",
                     "description": null,
                     "column_type": "select_valtext",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
-                        "select_item_valtext": "header,ヘッダー\nbody,本文\nfooter,フッター",
+                        "select_item_valtext": "header,Header\nbody,Body\nfooter,Footer",
                         "default": "body"
                     }
                 },
                 {
                     "column_name": "mail_subject",
-                    "column_view_name": "メール件名",
+                    "column_view_name": "Email subject",
                     "column_type": "text",
                     "options": {
-                        "help": "送付するメールの件名を入力します。変数を利用できます。"
+                        "help": "Enter the subject of the email to be sent. You can use variables."
                     }
                 },
                 {
                     "column_name": "mail_body",
-                    "column_view_name": "メール本文",
+                    "column_view_name": "Email body",
                     "column_type": "textarea",
                     "options": {
-                        "help": "送付するメールの本文を入力します。変数を利用できます。"
+                        "help": "Enter the text of the email you want to send. You can use variables."
                     }
                 }
             ]
         },
         {
             "table_name": "mail_send_log",
-            "table_view_name": "メール送信履歴",
-            "description": "メール送信履歴を管理します。",
+            "table_view_name": "Email transmission history",
+            "description": "Manage mail transmission history.",
             "options": {
                 "search_enabled": "0",
                 "icon": "fa-envelope-o",
@@ -369,7 +369,7 @@
             "custom_columns": [
                 {
                     "column_name": "mail_from",
-                    "column_view_name": "メール送信元",
+                    "column_view_name": "Email sender",
                     "column_type": "email",
                     "options": {
                         "required": "1"
@@ -377,7 +377,7 @@
                 },
                 {
                     "column_name": "mail_to",
-                    "column_view_name": "メール送信先",
+                    "column_view_name": "Email destination",
                     "column_type": "text",
                     "options": {
                         "required": "1"
@@ -385,35 +385,35 @@
                 },
                 {
                     "column_name": "mail_cc",
-                    "column_view_name": "メール送信先(CC)",
+                    "column_view_name": "Email destination(CC)",
                     "column_type": "text",
                     "options": {
                     }
                 },
                 {
                     "column_name": "mail_bcc",
-                    "column_view_name": "メール送信先(BCC)",
+                    "column_view_name": "Email destination(BCC)",
                     "column_type": "text",
                     "options": {
                     }
                 },
                 {
                     "column_name": "mail_subject",
-                    "column_view_name": "件名",
+                    "column_view_name": "Email subject",
                     "column_type": "text",
                     "options": {
                     }
                 },
                 {
                     "column_name": "mail_body",
-                    "column_view_name": "本文",
+                    "column_view_name": "Email body",
                     "column_type": "textarea",
                     "options": {
                     }
                 },
                 {
                     "column_name": "user",
-                    "column_view_name": "送信対象ユーザー",
+                    "column_view_name": "Send target user",
                     "column_type": "user",
                     "options": {
                         "index_enabled": "1"
@@ -421,7 +421,7 @@
                 },
                 {
                     "column_name": "mail_template",
-                    "column_view_name": "送信メールテンプレート",
+                    "column_view_name": "Outgoing mail template",
                     "column_type": "select_table",
                     "options": {
                         "select_target_table_name": "mail_template",
@@ -430,7 +430,7 @@
                 },
                 {
                     "column_name": "send_datetime",
-                    "column_view_name": "送信日時",
+                    "column_view_name": "Transmission date",
                     "column_type": "datetime",
                     "options": {
                         "index_enabled": "1"
@@ -440,8 +440,8 @@
         },
         {
             "table_name": "information",
-            "table_view_name": "お知らせ",
-            "description": "ユーザーに通知するお知らせです。ダッシュボードなどに表示することができます。",
+            "table_view_name": "Information",
+            "description": "Notification to notify the user. It can be displayed on a dashboard etc.",
             "showlist_flg": "1",
             "system_flg": "0",
             "options": {
@@ -457,7 +457,7 @@
             "custom_columns": [
                 {
                     "column_name": "title",
-                    "column_view_name": "タイトル",
+                    "column_view_name": "Title",
                     "column_type": "text",
                     "description": null,
                     "system_flg": "0",
@@ -469,7 +469,7 @@
                 },
                 {
                     "column_name": "body",
-                    "column_view_name": "本文",
+                    "column_view_name": "Body",
                     "column_type": "editor",
                     "description": null,
                     "system_flg": "0",
@@ -479,26 +479,26 @@
                 },
                 {
                     "column_name": "view_flg",
-                    "column_view_name": "表示フラグ",
+                    "column_view_name": "Display flag",
                     "column_type": "yesno",
                     "description": null,
                     "system_flg": "0",
                     "options": {
                         "index_enabled": "1",
-                        "help": "一覧表示したい場合、YESに設定してください。",
+                        "help": "If you want to display a list, please set to YES.",
                         "default": "1",
                         "required": "1"
                     }
                 },
                 {
                     "column_name": "order",
-                    "column_view_name": "表示順",
+                    "column_view_name": "Display order",
                     "column_type": "integer",
                     "description": null,
                     "system_flg": "0",
                     "options": {
                         "index_enabled": "1",
-                        "help": "数値が大きい順に、一覧に表示します。（同じ値の場合は更新日時が新しい順）",
+                        "help": "Display in the list in descending order of numerical value. (In the case of the same value, the update date and time are in the order of latest)",
                         "required": "1",
                         "number_max": null,
                         "number_min": "0",
@@ -507,13 +507,13 @@
                 },
                 {
                     "column_name": "priority",
-                    "column_view_name": "重要度",
+                    "column_view_name": "Priority",
                     "column_type": "select_valtext",
                     "description": null,
                     "options": {
                         "default": "3",
                         "required": "1",
-                        "select_item_valtext": "1,非常に低い\r\n2,低い\r\n3,通常\r\n4,高い\r\n5,非常に高い"
+                        "select_item_valtext": "1,very low\n2,low\n3,usually\n4,high\n5,very high"
                     }
                 }
             ]
@@ -533,7 +533,8 @@
     ],
     "custom_forms": [
         {
-            "form_view_name": "フォーム",
+			"suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -572,7 +573,8 @@
             "table_name": "mail_template"
         }, 
         {
-            "form_view_name": "フォーム",
+			"suuid": "c38977fc14800c624894",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -631,7 +633,8 @@
             "table_name": "mail_send_log"
         },
         {
-            "form_view_name": "フォーム",
+			"suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -705,7 +708,8 @@
             "table_name": "base_info"
         },
         {
-            "form_view_name": "フォーム",
+			"suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -731,7 +735,7 @@
                     "form_block_target_table_name": null
                 },
                 {
-                    "form_block_view_name": "子テーブル - ユーザー",
+                    "form_block_view_name": "Child table-user",
                     "form_block_type": "many_to_many",
                     "available": "1",
                     "custom_form_columns": [
@@ -742,7 +746,8 @@
             "table_name": "organization"
         },
         {
-            "form_view_name": "フォーム",
+			"suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -804,7 +809,7 @@
 	"custom_views": [
 		{
 			"suuid": "s6j3csfuc4kagb82zna3",
-			"view_view_name": "既定のビュー",
+			"view_view_name": "Default view",
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -827,7 +832,7 @@
 		},
 		{
 			"suuid": "s6j3csauc4kagb82zna3",
-			"view_view_name": "既定のビュー",
+			"view_view_name": "Default view",
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -855,7 +860,7 @@
 		},
         {
 			"suuid": "3471e23fbff8dc65437b",
-			"view_view_name": "既定のビュー",
+			"view_view_name": "Default view",
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -893,7 +898,7 @@
 		},
 		{
 			"suuid": "24e34126c023857a092e",
-			"view_view_name": "既定のビュー",
+			"view_view_name": "Default view",
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -931,7 +936,7 @@
 		},
         {
             "suuid": "b6d5afcda4ce26091f36",
-            "view_view_name": "既定のビュー",
+            "view_view_name": "Default view",
             "custom_view_columns": [
                 {
                     "view_column_type": "0",
@@ -984,7 +989,7 @@
         },
         {
             "suuid": "99120fd4b360e15993d2",
-            "view_view_name": "お知らせ一覧",
+            "view_view_name": "Infomation list",
             "custom_view_columns": [
                 {
                     "view_column_type": "0",
@@ -1036,7 +1041,7 @@
 		{
 			"dashboard_type": "0",
 			"dashboard_name": "system_default_dashboard",
-			"dashboard_view_name": "既定のダッシュボード",
+			"dashboard_view_name": "Default dashboard",
 			"options": {
                 "row1" : "1",
                 "row2" : "2"
@@ -1045,7 +1050,7 @@
                 {
                     "row_no": "1",
                     "column_no": "1",
-                    "dashboard_box_view_name": "お知らせ一覧",
+                    "dashboard_box_view_name": "Infomation list",
                     "dashboard_box_type": "list",
                     "options": {
                         "target_table_name": "information",
@@ -1055,7 +1060,7 @@
 				{
 					"row_no": "2",
 					"column_no": "1",
-					"dashboard_box_view_name": "ガイドライン",
+					"dashboard_box_view_name": "Guidelines",
 					"dashboard_box_type": "system",
 					"options": {
 						"target_system_name": "guideline"
@@ -1068,8 +1073,8 @@
         {
             "role_type": 0,
             "role_name": "system_admin",
-            "role_view_name": "システム管理者",
-            "description": "すべての操作が可能なシステム権限です。",
+            "role_view_name": "System Administrator",
+            "description": "Role that allows all operations.",
             "permissions": [
                 "system",
                 "custom_table",
@@ -1081,8 +1086,8 @@
         {
             "role_type": 0,
             "role_name": "data_admin",
-            "role_view_name": "データ管理者",
-            "description": "すべてのデータを編集・閲覧可能な権限です。",
+            "role_view_name": "Data manager",
+            "description": "Role that allows to edit and view all data.",
             "permissions": [
                 "custom_value_edit_all"
             ]
@@ -1090,8 +1095,8 @@
         {
             "role_type": 1,
             "role_name": "table_admin",
-            "role_view_name": "管理者",
-            "description": "テーブルやフォーム・ビュー設定を編集・削除可能な権限です。",
+            "role_view_name": "Manager",
+            "description": "Role that allows to edit and delete table and form view setting.",
             "permissions": [
                 "custom_table",
                 "custom_form",
@@ -1107,8 +1112,8 @@
         {
             "role_type": 1,
             "role_name": "table_all_editor",
-            "role_view_name": "全データ編集者",
-            "description": "テーブル内のすべてのデータを編集できます。",
+            "role_view_name": "All data editor",
+            "description": "Role that allows to edit all data in the table.",
             "permissions": [
                 "custom_value_edit_all",
                 "custom_value_edit",
@@ -1121,8 +1126,8 @@
         {
             "role_type": 1,
             "role_name": "table_all_viewer",
-            "role_view_name": "全データ閲覧者",
-            "description": "テーブル内のすべてのデータを閲覧できます。",
+            "role_view_name": "All data viewer",
+            "description": "Role that allows to browse all data in the table.",
             "permissions": [
                 "custom_value_view_all",
                 "custom_value_view",
@@ -1133,8 +1138,8 @@
         {
             "role_type": 1,
             "role_name": "table_editor",
-            "role_view_name": "編集者",
-            "description": "自分が担当者のデータを編集できます。",
+            "role_view_name": "Table editor",
+            "description": "Role that allows to edit owner data.",
             "permissions": [
                 "custom_value_edit",
                 "custom_value_view",
@@ -1144,8 +1149,8 @@
         {
             "role_type": 1,
             "role_name": "table_viewer",
-            "role_view_name": "閲覧者",
-            "description": "自分が担当者のデータを閲覧できます。",
+            "role_view_name": "Table viewer",
+            "description": "Role that allows to browse owner data.",
             "permissions": [
                 "custom_value_view",
                 "custom_value_access"
@@ -1154,8 +1159,8 @@
         {
             "role_type": 2,
             "role_name": "value_editor",
-            "role_view_name": "編集者",
-            "description": "対象のデータを編集できます。",
+            "role_view_name": "Editor",
+            "description": "Role that allows to edit target data.",
             "permissions": [
                 "custom_value_edit",
                 "custom_value_view"
@@ -1164,8 +1169,8 @@
         {
             "role_type": 2,
             "role_name": "value_viewer",
-            "role_view_name": "閲覧者",
-            "description": "対象のデータを閲覧できます。",
+            "role_view_name": "Viewer",
+            "description": "Role that allows to browse target data.",
             "permissions": [
                 "custom_value_view"
             ]
@@ -1173,8 +1178,8 @@
         {
             "role_type": 3,
             "role_name": "plugin_manager",
-            "role_view_name": "プラグイン管理者",
-            "description": "プラグインの設定を変更できます。",
+            "role_view_name": "Plugin manager",
+            "description": "Role that allows to change plugin settings.",
             "permissions": [
                 "plugin_setting",
                 "plugin_access"
@@ -1183,8 +1188,8 @@
         {
             "role_type": 3,
             "role_name": "plugin_access",
-            "role_view_name": "プラグイン利用者",
-            "description": "このプラグインを利用できます。",
+            "role_view_name": "Plugin user",
+            "description": "Role that allows to use plugins.",
             "permissions": [
                 "plugin_access"
             ]

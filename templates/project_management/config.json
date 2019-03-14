@@ -1,12 +1,12 @@
 {
     "template_name": "project_management",
-    "template_view_name": "プロジェクト・タスク管理",
-    "description": "プロジェクト・タスク管理を行います。",
+    "template_view_name": "Project/task management",
+    "description": "Manage projects and tasks.",
     "custom_tables": [
         {
             "table_name": "project",
-            "table_view_name": "プロジェクト管理",
-            "description": "案件プロジェクトを管理します。",
+            "table_view_name": "Project management",
+            "description": "Manage projects.",
             "options": {
                 "icon": "fa-flickr",
                 "color": "#0044fc",
@@ -18,7 +18,7 @@
             "custom_columns": [
                 {
                     "column_name": "project_code",
-                    "column_view_name": "プロジェクトコード",
+                    "column_view_name": "Project code",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -26,9 +26,9 @@
                         "required": "1",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -53,7 +53,7 @@
                 },
                 {
                     "column_name": "project_name",
-                    "column_view_name": "プロジェクト名",
+                    "column_view_name": "Project name",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -61,9 +61,9 @@
                         "required": "1",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -85,8 +85,8 @@
         },
         {
             "table_name": "task",
-            "table_view_name": "タスク管理",
-            "description": "日々のタスクを管理します。",
+            "table_view_name": "Task management",
+            "description": "Manage daily tasks.",
             "options": {
                 "search_enabled": "1",
                 "icon": "fa-tasks",
@@ -98,7 +98,7 @@
             "custom_columns": [
                 {
                     "column_name": "task_name",
-                    "column_view_name": "タスク名",
+                    "column_view_name": "Task name",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -106,9 +106,9 @@
                         "required": "1",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -128,7 +128,7 @@
                 },
                 {
                     "column_name": "explain",
-                    "column_view_name": "説明文",
+                    "column_view_name": "Explain",
                     "column_type": "editor",
                     "description": null,
                     "options": {
@@ -136,9 +136,9 @@
                         "required": "0",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -158,7 +158,7 @@
                 },
                 {
                     "column_name": "status",
-                    "column_view_name": "ステータス",
+                    "column_view_name": "Status",
                     "column_type": "select_valtext",
                     "description": null,
                     "options": {
@@ -167,9 +167,9 @@
                         "default": "1",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -182,14 +182,14 @@
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
-                        "select_item_valtext": "1,新規\r\n2,対応中\r\n90,完了\r\n91,保留\r\n97,対応なし",
+                        "select_item_valtext": "1,New\r\n2,Corresponding\r\n90,Completion\r\n91,Hold\r\n97,No supported",
                         "select_target_table": null,
                         "available_characters": []
                     }
                 },
                 {
                     "column_name": "priority",
-                    "column_view_name": "優先度",
+                    "column_view_name": "Priority",
                     "column_type": "select_valtext",
                     "description": null,
                     "options": {
@@ -198,9 +198,9 @@
                         "default": "2",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -213,14 +213,14 @@
                         "auto_number_type": null,
                         "multiple_enabled": "0",
                         "auto_number_format": null,
-                        "select_item_valtext": "1,低め\r\n2,通常\r\n3,高め\r\n4,急いで\r\n5,今すぐ",
+                        "select_item_valtext": "1,Low\r\n2,Normal\r\n3,High\r\n4,Quickly\r\n5,Urgent",
                         "select_target_table": null,
                         "available_characters": []
                     }
                 },
                 {
                     "column_name": "start_date",
-                    "column_view_name": "開始日",
+                    "column_view_name": "Start date",
                     "column_type": "date",
                     "description": null,
                     "options": {
@@ -228,9 +228,9 @@
                         "required": "0",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -250,7 +250,7 @@
                 },
                 {
                     "column_name": "end_date",
-                    "column_view_name": "終了日",
+                    "column_view_name": "End date",
                     "column_type": "date",
                     "description": null,
                     "options": {
@@ -258,9 +258,9 @@
                         "required": "0",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -280,7 +280,7 @@
                 },
                 {
                     "column_name": "charge_user",
-                    "column_view_name": "担当者",
+                    "column_view_name": "Charge user",
                     "column_type": "user",
                     "description": null,
                     "options": {
@@ -288,9 +288,9 @@
                         "required": "0",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -310,17 +310,17 @@
                 },
                 {
                     "column_name": "complete_flg",
-                    "column_view_name": "完了フラグ",
+                    "column_view_name": "Complete flg",
                     "column_type": "yesno",
                     "description": null,
                     "options": {
-                        "help": "タスク完了の場合「YES」を選択してください。",
+                        "help": "In the case of task completion, select [YES].",
                         "required": "0",
                         "number_max": null,
                         "number_min": null,
-                        "true_label": "はい",
+                        "true_label": "Yes",
                         "true_value": null,
-                        "false_label": "いいえ",
+                        "false_label": "No",
                         "false_value": null,
                         "placeholder": null,
                         "select_item": null,
@@ -343,7 +343,8 @@
     ],
     "custom_forms": [
         {
-            "form_view_name": "フォーム",
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -373,7 +374,8 @@
             "table_name": "project"
         },
         {
-            "form_view_name": "フォーム",
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "Form",
             "custom_form_blocks": [
                 {
                     "form_block_view_name": null,
@@ -454,7 +456,7 @@
     "custom_views": [
         {
             "suuid": "7ef66a7fdef45f094079",
-            "view_view_name": "既定のビュー",
+            "view_view_name": "Default view",
             "custom_view_columns": [
                 {
                     "order": "1",
@@ -487,7 +489,7 @@
         },
         {
             "suuid": "204a26c2f5f8061cd30f",
-            "view_view_name": "未完了タスク一覧",
+            "view_view_name": "Incomplete task list",
             "custom_view_columns": [
                 {
                     "order": "1",
@@ -542,7 +544,7 @@
         },
         {
             "suuid": "356404ddc4d26620fa13",
-            "view_view_name": "全タスク一覧",
+            "view_view_name": "All task list",
             "custom_view_columns": [
                 {
                     "order": "1",
@@ -604,7 +606,7 @@
     "admin_menu": [
         {
             "order": "30",
-            "title": "プロジェクト管理",
+            "title": "Project management",
             "menu_type": "parent_node",
             "menu_name": "project_management",
             "parent_name": null,
@@ -613,7 +615,7 @@
         },
         {
             "order": "1",
-            "title": "プロジェクト",
+            "title": "Project",
             "menu_type": "table",
             "menu_name": "project",
             "parent_name": "project_management",
@@ -621,7 +623,7 @@
         },
         {
             "order": "2",
-            "title": "タスク管理",
+            "title": "Task management",
             "menu_type": "table",
             "menu_name": "task",
             "parent_name": "project_management",

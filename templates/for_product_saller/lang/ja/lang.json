@@ -1,0 +1,251 @@
+{
+    "template_view_name": "製品販売会社用テンプレート",
+    "description": "製品販売会社向けのテンプレートです。契約管理、製品管理を含んでいます。",
+    "custom_tables": [
+        {
+            "table_name": "client",
+            "table_view_name": "顧客",
+            "description": "顧客情報を管理します。",
+            "custom_columns": [
+                {
+                    "column_name": "client_code",
+                    "column_view_name": "顧客コード"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "顧客名"
+                }
+            ]
+        },
+        {
+            "table_name": "agency",
+            "table_view_name": "代理店",
+            "custom_columns": [
+                {
+                    "column_name": "agency_code",
+                    "column_view_name": "代理店コード"
+                },
+                {
+                    "column_name": "agency_name",
+                    "column_view_name": "代理店名"
+                }
+            ]
+        },
+        {
+            "table_name": "product",
+            "table_view_name": "製品",
+            "custom_columns": [
+                {
+                    "column_name": "product_code",
+                    "column_view_name": "製品コード"
+                },
+                {
+                    "column_name": "product_name",
+                    "column_view_name": "製品名"
+                }
+            ]
+        },
+        {
+            "table_name": "product_version",
+            "table_view_name": "製品バージョン",
+            "custom_columns": [
+                {
+                    "column_name": "product_version_code",
+                    "column_view_name": "製品バージョンコード"
+                },
+                {
+                    "column_name": "product_version_name",
+                    "column_view_name": "製品バージョン名"
+                },
+                {
+                    "column_name": "cost",
+                    "column_view_name": "原価"
+                }
+            ]
+        },
+        {
+            "table_name": "contract",
+            "table_view_name": "契約",
+            "custom_columns": [
+                {
+                    "column_name": "contract_code",
+                    "column_view_name": "契約コード"
+                },
+                {
+                    "column_name": "client",
+                    "column_view_name": "顧客"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "ステータス",
+                    "options": {
+                        "select_item_valtext": "1,問合\n2,試用\n3,見積\n4,請求\n5,保守\n6,完了"
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "契約日"
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "試用開始日"
+                },
+                {
+                    "column_name": "trial_end_date",
+                    "column_view_name": "試用終了日"
+                },
+                {
+                    "column_name": "mitumorisyo_date",
+                    "column_view_name": "見積書作成日"
+                },
+                {
+                    "column_name": "seikyusyo_date",
+                    "column_view_name": "請求書作成日"
+                },
+                {
+                    "column_name": "nyukin_planed_date",
+                    "column_view_name": "入金予定日"
+                },
+                {
+                    "column_name": "nyukin_date",
+                    "column_view_name": "入金日"
+                },
+                {
+                    "column_name": "attachment_files",
+                    "column_view_name": "添付資料"
+                },
+                {
+                    "column_name": "subscription_claim_type",
+                    "column_view_name": "月間契約・年間契約",
+                    "options": {
+                        "select_item": [
+                            "月間",
+                            "年間"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_term",
+                    "column_view_name": "契約期間(月or年)",
+                    "options": {
+                        "help": "月間契約の場合は契約する月数を、年間契約の場合は契約する年数を入力してください。"
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_start_date",
+                    "column_view_name": "契約開始日"
+                },
+                {
+                    "column_name": "subscription_agreement_limit_date",
+                    "column_view_name": "契約期限日"
+                },
+                {
+                    "column_name": "subscription_end_date",
+                    "column_view_name": "終了日"
+                }
+            ]
+        },
+        {
+            "table_name": "contract_detail",
+            "table_view_name": "契約明細",
+            "custom_columns": [
+                {
+                    "column_name": "fixed_price",
+                    "column_view_name": "定価"
+                },
+                {
+                    "column_name": "comment",
+                    "column_view_name": "コメント"
+                },
+                {
+                    "column_name": "product_version_id",
+                    "column_view_name": "製品バージョン"
+                },
+                {
+                    "column_name": "num",
+                    "column_view_name": "数値"
+                },
+                {
+                    "column_name": "zeinuki_price",
+                    "column_view_name": "税抜価格"
+                },
+                {
+                    "column_name": "tax_rate",
+                    "column_view_name": "税率"
+                },
+                {
+                    "column_name": "tax_price",
+                    "column_view_name": "税額"
+                },
+                {
+                    "column_name": "zeikomi_price",
+                    "column_view_name": "税込価格"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "29150ee399f540216b6d",
+            "form_view_name": "フォーム"
+        },
+        {
+            "suuid": "5f861dd652ee0fbff3a2",
+            "form_view_name": "フォーム",
+            "custom_form_blocks": [
+                {
+                    "custom_form_columns": [
+                        {
+                            "options": {
+                                "text": "サブスクリプション契約情報"
+                            },
+                            "form_column_target_name": "header"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "子テーブル - 契約明細",
+                    "form_block_target_table_name": "contract_detail"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "契約"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "contract2",
+            "title": "契約"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "client",
+            "title": "顧客"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "product",
+            "title": "製品"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "agency",
+            "title": "代理店"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "saller",
+            "title": "営業支援(SFA)"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "manage",
+            "title": "顧客管理(CRM)"
+        }
+    ]
+}

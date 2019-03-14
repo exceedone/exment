@@ -9,10 +9,18 @@ class CustomViewColumn extends ModelBase
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
+    use Traits\TemplateTrait;
 
     protected $guarded = ['id'];
     protected $appends = ['view_column_target'];
     protected $with = ['custom_column'];
+
+    protected static $templateItems = [
+        'view_column_type' => [],
+        'view_column_target_name' => ['key' => true],
+        'order' => [],
+        'view_column_name' => ['lang' => true],
+    ];
     
     public function custom_view()
     {
@@ -68,6 +76,7 @@ class CustomViewColumn extends ModelBase
             'view_column_table_id' => $view_column_table_id,
         ]);
         $custom_view_column->order = array_get($view_column, "order");
+        $custom_view_column->view_column_name = array_get($view_column, "view_column_name");
         $custom_view_column->saveOrFail();
 
         return $custom_view_column;
