@@ -102,6 +102,14 @@ abstract class CustomItem implements ItemInterface
      */
     public function sortable()
     {
+        return $this->indexEnabled();
+    }
+
+    /**
+     * whether column is enabled index.
+     * 
+     */
+    public function indexEnabled(){
         return $this->custom_column->indexEnabled();
     }
 

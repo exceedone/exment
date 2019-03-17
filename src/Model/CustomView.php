@@ -107,7 +107,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item
                 ->label(array_get($custom_view_column, 'view_column_name'));
-            $grid->column($item->name(), $item->label())
+            $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
                 ->sort($item->sortable())
                 ->display(function ($v) use ($item) {
                     if (is_null($this)) {

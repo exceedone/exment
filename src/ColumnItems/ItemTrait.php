@@ -69,4 +69,13 @@ trait ItemTrait
     public function prepare()
     {
     }
+    
+    /**
+     * whether column is enabled index.
+     * 
+     */
+    public function indexEnabled(){
+        return true;
+    }
+
 }

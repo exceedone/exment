@@ -476,7 +476,7 @@ class CustomColumnController extends AdminControllerTableBase
             $custom_view_column = new CustomViewColumn;
             $custom_view_column->custom_view_id = $view->id;
             $custom_view_column->view_column_type = ViewColumnType::COLUMN;
-            $custom_view_column->view_column_target_id = $model->id;
+            $custom_view_column->view_column_target = $model->id;
             $custom_view_column->order = $order;
 
             $custom_view_column->save();
