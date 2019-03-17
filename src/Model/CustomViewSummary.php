@@ -14,10 +14,20 @@ class CustomViewSummary extends ModelBase
     use Traits\UseRequestSessionTrait;
 
     protected static $templateItems = [
-        'view_column_type' => [],
-        'view_column_target_name' => ['key' => true],
-        'view_summary_condition' => [],
-        'view_column_name' => ['lang' => true],
+        'excepts' => ['id', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'view_column_table_name',
+                            'column_name' => 'view_column_target_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+            ],
+        ]
     ];
 
     public function custom_view()

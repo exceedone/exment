@@ -12,17 +12,18 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     use Traits\UseRequestSessionTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
-    protected static $templateItems = [
-        'role_name' => ['key' => true],
-        'role_view_name' => ['lang' => true],
-        'description' => ['lang' => true],
-        'role_type' => [],
-        'permissions' => [],
-    ];
-    
     protected $casts = ['permissions' => 'json'];
     protected $guarded = ['id'];
     
+    protected static $templateItems = [
+        'excepts' => ['id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['role_name'],
+        'langs' => ['role_view_name', 'description'],
+        'children' =>[
+            'dashboard_boxes',
+        ],
+    ];
+
     protected const EXPORT_TEMPLATE_ITEMS = ['role_type', 'role_name', 'role_view_name', 'description', 'permissions'];
     protected const EXPORT_LANG_ITEMS = ['role_name', 'role_view_name', 'description'];
 

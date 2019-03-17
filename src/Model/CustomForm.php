@@ -17,10 +17,25 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected static $templateItems = [
-        'suuid' => ['key' => true],
-        'table_name' => [],
-        'form_view_name' => ['lang' => true],
-        'custom_form_blocks' => ['lang' => true],
+        'excepts' => ['id', 'custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['suuid'],
+        'langs' => ['form_view_name'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'table_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ],
+        'children' =>[
+            'custom_form_blocks'
+        ],
     ];
 
     public function custom_table()

@@ -19,9 +19,34 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $with = ['custom_column'];
 
     protected static $templateItems = [
-        'form_column_type' => [],
-        'form_column_target_name' => ['key' => true],
-        'options' => ['lang' => true, 'emptyskip' => true],
+        'excepts' => ['id', 'custom_column', 'custom_form_block_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['form_column_target_name'],
+        'langs' => ['options.html', 'options.text'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'form_column_target_id',
+                        'replacedName' => [
+                            'column_name' => 'form_column_target_name',
+                        ],
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomColumn::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'options.changedata_column_id',
+                        'replacedName' => [
+                            'table_name' => 'options.changedata_column_table_name',
+                            'column_name' => 'options.changedata_column_name',
+                        ],
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomColumn::class,
+            ],
+        ]
     ];
 
     public function custom_form_block()

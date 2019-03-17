@@ -79,9 +79,9 @@ trait CustomViewColumnTrait
         }
 
         if (!is_numeric($view_column_target)) {
-            if ($view_column_target === 'parent_id') {
+            if ($view_column_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID) {
                 $this->{$column_type_key} = ViewColumnType::PARENT_ID;
-                $this->{$column_type_target_key} = DEFINE::CUSTOM_COLUMN_TYPE_PARENT_ID;
+                $this->{$column_type_target_key} = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
             } else {
                 $this->{$column_type_key} = ViewColumnType::SYSTEM;
                 $this->{$column_type_target_key} = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;
@@ -107,15 +107,15 @@ trait CustomViewColumnTrait
      * 
      * @return array first, target column id. second, target table id.
      */
-    protected static function getColumnAndTableId($column_type, $column_name, $custom_table = null)
+    protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null)
     {
-        if (!isset($column_type)) {
-            $column_type = ViewColumnType::COLUMN;
+        if (!isset($view_column_type)) {
+            $view_column_type = ViewColumnType::COLUMN;
         }
 
         $target_column_id = null;
         $target_table_id = null;
-        switch ($column_type) {
+        switch ($view_column_type) {
             // for table column
             case ViewColumnType::COLUMN:
                 $target_column = CustomColumn::getEloquent($column_name, $custom_table);
@@ -128,8 +128,8 @@ trait CustomViewColumnTrait
             // system column
             default:
                 // set parent id
-                if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
-                    $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
+                if ($column_name == ViewColumnType::PARENT_ID || $view_column_type == ViewColumnType::PARENT_ID) {
+                    $target_column_id = Define::CUSTOM_view_column_type_PARENT_ID;
                     // get parent table
                     if(isset($custom_table)){
                         $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
@@ -148,5 +148,31 @@ trait CustomViewColumnTrait
                 break;
         }
         return [$target_column_id, $target_table_id];
+    }
+
+    /**
+     * get Table And Column Name
+     */
+    protected function getUniqueKeyValues(){
+        $table_name = $this->custom_table->table_name;
+        switch($this->view_column_type){
+            case ViewColumnType::COLUMN:
+                return [
+                    'table_name' => $table_name,
+                    'column_name' => $this->custom_column->column_name,
+                ];
+            case ViewColumnType::SYSTEM:
+                return [
+                    'table_name' => $table_name,
+                    'column_name' => $target_column_id = SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],
+                ];
+            
+            case ViewColumnType::PARENT_ID:
+                return [
+                    'table_name' => $table_name,
+                    'column_name' => Define::CUSTOM_COLUMN_TYPE_PARENT_ID,
+                ];
+        }
+        return [];
     }
 }

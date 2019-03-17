@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -16,11 +17,45 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     protected $casts = ['options' => 'json'];
 
     protected static $templateItems = [
-        'row_no' => ['key' => true],
-        'column_no' => ['key' => true],
-        'dashboard_box_view_name' => ['lang' => true],
-        'dashboard_box_type' => [],
-        'options' => [],
+        'excepts' => ['id', 'suuid', 'dashboard_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['row_no', 'column_no'],
+        'langs' => ['dashboard_box_view_name'],
+        
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'options.target_table_id',
+                        'replacedName' => [
+                            'table_name' => 'options.target_table_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'options.target_view_id',
+                        'replacedName' => [
+                            'suuid' => 'options.target_view_suuid',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomView::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'options.target_system_id',
+                        'replacedName' => [
+                            'name' => 'options.target_system_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeySystemEnum' => DashboardBoxSystemPage::class,
+            ],
+        ],
     ];
 
     public function dashboard()

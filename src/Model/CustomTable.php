@@ -26,14 +26,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
 
+    protected static $uniqueKeyName = ['table_name'];
+
     protected static $templateItems = [
-        'table_name' => ['key' => true],
-        'table_view_name' => ['lang' => true],
-        'showlist_flg' => [],
-        'description' => ['lang' => true, 'emptyskip' => true],
-        'options' => [],
-        'custom_columns' => ['lang' => true],
-        'order' => [],
+        'excepts' => ['id', 'suuid', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['table_name'],
+        'langs' => ['table_view_name', 'description'],
+        'children' =>[
+            'custom_columns',
+        ],
     ];
 
     public function custom_columns()
@@ -173,33 +174,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
-    public static function findByEndpoint($endpoint = null, $withs = [])
-    {
-        $table_names = static::all()->pluck('table_name')->toArray();
-        if (!isset($endpoint)) {
-            $endpoint = url()->current();
-        }
-        $urls = array_reverse(explode("/", $endpoint));
-        foreach ($urls as $url) {
-            if (!isset($url)) {
-                continue;
-            }
-            if (mb_substr($url, 0, 1) === "?") {
-                continue;
-            }
-            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
-                continue;
-            }
-
-            // joint table
-            if (in_array($url, $table_names)) {
-                return static::getEloquent($url, $withs);
-            }
-        }
-
-        return null;
-    }
-
     /**
      * get custom table eloquent.
      * @param mixed $obj id, table_name, CustomTable object, CustomValue object.
@@ -248,6 +222,75 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return static::withLoad($obj, $withs);
     }
 
+    // --------------------------------------------------
+    // static functions
+    // --------------------------------------------------
+    public static function findByEndpoint($endpoint = null, $withs = [])
+    {
+        $table_names = static::all()->pluck('table_name')->toArray();
+        if (!isset($endpoint)) {
+            $endpoint = url()->current();
+        }
+        $urls = array_reverse(explode("/", $endpoint));
+        foreach ($urls as $url) {
+            if (!isset($url)) {
+                continue;
+            }
+            if (mb_substr($url, 0, 1) === "?") {
+                continue;
+            }
+            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
+                continue;
+            }
+
+            // joint table
+            if (in_array($url, $table_names)) {
+                return static::getEloquent($url, $withs);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * get table list.
+     * But filter these:
+     *     Get only has role
+     *     showlist_flg is true
+     */
+    public static function filterList($model = null, $options = [])
+    {
+        $options = array_merge(
+            [
+                'getModel' => true
+            ],
+            $options
+        );
+        if (!isset($model)) {
+            $model = new self;
+        }
+        $model = $model->where('showlist_flg', true);
+
+        // if not exists, filter model using permission
+        if (!Admin::user()->hasPermission(RoleValue::CUSTOM_TABLE)) {
+            // get tables has custom_table permission.
+            $permission_tables = Admin::user()->allHasPermissionTables(RoleValue::CUSTOM_TABLE);
+            $permission_table_ids = $permission_tables->map(function ($permission_table) {
+                return array_get($permission_table, 'id');
+            });
+            // filter id;
+            $model = $model->whereIn('id', $permission_table_ids);
+        }
+
+        // add default order
+        $model = $model->orderBy('order', 'asc');
+
+        if ($options['getModel']) {
+            return $model->get();
+        }
+        return $model;
+    }
+
     protected static function getWiths($withs)
     {
         if (is_array($withs)) {
@@ -271,6 +314,48 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $obj;
     }
 
+    /**
+     * import template
+     */
+    public static function importTemplate($json, $options = [])
+    {
+        $system_flg = array_get($options, 'system_flg', false);
+        // Create tables. --------------------------------------------------
+        $table_name = array_get($json, 'table_name');
+        $obj_table = static::firstOrNew(['table_name' => $table_name]);
+        $obj_table->table_name = $table_name;
+        $obj_table->description = array_get($json, 'description');
+        // system flg checks 1. whether import from system, 2. table setting sets 1
+        $table_system_flg = array_get($json, 'system_flg');
+        $obj_table->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
+
+        // set showlist_flg
+        if (!array_has($json, 'showlist_flg')) {
+            $obj_table->showlist_flg = true;
+        } elseif (boolval(array_get($json, 'showlist_flg'))) {
+            $obj_table->showlist_flg = true;
+        } else {
+            $obj_table->showlist_flg = false;
+        }
+
+        // if contains table view name in config
+        if (array_key_value_exists('table_view_name', $json)) {
+            $obj_table->table_view_name = array_get($json, 'table_view_name');
+        }
+        // not exists, get lang using app config
+        else {
+            $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
+        }
+        $obj_table->setOption(array_get($json, 'options', []));
+        $obj_table->saveOrFail();
+
+        // Create database table.
+        $table_name = array_get($json, 'table_name');
+        $obj_table->createTable();
+
+        return $obj_table;
+    }
+    
     /**
      * search value
      */
@@ -315,189 +400,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $query
             ->take($maxCount)
             ->get();
-    }
-
-    /**
-     * get table list.
-     * But filter these:
-     *     Get only has role
-     *     showlist_flg is true
-     */
-    public static function filterList($model = null, $options = [])
-    {
-        $options = array_merge(
-            [
-                'getModel' => true
-            ],
-            $options
-        );
-        if (!isset($model)) {
-            $model = new self;
-        }
-        $model = $model->where('showlist_flg', true);
-
-        // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(RoleValue::CUSTOM_TABLE)) {
-            // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(RoleValue::CUSTOM_TABLE);
-            $permission_table_ids = $permission_tables->map(function ($permission_table) {
-                return array_get($permission_table, 'id');
-            });
-            // filter id;
-            $model = $model->whereIn('id', $permission_table_ids);
-        }
-
-        // add default order
-        $model = $model->orderBy('order', 'asc');
-
-        if ($options['getModel']) {
-            return $model->get();
-        }
-        return $model;
-    }
-
-    /**
-     * whether login user has permission. target is table
-     */
-    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)
-    {
-        // if system doesn't use role, return true
-        if (!System::permission_available()) {
-            return true;
-        }
-
-        $table_name = $this->table_name;
-        if (!is_array($role_key)) {
-            $role_key = [$role_key];
-        }
-
-        $user = \Exment::user();
-        if (!isset($user)) {
-            return false;
-        }
-        
-        $permissions = $user->allPermissions();
-        foreach ($permissions as $permission) {
-            // if role type is system, and has key
-            if (RoleType::SYSTEM == $permission->getRoleType()
-                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
-                return true;
-            }
-
-            // if role type is table, and match table name
-            elseif (RoleType::TABLE == $permission->getRoleType() && $permission->getTableName() == $table_name) {
-                // if user has role
-                if (array_keys_exists($role_key, $permission->getPermissionDetails())) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-    
-    /**
-     * Whether login user has permission about target id data.
-     */
-    public function hasPermissionData($id)
-    {
-        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
-    }
-
-    /**
-     * Whether login user has edit permission about target id data.
-     */
-    public function hasPermissionEditData($id)
-    {
-        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
-    }
-
-    /**
-     * Whether login user has permission about target id data. (protected function)
-     */
-    protected function _hasPermissionData($id, $role)
-    {
-        // if system doesn't use role, return true
-        if (!System::permission_available()) {
-            return true;
-        }
-
-        // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermission($role)) {
-            return false;
-        }
-
-        // if user has all edit table, return true.
-        if ($this->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
-            return true;
-        }
-
-        // if id is null(for create), return true
-        if (!isset($id)) {
-            return true;
-        }
-
-        if (is_numeric($id)) {
-            $model = getModelName($this)::find($id);
-        } else {
-            $model = $id;
-        }
-
-        if (!isset($model)) {
-            return false;
-        }
-
-        // else, get model using value_authoritable.
-        // if count > 0, return true.
-        $rows = $model->getAuthoritable(SystemTableName::USER);
-        if($this->checkPermissionWithPivot($rows, $role)){
-            return true;
-        }
-
-        // else, get model using value_authoritable. (only that system uses organization.)
-        // if count > 0, return true.
-        if (System::organization_available()) {
-            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if($this->checkPermissionWithPivot($rows, $role)){
-                return true;
-            }
-        }
-
-        // else, return false.
-        return false;
-    }
-
-    /**
-     * check permission with pivot
-     */
-    protected function checkPermissionWithPivot($rows, $role_key){
-        if (!isset($rows) || count($rows) == 0) {
-            return false;
-        }
-
-        foreach($rows as $row){
-            // get role 
-            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
-
-            // if role type is system, and has key
-            $permissions = $role->permissions;
-            if (array_keys_exists($role_key, $permissions)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * 
-     */
-    public function allUserAccessable()
-    {
-        return boolval($this->getOption('all_user_editable_f
-        lg'))
-            || boolval($this->getOption('all_user_viewable_flg'))
-            || boolval($this->getOption('all_user_accessable_flg'));
     }
 
     /**
@@ -752,6 +654,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
         }
     }
+    
     protected function getOptionKey($key, $append_table = true, $table_name = null) {
         if ($append_table) {
             return ($table_name?? $this->id) . '-' . $key;
@@ -759,6 +662,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $key;
         }
     }
+
     /**
      * get number columns select options. It contains integer, decimal, currency columns.
      * @param array|CustomTable $table
@@ -832,48 +736,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * import template
-     */
-    public static function importTemplate($json, $options = [])
-    {
-        $system_flg = array_get($options, 'system_flg', false);
-        // Create tables. --------------------------------------------------
-        $table_name = array_get($json, 'table_name');
-        $obj_table = static::firstOrNew(['table_name' => $table_name]);
-        $obj_table->table_name = $table_name;
-        $obj_table->description = array_get($json, 'description');
-        // system flg checks 1. whether import from system, 2. table setting sets 1
-        $table_system_flg = array_get($json, 'system_flg');
-        $obj_table->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
-
-        // set showlist_flg
-        if (!array_has($json, 'showlist_flg')) {
-            $obj_table->showlist_flg = true;
-        } elseif (boolval(array_get($json, 'showlist_flg'))) {
-            $obj_table->showlist_flg = true;
-        } else {
-            $obj_table->showlist_flg = false;
-        }
-
-        // if contains table view name in config
-        if (array_key_value_exists('table_view_name', $json)) {
-            $obj_table->table_view_name = array_get($json, 'table_view_name');
-        }
-        // not exists, get lang using app config
-        else {
-            $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
-        }
-        $obj_table->setOption(array_get($json, 'options', []));
-        $obj_table->saveOrFail();
-
-        // Create database table.
-        $table_name = array_get($json, 'table_name');
-        $obj_table->createTable();
-
-        return $obj_table;
-    }
-    
-    /**
      * get array for "makeHidden" function
      */
     public function getMakeHiddenArray()
@@ -882,4 +744,152 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $columns->getIndexColumnName();
         })->toArray();
     }
+
+    // --------------------------------------------------
+    // Permission
+    // --------------------------------------------------
+    /**
+     * whether login user has permission. target is table
+     */
+    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)
+    {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
+
+        $table_name = $this->table_name;
+        if (!is_array($role_key)) {
+            $role_key = [$role_key];
+        }
+
+        $user = \Exment::user();
+        if (!isset($user)) {
+            return false;
+        }
+        
+        $permissions = $user->allPermissions();
+        foreach ($permissions as $permission) {
+            // if role type is system, and has key
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                return true;
+            }
+
+            // if role type is table, and match table name
+            elseif (RoleType::TABLE == $permission->getRoleType() && $permission->getTableName() == $table_name) {
+                // if user has role
+                if (array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    
+    /**
+     * Whether login user has permission about target id data.
+     */
+    public function hasPermissionData($id)
+    {
+        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
+    }
+
+    /**
+     * Whether login user has edit permission about target id data.
+     */
+    public function hasPermissionEditData($id)
+    {
+        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+    }
+
+    /**
+     * Whether login user has permission about target id data. (protected function)
+     */
+    protected function _hasPermissionData($id, $role)
+    {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
+
+        // if user doesn't have all permissons about target table, return false.
+        if (!$this->hasPermission($role)) {
+            return false;
+        }
+
+        // if user has all edit table, return true.
+        if ($this->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+            return true;
+        }
+
+        // if id is null(for create), return true
+        if (!isset($id)) {
+            return true;
+        }
+
+        if (is_numeric($id)) {
+            $model = getModelName($this)::find($id);
+        } else {
+            $model = $id;
+        }
+
+        if (!isset($model)) {
+            return false;
+        }
+
+        // else, get model using value_authoritable.
+        // if count > 0, return true.
+        $rows = $model->getAuthoritable(SystemTableName::USER);
+        if($this->checkPermissionWithPivot($rows, $role)){
+            return true;
+        }
+
+        // else, get model using value_authoritable. (only that system uses organization.)
+        // if count > 0, return true.
+        if (System::organization_available()) {
+            $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
+            if($this->checkPermissionWithPivot($rows, $role)){
+                return true;
+            }
+        }
+
+        // else, return false.
+        return false;
+    }
+
+    /**
+     * check permission with pivot
+     */
+    protected function checkPermissionWithPivot($rows, $role_key){
+        if (!isset($rows) || count($rows) == 0) {
+            return false;
+        }
+
+        foreach($rows as $row){
+            // get role 
+            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+
+            // if role type is system, and has key
+            $permissions = $role->permissions;
+            if (array_keys_exists($role_key, $permissions)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 
+     */
+    public function allUserAccessable()
+    {
+        return boolval($this->getOption('all_user_editable_f
+        lg'))
+            || boolval($this->getOption('all_user_viewable_flg'))
+            || boolval($this->getOption('all_user_accessable_flg'));
+    }
+
 }

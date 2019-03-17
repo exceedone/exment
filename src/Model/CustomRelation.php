@@ -13,9 +13,33 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     protected $with = ['parent_custom_table', 'child_custom_table'];
 
     protected static $templateItems = [
-        'parent_custom_table_name' => [],
-        'child_custom_table_name' => [],
-        'relation_type' => [],
+        'excepts' => ['id', 'parent_custom_table', 'child_custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['parent_custom_table_name', 'child_custom_table_name', 'relation_type'],
+        'langs' => ['view_view_name'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'parent_custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'parent_custom_table_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'child_custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'child_custom_table_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ]
     ];
     
     public function parent_custom_table()

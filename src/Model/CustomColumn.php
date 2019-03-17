@@ -22,13 +22,25 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
 
+    protected static $uniqueKeyName = ['custom_table.table_name', 'column_name'];
+
     protected static $templateItems = [
-        'column_name' => ['key' => true],
-        'column_view_name' => ['lang' => true],
-        'column_type' => [],
-        'description' => ['lang' => true, 'emptyskip' => true],
-        'options' => ['lang' => true, 'emptyskip' => true, 'filter' => ['select_item', 'select_item_valtext', 'help', 'placeholder', 'true_label', 'false_label'] ],
-        'order' => [],
+        'excepts' => ['id', 'suuid', 'custom_table_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['column_name'],
+        'langs' => ['column_view_name', 'description'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'options.select_target_table',
+                        'replacedName' => [
+                            'table_name' => 'options.select_target_table_name',
+                        ],
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ]
     ];
 
     public function custom_table()
@@ -65,6 +77,43 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ColumnItems\CustomItem::getItem($this);
     }
 
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    public function clearOption()
+    {
+        return $this->clearJson('options');
+    }
+    
+    public function deletingChildren()
+    {
+        $this->custom_form_columns()->delete();
+        $this->custom_view_columns()->delete();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // delete event
+        static::deleting(function ($model) {
+            // Delete items
+            $model->deletingChildren();
+
+            // execute alter column
+            $model->alterColumn(true);
+        });
+    }
+    
     /**
      * get custom column eloquent. (use table)
      */
@@ -346,40 +395,41 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $obj_column;
     }
 
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
-    public function forgetOption($key)
-    {
-        return $this->forgetJson('options', $key);
-    }
-    public function clearOption()
-    {
-        return $this->clearJson('options');
-    }
-    
-    public function deletingChildren()
-    {
-        $this->custom_form_columns()->delete();
-        $this->custom_view_columns()->delete();
-    }
+    /**
+     * Perform special processing when outputting template
+     */
+    protected function replaceTemplateSpecially($array){
+        // if column_type is calc, change value dynamic name using calc_formula property
+        if (!ColumnType::isCalc(array_get($this, 'column_type'))) {
+            return $array;
+        }
 
-    protected static function boot()
-    {
-        parent::boot();
+        $calc_formula = array_get($this, 'options.calc_formula');
+        if(!isset($calc_formula)){
+            return $array;
+        }
+
+        // if $calc_formula is string, convert to json
+        if (is_string($calc_formula)) {
+            $calc_formula = json_decode($calc_formula, true);
+        }
+
+        if (is_array($calc_formula)) {
+            foreach ($calc_formula as &$c) {
+                // if not dynamic, continue
+                if (array_get($c, 'type') != 'dynamic') {
+                    continue;
+                }
+                // get custom column name
+                $calc_formula_column_name = static::getEloquent(array_get($c, 'val'))->column_name ?? null;
+                // set value
+                $c['val'] = $calc_formula_column_name;
+            }
+        }
+
+        array_set($array, 'options.calc_formula', $calc_formula);
         
-        // delete event
-        static::deleting(function ($model) {
-            // Delete items
-            $model->deletingChildren();
-
-            // execute alter column
-            $model->alterColumn(true);
-        });
+        return $array;
     }
+
 }

@@ -14,11 +14,25 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     protected $casts = ['options' => 'json'];
 
     protected static $templateItems = [
-        'form_block_target_table_name' => ['key' => true],
-        'form_block_view_name' => ['lang' => true],
-        'form_block_type' => [],
-        'available' => [],
-        'custom_form_columns' => ['lang' => true, 'emptyskip' => true],
+        'excepts' => ['id', 'custom_form_id', 'target_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['form_block_target_table_name'],
+        'langs' => ['form_block_view_name'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'form_block_target_table_id',
+                        'replacedName' => [
+                            'table_name' => 'form_block_target_table_name',
+                        ],
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ],
+        'children' =>[
+            'custom_form_columns'
+        ],
     ];
 
     public function custom_form()

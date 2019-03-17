@@ -25,14 +25,23 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected $titleColumn = 'title';
 
     protected static $templateItems = [
-        'menu_type' => ['key' => true],
-        'menu_name' => ['key' => true],
-        'title' => ['lang' => true],
-        'parent_name' => [],
-        'menu_target_name' => [],
-        'order' => [],
-        'icon' => [],
-        'uri' => [],
+        'excepts' => ['id', 'menu_target', 'parent_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['menu_type', 'menu_name'],
+        'langs' => ['title'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'parent_name' => 'parent_name',
+                            'menu_target_name' => 'menu_target_name',
+                            'uri' => 'uri',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+            ],
+        ]
     ];
 
     /**
@@ -243,7 +252,64 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
         return $obj_menu;
     }
-    
+
+    /**
+     * get Table And Column Name
+     */
+    protected function getUniqueKeyValues()
+    {
+        // add item
+        // replace id to name
+        //get parent name
+        if (!isset($this['parent_id']) || $this['parent_id'] == '0') {
+            $parent_name = null;
+        } else {
+            $parent_id = $this['parent_id'];
+            $menulist = (new Menu)->allNodes(); // allNodes:dimensional
+            $parent = collect($menulist)->first(function ($value, $key) use ($parent_id) {
+                return array_get($value, 'id') == $parent_id;
+            });
+            $parent_name = isset($parent) ? array_get($parent, 'menu_name') : null;
+        }
+
+        // menu_target
+        $menu_type = $this['menu_type'];
+        if (MenuType::TABLE == $menu_type) {
+            $menu_target_name = CustomTable::getEloquent($this['menu_target'])->table_name ?? null;
+        } elseif (MenuType::PLUGIN == $menu_type) {
+            $menu_target_name = Plugin::getEloquent($this['menu_target'])->plugin_name;
+        } elseif (MenuType::SYSTEM == $menu_type) {
+            $menu_target_name = $this['menu_name'];
+        }
+        // custom, parent_node
+        else {
+            $menu_target_name = $this['menu_target'];
+        }
+
+        //// url
+        // menu type is table, remove uri "data/"
+        if (MenuType::TABLE == $menu_type) {
+            $uri = preg_replace('/^data\//', '', $this['uri']);
+        }else{
+            $uri = $this['uri'];
+        }
+
+        return [
+            'parent_name' => $parent_name,
+            'menu_target_name' => $menu_target_name,
+            'uri' => $uri,
+        ];
+        
+
+        // if has children, loop
+        if (array_key_value_exists('children', $menu)) {
+            foreach (array_get($menu, 'children') as $child) {
+                // set children menu item recursively to $menus.
+                $menus = array_merge($menus, static::getTemplateMenuItems($child, $target_tables, $menulist));
+            }
+        }
+        return $menus;
+    }
     
     /**
      * Detach models from the relationship.

@@ -76,12 +76,6 @@ class Define
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
 
-    // Dashboard --------------------------------------------------
-    
-    public const DASHBOARD_BOX_SYSTEM_PAGES = [
-        ['id' => 1, 'name' => 'guideline']
-    ];
-
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
         'saved',

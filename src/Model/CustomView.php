@@ -25,16 +25,33 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     protected $guarded = ['id', 'suuid'];
 
+    protected static $uniqueKeyName = ['suuid'];
+
     protected static $templateItems = [
-        'suuid' => ['key' => true],
-        'view_view_name' => ['lang' => true],
-        'custom_view_columns' => ['lang' => true, 'emptyskip' => true],
-        'custom_view_filters' => [],
-        'custom_view_sorts' => [],
-        'custom_view_summaries' => ['lang' => true, 'emptyskip' => true],
-        'table_name' => [],
-        'view_kind_type' => [],
+        'excepts' => ['id', 'custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['suuid'],
+        'langs' => ['view_view_name'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'custom_table.table_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ],
+        'children' =>[
+            'custom_view_columns',
+            'custom_view_filters',
+            'custom_view_sorts',
+            'custom_view_summaries',
+        ],
     ];
+
 
     public function custom_table()
     {
