@@ -171,6 +171,7 @@ class FormHelper
                     // set fileinfo
                     return FormHelper::setFileInfo($this, $file);
                 });
+                $field->attribute(['accept' => "image/*"]);
                 break;
             case ColumnType::FILE:
                 $field = new Field\File($form_column_name, [$column_view_name]);
