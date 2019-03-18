@@ -271,7 +271,7 @@ class CustomColumnController extends AdminControllerTableBase
                     //->rules('required')
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
-            $form->text('true_label', exmtrans("custom_column.options.true_value"))
+            $form->text('true_label', exmtrans("custom_column.options.true_label"))
                     ->help(exmtrans("custom_column.help.true_label"))
                     //->rules('required')
                     ->default(exmtrans("custom_column.options.true_label_default"))
