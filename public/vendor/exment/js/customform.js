@@ -253,6 +253,15 @@ var Exment;
                     .prop('selected', changedata_target_column_id == value);
                 $('.changedata_target_column').append($option);
             });
+            // if no select_table_columns, show error message
+            if (!hasValue(select_table_columns) || select_table_columns.length == 0) {
+                $('.select_no_item').show();
+                $('.select_item').hide();
+            }
+            else {
+                $('.select_no_item').hide();
+                $('.select_item').show();
+            }
             $('#form-changedata-modal').find('.target_header_column_name').val(target_header_column_name);
             // check default changedata_target_column_id value
             if (hasValue(changedata_target_column_id)) {
@@ -278,26 +287,32 @@ var Exment;
             else {
                 var custom_column_id = ev;
             }
-            $.ajax({
-                url: admin_base_path(URLJoin('webapi', 'target_table', 'columns', custom_column_id)),
-                type: 'GET'
-            })
-                .done(function (data) {
+            if (!hasValue(custom_column_id)) {
                 $('.changedata_column').children('option').remove();
-                $('.changedata_column').append($('<option>').val('').text(''));
-                $.each(data, function (value, name) {
-                    var $option = $('<option>')
-                        .val(value)
-                        .text(name)
-                        .prop('selected', changedata_column_id == value);
-                    $('.changedata_column').append($option);
-                });
                 $d.resolve();
-            })
-                .fail(function (data) {
-                console.log(data);
-                $d.reject();
-            });
+            }
+            else {
+                $.ajax({
+                    url: admin_base_path(URLJoin('webapi', 'target_table', 'columns', custom_column_id)),
+                    type: 'GET'
+                })
+                    .done(function (data) {
+                    $('.changedata_column').children('option').remove();
+                    $('.changedata_column').append($('<option>').val('').text(''));
+                    $.each(data, function (value, name) {
+                        var $option = $('<option>')
+                            .val(value)
+                            .text(name)
+                            .prop('selected', changedata_column_id == value);
+                        $('.changedata_column').append($option);
+                    });
+                    $d.resolve();
+                })
+                    .fail(function (data) {
+                    console.log(data);
+                    $d.reject();
+                });
+            }
             return $d.promise();
         };
         /**

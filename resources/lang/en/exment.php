@@ -523,6 +523,7 @@ return [
         'help'=> [
             'items' => 'Set the items to be displayed on the data form. <br /> From the "form item candidate list", drag & drop the item you want to display on the form to "form item column 1" "form item column 2".',
             'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
+            'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
         ],
     ],
 

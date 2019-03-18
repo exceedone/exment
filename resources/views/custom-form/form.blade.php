@@ -163,25 +163,28 @@
                             <i class="fa fa-info-circle"></i>&nbsp;{!! sprintf(exmtrans('custom_form.help.changedata'), getManualUrl('form#'.exmtrans('custom_form.changedata'))) !!}
                         </span>
                     </div>    
-                    <div class="col-sm-12">
+                    <div class="col-sm-12 select_no_item red small" style="display:none;">
+                        {{exmtrans('custom_form.help.changedata_no_item')}}
+                    </div>    
+                    <div class="col-sm-12 select_item">
                         <select data-add-select2="{{exmtrans('custom_form.changedata_target_column')}}" class="form-control select2 changedata_target_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
                         </select>
                     </div>    
-                    <div class="col-sm-12 small" style="margin-bottom:1em;">
+                    <div class="col-sm-12 small select_item" style="margin-bottom:1em;">
                         {{exmtrans('custom_form.changedata_target_column_when')}}
                     </div>
-                    <div class="col-sm-12">
+                    <div class="col-sm-12 select_item">
                         <select data-add-select2="{{exmtrans('custom_form.changedata_column')}}" class="form-control select2 changedata_column" style="width: 100%;" tabindex="-1" aria-hidden="true">
                         </select>
                     </div>    
-                    <div class="col-sm-12 small" style="margin-bottom:1em;">
+                    <div class="col-sm-12 small select_item" style="margin-bottom:1em;">
                         {{exmtrans('custom_form.changedata_column_then')}}
                     </div>
                 </div>
                 <div class="modal-footer">
                     <div class="col-sm-12">
                             <button id="changedata-button-reset" type="button" class="btn btn-default">{{trans('admin.reset')}}</button>
-                            <button id="changedata-button-setting" type="button" class="btn btn-info">{{trans('admin.setting')}}</button>
+                            <button id="changedata-button-setting" type="button" class="btn btn-info select_item">{{trans('admin.setting')}}</button>
 
                             <input type="hidden" class="target_header_column_name" />
                     </div>
