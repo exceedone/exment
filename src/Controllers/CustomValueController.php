@@ -9,6 +9,7 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
@@ -22,7 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
+    use ExmentResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
     protected $plugins = [];
 
     /**
@@ -369,5 +370,54 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         return true;
+    }
+
+    /**
+     * check if data is referenced.
+     */
+    protected function checkReferenced($custom_table, $list)
+    {
+        foreach ($custom_table->getSelectedItems() as $item) {
+            $model = getModelName(array_get($item, 'custom_table_id'));
+            $column_name = array_get($item, 'column_name');
+            $raw = "json_unquote(value->'$.$column_name')";
+            if ($model::whereIn(\DB::raw($raw), $list)->exists()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * validate before delete.
+     */
+    protected function validateDestroy($id)
+    {
+        $custom_table = $this->custom_table;
+
+        // check if data referenced
+        if ($this->checkReferenced($custom_table, [$id]))
+        {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
+
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // check if child data referenced
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            $list = getModelName($child_table)
+                ::where('parent_id', $id)
+                ->where('parent_type', $custom_table->table_name)
+                ->pluck('id')->all();
+            if ($this->checkReferenced($child_table, $list))
+            {
+                return [
+                    'status'  => false,
+                    'message' => exmtrans('custom_value.help.reference_error'),
+                ];
+            }
+        }    
     }
 }

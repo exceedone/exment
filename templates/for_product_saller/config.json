@@ -196,7 +196,7 @@
                     "description": null,
                     "options": {
                         "required": 1,
-                        "select_item": "1,問合\n2,試用\n3,見積\n4,請求\n5,保守\n6,完了",
+                        "select_item_valtext": "1,問合\n2,試用\n3,見積\n4,請求\n5,保守\n6,完了",
                         "index_enabled": 1
                     }
                 },

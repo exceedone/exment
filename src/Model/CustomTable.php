@@ -59,7 +59,14 @@ class CustomTable extends ModelBase
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
-    
+
+    public function getSelectedItems()
+    {
+        $raw = "json_unquote(options->'$.select_target_table')";
+        return CustomColumn::where(\DB::raw($raw), $this->id)
+            ->get();
+    }
+
     public function scopeSearchEnabled($query)
     {
         return $query->whereIn('options->search_enabled', [1, "1", true]);
