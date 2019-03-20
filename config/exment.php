@@ -31,4 +31,5 @@ return [
 
     'notify_saved_skip_minutes' => env('EXMENT_NOTIFY_SAVED_SKIP_MINUTES', 5),
 
+    'disabled_outside_api' => env('EXMENT_DISABLED_OUTSIDE_API', false),
 ];

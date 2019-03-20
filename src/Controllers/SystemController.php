@@ -38,11 +38,13 @@ class SystemController extends AdminControllerBase
         // Role Setting
         $this->addRoleForm($form, RoleType::SYSTEM);
 
-        // Version infomation
-        $infoBox = $this->getVersionBox();
-
         $content->row(new Box(trans('admin.edit'), $form));
-        $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+
+        if (!config('exment.disabled_outside_api', false)) {
+            // Version infomation
+            $infoBox = $this->getVersionBox();
+            $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+        }
 
         return $content;
     }
