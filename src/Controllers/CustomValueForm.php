@@ -252,7 +252,6 @@ EOT;
                             $fields[] = $field;
                             break;
                         default:
-                            continue;
                             break;
                     }
                 break;
@@ -307,7 +306,6 @@ EOT;
                             $field = new Field\Html(array_get($form_column_options, 'html'));
                             break;
                         default:
-                            continue;
                             break;
                     }
                 break;
