@@ -32,7 +32,8 @@ abstract class PluginDocumentBase
 
         // create pdf
         list($template_path, $output_filename) = $this->getDocumentInfo();
-        $service = new DocumentExcelService($this->custom_value, $template_path, $output_filename);
+        $service = new DocumentExcelService($this->custom_value, $template_path, 
+            $output_filename, $this->plugin->getDocumentType());
         $service->makeExcel();
 
         // set path and file info

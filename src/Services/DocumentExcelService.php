@@ -5,6 +5,7 @@
 namespace Exceedone\Exment\Services;
 
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Model\Define;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -21,6 +22,7 @@ class DocumentExcelService
     protected $tempfilename;
     protected $outputfilename;
     protected $filename;
+    protected $document_type;
 
     protected $model;
     /**
@@ -28,11 +30,12 @@ class DocumentExcelService
      * @param Request $request
      * @param $document
      */
-    public function __construct($model, $tempfilename, $outputfilename)
+    public function __construct($model, $tempfilename, $outputfilename, $document_type)
     {
         $this->model = $model;
         $this->tempfilename = $tempfilename;
         $this->outputfilename = $outputfilename;
+        $this->document_type = $document_type;
     }
 
     /**
@@ -74,7 +77,12 @@ class DocumentExcelService
             $sheet->setShowGridlines($showGridlines[$i]);
         }
 
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        if ($this->document_type == DocumentType::EXCEL) {
+            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        } else {
+            $writer = new Document\ExmentMpdf($spreadsheet);
+            $writer->setTempDir(getFullpath(path_join('tmp', 'document'), 'local', true));
+        }
         $writer->save($this->getFullPath());
 
         // remove tmpfile
@@ -248,13 +256,14 @@ class DocumentExcelService
      * get file name
      * @return string File name
      */
-    public function getFileName()
+    public function getFileName($document_type = null)
     {
         if (!isset($this->filename)) {
             // get template file name
             $this->filename = $this->getText($this->outputfilename) ?? make_uuid();
         }
-        return $this->filename.'.xlsx';
+        $ext = DocumentType::getExtension($document_type?? $this->document_type);
+        return $this->filename.$ext;
     }
 
     /**
@@ -297,7 +306,7 @@ class DocumentExcelService
      */
     public function getFullPathTmp()
     {
-        $filepath = path_join($this->getDirPath(), $this->getFileName().'tmp');
+        $filepath = path_join($this->getDirPath(), $this->getFileName(DocumentType::EXCEL).'tmp');
         return getFullpath($filepath, config('admin.upload.disk'));
     }
 }

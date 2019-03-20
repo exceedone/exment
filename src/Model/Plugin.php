@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use DB;
+use Exceedone\Exment\Enums\DocumentType;
 
 class Plugin extends ModelBase
 {
@@ -15,6 +16,13 @@ class Plugin extends ModelBase
         return DB::table('plugins')->where('id', $plugin_id)->value($field_name);
     }
 
+    /**
+     * Get document type
+     */
+    public function getDocumentType()
+    {
+        return array_get($this->options, 'document_type', DocumentType::EXCEL);
+    }
     /**
      * Get namespace path
      */
