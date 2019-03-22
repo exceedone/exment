@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Encore\Admin\Widgets\Table as WidgetTable;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 
@@ -53,7 +53,7 @@ class ListItem implements ItemInterface
         }
     
         // check edit permission
-        if ($this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if ($this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $new_url= admin_url("data/{$this->custom_table->table_name}/create");
             $list_url = admin_url("data/{$this->custom_table->table_name}");
         } else {

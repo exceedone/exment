@@ -6,13 +6,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
+use Exceedone\Exment\Auth\Permission as AuthPermission;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
@@ -104,7 +105,7 @@ trait HasPermissions
         $permissions = [];
         foreach ($roles as $key => $role) {
             if (RoleType::SYSTEM == $key) {
-                array_push($permissions, new Permission([
+                array_push($permissions, new AuthPermission([
                     'role_type' =>$key,
                     'table_name' => null,
                     'permission_details' =>$role,
@@ -112,7 +113,7 @@ trait HasPermissions
                 continue;
             }
             foreach ($role as $k => $v) {
-                array_push($permissions, new Permission([
+                array_push($permissions, new AuthPermission([
                     'role_type' =>$key,
                     'table_name' =>$k,
                     'permission_details' =>$v,
@@ -224,7 +225,7 @@ trait HasPermissions
         if (Session::has(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS)) {
             return Session::get(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
         }
-        $ids = AuthUserOrgHelper::getOrganizationIds();
+        $ids = AuthUserOrgHelper::getOrganizationIds(true);
         // set session.
         Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS, $ids);
         return $ids;
@@ -290,11 +291,8 @@ trait HasPermissions
             // if different table name, change target array.
             $table_name = array_get($role, 'table_name');
             if ($before_table_name != $table_name) {
-                $permission_tables = [];
-                $permissions[$table_name] = &$permission_tables;
+                $permissions[$table_name] = array_has($permissions, $table_name) ? $permissions[$table_name] : [];
                 $before_table_name = $table_name;
-            } else {
-                $permission_tables = &$permissions[$table_name];
             }
             $permission_details = array_get($role, 'permissions');
             if (is_string($permission_details)) {
@@ -302,8 +300,8 @@ trait HasPermissions
             }
             foreach ($permission_details as $key => $value) {
                 // if permission value is 1, add permission.
-                if (boolval($value) && !array_key_exists($key, $permission_tables)) {
-                    $permission_tables[$key] = $value;
+                if (boolval($value) && !array_key_exists($key, $permissions[$table_name])) {
+                    $permissions[$table_name][$key] = $value;
                 }
             }
         }
@@ -312,14 +310,14 @@ trait HasPermissions
         $tables = CustomTable::all();
         foreach ($tables as $table) {
             $table_name = $table->table_name;
-            if (boolval($table->getOption('all_user_editable_flg'))) {
-                $permissions[$table_name][RoleValue::CUSTOM_VALUE_EDIT_ALL] = "1";
+            if(boolval($table->getOption('all_user_editable_flg'))){
+                $permissions[$table_name][Permission::CUSTOM_VALUE_EDIT_ALL] = "1";
             }
-            if (boolval($table->getOption('all_user_viewable_flg'))) {
-                $permissions[$table_name][RoleValue::CUSTOM_VALUE_VIEW_ALL] = "1";
+            if(boolval($table->getOption('all_user_viewable_flg'))){
+                $permissions[$table_name][Permission::CUSTOM_VALUE_VIEW_ALL] = "1";
             }
-            if (boolval($table->getOption('all_user_accessable_flg'))) {
-                $permissions[$table_name][RoleValue::CUSTOM_VALUE_ACCESS_ALL] = "1";
+            if(boolval($table->getOption('all_user_accessable_flg'))){
+                $permissions[$table_name][Permission::CUSTOM_VALUE_ACCESS_ALL] = "1";
             }
         }
 
@@ -364,18 +362,12 @@ trait HasPermissions
             }
             foreach ($role_details as $key => $value) {
                 // if permission value is 1, add permission.
-                // $key = key($kv);
-                // $value = $kv[$key];
                 if (boolval($value) && !array_key_exists($key, $permissions)) {
                     $permissions[$key] = $value;
                 }
             }
         }
-
-        // if (count($permissions) == 0) {
-        //     $permissions['dashboard'] = [];
-        // }
-
+        
         return $permissions;
     }
 }

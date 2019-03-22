@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -196,6 +197,7 @@ class PluginInstaller
     {
         $rules = [
             'plugin_name' => 'required',
+            'document_type' => 'in:'.DocumentType::getSelectableString(),
             'plugin_type' => 'required|in:'.PluginType::getRequiredString(),
             'plugin_view_name' => 'required',
             'uuid' => 'required'
@@ -245,6 +247,9 @@ class PluginInstaller
         }
         if (array_key_value_exists('button_class', $json)) {
             $options['button_class'] = array_get($json, 'button_class');
+        }
+        if (array_key_value_exists('document_type', $json)) {
+            $options['document_type'] = array_get($json, 'document_type');
         }
         $plugin->options = $options;
 

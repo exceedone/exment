@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -71,7 +71,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
-    
+
+    public function getSelectedItems()
+    {
+        $raw = "json_unquote(options->'$.select_target_table')";
+        return CustomColumn::where(\DB::raw($raw), $this->id)
+            ->get();
+    }
+
     public function scopeSearchEnabled($query)
     {
         return $query->whereIn('options->search_enabled', [1, "1", true]);
@@ -272,9 +279,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(RoleValue::CUSTOM_TABLE)) {
+        if (!Admin::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(RoleValue::CUSTOM_TABLE);
+            $permission_tables = Admin::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });
@@ -471,17 +478,28 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
+     * 
+     * *"$this" is the table targeted on options.
+     * *"$display_table" is the table user shows on display.
      *
      * @param $selected_value the value that already selected.
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false)
+    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false)
     {
         if (is_null($display_table)) {
             $display_table = $this;
         }
         $table_name = $this->table_name;
+        $display_table = CustomTable::getEloquent($display_table);
+        // check table permission. if not exists, show admin_warning
+        if(!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()){
+            if($showMessage_ifDeny){
+                admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
+            }
+            return [];
+        }
 
         // get query.
         // if org
@@ -751,7 +769,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * whether login user has permission. target is table
      */
-    public function hasPermission($role_key = RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)
+    public function hasPermission($role_key = Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
     {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
@@ -793,7 +811,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -801,7 +819,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissionData($id, RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
     /**
@@ -820,7 +838,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(RoleValue::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if ($this->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return true;
         }
 

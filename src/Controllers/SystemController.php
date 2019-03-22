@@ -38,11 +38,13 @@ class SystemController extends AdminControllerBase
         // Role Setting
         $this->addRoleForm($form, RoleType::SYSTEM);
 
-        // Version infomation
-        $infoBox = $this->getVersionBox();
-
         $content->row(new Box(trans('admin.edit'), $form));
-        $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+
+        if (!config('exment.disabled_outside_api', false)) {
+            // Version infomation
+            $infoBox = $this->getVersionBox();
+            $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
+        }
 
         return $content;
     }
@@ -157,7 +159,7 @@ class SystemController extends AdminControllerBase
                         DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                         ->where('related_id', $dbValue->related_id)
                         ->where('related_type', $related_type)
-                        ->where('morph_type', RoleType::SYSTEM())
+                        ->where('morph_type', RoleType::SYSTEM()->lowerKey())
                         ->where('role_id', $role->id)
                         ->delete();
                     }

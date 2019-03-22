@@ -1010,6 +1010,7 @@
             "custom_view_filters": [
                 {
                     "view_column_type": "0",
+                    "view_column_target_name": "view_flg",
                     "view_filter_condition": "1",
                     "view_filter_condition_value_text": "1"
                 }

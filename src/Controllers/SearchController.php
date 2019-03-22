@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SearchType;
 
@@ -218,7 +218,7 @@ EOT;
         $tables = CustomTable::with('custom_columns')->searchEnabled()->get();
         foreach ($tables as $table) {
             // if not role, continue
-            if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            if (!$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
 
@@ -452,7 +452,7 @@ EOT;
 
         foreach ($tables as $table) {
             // if not role, continue
-            if (!$table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            if (!$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, SearchType::SELECT_TABLE));
@@ -469,7 +469,7 @@ EOT;
         foreach ($tables as $table) {
             // if not role, continue
             $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-            if (!$table_obj->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
             array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY));
@@ -491,7 +491,7 @@ EOT;
         if (isset($search_type)) {
             $array['search_type'] = $search_type;
         }
-        if ($table->hasPermission(RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+        if($table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
             $array['show_list'] = true;
         }
         return $array;

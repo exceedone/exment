@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\SystemVersion;
@@ -68,13 +68,7 @@ class DashboardController extends AdminControllerBase
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
         }
         // if system admin, check version
-        elseif(\Exment::user()->hasPermission(RoleValue::SYSTEM)){
-            $versionCheck = checkLatestVersion();
-            if($versionCheck == SystemVersion::HAS_NEXT){
-                list($latest, $current) = getExmentVersion();
-                admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
-            }
-        }
+        $this->showVersionUpdate();
 
         $this->setDashboardInfo($request);
         $this->AdminContent($content);
@@ -303,7 +297,7 @@ EOT;
         $content->row(function ($row) use ($content, $row_column_count, $row_no) {
             // check role.
             //TODO:now system admin. change if user dashboard
-            $has_role = Admin::user()->hasPermission(RoleValue::SYSTEM);
+            $has_role = Admin::user()->hasPermission(Permission::SYSTEM);
             for ($i = 1; $i <= $row_column_count; $i++) {
                 $func = "dashboard_row{$row_no}_boxes";
                 // get $boxes as $row_no
@@ -356,5 +350,18 @@ EOT;
                 ]));
             }
         });
+    }
+
+    protected function showVersionUpdate(){
+        // if system admin, check version
+        if(!\Exment::user()->hasPermission(Permission::SYSTEM)){
+            return;
+        }
+        
+        $versionCheck = checkLatestVersion();
+        if($versionCheck == SystemVersion::HAS_NEXT){
+            list($latest, $current) = getExmentVersion();
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
+        }
     }
 }

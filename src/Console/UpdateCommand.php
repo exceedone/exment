@@ -3,9 +3,8 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Encore\Admin\Console\InstallCommand as AdminInstallCommand;
 
-class InstallCommand extends AdminInstallCommand
+class UpdateCommand extends Command
 {
     use CommandTrait;
 
@@ -14,14 +13,14 @@ class InstallCommand extends AdminInstallCommand
      *
      * @var string
      */
-    protected $signature = 'exment:install';
+    protected $signature = 'exment:update';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Install the exment package';
+    protected $description = 'Update the exment package';
 
     /**
      * Install directory.
@@ -50,12 +49,7 @@ class InstallCommand extends AdminInstallCommand
     public function handle()
     {
         $this->publishStaticFiles();
-
         $this->initDatabase();
-        
-        $this->initAdminDirectory();
-
-        //$this->call('passport:keys');
     }
 
     /**
@@ -66,7 +60,5 @@ class InstallCommand extends AdminInstallCommand
     public function initDatabase()
     {
         $this->call('migrate');
-
-        $this->call('db:seed', ['--class' => \Exceedone\Exment\Database\Seeder\InstallSeeder::class]);
     }
 }

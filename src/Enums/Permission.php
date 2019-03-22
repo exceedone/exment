@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
-class RoleValue extends EnumBase
+class Permission extends EnumBase
 {
     const SYSTEM = 'system';
     const CUSTOM_TABLE = 'custom_table';

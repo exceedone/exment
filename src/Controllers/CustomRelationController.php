@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelationController extends AdminControllerTableBase
@@ -35,7 +35,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -52,7 +52,7 @@ class CustomRelationController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
@@ -70,7 +70,7 @@ class CustomRelationController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);

@@ -9,7 +9,8 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
+use Carbon\Carbon;
 
 class CustomValue extends ModelBase
 {
@@ -261,7 +262,7 @@ class CustomValue extends ModelBase
         }
 
         // get role editable value
-        $role = Role::where('role_type', RoleType::VALUE)->whereIn('permissions->'.RoleValue::CUSTOM_VALUE_EDIT, [1, "1"])
+        $role = Role::where('role_type', RoleType::VALUE)->whereIn('permissions->'.Permission::CUSTOM_VALUE_EDIT, [1, "1"])
             ->first();
         // set user
         if (!isset($role)) {

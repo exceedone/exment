@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Form\Tools;
 
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Encore\Admin\Facades\Admin;
@@ -37,13 +37,13 @@ class GridChangeView extends AbstractTool
         // setting menu list
         $settings = [];
         //role check
-        if (Admin::user()->hasPermission(RoleValue::CUSTOM_VIEW)) {
+        if (Admin::user()->hasPermission(Permission::CUSTOM_VIEW)) {
             $query_str = '';
             if (intval($this->current_custom_view->view_kind_type) === ViewKindType::AGGREGATE) {
                 $query_str = '?view_kind_type=1';
             }
-            $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'.$query_str), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
-            $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
+            $settings[] = ['url' => admin_base_paths('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
+            $settings[] = ['url' => admin_base_paths('view', $this->custom_table->table_name, 'create'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_sum')];
         }
 

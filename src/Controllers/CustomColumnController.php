@@ -22,7 +22,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -44,7 +44,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::index($request, $content);
@@ -61,7 +61,7 @@ class CustomColumnController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
@@ -79,7 +79,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::create($request, $content);
@@ -176,7 +176,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
-                ->help(exmtrans("custom_column.help.index_enabled"));
+                ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
             $form->text('default', exmtrans("custom_column.options.default"));
@@ -274,7 +274,7 @@ class CustomColumnController extends AdminControllerTableBase
                     //->rules('required')
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
-            $form->text('true_label', exmtrans("custom_column.options.true_value"))
+            $form->text('true_label', exmtrans("custom_column.options.true_label"))
                     ->help(exmtrans("custom_column.help.true_label"))
                     //->rules('required')
                     ->default(exmtrans("custom_column.options.true_label_default"))

@@ -9,11 +9,12 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
@@ -23,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow, CustomValueSummary;
+    use ExmentResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
     protected $plugins = [];
 
     /**
@@ -49,7 +50,10 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        $this->setFormViewInfo($request);
+        
+        if(($response = $this->firstFlow($request, null, true)) instanceof Response){
+            return $response;
+        }
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
@@ -89,7 +93,9 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        $this->firstFlow($request);
+        if(($response = $this->firstFlow($request)) instanceof Response){
+            return $response;
+        }
         $this->AdminContent($content);
         PluginInstaller::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form(null));
@@ -105,7 +111,9 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        $this->firstFlow($request, $id);
+        if(($response = $this->firstFlow($request, $id)) instanceof Response){
+            return $response;
+        }
 
         // if user doesn't have edit permission, redirect to show
         $redirect = $this->redirectShow($id);
@@ -141,11 +149,13 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function show(Request $request, $id, Content $content)
     {
-        $this->firstFlow($request, $id, true);
-
         $modal = boolval($request->get('modal'));
         if ($modal) {
             return $this->createShowForm($id, $modal);
+        }
+
+        if(($response = $this->firstFlow($request, $id, true)) instanceof Response){
+            return $response;
         }
 
         $this->AdminContent($content);
@@ -161,7 +171,9 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function filedelete(Request $request, $id)
     {
-        $this->firstFlow($request, $id);
+        if(($response = $this->firstFlow($request, $id)) instanceof Response){
+            return $response;
+        }
 
         // get file delete flg column name
         $del_column_name = $request->input(Field::FILE_DELETE_FLAG);
@@ -201,8 +213,10 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function fileupload(Request $request, $id)
     {
-        $this->firstFlow($request, $id);
-        
+        if(($response = $this->firstFlow($request, $id)) instanceof Response){
+            return $response;
+        }
+
         $httpfile = $request->file('file_data');
         // file put(store)
         $filename = $httpfile->getClientOriginalName();
@@ -332,9 +346,21 @@ class CustomValueController extends AdminControllerTableBase
      */
     protected function firstFlow(Request $request, $id = null, $show = false)
     {
+        // if this custom_table doesn't have custom_columns, redirect custom_column's page(admin) or back
+        if(!isset($this->custom_table->custom_columns) || count($this->custom_table->custom_columns) == 0){
+            if($this->custom_table->hasPermission(Permission::CUSTOM_TABLE)){
+                admin_toastr(exmtrans('custom_value.help.no_columns_admin'), 'error');
+                return redirect(admin_urls('column', $this->custom_table->table_name));
+            }
+
+            admin_toastr(exmtrans('custom_value.help.no_columns_user'), 'error');
+            return back();
+        }
+
         $this->setFormViewInfo($request);
+
         //Validation table value
-        $roleValue = $show ? RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE : RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE;
+        $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
         if (!$this->validateTable($this->custom_table, $roleValue)) {
             return false;
         }
@@ -349,5 +375,54 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         return true;
+    }
+
+    /**
+     * check if data is referenced.
+     */
+    protected function checkReferenced($custom_table, $list)
+    {
+        foreach ($custom_table->getSelectedItems() as $item) {
+            $model = getModelName(array_get($item, 'custom_table_id'));
+            $column_name = array_get($item, 'column_name');
+            $raw = "json_unquote(value->'$.$column_name')";
+            if ($model::whereIn(\DB::raw($raw), $list)->exists()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * validate before delete.
+     */
+    protected function validateDestroy($id)
+    {
+        $custom_table = $this->custom_table;
+
+        // check if data referenced
+        if ($this->checkReferenced($custom_table, [$id]))
+        {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
+
+        $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
+        // check if child data referenced
+        foreach ($relations as $relation) {
+            $child_table = $relation->child_custom_table;
+            $list = getModelName($child_table)
+                ::where('parent_id', $id)
+                ->where('parent_type', $custom_table->table_name)
+                ->pluck('id')->all();
+            if ($this->checkReferenced($child_table, $list))
+            {
+                return [
+                    'status'  => false,
+                    'message' => exmtrans('custom_value.help.reference_error'),
+                ];
+            }
+        }    
     }
 }

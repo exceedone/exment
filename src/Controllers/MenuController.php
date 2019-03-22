@@ -24,7 +24,7 @@ class MenuController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), trans('admin.list'));
+        $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), exmtrans('menu.description'));
     }
 
     /**

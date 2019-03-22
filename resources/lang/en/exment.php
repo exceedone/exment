@@ -1,4 +1,3 @@
-
 <?php
 
 return [    
@@ -427,7 +426,7 @@ return [
             "organization" => "Organization",
         ],
         'help' => [
-            'search_enabled' => 'When set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>*If you set too many this setting on the same table, the performance may decline.',
+            'index_enabled' => 'When set to YES, the search index is added. you can narrow down the conditions in search and view. <br/>Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>',
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'default' => 'The initial value of the item at the time of new registration.',
             'help' => 'Help string displayed below the field.',
@@ -448,6 +447,7 @@ return [
             'currency_symbol' => 'Please select the format of the currency displayed on the screen.',
             'add_custom_form_flg' => 'After creating custom column, you can add it to the default custom form. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "Form" page.',
             'add_custom_view_flg' => 'After creating custom column, you can add it to the default custom view. To add it, please set it to YES.<br />*It can be set only when new column is created. When updating please set it from "View" page.',
+            'select_table_deny' => "You don't have the permissions for the referenced table '%s'. Please contact your system administrator to request additional permissions.",
         ],
         'available_characters' => [
             'lower' => 'Lower Letters', 
@@ -533,7 +533,8 @@ return [
 
         'help'=> [
             'items' => 'Set the items to be displayed on the data form. <br /> From the "form item candidate list", drag & drop the item you want to display on the form to "form item column 1" "form item column 2".',
-            'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here</a>.',
+            'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
+            'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
         ],
     ],
 
@@ -558,8 +559,8 @@ return [
         'description_custom_view_columns' => 'Select display columns.',
         'description_custom_view_groups' => 'Sets the grouping key columns displayed in the view.',
         'description_custom_view_summaries' => 'Sets the summary columns of data displayed in the view.',
-        'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">search index</a> has not been set. Please confirm the content of the link destination and set it.',
-        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">search index</a> has not been set. Please confirm the content of the link destination and set it.',
+        'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
+        'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
 
         'summary_condition_options' => [
             'sum' => 'Summary',
@@ -630,6 +631,7 @@ return [
             'custom_value_disableorg' => 'Please select users to whom role is given for this data.',
             'plugin' => 'Please select users/organizations to whom role is given for this plugin.',
             'plugin_disableorg' => 'Please select users to whom role is given for this plugin.',
+            'manual_link' => '<br />Please read <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> about roles and permissions.'
         ],
 
         'role_type_options' =>[
@@ -707,6 +709,7 @@ return [
 
     'menu' => [
         'menu_type' => 'Menu Type',
+        'description' => 'Define about left menu. You can update definition if you reload browser.',
         'menu_target' => 'Target',
         'menu_name' => 'Menu Name',
         'title' => 'Menu View Name',
@@ -789,7 +792,7 @@ return [
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
             'help' => [
-                'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here</a> for details such as the procedure.',
+                'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for details such as the procedure.',
                 'custom_table_file' => 'Select the CSV file that you output the template.',
                 'primary_key' => 'Select the field to narrow down the update data.<br />If this field value matches existing data, it will be imported as update data.<br />If matching data does not exist, it will be imported as new data.',
                 'error_flow' => 'If an error occurs due to incomplete data , select whether to capture normal data.',
@@ -811,6 +814,12 @@ return [
             'help' => 'Please select From the left column and move to the right column.',
         ],
         'auto_number_create' => '(After saving, this value ​​will be registered automatically)',
+        
+        'help' => [
+            'no_columns_admin' => 'Custom column has not been registered. Please register a custom column first.',
+            'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
+        ],
+
     ],
 
     'notify' => [

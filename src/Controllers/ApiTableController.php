@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Services\FormHelper;
 use Validator;
 
@@ -80,7 +80,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function createData(Request $request)
     {
-        if (!$this->custom_table->hasPermission(RoleValue::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
             abort(403);
         }
 

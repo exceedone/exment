@@ -14,7 +14,7 @@ use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 
 class CustomTableController extends AdminControllerBase
 {
@@ -43,6 +43,10 @@ class CustomTableController extends AdminControllerBase
         });
 
         $grid->disableExport();
+        if(!\Exment::user()->hasPermission(Permission::SYSTEM)){
+            $grid->disableCreateButton();
+        }
+
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             if (boolval($actions->row->system_flg)) {
                 $actions->disableDelete();
@@ -164,7 +168,7 @@ class CustomTableController extends AdminControllerBase
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_urls('column', $table_name);
     
-                admin_toastr(exmtrans('custom_table.saved_redirct_column'));
+                admin_toastr(exmtrans('custom_table.help.saved_redirect_column'));
                 return redirect($custom_column_url);    
             }
         });
@@ -181,7 +185,7 @@ class CustomTableController extends AdminControllerBase
      */
     public function edit(Request $request, $id, Content $content)
     {
-        if (!$this->validateTable($id, RoleValue::CUSTOM_TABLE)) {
+        if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
             return;
         }
         return parent::edit($request, $id, $content);

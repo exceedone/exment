@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Dashboard;
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Encore\Admin\Facades\Admin;
 
@@ -36,9 +36,9 @@ class DashboardMenu
         $settings = [];
         //role check
         //TODO:now system admin. change if user dashboard
-        if (Admin::user()->hasPermission(RoleValue::SYSTEM)) {
-            $settings[] = ['url' => admin_urls('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
-            $settings[] = ['url' => admin_urls('dashboard', 'create'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
+        if (Admin::user()->hasPermission(Permission::SYSTEM)) {
+            $settings[] = ['url' => admin_base_paths('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
+            $settings[] = ['url' => admin_base_paths('dashboard', 'create'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
         }
         return view('exment::dashboard.header', [
             'current_dashboard' => $this->current_dashboard,

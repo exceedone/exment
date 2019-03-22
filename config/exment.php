@@ -47,4 +47,6 @@ return [
     'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
     'tmp' => env('EXMENT_DISK_TMP', 'local'),
   ],
+  
+  'disabled_outside_api' => env('EXMENT_DISABLED_OUTSIDE_API', false),
 ];

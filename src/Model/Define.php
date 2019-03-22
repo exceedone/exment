@@ -1,8 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
-
-use Exceedone\Exment\Enums\RoleValue;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * Define short summary.
@@ -164,13 +163,13 @@ class Define
     ];
 
     public const GRID_CHANGE_PAGE_MENULIST = [
-        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
-        ['url' => 'column', 'icon' => 'fa-list', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
-        ['url' => 'relation', 'icon' => 'fa-compress', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
-        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [RoleValue::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => [RoleValue::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
-        ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [RoleValue::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
-        ['url' => 'data', 'icon' => 'fa-database', 'roles' => RoleValue::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+        ['url' => 'table', 'icon' => 'fa-table', 'move_edit' => true, 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_table'],
+        ['url' => 'column', 'icon' => 'fa-list', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
+        ['url' => 'relation', 'icon' => 'fa-compress', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
+        ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
+        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => [Permission::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
+        ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
+        ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
     // Template --------------------------------------------------
