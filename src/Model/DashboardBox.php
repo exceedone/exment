@@ -121,7 +121,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         switch ($obj_dashboard_box->dashboard_box_type) {
             // system box
             case DashboardBoxType::SYSTEM:
-                $id = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) use ($dashboard_box) {
+                $id = collect(DashboardBoxSystemPage::options())->first(function ($value) use ($dashboard_box) {
                     return array_get($value, 'name') == array_get($dashboard_box, 'options.target_system_name');
                 })['id'] ?? null;
                 $obj_dashboard_box->setOption('target_system_id', $id);
