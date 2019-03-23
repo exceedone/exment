@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 
 class SystemItem implements ItemInterface
 {
@@ -34,7 +35,7 @@ class SystemItem implements ItemInterface
      */
     public function body()
     {
-        $item = collect(Define::DASHBOARD_BOX_SYSTEM_PAGES)->first(function ($value) {
+        $item = collect(DashboardBoxSystemPage::options())->first(function ($value) {
             return array_get($value, 'id') == array_get($this->dashboard_box, 'options.target_system_id');
         });
         if (isset($item)) {
@@ -51,7 +52,7 @@ class SystemItem implements ItemInterface
     {
         // show system item list
         $options = [];
-        foreach (Define::DASHBOARD_BOX_SYSTEM_PAGES as $page) {
+        foreach (DashboardBoxSystemPage::options() as $page) {
             $options[array_get($page, 'id')] = exmtrans('dashboard.dashboard_box_system_pages.'.array_get($page, 'name'));
         }
         $form->select('target_system_id', exmtrans("dashboard.dashboard_box_options.target_system_id"))

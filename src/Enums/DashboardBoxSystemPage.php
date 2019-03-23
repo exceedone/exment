@@ -16,6 +16,10 @@ class DashboardBoxSystemPage extends EnumBase
         return array_get(static::$options, $this->lowerKey());
     }
     
+    public static function options(){
+        return static::$options;
+    }
+    
     public static function getEnum($value, $default = null)
     {
         $enum = parent::getEnum($value, $default);
