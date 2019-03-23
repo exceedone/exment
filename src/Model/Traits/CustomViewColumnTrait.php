@@ -19,7 +19,7 @@ trait CustomViewColumnTrait
      */
     public function getViewColumnTargetAttribute()
     {
-        return $this->getViewColumnTargetWithTable();
+        return $this->getViewColumnTarget();
     }
 
     public function getColumnItemAttribute()
@@ -46,36 +46,35 @@ trait CustomViewColumnTrait
     {
         $this->setViewColumnTarget($view_column_target);
     }
-    
-    protected function getViewColumnTargetWithTable() {
-        if (!isset($this->view_column_table_id)) {
-            return null;
-        }
-        return $this->view_column_table_id . '-' . $this->getViewColumnTarget();
-    }
 
-    protected function getViewColumnTarget($column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
+    protected function getViewColumnTarget($column_table_id_key = 'view_column_table_id', $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
-        if (!isset($this->{$column_type_key}) || 
+        if (!isset($this->{$column_table_id_key}) ||
+            !isset($this->{$column_type_key}) || 
             !isset($this->{$column_type_target_key})) {
             return null;
         }
+
+        $column_table_id = $this->{$column_table_id_key};
+
         if ($this->{$column_type_key} == ViewColumnType::SYSTEM) {
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-            return SystemColumn::getOption(['id' => $this->{$column_type_target_key}])['name'] ?? null;
+            $column_type = SystemColumn::getOption(['id' => $this->{$column_type_target_key}])['name'] ?? null;
         } elseif ($this->{$column_type_key} == ViewColumnType::PARENT_ID) {
-            return 'parent_id';
+            $column_type = 'parent_id';
         } else {
-            return $this->view_column_target_id;
+            $column_type = $this->{$column_type_target_key};
         }
+
+        return $column_table_id . '-' . $column_type;
     }
 
-    protected function setViewColumnTarget($view_column_target, $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
+    protected function setViewColumnTarget($view_column_target, $column_table_name_key = 'custom_view', $column_table_id_key = 'view_column_table_id', $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
         if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
-            list($this->view_column_table_id, $view_column_target) = explode("-", $view_column_target);
+            list($this->{$column_table_id_key}, $view_column_target) = explode("-", $view_column_target);
         } else {
-            $this->view_column_table_id = $this->custom_view->custom_table_id;
+            $this->{$column_table_id_key} = $this->{$column_table_name_key}->custom_table_id;
         }
 
         if (!is_numeric($view_column_target)) {
@@ -164,7 +163,7 @@ trait CustomViewColumnTrait
             case ViewColumnType::SYSTEM:
                 return [
                     'table_name' => $table_name,
-                    'column_name' => $target_column_id = SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],
+                    'column_name' => SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],
                 ];
             
             case ViewColumnType::PARENT_ID:

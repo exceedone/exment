@@ -98,13 +98,14 @@ class CustomViewFilter extends ModelBase
     public function setValueFilter($model, $db_table_name = null)
     {
         // get filter target column
-        $view_column_target = $this->getViewColumnTarget();
+        $view_column_target = $this->view_column_target_id;
         if ($this->view_column_type == ViewColumnType::COLUMN) {
             $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
         } elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
         }
+        
         if (isset($db_table_name)) {
             $view_column_target = $db_table_name.'.'.$view_column_target;
         }

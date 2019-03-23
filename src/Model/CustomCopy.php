@@ -12,9 +12,39 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Traits\TemplateTrait;
     
     protected $casts = ['options' => 'json'];
 
+    protected static $templateItems = [
+        'excepts' => ['id', 'from_custom_table', 'to_custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'keys' => ['suuid'],
+        'langs' => ['options.label'],
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacingName' => 'from_custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'from_custom_table_name',
+                        ]
+                    ],
+                    [
+                        'replacingName' => 'to_custom_table_id',
+                        'replacedName' => [
+                            'table_name' => 'to_custom_table_name',
+                        ]
+                    ],
+                ],
+                'uniqueKeyClassName' => CustomTable::class,
+            ],
+        ],
+        'children' =>[
+            'custom_copy_columns',
+            'custom_copy_input_columns',
+        ],
+    ];
+    
     public function from_custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'from_custom_table_id');

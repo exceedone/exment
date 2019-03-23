@@ -25,6 +25,10 @@ class AlterCustomViewColumns extends Migration
         Schema::table('custom_view_sorts', function (Blueprint $table) {
             $table->integer('view_column_table_id')->after('view_column_type')->unsigned();
         });
+        Schema::table('custom_copy_columns', function (Blueprint $table) {
+            $table->integer('from_column_table_id')->after('from_column_type')->unsigned();
+            $table->integer('to_column_table_id')->after('to_column_type')->unsigned();
+        });
         // set default value.
         \DB::statement('UPDATE custom_view_columns a SET view_column_table_id = (
             CASE a.view_column_type
@@ -45,6 +49,17 @@ class AlterCustomViewColumns extends Migration
             CASE a.view_column_type
                 WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.view_column_target_id)
                 ELSE (SELECT custom_table_id from custom_views where id = a.custom_view_id)
+            END)');
+
+        \DB::statement('UPDATE custom_copy_columns a SET from_column_table_id = (
+            CASE a.from_column_type
+                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.from_column_target_id)
+                ELSE (SELECT from_custom_table_id from custom_copies where id = a.custom_copy_id)
+            END), 
+            to_column_table_id = (
+            CASE a.to_column_type
+                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.to_column_target_id)
+                ELSE (SELECT to_custom_table_id from custom_copies where id = a.custom_copy_id)
             END)');
 
         // drop table name unique index from custom table

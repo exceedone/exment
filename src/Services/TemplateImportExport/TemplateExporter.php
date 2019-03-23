@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomViewSummary;
+use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
@@ -177,6 +178,17 @@ class TemplateExporter
             $configRelations[] = $custom_relation->getTemplateExportItems($is_lang);
         }
         $config['custom_relations'] = $configRelations;
+        
+        // get copies --------------------------------------------------
+        $custom_copies = CustomCopy
+            ::with('custom_copy_columns')
+            ->get();
+        $configCopies = [];
+        foreach ($custom_copies as $custom_copy) {
+            $configCopies[] = $custom_copy->getTemplateExportItems($is_lang);
+        }
+        $config['custom_copies'] = $configCopies;
+        
     }
     
     /**
