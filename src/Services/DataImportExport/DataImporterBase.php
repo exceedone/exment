@@ -158,8 +158,9 @@ abstract class DataImporterBase
 
             // combine value
             $value_custom = array_combine($headers, $value);
-            $delete = boolval(array_get($value_custom, 'delete'));
+            $delete = boolval(array_get($value_custom, 'delete')) || boolval(array_get($value_custom, 'delete_flg'));
             array_forget($value_custom, 'delete');
+            array_forget($value_custom, 'delete_flg');
             $results[] = ['data' => $value_custom, 'delete' => $delete, 'relation' => $relation];
         }
 

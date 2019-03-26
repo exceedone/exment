@@ -68,7 +68,7 @@ trait CustomValueShow
                                 });
                                 break;
                             default:
-                                continue;
+                                break;
                         }
                     }
                 }

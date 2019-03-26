@@ -226,7 +226,7 @@ trait HasPermissions
         if (Session::has(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS)) {
             return Session::get(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
         }
-        $ids = AuthUserOrgHelper::getOrganizationIds();
+        $ids = AuthUserOrgHelper::getOrganizationIds(true);
         // set session.
         Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS, $ids);
         return $ids;
