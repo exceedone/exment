@@ -110,6 +110,9 @@ return [
         'child_custom_table_id' => [
             'loop_relation' => 'すでに関連付けられているテーブルです。',
         ],
+        'options.index_enabled' => [
+            'max_table_index' => '1つのテーブルに設定できる検索インデックスは10件までです。',
+        ],
     ],
 
     /*
