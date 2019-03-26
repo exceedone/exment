@@ -937,10 +937,12 @@ var Exment;
                     }
                     if (isShow) {
                         $eParent.show();
+                        $t.prop('disabled', false);
                         // disabled false
                     }
                     else {
                         $eParent.hide();
+                        $t.prop('disabled', true);
                         ///// remove value
                         // comment out because remove default value
                         //$t.val('');
@@ -952,7 +954,9 @@ var Exment;
                         $t.prop(propName, true);
                     }
                     else {
-                        $t.prop(propName, false);
+                        if (propName != 'disabled' || isShow){
+                            $t.prop(propName, false);
+                        }
                     }
                 }
                 catch (e) {
