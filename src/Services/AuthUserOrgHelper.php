@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
-
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 /**
  * Role, user , organization helper
@@ -176,7 +176,7 @@ class AuthUserOrgHelper
      * get organization ids
      * @return mixed
      */
-    public static function getOrganizationIds($onlyUserJoined = false)
+    public static function getOrganizationIds($onlyUserJoined = false, $filterType = JoinedOrgFilterType::ALL)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
@@ -189,7 +189,7 @@ class AuthUserOrgHelper
         // if get only user joined organization, call function
         if($onlyUserJoined){
             foreach($orgs as $org){
-                static::setFlattenOrganizationsUserJoins($org, $org_flattens);
+                static::setFlattenOrganizationsUserJoins($org, $org_flattens, $filterType);
             }
         }else{
             static::setFlattenOrganizations($org, $org_flattens, $onlyUserJoined);   
@@ -231,9 +231,9 @@ class AuthUserOrgHelper
     }
 
     /**
-     * flatten organizaion.
+     * filter organizaion only user joined.
      */
-    protected static function setFlattenOrganizationsUserJoins($org, &$org_flattens, $parentJoin = false){
+    protected static function setFlattenOrganizationsUserJoins($org, &$org_flattens, $filterType = JoinedOrgFilterType::ONLY_JOIN, $parentJoin = false){
         // if exisis, return
         if(static::isAlreadySetsOrg($org, $org_flattens)){
             return false;
@@ -244,7 +244,7 @@ class AuthUserOrgHelper
         $join = true;
 
         // if user joins parent organization, set join is true
-        if($parentJoin){
+        if($parentJoin && JoinedOrgFilterType::isGetDowner($filterType)){
             $join = true;
         }
         ///// check user join org.
@@ -268,11 +268,11 @@ class AuthUserOrgHelper
         if($org->hasChildren()){
             foreach($org->children_organizations as $children_organization){
                 // if, user joins some children organizations, join is true.
-                if(static::setFlattenOrganizationsUserJoins($children_organization, $org_flattens, $join)){
+                if(static::setFlattenOrganizationsUserJoins($children_organization, $org_flattens, $filterType, $join)){
                     $result = true;
 
                     // if not sets this org, set this org too.
-                    if(!static::isAlreadySetsOrg($org, $org_flattens)){
+                    if(JoinedOrgFilterType::isGetUpper($filterType) && !static::isAlreadySetsOrg($org, $org_flattens)){
                         $org_flattens[] = $org;
                     }
                 }
