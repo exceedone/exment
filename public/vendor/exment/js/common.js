@@ -937,7 +937,11 @@ var Exment;
                     }
                     if (isShow) {
                         $eParent.show();
-                        $t.prop('disabled', false);
+                        if ($t.parents().hasClass('bootstrap-switch')) {
+                            $t.bootstrapSwitch('disabled', false);
+                        } else {
+                            $t.prop('disabled', false);
+                        }
                         // disabled false
                     }
                     else {
