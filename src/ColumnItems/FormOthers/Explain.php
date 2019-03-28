@@ -5,7 +5,7 @@ namespace Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\FormOtherItem;
 use Exceedone\Exment\Form\Field;
 
-class Description extends FormOtherItem
+class Explain extends FormOtherItem
 {
     protected function getAdminFieldClass()
     {

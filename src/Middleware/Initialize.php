@@ -134,7 +134,7 @@ class Initialize
         ///// set Exment-item class
         $map = [
             'header'        => FormOthers\Header::class,
-            'description'        => FormOthers\Description::class,
+            'explain'        => FormOthers\Explain::class,
             'html'        => FormOthers\Html::class,
         ];
         foreach ($map as $abstract => $class) {
