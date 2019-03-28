@@ -608,6 +608,10 @@ return [
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
         ],
+        'message' => [
+            'over_filters_max' => '表示条件は5件以上設定できません。',
+            'over_sorts_max' => 'データ並べ替えは5件以上設定できません。',
+        ],
 
         'custom_view_button_label' => 'ビュー',
         'custom_view_type_options' => [

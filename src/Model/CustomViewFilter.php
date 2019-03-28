@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Carbon\Carbon;
@@ -104,6 +105,8 @@ class CustomViewFilter extends ModelBase
         } elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
+        } elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
+            $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['name'] ?? null;
         }
         
         if (isset($db_table_name)) {

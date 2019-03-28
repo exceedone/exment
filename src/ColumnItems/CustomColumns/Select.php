@@ -23,6 +23,9 @@ class Select extends CustomItem
         $select_options = $this->custom_column->createSelectOptions();
         // if $value is array
         $multiple = true;
+        if (!is_array($this->value) && preg_match('/\[.+\]/i',$this->value)) {
+            $this->value = json_decode($this->value);
+        }
         if (!is_array($this->value)) {
             $val = [$this->value];
             $multiple = false;

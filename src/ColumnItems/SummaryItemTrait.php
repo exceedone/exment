@@ -19,7 +19,12 @@ trait SummaryItemTrait
 
         $summary_option = array_get($this->options, 'summary_condition');
         $summary_condition = is_null($summary_option)? '': SummaryCondition::getEnum($summary_option)->lowerKey();
-        $raw = "$summary_condition(json_unquote($db_table_name.value->'$.$column_name')) AS ".$this->sqlAsName();
+        $value_column = ($this->custom_column->indexEnabled())? $this->index() : "json_unquote($db_table_name.value->'$.$column_name')";
+        if (isset($summary_condition)) {
+            $raw = "$summary_condition($value_column) AS ".$this->sqlAsName();
+        } else {
+            $raw = "$value_column AS ".$this->sqlAsName();
+        }     
 
         return \DB::raw($raw);
     }
