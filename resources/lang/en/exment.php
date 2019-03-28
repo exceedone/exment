@@ -210,6 +210,7 @@ return [
         'file_size' => 'File Size',
         'backup' => 'Backup',
         'restore' => 'Restore',
+        'download' => 'Download',
         'restore_upload' => 'File Upload',
         'backuprestore' => 'Backup/Restore',
         'backup_target' => 'Target Backup',

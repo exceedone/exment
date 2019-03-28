@@ -60,13 +60,13 @@
                         {{ $file['created'] }}
                     </td>
                     <td>
-                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" class="grid-row-restore">
+                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{exmtrans('backup.restore')}}" class="grid-row-restore">
                             <i class="fa fa-undo"></i>
                         </a>
-                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" class="grid-row-delete">
+                        <a href="javascript:void(0);" data-id="{{$file['file_key']}}" data-toggle="tooltip" title="{{trans('admin.delete')}}" class="grid-row-delete">
                             <i class="fa fa-trash"></i>
                         </a>
-                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" target="_blank">
+                        <a href="{{admin_url('backup/download/'.$file['file_key'])}}" data-toggle="tooltip" title="{{exmtrans('backup.download')}}" target="_blank">
                             <i class="fa fa-download"></i>
                         </a>
                     </td>

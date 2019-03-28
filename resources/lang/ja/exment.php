@@ -217,6 +217,7 @@ return [
         'file_size' => 'ファイルサイズ',
         'backup' => 'バックアップ',
         'restore' => 'リストア',
+        'download' => 'ダウンロード',
         'restore_upload' => 'ファイルアップロード',
         'backuprestore' => 'バックアップ・リストア',
         'backup_target' => 'バックアップ対象',
