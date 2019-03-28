@@ -17,6 +17,9 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
+use Laravel\Passport\Passport;
+use Laravel\Passport\Client;
+use Webpatser\Uuid\Uuid;
 
 class ExmentServiceProvider extends ServiceProvider
 {
@@ -121,6 +124,8 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($this->middlewareGroups as $key => $middleware) {
             app('router')->middlewareGroup($key, $middleware);
         }
+
+        Passport::ignoreMigrations();
     }
 
     protected function publish(){
@@ -151,6 +156,15 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+        });
+
+        // adding rule for laravel-passport 
+        Client::creating(function (Client $client) {
+            $client->incrementing = false;
+            $client->id = Uuid::generate()->string;
+        });
+        Client::retrieved(function (Client $client) {
+            $client->incrementing = false;
         });
     }
 
