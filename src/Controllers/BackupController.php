@@ -162,11 +162,8 @@ class BackupController extends AdminControllerBase
         }
         
         if (isset($result) && $result === 0) {
-            $response = [
-                'result' => true,
-                'toastr' => exmtrans('backup.message.restore_succeeded'),
-                'errors' => [],
-            ];
+            admin_toastr(exmtrans('backup.message.restore_file_success'));
+            return redirect(admin_urls('auth', 'logout'));
         } else {
             $response = [
                 'result' => false,
@@ -263,10 +260,6 @@ class BackupController extends AdminControllerBase
         if (isset($result) && $result === 0) {
             admin_toastr(exmtrans('backup.message.restore_file_success'));
             return redirect(admin_urls('auth', 'logout'));
-            return response()->json([
-                'status'  => true,
-                'message' => exmtrans('backup.message.restore_succeeded'),
-            ]);
         } else {
             return response()->json([
                 'status'  => false,
