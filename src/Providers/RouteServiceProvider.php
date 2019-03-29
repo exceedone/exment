@@ -194,9 +194,7 @@ class RouteServiceProvider extends ServiceProvider
                 
                 $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 
-                $router->get("version", function(){
-                    return response()->json(['version' => (new \Exceedone\Exment\Exment)->version()]);
-                });
+                $router->get("version", 'ApiController@version');
 
                 // User, LoginUser --------------------------------------------------
                 $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));

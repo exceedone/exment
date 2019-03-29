@@ -211,6 +211,11 @@ class ApiTableController extends AdminControllerTableBase
             return false;
         }
 
+        // set default value if new
+        if(!isset($custom_value->id)){
+            $value = $this->setDefaultData($value);
+        }
+
         $custom_value->setValue($value);
         $custom_value->saveOrFail();
 
@@ -254,4 +259,22 @@ class ApiTableController extends AdminControllerTableBase
         return true;
     }
 
+    /**
+     * set Default Data from custom column info
+     */
+    protected function setDefaultData($value){
+        // get fields for validation
+        $fields = [];
+        foreach ($this->custom_table->custom_columns as $custom_column) {
+            // get default value
+            $default = $custom_column->getOption('default');
+
+            // if not key in value, set default value
+            if(!array_has($value, $custom_column->column_name) && isset($default)){
+                $value[$custom_column->column_name] = $default;
+            }
+        }
+
+        return $value;
+    }
 }

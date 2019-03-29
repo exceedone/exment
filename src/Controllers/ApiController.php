@@ -16,6 +16,14 @@ use Exceedone\Exment\Enums\SystemTableName;
 class ApiController extends AdminControllerBase
 {
     /**
+     * get Exment version
+     */
+    public function version(Request $request)
+    {        
+        return response()->json(['version' => (new \Exceedone\Exment\Exment)->version(false)]);
+    }
+
+    /**
      * get login user info
      * @param mixed $id
      * @return mixed
