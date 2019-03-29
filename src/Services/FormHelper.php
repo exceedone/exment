@@ -236,6 +236,7 @@ class FormHelper
             // ignore auto_number. because auto_number is saved flow.
             if (boolval(array_get($options, 'required')) && $column->column_type != 'auto_number') {
                 $field->required();
+                $field->rules('required');
             } else {
                 $field->rules('nullable');
             }

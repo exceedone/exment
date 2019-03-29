@@ -208,7 +208,9 @@ class ApiTableController extends AdminControllerTableBase
         // // get fields for validation
         $validate = $this->validateData($value, $custom_value->id);
         if($validate !== true){
-            return false;
+            return abortJson(400, [
+                'errors' => $validate
+            ]);
         }
 
         // set default value if new
@@ -230,6 +232,12 @@ class ApiTableController extends AdminControllerTableBase
         $fields = [];
         foreach ($this->custom_table->custom_columns as $custom_column) {
             $fields[] = FormHelper::getFormField($this->custom_table, $custom_column, $id);
+
+            // if not contains $value[$custom_column->column_name], set as null.
+            // if not set, we cannot validate null check because $field->getValidator returns false.
+            if(!array_has($value, $custom_column->column_name)){
+                $value[$custom_column->column_name] = null;
+            }
         }
         // foreach for field validation rules
         $rules = [];
@@ -252,7 +260,11 @@ class ApiTableController extends AdminControllerTableBase
             // create error message
             $errors = [];
             foreach ($validator->errors()->messages() as $message) {
-                $errors[] = $message;
+                if(is_array($message)){
+                    $errors[] = $message[0];
+                }else{
+                    $errors[] = $message;
+                }
             }
             return $errors;
         }

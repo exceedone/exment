@@ -20,7 +20,7 @@ class CheckForAnyScope
     {
         $user = \Exment::user();
         if(is_null($user) || is_null($user->base_user)){
-            abort(401);
+            return abortJson(401);
         }
 
         foreach ($scopes as $scope) {
@@ -29,6 +29,6 @@ class CheckForAnyScope
             }
         }
 
-        abort(401);
+        return abortJson(403, trans('admin.deny'));
     }
 }
