@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Controllers\BackupController;
 
 class RouteServiceProvider extends ServiceProvider
@@ -177,11 +178,11 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi']],
+            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi'], 'addScope' => false],
         ];
         
         if (boolval(config('exment.api'))) {
-            $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi']];
+            $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
         }
 
         foreach ($routes as $route) {
@@ -189,28 +190,31 @@ class RouteServiceProvider extends ServiceProvider
                 'prefix' => array_get($route, 'prefix'),
                 'namespace'     => $this->namespace,
                 'middleware'    => array_get($route, 'middleware'),
-            ], function (Router $router) {
+            ], function (Router $router) use($route) {
                 // set static name. because this function is called composer install.
                 try {
                     if (Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
                         foreach (CustomTable::all()->pluck('table_name') as $value) {
-                            $router->get("data/{$value}", 'ApiTableController@list');
-                            $router->post("data/{$value}", 'ApiTableController@createData');
-                            $router->put("data/{$value}/{key}", 'ApiTableController@updateData');
-                            $router->get("data/{$value}/query", 'ApiTableController@query');
-                            $router->get("data/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
-                            $router->get("data/{$value}/{id}", 'ApiTableController@find');
-                            $router->post("data/{$value}/{id}", 'ApiTableController@find');
+                            $router->get("data/{$value}", 'ApiTableController@list')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                            $router->get("data/{$value}/query", 'ApiTableController@query')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                            $router->get("data/{$value}/{id}", 'ApiTableController@find')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                            $router->post("data/{$value}/{id}", 'ApiTableController@find')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                            $router->get("data/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                            
+                            $router->post("data/{$value}", 'ApiTableController@createData')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                            $router->put("data/{$value}/{key}", 'ApiTableController@updateData')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                         }
                     }
                 } catch (\Exception $e) {
                 }
     
+                $router->get("table/{id}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                
                 $router->get("version", function(){
                     return (new \Exceedone\Exment\Exment)->version();
                 });
-                $router->get("table/{id}", 'ApiController@table');
-                $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns');
+                $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));
             });
         }
     }

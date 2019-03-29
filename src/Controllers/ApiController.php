@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * Api about target table
@@ -14,13 +15,33 @@ use Exceedone\Exment\Enums\ColumnType;
 class ApiController extends AdminControllerBase
 {
     /**
+     * get login user info
+     * @param mixed $id
+     * @return mixed
+     */
+    public function me(Request $request)
+    {        
+        $base_user = \Exment::user()->base_user ?? null;
+        if(!isset($base_user)){
+            return null;
+        }
+        $base_user = $base_user->makeHidden(CustomTable::getEloquent(SystemTableName::USER)->getMakeHiddenArray())
+            ->toArray();
+
+        if ($request->has('dot') && boolval($request->get('dot'))) {
+            $base_user = array_dot($base_user);
+        }
+        return $base_user;
+    }
+
+    /**
      * get table data by id
      * @param mixed $id
      * @return mixed
      */
     public function table($id, Request $request)
     {
-        $table = CustomTable::find($id);
+        $table = CustomTable::getEloquent($id);
         if (!$table->hasPermission(Permission::CUSTOM_TABLE)) {
             abort(403);
         }
@@ -40,7 +61,7 @@ class ApiController extends AdminControllerBase
             return [];
         }
         // get custom column
-        $custom_column = CustomColumn::find($id);
+        $custom_column = CustomColumn::getEloquent($id);
 
         // if column_type is not select_table, return []
         if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION])) {
@@ -51,6 +72,6 @@ class ApiController extends AdminControllerBase
         if (!isset($select_target_table)) {
             return [];
         }
-        return CustomTable::find($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
+        return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
 }

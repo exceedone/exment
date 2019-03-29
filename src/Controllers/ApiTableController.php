@@ -27,7 +27,7 @@ class ApiTableController extends AdminControllerTableBase
         $paginator = $model->paginate();
 
         // execute makehidden
-        $value = $paginator->makeHidden($this->getMakeHiddenArray());
+        $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
         $paginator->value = $value;
 
         return $paginator;
@@ -48,7 +48,7 @@ class ApiTableController extends AdminControllerTableBase
         if(!isset($model)){
             return [];
         }
-        $result = $model->makeHidden($this->getMakeHiddenArray())
+        $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
                     ->toArray();
         if ($request->has('dot') && boolval($request->get('dot'))) {
             $result = array_dot($result);
@@ -190,14 +190,5 @@ class ApiTableController extends AdminControllerTableBase
             return $errors;
         }
         return true;
-    }
-
-    /**
-     * get array for "makeHidden" function
-     */
-    protected function getMakeHiddenArray(){
-        return $this->custom_table->getSearchEnabledColumns()->map(function($columns){
-            return $columns->getIndexColumnName();
-        })->toArray();
     }
 }

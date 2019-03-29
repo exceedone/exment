@@ -1037,7 +1037,11 @@ if (!function_exists('getExmentVersion')) {
     function getExmentVersion($getFromComposer = true)
     {
         try {
-            $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+            try{
+                $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+            } catch (\Exception $e) {
+            }
+    
             if (isset($version_json)) {
                 $version = json_decode($version_json, true);
                 $latest = array_get($version, 'latest');
@@ -1098,18 +1102,18 @@ if (!function_exists('getExmentVersion')) {
                     $latest = $key;
                     break;
                 }
-
-                app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-                    'latest' => $latest, 'current' => $current
-                ]));
+                
+                try{
+                    app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                        'latest' => $latest, 'current' => $current
+                    ]));
+                } catch (\Exception $e) {
+                }
             }
         } catch (\Exception $e) {
         }
         
-        if (empty($latest) || empty($current)) {
-            return [null, null];
-        }
-        return [$latest, $current];
+        return [$latest ?? null, $current ?? null];
     }
 }
 

@@ -422,6 +422,15 @@ class CustomTable extends ModelBase
     }
 
     /**
+     * get array for "makeHidden" function
+     */
+    public function getMakeHiddenArray(){
+        return $this->getSearchEnabledColumns()->map(function($columns){
+            return $columns->getIndexColumnName();
+        })->toArray();
+    }
+
+    /**
      * Create Table on Database.
      *
      * @return void

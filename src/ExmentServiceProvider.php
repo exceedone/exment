@@ -10,6 +10,7 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Adapter\AdminLocal;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
@@ -54,6 +55,8 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
+        
+        'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
     ];
 
     /**
@@ -103,6 +106,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->registerPolicies();
 
+        $this->bootPassport();
         $this->bootPlugin();
     }
 
@@ -157,7 +161,9 @@ class ExmentServiceProvider extends ServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
         });
+    }
 
+    protected function bootPassport(){
         // adding rule for laravel-passport 
         Client::creating(function (Client $client) {
             $client->incrementing = false;
@@ -166,6 +172,7 @@ class ExmentServiceProvider extends ServiceProvider
         Client::retrieved(function (Client $client) {
             $client->incrementing = false;
         });
+        Passport::tokensCan(ApiScope::transArray('api.scopes'));
     }
 
     // plugin --------------------------------------------------
