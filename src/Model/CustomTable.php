@@ -127,31 +127,23 @@ class CustomTable extends ModelBase
         });
     }
 
+    /**
+     * get CustomTable by url
+     */
     public static function findByEndpoint($endpoint = null, $withs = [])
     {
-        $table_names = static::all()->pluck('table_name')->toArray();
-        if (!isset($endpoint)) {
-            $endpoint = url()->current();
-        }
-        $urls = array_reverse(explode("/", $endpoint));
-        foreach ($urls as $url) {
-            if (!isset($url)) {
-                continue;
-            }
-            if (mb_substr($url, 0, 1) === "?") {
-                continue;
-            }
-            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
-                continue;
-            }
-
-            // joint table
-            if(in_array($url, $table_names)){
-                return static::getEloquent($url, $withs);
-            }
+        // get table info
+        $tableKey = app('request')->route()->parameter('tableKey');
+        if(!isset($tableKey)){
+            abort(404);
         }
 
-        return null;
+        $custom_table = static::getEloquent($tableKey);
+        if(!isset($custom_table)){
+            abort(404);
+        }
+
+        return $custom_table;
     }
 
     /**
