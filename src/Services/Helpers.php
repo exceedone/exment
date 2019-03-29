@@ -1005,6 +1005,27 @@ if (!function_exists('disableFormFooter')) {
     }
 }
 
+
+if (! function_exists('abortJson')) {
+    /**
+     * abort response as json.
+     * *Have to return object.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Response|int     $code
+     * @param  string  $message
+     * @param  array   $headers
+     * @return void
+     */
+    function abortJson($code, $message = null)
+    {
+        if(!is_null($message) && is_string($message)){
+            return response()->json(['message' => $message], $code);
+        }
+
+        return response()->json($message, $code);
+    }
+}
+
 if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.

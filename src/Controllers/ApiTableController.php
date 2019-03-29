@@ -24,7 +24,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataList(Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         // get paginate
@@ -48,7 +48,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataQuery(Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         // get model filtered using role
@@ -81,16 +81,17 @@ class ApiTableController extends AdminControllerTableBase
     public function dataFind($tableKey, $id, Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         $model = getModelName($this->custom_table->table_name)::find($id);
+        // not contains data, return empty data.
         if(!isset($model)){
-            return abort(403);
+            return [];
         }
 
         if (!$this->custom_table->hasPermissionData($model)) {
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
@@ -108,7 +109,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataCreate(Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         $custom_value = $this->custom_table->getValueModel();
@@ -122,7 +123,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataUpdate($tableKey, $id, Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         $custom_value = getModelName($this->custom_table)::find($id);
@@ -131,7 +132,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         return $this->saveData($custom_value, $request);
@@ -144,7 +145,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataDelete($tableKey, $id, Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         $custom_value = getModelName($this->custom_table)::find($id);
@@ -153,7 +154,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         $custom_value->delete();
@@ -167,7 +168,7 @@ class ApiTableController extends AdminControllerTableBase
     public function relatedLinkage(Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         // get children table id
@@ -192,7 +193,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function tableColumns(Request $request){
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         return $this->custom_columns;

@@ -42,7 +42,7 @@ class ApiController extends AdminControllerBase
     public function tablelist(Request $request)
     {
         if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         // filter table
@@ -64,7 +64,7 @@ class ApiController extends AdminControllerBase
         }
 
         if (!$table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
         return $table;
     }
@@ -82,7 +82,7 @@ class ApiController extends AdminControllerBase
         }
 
         if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
-            abort(403);
+            return abortJson(403, trans('admin.deny'));
         }
 
         return $column;
