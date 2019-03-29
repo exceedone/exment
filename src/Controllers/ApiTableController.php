@@ -230,8 +230,10 @@ class ApiTableController extends AdminControllerTableBase
     protected function validateData($value, $id = null){
         // get fields for validation
         $fields = [];
+        $customAttributes = [];
         foreach ($this->custom_table->custom_columns as $custom_column) {
             $fields[] = FormHelper::getFormField($this->custom_table, $custom_column, $id);
+            $customAttributes[$custom_column->column_name] = "{$custom_column->column_view_name}({$custom_column->column_name})";
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
@@ -255,7 +257,7 @@ class ApiTableController extends AdminControllerTableBase
         }
         
         // execute validation
-        $validator = Validator::make(array_dot_reverse($value), $rules);
+        $validator = Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
         if ($validator->fails()) {
             // create error message
             $errors = [];

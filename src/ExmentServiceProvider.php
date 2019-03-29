@@ -232,8 +232,8 @@ class ExmentServiceProvider extends ServiceProvider
             return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
         });
         
-        \Validator::resolver(function ($translator, $data, $rules, $messages) {
-            return new ExmentCustomValidator($translator, $data, $rules, $messages);
+        \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {
+            return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
 
         Storage::extend('admin-local', function ($app, $config) {
