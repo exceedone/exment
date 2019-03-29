@@ -104,7 +104,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id, Content $content)
+    public function edit(Request $request, Content $content, $tableKey, $id)
     {
         if(($response = $this->firstFlow($request, $id)) instanceof Response){
             return $response;
@@ -142,7 +142,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function show(Request $request, $id, Content $content)
+    public function show(Request $request, Content $content, $tableKey, $id)
     {
         $modal = boolval($request->get('modal'));
         if ($modal) {

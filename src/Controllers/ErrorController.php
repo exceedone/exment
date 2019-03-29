@@ -53,7 +53,7 @@ class ErrorController extends Controller
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id, Content $content)
+    public function edit(Request $request, Content $content, $id)
     {
         $this->setFormViewInfo($request);
         

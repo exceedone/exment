@@ -13,54 +13,7 @@ use Exceedone\Exment\Model\CustomTable;
 class AdminControllerBase extends Controller
 {
     use ExmentControllerTrait;
-    /**
-     * Check form is new(create) using url.
-     */
-    protected function isNew()
-    {
-        $url = url()->current();
-        $urls = explode("/", $url);
-        // check the url.
-        // if end of url is "create", return true
-        // if end of url is "edit", return false
-        // if neithor, return whether end of url is number.
-        if (end($urls) == 'create') {
-            return true;
-        } elseif (end($urls) == 'edit') {
-            return false;
-        } else {
-            return !ctype_digit(end($urls));
-        }
-    }
 
-    protected function getColumns(Request $request)
-    {
-        $id = $request->input('q');
-        $options = CustomTable::find($id)->custom_columns()->get(['id', DB::raw('column_view_name as text')]);
-        return $options;
-    }
-
-    /**
-     * validation table
-     * @param mixed $table id or customtable
-     */
-    protected function validateTable($table, $role_name)
-    {
-        if (is_numeric($table)) {
-            $table = CustomTable::find($table);
-        } elseif ($table instanceof CustomTable) {
-            // nothing
-        }
-
-        //check permission
-        // if not exists, filter model using permission
-        if (!$table->hasPermission($role_name)) {
-            Checker::error();
-            return false;
-        }
-        return true;
-    }
-    
     /**
      * Index interface.
      *
@@ -78,7 +31,7 @@ class AdminControllerBase extends Controller
      * @param Content $content
      * @return Content
      */
-    public function show(Request $request, $id, Content $content)
+    public function show(Request $request, Content $content, $id)
     {
         if (method_exists($this, 'detail')) {
             $render = $this->detail($id);
@@ -95,7 +48,7 @@ class AdminControllerBase extends Controller
      * @param Content $content
      * @return Content
      */
-    public function edit(Request $request, $id, Content $content)
+    public function edit(Request $request, Content $content, $id)
     {
         return $this->AdminContent($content)->body($this->form($id)->edit($id));
     }

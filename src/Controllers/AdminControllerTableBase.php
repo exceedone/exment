@@ -5,17 +5,20 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
+use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomForm;
+use App\Http\Controllers\Controller;
 
-class AdminControllerTableBase extends AdminControllerBase
+class AdminControllerTableBase extends Controller
 {
+    use ExmentControllerTrait;
+
     protected $custom_table;
     protected $custom_columns;
     protected $custom_view;
     protected $custom_form;
-    //protected $custom_form_columns;
 
     public function __construct(Request $request)
     {
@@ -32,6 +35,22 @@ class AdminControllerTableBase extends AdminControllerBase
         return getModelName($this->custom_table);
     }
 
+    /**
+     * validation table
+     * @param mixed $table id or customtable
+     */
+    protected function validateTable($table, $role_name)
+    {
+        $table = CustomTable::getEloquent($table);
+        //check permission
+        // if not exists, filter model using permission
+        if (!$table->hasPermission($role_name)) {
+            Checker::error();
+            return false;
+        }
+        return true;
+    }
+    
     /**
      * validate table_name and id
      * ex. check /admin/column/user/1/edit
@@ -90,5 +109,55 @@ class AdminControllerTableBase extends AdminControllerBase
 
         // set form
         $this->custom_form = CustomForm::getDefault($this->custom_table);
+    }
+    
+    /**
+     * Index interface.
+     *
+     * @return Content
+     */
+    public function index(Request $request, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->grid());
+    }
+
+    /**
+     * Show interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function show(Request $request, Content $content, $tableKey, $id)
+    {
+        if (method_exists($this, 'detail')) {
+            $render = $this->detail($id);
+        } else {
+            $render = $this->form($id);
+        }
+        return $this->AdminContent($content)->body($render);
+    }
+
+    /**
+     * Edit interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function edit(Request $request, Content $content, $tableKey, $id)
+    {
+        return $this->AdminContent($content)->body($this->form($id)->edit($id));
+    }
+
+    /**
+     * Create interface.
+     *
+     * @param Content $content
+     * @return Content
+     */
+    public function create(Request $request, Content $content)
+    {
+        return $this->AdminContent($content)->body($this->form());
     }
 }

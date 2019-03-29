@@ -46,7 +46,7 @@ class CustomCopyController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id, Content $content)
+    public function edit(Request $request, Content $content, $tableKey, $id)
     {
         //Validation table value
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {

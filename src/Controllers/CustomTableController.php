@@ -183,7 +183,7 @@ class CustomTableController extends AdminControllerBase
      * @param Content $content
      * @return Content
      */
-    public function edit(Request $request, $id, Content $content)
+    public function edit(Request $request, Content $content, $id)
     {
         if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
             return;
