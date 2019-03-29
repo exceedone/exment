@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -35,17 +36,56 @@ class ApiController extends AdminControllerBase
     }
 
     /**
-     * get table data by id
-     * @param mixed $id
+     * get table list
      * @return mixed
      */
-    public function table($id, Request $request)
+    public function tablelist(Request $request)
     {
-        $table = CustomTable::getEloquent($id);
-        if (!$table->hasPermission(Permission::CUSTOM_TABLE)) {
+        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            abort(403);
+        }
+
+        // filter table
+        $query = CustomTable::query();
+        CustomTable::filterList($query, ['getModel' => false]);
+        return $query->paginate();
+    }
+
+    /**
+     * get table data by id or table_name
+     * @param mixed $tableKey id or table_name
+     * @return mixed
+     */
+    public function table($tableKey, Request $request)
+    {
+        $table = CustomTable::getEloquent($tableKey);
+        if(!isset($table)){
+            return abort(400);
+        }
+
+        if (!$table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             abort(403);
         }
         return $table;
+    }
+
+    /**
+     * get column data by id
+     * @param mixed $id
+     * @return mixed
+     */
+    public function column($id, Request $request)
+    {
+        $column = CustomColumn::getEloquent($id);
+        if(!isset($column)){
+            return abort(400);
+        }
+
+        if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            abort(403);
+        }
+
+        return $column;
     }
 
     /**

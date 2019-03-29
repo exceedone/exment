@@ -227,9 +227,9 @@ class CustomTable extends ModelBase
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
+            $permission_tables = \Exment::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });

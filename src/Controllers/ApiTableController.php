@@ -15,12 +15,18 @@ class ApiTableController extends AdminControllerTableBase
 {
     protected $custom_table;
 
+    // custom_value --------------------------------------------------
+    
     /**
      * list all data
      * @return mixed
      */
-    public function list(Request $request)
+    public function dataList(Request $request)
     {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
+        }
+
         // get paginate
         $model = $this->custom_table->getValueModel();
         $model = \Exment::user()->filterModel($model, $model->custom_table);
@@ -34,36 +40,17 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * find data by id
-     * use select Changedata
-     * @param mixed $id
-     * @return mixed
-     */
-    public function find($id, Request $request)
-    {
-        if (!$this->custom_table->hasPermissionData($id)) {
-            abort(403);
-        }
-        $model = getModelName($this->custom_table->table_name)::find($id);
-        if(!isset($model)){
-            return [];
-        }
-        $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
-                    ->toArray();
-        if ($request->has('dot') && boolval($request->get('dot'))) {
-            $result = array_dot($result);
-        }
-        return $result;
-    }
-
-    /**
      * find match data by query
      * use form select ajax
      * @param mixed $id
      * @return mixed
      */
-    public function query(Request $request)
+    public function dataQuery(Request $request)
     {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
+        }
+
         // get model filtered using role
         $model = getModelName($this->custom_table)::query();
         $model = \Exment::user()->filterModel($model, $this->custom_table);
@@ -86,10 +73,39 @@ class ApiTableController extends AdminControllerTableBase
     }
     
     /**
+     * find data by id
+     * use select Changedata
+     * @param mixed $id
+     * @return mixed
+     */
+    public function dataFind($tableKey, $id, Request $request)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
+        }
+
+        $model = getModelName($this->custom_table->table_name)::find($id);
+        if(!isset($model)){
+            return abort(403);
+        }
+
+        if (!$this->custom_table->hasPermissionData($model)) {
+            abort(403);
+        }
+
+        $result = $model->makeHidden($this->custom_table->getMakeHiddenArray())
+                    ->toArray();
+        if ($request->has('dot') && boolval($request->get('dot'))) {
+            $result = array_dot($result);
+        }
+        return $result;
+    }
+
+    /**
      * create data
      * @return mixed
      */
-    public function createData(Request $request)
+    public function dataCreate(Request $request)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
             abort(403);
@@ -100,17 +116,21 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * create data
+     * update data
      * @return mixed
      */
-    public function updateData($key, Request $request)
+    public function dataUpdate($tableKey, $id, Request $request)
     {
-        if(!is_numeric($key)){
-            $custom_value = getModelName($this->custom_table)::findBySuuid($key);
-        }else{
-            $custom_value = getModelName($this->custom_table)::find($key);
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
         }
-        if (!$this->custom_table->hasPermissionData($custom_value)){
+
+        $custom_value = getModelName($this->custom_table)::find($id);
+        if(!isset($custom_value)){
+            abort(400);
+        }
+
+        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
             abort(403);
         }
 
@@ -118,13 +138,41 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * get selected id7s children values
+     * delete data
+     * @return mixed
+     */
+    public function dataDelete($tableKey, $id, Request $request)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
+        }
+
+        $custom_value = getModelName($this->custom_table)::find($id);
+        if(!isset($custom_value)){
+            abort(400);
+        }
+
+        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
+        }
+
+        $custom_value->delete();
+
+        return response(null, 204);
+    }
+
+    /**
+     * get selected id's children values
      */
     public function relatedLinkage(Request $request)
     {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+            abort(403);
+        }
+
         // get children table id
         $child_table_id = $request->get('child_table_id');
-        $child_table = CustomTable::find($child_table_id);
+        $child_table = CustomTable::getEloquent($child_table_id);
         // get selected custom_value id(q)
         $q = $request->get('q');
 
@@ -138,6 +186,19 @@ class ApiTableController extends AdminControllerTableBase
         });
     }
 
+    // CustomColumn --------------------------------------------------
+    /**
+     * get table columns
+     */
+    public function tableColumns(Request $request){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            abort(403);
+        }
+
+        return $this->custom_columns;
+    }
+
+    
     protected function saveData($custom_value, $request){
         if(is_null($value = $request->get('value'))){
             abort(400);
@@ -152,7 +213,7 @@ class ApiTableController extends AdminControllerTableBase
         $custom_value->setValue($value);
         $custom_value->saveOrFail();
 
-        return $custom_value;
+        return getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
     }
 
     /**
@@ -191,4 +252,5 @@ class ApiTableController extends AdminControllerTableBase
         }
         return true;
     }
+
 }
