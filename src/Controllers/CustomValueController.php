@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\RelationType;

@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
+use Carbon\Carbon;
 
 class CustomValue extends ModelBase
 {

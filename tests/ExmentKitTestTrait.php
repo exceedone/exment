@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests;
 
+use Illuminate\Contracts\Console\Kernel;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Middleware\Morph;
 

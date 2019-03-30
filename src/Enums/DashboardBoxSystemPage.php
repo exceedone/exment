@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\DashboardBoxItems;
 
 class DashboardBoxSystemPage extends EnumBase
 {

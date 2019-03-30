@@ -2,6 +2,8 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
+use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\ModelBase;
 
 trait TemplateTrait
 {

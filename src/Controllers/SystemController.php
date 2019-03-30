@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Illuminate\Support\Facades\DB;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Widgets\Box;
 
 class SystemController extends AdminControllerBase

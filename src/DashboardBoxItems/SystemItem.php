@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DashboardBoxItems;
 
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 
 class SystemItem implements ItemInterface

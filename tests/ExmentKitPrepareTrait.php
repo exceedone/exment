@@ -2,7 +2,10 @@
 
 namespace Exceedone\Exment\Tests;
 
+use Illuminate\Contracts\Console\Kernel;
+use Exceedone\Exment\Middleware\Morph;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
 
 trait ExmentKitPrepareTrait
 {

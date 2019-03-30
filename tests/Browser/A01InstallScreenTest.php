@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Browser;
 
 use Exceedone\Exment\Tests\ExmentKitTestCase;
+use Exceedone\Exment\Model\System;
 
 class A01InstallScreenTest extends ExmentKitTestCase
 {

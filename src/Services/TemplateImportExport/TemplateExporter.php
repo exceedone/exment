@@ -2,15 +2,32 @@
 namespace Exceedone\Exment\Services\TemplateImportExport;
 
 use Illuminate\Support\Facades\File;
+use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
+use Exceedone\Exment\Model\CustomFormColumn;
+use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewFilter;
+use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\MenuType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\TemplateExportTarget;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\FormColumnType;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\DashboardBoxType;
 use ZipArchive;
 
 /**
