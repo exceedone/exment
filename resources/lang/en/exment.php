@@ -53,6 +53,14 @@ return [
         ],
     ],
 
+    'error' => [
+        'header' => 'An error occurred',
+        'description' => 'An error has occurred. Please check the content of the error.',
+        'error_message' => 'Error Message',
+        'error_trace' => 'Error Trace',
+        'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
+    ],
+    
     'system' => [
         'system_header' => 'System Setting',
         'system_description' => 'Change the system settings.',

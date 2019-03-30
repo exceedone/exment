@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -15,6 +16,10 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
+        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return response(exmtrans('error.not_install'), 500);
+        }
+
         // Get System config
         $initialized = System::initialized();
 
