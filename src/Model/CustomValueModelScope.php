@@ -24,7 +24,7 @@ class CustomValueModelScope implements Scope
         // get user info
         $user = \Exment::user();
         // if not have, check as login
-        if(!isset($user)){
+        if (!isset($user)) {
             // no access role
             //throw new \Exception;
             
@@ -34,30 +34,28 @@ class CustomValueModelScope implements Scope
         }
 
         // if user can access list, return
-        if($table_name == SystemTableName::USER){
+        if ($table_name == SystemTableName::USER) {
             //TODO
             return;
-        }
-        elseif($table_name == SystemTableName::ORGANIZATION){
+        } elseif ($table_name == SystemTableName::ORGANIZATION) {
             //TODO
             return;
-        }
-        elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        } elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
         // if user has edit or view table
         elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             // get only has role
             $builder
-                ->whereHas('value_authoritable_users', function ($q) use($user) {
+                ->whereHas('value_authoritable_users', function ($q) use ($user) {
                     $q->where('related_id', $user->base_user_id);
-                })->orWhereHas('value_authoritable_organizations', function ($q) use($user) {
+                })->orWhereHas('value_authoritable_organizations', function ($q) use ($user) {
                     $q->whereIn('related_id', $user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN));
                 });
         }
-        // if not role, set always false result. 
-        else{
-            $builder->where('id','<', 0);
+        // if not role, set always false result.
+        else {
+            $builder->where('id', '<', 0);
         }
     }
 }

@@ -242,7 +242,7 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
         $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-        if($mkdir && !is_dir($path)){
+        if ($mkdir && !is_dir($path)) {
             mkdir($path, 0755, true);
         }
         return $path;
@@ -251,17 +251,17 @@ if (!function_exists('getFullpath')) {
 
 if (!function_exists('getTmpFolderPath')) {
     /**
-     * get tmp folder path. Uses for 
+     * get tmp folder path. Uses for
      * @param string $type "plugin", "template", "backup", "data".
      */
     function getTmpFolderPath($type, $fullpath = true)
     {
         $path = path_join('tmp', $type);
-        if(!$fullpath){
+        if (!$fullpath) {
             return $path;
         }
         $tmppath = getFullpath($path, 'local');
-        if(!is_dir($tmppath)){
+        if (!is_dir($tmppath)) {
             $aa = mkdir($tmppath, 0755, true);
         }
 
@@ -532,7 +532,7 @@ if (!function_exists('getModelName')) {
         // if the model doesn't defined, and $get_name_only is false
         // create class dynamically.
         if (!$get_name_only && !class_exists($fillpath)) {
-            if(!isset($suuid)){
+            if (!isset($suuid)) {
                 return null;
             }
             // get table. this block isn't called by createCustomTableTrait
@@ -750,7 +750,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                     $str = '';
                                 }
                                 //else, get system value
-                                else{
+                                else {
                                     $str = $custom_value->{$key};
                                     if (count($length_array) > 1) {
                                         $str = sprintf('%0'.$length_array[1].'d', $str);
@@ -871,8 +871,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                     // get static value
                                     elseif ($key_system == "login_url") {
                                         $str = admin_url("auth/login");
-                                    }
-                                    elseif ($key_system == "system_url") {
+                                    } elseif ($key_system == "system_url") {
                                         $str = admin_url("");
                                     }
                                 }
@@ -899,7 +898,7 @@ if (!function_exists('replaceTextFromFormat')) {
                         $str = '';
                     }
 
-                    if(array_key_value_exists('link', $matchOptions)){
+                    if (array_key_value_exists('link', $matchOptions)) {
                         $str = "<a href='$str'>$str</a>";
                     }
 
@@ -925,11 +924,11 @@ if (!function_exists('shouldPassThrough')) {
     {
         $request = app('request');
         
-        if($initialize){
+        if ($initialize) {
             $excepts = [
                 admin_base_path('initialize'),
             ];
-        }else{
+        } else {
             $excepts = [
                 admin_base_path('auth/login'),
                 admin_base_path('auth/logout'),
@@ -1018,7 +1017,7 @@ if (! function_exists('abortJson')) {
      */
     function abortJson($code, $message = null)
     {
-        if(!is_null($message) && is_string($message)){
+        if (!is_null($message) && is_string($message)) {
             return response()->json(['message' => $message], $code);
         }
 
@@ -1058,7 +1057,7 @@ if (!function_exists('getExmentVersion')) {
     function getExmentVersion($getFromComposer = true)
     {
         try {
-            try{
+            try {
                 $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
             } catch (\Exception $e) {
             }
@@ -1072,22 +1071,22 @@ if (!function_exists('getExmentVersion')) {
             if ((empty($latest) || empty($current)) && $getFromComposer) {
                 // get current version from composer.lock
                 $composer_lock = base_path('composer.lock');
-                if(!\File::exists($composer_lock)){
+                if (!\File::exists($composer_lock)) {
                     return [null, null];
                 }
 
                 $contents = \File::get($composer_lock);
                 $json = json_decode($contents, true);
-                if(!$json){
+                if (!$json) {
                     return [null, null];
                 }
                 
                 // get exment info
                 $packages = array_get($json, 'packages');
-                $exment = collect($packages)->filter(function($package){
+                $exment = collect($packages)->filter(function ($package) {
                     return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
                 })->first();
-                if(!isset($exment)){
+                if (!isset($exment)) {
                     return [null, null];
                 }
                 $current = array_get($exment, 'version');
@@ -1103,28 +1102,28 @@ if (!function_exists('getExmentVersion')) {
                     'http_errors' => false,
                 ]);
                 $contents = $response->getBody()->getContents();
-                if($response->getStatusCode() != 200){
+                if ($response->getStatusCode() != 200) {
                     return [null, null];
                 }
 
                 $json = json_decode($contents, true);
-                if(!$json){
+                if (!$json) {
                     return [null, null];
                 }
                 $packages = array_get($json, 'packages.'.Define::COMPOSER_PACKAGE_NAME);
-                if(!$packages){
+                if (!$packages) {
                     return [null, null];
                 }
                 foreach (collect($packages)->reverse() as $key => $package) {
                     // if version is "dev-", continue
-                    if(substr($key, 0, 4) == 'dev-'){
+                    if (substr($key, 0, 4) == 'dev-') {
                         continue;
                     }
                     $latest = $key;
                     break;
                 }
                 
-                try{
+                try {
                     app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
                         'latest' => $latest, 'current' => $current
                     ]));
@@ -1152,8 +1151,7 @@ if (!function_exists('checkLatestVersion')) {
         
         if (empty($latest) || empty($current)) {
             return SystemVersion::ERROR;
-        }   
-        elseif (strpos($current, 'dev-') === 0) {
+        } elseif (strpos($current, 'dev-') === 0) {
             return SystemVersion::DEV;
         } elseif ($latest === $current) {
             return SystemVersion::LATEST;

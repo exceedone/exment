@@ -11,7 +11,7 @@ class HelpNav
         // get manual url
         $manual_url = htmlspecialchars(getManualUrl());
 
-        // set help urls 
+        // set help urls
         $help_urls = esc_html(json_encode(Define::HELP_URLS));
 
         return <<<HTML

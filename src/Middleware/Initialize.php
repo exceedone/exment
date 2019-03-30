@@ -136,7 +136,8 @@ class Initialize
     /**
      * set laravel-admin form field
      */
-    public static function initializeFormField(){
+    public static function initializeFormField()
+    {
         $map = [
             'number'        => Field\Number::class,
             'editor'        => Field\Tinymce::class, //TODO

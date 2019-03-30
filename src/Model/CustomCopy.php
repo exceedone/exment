@@ -148,25 +148,23 @@ class CustomCopy extends ModelBase
 
         // loop for custom_copy_columns
         foreach ($custom_copy_columns as $custom_copy_column) {
-            ///// get from_custom_value 
+            ///// get from_custom_value
             // check number
-            if(is_numeric($custom_copy_column->from_column_target_id)){
+            if (is_numeric($custom_copy_column->from_column_target_id)) {
                 // get column
                 $from_custom_column = $custom_copy_column->from_custom_column;
                 // get value. (NOT use getValue function because don't want convert value. get $custom_value->value['column'] value.)
                 $val = array_get($from_custom_value, "value.{$from_custom_column->column_name}");
-            }
-            else{
+            } else {
                 $val = $from_custom_value->{$custom_copy_column->from_column_target_id};
             }
 
-            ///// get tom_custom_value 
+            ///// get tom_custom_value
             // check number
-            if(is_numeric($custom_copy_column->to_column_target_id)){
+            if (is_numeric($custom_copy_column->to_column_target_id)) {
                 $to_custom_column = $custom_copy_column->to_custom_column;
                 $to_custom_value->setValue($to_custom_column->column_name, $val);
-            }
-            else{
+            } else {
                 $to_custom_value->{$custom_copy_column->to_column_target_id} = $val;
             }
         }

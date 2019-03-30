@@ -15,7 +15,8 @@ class JoinedOrgFilterType extends EnumBase
     /**
      * whether getting upper line organization
      */
-    public static function isGetUpper($filterType){
+    public static function isGetUpper($filterType)
+    {
         $enum = static::getEnum($filterType);
         return $enum == static::ONLY_UPPER || $enum == static::ALL;
     }
@@ -23,7 +24,8 @@ class JoinedOrgFilterType extends EnumBase
     /**
      * whether getting down line organization
      */
-    public static function isGetDowner($filterType){
+    public static function isGetDowner($filterType)
+    {
         $enum = static::getEnum($filterType);
         return $enum == static::ONLY_DOWNER || $enum == static::ALL;
     }

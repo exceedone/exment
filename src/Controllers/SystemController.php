@@ -64,8 +64,7 @@ class SystemController extends AdminControllerBase
             $icon = 'warning';
             $bgColor = 'red';
             $current = '---';
-        }   
-        elseif ($version == SystemVersion::DEV) {
+        } elseif ($version == SystemVersion::DEV) {
             $message = exmtrans("system.version_develope");
             $icon = 'legal';
             $bgColor = 'olive';
@@ -93,7 +92,7 @@ class SystemController extends AdminControllerBase
             ->class(isset($class)? $class . ' box-version': 'box-version')
             ->showLink($showLink)
             ->target('_blank');
-        if($showLink){
+        if ($showLink) {
             $infoBox->linkText(exmtrans("system.update_guide"));
         }
 

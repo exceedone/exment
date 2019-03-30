@@ -37,7 +37,8 @@ class Notify extends ModelBase
     /**
      * notify user
      */
-    public function notifyUser(){
+    public function notifyUser()
+    {
         list($datalist, $table, $column) = $this->getNotifyTargetDatalist();
 
         // loop data
@@ -65,7 +66,8 @@ class Notify extends ModelBase
     /**
      * notify_create_update_user
      */
-    public function notifyCreateUpdateUser($data, $create = true){
+    public function notifyCreateUpdateUser($data, $create = true)
+    {
         $custom_table = $data->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)->first();
@@ -73,7 +75,7 @@ class Notify extends ModelBase
         // loop data
         $users = $this->getNotifyTargetUsers($data);
         foreach ($users as $user) {
-            if(!$this->approvalSendUser($mail_template, $custom_table, $data, $user)){
+            if (!$this->approvalSendUser($mail_template, $custom_table, $data, $user)) {
                 continue;
             }
 
@@ -124,20 +126,20 @@ class Notify extends ModelBase
     protected function getNotifyTargetUsers($data)
     {
         $notify_action_target = $this->getActionSetting('notify_action_target');
-        if(!isset($notify_action_target)){
+        if (!isset($notify_action_target)) {
             return [];
         }
 
         // if has_roles, return has permission users
-        if($notify_action_target == NotifyActionTarget::HAS_ROLES){
+        if ($notify_action_target == NotifyActionTarget::HAS_ROLES) {
             return AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
         }
 
         $users = $data->getValue($notify_action_target);
-        if(is_null($users)){
+        if (is_null($users)) {
             return [];
         }
-        if(!($users instanceof Collection)){
+        if (!($users instanceof Collection)) {
             $users = collect([$users]);
         }
         
@@ -145,9 +147,10 @@ class Notify extends ModelBase
     }
 
     /**
-     * 
+     *
      */
-    protected function approvalSendUser($mail_template, $custom_table, $data, $user){
+    protected function approvalSendUser($mail_template, $custom_table, $data, $user)
+    {
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.
@@ -160,13 +163,13 @@ class Notify extends ModelBase
             ->where('parent_type', $custom_table->table_name)
             ->get()
         ;
-        foreach($mail_send_histories as $mail_send_log){
+        foreach ($mail_send_histories as $mail_send_log) {
             // If user were sending within 5 minutes, false
             $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
             $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
                 ->addMinutes($skip_mitutes);
             $now = Carbon::now();
-            if($send_datetime->gt($now)){
+            if ($send_datetime->gt($now)) {
                 return false;
             }
         }

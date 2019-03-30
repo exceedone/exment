@@ -14,7 +14,6 @@ use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SystemColumn;
 use Carbon\Carbon;
 
-
 class CustomView extends ModelBase
 {
     use Traits\AutoSUuidTrait;
@@ -82,9 +81,8 @@ class CustomView extends ModelBase
             $view_column_target = array_get($custom_view_column, 'view_column_target');
             // if tagret is number, column type is column.
             if ($view_column_type == Enums\ViewColumnType::COLUMN) {
-                
                 $column = $custom_view_column->custom_column;
-                if(!isset($column)){
+                if (!isset($column)) {
                     continue;
                 }
                 $column_type = array_get($column, 'column_type');
@@ -113,7 +111,7 @@ class CustomView extends ModelBase
                     $grid->column('parent_id', $relation->parent_custom_table->table_view_name)
                         ->sortable()
                         ->display(function ($value) {
-                            if(is_null($value)){
+                            if (is_null($value)) {
                                 return null;
                             }
                             // get parent_type
@@ -130,7 +128,7 @@ class CustomView extends ModelBase
             // child_summary
             elseif ($view_column_type == ViewColumnType::CHILD_SUM) {
                 $column = $custom_view_column->custom_column;
-                if(!isset($column)){
+                if (!isset($column)) {
                     continue;
                 }
                 $grid->column(array_get($column, 'column_name'), array_get($column, 'column_view_name'))
@@ -234,7 +232,7 @@ class CustomView extends ModelBase
                 if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
                     $link .= '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit').'"><i class="fa fa-edit"></i></a>';
                 }
-                if(isset($options['action_callback'])){
+                if (isset($options['action_callback'])) {
                     $options['action_callback']($link, $custom_table, $data);
                 }
                 // add hidden item about data id
@@ -329,15 +327,16 @@ class CustomView extends ModelBase
     }
 
     /**
-     * set value filter 
+     * set value filter
      */
-    public function setValueFilter($model){
+    public function setValueFilter($model)
+    {
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
             if ($filter->column_view_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
-            }elseif($filter->column_view_type == ViewColumnType::PARENT_ID) {
+            } elseif ($filter->column_view_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
             }
@@ -471,11 +470,12 @@ class CustomView extends ModelBase
     }
     
     /**
-     * set value sort 
+     * set value sort
      */
-    public function setValueSort($model){
+    public function setValueSort($model)
+    {
         // if request has "_sort", not executing
-        if(request()->has('_sort')){
+        if (request()->has('_sort')) {
             return $model;
         }
         foreach ($this->custom_view_sorts as $custom_view_sort) {

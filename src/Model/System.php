@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use Storage;
 use DB;
 
-
 class System extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -30,14 +29,14 @@ class System extends ModelBase
         return parent::__callStatic($name, $argments);
     }
 
-    public static function requestSession($key, $value = null){
+    public static function requestSession($key, $value = null)
+    {
         $config_key = "exment_global.$key";
-        if(is_null($value)){
+        if (is_null($value)) {
             return static::$requestSession[$config_key] ?? null;
-        }
-        elseif($value instanceof \Closure){
+        } elseif ($value instanceof \Closure) {
             $val = static::$requestSession[$config_key] ?? null;
-            if(is_null($val)){
+            if (is_null($val)) {
                 $val = $value();
                 static::$requestSession[$config_key] = $val;
             }
@@ -49,7 +48,8 @@ class System extends ModelBase
     /**
      * reset all request settion
      */
-    public static function resetRequestSession(){
+    public static function resetRequestSession()
+    {
         static::$requestSession = [];
     }
 
@@ -61,17 +61,18 @@ class System extends ModelBase
         return array_key_exists($name, Define::SYSTEM_SETTING_NAME_VALUE);
     }
 
-    public static function get_system_keys($group = null){
+    public static function get_system_keys($group = null)
+    {
         $keys = [];
         foreach (Define::SYSTEM_SETTING_NAME_VALUE as $k => $v) {
-            if(isset($group)){
-                if(is_string($group)){
+            if (isset($group)) {
+                if (is_string($group)) {
                     $group = [$group];
                 }
-                if(in_array(array_get($v, 'group'), $group)){
+                if (in_array(array_get($v, 'group'), $group)) {
                     $keys[] = $k;
                 }
-            }else{
+            } else {
                 $keys[] = $k;
             }
         }
@@ -105,7 +106,7 @@ class System extends ModelBase
                     continue;
                 }
 
-                $array[$role->getRoleName($related_type)] = $filter->pluck('related_id')->map(function($value){
+                $array[$role->getRoleName($related_type)] = $filter->pluck('related_id')->map(function ($value) {
                     return strval($value);
                 })->toArray();
             }
@@ -175,21 +176,17 @@ class System extends ModelBase
         $type = array_get($setting, 'type');
         if ($type == 'int') {
             $system->system_value = is_null($value) ? null : intval($value);
-        }
-        elseif ($type == 'datetime') {
-            if($value instanceof Carbon){
+        } elseif ($type == 'datetime') {
+            if ($value instanceof Carbon) {
                 $system->system_value = $value->toDateTimeString();
-            }else{
-                $system->system_value = is_null($value) ? null : $value;    
+            } else {
+                $system->system_value = is_null($value) ? null : $value;
             }
-        }
-        elseif ($type == 'json') {
+        } elseif ($type == 'json') {
             $system->system_value = is_null($value) ? null : json_encode($value);
-        }
-        elseif ($type == 'array') {
+        } elseif ($type == 'array') {
             $system->system_value = is_null($value) ? null : implode(',', $value);
-        } 
-        elseif ($type == 'file') {
+        } elseif ($type == 'file') {
             $old_value = $system->system_value;
             if (is_null($value)) {
                 //TODO: how to check whether file is deleting by user.

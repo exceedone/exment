@@ -134,7 +134,7 @@ trait RevisionableTrait
                     $this->updatedData[$key] = json_encode($updatedData);
                     $originalData = $this->getSortedJson($this->originalData[$key]);
                     $this->originalData[$key] = json_encode($originalData);
-                } else if (gettype($val) == 'object' && !method_exists($val, '__toString')) {
+                } elseif (gettype($val) == 'object' && !method_exists($val, '__toString')) {
                     unset($this->originalData[$key]);
                     unset($this->updatedData[$key]);
                     array_push($this->dontKeep, $key);
@@ -168,7 +168,7 @@ trait RevisionableTrait
     public function postSave()
     {
         // get historyLimit
-        if(isset($this->historyLimit)){
+        if (isset($this->historyLimit)) {
             $historyLimit = $this->historyLimit;
         }
         if (isset($historyLimit) && $this->revisionHistory()->count() >= $historyLimit) {
@@ -228,7 +228,6 @@ trait RevisionableTrait
         }
 
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)) {
-
             $changes_to_record = $this->changedRevisionableFields();
 
             $revisions = array();
@@ -301,8 +300,9 @@ trait RevisionableTrait
         return null;
     }
 
-    protected function saveData($revisions){
-        foreach($revisions as $revision){
+    protected function saveData($revisions)
+    {
+        foreach ($revisions as $revision) {
             // get revision_no
             $exists_revision_no = Revision
                 ::where('revisionable_type', array_get($revision, 'revisionable_type'))
@@ -310,7 +310,7 @@ trait RevisionableTrait
                 ->count() + 1;
             $obj_revision = new Revision;
             $obj_revision->revision_no = $exists_revision_no;
-            foreach($revision as $key => $r){
+            foreach ($revision as $key => $r) {
                 $obj_revision->{$key} = $r;
             }
             $obj_revision->save();
@@ -489,7 +489,7 @@ trait RevisionableTrait
         if (empty($attribute)) {
             return $attribute;
         }
-        if(is_string($attribute)){
+        if (is_string($attribute)) {
             $attribute = json_decode($attribute, true);
         }
         foreach ($attribute as $key => $value) {

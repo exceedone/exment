@@ -13,7 +13,8 @@ class AutoSUuidObserver
         $this->setSuuid($model);
     }
 
-    protected function setSuuid($model){
+    protected function setSuuid($model)
+    {
         if (is_nullorempty($model->suuid)) {
             $model->suuid = short_uuid();
         }

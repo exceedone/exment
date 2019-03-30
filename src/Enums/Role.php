@@ -31,7 +31,8 @@ class Role extends EnumBase
         Permission::PLUGIN_SETTING,
     ];
 
-    public static function getRoleType($role_type){
+    public static function getRoleType($role_type)
+    {
         return static::values()[RoleType::getEnum($role_type)->getKey()]->value;
     }
 }

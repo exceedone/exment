@@ -106,7 +106,7 @@ abstract class DataExporterBase extends AbstractExporter
     {
         if (isset($relation) && $relation->relation_type == RelationType::MANY_TO_MANY) {
             $columnDefines = ['parent_id','child_id'];
-            if($this->template){
+            if ($this->template) {
                 $columnDefines[] = 'delete_flg';
             }
             return $columnDefines;
@@ -167,7 +167,7 @@ abstract class DataExporterBase extends AbstractExporter
                 $relation->parent_custom_table->table_view_name . '_'. exmtrans("common.id"),
                 $relation->child_custom_table->table_view_name . '_'. exmtrans("common.id"),
             ];
-            if($this->template){
+            if ($this->template) {
                 $column_view_names[] = trans('admin.delete');
             }
             $rows[] = $column_view_names;
@@ -268,7 +268,7 @@ abstract class DataExporterBase extends AbstractExporter
                 }
             }
 
-            if($this->isOutputAsZip()){
+            if ($this->isOutputAsZip()) {
                 $spreadsheet->addSheet($sheet);
                 $spreadsheet->removeSheetByIndex(0);
                 $files[] = [
@@ -276,12 +276,12 @@ abstract class DataExporterBase extends AbstractExporter
                     'writer' => $this->createWriter($spreadsheet)
                 ];
                 $spreadsheet = new Spreadsheet();
-            }else{
+            } else {
                 $spreadsheet->addSheet($sheet);
             }
         }
 
-        if(!$this->isOutputAsZip()){
+        if (!$this->isOutputAsZip()) {
             $spreadsheet->removeSheetByIndex(0);
             $files[] = [
                 'name' => $sheet_name,
@@ -291,7 +291,8 @@ abstract class DataExporterBase extends AbstractExporter
         return $files;
     }
 
-    protected function getDefaultHeaders(){
+    protected function getDefaultHeaders()
+    {
         $filename = $this->getFileName();
         return [
             'Content-Type'        => 'application/force-download',
@@ -312,5 +313,4 @@ abstract class DataExporterBase extends AbstractExporter
                 return new CsvExporter($grid, $table, $search_enabled_columns);
         }
     }
- 
 }

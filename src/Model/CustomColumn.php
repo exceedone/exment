@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Illuminate\Support\Facades\Schema;
@@ -61,14 +62,14 @@ class CustomColumn extends ModelBase
         // get column eloquent model
         if ($column_obj instanceof CustomColumn) {
             return $column_obj;
-        } 
+        }
         
         if (is_array($column_obj)) {
             $column_obj = array_get($column_obj, 'id');
         }
         
         if (is_numeric($column_obj)) {
-            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $column_obj), function() use($column_obj){
+            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $column_obj), function () use ($column_obj) {
                 return static::find($column_obj);
             });
         }
@@ -77,7 +78,7 @@ class CustomColumn extends ModelBase
             // get table Eloquent
             if ($table_obj instanceof CustomTable) {
                 $table_obj = CustomTable::getEloquent($table_obj);
-            }elseif($table_obj instanceof CustomValue){
+            } elseif ($table_obj instanceof CustomValue) {
                 $table_obj = $table_obj->custom_table;
             }
             // if not exists $table_obj, return null.
@@ -86,7 +87,7 @@ class CustomColumn extends ModelBase
             }
             
             // get column name
-            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $table_obj->table_name . '_'.$column_obj), function() use($table_obj, $column_obj){
+            return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_COLUMN_ELOQUENT, $table_obj->table_name . '_'.$column_obj), function () use ($table_obj, $column_obj) {
                 return $table_obj->custom_columns()->where('column_name', $column_obj)->first() ?? null;
             });
         }
@@ -162,7 +163,7 @@ class CustomColumn extends ModelBase
         $db_table_name = getDBTableName($this->custom_table);
 
         // if not exists, execute alter column
-        if($alterColumn && !Schema::hasColumn($db_table_name, $name)){
+        if ($alterColumn && !Schema::hasColumn($db_table_name, $name)) {
             $this->alterColumn();
         }
         return $name;

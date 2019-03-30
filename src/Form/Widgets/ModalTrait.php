@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Widgets;
 
-
 trait ModalTrait
 {
     /**

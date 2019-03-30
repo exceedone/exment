@@ -32,8 +32,12 @@ abstract class PluginDocumentBase
 
         // create pdf
         list($template_path, $output_filename) = $this->getDocumentInfo();
-        $service = new DocumentExcelService($this->custom_value, $template_path, 
-            $output_filename, $this->plugin->getDocumentType());
+        $service = new DocumentExcelService(
+            $this->custom_value,
+            $template_path,
+            $output_filename,
+            $this->plugin->getDocumentType()
+        );
         $service->makeExcel();
 
         // set path and file info
@@ -93,11 +97,11 @@ abstract class PluginDocumentBase
         $dir_path = $this->plugin->getFullPath();
         // read config.json
         $document_json_path = $this->plugin->getFullPath('config.json');
-        if(!File::exists($document_json_path)){
+        if (!File::exists($document_json_path)) {
             $filename = $default_document_name;
-        }else{
+        } else {
             $json = json_decode(File::get($document_json_path), true);
-            $filename = array_get($json, "filename", $default_document_name);   
+            $filename = array_get($json, "filename", $default_document_name);
         }
         // return "filename" value
         // if not exists, document and date time
@@ -110,10 +114,14 @@ abstract class PluginDocumentBase
     /**
      * execute before creating document
      */
-    protected function executing(){}
+    protected function executing()
+    {
+    }
     
     /**
      * execute after creating document
      */
-    protected function executed(){}
+    protected function executed()
+    {
+    }
 }

@@ -14,9 +14,9 @@ class ExcelImporter extends DataImporterBase
     protected function getDataTable($request)
     {
         // get file
-        if(is_string($request)){
+        if (is_string($request)) {
             $path = $request;
-        }else{
+        } else {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
         }
@@ -27,7 +27,7 @@ class ExcelImporter extends DataImporterBase
         $datalist = [];
         // first, get custom_table sheet list
         $sheet = $spreadsheet->getSheetByName($this->custom_table->table_name);
-        if(isset($sheet)){
+        if (isset($sheet)) {
             $datalist[$this->custom_table->table_name] = [
                 'custom_table' => $this->custom_table,
                 'data' => getDataFromSheet($sheet),
@@ -35,10 +35,10 @@ class ExcelImporter extends DataImporterBase
         }
 
         // second, get relation data(if exists)
-        foreach($this->relations as $relation){
+        foreach ($this->relations as $relation) {
             $sheetName = $relation->getSheetName();
             $sheet = $spreadsheet->getSheetByName($sheetName);
-            if(!isset($sheet)){
+            if (!isset($sheet)) {
                 continue;
             }
             $datalist[$sheetName] = [

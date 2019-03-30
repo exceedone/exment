@@ -27,22 +27,24 @@ class InfoBox extends AdminInfoBox
         $this->target();
     }
 
-    public function showLink($showLink = true){
+    public function showLink($showLink = true)
+    {
         $this->data['showLink'] = $showLink;
         
         return $this;
     }
     
-    public function linkText($linkText){
+    public function linkText($linkText)
+    {
         $this->data['linkText'] = $linkText;
         
         return $this;
     }
 
-    public function target($target = '_self'){
+    public function target($target = '_self')
+    {
         $this->data['target'] = $target;
 
         return $this;
     }
-    
 }

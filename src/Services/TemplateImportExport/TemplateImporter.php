@@ -170,7 +170,6 @@ class TemplateImporter
             if (isset($thumbnail_path)) {
                 File::copy($thumbnail_path, path_join($app_template_path, pathinfo($thumbnail_path)['basename']));
             }
-            
         }
 
         // delete zip
@@ -342,7 +341,7 @@ class TemplateImporter
         array_forget($settings, 'custom_form_blocks');
 
         $targets = ['custom_view_columns', 'custom_view_filters', 'custom_view_sorts'];
-        foreach($targets as $multi){
+        foreach ($targets as $multi) {
             // convert custom_view_columns to custom_views->custom_view_columns
             if (array_key_exists($multi, $settings) && array_key_exists('custom_views', $settings)) {
                 $custom_view_columns = array_get($settings, $multi);
@@ -438,7 +437,7 @@ class TemplateImporter
         $basePath = pathinfo($basePath)['dirname'];
         $dataPath = path_join($basePath, 'data');
         // if exists, execute data copy
-        if(is_dir($dataPath)){
+        if (is_dir($dataPath)) {
             static::importData($dataPath);
         }
     }
@@ -446,18 +445,19 @@ class TemplateImporter
     /**
      * import data using csv, xlsx
      */
-    public static function importData($dataPath){
+    public static function importData($dataPath)
+    {
         // get all csv files
-        $files = collect(\File::files($dataPath))->filter(function($value){
+        $files = collect(\File::files($dataPath))->filter(function ($value) {
             return in_array(pathinfo($value)['extension'], ['csv', 'xlsx']);
         });
         
         // loop csv file
-        foreach($files as $file){
+        foreach ($files as $file) {
             $table_name = file_ext_strip($file->getBasename());
             $format = file_ext($file->getBasename());
             $custom_table = CustomTable::getEloquent($table_name);
-            if(!isset($custom_table)){
+            if (!isset($custom_table)) {
                 continue;
             }
 
@@ -501,7 +501,7 @@ class TemplateImporter
                 else {
                     $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
                 }
-                $obj_table->setOption(array_get($table, 'options', []));                    
+                $obj_table->setOption(array_get($table, 'options', []));
                 $obj_table->saveOrFail();
 
                 // Create database table.
@@ -527,7 +527,7 @@ class TemplateImporter
                         $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
 
                         ///// set options
-                        collect(array_get($column, 'options', []))->each(function ($option, $key) use($obj_column) {
+                        collect(array_get($column, 'options', []))->each(function ($option, $key) use ($obj_column) {
                             $obj_column->setOption($key, $option, true);
                         });
 
@@ -544,7 +544,7 @@ class TemplateImporter
                                 }
                                 $obj_column->setOption('select_target_table', $id);
                             }
-                        }else{
+                        } else {
                             $obj_column->forgetOption('select_target_table');
                         }
                         $obj_column->forgetOption('select_target_table_name');
@@ -596,7 +596,7 @@ class TemplateImporter
                         $column_name = array_get($column, 'column_name');
                         $obj_column = CustomColumn::firstOrNew(['custom_table_id' => $obj_table->id, 'column_name' => $column_name]);
                         
-                        ///// set options                        
+                        ///// set options
                         // check need update
                         $update_flg = false;
                         // if column type is calc, set dynamic val
@@ -718,7 +718,7 @@ class TemplateImporter
                             }
 
                             // set option
-                            collect(array_get($form_block, 'options', []))->each(function ($option, $key) use($obj_form_block) {
+                            collect(array_get($form_block, 'options', []))->each(function ($option, $key) use ($obj_form_block) {
                                 $obj_form_block->setOption($key, $option, true);
                             });
                             $obj_form_block->saveOrFail();
@@ -773,7 +773,7 @@ class TemplateImporter
                                     $obj_form_column->column_no = array_get($form_column, 'column_no', 1) ?? 1;
                                 
                                     // set option
-                                    collect(array_get($form_column, 'options', []))->each(function ($option, $key) use($obj_form_column) {
+                                    collect(array_get($form_column, 'options', []))->each(function ($option, $key) use ($obj_form_column) {
                                         $obj_form_column->setOption($key, $option, true);
                                     });
 
@@ -844,8 +844,8 @@ class TemplateImporter
                         foreach (array_get($view, "custom_view_columns") as $view_column) {
                             $view_column_type = array_get($view_column, "view_column_type");
                             $view_column_target_id = static::getColumnIdOrName(
-                                $view_column_type, 
-                                array_get($view_column, "view_column_target_name"), 
+                                $view_column_type,
+                                array_get($view_column, "view_column_target_name"),
                                 $table,
                                 true
                             );
@@ -870,8 +870,8 @@ class TemplateImporter
                         foreach (array_get($view, "custom_view_filters") as $view_filter) {
                             // if not set filter_target id, continue
                             $view_column_target = static::getColumnIdOrName(
-                                array_get($view_filter, "view_column_type"), 
-                                array_get($view_filter, "view_column_target_name"), 
+                                array_get($view_filter, "view_column_type"),
+                                array_get($view_filter, "view_column_target_name"),
                                 $table,
                                 true
                             );
@@ -896,8 +896,8 @@ class TemplateImporter
                     if (array_key_exists('custom_view_sorts', $view)) {
                         foreach (array_get($view, "custom_view_sorts") as $view_column) {
                             $view_column_target = static::getColumnIdOrName(
-                                array_get($view_column, "view_column_type"), 
-                                array_get($view_column, "view_column_target_name"), 
+                                array_get($view_column, "view_column_type"),
+                                array_get($view_column, "view_column_target_name"),
                                 $table,
                                 true
                             );
@@ -948,7 +948,7 @@ class TemplateImporter
                     $obj_copy->suuid = $findArray['suuid'];
                     
                     // set option
-                    collect(array_get($copy, 'options', []))->each(function ($option, $key) use($obj_copy) {
+                    collect(array_get($copy, 'options', []))->each(function ($option, $key) use ($obj_copy) {
                         $obj_copy->setOption($key, $option, true);
                     });
                     $obj_copy->saveOrFail();
@@ -961,19 +961,19 @@ class TemplateImporter
 
                             // get from and to column
                             $from_column_target = static::getColumnIdOrName(
-                                $from_column_type, 
-                                array_get($copy_column, "from_column_name"), 
+                                $from_column_type,
+                                array_get($copy_column, "from_column_name"),
                                 $from_table,
                                 true
                             );
                             $to_column_target = static::getColumnIdOrName(
-                                $to_column_type, 
-                                array_get($copy_column, "to_column_name"), 
+                                $to_column_type,
+                                array_get($copy_column, "to_column_name"),
                                 $to_table,
                                 true
                             );
 
-                            if(is_null($to_column_target)){
+                            if (is_null($to_column_target)) {
                                 continue;
                             }
 
@@ -1051,7 +1051,7 @@ class TemplateImporter
                             $obj_dashboard_box->dashboard_box_type = DashboardBoxType::getEnumValue(array_get($dashboard_box, "dashboard_box_type"));
 
                             // set options
-                            collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use($obj_dashboard_box) {
+                            collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use ($obj_dashboard_box) {
                                 $obj_dashboard_box->setOption($key, $option);
                             });
                             
@@ -1148,9 +1148,9 @@ class TemplateImporter
                                     }
                                     break;
                                 case MenuType::SYSTEM:
-                                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function($system_menu, $key) use($menu){
+                                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use ($menu) {
                                         return $key == $menu['menu_target_name'];
-                                    })->each(function($system_menu, $key) use($obj_menu){
+                                    })->each(function ($system_menu, $key) use ($obj_menu) {
                                         $obj_menu->menu_target = $key;
                                     });
                                     break;
@@ -1213,8 +1213,9 @@ class TemplateImporter
      * get column name or id.
      * if column_type is string
      */
-    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false){
-        if(!isset($column_type)){
+    protected static function getColumnIdOrName($column_type, $column_name, $custom_table = null, $returnNumber = false)
+    {
+        if (!isset($column_type)) {
             $column_type = ViewColumnType::COLUMN;
         }
 
@@ -1228,7 +1229,7 @@ class TemplateImporter
                 // set parent id
                 if ($column_name == ViewColumnType::PARENT_ID || $column_type == ViewColumnType::PARENT_ID) {
                     return $returnNumber ? Define::CUSTOM_COLUMN_TYPE_PARENT_ID : 'parent_id';
-                } 
+                }
                 return SystemColumn::getOption(['name' => $column_name])[$returnNumber ? 'id' : 'name'];
         }
         return null;

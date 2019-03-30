@@ -18,7 +18,7 @@ class ApiController extends AdminControllerBase
      * get Exment version
      */
     public function version(Request $request)
-    {        
+    {
         return response()->json(['version' => (new \Exceedone\Exment\Exment)->version(false)]);
     }
 
@@ -28,9 +28,9 @@ class ApiController extends AdminControllerBase
      * @return mixed
      */
     public function me(Request $request)
-    {        
+    {
         $base_user = \Exment::user()->base_user ?? null;
-        if(!isset($base_user)){
+        if (!isset($base_user)) {
             return null;
         }
         $base_user = $base_user->makeHidden(CustomTable::getEloquent(SystemTableName::USER)->getMakeHiddenArray())
@@ -66,7 +66,7 @@ class ApiController extends AdminControllerBase
     public function table($tableKey, Request $request)
     {
         $table = CustomTable::getEloquent($tableKey);
-        if(!isset($table)){
+        if (!isset($table)) {
             return abort(400);
         }
 
@@ -84,7 +84,7 @@ class ApiController extends AdminControllerBase
     public function column($id, Request $request)
     {
         $column = CustomColumn::getEloquent($id);
-        if(!isset($column)){
+        if (!isset($column)) {
             return abort(400);
         }
 

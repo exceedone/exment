@@ -49,5 +49,4 @@ class Role extends ModelBase
             }
         }
     }
-    
 }

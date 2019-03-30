@@ -105,10 +105,10 @@ class DashboardBoxController extends AdminControllerBase
                     }
 
                     // if not access permission
-                    if(!$table->hasPermission()){
+                    if (!$table->hasPermission()) {
                         $header = view('exment::dashboard.list.header')->render();
                         $body = trans('admin.deny');
-                    }else{
+                    } else {
 
                         // create model for getting data --------------------------------------------------
                         $classname = getModelName($table);
@@ -125,10 +125,10 @@ class DashboardBoxController extends AdminControllerBase
                         $widgetTable->class('table table-hover');
 
                         // check edit permission
-                        if($table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+                        if ($table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
                             $new_url= admin_base_path("data/{$table->table_name}/create");
                             $list_url = admin_base_path("data/{$table->table_name}");
-                        }else{
+                        } else {
                             $new_url = null;
                             $list_url = null;
                         }
@@ -138,7 +138,6 @@ class DashboardBoxController extends AdminControllerBase
                             'list_url' => $list_url,
                         ])->render();
                         $body = $widgetTable->render();
-
                     }
                     break;
             }

@@ -88,7 +88,7 @@ trait CustomValueGrid
                     $column_type = array_get($search_column, 'column_type');
 
                     // if multiple enabled column
-                    if(ColumnType::isMultipleEnabled($column_type)){
+                    if (ColumnType::isMultipleEnabled($column_type)) {
                         //get options and ajax.
                         $options = null;
                         $ajax = null;
@@ -121,19 +121,18 @@ trait CustomValueGrid
                         }
 
                         // if multiple, create where
-                        if(boolval($search_column->getOption('multiple_enabled'))){
-                            $filter->where(function ($query) use($column_name) {
+                        if (boolval($search_column->getOption('multiple_enabled'))) {
+                            $filter->where(function ($query) use ($column_name) {
                                 $query->whereRaw("FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE(`$column_name`, '[', ''), ' ', ''), '[', ''), '\\\"', ''))", $this->input);
                             }, $column_view_name)->select($options);
-                        }else{
+                        } else {
                             if (isset($ajax)) {
                                 $filter->equal($column_name, $column_view_name)->select([])->ajax($ajax, 'id', 'label');
                             } else {
                                 $filter->equal($column_name, $column_view_name)->select($options);
                             }
                         }
-                    }
-                    else{
+                    } else {
                         switch ($column_type) {
                         case ColumnType::YESNO:
                             $filter->equal($column_name, $column_view_name)->radio([

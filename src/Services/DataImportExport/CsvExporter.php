@@ -1,19 +1,21 @@
 <?php
 
 namespace Exceedone\Exment\Services\DataImportExport;
+
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class CsvExporter extends DataExporterBase
 {
-    protected function createResponse($files){
+    protected function createResponse($files)
+    {
         // save as csv
-        if(count($files) == 1){
+        if (count($files) == 1) {
             return response()->stream(function () use ($files) {
                 $files[0]['writer']->save('php://output');
             }, 200, $this->getDefaultHeaders());
         }
         // save as zip
-        else{
+        else {
             $tmpdir = getTmpFolderPath('data');
 
             $zip = new \ZipArchive();
@@ -27,7 +29,7 @@ class CsvExporter extends DataExporterBase
             }
 
             $csv_paths = [];
-            foreach($files as $f){
+            foreach ($files as $f) {
                 // csv path
                 $csv_name = $f['name'] . '.csv';
                 $csv_path = path_join($csvdir, $csv_name);
@@ -43,11 +45,13 @@ class CsvExporter extends DataExporterBase
         }
     }
     
-    protected function createWriter($spreadsheet){
+    protected function createWriter($spreadsheet)
+    {
         return IOFactory::createWriter($spreadsheet, 'Csv');
     }
 
-    protected function getFileName(){
+    protected function getFileName()
+    {
         return $this->custom_table->table_view_name.date('YmdHis'). ($this->isOutputAsZip() ? ".zip" : ".csv");
     }
 
@@ -55,9 +59,9 @@ class CsvExporter extends DataExporterBase
      * whether this out is as zip.
      * This table is parent and contains relation 1:n or n:n.
      */
-    protected function isOutputAsZip(){
+    protected function isOutputAsZip()
+    {
         // check relations
         return count($this->relations) > 0;
     }
-
 }

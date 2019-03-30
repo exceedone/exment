@@ -128,7 +128,7 @@ class FormHelper
                     // get DB option value
                     return $select_target_table->getOptions($val, $custom_table, false, true);
                 });
-                if(isset($select_target_table)){
+                if (isset($select_target_table)) {
                     $ajax = $select_target_table->getOptionAjaxUrl() ?? null;
                 }
                 if (isset($ajax)) {
@@ -154,7 +154,7 @@ class FormHelper
                 break;
             case ColumnType::AUTO_NUMBER:
                 $field = new ExmentField\Display($form_column_name, [$column_view_name]);
-                if(!isset($id)){
+                if (!isset($id)) {
                     $field->default(exmtrans('custom_value.auto_number_create'));
                 }
                 break;
@@ -298,7 +298,7 @@ class FormHelper
             // create rules.if isset id, add
             $uniqueRules[] = (isset($value_id) ? "$value_id" : "");
             $uniqueRules[] = 'id';
-            // and ignore data deleted_at is NULL 
+            // and ignore data deleted_at is NULL
             $uniqueRules[] = 'deleted_at';
             $uniqueRules[] = 'NULL';
             $rules = "unique:".implode(",", $uniqueRules);
@@ -377,7 +377,7 @@ class FormHelper
 
     protected static function getFileOptions($custom_table, $custom_column, $id)
     {
-        return 
+        return
             [
             'showCancel' => false,
             'deleteUrl' => admin_urls('data', $custom_table->table_name, $id, 'filedelete'),

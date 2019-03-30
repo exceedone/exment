@@ -194,9 +194,9 @@ class ClassBuilder
 
         // set revision property
         $revisionEnabled = boolval($table->getOption('revision_flg', true));
-        if(!$revisionEnabled){
+        if (!$revisionEnabled) {
             $builder->addProperty("protected", 'revisionEnabled', "false");
-        }else{
+        } else {
             $historyLimit = intval($table->getOption('revision_count', 100));
             $builder->addProperty("protected", 'historyLimit', "$historyLimit");
             $builder->addProperty("protected", 'revisionCreationsEnabled', "true");
@@ -261,8 +261,7 @@ class ClassBuilder
         // especially flow if table is user --------------------------------------------------
         if ($table->table_name == SystemTableName::USER) {
             $builder->addInUse('\Exceedone\Exment\Model\Traits\UserTrait');
-        }
-        elseif ($table->table_name == SystemTableName::ORGANIZATION) {
+        } elseif ($table->table_name == SystemTableName::ORGANIZATION) {
             $builder->addInUse('\Exceedone\Exment\Model\Traits\OrganizationTrait');
         }
 

@@ -12,7 +12,8 @@ trait AutoSUuidTrait
     /**
      * find by string suuid
      */
-    public static function findBySuuid($suuid){
+    public static function findBySuuid($suuid)
+    {
         return static::where('suuid', $suuid)->first();
     }
 }

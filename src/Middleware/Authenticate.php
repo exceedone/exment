@@ -19,7 +19,7 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
     {
         // Get System config
         $shouldPassThrough = shouldPassThrough(false);
-        if($shouldPassThrough){
+        if ($shouldPassThrough) {
             return $next($request);
         }
         
@@ -32,7 +32,7 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
         }
 
         $user = \Admin::user();
-        if(is_null($user) || is_null($user->base_user)){
+        if (is_null($user) || is_null($user->base_user)) {
             return redirect()->guest(admin_base_path('auth/login'));
         }
 

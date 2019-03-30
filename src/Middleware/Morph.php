@@ -52,8 +52,7 @@ class Morph
                 //     getModelName($table);
                 // }
             }
-        }catch(\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             logger($ex);
         }
     }

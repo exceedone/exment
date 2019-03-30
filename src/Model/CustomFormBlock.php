@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-
 class CustomFormBlock extends ModelBase
 {
     use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,15 +9,18 @@ class CustomFormBlock extends ModelBase
     
     protected $casts = ['options' => 'json'];
 
-    public function custom_form(){
+    public function custom_form()
+    {
         return $this->belongsTo(CustomForm::class, 'custom_form_id');
     }
 
-    public function custom_form_columns(){
+    public function custom_form_columns()
+    {
         return $this->hasMany(CustomFormColumn::class, 'custom_form_block_id');
     }
 
-    public function target_table(){
+    public function target_table()
+    {
         return $this->belongsTo(CustomTable::class, 'form_block_target_table_id');
     }
     
@@ -40,14 +42,16 @@ class CustomFormBlock extends ModelBase
     }
     
     
-    public function deletingChildren(){
+    public function deletingChildren()
+    {
         $this->custom_form_columns()->delete();
     }
 
-    protected static function boot() {
+    protected static function boot()
+    {
         parent::boot();
         
-        static::deleting(function($model) {
+        static::deleting(function ($model) {
             $model->deletingChildren();
         });
     }

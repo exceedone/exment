@@ -97,7 +97,7 @@ trait HasPermissions
     public function allPermissions() : Collection
     {
         // get request session about role
-        $roles = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function(){
+        $roles = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
             return $this->getPermissions();
         });
 
@@ -158,11 +158,11 @@ trait HasPermissions
         }
 
         // if organization and not use org setting, return false
-        if(array_get($item, 'menu_type') == MenuType::TABLE 
-            && array_get($item, 'table_name') == SystemTableName::ORGANIZATION 
-            && !System::organization_available()){
-                return false;
-            }
+        if (array_get($item, 'menu_type') == MenuType::TABLE
+            && array_get($item, 'table_name') == SystemTableName::ORGANIZATION
+            && !System::organization_available()) {
+            return false;
+        }
 
         // if $item has children, get children's visible result.
         // if children have true result, return true;
@@ -221,7 +221,7 @@ trait HasPermissions
         if (!System::organization_available()) {
             return [];
         }
-        $ids = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function() use($filterType){
+        $ids = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function () use ($filterType) {
             $ids = AuthUserOrgHelper::getOrganizationIds(true, $filterType);
             return $ids;
         });
@@ -236,7 +236,7 @@ trait HasPermissions
         $permission_system_auths = $this->getSystemPermissions();
         $permission_tables = $this->getCustomTablePermissions();
 
-        $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function(){
+        $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
             return [
                 RoleType::SYSTEM => $this->getSystemPermissions(),
                 RoleType::TABLE => $this->getCustomTablePermissions(),
@@ -272,7 +272,7 @@ trait HasPermissions
                 }
                 $query = $query->where('related_type', 'organization')
                 ->whereIn('related_id', $organization_ids);
-        }
+            }
 
             $roles = array_merge(($roles ?? []), $query->orderBy('table_name')
                 ->orderBy('id')
@@ -306,15 +306,15 @@ trait HasPermissions
 
         // check table all data
         $tables = CustomTable::all();
-        foreach($tables as $table){
+        foreach ($tables as $table) {
             $table_name = $table->table_name;
-            if(boolval($table->getOption('all_user_editable_flg'))){
+            if (boolval($table->getOption('all_user_editable_flg'))) {
                 $permissions[$table_name][Permission::CUSTOM_VALUE_EDIT_ALL] = "1";
             }
-            if(boolval($table->getOption('all_user_viewable_flg'))){
+            if (boolval($table->getOption('all_user_viewable_flg'))) {
                 $permissions[$table_name][Permission::CUSTOM_VALUE_VIEW_ALL] = "1";
             }
-            if(boolval($table->getOption('all_user_accessable_flg'))){
+            if (boolval($table->getOption('all_user_accessable_flg'))) {
                 $permissions[$table_name][Permission::CUSTOM_VALUE_ACCESS_ALL] = "1";
             }
         }

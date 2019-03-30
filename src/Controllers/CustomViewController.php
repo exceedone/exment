@@ -17,7 +17,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
-
 class CustomViewController extends AdminControllerTableBase
 {
     use HasResourceActions;
@@ -170,7 +169,7 @@ class CustomViewController extends AdminControllerTableBase
                 ->options($this->custom_table->getColumnsSelectOptions(true));
             $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
             $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
-            })->setTableColumnWidth(4, 3, 3, 2)
+        })->setTableColumnWidth(4, 3, 3, 2)
         ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
         if (!isset($id)) {

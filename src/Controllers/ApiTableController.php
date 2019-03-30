@@ -23,7 +23,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataList(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -47,7 +47,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataQuery(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -80,13 +80,13 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataFind($tableKey, $id, Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
         $model = getModelName($this->custom_table->table_name)::find($id);
         // not contains data, return empty data.
-        if(!isset($model)){
+        if (!isset($model)) {
             return [];
         }
 
@@ -108,7 +108,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataCreate(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -122,16 +122,16 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataUpdate($tableKey, $id, Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
         $custom_value = getModelName($this->custom_table)::find($id);
-        if(!isset($custom_value)){
+        if (!isset($custom_value)) {
             abort(400);
         }
 
-        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -144,16 +144,16 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataDelete($tableKey, $id, Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
         $custom_value = getModelName($this->custom_table)::find($id);
-        if(!isset($custom_value)){
+        if (!isset($custom_value)) {
             abort(400);
         }
 
-        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermissionData($custom_value, Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -167,7 +167,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function relatedLinkage(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -191,7 +191,8 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * get table columns
      */
-    public function tableColumns(Request $request){
+    public function tableColumns(Request $request)
+    {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
@@ -200,21 +201,22 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     
-    protected function saveData($custom_value, $request){
-        if(is_null($value = $request->get('value'))){
+    protected function saveData($custom_value, $request)
+    {
+        if (is_null($value = $request->get('value'))) {
             abort(400);
         }
 
         // // get fields for validation
         $validate = $this->validateData($value, $custom_value->id);
-        if($validate !== true){
+        if ($validate !== true) {
             return abortJson(400, [
                 'errors' => $validate
             ]);
         }
 
         // set default value if new
-        if(!isset($custom_value->id)){
+        if (!isset($custom_value->id)) {
             $value = $this->setDefaultData($value);
         }
 
@@ -227,7 +229,8 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * validate requested data
      */
-    protected function validateData($value, $id = null){
+    protected function validateData($value, $id = null)
+    {
         // get fields for validation
         $fields = [];
         $customAttributes = [];
@@ -237,7 +240,7 @@ class ApiTableController extends AdminControllerTableBase
 
             // if not contains $value[$custom_column->column_name], set as null.
             // if not set, we cannot validate null check because $field->getValidator returns false.
-            if(!array_has($value, $custom_column->column_name)){
+            if (!array_has($value, $custom_column->column_name)) {
                 $value[$custom_column->column_name] = null;
             }
         }
@@ -262,9 +265,9 @@ class ApiTableController extends AdminControllerTableBase
             // create error message
             $errors = [];
             foreach ($validator->errors()->messages() as $message) {
-                if(is_array($message)){
+                if (is_array($message)) {
                     $errors[] = $message[0];
-                }else{
+                } else {
                     $errors[] = $message;
                 }
             }
@@ -276,7 +279,8 @@ class ApiTableController extends AdminControllerTableBase
     /**
      * set Default Data from custom column info
      */
-    protected function setDefaultData($value){
+    protected function setDefaultData($value)
+    {
         // get fields for validation
         $fields = [];
         foreach ($this->custom_table->custom_columns as $custom_column) {
@@ -284,7 +288,7 @@ class ApiTableController extends AdminControllerTableBase
             $default = $custom_column->getOption('default');
 
             // if not key in value, set default value
-            if(!array_has($value, $custom_column->column_name) && isset($default)){
+            if (!array_has($value, $custom_column->column_name) && isset($default)) {
                 $value[$custom_column->column_name] = $default;
             }
         }

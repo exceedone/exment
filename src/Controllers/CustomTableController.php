@@ -43,7 +43,7 @@ class CustomTableController extends AdminControllerBase
         });
 
         $grid->disableExport();
-        if(!\Exment::user()->hasPermission(Permission::SYSTEM)){
+        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
             $grid->disableCreateButton();
         }
 
@@ -121,13 +121,13 @@ class CustomTableController extends AdminControllerBase
         })->disableHeader();
 
         // if create table, show menulist
-        if(!isset($id)){
+        if (!isset($id)) {
             $form->switchbool('add_parent_menu_flg', exmtrans("custom_table.add_parent_menu_flg"))->help(exmtrans("custom_table.help.add_parent_menu_flg"))
                 ->default("0")
                 ->attribute(['data-filtertrigger' =>true])
             ;
             $form->select('add_parent_menu', exmtrans("custom_table.add_parent_menu"))->help(exmtrans("custom_table.help.add_parent_menu"))
-            ->options(function($value){
+            ->options(function ($value) {
                 $options = Menu::selectOptions();
                 return $options;
             })
@@ -154,7 +154,7 @@ class CustomTableController extends AdminControllerBase
             $this->exists = $form->model()->exists;
         });
 
-        $form->saved(function (Form $form) use($id) {
+        $form->saved(function (Form $form) use ($id) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->createTable();
@@ -164,12 +164,12 @@ class CustomTableController extends AdminControllerBase
 
 
             // redirect custom column page
-            if(!$this->exists){
+            if (!$this->exists) {
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
                 $custom_column_url = admin_base_paths('column', $table_name);
     
                 admin_toastr(exmtrans('custom_table.help.saved_redirect_column'));
-                return redirect($custom_column_url);    
+                return redirect($custom_column_url);
             }
         });
 
@@ -194,25 +194,26 @@ class CustomTableController extends AdminControllerBase
     /**
      * add menu after saved
      */
-    protected function addMenuAfterSaved($model){
+    protected function addMenuAfterSaved($model)
+    {
         // if has value 'add_parent_menu', add menu
         if (!app('request')->has('add_parent_menu_flg') || !app('request')->has('add_parent_menu')) {
             return;
         }
         
         $add_parent_menu_flg = app('request')->input('add_parent_menu_flg');
-        if(!boolval($add_parent_menu_flg)){
+        if (!boolval($add_parent_menu_flg)) {
             return;
         }
 
         $add_parent_menu = app('request')->input('add_parent_menu');
-        if(!isset($add_parent_menu)){
+        if (!isset($add_parent_menu)) {
             return;
         }
 
         // get order
         $order = Menu::where('parent_id', $add_parent_menu)->max('order');
-        if(!isset($order)){
+        if (!isset($order)) {
             $order = 0;
         }
         $order++;

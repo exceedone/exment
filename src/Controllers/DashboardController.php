@@ -18,7 +18,6 @@ use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
 
-
 class DashboardController extends AdminControllerBase
 {
     use HasResourceActions;
@@ -65,7 +64,7 @@ class DashboardController extends AdminControllerBase
     public function home(Request $request, Content $content)
     {
         // check permission. if not permission, show message
-        if(\Exment::user()->noPermission()){
+        if (\Exment::user()->noPermission()) {
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
         }
         // if system admin, check version
@@ -327,14 +326,15 @@ EOT;
         });
     }
 
-    protected function showVersionUpdate(){
+    protected function showVersionUpdate()
+    {
         // if system admin, check version
-        if(!\Exment::user()->hasPermission(Permission::SYSTEM)){
+        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
             return;
         }
         
         $versionCheck = checkLatestVersion();
-        if($versionCheck == SystemVersion::HAS_NEXT){
+        if ($versionCheck == SystemVersion::HAS_NEXT) {
             list($latest, $current) = getExmentVersion();
             admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
         }

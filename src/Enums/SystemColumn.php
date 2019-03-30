@@ -30,22 +30,25 @@ class SystemColumn extends EnumBase
         'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'default' => false, 'order' => 93],
     ];
 
-    public function id(){
+    public function id()
+    {
         return array_get($this->option(), 'id');
     }
 
-    public function name(){
+    public function name()
+    {
         return $this->lowerKey();
     }
     
-    public static function getEnum($value, $default = null){
+    public static function getEnum($value, $default = null)
+    {
         $enum = parent::getEnum($value, $default);
-        if(isset($enum)){
+        if (isset($enum)) {
             return $enum;
         }
 
         foreach ($options as $key => $v) {
-            if(array_get($v, 'id') == $value){
+            if (array_get($v, 'id') == $value) {
                 return parent::getEnum($key);
             }
         }

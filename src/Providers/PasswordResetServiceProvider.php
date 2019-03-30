@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Providers;
 
-
 class PasswordResetServiceProvider extends \Illuminate\Auth\Passwords\PasswordResetServiceProvider
 {
     protected function registerPasswordBroker()

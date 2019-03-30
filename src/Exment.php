@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Menu;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Encore\Admin\Admin;
+
 /**
  * Class Admin.
  */
@@ -21,7 +22,8 @@ class Exment
         return (new Menu())->toTree();
     }
 
-    public static function error($request, $exception, $callback){
+    public static function error($request, $exception, $callback)
+    {
         try {
             // if (!($exception instanceof HttpException)) {
             //     return $callback($request, $exception);
@@ -35,8 +37,7 @@ class Exment
 
             $errorController = app(\Exceedone\Exment\Controllers\ErrorController::class);
             return $errorController->error($request, $exception);
-        
-        }catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return $callback($request, $exception);
         } catch (Throwable $e) {
             return $callback($request, $exception);
@@ -46,25 +47,27 @@ class Exment
     /**
      * get user. multi supported admin and adminapi
      */
-    public function user($guards = null){
+    public function user($guards = null)
+    {
         if (is_null($guards)) {
             $guards = ['adminapi', 'admin'];
         }
-        if(is_string($guards)){
+        if (is_string($guards)) {
             $guards = [$guards];
         }
         
         foreach ($guards as $guard) {
             # code...
             $user = Auth::guard($guard)->user();
-            if(isset($user)){ 
-                return $user; 
+            if (isset($user)) {
+                return $user;
             }
         }
         return null;
     }
 
-    public function version($getFromComposer = true){
+    public function version($getFromComposer = true)
+    {
         list($latest, $current) = getExmentVersion($getFromComposer);
         return $current;
     }

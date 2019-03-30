@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Exceedone\Exment\Enums\Permission;
 
 /**

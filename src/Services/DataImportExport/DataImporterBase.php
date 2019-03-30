@@ -40,7 +40,7 @@ abstract class DataImporterBase
                 ];
             }
             $select_primary_key = $request->select_primary_key;
-        }else{
+        } else {
             $select_primary_key = 'id';
         }
 
@@ -51,7 +51,7 @@ abstract class DataImporterBase
         
         foreach ($datalist as $table_name => $data) {
             // if data is n:n data, get data as pivot
-            if(isset($data['relation']) && $data['relation']->relation_type == RelationType::MANY_TO_MANY){
+            if (isset($data['relation']) && $data['relation']->relation_type == RelationType::MANY_TO_MANY) {
                 $data_pivots[] = $this->getPivotData($data['data'], $data['relation']);
                 continue;
             }
@@ -142,7 +142,8 @@ abstract class DataImporterBase
     /**
      * get pivot data for n:n
      */
-    protected function getPivotData($data, $relation){
+    protected function getPivotData($data, $relation)
+    {
         $results = [];
         $headers = [];
         foreach ($data as $key => $value) {
@@ -302,16 +303,15 @@ abstract class DataImporterBase
             if (strpos($key, "value.") !== false) {
                 $new_key = str_replace('value.', '', $key);
                 // get target column
-                $target_column = $custom_columns->first(function($custom_column) use($new_key){
+                $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
                     return array_get($custom_column, 'column_name') == $new_key;
                 });
-                if(!isset($target_column)){
+                if (!isset($target_column)) {
                     continue;
                 }
 
-                if(ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
-                    && boolval(array_get($target_column, 'options.multiple_enabled')))
-                {
+                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
+                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
                     $value = explode(",", $value);
                 }
             }
@@ -402,7 +402,7 @@ abstract class DataImporterBase
         }
 
         // if not has deleted_at value, remove deleted_at value
-        if(!array_key_value_exists('deleted_at', $data)){
+        if (!array_key_value_exists('deleted_at', $data)) {
             $model->deleted_at = null;
         }
 
@@ -431,7 +431,7 @@ abstract class DataImporterBase
         // if delete
         if (isset($id) && $delete) {
             \DB::table($table_name)->where('id', $id)->delete();
-        }elseif(!isset($id)){
+        } elseif (!isset($id)) {
             \DB::table($table_name)->insert($data);
         }
     }

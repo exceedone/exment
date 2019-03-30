@@ -15,12 +15,13 @@ class ApiScope extends EnumBase
     /**
      * get scope string for middleware
      */
-    public static function getScopeString($addScope, ...$scopes){
-        if(!$addScope){
+    public static function getScopeString($addScope, ...$scopes)
+    {
+        if (!$addScope) {
             return null;
         }
 
-        return "scope:" . implode(",", collect($scopes)->map(function($scope){
+        return "scope:" . implode(",", collect($scopes)->map(function ($scope) {
             $enum = static::getEnum($scope);
             return $enum->getValue();
         })->toArray());

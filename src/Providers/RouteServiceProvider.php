@@ -90,7 +90,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
-            $router->get('backup/download/{ymdhms}', function($ymdhms){
+            $router->get('backup/download/{ymdhms}', function ($ymdhms) {
                 return BackupController::download($ymdhms);
             });
         
@@ -172,7 +172,7 @@ class RouteServiceProvider extends ServiceProvider
                 'prefix' => array_get($route, 'prefix'),
                 'namespace'     => $this->namespace,
                 'middleware'    => array_get($route, 'middleware'),
-            ], function (Router $router) use($route) {
+            ], function (Router $router) use ($route) {
                 $router->get("data/{tableKey}", 'ApiTableController@dataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/query", 'ApiTableController@dataQuery')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/{id}", 'ApiTableController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
@@ -203,7 +203,8 @@ class RouteServiceProvider extends ServiceProvider
      * set table resource.
      * (We cannot create endpoint using resouce function if contains {tableKey}).
      */
-    protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false){
+    protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false)
+    {
         $router->get("{$endpointName}/{tableKey}", "$controllerName@index");
         $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create");
         $router->post("{$endpointName}/{tableKey}", "$controllerName@store");
@@ -212,7 +213,7 @@ class RouteServiceProvider extends ServiceProvider
         $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
         $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy");
 
-        if($isShow){
+        if ($isShow) {
             $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show");
         }
     }

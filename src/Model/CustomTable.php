@@ -134,12 +134,12 @@ class CustomTable extends ModelBase
     {
         // get table info
         $tableKey = app('request')->route()->parameter('tableKey');
-        if(!isset($tableKey)){
+        if (!isset($tableKey)) {
             abort(404);
         }
 
         $custom_table = static::getEloquent($tableKey);
-        if(!isset($custom_table)){
+        if (!isset($custom_table)) {
             abort(404);
         }
 
@@ -154,9 +154,9 @@ class CustomTable extends ModelBase
     {
         if ($obj instanceof CustomTable) {
             return $obj;
-        }elseif ($obj instanceof CustomColumn) {
+        } elseif ($obj instanceof CustomColumn) {
             return $obj->custom_table;
-        }elseif ($obj instanceof CustomValue) {
+        } elseif ($obj instanceof CustomValue) {
             return $obj->custom_table;
         }
 
@@ -181,15 +181,15 @@ class CustomTable extends ModelBase
         } elseif (is_string($obj)) {
             $query_key = 'table_name';
         }
-        if(isset($query_key)){
+        if (isset($query_key)) {
             $withs = static::getWiths($withs);
             $query = static::query();
-            foreach($withs as $with){
+            foreach ($withs as $with) {
                 $query->with($with);
             }
             
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_TABLE_ELOQUENT, $obj);
-            return System::requestSession($key, function() use($query_key, $obj, $query){
+            return System::requestSession($key, function () use ($query_key, $obj, $query) {
                 return $query->where($query_key, $obj)->first();
             });
         }
@@ -197,11 +197,12 @@ class CustomTable extends ModelBase
         return $obj;
     }
 
-    protected static function getWiths($withs){
-        if(is_array($withs)){
+    protected static function getWiths($withs)
+    {
+        if (is_array($withs)) {
             return $withs;
         }
-        if($withs === true){
+        if ($withs === true) {
             return ['custom_columns'];
         }
         return [];
@@ -246,7 +247,8 @@ class CustomTable extends ModelBase
     /**
      * whether login user has permission. target is table
      */
-    public function hasPermission($role_key = Permission::AVAILABLE_VIEW_CUSTOM_VALUE){
+    public function hasPermission($role_key = Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+    {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -258,7 +260,7 @@ class CustomTable extends ModelBase
         }
 
         $user = \Exment::user();
-        if(!isset($user)){
+        if (!isset($user)) {
             return false;
         }
         
@@ -301,13 +303,14 @@ class CustomTable extends ModelBase
     /**
      * Whether login user has permission about target id data. (protected function)
      */
-    protected function _hasPermissionData($id, $role){
+    protected function _hasPermissionData($id, $role)
+    {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
         }
 
-        if(!is_array($role)){
+        if (!is_array($role)) {
             $role = [$role];
         }
 
@@ -323,8 +326,8 @@ class CustomTable extends ModelBase
 
         // if user has all view table, check contains view or access all from $role.
         if ($this->hasPermission(Permission::CUSTOM_VALUE_VIEW_ALL)) {
-            foreach([Permission::CUSTOM_VALUE_VIEW_ALL, Permission::CUSTOM_VALUE_ACCESS_ALL] as $role_key){
-                if(in_array($role_key, $role)){
+            foreach ([Permission::CUSTOM_VALUE_VIEW_ALL, Permission::CUSTOM_VALUE_ACCESS_ALL] as $role_key) {
+                if (in_array($role_key, $role)) {
                     return true;
                 }
             }
@@ -332,7 +335,7 @@ class CustomTable extends ModelBase
 
         // if user has all access table, check contains view or access all from $role.
         if ($this->hasPermission(Permission::CUSTOM_VALUE_ACCESS_ALL)) {
-            if(in_array(Permission::CUSTOM_VALUE_ACCESS_ALL, $role)){
+            if (in_array(Permission::CUSTOM_VALUE_ACCESS_ALL, $role)) {
                 return true;
             }
         }
@@ -342,9 +345,9 @@ class CustomTable extends ModelBase
             return true;
         }
 
-        if(is_numeric($id)){
+        if (is_numeric($id)) {
             $model = getModelName($this)::find($id);
-        }else{
+        } else {
             $model = $id;
         }
 
@@ -355,7 +358,7 @@ class CustomTable extends ModelBase
         // else, get model using value_authoritable.
         // if count > 0, return true.
         $rows = $model->getAuthoritable(SystemTableName::USER);
-        if($this->checkPermissionWithPivot($rows, $role)){
+        if ($this->checkPermissionWithPivot($rows, $role)) {
             return true;
         }
 
@@ -363,7 +366,7 @@ class CustomTable extends ModelBase
         // if count > 0, return true.
         if (System::organization_available()) {
             $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if($this->checkPermissionWithPivot($rows, $role)){
+            if ($this->checkPermissionWithPivot($rows, $role)) {
                 return true;
             }
         }
@@ -375,13 +378,14 @@ class CustomTable extends ModelBase
     /**
      * check permission with pivot
      */
-    protected function checkPermissionWithPivot($rows, $role_key){
+    protected function checkPermissionWithPivot($rows, $role_key)
+    {
         if (!isset($rows) || count($rows) == 0) {
             return false;
         }
 
-        foreach($rows as $row){
-            // get role 
+        foreach ($rows as $row) {
+            // get role
             $role = Role::find(array_get($row, 'pivot.role_id'));
 
             // if role type is system, and has key
@@ -395,9 +399,10 @@ class CustomTable extends ModelBase
     }
 
     /**
-     * 
+     *
      */
-    public function allUserAccessable(){
+    public function allUserAccessable()
+    {
         return boolval($this->getOption('all_user_editable_flg'))
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
@@ -416,8 +421,9 @@ class CustomTable extends ModelBase
     /**
      * get array for "makeHidden" function
      */
-    public function getMakeHiddenArray(){
-        return $this->getSearchEnabledColumns()->map(function($columns){
+    public function getMakeHiddenArray()
+    {
+        return $this->getSearchEnabledColumns()->map(function ($columns) {
             return $columns->getIndexColumnName();
         })->toArray();
     }
@@ -442,7 +448,7 @@ class CustomTable extends ModelBase
         }
 
         // CREATE TABLE from custom value table.
-        if(Schema::hasTable($table_name)){
+        if (Schema::hasTable($table_name)) {
             return;
         }
         $db = DB::connection();
@@ -456,7 +462,7 @@ class CustomTable extends ModelBase
      * @param string|CustomTable|array $obj
      * @return string
      */
-    function getIndexColumnName($column_name)
+    public function getIndexColumnName($column_name)
     {
         // get column eloquent
         $column = CustomColumn::getEloquent($column_name, $this);
@@ -482,7 +488,7 @@ class CustomTable extends ModelBase
     /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
-     * 
+     *
      * *"$this" is the table targeted on options.
      * *"$display_table" is the table user shows on display.
      *
@@ -498,8 +504,8 @@ class CustomTable extends ModelBase
         $table_name = $this->table_name;
         $display_table = CustomTable::getEloquent($display_table);
         // check table permission. if not exists, show admin_warning
-        if(!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()){
-            if($showMessage_ifDeny){
+        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
+            if ($showMessage_ifDeny) {
                 admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
             }
             return [];
@@ -507,14 +513,13 @@ class CustomTable extends ModelBase
 
         // get query.
         // if org
-        if(in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])){
+        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
             $query = $this->getValueModel();
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
             $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
-        }
-        elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
+        } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
@@ -584,7 +589,7 @@ class CustomTable extends ModelBase
         $options = [];
         
         ///// get system columns
-        foreach(SystemColumn::getOptions(['header' => true]) as $option){
+        foreach (SystemColumn::getOptions(['header' => true]) as $option) {
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
@@ -604,7 +609,7 @@ class CustomTable extends ModelBase
             $options[array_get($custom_column, 'id')] = array_get($custom_column, 'column_view_name');
         }
         ///// get system columns
-        foreach(SystemColumn::getOptions(['footer' => true]) as $option){
+        foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
             $options[array_get($option, 'name')] = exmtrans('common.'.array_get($option, 'name'));
         }
 
@@ -617,7 +622,7 @@ class CustomTable extends ModelBase
                 $tablename = array_get($child, 'table_view_name');
                 $child_columns = $child->custom_columns;
                 foreach ($child_columns as $option) {
-                    switch(array_get($option, 'column_type')) {
+                    switch (array_get($option, 'column_type')) {
                         case ColumnType::INTEGER:
                         case ColumnType::DECIMAL:
                         case ColumnType::CURRENCY:
@@ -631,7 +636,8 @@ class CustomTable extends ModelBase
         return $options;
     }
     
-    public function getValueModel(){
+    public function getValueModel()
+    {
         $modelname = getModelName($this);
         $model = new $modelname;
 

@@ -133,7 +133,8 @@ class ExmentServiceProvider extends ServiceProvider
         Passport::ignoreMigrations();
     }
 
-    protected function publish(){
+    protected function publish()
+    {
         $this->mergeConfigFrom(
             __DIR__.'/../config/exment.php',
             'exment'
@@ -145,13 +146,15 @@ class ExmentServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
     }
 
-    protected function load(){
+    protected function load()
+    {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
     }
 
-    protected function bootApp(){
+    protected function bootApp()
+    {
         $this->app->register(ExmentProviders\RouteServiceProvider::class);
         $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
         $this->app->register(ExmentProviders\PasswordResetServiceProvider::class);
@@ -164,8 +167,9 @@ class ExmentServiceProvider extends ServiceProvider
         });
     }
 
-    protected function bootPassport(){
-        // adding rule for laravel-passport 
+    protected function bootPassport()
+    {
+        // adding rule for laravel-passport
         Client::creating(function (Client $client) {
             $client->incrementing = false;
             $client->id = Uuid::generate()->string;
@@ -242,7 +246,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
         
-        Admin::booting(function(){
+        Admin::booting(function () {
             Initialize::initializeFormField();
         });
     }

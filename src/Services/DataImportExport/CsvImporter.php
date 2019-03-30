@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Services\DataImportExport;
+
 use PhpOffice\PhpSpreadsheet\Reader\Csv;
 
 class CsvImporter extends DataImporterBase
@@ -10,17 +11,17 @@ class CsvImporter extends DataImporterBase
     protected function getDataTable($request)
     {
         // get file
-        if(is_string($request)){
+        if (is_string($request)) {
             $path = $request;
             $extension = pathinfo($path)['extension'];
-        }else{
+        } else {
             $file = $request->file('custom_table_file');
             $path = $file->getRealPath();
             $extension = $file->extension();
         }
 
         // if zip, extract
-        if($extension == 'zip'){
+        if ($extension == 'zip') {
             $tmpdir = getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'local', true);
     
@@ -37,13 +38,13 @@ class CsvImporter extends DataImporterBase
             $zip->extractTo($tmpfolderpath);
 
             // get all files
-            $files = collect(\File::files($tmpfolderpath))->filter(function($value){
+            $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
                 return pathinfo($value)['extension'] == 'csv';
             });
 
-            foreach($files as $csvfile){
+            foreach ($files as $csvfile) {
                 // first, get custom_table sheet list
-                if($this->custom_table->table_name == $csvfile->getBasename('.csv')){
+                if ($this->custom_table->table_name == $csvfile->getBasename('.csv')) {
                     $datalist[$this->custom_table->table_name] = [
                         'custom_table' => $this->custom_table,
                         'data' => $this->getCsvArray($csvfile->getRealPath()),
@@ -52,9 +53,9 @@ class CsvImporter extends DataImporterBase
                 }
 
                 // second, get relation data(if exists)
-                foreach($this->relations as $relation){
+                foreach ($this->relations as $relation) {
                     $sheetName = $relation->getSheetName();
-                    if($sheetName == $csvfile->getBasename('.csv')){
+                    if ($sheetName == $csvfile->getBasename('.csv')) {
                         $datalist[$sheetName] = [
                             'custom_table' => $relation->child_custom_table,
                             'relation' => $relation,
@@ -70,7 +71,7 @@ class CsvImporter extends DataImporterBase
             // delete zip
             \File::deleteDirectory($tmpfolderpath);
             \File::delete($fullpath);
-        }else{
+        } else {
             $datalist[$this->custom_table->table_name] = [
                 'custom_table' => $this->custom_table,
                 'data' => $this->getCsvArray($path),
@@ -80,7 +81,8 @@ class CsvImporter extends DataImporterBase
         return $datalist;
     }
 
-    protected function getCsvArray($file){
+    protected function getCsvArray($file)
+    {
         $reader = new Csv();
         $reader->setInputEncoding('UTF-8');
         $reader->setDelimiter("\t");

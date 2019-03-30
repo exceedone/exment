@@ -162,7 +162,7 @@ EOT;
      */
     protected function getFreeWord(Request $request, Content $content)
     {
-        if(is_null($request->query('query'))){
+        if (is_null($request->query('query'))) {
             return redirect(admin_base_path());
         }
         $this->AdminContent($content);
@@ -299,7 +299,7 @@ EOT;
         // get headers and bodies
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
-            'action_callback' => function(&$link, $custom_table, $data){
+            'action_callback' => function (&$link, $custom_table, $data) {
                 $link .= '<a href="'.admin_base_path('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')).'"><i class="fa fa-compress"></i></a>';
             }
         ]);
@@ -324,7 +324,8 @@ EOT;
         $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
         $value = $model->label;
-        $content->body(view('exment::search.index', [
+        $content->body(
+            view('exment::search.index', [
             'table_name' => $request->input('table_name'),
             'value_id' => $request->input('value_id'),
             'query' => $value,
@@ -507,8 +508,8 @@ EOT;
 
         // get data
         $foodata = getModelName($table)
-            ::where(function($wherequery) use($search_columns, $mark, $query){
-                foreach($search_columns as $search_column){
+            ::where(function ($wherequery) use ($search_columns, $mark, $query) {
+                foreach ($search_columns as $search_column) {
                     $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $query);
                 }
             })
@@ -533,7 +534,8 @@ EOT;
         return $data;
     }
 
-    protected function getTableArray($table, $search_type = null){
+    protected function getTableArray($table, $search_type = null)
+    {
         $array = [
             'id' => array_get($table, 'id'),
             'table_name' => array_get($table, 'table_name'),
@@ -542,12 +544,12 @@ EOT;
             'color' => array_get($table, 'options.color'),
             'box_sytle' => array_has($table, 'options.color') ? 'border-top-color:'.esc_html(array_get($table, 'options.color')).';' : null,
         ];
-        if(isset($search_type)){
+        if (isset($search_type)) {
             $array['search_type'] = $search_type;
         }
-        if($table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
+        if ($table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }
         return $array;
-    }   
+    }
 }

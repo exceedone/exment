@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelation extends ModelBase
@@ -20,10 +21,11 @@ class CustomRelation extends ModelBase
     /**
      * get relations by parent table
      */
-    public static function getRelationsByParent($parent_table, $relation_type = null){
+    public static function getRelationsByParent($parent_table, $relation_type = null)
+    {
         $parent_table = CustomTable::getEloquent($parent_table);
         $query = static::where('parent_custom_table_id', array_get($parent_table, 'id'));
-        if(isset($relation_type)){
+        if (isset($relation_type)) {
             $query = $query->where('relation_type', $relation_type);
         }
         return $query->get();
@@ -32,10 +34,11 @@ class CustomRelation extends ModelBase
     /**
      * get relation by child table. (Only one record)
      */
-    public static function getRelationByChild($child_table, $relation_type = null){
+    public static function getRelationByChild($child_table, $relation_type = null)
+    {
         $child_table = CustomTable::getEloquent($child_table);
         $query = static::where('child_custom_table_id', array_get($child_table, 'id'));
-        if(isset($relation_type)){
+        if (isset($relation_type)) {
             $query = $query->where('relation_type', $relation_type);
         }
         return $query->first();
@@ -44,10 +47,11 @@ class CustomRelation extends ModelBase
     /**
      * get relation by child table.
      */
-    public static function getRelationsByChild($child_table, $relation_type = null){
+    public static function getRelationsByChild($child_table, $relation_type = null)
+    {
         $child_table = CustomTable::getEloquent($child_table);
         $query = static::where('child_custom_table_id', array_get($child_table, 'id'));
-        if(isset($relation_type)){
+        if (isset($relation_type)) {
             $query = $query->where('relation_type', $relation_type);
         }
         return $query->get();
@@ -82,8 +86,9 @@ class CustomRelation extends ModelBase
     /**
      * get sheet name for excel, csv
      */
-    public function getSheetName(){
-        if($this->relation_type == RelationType::MANY_TO_MANY){
+    public function getSheetName()
+    {
+        if ($this->relation_type == RelationType::MANY_TO_MANY) {
             return $this->parent_custom_table->table_name . '_' . $this->child_custom_table->table_name;
         }
         return $this->child_custom_table->table_name;

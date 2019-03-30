@@ -44,8 +44,7 @@ class CustomValue extends ModelBase
     public function getCustomTableAttribute()
     {
         // return resuly using cache
-        return System::requestSession('custom_table_' . $this->custom_table_name, function()
-        {
+        return System::requestSession('custom_table_' . $this->custom_table_name, function () {
             return CustomTable::getEloquent($this->custom_table_name);
         });
     }
@@ -154,14 +153,14 @@ class CustomValue extends ModelBase
             $column_name = $custom_column->column_name;
             $v = array_get($value, $column_name);
 
-            if($this->setAgainOriginalValue($value, $original, $custom_column)){
+            if ($this->setAgainOriginalValue($value, $original, $custom_column)) {
                 $update_flg = true;
             }
 
             // remove comma
-            if(ColumnType::isCalc($custom_column->column_type)){
+            if (ColumnType::isCalc($custom_column->column_type)) {
                 $rmv = rmcomma($v);
-                if($v != $rmv){
+                if ($v != $rmv) {
                     $value[$column_name] = $rmv;
                     $update_flg = true;
                 }
@@ -170,7 +169,7 @@ class CustomValue extends ModelBase
 
         // array_forget if $v is null
         // if not execute this, mysql column "virtual" returns string "null".
-        foreach($value as $k => $v){
+        foreach ($value as $k => $v) {
             if (is_null($v)) {
                 $update_flg = true;
                 array_forget($value, $k);
@@ -186,8 +185,9 @@ class CustomValue extends ModelBase
     /**
      * set original data.
      */
-    protected function setAgainOriginalValue(&$value, $original, $custom_column){
-        if(is_null($value)){
+    protected function setAgainOriginalValue(&$value, $original, $custom_column)
+    {
+        if (is_null($value)) {
             $value = [];
         }
         $column_name = $custom_column->column_name;
@@ -272,14 +272,14 @@ class CustomValue extends ModelBase
     public function setValueAuthoritable()
     {
         $table_name = $this->custom_table->table_name;
-        if(in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())){
+        if (in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())) {
             return;
         }
-        if($this->value_authoritable_users()->count() > 0 || $this->value_authoritable_organizations()->count() > 0){
+        if ($this->value_authoritable_users()->count() > 0 || $this->value_authoritable_organizations()->count() > 0) {
             return;
         }
         $user = \Exment::user();
-        if(!isset($user)){
+        if (!isset($user)) {
             return;
         }
 
@@ -287,7 +287,7 @@ class CustomValue extends ModelBase
         $role = Role::where('role_type', RoleType::VALUE)->whereIn('permissions->'.Permission::CUSTOM_VALUE_EDIT, [1, "1"])
             ->first();
         // set user
-        if(!isset($role)){
+        if (!isset($role)) {
             return;
         }
 
@@ -308,7 +308,7 @@ class CustomValue extends ModelBase
     protected function notify($create = true)
     {
         // if $saved_notify is false, return
-        if($this->saved_notify === false){
+        if ($this->saved_notify === false) {
             return;
         }
 
@@ -338,7 +338,8 @@ class CustomValue extends ModelBase
     /**
      * delete relation if record delete
      */
-    protected function deleteRelationValues(){
+    protected function deleteRelationValues()
+    {
         $custom_table = $this->custom_table;
         // delete custom relation is 1:n value
         $relations = CustomRelation::getRelationsByParent($custom_table, RelationType::ONE_TO_MANY);
@@ -409,7 +410,8 @@ class CustomValue extends ModelBase
             [
                 'format' => null,
                 'disable_currency_symbol' => false,
-            ], $options
+            ],
+            $options
         );
         $custom_table = $this->custom_table;
         if (is_null($column)) {
@@ -452,8 +454,7 @@ class CustomValue extends ModelBase
                     }
                 }
                 return $loop_value;
-            }
-            else {
+            } else {
                 $column = $columns[0];
             }
         }
@@ -596,13 +597,12 @@ class CustomValue extends ModelBase
             if ($label !== true) {
                 return $val;
             }
-            if (boolval(array_get($column, 'options.number_format')) 
-                && is_numeric($val) 
-                && !boolval(array_get($options, 'disable_number_format')))
-            {
+            if (boolval(array_get($column, 'options.number_format'))
+                && is_numeric($val)
+                && !boolval(array_get($options, 'disable_number_format'))) {
                 $val = number_format($val);
             }
-            if(boolval(array_get($options, 'disable_currency_symbol'))){
+            if (boolval(array_get($options, 'disable_currency_symbol'))) {
                 return $val;
             }
             // get symbol
@@ -618,8 +618,7 @@ class CustomValue extends ModelBase
             }
             // else, return
             return $val;
-        }
-        else {
+        } else {
             // if not label, return
             if ($label !== true) {
                 return $val;
@@ -632,7 +631,7 @@ class CustomValue extends ModelBase
     }
         
     /**
-     * Get vustom_value's label 
+     * Get vustom_value's label
      * @param CustomValue $custom_value
      * @return string
      */
@@ -641,7 +640,7 @@ class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
 
         $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
-        $columns = System::requestSession($key, function() use($custom_table){
+        $columns = System::requestSession($key, function () use ($custom_table) {
             return $custom_table
             ->custom_columns()
             ->useLabelFlg()
@@ -664,7 +663,7 @@ class CustomValue extends ModelBase
             }
             $labels[] = $label;
         }
-        if(count($labels) == 0){
+        if (count($labels) == 0) {
             return strval($this->id);
         }
 
@@ -677,7 +676,7 @@ class CustomValue extends ModelBase
     public function getUrl($options = [])
     {
         // options is boolean, tag is true
-        if(is_bool($options)){
+        if (is_bool($options)) {
             $options = ['tag' => true];
         }
         $options = array_merge(
@@ -687,13 +686,13 @@ class CustomValue extends ModelBase
                 'list' => false,
                 'external-link' => false,
                 'modal' => true,
-            ]
-            , $options
+            ],
+            $options
         );
         $tag = boolval($options['tag']);
 
         // if this table is document, create target blank link
-        if($this->custom_table->table_name == SystemTableName::DOCUMENT){
+        if ($this->custom_table->table_name == SystemTableName::DOCUMENT) {
             $url = admin_urls('files', $this->getValue('file_uuid', true));
             if (!$tag) {
                 return $url;
@@ -702,19 +701,19 @@ class CustomValue extends ModelBase
             return "<a href='$url' target='_blank'>$label</a>";
         }
         $url = admin_urls('data', $this->custom_table->table_name);
-        if(!boolval($options['list'])){
+        if (!boolval($options['list'])) {
             $url = url_join($url, $this->id);
         }
         
-        if(isset($options['uri'])){
+        if (isset($options['uri'])) {
             $url = url_join($url, $options['uri']);
         }
         if (!$tag) {
             return $url;
         }
-        if(boolval($options['external-link'])){
+        if (boolval($options['external-link'])) {
             $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
-        }else{
+        } else {
             $label = esc_html($this->getLabel());
         }
 
@@ -722,7 +721,7 @@ class CustomValue extends ModelBase
             $url .= '?modal=1';
             $href = 'javascript:void(0);';
             $widgetmodal_url = " data-widgetmodal_url='$url'";
-        }else{
+        } else {
             $href = $url;
             $widgetmodal_url = null;
         }
@@ -789,10 +788,11 @@ class CustomValue extends ModelBase
     /**
      * Get Custom children value summary
      */
-    public function getSum($custom_column) {
+    public function getSum($custom_column)
+    {
         $name = $custom_column->indexEnabled() ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
 
-        if(!isset($name)){
+        if (!isset($name)) {
             return 0;
         }
         return $this->getChildrenValues($custom_column, true)
@@ -806,15 +806,15 @@ class CustomValue extends ModelBase
     public function getChildrenValues($relation, $returnBuilder = false)
     {
         // first, get children values as relation
-        if($relation instanceof CustomColumn){
+        if ($relation instanceof CustomColumn) {
             // get custom column as array
             // target column is select table and has index, get index name
-            if(ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()){
+            if (ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()) {
                 $index_name = $relation->getIndexColumnName();
                 // get children values where this id
                 $query = getModelName(CustomTable::getEloquent($relation))
                     ::where($index_name, $this->id);
-                    return $returnBuilder ? $query : $query->get();
+                return $returnBuilder ? $query : $query->get();
             }
         }
     
@@ -822,7 +822,7 @@ class CustomValue extends ModelBase
         $child_table = CustomTable::getEloquent($relation);
         $pivot_table_name = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
 
-        if(isset($pivot_table_name)){
+        if (isset($pivot_table_name)) {
             return $returnBuilder ? $this->{$pivot_table_name}() : $this->{$pivot_table_name};
         }
         
@@ -832,9 +832,10 @@ class CustomValue extends ModelBase
     /**
      * set revision data
      */
-    public function setRevision($revision_suuid){
+    public function setRevision($revision_suuid)
+    {
         $revision_value = $this->revisionHistory()->where('suuid', $revision_suuid)->first()->new_value;
-        if(is_json($revision_value)){
+        if (is_json($revision_value)) {
             $revision_value = \json_decode($revision_value, true);
         }
         $this->value = $revision_value;

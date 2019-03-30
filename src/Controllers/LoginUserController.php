@@ -39,7 +39,7 @@ class LoginUserController extends AdminControllerBase
         $grid->column($table->getIndexColumnName('email'), exmtrans('user.email'));
         
         $controller = $this;
-        $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use($controller) {
+        $grid->column('login_user_id', exmtrans('user.login_user'))->display(function ($login_user_id) use ($controller) {
             return !is_null($controller->getLoginUser($this)) ? 'YES' : '';
         });
 
@@ -120,8 +120,7 @@ class LoginUserController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'create_password_auto', 'nullValue' => true]
                     ])]);
-
-        }else{
+        } else {
             $form->disableSubmit();
         }
 
@@ -232,7 +231,8 @@ class LoginUserController extends AdminControllerBase
         return redirect($url);
     }
 
-    protected function getLoginUser($user){
+    protected function getLoginUser($user)
+    {
         $login_user = $user->login_users()->whereNull('login_provider')->first();
         return $login_user;
     }

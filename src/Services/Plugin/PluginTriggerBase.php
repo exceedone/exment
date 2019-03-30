@@ -7,7 +7,8 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-class PluginTriggerBase {
+class PluginTriggerBase
+{
     use PluginBase;
     
     public $custom_table;
@@ -23,7 +24,7 @@ class PluginTriggerBase {
         $this->custom_value = getModelName($custom_table)::find($custom_value_id);
     }
 
-    public function execute(){
-
+    public function execute()
+    {
     }
 }

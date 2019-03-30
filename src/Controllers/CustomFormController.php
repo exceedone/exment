@@ -524,8 +524,9 @@ class CustomFormController extends AdminControllerTableBase
     /**
      * get form block label header
      */
-    protected function getBlockLabelHeader($form_block_type){
-        switch($form_block_type){
+    protected function getBlockLabelHeader($form_block_type)
+    {
+        switch ($form_block_type) {
             case FormBlockType::ONE_TO_MANY:
                 return exmtrans('custom_form.table_one_to_many_label');
             case FormBlockType::MANY_TO_MANY:

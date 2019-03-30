@@ -27,7 +27,8 @@ class CustomCopyColumn extends ModelBase
      * get ViewColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
      */
-    public function getFromViewColumnTargetAttribute(){
+    public function getFromViewColumnTargetAttribute()
+    {
         return $this->getViewColumnTarget('from_column_type', 'from_column_target_id');
     }
     
@@ -35,7 +36,8 @@ class CustomCopyColumn extends ModelBase
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
      */
-    public function setFromViewColumnTargetAttribute($view_column_target){
+    public function setFromViewColumnTargetAttribute($view_column_target)
+    {
         $this->setViewColumnTarget($view_column_target, 'from_column_type', 'from_column_target_id');
     }
 
@@ -43,7 +45,8 @@ class CustomCopyColumn extends ModelBase
      * get ViewColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
      */
-    public function getToViewColumnTargetAttribute(){
+    public function getToViewColumnTargetAttribute()
+    {
         return $this->getViewColumnTarget('to_column_type', 'to_column_target_id');
     }
     
@@ -51,8 +54,8 @@ class CustomCopyColumn extends ModelBase
      * set ViewColumnTarget.
      * * we have to convert int if view_column_type is system for custom view form-display*
      */
-    public function setToViewColumnTargetAttribute($view_column_target){
+    public function setToViewColumnTargetAttribute($view_column_target)
+    {
         $this->setViewColumnTarget($view_column_target, 'to_column_type', 'to_column_target_id');
     }
-
 }
