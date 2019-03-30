@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Middleware;
 
-use Illuminate\Auth\AuthenticationException;
-use Laravel\Passport\Exceptions\MissingScopeException;
 
 class CheckForAnyScope
 {
