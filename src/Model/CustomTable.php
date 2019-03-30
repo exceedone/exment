@@ -248,36 +248,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return static::withLoad($obj, $withs);
     }
 
-    // --------------------------------------------------
-    // static functions
-    // --------------------------------------------------
-    public static function findByEndpoint($endpoint = null, $withs = [])
-    {
-        $table_names = static::all()->pluck('table_name')->toArray();
-        if (!isset($endpoint)) {
-            $endpoint = url()->current();
-        }
-        $urls = array_reverse(explode("/", $endpoint));
-        foreach ($urls as $url) {
-            if (!isset($url)) {
-                continue;
-            }
-            if (mb_substr($url, 0, 1) === "?") {
-                continue;
-            }
-            if (in_array($url, ['index', 'create', 'show', 'edit'])) {
-                continue;
-            }
-
-            // joint table
-            if (in_array($url, $table_names)) {
-                return static::getEloquent($url, $withs);
-            }
-        }
-
-        return null;
-    }
-
     /**
      * get table list.
      * But filter these:
@@ -436,15 +406,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->custom_columns()
             ->indexEnabled()
             ->get();
-    }
-
-    /**
-     * get array for "makeHidden" function
-     */
-    public function getMakeHiddenArray(){
-        return $this->getSearchEnabledColumns()->map(function($columns){
-            return $columns->getIndexColumnName();
-        })->toArray();
     }
 
     /**
