@@ -21,5 +21,4 @@ class Textarea extends CustomItem
         $options = $this->custom_column->options;
         $field->rows(array_get($options, 'rows', 6));
     }
-    
 }

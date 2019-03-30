@@ -12,11 +12,13 @@ class DashboardBoxSystemPage extends EnumBase
         'guideline' => ['id' => 1, 'name' => 'guideline'],
     ];
 
-    public function option(){
+    public function option()
+    {
         return array_get(static::$options, $this->lowerKey());
     }
     
-    public static function options(){
+    public static function options()
+    {
         return static::$options;
     }
     

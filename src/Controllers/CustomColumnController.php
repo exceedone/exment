@@ -406,7 +406,7 @@ class CustomColumnController extends AdminControllerTableBase
         })->disableHeader();
 
         // if create column, add custom form and view
-        if(!isset($id)){
+        if (!isset($id)) {
             $form->switchbool('add_custom_form_flg', exmtrans("custom_column.add_custom_form_flg"))->help(exmtrans("custom_column.help.add_custom_form_flg"))
                 ->default("1")
                 ->attribute(['data-filtertrigger' =>true])
@@ -439,10 +439,11 @@ class CustomColumnController extends AdminControllerTableBase
     /**
      * add column form and view after saved
      */
-    protected function addColumnAfterSaved($model){
+    protected function addColumnAfterSaved($model)
+    {
         // set custom form columns --------------------------------------------------
         $add_custom_form_flg = app('request')->input('add_custom_form_flg');
-        if(boolval($add_custom_form_flg)){
+        if (boolval($add_custom_form_flg)) {
             $form = CustomForm::getDefault($this->custom_table);
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
             
@@ -464,7 +465,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         // set custom form columns --------------------------------------------------
         $add_custom_view_flg = app('request')->input('add_custom_view_flg');
-        if(boolval($add_custom_view_flg)){
+        if (boolval($add_custom_view_flg)) {
             $view = CustomView::getDefault($this->custom_table);
             
             // get order

@@ -22,7 +22,6 @@ use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
 
-
 class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
 {
     /**
@@ -179,8 +178,9 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
         });
     }
 
-    protected function bootPassport(){
-        // adding rule for laravel-passport 
+    protected function bootPassport()
+    {
+        // adding rule for laravel-passport
         Client::creating(function (Client $client) {
             $client->incrementing = false;
             $client->id = Uuid::generate()->string;

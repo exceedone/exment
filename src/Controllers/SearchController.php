@@ -491,7 +491,7 @@ EOT;
         if (isset($search_type)) {
             $array['search_type'] = $search_type;
         }
-        if($table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)){
+        if ($table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }
         return $array;

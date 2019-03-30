@@ -352,14 +352,15 @@ EOT;
         });
     }
 
-    protected function showVersionUpdate(){
+    protected function showVersionUpdate()
+    {
         // if system admin, check version
-        if(!\Exment::user()->hasPermission(Permission::SYSTEM)){
+        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
             return;
         }
         
         $versionCheck = checkLatestVersion();
-        if($versionCheck == SystemVersion::HAS_NEXT){
+        if ($versionCheck == SystemVersion::HAS_NEXT) {
             list($latest, $current) = getExmentVersion();
             admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'.getManualUrl('update').'" target="_blank">'.exmtrans("system.update_guide").'</a>');
         }

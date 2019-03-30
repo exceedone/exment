@@ -86,7 +86,7 @@ trait CustomValueSummary
             if (array_key_exists($target_table_id, $custom_tables)) {
                 $custom_tables[$target_table_id]['filter'][] = $custom_view_filter;
             } else {
-                $custom_tables[$target_table_id] = [ 
+                $custom_tables[$target_table_id] = [
                     'table_name' => getDBTableName($target_table_id),
                     'filter' => [$custom_view_filter]
                 ];
@@ -111,14 +111,14 @@ trait CustomValueSummary
                 continue;
             }
             // join parent table
-            if ($parent_relations->contains(function ($value, $key) use($table_id) {
+            if ($parent_relations->contains(function ($value, $key) use ($table_id) {
                 return $value->parent_custom_table->id == $table_id;
             })) {
                 $this->addQuery($query, $db_table_name, $custom_table, 'parent_id', 'id');
                 continue;
-            } 
+            }
             // create subquery grouping child table
-            if ($child_relations->contains(function ($value, $key) use($table_id) {
+            if ($child_relations->contains(function ($value, $key) use ($table_id) {
                 return $value->child_custom_table->id == $table_id;
             })) {
                 $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $custom_table);
@@ -147,7 +147,7 @@ trait CustomValueSummary
         }
 
         // join subquery
-        foreach($sub_queries as $table_no => $sub_query) {
+        foreach ($sub_queries as $table_no => $sub_query) {
             $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
             $query->mergeBindings($sub_query);
         }
@@ -158,7 +158,8 @@ trait CustomValueSummary
     /**
      * add select column and filter and join table to main query
      */
-    protected function addQuery(&$query, $table_main, $custom_table, $key_main = null, $key_sub = null) {
+    protected function addQuery(&$query, $table_main, $custom_table, $key_main = null, $key_sub = null)
+    {
         $table_name = array_get($custom_table, 'table_name');
         if ($table_name != $table_main) {
             $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
@@ -176,7 +177,8 @@ trait CustomValueSummary
     /**
      * add select column and filter and join table to sub query
      */
-    protected function getSubQuery($table_main, $key_main, $key_sub, $custom_table) {
+    protected function getSubQuery($table_main, $key_main, $key_sub, $custom_table)
+    {
         $table_name = array_get($custom_table, 'table_name');
         $sub_query = \DB::table($table_name)
             ->select("$table_name.$key_sub as id")
@@ -233,5 +235,4 @@ trait CustomValueSummary
             $custom_tables[$table_id]['select_group'][] = $item->getGroupName();
         }
     }
-
 }

@@ -13,7 +13,8 @@ class ChangeField extends Text
 
     protected $ajax = '';
 
-    public function ajax($ajax){
+    public function ajax($ajax)
+    {
         $this->ajax = $ajax;
 
         return $this;

@@ -54,7 +54,7 @@ class ClientListCommand extends Command
     {
         $clients = Client::all();
 
-        foreach($clients as $client){
+        foreach ($clients as $client) {
             $this->line('<comment>Name:</comment> '.$client->name);
             $this->line('<comment>Client Type:</comment> '.$this->getClientType($client));
             $this->line('<comment>User ID:</comment> '.$client->user_id);
@@ -68,16 +68,17 @@ class ClientListCommand extends Command
     /**
      * get client type string
      */
-    protected function getClientType(Client $client){
-        if($client->personal_access_client == false && $client->password_client == true){
+    protected function getClientType(Client $client)
+    {
+        if ($client->personal_access_client == false && $client->password_client == true) {
             return 'Password Grant';
         }
-        if($client->personal_access_client == true && $client->password_client == false){
+        if ($client->personal_access_client == true && $client->password_client == false) {
             return 'Personal Access';
         }
-        if($client->personal_access_client == false && $client->password_client == false){
+        if ($client->personal_access_client == false && $client->password_client == false) {
             // check userid
-            if(isset($client->user_id)){
+            if (isset($client->user_id)) {
                 return 'Auth Code';
             }
             return 'Client Credentials';

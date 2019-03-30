@@ -150,8 +150,8 @@ abstract class FormOtherItem implements ItemInterface
     /**
      * get view filter type
      */
-    public function getViewFilterType(){
+    public function getViewFilterType()
+    {
         return ViewColumnFilterType::DEFAULT;
     }
-
 }

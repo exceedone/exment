@@ -49,8 +49,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function index(Request $request, Content $content)
     {
-        
-        if(($response = $this->firstFlow($request, null, true)) instanceof Response){
+        if (($response = $this->firstFlow($request, null, true)) instanceof Response) {
             return $response;
         }
         $this->AdminContent($content);
@@ -92,7 +91,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function create(Request $request, Content $content)
     {
-        if(($response = $this->firstFlow($request)) instanceof Response){
+        if (($response = $this->firstFlow($request)) instanceof Response) {
             return $response;
         }
         $this->AdminContent($content);
@@ -110,7 +109,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function edit(Request $request, Content $content, $tableKey, $id)
     {
-        if(($response = $this->firstFlow($request, $id)) instanceof Response){
+        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
             return $response;
         }
 
@@ -153,7 +152,7 @@ class CustomValueController extends AdminControllerTableBase
             return $this->createShowForm($id, $modal);
         }
 
-        if(($response = $this->firstFlow($request, $id, true)) instanceof Response){
+        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
             return $response;
         }
 
@@ -170,7 +169,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function filedelete(Request $request, $id)
     {
-        if(($response = $this->firstFlow($request, $id)) instanceof Response){
+        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
             return $response;
         }
 
@@ -212,7 +211,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function fileupload(Request $request, $id)
     {
-        if(($response = $this->firstFlow($request, $id)) instanceof Response){
+        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
             return $response;
         }
 
@@ -346,8 +345,8 @@ class CustomValueController extends AdminControllerTableBase
     protected function firstFlow(Request $request, $id = null, $show = false)
     {
         // if this custom_table doesn't have custom_columns, redirect custom_column's page(admin) or back
-        if(!isset($this->custom_table->custom_columns) || count($this->custom_table->custom_columns) == 0){
-            if($this->custom_table->hasPermission(Permission::CUSTOM_TABLE)){
+        if (!isset($this->custom_table->custom_columns) || count($this->custom_table->custom_columns) == 0) {
+            if ($this->custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
                 admin_toastr(exmtrans('custom_value.help.no_columns_admin'), 'error');
                 return redirect(admin_urls('column', $this->custom_table->table_name));
             }
@@ -399,8 +398,7 @@ class CustomValueController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
 
         // check if data referenced
-        if ($this->checkReferenced($custom_table, [$id]))
-        {
+        if ($this->checkReferenced($custom_table, [$id])) {
             return [
                 'status'  => false,
                 'message' => exmtrans('custom_value.help.reference_error'),
@@ -415,13 +413,12 @@ class CustomValueController extends AdminControllerTableBase
                 ::where('parent_id', $id)
                 ->where('parent_type', $custom_table->table_name)
                 ->pluck('id')->all();
-            if ($this->checkReferenced($child_table, $list))
-            {
+            if ($this->checkReferenced($child_table, $list)) {
                 return [
                     'status'  => false,
                     'message' => exmtrans('custom_value.help.reference_error'),
                 ];
             }
-        }    
+        }
     }
 }

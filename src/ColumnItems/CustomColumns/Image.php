@@ -10,10 +10,11 @@ class Image extends File
     /**
      * get html. show link to image
      */
-    public function html(){
-        // get image url 
+    public function html()
+    {
+        // get image url
         $url = ExmentFile::getUrl($this->value);
-        if(!isset($url)){
+        if (!isset($url)) {
             return $url;
         }
 
@@ -30,6 +31,5 @@ class Image extends File
         parent::setAdminOptions($field, $form_column_options);
 
         $field->attribute(['accept' => "image/*"]);
-
     }
 }

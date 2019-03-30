@@ -121,7 +121,8 @@ class CustomRelationController extends AdminControllerTableBase
             return CustomTable::filterList()
                 ->where('id', '<>', $custom_table_id)
                 ->pluck('table_view_name', 'id')
-                ->toArray(); })
+                ->toArray();
+        })
             ->required()
             ->rules("loopRelation:{$custom_table_id}");
 

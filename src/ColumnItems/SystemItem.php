@@ -55,7 +55,7 @@ class SystemItem implements ItemInterface
             $summary_condition = SummaryCondition::getGroupCondition(array_get($this->options, 'summary_condition'));
             $alter_name = $this->sqlAsName();
             $raw = "$summary_condition($alter_name) AS $alter_name";
-            return \DB::raw($raw);        
+            return \DB::raw($raw);
         }
         return null;
     }
@@ -77,12 +77,13 @@ class SystemItem implements ItemInterface
     /**
      * get sql query column name
      */
-    protected function getSqlColumnName(){
+    protected function getSqlColumnName()
+    {
         // get SystemColumn enum
         $option = SystemColumn::getOption(['name' => $this->column_name]);
-        if(!isset($option)){
+        if (!isset($option)) {
             $sqlname = $this->column_name;
-        }else{
+        } else {
             $sqlname = array_get($option, 'sqlname');
         }
         return getDBTableName($this->custom_table) .'.'. $sqlname;
@@ -163,7 +164,8 @@ class SystemItem implements ItemInterface
     /**
      * get view filter type
      */
-    public function getViewFilterType(){
+    public function getViewFilterType()
+    {
         switch ($this->column_name) {
             case 'id':
             case 'suuid':

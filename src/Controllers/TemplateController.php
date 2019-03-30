@@ -38,7 +38,8 @@ class TemplateController extends AdminControllerBase
     /**
      * search template
      */
-    public function searchTemplate(Request $request){
+    public function searchTemplate(Request $request)
+    {
         // search from exment api
         // $client = new Client();
 
@@ -65,7 +66,7 @@ class TemplateController extends AdminControllerBase
             // $paginator = new LengthAwarePaginator(
             //     collect($json['data']),
             //     $json['total'],
-            //     $json['per_page'], 
+            //     $json['per_page'],
             //     $json['current_page']
             // );
     
@@ -107,7 +108,7 @@ class TemplateController extends AdminControllerBase
             $paginator = new LengthAwarePaginator(
                 collect($datalist),
                 2,
-                1, 
+                1,
                 1
             );
     
@@ -128,7 +129,6 @@ class TemplateController extends AdminControllerBase
                 'column' => $column,
             ])->render();
         }
-
     }
 
     /**

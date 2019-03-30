@@ -188,12 +188,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         // get table info
         $tableKey = app('request')->route()->parameter('tableKey');
-        if(!isset($tableKey)){
+        if (!isset($tableKey)) {
             abort(404);
         }
 
         $custom_table = static::getEloquent($tableKey);
-        if(!isset($custom_table)){
+        if (!isset($custom_table)) {
             abort(404);
         }
 
@@ -355,7 +355,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * search value
      */
-    public function searchValue($q, $options = []){
+    public function searchValue($q, $options = [])
+    {
         $options = array_merge(
             [
                 'isLike' => true,
@@ -382,9 +383,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
         
         // return as paginate
-        if($paginate){
+        if ($paginate) {
             $paginates = $query->paginate($maxCount);
-            if(boolval($makeHidden)){
+            if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;
             }
@@ -467,7 +468,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
-     * 
+     *
      * *"$this" is the table targeted on options.
      * *"$display_table" is the table user shows on display.
      *
@@ -483,8 +484,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $table_name = $this->table_name;
         $display_table = CustomTable::getEloquent($display_table);
         // check table permission. if not exists, show admin_warning
-        if(!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()){
-            if($showMessage_ifDeny){
+        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
+            if ($showMessage_ifDeny) {
                 admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
             }
             return [];
@@ -498,8 +499,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
             $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
-        }
-        elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
+        } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
@@ -567,8 +567,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = [];
         
-        $this->setColumnOptions($options, $this->custom_columns, $index_enabled_only, 
-            true, true, $append_table, $this->id);
+        $this->setColumnOptions(
+        
+            $options,
+        
+            $this->custom_columns,
+        
+            $index_enabled_only,
+            true,
+        
+            true,
+        
+            $append_table,
+        
+            $this->id
+        
+        );
 
         if ($include_parent) {
             ///// get child table columns
@@ -577,16 +591,32 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $parent = array_get($rel, 'parent_custom_table');
                 $parent_id = array_get($rel, 'parent_custom_table_id');
                 $tablename = array_get($parent, 'table_view_name');
-                $this->setColumnOptions($options, $parent->custom_columns, 
-                    $index_enabled_only, true, true, $append_table, $parent_id, $tablename);
+                $this->setColumnOptions(
+                    $options,
+                    $parent->custom_columns,
+                    $index_enabled_only,
+                    true,
+                    true,
+                    $append_table,
+                    $parent_id,
+                    $tablename
+                );
             }
             ///// get select table columns
             $select_table_columns = $this->getSelectTableColumns();
             foreach ($select_table_columns as $select_table_column) {
                 $custom_table = $select_table_column->column_item->getSelectTable();
                 $tablename = array_get($custom_table, 'table_view_name');
-                $this->setColumnOptions($options, $custom_table->custom_columns, 
-                    $index_enabled_only, true, true, $append_table, $custom_table->id, $tablename);
+                $this->setColumnOptions(
+                    $options,
+                    $custom_table->custom_columns,
+                    $index_enabled_only,
+                    true,
+                    true,
+                    $append_table,
+                    $custom_table->id,
+                    $tablename
+                );
             }
         }
         if ($include_child) {
@@ -596,24 +626,47 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $child = array_get($rel, 'child_custom_table');
                 $child_id = array_get($rel, 'child_custom_table_id');
                 $tablename = array_get($child, 'table_view_name');
-                $this->setColumnOptions($options, $child->custom_columns, 
-                    $index_enabled_only, true, false, $append_table, $child_id, $tablename);
+                $this->setColumnOptions(
+                    $options,
+                    $child->custom_columns,
+                    $index_enabled_only,
+                    true,
+                    false,
+                    $append_table,
+                    $child_id,
+                    $tablename
+                );
             }
             ///// get selected table columns
             $selected_table_columns = $this->getSelectedTableColumns();
             foreach ($selected_table_columns as $selected_table_column) {
                 $custom_table = $selected_table_column->custom_table;
                 $tablename = array_get($custom_table, 'table_view_name');
-                $this->setColumnOptions($options, $custom_table->custom_columns, 
-                    $index_enabled_only, true, true, $append_table, $custom_table->id, $tablename);
+                $this->setColumnOptions(
+                    $options,
+                    $custom_table->custom_columns,
+                    $index_enabled_only,
+                    true,
+                    true,
+                    $append_table,
+                    $custom_table->id,
+                    $tablename
+                );
             }
         }
     
         return $options;
     }
-    protected function setColumnOptions(&$options, $custom_columns, $index_enabled_only, 
-        $include_system, $include_parent, $append_table, $table_id, $table_name = null) 
-    {
+    protected function setColumnOptions(
+        &$options,
+        $custom_columns,
+        $index_enabled_only,
+        $include_system,
+        $include_parent,
+        $append_table,
+        $table_id,
+        $table_name = null
+    ) {
         if ($include_system) {
             /// get system columns
             foreach (SystemColumn::getOptions(['header' => true]) as $option) {
@@ -662,7 +715,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
     }
     
-    protected function getOptionKey($key, $append_table = true, $table_name = null) {
+    protected function getOptionKey($key, $append_table = true, $table_name = null)
+    {
         if ($append_table) {
             return ($table_name?? $this->id) . '-' . $key;
         } else {
@@ -700,14 +754,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $tablename = array_get($child, 'table_view_name');
             /// get system columns for summary
             foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $options[$this->getOptionKey(array_get($option, 'name'), true, $tableid)] 
+                $options[$this->getOptionKey(array_get($option, 'name'), true, $tableid)]
                     = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
             }
             $child_columns = $child->custom_columns;
             foreach ($child_columns as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $options[$this->getOptionKey(array_get($option, 'id'), true, $tableid)] 
+                    $options[$this->getOptionKey(array_get($option, 'id'), true, $tableid)]
                         = $tablename . ' : ' . array_get($option, 'column_view_name');
                 }
             }
@@ -719,13 +773,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $tablename = array_get($custom_table, 'table_view_name');
             /// get system columns for summary
             foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $options[$this->getOptionKey(array_get($option, 'name'), true, $custom_table->id)] 
+                $options[$this->getOptionKey(array_get($option, 'name'), true, $custom_table->id)]
                     = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
             }
             foreach ($custom_table->custom_columns as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $options[$this->getOptionKey(array_get($option, 'id'), true, $custom_table->id)] 
+                    $options[$this->getOptionKey(array_get($option, 'id'), true, $custom_table->id)]
                         = $tablename . ' : ' . array_get($option, 'column_view_name');
                 }
             }
@@ -849,7 +903,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // else, get model using value_authoritable.
         // if count > 0, return true.
         $rows = $model->getAuthoritable(SystemTableName::USER);
-        if($this->checkPermissionWithPivot($rows, $role)){
+        if ($this->checkPermissionWithPivot($rows, $role)) {
             return true;
         }
 
@@ -857,7 +911,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if count > 0, return true.
         if (System::organization_available()) {
             $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if($this->checkPermissionWithPivot($rows, $role)){
+            if ($this->checkPermissionWithPivot($rows, $role)) {
                 return true;
             }
         }
@@ -869,13 +923,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * check permission with pivot
      */
-    protected function checkPermissionWithPivot($rows, $role_key){
+    protected function checkPermissionWithPivot($rows, $role_key)
+    {
         if (!isset($rows) || count($rows) == 0) {
             return false;
         }
 
-        foreach($rows as $row){
-            // get role 
+        foreach ($rows as $row) {
+            // get role
             $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
 
             // if role type is system, and has key
@@ -889,7 +944,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * 
+     *
      */
     public function allUserAccessable()
     {
@@ -898,5 +953,4 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
     }
-
 }

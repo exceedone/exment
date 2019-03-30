@@ -7,7 +7,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 
 class ExmentCustomValidator extends \Illuminate\Validation\Validator
-{ 
+{
     /**
     * Validation in table
     *
@@ -109,12 +109,14 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         $rows = CustomRelation::where($attr1, $custom_table_id)
             ->get();
 
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $id = array_get($row, $attr2);
             if ($id == $value) {
                 return false;
             } else {
-                if (!$this->HasRelation($attr1, $attr2, $id, $value)) return false;
+                if (!$this->HasRelation($attr1, $attr2, $id, $value)) {
+                    return false;
+                }
             }
         }
 
@@ -160,5 +162,4 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     {
         return str_replace(':maxlen', $parameters[1], $message);
     }
-
 }

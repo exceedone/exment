@@ -48,7 +48,8 @@ class System extends ModelBase
     /**
      * reset all request settion
      */
-    public static function resetRequestSession(){
+    public static function resetRequestSession()
+    {
         static::$requestSession = [];
     }
 

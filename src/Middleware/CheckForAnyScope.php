@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Middleware;
 
-
 class CheckForAnyScope
 {
     /**
@@ -17,7 +16,7 @@ class CheckForAnyScope
     public function handle($request, $next, ...$scopes)
     {
         $user = \Exment::user();
-        if(is_null($user) || is_null($user->base_user)){
+        if (is_null($user) || is_null($user->base_user)) {
             return abortJson(401);
         }
 

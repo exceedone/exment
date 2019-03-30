@@ -48,7 +48,7 @@ trait ItemTrait
         if (!func_num_args()) {
             return $this->label;
         }
-        if(isset($label)){
+        if (isset($label)) {
             $this->label = $label;
         }
         return $this;
@@ -72,10 +72,10 @@ trait ItemTrait
     
     /**
      * whether column is enabled index.
-     * 
+     *
      */
-    public function indexEnabled(){
+    public function indexEnabled()
+    {
         return true;
     }
-
 }

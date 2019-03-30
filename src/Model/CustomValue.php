@@ -183,8 +183,9 @@ class CustomValue extends ModelBase
     /**
      * set original data.
      */
-    protected function setAgainOriginalValue(&$value, $original, $custom_column){
-        if(is_null($value)){
+    protected function setAgainOriginalValue(&$value, $original, $custom_column)
+    {
+        if (is_null($value)) {
             $value = [];
         }
         $column_name = $custom_column->column_name;

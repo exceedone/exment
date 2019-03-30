@@ -50,7 +50,7 @@ trait CustomViewColumnTrait
     protected function getViewColumnTarget($column_table_id_key = 'view_column_table_id', $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
         if (!isset($this->{$column_table_id_key}) ||
-            !isset($this->{$column_type_key}) || 
+            !isset($this->{$column_type_key}) ||
             !isset($this->{$column_type_target_key})) {
             return null;
         }
@@ -103,7 +103,7 @@ trait CustomViewColumnTrait
 
     /**
      * get column target id and target table id.
-     * 
+     *
      * @return array first, target column id. second, target table id.
      */
     protected static function getColumnAndTableId($view_column_type, $column_name, $custom_table = null)
@@ -119,7 +119,7 @@ trait CustomViewColumnTrait
             case ViewColumnType::COLUMN:
                 $target_column = CustomColumn::getEloquent($column_name, $custom_table);
                 // get table and column id
-                if(isset($target_column)){
+                if (isset($target_column)) {
                     $target_column_id = $target_column->id ?? null;
                     $target_table_id = $target_column->custom_table_id;
                 }
@@ -130,17 +130,17 @@ trait CustomViewColumnTrait
                 if ($column_name == ViewColumnType::PARENT_ID || $view_column_type == ViewColumnType::PARENT_ID) {
                     $target_column_id = Define::CUSTOM_view_column_type_PARENT_ID;
                     // get parent table
-                    if(isset($custom_table)){
+                    if (isset($custom_table)) {
                         $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
 
-                        if(isset($relation)){
+                        if (isset($relation)) {
                             $target_table_id = $relation->parent_custom_table_id;
                         }
                     }
-                }else{
+                } else {
                     $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'];
                     // set parent table info
-                    if(isset($custom_table)){
+                    if (isset($custom_table)) {
                         $target_table_id = $custom_table->id;
                     }
                 }
@@ -152,9 +152,10 @@ trait CustomViewColumnTrait
     /**
      * get Table And Column Name
      */
-    protected function getUniqueKeyValues(){
+    protected function getUniqueKeyValues()
+    {
         $table_name = $this->custom_table->table_name;
-        switch($this->view_column_type){
+        switch ($this->view_column_type) {
             case ViewColumnType::COLUMN:
                 return [
                     'table_name' => $table_name,

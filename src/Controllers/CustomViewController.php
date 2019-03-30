@@ -210,7 +210,7 @@ class CustomViewController extends AdminControllerTableBase
                     }
                     return [];
                 });
-            //TODO:temporary Change 
+            //TODO:temporary Change
             // $form->changeField('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
             //     ->ajax(admin_urls('view', $this->custom_table->table_name, 'filterDialog'));
             $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))

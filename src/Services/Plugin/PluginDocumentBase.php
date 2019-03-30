@@ -32,8 +32,12 @@ abstract class PluginDocumentBase
 
         // create pdf
         list($template_path, $output_filename) = $this->getDocumentInfo();
-        $service = new DocumentExcelService($this->custom_value, $template_path, 
-            $output_filename, $this->plugin->getDocumentType());
+        $service = new DocumentExcelService(
+            $this->custom_value,
+            $template_path,
+            $output_filename,
+            $this->plugin->getDocumentType()
+        );
         $service->makeExcel();
 
         // set path and file info
@@ -110,10 +114,14 @@ abstract class PluginDocumentBase
     /**
      * execute before creating document
      */
-    protected function executing(){}
+    protected function executing()
+    {
+    }
     
     /**
      * execute after creating document
      */
-    protected function executed(){}
+    protected function executed()
+    {
+    }
 }

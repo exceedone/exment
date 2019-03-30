@@ -39,7 +39,7 @@ class TemplateImporter
                     $json = json_decode(File::get($path), true);
                     // merge language file
                     $langpath = "$dirname/lang/$locale/lang.json";
-                    if (File::exists($langpath)){
+                    if (File::exists($langpath)) {
                         $lang = json_decode(File::get($langpath), true);
                         $json = static::mergeTemplate($json, $lang);
                         \Log::debug($templates_path, ["json" => $json]);
@@ -425,7 +425,7 @@ class TemplateImporter
         $locale = \App::getLocale();
         $dirname = pathinfo($basePath)['dirname'];
         $langpath = "$dirname/lang/$locale/lang.json";
-        if (File::exists($langpath)){
+        if (File::exists($langpath)) {
             $lang = json_decode(File::get($langpath), true);
             $json = static::mergeTemplate($json, $lang);
         }
@@ -609,7 +609,7 @@ class TemplateImporter
                 return $fillpath;
             }
         }
-        return null;        
+        return null;
     }
     /**
      * update template json by language json.
@@ -618,12 +618,11 @@ class TemplateImporter
     {
         $result = [];
 
-        foreach ($json as $key => $val)
-        {
+        foreach ($json as $key => $val) {
             $langdata = null;
             if (isset($fillpath)) {
-                $langdata = $fillpath::searchLangData($val, $lang);     
-            } else if (isset($lang[$key])) {
+                $langdata = $fillpath::searchLangData($val, $lang);
+            } elseif (isset($lang[$key])) {
                 $langdata = $lang[$key];
             }
 
@@ -634,7 +633,7 @@ class TemplateImporter
             }
 
             if (is_array($json[$key]) && is_array($langdata)) {
-                if ($key === 'custom_form_blocks'){
+                if ($key === 'custom_form_blocks') {
                     $langdata = $langdata;
                 }
                 // if values are both array, call this method recursion

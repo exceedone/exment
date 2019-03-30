@@ -284,8 +284,8 @@ EOT;
         $chart_color = config('exment.chart_backgroundColor', ['red']);
         if ($this->chart_type == ChartType::PIE) {
             $colors = [];
-            for($i = 0; $i < $datacnt; $i++){
-                if(count($colors) >= $datacnt){
+            for ($i = 0; $i < $datacnt; $i++) {
+                if (count($colors) >= $datacnt) {
                     break;
                 }
 
