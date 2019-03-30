@@ -878,6 +878,7 @@ return [
             'has_roles' => '権限のあるユーザー',
         ],
     ],
+    
     'chart' => [
         'chart_type_options' => [
             'bar' => '棒グラフ',
@@ -885,6 +886,7 @@ return [
             'pie' => '円グラフ',
         ]
     ],
+    
     'api' => [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
