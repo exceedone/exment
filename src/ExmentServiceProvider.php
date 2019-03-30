@@ -9,6 +9,7 @@ use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,9 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use League\Flysystem\Filesystem;
+use Laravel\Passport\Passport;
+use Laravel\Passport\Client;
+use Webpatser\Uuid\Uuid;
 
 
 class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
@@ -39,6 +43,7 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
         'Exceedone\Exment\Console\ScheduleCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
+        'Exceedone\Exment\Console\ClientListCommand',
     ];
 
     /**
@@ -58,6 +63,8 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
+        
+        'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
     ];
 
     /**
@@ -110,6 +117,7 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
 
         $this->registerPolicies();
 
+        $this->bootPassport();
         $this->bootPlugin();
     }
 
@@ -125,14 +133,16 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
         require_once(__DIR__.'/Services/Helpers.php');
 
         // register route middleware.
-        // foreach ($this->routeMiddleware as $key => $middleware) {
-        //     app('router')->aliasMiddleware($key, $middleware);
-        // }
+        foreach ($this->routeMiddleware as $key => $middleware) {
+            app('router')->aliasMiddleware($key, $middleware);
+        }
 
-        // // register middleware group.
-        // foreach ($this->middlewareGroups as $key => $middleware) {
-        //     app('router')->middlewareGroup($key, $middleware);
-        // }
+        // register middleware group.
+        foreach ($this->middlewareGroups as $key => $middleware) {
+            app('router')->middlewareGroup($key, $middleware);
+        }
+
+        Passport::ignoreMigrations();
     }
 
     protected function publish()
@@ -167,6 +177,18 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
         });
+    }
+
+    protected function bootPassport(){
+        // adding rule for laravel-passport 
+        Client::creating(function (Client $client) {
+            $client->incrementing = false;
+            $client->id = Uuid::generate()->string;
+        });
+        Client::retrieved(function (Client $client) {
+            $client->incrementing = false;
+        });
+        Passport::tokensCan(ApiScope::transArray('api.scopes'));
     }
 
     // plugin --------------------------------------------------
@@ -225,8 +247,8 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
             return new Providers\CustomUserProvider($app['hash'], \Exceedone\Exment\Model\LoginUser::class);
         });
         
-        \Validator::resolver(function ($translator, $data, $rules, $messages) {
-            return new ExmentCustomValidator($translator, $data, $rules, $messages);
+        \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {
+            return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
 
         Storage::extend('exment-driver', function ($app, $config) {

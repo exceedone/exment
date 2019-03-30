@@ -183,6 +183,7 @@ abstract class CustomItem implements ItemInterface
         // required
         if (boolval(array_get($options, 'required')) && $this->required) {
             $field->required();
+            $field->rules('required');
         } else {
             $field->rules('nullable');
         }

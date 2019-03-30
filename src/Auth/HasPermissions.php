@@ -15,6 +15,7 @@ use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 trait HasPermissions
@@ -95,12 +96,10 @@ trait HasPermissions
      */
     public function allPermissions() : Collection
     {
-        // get session about role
-        $roles = Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
-        // if not exists, get permissons
-        if (!isset($roles)) {
-            $roles = $this->getPermissions();
-        }
+        // get request session about role
+        $roles = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function(){
+            return $this->getPermissions();
+        });
 
         $permissions = [];
         foreach ($roles as $key => $role) {
@@ -216,18 +215,16 @@ trait HasPermissions
      * get organizations that this_user joins.
      * @return mixed
      */
-    public function getOrganizationIds()
+    public function getOrganizationIds($filterType = JoinedOrgFilterType::ALL)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
             return [];
         }
-        if (Session::has(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS)) {
-            return Session::get(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS);
-        }
-        $ids = AuthUserOrgHelper::getOrganizationIds(true);
-        // set session.
-        Session::put(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS, $ids);
+        $ids = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS . '_' . $filterType, function() use($filterType){
+            $ids = AuthUserOrgHelper::getOrganizationIds(true, $filterType);
+            return $ids;
+        });
         return $ids;
     }
 
@@ -239,12 +236,13 @@ trait HasPermissions
         $permission_system_auths = $this->getSystemPermissions();
         $permission_tables = $this->getCustomTablePermissions();
 
-        Session::put(Define::SYSTEM_KEY_SESSION_AUTHORITY, [
-            RoleType::SYSTEM => $permission_system_auths,
-            RoleType::TABLE => $permission_tables]);
-        Session::put(Define::SYSTEM_KEY_SESSION_INITIALIZE, true);
-
-        return Session::get(Define::SYSTEM_KEY_SESSION_AUTHORITY);
+        $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function(){
+            return [
+                RoleType::SYSTEM => $this->getSystemPermissions(),
+                RoleType::TABLE => $this->getCustomTablePermissions(),
+            ];
+        });
+        return $authority;
     }
 
     /**

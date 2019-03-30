@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomForm;
-use Exceedone\Exment\Model\CustomFormBlock;
 use Exceedone\Exment\Model\CustomFormColumn;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
@@ -56,7 +55,7 @@ class CustomColumnController extends AdminControllerTableBase
      * @param $id
      * @return Content
      */
-    public function edit(Request $request, $id, Content $content)
+    public function edit(Request $request, Content $content, $tableKey, $id)
     {
         $this->setFormViewInfo($request);
         
@@ -176,6 +175,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
+                ->rules("maxTableIndex:{$this->custom_table->id},10")
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
@@ -250,19 +250,19 @@ class CustomColumnController extends AdminControllerTableBase
             // select
             // define select-item
             $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
-                    //->rules('required')
+                    ->required()
                     ->help(exmtrans("custom_column.help.select_item"))
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT])]);
             // define select-item
             $form->textarea('select_item_valtext', exmtrans("custom_column.options.select_item"))
-                    //->rules('required')
+                    ->required()
                     ->help(exmtrans("custom_column.help.select_item_valtext"))
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_VALTEXT])]);
 
             // define select-target table
             $form->select('select_target_table', exmtrans("custom_column.options.select_target_table"))
                     ->help(exmtrans("custom_column.help.select_target_table"))
-                    //->rules('required')
+                    ->required()
                     ->options(function ($select_table) {
                         $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
                         return $options;
@@ -271,29 +271,29 @@ class CustomColumnController extends AdminControllerTableBase
 
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
-                    //->rules('required')
+                    ->required()
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
             $form->text('true_label', exmtrans("custom_column.options.true_label"))
                     ->help(exmtrans("custom_column.help.true_label"))
-                    //->rules('required')
+                    ->required()
                     ->default(exmtrans("custom_column.options.true_label_default"))
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
                 
             $form->text('false_value', exmtrans("custom_column.options.false_value"))
                     ->help(exmtrans("custom_column.help.false_value"))
-                    //->rules('required')
+                    ->required()
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
             $form->text('false_label', exmtrans("custom_column.options.false_label"))
                     ->help(exmtrans("custom_column.help.false_label"))
-                    //->rules('required')
+                    ->required()
                     ->default(exmtrans("custom_column.options.false_label_default"))
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::BOOLEAN])]);
 
             // auto numbering
             $form->select('auto_number_type', exmtrans("custom_column.options.auto_number_type"))
-                    //->rules('required')
+                    ->required()
                     ->options(
                         [
                         'format' => exmtrans("custom_column.options.auto_number_type_format"),

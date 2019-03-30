@@ -143,8 +143,7 @@ class CustomValue extends ModelBase
         $value = $this->value;
         $original = json_decode($this->getOriginal('value'), true);
         // get  columns
-        $custom_columns = $this->custom_table
-            ->custom_columns;
+        $custom_columns = $this->custom_table->custom_columns;
 
         // loop columns
         $update_flg = false;

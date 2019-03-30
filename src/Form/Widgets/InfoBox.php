@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Widgets;
 
-use Illuminate\Contracts\Support\Renderable;
 use Encore\Admin\Widgets\InfoBox as AdminInfoBox;
 
 class InfoBox extends AdminInfoBox

@@ -1045,6 +1045,27 @@ if (!function_exists('disableFormFooter')) {
     }
 }
 
+
+if (! function_exists('abortJson')) {
+    /**
+     * abort response as json.
+     * *Have to return object.
+     *
+     * @param  \Symfony\Component\HttpFoundation\Response|int     $code
+     * @param  string  $message
+     * @param  array   $headers
+     * @return void
+     */
+    function abortJson($code, $message = null)
+    {
+        if(!is_null($message) && is_string($message)){
+            return response()->json(['message' => $message], $code);
+        }
+
+        return response()->json($message, $code);
+    }
+}
+
 if (!function_exists('getAjaxResponse')) {
     /**
      * get ajax response.
@@ -1077,7 +1098,11 @@ if (!function_exists('getExmentVersion')) {
     function getExmentVersion($getFromComposer = true)
     {
         try {
-            $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+            try{
+                $version_json = app('request')->session()->get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
+            } catch (\Exception $e) {
+            }
+    
             if (isset($version_json)) {
                 $version = json_decode($version_json, true);
                 $latest = array_get($version, 'latest');
@@ -1138,18 +1163,18 @@ if (!function_exists('getExmentVersion')) {
                     $latest = $key;
                     break;
                 }
-
-                app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-                    'latest' => $latest, 'current' => $current
-                ]));
+                
+                try{
+                    app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                        'latest' => $latest, 'current' => $current
+                    ]));
+                } catch (\Exception $e) {
+                }
             }
         } catch (\Exception $e) {
         }
         
-        if (empty($latest) || empty($current)) {
-            return [null, null];
-        }
-        return [$latest, $current];
+        return [$latest ?? null, $current ?? null];
     }
 }
 

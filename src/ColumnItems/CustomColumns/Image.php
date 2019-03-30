@@ -24,4 +24,12 @@ class Image extends File
     {
         return Field\Image::class;
     }
+    
+    protected function setAdminOptions(&$field, $form_column_options)
+    {
+        parent::setAdminOptions($field, $form_column_options);
+
+        $field->attribute(['accept' => "image/*"]);
+
+    }
 }

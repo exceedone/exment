@@ -182,6 +182,25 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * get CustomTable by url
+     */
+    public static function findByEndpoint($endpoint = null, $withs = [])
+    {
+        // get table info
+        $tableKey = app('request')->route()->parameter('tableKey');
+        if(!isset($tableKey)){
+            abort(404);
+        }
+
+        $custom_table = static::getEloquent($tableKey);
+        if(!isset($custom_table)){
+            abort(404);
+        }
+
+        return $custom_table;
+    }
+
+    /**
      * get custom table eloquent.
      * @param mixed $obj id, table_name, CustomTable object, CustomValue object.
      */
@@ -279,9 +298,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!Admin::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = Admin::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
+            $permission_tables = \Exment::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });
@@ -417,6 +436,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->custom_columns()
             ->indexEnabled()
             ->get();
+    }
+
+    /**
+     * get array for "makeHidden" function
+     */
+    public function getMakeHiddenArray(){
+        return $this->getSearchEnabledColumns()->map(function($columns){
+            return $columns->getIndexColumnName();
+        })->toArray();
     }
 
     /**

@@ -217,7 +217,7 @@ EOT;
     /**
      * compare
      */
-    public function compare(Request $request, $id, Content $content)
+    public function compare(Request $request, Content $content, $id)
     {
         $this->firstFlow($request, $id);
         $this->AdminContent($content);
@@ -228,7 +228,7 @@ EOT;
     /**
      * get compare item for pjax
      */
-    public function compareitem(Request $request, $id, Content $content)
+    public function compareitem(Request $request, Content $content, $id)
     {
         $this->firstFlow($request, $id);
         return $this->getRevisionCompare($id, $request->get('revision'), true);
