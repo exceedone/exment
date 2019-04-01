@@ -299,7 +299,7 @@ var Exment;
                                 }
                             });
                             $.ajax({
-                                url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
+                                url: admin_url(URLJoin('webapi', 'data', table_name, value)),
                                 type: 'POST',
                                 context: {
                                     data: target_table_data,
@@ -673,7 +673,7 @@ var Exment;
             }
             else {
                 $.ajax({
-                    url: admin_base_path(URLJoin('webapi', 'data', table_name, value)),
+                    url: admin_url(URLJoin('webapi', 'data', table_name, value)),
                     type: 'POST',
                     context: context
                 })
@@ -941,16 +941,10 @@ var Exment;
                     }
                     if (isShow) {
                         $eParent.show();
-                        if ($t.parents().hasClass('bootstrap-switch')) {
-                            $t.bootstrapSwitch('disabled', false);
-                        } else {
-                            $t.prop('disabled', false);
-                        }
                         // disabled false
                     }
                     else {
                         $eParent.hide();
-                        $t.prop('disabled', true);
                         ///// remove value
                         // comment out because remove default value
                         //$t.val('');
@@ -962,9 +956,7 @@ var Exment;
                         $t.prop(propName, true);
                     }
                     else {
-                        if (propName != 'disabled' || isShow){
-                            $t.prop(propName, false);
-                        }
+                        $t.prop(propName, false);
                     }
                 }
                 catch (e) {
@@ -1077,10 +1069,13 @@ var admin_base_path = function (path) {
     if (admin_base_uri.length > 0) {
         urls.push(admin_base_uri);
     }
-    urls.push(trimAny($('#admin_base_path').val(), '/'));
+    urls.push(trimAny($('#admin_prefix').val(), '/'));
     var prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
+};
+var admin_url = function (path) {
+    return URLJoin($('#admin_uri').val(), path);
 };
 var getParamFromArray = function (array) {
     array = array.filter(function (x) {
