@@ -1114,7 +1114,10 @@ if (!function_exists('getExmentVersion')) {
                 if (!$packages) {
                     return [null, null];
                 }
-                foreach (collect($packages)->reverse() as $key => $package) {
+
+                // sort by timestamp
+                $sortedPackages = collect($packages)->sortByDesc('time');
+                foreach ($sortedPackages as $key => $package) {
                     // if version is "dev-", continue
                     if (substr($key, 0, 4) == 'dev-') {
                         continue;
