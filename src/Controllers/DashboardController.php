@@ -301,11 +301,11 @@ EOT;
                 }
 
                 // right-top icons
-                $icons = [['widget' => 'reload', 'icon' => 'fa-refresh']];
+                $icons = [['widget' => 'reload', 'icon' => 'fa-refresh', 'tooltip' => trans('admin.refresh')]];
                 // check role.
                 if ($has_role) {
-                    $icons = array_prepend($icons, ['link' => admin_base_path('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog']);
-                    array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash']);
+                    $icons = array_prepend($icons, ['link' => admin_base_path('dashboardbox/'.$id.'/edit'), 'icon' => 'fa-cog', 'tooltip' => trans('admin.edit')]);
+                    array_push($icons, ['widget' => 'delete', 'icon' => 'fa-trash', 'tooltip' => trans('admin.delete')]);
                 }
                 
                 // set column. use grid system
