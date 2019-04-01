@@ -41,7 +41,7 @@ class TemplateController extends AdminControllerBase
         $form = new \Encore\Admin\Widgets\Form();
         $form->disablePjax();
         $form->disableReset();
-        $form->action(admin_base_path('template/export'));
+        $form->action(admin_url('template/export'));
 
         $form->description(exmtrans('template.description_export'));
         $form->text('template_name', exmtrans('template.template_name'))->help(exmtrans('common.help_code'));
@@ -73,7 +73,7 @@ class TemplateController extends AdminControllerBase
     {
         $form = new \Encore\Admin\Widgets\Form();
         $form->disableReset();
-        $form->action(admin_base_path('template/import'));
+        $form->action(admin_url('template/import'));
 
         $form->description(exmtrans('template.description_import'));
         $this->addTemplateTile($form);

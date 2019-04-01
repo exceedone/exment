@@ -168,7 +168,7 @@ class SystemController extends AdminControllerBase
 
             admin_toastr(trans('admin.save_succeeded'));
 
-            return redirect(admin_base_path('system'));
+            return redirect(admin_url('system'));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();

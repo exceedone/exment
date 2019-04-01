@@ -61,7 +61,7 @@ class BackupController extends AdminControllerBase
     protected function settingFormBox()
     {
         $form = new WidgetForm(System::get_system_values());
-        $form->action(admin_base_paths('backup/setting'));
+        $form->action(admin_urls('backup/setting'));
         $form->disableReset();
 
         $form->checkbox('backup_target', exmtrans("backup.backup_target"))
@@ -99,7 +99,7 @@ class BackupController extends AdminControllerBase
 
         if (!$validator->passes()) {
             admin_toastr(exmtrans('backup.message.target_required'), 'error');
-            return redirect(admin_base_path('backup'));
+            return redirect(admin_url('backup'));
         }
 
         DB::beginTransaction();
@@ -113,7 +113,7 @@ class BackupController extends AdminControllerBase
             DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));
-            return redirect(admin_base_path('backup'));
+            return redirect(admin_url('backup'));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();
@@ -127,7 +127,7 @@ class BackupController extends AdminControllerBase
      */
     protected function importModal()
     {
-        $import_path = admin_base_path(url_join('backup', 'import'));
+        $import_path = admin_url(url_join('backup', 'import'));
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset();
@@ -262,11 +262,7 @@ class BackupController extends AdminControllerBase
 
         if (isset($result) && $result === 0) {
             admin_toastr(exmtrans('backup.message.restore_file_success'));
-            return redirect(admin_base_paths('auth', 'logout'));
-            return response()->json([
-                'status'  => true,
-                'message' => exmtrans('backup.message.restore_succeeded'),
-            ]);
+            return redirect(admin_urls('auth', 'logout'));
         } else {
             return response()->json([
                 'status'  => false,

@@ -37,7 +37,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         
         // import
         $import = exmtrans('common.import');
-        $import_template = admin_base_path('data/'.$this->table_name).'?_export_=all&temp=1'; // laravel-admin 1.6.1
+        $import_template = admin_url('data/'.$this->table_name).'?_export_=all&temp=1'; // laravel-admin 1.6.1
         $import_template_trans = exmtrans('custom_value.template');
 
         $import_export = exmtrans('custom_value.import_export');

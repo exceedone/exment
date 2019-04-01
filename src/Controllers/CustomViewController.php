@@ -136,7 +136,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true))
-                ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_base_paths('view', $custom_table->table_name, 'filter-condition')])]);
+                ->attribute(['data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')])]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
                 ->options(function ($val) {

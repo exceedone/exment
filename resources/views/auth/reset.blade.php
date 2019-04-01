@@ -38,6 +38,6 @@
                 </div>
             </form>
             <div style="margin:10px 0; text-align:center;">
-                <p><a href="{{admin_base_path('auth/login')}}">{{ exmtrans('login.back_login_page') }}</a></p>
+                <p><a href="{{admin_url('auth/login')}}">{{ exmtrans('login.back_login_page') }}</a></p>
             </div>
 @endsection

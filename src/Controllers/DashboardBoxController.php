@@ -33,7 +33,7 @@ class DashboardBoxController extends AdminControllerBase
 
     public function index(Request $request, Content $content)
     {
-        return redirect(admin_base_path(''));
+        return redirect(admin_url(''));
     }
     
     /**
@@ -126,8 +126,8 @@ class DashboardBoxController extends AdminControllerBase
 
                         // check edit permission
                         if ($table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-                            $new_url= admin_base_path("data/{$table->table_name}/create");
-                            $list_url = admin_base_path("data/{$table->table_name}");
+                            $new_url= admin_url("data/{$table->table_name}/create");
+                            $list_url = admin_url("data/{$table->table_name}");
                         } else {
                             $new_url = null;
                             $list_url = null;
@@ -165,7 +165,7 @@ class DashboardBoxController extends AdminControllerBase
         // get dashboard, row_no, column_no, ... from query "dashboard_suuid"
         list($dashboard, $dashboard_box_type, $row_no, $column_no) = $this->getDashboardInfo($id);
         if (!isset($dashboard)) {
-            return redirect(admin_base_path(''));
+            return redirect(admin_url(''));
         }
 
         $form->display('dashboard_view_name', exmtrans('dashboard.dashboard_view_name'))->default($dashboard->dashboard_view_name);
@@ -190,7 +190,7 @@ class DashboardBoxController extends AdminControllerBase
                     $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
                         ->required()
                         ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-                        ->load('options_target_view_id', admin_base_path('dashboardbox/table_views'));
+                        ->load('options_target_view_id', admin_url('dashboardbox/table_views'));
 
                     $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
                         ->required()
@@ -223,7 +223,7 @@ class DashboardBoxController extends AdminControllerBase
             $tools->disableDelete();
 
             // addhome button
-            $tools->append('<a href="'.admin_base_path('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
+            $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');
         });
         return $form;
     }

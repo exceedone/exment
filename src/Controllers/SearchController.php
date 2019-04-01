@@ -26,8 +26,8 @@ class SearchController extends AdminControllerBase
     public static function renderSearchHeader()
     {
         // create searching javascript
-        $ajax_url = admin_base_path("search/header");
-        $list_url = admin_base_path("search");
+        $ajax_url = admin_url("search/header");
+        $list_url = admin_url("search");
 
         $script = <<<EOT
     $(function () {
@@ -164,14 +164,14 @@ EOT;
     protected function getFreeWord(Request $request, Content $content)
     {
         if (is_null($request->query('query'))) {
-            return redirect(admin_base_path());
+            return redirect(admin_url());
         }
         $this->AdminContent($content);
         $content->header(exmtrans('search.header_freeword'));
         $content->description(exmtrans('search.description_freeword'));
 
         // create searching javascript
-        $list_url = admin_base_path("search/list");
+        $list_url = admin_url("search/list");
         $script = <<<EOT
     var searchIndex = 0;
     $(function () {
@@ -301,7 +301,7 @@ EOT;
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
-                $link .= (new Linker)->url(admin_base_path('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')))
+                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')))
                     ->icon('fa-compress')
                     ->tooltip(exmtrans('search.header_relation'));
             }
@@ -336,7 +336,7 @@ EOT;
         );
 
         // create searching javascript
-        $list_url = admin_base_path("search/relation");
+        $list_url = admin_url("search/relation");
         $script = <<<EOT
 var searchIndex = 0;
 $(function () {

@@ -25,7 +25,7 @@
 <body class="hold-transition login-page">
     <div class="login-box">
             <div class="login-logo">
-                <a href="{{ admin_base_path('/') }}"><b>{{$site_name}}</b></a>
+                <a href="{{ admin_url('/') }}"><b>{{$site_name}}</b></a>
             </div>
             <!-- /.login-logo -->
             <div class="login-box-body">

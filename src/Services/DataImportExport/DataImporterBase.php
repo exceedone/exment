@@ -442,11 +442,11 @@ abstract class DataImporterBase
     public function importModal()
     {
         $table_name = $this->custom_table->table_name;
-        $import_path = admin_base_paths('data', $table_name, 'import');
+        $import_path = admin_urls('data', $table_name, 'import');
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
         $form->disableReset()
-            ->action(admin_base_path('data/'.$table_name.'/import'))
+            ->action(admin_url('data/'.$table_name.'/import'))
             ;
         $form->modalAttribute('id', 'data_import_modal');
         $form->modalHeader(exmtrans('common.import') . ' - ' . $this->custom_table->table_view_name);

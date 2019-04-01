@@ -227,7 +227,7 @@ class LoginUserController extends AdminControllerBase
         }
 
         admin_toastr($message);
-        $url = admin_base_path('loginuser');
+        $url = admin_url('loginuser');
         return redirect($url);
     }
 

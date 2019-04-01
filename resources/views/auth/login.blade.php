@@ -3,7 +3,7 @@
         <p class="login-box-msg">{{ trans('admin.login') }}</p>
 
         @if($show_default_login_provider)
-        <form action="{{ admin_base_path('auth/login') }}" method="post">
+        <form action="{{ admin_url('auth/login') }}" method="post">
             <div class="form-group has-feedback {!! !$errors->has('username') ?: 'has-error' !!}">
 
                 @if($errors->has('username')) @foreach($errors->get('username') as $message)
@@ -33,7 +33,7 @@
         </form>
         
         <div style="margin:10px 0; text-align:center;">
-            <p><a href="{{admin_base_path('auth/forget')}}">{{ exmtrans('login.forget_password') }}</a></p>
+            <p><a href="{{admin_url('auth/forget')}}">{{ exmtrans('login.forget_password') }}</a></p>
         </div>
         @endif
 
@@ -59,7 +59,7 @@
         @endforeach
 
         @foreach($login_providers as $login_provider_name => $login_provider)
-        <a href="{{ admin_base_path('auth/login/'.$login_provider_name) }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
+        <a href="{{ admin_url('auth/login/'.$login_provider_name) }}" class="btn btn-block btn-social btn-flat {{ $login_provider['btn_name'] ?? '' }}">
             <i class="fa {{ $login_provider['font_owesome'] ?? '' }}"></i> Sign in using {{ $login_provider['display_name'] }}
         </a>
         @endforeach

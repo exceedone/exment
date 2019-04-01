@@ -563,7 +563,7 @@ class CustomTable extends ModelBase
         if ($count <= 100) {
             return null;
         }
-        return admin_base_paths("webapi", 'data', array_get($this, 'table_name'), "query");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
     }
 
     /**

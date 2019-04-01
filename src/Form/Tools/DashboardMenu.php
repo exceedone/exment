@@ -37,15 +37,15 @@ class DashboardMenu
         //role check
         //TODO:now system admin. change if user dashboard
         if (Admin::user()->hasPermission(Permission::SYSTEM)) {
-            $settings[] = ['url' => admin_base_paths('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
-            $settings[] = ['url' => admin_base_paths('dashboard', 'create'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
+            $settings[] = ['url' => admin_urls('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
+            $settings[] = ['url' => admin_urls('dashboard', 'create'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.create')];
         }
         return view('exment::dashboard.header', [
             'current_dashboard' => $this->current_dashboard,
             'systemdashboards' => $systemdashboards,
             'userdashboards' => $userdashboards,
             'settings' => $settings,
-            'base_uri' => admin_base_path('')
+            'base_uri' => admin_url('')
         ]);
     }
 }

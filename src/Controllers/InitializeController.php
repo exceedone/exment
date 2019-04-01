@@ -24,7 +24,7 @@ class InitializeController extends Controller
     public function index(Request $request)
     {
         $form = $this->getInitializeForm(true);
-        $form->action('initialize');
+        $form->action(admin_url('initialize'));
         $form->disablePjax();
 
         // ID and password --------------------------------------------------
@@ -88,7 +88,7 @@ class InitializeController extends Controller
 
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);
-            return redirect(admin_base_path('/'));
+            return redirect(admin_url('/'));
         } catch (Exception $exception) {
             //TODO:error handling
             DB::rollback();

@@ -230,14 +230,14 @@ class CustomView extends ModelBase
                 ///// add show and edit link
                 // using role
                 $link = (new Linker)
-                    ->url(admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
+                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
                     //->linkattributes(['style' => "margin:0 3px;"])
                     ->icon('fa-eye')
                     ->tooltip(trans('admin.show'))
                     ->render();
                 if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
                     $link .= (new Linker)
-                    ->url(admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
+                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
                     ->icon('fa-edit')
                     ->tooltip(trans('admin.edit'))
                     ->render();

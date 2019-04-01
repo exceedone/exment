@@ -73,8 +73,8 @@ class NotifyController extends AdminControllerBase
             return CustomTable::filterList()->pluck('table_view_name', 'id');
         })->attribute(['data-linkage' => json_encode(
             [
-                'trigger_settings_notify_target_column' =>  admin_base_path('notify/targetcolumn'),
-                'action_settings_notify_action_target' => admin_base_path('notify/notify_action_target'),
+                'trigger_settings_notify_target_column' =>  admin_url('notify/targetcolumn'),
+                'action_settings_notify_action_target' => admin_url('notify/notify_action_target'),
             ]
         )
         ])

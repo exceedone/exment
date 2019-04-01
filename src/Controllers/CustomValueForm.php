@@ -400,7 +400,7 @@ EOT;
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
             if ($one_record_flg) {
                 admin_toastr(trans('admin.save_succeeded'));
-                return redirect(admin_base_paths('data', $this->custom_table->table_name));
+                return redirect(admin_urls('data', $this->custom_table->table_name));
             }
         });
     }
@@ -578,7 +578,7 @@ EOT;
                     }
                     // add array. key is column name.
                     $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_base_paths('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
+                        'url' => admin_urls('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
                         'expand' => ['child_table_id' => $relation->child_custom_table_id],
                         'to' => array_get($c, 'column_name'),
                     ];

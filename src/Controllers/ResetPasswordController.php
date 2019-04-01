@@ -24,7 +24,7 @@ class ResetPasswordController extends Controller
      */
     public function __construct()
     {
-        $this->redirectTo = admin_base_path('auth/login');
+        $this->redirectTo = admin_url('auth/login');
     }
 
     /**

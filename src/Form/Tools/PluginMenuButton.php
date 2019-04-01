@@ -25,9 +25,9 @@ class PluginMenuButton
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
         if (isset($this->id)) {
-            $url = admin_base_paths("data", $table_name, $this->id, "pluginClick");
+            $url = admin_urls("data", $table_name, $this->id, "pluginClick");
         } else {
-            $url = admin_base_paths("data", $table_name, "pluginClick");
+            $url = admin_urls("data", $table_name, "pluginClick");
         }
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
