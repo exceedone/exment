@@ -8,7 +8,6 @@ use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 
-
 abstract class CustomItem implements ItemInterface
 {
     use ItemTrait;
@@ -107,9 +106,10 @@ abstract class CustomItem implements ItemInterface
 
     /**
      * whether column is enabled index.
-     * 
+     *
      */
-    public function indexEnabled(){
+    public function indexEnabled()
+    {
         return $this->custom_column->indexEnabled();
     }
 
@@ -183,6 +183,7 @@ abstract class CustomItem implements ItemInterface
         // required
         if (boolval(array_get($options, 'required')) && $this->required) {
             $field->required();
+            $field->rules('required');
         } else {
             $field->rules('nullable');
         }
@@ -240,7 +241,8 @@ abstract class CustomItem implements ItemInterface
     /**
      * get view filter type
      */
-    public function getViewFilterType(){
+    public function getViewFilterType()
+    {
         // get column_type
         $database_column_type = $this->custom_column->column_type;
         switch ($database_column_type) {

@@ -58,7 +58,7 @@ class MenuController extends AdminControllerBase
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function show(Request $request, $id, Content $content)
+    public function show(Request $request, Content $content, $id)
     {
         return redirect()->route('menu.edit', ['id' => $id]);
     }

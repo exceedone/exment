@@ -21,7 +21,7 @@ trait ExmentResourceActions
     {
         if (method_exists($this, 'validateDestroy')) {
             $data = $this->validateDestroy($id);
-            if (!empty($data)){
+            if (!empty($data)) {
                 return response()->json($data);
             }
         }

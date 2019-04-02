@@ -234,8 +234,7 @@ class BackupCommand extends Command
         if ($res === true) {
             // iterator all files in folder
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tempdir));
-            foreach ($files as $name => $file)
-            {
+            foreach ($files as $name => $file) {
                 if ($file->isDir()) {
                     continue;
                 }

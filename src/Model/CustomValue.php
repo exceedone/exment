@@ -143,8 +143,7 @@ class CustomValue extends ModelBase
         $value = $this->value;
         $original = json_decode($this->getOriginal('value'), true);
         // get  columns
-        $custom_columns = $this->custom_table
-            ->custom_columns;
+        $custom_columns = $this->custom_table->custom_columns;
 
         // loop columns
         $update_flg = false;
@@ -184,8 +183,9 @@ class CustomValue extends ModelBase
     /**
      * set original data.
      */
-    protected function setAgainOriginalValue(&$value, $original, $custom_column){
-        if(is_null($value)){
+    protected function setAgainOriginalValue(&$value, $original, $custom_column)
+    {
+        if (is_null($value)) {
             $value = [];
         }
         $column_name = $custom_column->column_name;

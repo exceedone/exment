@@ -52,9 +52,9 @@ Exment is open source software for managing information assets on the Web.
 Exment uses the following plug-in service etc.
 + [Laravel](https://laravel.com/)
 + [laravel-admin](http://laravel-admin.org/)
-+ [FPDI](https://www.setasign.com/products/fpdi/about)
-+ [TCPDF](https://tcpdf.org/)
++ [Laravel Passport](https://github.com/laravel/passport)
 + [Laravel Uuid](https://github.com/webpatser/laravel-uuid)
++ [mPDF](https://github.com/mpdf/mpdf)
 + [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
 + [TinyMCE](https://www.tiny.cloud/)
 + [Chart.js](https://www.chartjs.org/)

@@ -290,7 +290,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         // menu type is table, remove uri "data/"
         if (MenuType::TABLE == $menu_type) {
             $uri = preg_replace('/^data\//', '', $this['uri']);
-        }else{
+        } else {
             $uri = $this['uri'];
         }
 

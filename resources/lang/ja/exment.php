@@ -228,6 +228,7 @@ return [
         'file_size' => 'ファイルサイズ',
         'backup' => 'バックアップ',
         'restore' => 'リストア',
+        'download' => 'ダウンロード',
         'restore_upload' => 'ファイルアップロード',
         'backuprestore' => 'バックアップ・リストア',
         'backup_target' => 'バックアップ対象',
@@ -881,11 +882,22 @@ return [
             'has_roles' => '権限のあるユーザー',
         ],
     ],
+    
     'chart' => [
         'chart_type_options' => [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
+        ]
+    ],
+    
+    'api' => [
+        'scopes' => [
+            'me' => 'ログインユーザー情報の取得',
+            'table_read' => 'テーブル情報の取得',
+            'table_write' => 'テーブル情報の取得・新規追加・更新・削除',
+            'value_read' => 'データの取得',
+            'value_write' => 'データの取得・新規追加・更新・削除',
         ],
     ],
 ];

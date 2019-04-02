@@ -108,30 +108,33 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     /**
      * get Table And Column Name
      */
-    protected function getFromUniqueKeyValues(){
+    protected function getFromUniqueKeyValues()
+    {
         return $this->getCopyColumnUniqueKeyValues('from_custom_table', 'from_custom_column', 'from_column_type', 'from_column_target_id');
     }
 
     /**
      * get Table And Column Name
      */
-    protected function getToUniqueKeyValues(){
+    protected function getToUniqueKeyValues()
+    {
         return $this->getCopyColumnUniqueKeyValues('to_custom_table', 'to_custom_column', 'to_column_type', 'to_column_target_id');
     }
 
     /**
      * get Table And Column Name for custom copy column
      */
-    protected function getCopyColumnUniqueKeyValues($column_table_key, $column_column_key, $column_type_key, $column_target_id_key){
+    protected function getCopyColumnUniqueKeyValues($column_table_key, $column_column_key, $column_type_key, $column_target_id_key)
+    {
         // get custom table.
         $table_name = $this->{$column_table_key}->table_name ?? null;
         // if(!isset($custom_table)){
         //     $table_name = null;
         // }else{
-        //     $table_name = $custom_table->table_name;            
+        //     $table_name = $custom_table->table_name;
         // }
 
-        switch($this->{$column_type_key}){
+        switch ($this->{$column_type_key}) {
             case ViewColumnType::COLUMN:
                 return [
                     'table_name' => $table_name,

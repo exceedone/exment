@@ -398,14 +398,15 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * Perform special processing when outputting template
      */
-    protected function replaceTemplateSpecially($array){
+    protected function replaceTemplateSpecially($array)
+    {
         // if column_type is calc, change value dynamic name using calc_formula property
         if (!ColumnType::isCalc(array_get($this, 'column_type'))) {
             return $array;
         }
 
         $calc_formula = array_get($this, 'options.calc_formula');
-        if(!isset($calc_formula)){
+        if (!isset($calc_formula)) {
             return $array;
         }
 
@@ -431,5 +432,4 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         
         return $array;
     }
-
 }

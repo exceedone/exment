@@ -19,7 +19,7 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
     {
         // Get System config
         $shouldPassThrough = shouldPassThrough(false);
-        if($shouldPassThrough){
+        if ($shouldPassThrough) {
             return $next($request);
         }
         

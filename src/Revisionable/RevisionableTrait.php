@@ -228,7 +228,6 @@ trait RevisionableTrait
         }
 
         if ((!isset($this->revisionEnabled) || $this->revisionEnabled)) {
-
             $changes_to_record = $this->changedRevisionableFields();
 
             $revisions = array();

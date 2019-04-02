@@ -188,7 +188,6 @@ class TemplateExporter
             $configCopies[] = $custom_copy->getTemplateExportItems($is_lang);
         }
         $config['custom_copies'] = $configCopies;
-        
     }
     
     /**
@@ -258,5 +257,4 @@ class TemplateExporter
         }
         return $menus;
     }
-
 }

@@ -81,7 +81,7 @@ class ListItem implements ItemInterface
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
             return trans('admin.deny');
-        } 
+        }
         
         $datalist = $this->paginate->items();
 
@@ -107,7 +107,7 @@ class ListItem implements ItemInterface
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
             return null;
-        } 
+        }
 
         // add link
         return $this->paginate->links('exment::search.links')->toHtml();
@@ -118,7 +118,6 @@ class ListItem implements ItemInterface
      */
     public static function setAdminOptions(&$form)
     {
-        
         $form->select('pager_count', trans("admin.show"))
             ->required()
             ->options(static::getPagerOptions())
@@ -156,7 +155,8 @@ class ListItem implements ItemInterface
     /**
      * set paginate
      */
-    protected function setPaginate(){
+    protected function setPaginate()
+    {
         // if table not found, break
         if (!isset($this->custom_table) || !isset($this->custom_view)) {
             return null;
@@ -165,7 +165,7 @@ class ListItem implements ItemInterface
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
             return;
-        } 
+        }
         
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel();
@@ -181,11 +181,12 @@ class ListItem implements ItemInterface
     /**
      * get pager select options
      */
-    protected static function getPagerOptions(){
+    protected static function getPagerOptions()
+    {
         $counts = [5, 10, 20];
         
         $options = [];
-        foreach($counts as $count){
+        foreach ($counts as $count) {
             $options[$count] = $count. ' ' . trans('admin.entries');
         }
         return $options;

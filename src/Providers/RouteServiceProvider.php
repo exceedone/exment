@@ -5,10 +5,9 @@ namespace Exceedone\Exment\Providers;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Routing\Router;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Controllers\BackupController;
 
 class RouteServiceProvider extends ServiceProvider
@@ -96,41 +95,24 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('backup/download/{ymdhms}', function ($ymdhms) {
                 return BackupController::download($ymdhms);
             });
-            // set static name. because this function is called composer install.
-            try {
-                if (hasTable(SystemTableName::CUSTOM_TABLE)) {
-                    foreach (CustomTable::all()->pluck('table_name') as $value) {
-                        $router->post("data/{$value}/import", 'CustomValueController@import');
-                        $router->post("data/{$value}/pluginClick", 'CustomValueController@pluginClick');
-                        $router->get("data/{$value}/{id}/compare", 'CustomValueController@compare');
-                        $router->get("data/{$value}/{id}/compareitem", 'CustomValueController@compareitem');
-                        $router->post("data/{$value}/{id}/compare", 'CustomValueController@restoreRevision');
-                        $router->post("data/{$value}/{id}/pluginClick", 'CustomValueController@pluginClick');
-                        $router->post("data/{$value}/{id}/copyClick", 'CustomValueController@copyClick');
-                        $router->put("data/{$value}/{id}/filedelete", 'CustomValueController@filedelete');
-                        $router->post("data/{$value}/{id}/fileupload", 'CustomValueController@fileupload');
-                        $router->resource("data/{$value}", 'CustomValueController');
-                        
-                        $router->resource("column/{$value}", 'CustomColumnController', ['except' => ['show']]);
-                        
-                        $router->resource("form/{$value}", 'CustomFormController', ['except' => ['show']]);
-                        
-                        $router->post("view/{$value}/filterDialog", 'CustomViewController@getFilterDialogHtml');
-                        $router->get("view/{$value}/filter-condition", 'CustomViewController@getFilterCondition');
-                        $router->get("view/{$value}/summary-condition", 'CustomViewController@getSummaryCondition');
-                        $router->resource("view/{$value}", 'CustomViewController', ['except' => ['show']]);
-                        
-                        $router->resource("relation/{$value}", 'CustomRelationController', ['except' => ['show']]);
-                        
-                        $router->resource("copy/{$value}", 'CustomCopyController', ['except' => ['show']]);
-                        
-                        $router->get("navisearch/data/{$value}", 'NaviSearchController@getNaviData');
-                        $router->post("navisearch/result/{$value}", 'NaviSearchController@getNaviResult');
-                    }
-                }
-            } catch (\Exception $e) {
-            }
         
+            $router->post("data/{tableKey}/import", 'CustomValueController@import');
+            $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
+            $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
+            $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
+            $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
+            $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
+            $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
+            $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
+
+            $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
+            $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
+            $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
+                        
+            $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
+            $router->post("navisearch/result/{tableKey}", 'NaviSearchController@getNaviResult');
+
             $router->get('api/table/{id}', 'ApiController@table');
             $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
         
@@ -141,6 +123,14 @@ class RouteServiceProvider extends ServiceProvider
                 return File::deleteFile($uuid);
             });
             
+            $this->setTableResouce($router, 'data', 'CustomValueController', true);
+            $this->setTableResouce($router, 'column', 'CustomColumnController');
+            $this->setTableResouce($router, 'form', 'CustomFormController');
+            $this->setTableResouce($router, 'view', 'CustomViewController');
+            $this->setTableResouce($router, 'relation', 'CustomRelationController');
+            $this->setTableResouce($router, 'copy', 'CustomCopyController');
+            $this->setTableResouce($router, 'data', 'CustomValueController');
+
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
             $router->post('webapi/menu/menutargetvalue', 'MenuController@menutargetvalue');
         });
@@ -176,11 +166,11 @@ class RouteServiceProvider extends ServiceProvider
     {
         // define adminapi(for webapi), api(for web)
         $routes = [
-            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi']],
+            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi'], 'addScope' => false],
         ];
         
         if (boolval(config('exment.api'))) {
-            $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi']];
+            $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi'], 'addScope' => true];
         }
 
         foreach ($routes as $route) {
@@ -188,29 +178,49 @@ class RouteServiceProvider extends ServiceProvider
                 'prefix' => array_get($route, 'prefix'),
                 'namespace'     => $this->namespace,
                 'middleware'    => array_get($route, 'middleware'),
-            ], function (Router $router) {
-                // set static name. because this function is called composer install.
-                try {
-                    if (hasTable(SystemTableName::CUSTOM_TABLE)) {
-                        foreach (CustomTable::all()->pluck('table_name') as $value) {
-                            $router->get("data/{$value}", 'ApiTableController@list');
-                            $router->post("data/{$value}", 'ApiTableController@createData');
-                            $router->put("data/{$value}/{key}", 'ApiTableController@updateData');
-                            $router->get("data/{$value}/search", 'ApiTableController@search');
-                            $router->get("data/{$value}/relatedLinkage", 'ApiTableController@relatedLinkage');
-                            $router->get("data/{$value}/{id}", 'ApiTableController@find');
-                            $router->post("data/{$value}/{id}", 'ApiTableController@find');
-                        }
-                    }
-                } catch (\Exception $e) {
-                }
-    
-                $router->get("version", function () {
-                    return (new \Exceedone\Exment\Exment)->version();
-                });
-                $router->get("table/{id}", 'ApiController@table');
-                $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns');
+            ], function (Router $router) use ($route) {
+                // value --------------------------------------------------
+                $router->get("data/{tableKey}", 'ApiTableController@dataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/query", 'ApiTableController@dataQuery')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/{id}", 'ApiTableController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->post("data/{tableKey}/{id}", 'ApiTableController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/relatedLinkage", 'ApiTableController@relatedLinkage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->post("data/{tableKey}", 'ApiTableController@dataCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                $router->put("data/{tableKey}/{id}", 'ApiTableController@dataUpdate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                $router->delete("data/{tableKey}/{id}", 'ApiTableController@dataDelete')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
+                // table --------------------------------------------------
+                $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("target_table/columns/{id}", 'ApiController@targetBelongsColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                
+                // System --------------------------------------------------
+                $router->get("version", 'ApiController@version');
+
+                // User, LoginUser --------------------------------------------------
+                $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));
             });
+        }
+    }
+
+    /**
+     * set table resource.
+     * (We cannot create endpoint using resouce function if contains {tableKey}).
+     */
+    protected function setTableResouce($router, $endpointName, $controllerName, $isShow = false)
+    {
+        $router->get("{$endpointName}/{tableKey}", "$controllerName@index");
+        $router->get("{$endpointName}/{tableKey}/create", "$controllerName@create");
+        $router->post("{$endpointName}/{tableKey}", "$controllerName@store");
+        $router->get("{$endpointName}/{tableKey}/{id}/edit", "$controllerName@edit");
+        $router->put("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
+        $router->patch("{$endpointName}/{tableKey}/{id}", "$controllerName@update");
+        $router->delete("{$endpointName}/{tableKey}/{id}", "$controllerName@destroy");
+
+        if ($isShow) {
+            $router->get("{$endpointName}/{tableKey}/{id}", "$controllerName@show");
         }
     }
 }

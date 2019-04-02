@@ -177,11 +177,10 @@ EOT;
 
         $form->disableReset();
 
-        $isNew = $this->isNew();
         $custom_table = $this->custom_table;
         $custom_form = $this->custom_form;
 
-        $this->manageFormToolButton($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton);
+        $this->manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton);
         return $form;
     }
 
@@ -325,9 +324,9 @@ EOT;
         });
     }
 
-    protected function manageFormToolButton($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton)
+    protected function manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton)
     {
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $isNew, $custom_table, $custom_form, $isButtonCreate, $listButton) {        // Disable back btn.
+        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {        // Disable back btn.
             // if one_record_flg, disable list
             if (array_get($custom_table->options, 'one_record_flg')) {
                 $tools->disableListButton();

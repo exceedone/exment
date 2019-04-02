@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 
 class CustomValueModelScope implements Scope
 {
@@ -39,8 +40,7 @@ class CustomValueModelScope implements Scope
         } elseif ($table_name == SystemTableName::ORGANIZATION) {
             //TODO
             return;
-        }
-        elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        } elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
         // if user has edit or view table
@@ -50,7 +50,7 @@ class CustomValueModelScope implements Scope
                 ->whereHas('value_authoritable_users', function ($q) use ($user) {
                     $q->where('related_id', $user->base_user_id);
                 })->orWhereHas('value_authoritable_organizations', function ($q) use ($user) {
-                    $q->whereIn('related_id', $user->getOrganizationIds());
+                    $q->whereIn('related_id', $user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN));
                 });
         }
         // if not role, set always false result.

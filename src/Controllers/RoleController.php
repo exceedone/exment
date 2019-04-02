@@ -50,7 +50,7 @@ class RoleController extends AdminControllerBase
                 <ul class="dropdown-menu" role="menu">';
             // loop for role types
             foreach (RoleType::transKeyArray("role.role_type_options") as $role_type => $label) {
-                if($role_type == RoleType::PLUGIN){
+                if ($role_type == RoleType::PLUGIN) {
                     continue;
                 }
                 $addNewBtn .= '<li><a href="'.$base_uri.'?role_type='.$role_type.'">'.$label.'</a></li>';

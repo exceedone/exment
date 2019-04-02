@@ -11,9 +11,9 @@ class SelectValtext extends Select
         // loop keyvalue
         foreach ($val as $v) {
             // set whether $label
-            if(is_null($v)){
+            if (is_null($v)) {
                 $returns[] = null;
-            }else{
+            } else {
                 $returns[] = $label ? array_get($select_options, $v) : $v;
             }
         }

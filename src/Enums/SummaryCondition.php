@@ -20,7 +20,8 @@ class SummaryCondition extends EnumBase
         5 => ['id' => 5, 'name' => 'max'],
     ];
 
-    public static function getGroupCondition($value) {
+    public static function getGroupCondition($value)
+    {
         $option = self::getOption(['id' => $value]);
         if (array_get($option, 'countable')) {
             return self::getEnum(self::SUM)->lowerKey();

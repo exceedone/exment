@@ -217,7 +217,7 @@ EOT;
     /**
      * compare
      */
-    public function compare(Request $request, $id, Content $content)
+    public function compare(Request $request, Content $content, $id)
     {
         $this->firstFlow($request, $id);
         $this->AdminContent($content);
@@ -228,7 +228,7 @@ EOT;
     /**
      * get compare item for pjax
      */
-    public function compareitem(Request $request, $id, Content $content)
+    public function compareitem(Request $request, Content $content, $id)
     {
         $this->firstFlow($request, $id);
         return $this->getRevisionCompare($id, $request->get('revision'), true);
@@ -291,7 +291,7 @@ EOT;
             'revision_suuid' => $revision_suuid,
             'has_edit_permission' => $this->custom_table->hasPermissionEditData($id),
             'form_url' => admin_urls('data', $table_name, $id, 'compare'),
-            'has_diff' => collect($table_columns)->filter(function($table_column){
+            'has_diff' => collect($table_columns)->filter(function ($table_column) {
                 return array_get($table_column, 'diff', false);
             })->count() > 0
         ];

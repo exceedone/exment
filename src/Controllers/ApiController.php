@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * Api about target table
@@ -14,17 +15,84 @@ use Exceedone\Exment\Enums\ColumnType;
 class ApiController extends AdminControllerBase
 {
     /**
-     * get table data by id
+     * get Exment version
+     */
+    public function version(Request $request)
+    {
+        return response()->json(['version' => (new \Exceedone\Exment\Exment)->version(false)]);
+    }
+
+    /**
+     * get login user info
      * @param mixed $id
      * @return mixed
      */
-    public function table($id, Request $request)
+    public function me(Request $request)
     {
-        $table = CustomTable::find($id);
-        if (!$table->hasPermission(Permission::CUSTOM_TABLE)) {
-            abort(403);
+        $base_user = \Exment::user()->base_user ?? null;
+        if (!isset($base_user)) {
+            return null;
+        }
+        $base_user = $base_user->makeHidden(CustomTable::getEloquent(SystemTableName::USER)->getMakeHiddenArray())
+            ->toArray();
+
+        if ($request->has('dot') && boolval($request->get('dot'))) {
+            $base_user = array_dot($base_user);
+        }
+        return $base_user;
+    }
+
+    /**
+     * get table list
+     * @return mixed
+     */
+    public function tablelist(Request $request)
+    {
+        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        // filter table
+        $query = CustomTable::query();
+        CustomTable::filterList($query, ['getModel' => false]);
+        return $query->paginate();
+    }
+
+    /**
+     * get table data by id or table_name
+     * @param mixed $tableKey id or table_name
+     * @return mixed
+     */
+    public function table($tableKey, Request $request)
+    {
+        $table = CustomTable::getEloquent($tableKey);
+        if (!isset($table)) {
+            return abort(400);
+        }
+
+        if (!$table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
         }
         return $table;
+    }
+
+    /**
+     * get column data by id
+     * @param mixed $id
+     * @return mixed
+     */
+    public function column($id, Request $request)
+    {
+        $column = CustomColumn::getEloquent($id);
+        if (!isset($column)) {
+            return abort(400);
+        }
+
+        if (!$column->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        return $column;
     }
 
     /**

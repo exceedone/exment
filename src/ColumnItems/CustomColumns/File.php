@@ -13,18 +13,20 @@ class File extends CustomItem
     /**
      * get file info
      */
-    public function file(){
+    public function file()
+    {
         return ExmentFile::getFile($this->value);
     }
 
     /**
      * get html. show link to file
      */
-    public function html(){
-        // get image url 
+    public function html()
+    {
+        // get image url
         $url = ExmentFile::getUrl($this->value);
         $file = ExmentFile::getData($this->value);
-        if(!isset($url)){
+        if (!isset($url)) {
             return $url;
         }
 

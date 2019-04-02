@@ -112,7 +112,7 @@ class SelectTable extends CustomItem
 
     protected function setAdminFilterOptions(&$filter)
     {
-        if(isset($this->target_table)){
+        if (isset($this->target_table)) {
             $options = $this->target_table->getOptions();
             $ajax = $this->target_table->getOptionAjaxUrl();
     
@@ -120,7 +120,7 @@ class SelectTable extends CustomItem
                 $filter->select([])->ajax($ajax);
             } else {
                 $filter->select($options);
-            }    
+            }
         }
     }
 }
