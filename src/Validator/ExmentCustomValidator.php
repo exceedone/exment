@@ -5,6 +5,8 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewSort;
 
 class ExmentCustomValidator extends \Illuminate\Validation\Validator
 {
@@ -124,7 +126,7 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     }
 
     /**
-    * Validation in table
+    * Validation index column max count
     *
     * @param $attribute
     * @param $value
@@ -161,5 +163,55 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     protected function replaceMaxTableIndex($message, $attribute, $rule, $parameters)
     {
         return str_replace(':maxlen', $parameters[1], $message);
+    }
+
+    /**
+    * Validation if search-index column is refered by custom view
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validateUsingIndexColumn($attribute, $value, $parameters)
+    {
+        // if value is on, no validate
+        if ($value) {
+            return true;
+        }
+        // if parameters are invalid, no validate
+        if (count($parameters) < 1) {
+            return true;
+        }
+
+        // get custom_column_id
+        $custom_column_id = $parameters[0];
+
+        // when new record, $custom_column_id is null 
+        if (!$custom_column_id) {
+            return true;
+        }
+
+        // get group key column count of summary view
+        $count = CustomView::where('view_kind_type', 1)
+            ->whereHas('custom_view_columns', function($query) use($custom_column_id){
+                $query->where('view_column_type', 0)
+                    ->where("view_column_target_id", $custom_column_id);
+            })->count();
+
+        if ($count > 0) {
+            return false;
+        }
+
+        // get count index columns refered in view sorts
+        $count = CustomViewSort::where('view_column_target_id', $custom_column_id)
+            ->where('view_column_type', 0)
+            ->count();
+
+        if ($count > 0) {
+            return false;
+        }
+
+        return true;
     }
 }

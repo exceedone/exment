@@ -55,7 +55,7 @@ class CustomCopyController extends AdminControllerTableBase
         if (!$this->validateTableAndId(CustomCopy::class, $id, 'copy')) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $tableKey, $id);
     }
 
     /**

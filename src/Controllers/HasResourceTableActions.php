@@ -13,7 +13,7 @@ trait HasResourceTableActions
      */
     public function update($tableKey, $id)
     {
-        return $this->form()->update($id);
+        return $this->form($id)->update($id);
     }
 
     /**

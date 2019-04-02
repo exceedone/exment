@@ -66,7 +66,7 @@ class CustomColumnController extends AdminControllerTableBase
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $tableKey, $id);
     }
 
     /**
@@ -175,7 +175,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
-                ->rules("maxTableIndex:{$this->custom_table->id},10")
+                ->rules("maxTableIndex:{$this->custom_table->id},10|usingIndexColumn:{$id}")
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
