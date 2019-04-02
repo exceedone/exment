@@ -17,7 +17,7 @@ use Exceedone\Exment\Enums\CopyColumnType;
 
 class CustomCopyController extends AdminControllerTableBase
 {
-    use HasResourceActions;
+    use HasResourceTableActions;
 
     public function __construct(Request $request)
     {
