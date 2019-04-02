@@ -406,6 +406,10 @@ class CustomValue extends ModelBase
     
     public function getValue($column, $label = false, $options = [])
     {
+        if (is_null($column)) {
+            return null;
+        }
+
         $options = array_merge(
             [
                 'format' => null,
@@ -414,9 +418,6 @@ class CustomValue extends ModelBase
             $options
         );
         $custom_table = $this->custom_table;
-        if (is_null($column)) {
-            return null;
-        }
 
         // if $column is string and  and contains comma
         if (is_string($column) && str_contains($column, ',')) {
@@ -801,7 +802,7 @@ class CustomValue extends ModelBase
 
     /**
      * Get Custom children Value.
-     * v1.3.0 changes ... get children values using relation or select_table
+     * v1.1.0 changes ... get children values using relation or select_table
      */
     public function getChildrenValues($relation, $returnBuilder = false)
     {

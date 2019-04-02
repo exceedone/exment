@@ -60,11 +60,15 @@ if (!function_exists('esc_script_tag')) {
     /**
      * escape only script tag
      */
-    function esc_script_tag($str)
+    function esc_script_tag($html)
     {
+        if (is_nullorempty($html)) {
+            return $html;
+        }
+        
         $dom = new \DOMDocument();
 
-        $dom->loadHTML($html);
+        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         $script = $dom->getElementsByTagName('script');
 
@@ -79,6 +83,13 @@ if (!function_exists('esc_script_tag')) {
 
         $html = $dom->saveHTML();
         return $html;
+    }
+}
+
+if (!function_exists('esc_sql')) {
+    function esc_sql($string)
+    {
+        return app('db')->getPdo()->quote($string);
     }
 }
 

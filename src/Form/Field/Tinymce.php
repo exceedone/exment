@@ -20,7 +20,7 @@ class Tinymce extends Textarea
 
         $this->script = <<<EOT
         tinymce.init({
-            selector: ".{$this->getElementClassString()}",
+            selector: "{$this->getElementClassSelector()}",
             toolbar: ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link'],
             plugins: 'textcolor hr link lists',
             menubar: false,

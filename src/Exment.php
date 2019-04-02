@@ -66,6 +66,9 @@ class Exment
         return null;
     }
 
+    /**
+     * get exment version
+     */
     public function version($getFromComposer = true)
     {
         list($latest, $current) = getExmentVersion($getFromComposer);
