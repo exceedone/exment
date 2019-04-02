@@ -6,8 +6,8 @@ use Encore\Admin\Controllers\HasResourceActions;
 
 trait ExmentResourceActions
 {
-    use HasResourceActions {
-        HasResourceActions::destroy as parentDestroy;
+    use HasResourceTableActions {
+        HasResourceTableActions::destroy as parentDestroy;
     }
 
     /**
@@ -17,7 +17,7 @@ trait ExmentResourceActions
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($tableKey, $id)
     {
         if (method_exists($this, 'validateDestroy')) {
             $data = $this->validateDestroy($id);

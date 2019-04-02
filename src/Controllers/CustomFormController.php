@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\DB;
  */
 class CustomFormController extends AdminControllerTableBase
 {
-    use HasResourceActions;
+    use HasResourceTableActions;
 
     public function __construct(Request $request)
     {

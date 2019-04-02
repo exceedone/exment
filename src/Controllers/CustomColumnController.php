@@ -25,7 +25,7 @@ use Exceedone\Exment\Enums\Permission;
 
 class CustomColumnController extends AdminControllerTableBase
 {
-    use HasResourceActions;
+    use HasResourceTableActions;
 
     public function __construct(Request $request)
     {

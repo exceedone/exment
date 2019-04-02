@@ -575,7 +575,7 @@ class CustomTable extends ModelBase
         $model = $this->getValueModel();
 
         // filter model
-        $model = Admin::user()->filterModel($model, $this);
+        $model = \Exment::user()->filterModel($model, $this);
         return $model;
     }
 

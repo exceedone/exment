@@ -19,7 +19,7 @@ use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
 class CustomViewController extends AdminControllerTableBase
 {
-    use HasResourceActions;
+    use HasResourceTableActions;
 
     public function __construct(Request $request)
     {
