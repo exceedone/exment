@@ -51,7 +51,11 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
         
         // get Role setting
         $roles = static::allRecords(function ($record) use ($related_type) {
-            return $record->role_type == $related_type;
+            if (is_null($related_type) || is_int($related_type)) {
+                return $record->role_type == $related_type;
+            } else {
+                return $record->role_type == $related_type->getValue();
+            }
         });
         foreach ($roles as $role) {
             $related_types = [SystemTableName::USER];

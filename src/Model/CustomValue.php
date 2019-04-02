@@ -20,7 +20,7 @@ class CustomValue extends ModelBase
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
-    protected $appends = ['text'];
+    protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
     /**
@@ -35,9 +35,9 @@ class CustomValue extends ModelBase
      */
     protected $saved_notify = true;
     
-    public function getTextAttribute()
+    public function getLabelAttribute()
     {
-        return $this->getText();
+        return $this->getLabel();
     }
 
     public function getCustomTableAttribute()
@@ -449,7 +449,7 @@ class CustomValue extends ModelBase
      * @param CustomValue $custom_value
      * @return string
      */
-    public function getText()
+    public function getLabel()
     {
         $custom_table = $this->custom_table;
 
@@ -528,7 +528,7 @@ class CustomValue extends ModelBase
         if (boolval($options['external-link'])) {
             $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
         } else {
-            $label = esc_html($this->getText());
+            $label = esc_html($this->getLabel());
         }
 
         if (boolval($options['modal'])) {

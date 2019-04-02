@@ -176,7 +176,7 @@ class ApiTableController extends AdminControllerTableBase
         $datalist = getModelName($child_table)
             ::where('parent_id', $q)
             ->where('parent_type', $this->custom_table->table_name)
-            ->get()->pluck('text', 'id');
+            ->get()->pluck('label', 'id');
         return collect($datalist)->map(function ($value, $key) {
             return ['id' => $key, 'text' => $value];
         });

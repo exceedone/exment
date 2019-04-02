@@ -59,7 +59,7 @@ class CustomViewController extends AdminControllerTableBase
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $tableKey, $id);
     }
 
     /**
@@ -236,6 +236,28 @@ class CustomViewController extends AdminControllerTableBase
         disableFormFooter($form);
         
         $custom_table = $this->custom_table;
+
+        // check filters and sorts count before save
+        $form->saving(function (Form $form) {
+            if (!is_null($form->custom_view_filters)) {
+                $cnt = collect($form->custom_view_filters)->filter(function ($value) {
+                    return $value[Form::REMOVE_FLAG_NAME] != 1;
+                })->count();
+                if ($cnt > 5) {
+                    admin_toastr(exmtrans('custom_view.message.over_filters_max'), 'error');
+                    return back()->withInput();
+                }
+            }
+            if (!is_null($form->custom_view_sorts)) {
+                $cnt = collect($form->custom_view_sorts)->filter(function ($value) {
+                    return $value[Form::REMOVE_FLAG_NAME] != 1;
+                })->count();
+                if ($cnt > 5) {
+                    admin_toastr(exmtrans('custom_view.message.over_sorts_max'), 'error');
+                    return back()->withInput();
+                }
+            }
+        });
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
             $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());

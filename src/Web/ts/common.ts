@@ -851,7 +851,7 @@ namespace Exment {
                             return {
                                 results: $.map(data.data, function (d) {
                                     d.id = d.id;
-                                    d.text = d.text; // text is custom value text appended.
+                                    d.text = d.label; // label is custom value label appended.
                                     return d;
                                 }),
                                 pagination: {
