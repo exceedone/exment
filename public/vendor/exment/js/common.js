@@ -943,7 +943,8 @@ var Exment;
                         $eParent.show();
                         if ($t.parents().hasClass('bootstrap-switch')) {
                             $t.bootstrapSwitch('disabled', false);
-                        } else {
+                        }
+                        else {
                             $t.prop('disabled', false);
                         }
                         // disabled false
@@ -962,7 +963,7 @@ var Exment;
                         $t.prop(propName, true);
                     }
                     else {
-                        if (propName != 'disabled' || isShow){
+                        if (propName != 'disabled' || isShow) {
                             $t.prop(propName, false);
                         }
                     }

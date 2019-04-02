@@ -129,7 +129,6 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         // put session
         Session::put("user_setting.$key", $settings);
     }
-
     
     protected static function boot()
     {

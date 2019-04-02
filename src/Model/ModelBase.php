@@ -98,5 +98,9 @@ class ModelBase extends Model
     protected function getUser($column)
     {
         return getUserName($this->{$column});
+        if ($value->trashed()) {
+            return exmtrans('common.trashed_user');
+        }
+        return $value->getLabel();
     }
 }

@@ -58,6 +58,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
+        'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
     ],
 
     'system' => [

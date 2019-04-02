@@ -21,10 +21,7 @@ class Exment
         return (new Menu())->toTree();
     }
 
-    /**
-     * return custom error
-     */
-    public function error($request, $exception, $callback)
+    public static function error($request, $exception, $callback)
     {
         try {
             // whether has User
