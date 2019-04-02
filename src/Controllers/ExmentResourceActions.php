@@ -25,6 +25,6 @@ trait ExmentResourceActions
                 return response()->json($data);
             }
         }
-        return $this->parentDestroy($id);
+        return $this->parentDestroy($tableKey, $id);
     }
 }
