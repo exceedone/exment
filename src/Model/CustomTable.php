@@ -187,9 +187,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public static function findByEndpoint($endpoint = null, $withs = [])
     {
         // get table info
-        $tableKey = app('request')->route()->parameter('tableKey');
-        if (!isset($tableKey)) {
-            abort(404);
+        if(!isset($endpoint)){
+            $tableKey = app('request')->route()->parameter('tableKey');
+            if (!isset($tableKey)) {
+                abort(404);
+            }
+        }else{
+            $tableKey = $endpoint;
         }
 
         $custom_table = static::getEloquent($tableKey);

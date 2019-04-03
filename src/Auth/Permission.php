@@ -169,7 +169,7 @@ class Permission
                 return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             }
             // check endpoint name and checking table_name.
-            if (!$this->matchEndPointTable($endpoint)) {
+            if (!$this->matchEndPointTable(preg_replace('/^data\//', '', $endpoint))) {
                 return false;
             }
             return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
