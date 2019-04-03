@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
@@ -217,13 +216,7 @@ trait CustomValueGrid
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-
-                    // add new edit link
-                    $linker = (new Linker)
-                        ->url(admin_urls('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id)
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin/edit'));
-                    $actions->prepend($linker);
+                    $actions->prepend('<a href="'.admin_base_paths('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id.'"><i class="fa fa-edit"></i></a>');
                 }
 
                 // if user does't edit permission disable edit row.
