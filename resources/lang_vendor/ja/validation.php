@@ -113,6 +113,7 @@ return [
         ],
         'options.index_enabled' => [
             'max_table_index' => '1つのテーブルに設定できる検索インデックスは10件までです。',
+            'using_index_column' => 'ビューで使用中のため、検索インデックスを解除できません。',
         ],
     ],
 

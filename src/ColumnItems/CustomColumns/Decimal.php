@@ -56,6 +56,6 @@ class Decimal extends CustomItem
     
     protected function setValidates(&$validates)
     {
-        $validates[] = new Validator\IntegerCommaRule;
+        $validates[] = new Validator\DecimalCommaRule;
     }
 }
