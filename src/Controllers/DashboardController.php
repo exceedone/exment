@@ -47,7 +47,7 @@ class DashboardController extends AdminControllerBase
     public function edit(Request $request, Content $content, $id)
     {
         $this->setDashboardInfo($request);
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $id);
     }
 
     /**

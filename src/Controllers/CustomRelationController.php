@@ -58,7 +58,7 @@ class CustomRelationController extends AdminControllerTableBase
         if (!$this->validateTableAndId(CustomRelation::class, $id, 'relation')) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $tableKey, $id);
     }
 
     /**

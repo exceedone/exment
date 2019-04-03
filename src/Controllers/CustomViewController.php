@@ -56,7 +56,7 @@ class CustomViewController extends AdminControllerTableBase
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $tableKey, $id);
     }
 
     /**

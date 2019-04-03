@@ -188,7 +188,7 @@ class CustomTableController extends AdminControllerBase
         if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $id);
     }
 
     /**
