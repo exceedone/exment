@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Role;
@@ -49,7 +49,7 @@ class RoleController extends AdminControllerBase
                 </button>
                 <ul class="dropdown-menu" role="menu">';
             // loop for role types
-            foreach (RoleType::transArray("role.role_type_options") as $role_type => $label) {
+            foreach (RoleType::transKeyArray("role.role_type_options") as $role_type => $label) {
                 $addNewBtn .= '<li><a href="'.$base_uri.'?role_type='.$role_type.'">'.$label.'</a></li>';
             }
             $addNewBtn .= '</ul></div>';

@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Validator;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;

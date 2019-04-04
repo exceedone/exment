@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Table as WidgetTable;
 //use Encore\Admin\Widgets\Form;
