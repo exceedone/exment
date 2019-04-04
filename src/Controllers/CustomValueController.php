@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use ExmentResourceActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
+    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow;
     protected $plugins = [];
 
     /**
