@@ -308,7 +308,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $view_column_target = $custom_view_sort->custom_column->getIndexColumnName() ?? null;
             } elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
-                $view_column_target = array_get($system_info, 'sql_name') ?? array_get($system_info, 'name');
+                $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
             }
             //set order
             $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
