@@ -100,8 +100,6 @@ class ExmentServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        parent::boot();
-
         $this->bootApp();
         $this->bootSetting();
 
