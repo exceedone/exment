@@ -177,15 +177,17 @@ class LoginUserController extends AdminControllerBase
                 } elseif (isset($data['password'])) {
                     $rules = [
                     'password' => get_password_rule(true),
-                ];
+                    ];
                     $validation = Validator::make($data, $rules);
                     if ($validation->fails()) {
-                        // TODOresponse
-                        return;
+                        return back()->withInput()->withErrors($validation);
                     }
                     $password = array_get($data, 'password');
                     $login_user->password = bcrypt($password);
                     $has_change = true;
+                } else {
+                    return back()->withInput()->withErrors([
+                        'create_password_auto' => exmtrans('user.message.required_password')]);
                 }
             }
 
@@ -193,7 +195,7 @@ class LoginUserController extends AdminControllerBase
                 $login_user->save();
 
                 // mailsend
-                if (array_key_exists('send_password', $data)) {
+                if (array_key_exists('send_password', $data) || isset($data['create_password_auto'])) {
                     $prms = [];
                     $prms['user'] = $user->toArray()['value'];
                     $prms['user']['password'] = $password;

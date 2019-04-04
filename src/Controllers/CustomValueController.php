@@ -120,19 +120,19 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
     
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update($id)
-    {
-        // call form using id
-        $response = $this->form($id)->update($id);
-        return $response;
-    }
+    // /**
+    //  * Update the specified resource in storage.
+    //  *
+    //  * @param int $id
+    //  *
+    //  * @return \Illuminate\Http\Response
+    //  */
+    // public function update($id)
+    // {
+    //     // call form using id
+    //     $response = $this->form($id)->update($id);
+    //     return $response;
+    // }
 
     /**
      * Show interface.
