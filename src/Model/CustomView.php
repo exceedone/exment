@@ -100,7 +100,8 @@ class CustomView extends ModelBase
                     if ($isUrl) {
                         return $this->getColumnUrl($column, true);
                     }
-                    return esc_html($this->getValue($column, true));
+                    $text = get_omitted_string($this->getValue($column, true));
+                    return esc_html($text);
                 });
             }
             // parent_id
@@ -141,11 +142,12 @@ class CustomView extends ModelBase
                 // get column name
                 $grid->column($view_column_target, exmtrans("common.$view_column_target"))->sortable()
                     ->display(function ($value) use ($view_column_target) {
+                        
                         if (!is_null($value)) {
-                            return esc_html($value);
+                            return esc_html(get_omitted_string($value));
                         }
                         // if cannnot get value, return array_get from this
-                        return esc_html(array_get($this, $view_column_target));
+                        return esc_html(get_omitted_string(array_get($this, $view_column_target)));
                     });
             }
         }
@@ -206,7 +208,7 @@ class CustomView extends ModelBase
                             if ($isUrl) {
                                 $body_items[] = $data->getColumnUrl($custom_column, true);
                             } else {
-                                $body_items[] = esc_html($data->getValue($custom_column, true));
+                                $body_items[] = esc_html(get_omitted_string($data->getValue($custom_column, true)));
                             }
                         }
                     }
@@ -221,7 +223,7 @@ class CustomView extends ModelBase
                         // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
                         $name = SystemColumn::getEnum(array_get($custom_view_column, 'view_column_target'))->name() ?? null;
                         if (isset($name)) {
-                            $body_items[] = esc_html(array_get($data, $name));
+                            $body_items[] = esc_html(get_omitted_string(array_get($data, $name)));
                         }
                     }
                 }
@@ -334,9 +336,9 @@ class CustomView extends ModelBase
         foreach ($this->custom_view_filters as $filter) {
             // get filter target column
             $view_column_target = $filter->view_column_target;
-            if ($filter->column_view_type == ViewColumnType::COLUMN) {
+            if ($filter->view_column_type == ViewColumnType::COLUMN) {
                 $view_column_target = CustomColumn::find($view_column_target)->getIndexColumnName() ?? null;
-            } elseif ($filter->column_view_type == ViewColumnType::PARENT_ID) {
+            } elseif ($filter->view_column_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
             }

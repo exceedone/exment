@@ -176,6 +176,8 @@ class Define
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
+    public const GRID_MAX_LENGTH = 50;
+
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [
         'custom_tables',
@@ -216,4 +218,5 @@ class Define
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
         ['uri'=> 'data', 'help_uri'=> 'data']
     ];
+
 }

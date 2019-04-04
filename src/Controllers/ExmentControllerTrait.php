@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Facades\Admin;
 use Illuminate\Support\Facades\Config;
+use Encore\Admin\Auth\Permission as Checker;
+use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentControllerTrait
 {
@@ -40,5 +42,21 @@ trait ExmentControllerTrait
             $content->description(' ');
         }
         return $content;
+    }
+    
+    /**
+     * validation table
+     * @param mixed $table id or customtable
+     */
+    protected function validateTable($table, $role_name)
+    {
+        $table = CustomTable::getEloquent($table);
+        //check permission
+        // if not exists, filter model using permission
+        if (!$table->hasPermission($role_name)) {
+            Checker::error();
+            return false;
+        }
+        return true;
     }
 }
