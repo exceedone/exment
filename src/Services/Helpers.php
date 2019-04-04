@@ -505,6 +505,10 @@ if (!function_exists('get_omitted_string')) {
             return $text;
         }
 
+        if(gettype($text) != 'string'){
+            return $text;
+        }
+
         if(mb_strlen($text) <= Define::GRID_MAX_LENGTH){
             return $text;
         }
