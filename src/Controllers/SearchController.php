@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
-use Encore\Admin\Grid\Linker;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
@@ -286,10 +285,8 @@ EOT;
         // get headers and bodies
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
-            'action_callback' => function (&$link, $custom_table, $data) {
-                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')))
-                    ->icon('fa-compress')
-                    ->tooltip(exmtrans('search.header_relation'));
+            'action_callback' => function(&$link, $custom_table, $data){
+                $link .= '<a href="'.admin_base_path('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')).'"><i class="fa fa-compress"></i></a>';
             }
         ]);
 

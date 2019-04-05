@@ -22,7 +22,7 @@ use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
 
-class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
+class ExmentServiceProvider extends ServiceProvider
 {
     /**
      * Application Policy Map
@@ -51,12 +51,6 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
      * @var array
      */
     protected $routeMiddleware = [
-        'admin.pjax'       => \Encore\Admin\Middleware\Pjax::class,
-        'admin.log'        => \Encore\Admin\Middleware\LogOperation::class,
-        'admin.bootstrap'  => \Encore\Admin\Middleware\Bootstrap::class,
-        'admin.permission'    => \Encore\Admin\Middleware\Permission::class,
-        'admin.session'    => \Encore\Admin\Middleware\Session::class,
-
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
@@ -81,13 +75,12 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
             'admin.bootstrap2',
             'admin.initialize',
             'admin.morph',
-            'admin.session',
         ],
         'admin_anonymous' => [
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
-            //'admin.permission',
+            'admin.permission',
             'admin.bootstrap2',
             'admin.initialize',
             'admin.morph',
@@ -106,8 +99,6 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
      */
     public function boot()
     {
-        parent::boot();
-
         $this->bootApp();
         $this->bootSetting();
 
@@ -127,8 +118,6 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
      */
     public function register()
     {
-        parent::register();
-
         require_once(__DIR__.'/Services/Helpers.php');
 
         // register route middleware.
@@ -271,27 +260,5 @@ class ExmentServiceProvider extends \Encore\Admin\AdminServiceProvider
         Admin::booting(function () {
             Initialize::initializeFormField();
         });
-    }
-    
-    /**
-     * Register the application's policies.
-     *
-     * @return void
-     */
-    public function registerPolicies()
-    {
-        foreach ($this->policies as $key => $value) {
-            Gate::policy($key, $value);
-        }
-    }
-
-    /**
-     * Get the policies defined on the provider.
-     *
-     * @return array
-     */
-    public function policies()
-    {
-        return $this->policies;
     }
 }

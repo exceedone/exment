@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
-use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request as Req;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ColumnType;
@@ -174,18 +173,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
                 ///// add show and edit link
                 // using role
-                $link = (new Linker)
-                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
-                    //->linkattributes(['style' => "margin:0 3px;"])
-                    ->icon('fa-eye')
-                    ->tooltip(trans('admin.show'))
-                    ->render();
+                $link = '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id')).'" style="margin:0 3px;"><i class="fa fa-eye"></i></a>';
                 if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
-                    $link .= (new Linker)
-                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
-                    ->icon('fa-edit')
-                    ->tooltip(trans('admin.edit'))
-                    ->render();
+                    $link .= '<a href="'.admin_base_paths('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit').'"><i class="fa fa-edit"></i></a>';
                 }
                 if (isset($options['action_callback'])) {
                     $options['action_callback']($link, $custom_table, $data);
@@ -309,6 +299,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             } elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
                 $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
+            } elseif ($custom_view_sort->view_column_type == ViewColumnType::PARENT_ID) {
+                $view_column_target = 'parent_id';
             }
             //set order
             $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');

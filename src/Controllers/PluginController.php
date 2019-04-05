@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;

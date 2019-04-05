@@ -63,7 +63,7 @@ class ErrorController extends Controller
         if (!$this->validateTableAndId(CustomColumn::class, $id, 'column')) {
             return;
         }
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $id);
     }
 
     /**

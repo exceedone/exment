@@ -493,6 +493,29 @@ if (!function_exists('get_password_rule')) {
     }
 }
 
+if (!function_exists('get_omitted_string')) {
+    /**
+     * if over string length. remove text, add "..."
+     * @return string
+     */
+    function get_omitted_string($text)
+    {
+        if(is_null($text)){
+            return $text;
+        }
+
+        if(gettype($text) != 'string'){
+            return $text;
+        }
+
+        if(mb_strlen($text) <= Define::GRID_MAX_LENGTH){
+            return $text;
+        }
+
+        return mb_substr($text, 0, Define::GRID_MAX_LENGTH) . '...';
+    }
+}
+
 // Laravel, laravel-admin --------------------------------------------------
 if (!function_exists('getModelName')) {
     /**

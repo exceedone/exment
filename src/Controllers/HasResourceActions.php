@@ -2,8 +2,12 @@
 
 namespace Exceedone\Exment\Controllers;
 
-trait HasResourceTableActions
+use Encore\Admin\Controllers\HasResourceActions as ParentResourceActions;
+
+trait HasResourceActions
 {
+    use ParentResourceActions;
+    
     /**
      * Update the specified resource in storage.
      *
@@ -11,19 +15,9 @@ trait HasResourceTableActions
      *
      * @return \Illuminate\Http\Response
      */
-    public function update($tableKey, $id)
+    public function update($id)
     {
         return $this->form($id)->update($id);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @return mixed
-     */
-    public function store()
-    {
-        return $this->form()->store();
     }
 
     /**
@@ -33,14 +27,8 @@ trait HasResourceTableActions
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($tableKey, $id)
+    public function destroy($id)
     {
-        if (method_exists($this, 'validateDestroy')) {
-            $data = $this->validateDestroy($id);
-            if (!empty($data)) {
-                return response()->json($data);
-            }
-        }
         if ($this->form($id)->destroy($id)) {
             $data = [
                 'status'  => true,

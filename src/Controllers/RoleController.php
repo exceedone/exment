@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Role;

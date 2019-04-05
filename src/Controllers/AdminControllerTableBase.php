@@ -36,22 +36,6 @@ class AdminControllerTableBase extends Controller
     }
 
     /**
-     * validation table
-     * @param mixed $table id or customtable
-     */
-    protected function validateTable($table, $role_name)
-    {
-        $table = CustomTable::getEloquent($table);
-        //check permission
-        // if not exists, filter model using permission
-        if (!$table->hasPermission($role_name)) {
-            Checker::error();
-            return false;
-        }
-        return true;
-    }
-    
-    /**
      * validate table_name and id
      * ex. check /admin/column/user/1/edit
      * whether "1" is user's column

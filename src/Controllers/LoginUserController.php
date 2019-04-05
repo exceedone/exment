@@ -6,7 +6,6 @@ use Validator;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\HasResourceActions;
 use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -209,21 +208,23 @@ class LoginUserController extends AdminControllerBase
                 } elseif (isset($data['password'])) {
                     $rules = [
                     'password' => get_password_rule(true),
-                ];
+                    ];
                     $validation = Validator::make($data, $rules);
                     if ($validation->fails()) {
-                        // TODOresponse
-                        return;
+                        return back()->withInput()->withErrors($validation);
                     }
                     $password = array_get($data, 'password');
                     $login_user->password = bcrypt($password);
                     $has_change = true;
+                } else {
+                    return back()->withInput()->withErrors([
+                        'create_password_auto' => exmtrans('user.message.required_password')]);
                 }
             }
 
             if ($has_change) {
                 // mailsend
-                if (array_key_exists('send_password', $data)) {
+                if (array_key_exists('send_password', $data) || isset($data['create_password_auto'])) {
                     $login_user->sendPassword($password);
                 }
                 $login_user->save();

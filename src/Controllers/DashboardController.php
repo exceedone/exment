@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
@@ -47,7 +47,7 @@ class DashboardController extends AdminControllerBase
     public function edit(Request $request, Content $content, $id)
     {
         $this->setDashboardInfo($request);
-        return parent::edit($request, $id, $content);
+        return parent::edit($request, $content, $id);
     }
 
     /**

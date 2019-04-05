@@ -8,7 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
-use Encore\Admin\Controllers\HasResourceActions;
+//use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Column;
 use Encore\Admin\Layout\Content;
