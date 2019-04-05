@@ -77,7 +77,7 @@ class Tile extends Field
         $multipled = $this->multipled ? 'true': 'false';
 
         // template search url
-        $template_search_url = admin_urls('template', 'search');
+        $template_search_url = admin_urls('api', 'template', 'search');
         $name = $this->formatName($this->column);
         $script = <<<EOT
     

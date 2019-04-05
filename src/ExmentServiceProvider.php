@@ -5,6 +5,7 @@ namespace Exceedone\Exment;
 use Storage;
 use Request;
 use Encore\Admin\Admin;
+use Encore\Admin\Middleware as AdminMiddleware;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;
@@ -14,7 +15,7 @@ use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use League\Flysystem\Filesystem;
@@ -56,7 +57,13 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
         'adminapi.auth'       => \Exceedone\Exment\Middleware\AuthenticateApi::class,
-        
+
+        'admin.pjax'       => AdminMiddleware\Pjax::class,
+        'admin.permission' => AdminMiddleware\Permission::class,
+        'admin.log'        => AdminMiddleware\LogOperation::class,
+        'admin.bootstrap'  => AdminMiddleware\Bootstrap::class,
+        'admin.session'    => AdminMiddleware\Session::class,
+
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
     ];
 
@@ -75,6 +82,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap2',
             'admin.initialize',
             'admin.morph',
+            'admin.session',
         ],
         'admin_anonymous' => [
             'admin.pjax',
@@ -84,9 +92,14 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap2',
             'admin.initialize',
             'admin.morph',
+            'admin.session',
         ],
         'adminapi' => [
             'adminapi.auth',
+            'throttle:60,1',
+            'bindings',
+        ],
+        'adminapi_anonymous' => [
             'throttle:60,1',
             'bindings',
         ]
@@ -99,6 +112,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        parent::boot();
+
         $this->bootApp();
         $this->bootSetting();
 
@@ -118,6 +133,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        parent::register();
         require_once(__DIR__.'/Services/Helpers.php');
 
         // register route middleware.
@@ -260,5 +276,27 @@ class ExmentServiceProvider extends ServiceProvider
         Admin::booting(function () {
             Initialize::initializeFormField();
         });
+    }
+    
+    /**	
+     * Register the application's policies.	
+     *	
+     * @return void	
+     */	
+    public function registerPolicies()	
+    {	
+        foreach ($this->policies as $key => $value) {	
+            Gate::policy($key, $value);	
+        }	
+    }	
+    
+    /**	
+     * Get the policies defined on the provider.	
+     *	
+     * @return array	
+     */	
+    public function policies()	
+    {	
+        return $this->policies;	
     }
 }

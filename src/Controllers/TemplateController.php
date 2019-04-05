@@ -107,11 +107,16 @@ class TemplateController extends AdminControllerBase
 
             $paginator = new LengthAwarePaginator(
                 collect($datalist),
-                2,
                 1,
+                1, 
                 1
             );
-    
+            // $paginator = new LengthAwarePaginator(
+            //     collect($json['data']),
+            //     $json['total'],
+            //     $json['per_page'], 
+            //     $json['current_page']
+            // );
 
             // return body and footer
             return view('exment::form.field.tile-items', [

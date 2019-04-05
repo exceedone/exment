@@ -31,6 +31,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
         $this->mapExmentApiRotes();
+        $this->mapExmentAnonymousApiRotes();
     }
 
     /**
@@ -152,7 +153,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
-            $router->post('template/search', 'TemplateController@searchTemplate');
 
             // get config about login provider
             $login_providers = config('exment.login_providers');
@@ -206,6 +206,31 @@ class RouteServiceProvider extends ServiceProvider
         }
     }
 
+    /**
+     * define api and anonynous routes
+     */
+    protected function mapExmentAnonymousApiRotes()
+    {
+        // define adminapi(for webapi), api(for web)
+        $routes = [
+            ['prefix' => url_join(config('admin.route.prefix'), 'webapi'), 'middleware' => ['web', 'adminapi_anonymous']],
+        ];
+        
+        if (boolval(config('exment.api'))) {
+            $routes[] = ['prefix' => url_join(config('admin.route.prefix'), 'api'), 'middleware' => ['api', 'adminapi_anonymous']];
+        }
+
+        foreach ($routes as $route) {
+            Route::group([
+                'prefix' => array_get($route, 'prefix'),
+                'namespace'     => $this->namespace,
+                'middleware'    => array_get($route, 'middleware'),
+            ], function (Router $router) use ($route) {
+                $router->post('template/search', 'TemplateController@searchTemplate');
+            });
+        }
+    }
+    
     /**
      * set table resource.
      * (We cannot create endpoint using resouce function if contains {tableKey}).
