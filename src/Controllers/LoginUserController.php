@@ -216,11 +216,19 @@ class LoginUserController extends AdminControllerBase
                     $prms = [];
                     $prms['user'] = $user->toArray()['value'];
                     $prms['user']['password'] = $password;
-                    MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
+                    try{
+                        MailSender::make($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN, $user)
                         ->prms($prms)
                         ->user($user)
                         ->disableHistoryBody()
                         ->send();
+                    }
+                    // throw mailsend Exception
+                    catch(\Swift_TransportException $ex){
+                        admin_error('Error', exmtrans('error.mailsend_failed'));
+                        DB::rollback();
+                        return back()->withInput();
+                    }
                 }
                 DB::commit();
             }

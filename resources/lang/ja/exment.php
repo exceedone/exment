@@ -60,6 +60,7 @@ return [
         'error_trace' => 'エラー詳細',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'login_failed' => 'IDまたはパスワードが違います。',
+        'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
     ],
 
     'system' => [
