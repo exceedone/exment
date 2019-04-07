@@ -151,28 +151,4 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     {
         return static::getEloquentDefault($id, $withs);
     }
-
-    // /**
-    //  * import template
-    //  */
-    // public static function importTemplate($json, $options = [])
-    // {
-    //     $parent_id = CustomTable::getEloquent(array_get($json, 'parent_custom_table_name'))->id ?? null;
-    //     $child_id = CustomTable::getEloquent(array_get($json, 'child_custom_table_name'))->id ?? null;
-    //     if (!isset($parent_id) || !isset($child_id)) {
-    //         return;
-    //     }
-        
-    //     // Create relations. --------------------------------------------------
-    //     $custom_relation = CustomRelation::firstOrNew([
-    //         'parent_custom_table_id' => $parent_id,
-    //         'child_custom_table_id' => $child_id
-    //         ]);
-    //     $custom_relation->parent_custom_table_id = $parent_id;
-    //     $custom_relation->child_custom_table_id = $child_id;
-    //     $custom_relation->relation_type = RelationType::getEnumValue(array_get($json, 'relation_type'));
-    //     $custom_relation->save();
-
-    //     return $custom_relation;
-    // }
 }

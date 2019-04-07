@@ -338,48 +338,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $this->createTable();
     }
     
-    // /**
-    //  * import template
-    //  */
-    // public static function importTemplate($json, $options = [])
-    // {
-    //     $system_flg = array_get($options, 'system_flg', false);
-    //     // Create tables. --------------------------------------------------
-    //     $table_name = array_get($json, 'table_name');
-    //     $obj_table = static::firstOrNew(['table_name' => $table_name]);
-    //     $obj_table->table_name = $table_name;
-    //     $obj_table->description = array_get($json, 'description');
-    //     // system flg checks 1. whether import from system, 2. table setting sets 1
-    //     $table_system_flg = array_get($json, 'system_flg');
-    //     $obj_table->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
-
-    //     // set showlist_flg
-    //     if (!array_has($json, 'showlist_flg')) {
-    //         $obj_table->showlist_flg = true;
-    //     } elseif (boolval(array_get($json, 'showlist_flg'))) {
-    //         $obj_table->showlist_flg = true;
-    //     } else {
-    //         $obj_table->showlist_flg = false;
-    //     }
-
-    //     // if contains table view name in config
-    //     if (array_key_value_exists('table_view_name', $json)) {
-    //         $obj_table->table_view_name = array_get($json, 'table_view_name');
-    //     }
-    //     // not exists, get lang using app config
-    //     else {
-    //         $obj_table->table_view_name = exmtrans("custom_table.system_definitions.$table_name");
-    //     }
-    //     $obj_table->setOption(array_get($json, 'options', []));
-    //     $obj_table->saveOrFail();
-
-    //     // Create database table.
-    //     $table_name = array_get($json, 'table_name');
-    //     $obj_table->createTable();
-
-    //     return $obj_table;
-    // }
-    
     /**
      * search value
      */

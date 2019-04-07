@@ -157,34 +157,6 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         return static::getEloquentDefault($id, $withs);
     }
 
-    /**
-     * import template
-     */
-    // public static function importTemplate($form, $options = [])
-    // {
-    //     $custom_table = CustomTable::getEloquent(array_get($form, 'table_name'));
-
-    //     // Create form --------------------------------------------------
-    //     $custom_form = CustomForm::firstOrNew([
-    //         'custom_table_id' => $custom_table->id
-    //         ]);
-    //     $custom_form->form_view_name = array_get($form, 'form_view_name');
-    //     $custom_form->default_flg = boolval(array_get($form, 'default_flg'));
-    //     $custom_form->saveOrFail();
-
-    //     // Create form block
-    //     if (array_get($form, "custom_form_blocks")) {
-    //         foreach (array_get($form, "custom_form_blocks") as $form_block) {
-    //             CustomFormBlock::importTemplate($form_block, [
-    //                 'custom_table' => $custom_table,
-    //                 'custom_form' => $custom_form,
-    //             ]);
-    //         }
-    //     }
-
-    //     return $custom_form;
-    // }
-    
     public function deletingChildren()
     {
         foreach ($this->custom_form_blocks as $item) {

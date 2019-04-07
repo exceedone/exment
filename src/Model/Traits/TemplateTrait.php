@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\ModelBase;
+use Exceedone\Exment\Enums\TemplateImportResult;
 
 trait TemplateTrait
 {
@@ -216,7 +217,14 @@ trait TemplateTrait
 
         // replace json if method exists
         if (method_exists(get_called_class(), 'importReplaceJson')) {
-            static::importReplaceJson($json, $options);
+            $result = static::importReplaceJson($json, $options);
+            if($result == TemplateImportResult::ERROR){
+                //TODO:error
+                return;
+            }
+            if($result == TemplateImportResult::CONITNUE){
+                return;
+            }
         }
 
         // replace value name name to id
