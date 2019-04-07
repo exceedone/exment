@@ -25,6 +25,18 @@ class LoginUserController extends AdminControllerBase
     }
     
     /**
+     * Show interface.
+     *
+     * @param mixed   $id
+     * @param Content $content
+     * @return Content
+     */
+    public function show(Request $request, Content $content, $id)
+    {
+        return redirect(admin_urls('loginuser', $id, 'edit'));
+    }
+
+    /**
      * Make a grid builder.
      *
      * @return Grid
