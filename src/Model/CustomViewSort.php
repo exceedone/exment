@@ -13,7 +13,7 @@ class CustomViewSort extends ModelBase
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',

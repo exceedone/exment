@@ -16,7 +16,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['custom_table', 'form_name'],
         'langs' => [
             'keys' => ['suuid'],

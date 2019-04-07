@@ -16,7 +16,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     
     protected $casts = ['options' => 'json'];
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['from_custom_table', 'to_custom_table', 'target_copy_name'],
         'langs' => [
             'keys' => ['suuid'],

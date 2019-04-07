@@ -21,64 +21,118 @@
             "table_view_name": "基本情報",
             "custom_columns": [
                 {
+                    "column_name": "company_name",
+                    "column_view_name": "会社名"
+                },
+                {
+                    "column_name": "company_kana",
+                    "column_view_name": "会社カナ"
+                },
+                {
+                    "column_name": "zip01",
+                    "column_view_name": "郵便番号1"
+                },
+                {
+                    "column_name": "zip02",
+                    "column_view_name": "郵便番号2"
+                },
+                {
                     "column_name": "tel01",
+                    "column_view_name": "電話番号1",
                     "options": {
                         "placeholder": "例：03"
                     }
                 },
                 {
                     "column_name": "tel02",
+                    "column_view_name": "電話番号2",
                     "options": {
                         "placeholder": "例：1234"
                     }
                 },
                 {
                     "column_name": "tel03",
+                    "column_view_name": "電話番号3",
                     "options": {
                         "placeholder": "例：5678"
                     }
                 },
                 {
                     "column_name": "fax01",
+                    "column_view_name": "FAX1",
                     "options": {
                         "placeholder": "例：03"
                     }
                 },
                 {
                     "column_name": "fax02",
+                    "column_view_name": "FAX2",
                     "options": {
                         "placeholder": "例：1234"
                     }
                 },
                 {
                     "column_name": "fax03",
+                    "column_view_name": "FAX3",
                     "options": {
                         "placeholder": "例：5678"
                     }
                 },
                 {
                     "column_name": "pref",
+                    "column_view_name": "都道府県",
                     "options": {
                         "select_item_valtext": "01,北海道\n02,青森県\n03,岩手県\n04,宮城県\n05,秋田県\n06,山形県\n07,福島県\n08,茨城県\n09,栃木県\n10,群馬県\n11,埼玉県\n12,千葉県\n13,東京都\n14,神奈川県\n15,新潟県\n16,富山県\n17,石川県\n18,福井県\n19,山梨県\n20,長野県\n21,岐阜県\n22,静岡県\n23,愛知県\n24,三重県\n25,滋賀県\n26,京都府\n27,大阪府\n28,兵庫県\n29,奈良県\n30,和歌山県\n31,鳥取県\n32,島根県\n33,岡山県\n34,広島県\n35,山口県\n36,徳島県\n37,香川県\n38,愛媛県\n39,高知県\n40,福岡県\n41,佐賀県\n42,長崎県\n43,熊本県\n44,大分県\n45,宮崎県\n46,鹿児島県\n47,沖縄県"
                     }
                 },
                 {
+                    "column_name": "addr01",
+                    "column_view_name": "住所"
+                },
+                {
+                    "column_name": "addr02",
+                    "column_view_name": "住所(ビル以降)"
+                },
+                {
                     "column_name": "company_logo",
+                    "column_view_name": "会社ロゴ",
                     "options": {
                         "help": "最適な画像サイズは200×70です。"
                     }
                 },
                 {
                     "column_name": "company_stamp",
+                    "column_view_name": "会社印",
                     "options": {
                         "help": "最適な画像サイズは200×200です。"
                     }
                 },
                 {
+                    "column_name": "transfer_bank_name",
+                    "column_view_name": "代表振込先口座-銀行名"
+                },
+                {
+                    "column_name": "transfer_bank_office_name",
+                    "column_view_name": "代表振込先口座-支店名"
+                },
+                {
+                    "column_name": "transfer_bank_office_no",
+                    "column_view_name": "代表振込先口座-支店番号"
+                },
+                {
                     "column_name": "transfer_bank_account_type",
+                    "column_view_name": "代表振込先口座-口座種類",
                     "options": {
                         "help": "「普通」「当座」など、口座の種類をご記入ください。"
                     }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "代表振込先口座-口座名"
+                },
+                {
+                    "column_name": "transfer_bank_account_no",
+                    "column_view_name": "代表振込先口座-口座番号"
                 },
                 {
                     "column_name": "transfer_bank_account_name",

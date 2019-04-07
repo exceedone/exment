@@ -15,7 +15,7 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     protected $casts = ['permissions' => 'json'];
     protected $guarded = ['id'];
     
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => [],
         'uniqueKeys' => ['role_name', 'role_type'],
         'langs' => [

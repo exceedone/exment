@@ -18,7 +18,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $appends = ['form_column_target'];
     protected $with = ['custom_column'];
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['custom_column', 'custom_form_block_id'],
         'langs' => [
             'keys' => ['form_column_target_name'],

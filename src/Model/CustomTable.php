@@ -26,7 +26,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['suuid'],
         'uniqueKeys' => ['table_name'],
         'langs' => [

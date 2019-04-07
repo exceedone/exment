@@ -25,7 +25,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      */
     protected $titleColumn = 'title';
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['menu_target'],
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [

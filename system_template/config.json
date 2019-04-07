@@ -594,7 +594,7 @@
                             "form_column_target_name": "mail_body"
                         }
                     ],
-                    "form_block_target_table_name": null
+                    "form_block_target_table_name": "mail_template"
                 }
             ],
             "table_name": "mail_template"
@@ -654,7 +654,7 @@
                             "form_column_target_name": "send_datetime"
                         }
                     ],
-                    "form_block_target_table_name": null
+                    "form_block_target_table_name": "mail_send_log"
                 }
             ],
             "table_name": "mail_send_log"
@@ -729,7 +729,7 @@
                             "form_column_target_name": "company_stamp"
                         }
                     ],
-                    "form_block_target_table_name": null
+                    "form_block_target_table_name": "base_info"
                 }
             ],
             "table_name": "base_info"
@@ -759,7 +759,7 @@
                             "form_column_target_name": "organization_name"
                         }
                     ],
-                    "form_block_target_table_name": null
+                    "form_block_target_table_name": "organization"
                 },
                 {
                     "form_block_view_name": "Child table-user",
@@ -827,7 +827,7 @@
                             "form_column_target_name": "updated_user"
                         }
                     ],
-                    "form_block_target_table_name": null
+                    "form_block_target_table_name": "information"
                 }
             ],
             "table_name": "information"

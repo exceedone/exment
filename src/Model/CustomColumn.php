@@ -24,7 +24,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     protected static $uniqueKeyName = ['custom_table.table_name', 'column_name'];
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['suuid'],
         'uniqueKeys' => [
             'export' => [

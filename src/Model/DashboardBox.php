@@ -16,13 +16,17 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
 
-    protected static $templateItems = [
-        'excepts' => ['suuid', 'dashboard_id'],
+    public static $templateItems = [
+        'excepts' => ['suuid'],
         'langs' => [
             'keys' => ['row_no', 'column_no'],
             'values' => ['dashboard_box_view_name'],
         ],
-        
+        'parent' => 'dashboard_id',
+        'uniqueKeys' => ['dashboard_id', 'row_no', 'column_no'],
+        'enums' => [
+            'dashboard_box_type' => DashboardBoxType::class,
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -97,49 +101,25 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return static::getEloquentDefault($id, $withs);
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($dashboard_box, $options = [])
-    {
-        // Create dashboard --------------------------------------------------
-        $obj_dashboard = array_get($options, 'obj_dashboard');
-
-        // create dashboard boxes --------------------------------------------------
-        $obj_dashboard_box = DashboardBox::firstOrNew([
-            'dashboard_id' => $obj_dashboard->id,
-            'row_no' => array_get($dashboard_box, "row_no"),
-            'column_no' => array_get($dashboard_box, "column_no"),
-        ]);
-        $obj_dashboard_box->dashboard_box_view_name = array_get($dashboard_box, "dashboard_box_view_name");
-        $obj_dashboard_box->dashboard_box_type = DashboardBoxType::getEnumValue(array_get($dashboard_box, "dashboard_box_type"));
-
-        // set options
-        collect(array_get($dashboard_box, 'options', []))->each(function ($option, $key) use ($obj_dashboard_box) {
-            $obj_dashboard_box->setOption($key, $option);
-        });
-        
+    protected static function importReplaceJson(&$json, $options = []){
         // switch dashboard_box_type
-        switch ($obj_dashboard_box->dashboard_box_type) {
+        $dashboard_box_type = DashboardBoxType::getEnumValue(array_get($json, 'dashboard_box_type'));
+        switch ($dashboard_box_type) {
             // system box
             case DashboardBoxType::SYSTEM:
-                $id = collect(DashboardBoxSystemPage::options())->first(function ($value) use ($dashboard_box) {
-                    return array_get($value, 'name') == array_get($dashboard_box, 'options.target_system_name');
+                $id = collect(DashboardBoxSystemPage::options())->first(function ($value) use ($json) {
+                    return array_get($value, 'name') == array_get($json, 'options.target_system_name');
                 })['id'] ?? null;
-                $obj_dashboard_box->setOption('target_system_id', $id);
+                array_set($json, 'options.target_system_id', $id);
                 break;
             
             // list
             case DashboardBoxType::LIST:
                 // get target table
-                $obj_dashboard_box->setOption('target_table_id', CustomTable::getEloquent(array_get($dashboard_box, 'options.target_table_name'))->id ?? null);
+                array_set($json, 'options.target_table_id', CustomTable::getEloquent(array_get($json, 'options.target_table_name'))->id ?? null);
                 // get target view using suuid
-                $obj_dashboard_box->setOption('target_view_id', CustomView::findBySuuid(array_get($dashboard_box, 'options.target_view_suuid'))->id ?? null);
+                array_set($json, 'options.target_view_id', CustomView::findBySuuid(array_get($json, 'options.target_view_suuid'))->id ?? null);
                 break;
         }
-
-        $obj_dashboard_box->saveOrFail();
-
-        return $obj_dashboard;
     }
 }

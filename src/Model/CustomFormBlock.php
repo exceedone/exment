@@ -13,7 +13,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     
     protected $casts = ['options' => 'json'];
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['custom_form_id', 'target_table'],
         'langs' => [
             'keys' => ['form_block_target_table_name'],

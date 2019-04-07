@@ -14,7 +14,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
 
-    protected static $templateItems = [
+    public static $templateItems = [
         //'excepts' => ['custom_copy_id', 'from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
         'excepts' => ['from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
         'keys' => ['from_column_type', 'from_column_target_id', 'to_column_type', 'to_column_target_id', 'copy_column_type'],

@@ -613,11 +613,23 @@ class TemplateImporter
             }
 
             if (is_array($json[$key]) && is_array($langdata)) {
-                if ($key === 'custom_form_blocks') {
-                    $langdata = $langdata;
-                }
                 // if values are both array, call this method recursion
                 $result[$key] = static::mergeTemplate($json[$key], $langdata, static::getModelPath($key));
+
+                // if this model contains table and contains children, get the classname and call child value
+                if(isset($fillpath) && property_exists($fillpath, 'templateItems') && array_has($fillpath::$templateItems, 'children')){
+                    $children = array_get($fillpath::$templateItems, 'children');
+                    foreach($children as $childkey => $childpath){
+                        if (!array_has($json[$key], $childkey)) {
+                            continue;
+                        }
+                        if(!isset($langJson[$key]) || !array_has($langJson[$key], $childkey)){
+                            continue;
+                        }
+                        // call mergeTemplate for child
+                        $result[$key][$childkey] = static::mergeTemplate($json[$key][$childkey], $langJson[$key][$childkey], $childpath);
+                    }
+                }
             } else {
                 // replace if values are both strings
                 $result[$key] = $langdata;

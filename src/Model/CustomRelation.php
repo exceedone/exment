@@ -12,7 +12,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 
     protected $with = ['parent_custom_table', 'child_custom_table'];
 
-    protected static $templateItems = [
+    public static $templateItems = [
         'excepts' => ['parent_custom_table', 'child_custom_table'],
         'langs' => [
             'keys' => ['parent_custom_table_name', 'child_custom_table_name'],

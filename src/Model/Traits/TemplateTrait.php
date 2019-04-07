@@ -12,7 +12,7 @@ trait TemplateTrait
 
     // Description for $templateItems.
     // This is template setting for template import and export.
-    // protected static $templateItems = [
+    // public static $templateItems = [
     //     // 'excepts': ignore field. in this columns, not exporting and importing columns.
     //     'excepts' => ['suuid'],
     //
@@ -259,70 +259,15 @@ trait TemplateTrait
                         array_forget($json, $replacedValue);
                     }
                 }
-
-                
-                // $replacedEloquent = call_user_func_array([$uniqueKeyReplace['uniqueKeyClassName'], 'getEloquent'], array_values($eloquentArgs));
-                // if (isset($replacedEloquent)) {
-                //     // get unique key names
-                //     $replacedValue = $replacedEloquent->getUniqueKeyNames();
-                // }
-
-
-                // ///// if has uniqueKeyFunction, execute
-                // if (array_key_exists('uniqueKeyFunction', $uniqueKeyReplace)) {
-                //     // get unique key names
-                //     $funcName = $uniqueKeyReplace['uniqueKeyFunction'];
-                //     $replacedValue = $this->{$funcName}();
-                // }
-
-                // ///// if system enum, get system name
-                // elseif (array_key_exists('uniqueKeySystemEnum', $uniqueKeyReplace)) {
-                //     // get values for getEnum args
-                //     $getEnumArgs = collect($replaceNames)->map(function ($replaceName) use ($array) {
-                //         return array_get($array, $replaceName['replacingName']);
-                //     })->toArray();
-                    
-                //     // get enum
-                //     $enum = call_user_func_array([$uniqueKeyReplace['uniqueKeySystemEnum'], 'getEnum'], array_values($getEnumArgs));
-                //     if (isset($enum)) {
-                //         $replacedValue = $enum->option();
-                //     }
-                // }
-
-                // ///// default: get eloquent
-                // else {
-                //     // get values for eloquent args
-                //     $eloquentArgs = collect($replaceNames)->map(function ($replaceName) use ($array) {
-                //         return array_get($array, $replaceName['replacingName']);
-                //     })->toArray();
-
-                //     // call eloquent function
-                //     $replacedEloquent = call_user_func_array([$uniqueKeyReplace['uniqueKeyClassName'], 'getEloquent'], array_values($eloquentArgs));
-                //     if (isset($replacedEloquent)) {
-                //         // get unique key names
-                //         $replacedValue = $replacedEloquent->getUniqueKeyNames();
-                //     }
-                // }
-
-                // // set array
-                // if (isset($replacedValue)) {
-                //     foreach ($replaceNames as $replaceName) {
-                //         foreach (array_get($replaceName, 'replacedName', []) as $replacedNameKey => $replacedNameValue) {
-                //             array_set($array, $replacedNameValue, array_get($replacedValue, $replacedNameKey));
-                //         }
-                //     }
-                // }
-                
-                // foreach ($replaceNames as $replaceName) {
-                //     array_forget($array, array_get($replaceName, 'replacingName'));
-                // }
             }
         }
 
         // set json default value
         if(array_has($templateItems, 'defaults')){
             $defaults = $templateItems['defaults'];
-            $json = array_merge($defaults, $json);
+            foreach ($defaults as $key => $default) {
+                data_fill($json, $key, $default);
+            }
         }
 
         // get keylist and value
