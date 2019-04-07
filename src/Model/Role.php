@@ -17,8 +17,11 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     
     protected static $templateItems = [
         'excepts' => [],
-        'keys' => ['role_name'],
-        'langs' => ['role_view_name', 'description'],
+        'uniqueKeys' => ['role_name', 'role_type'],
+        'langs' => [
+            'keys' => ['role_name'],
+            'values' => ['role_view_name', 'description'],
+        ],
         'children' =>[
             'dashboard_boxes',
         ],

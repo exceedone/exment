@@ -1228,6 +1228,7 @@
             "order": "1",
             "menu_type": "system",
             "menu_name": "home",
+            "title": "HOME",
             "parent_name": null,
             "menu_target_name": "home"
         },
@@ -1237,6 +1238,7 @@
             "uri": null,
             "menu_type": "parent_node",
             "menu_name": "master",
+            "title": "Manage Master",
             "parent_name": null,
             "menu_target_name": null
         },
@@ -1244,6 +1246,7 @@
             "order": "1",
             "menu_type": "table",
             "menu_name": "base_info",
+            "title": "Base Info",
             "parent_name": "master",
             "menu_target_name": "base_info"
         },
@@ -1251,6 +1254,7 @@
             "order": "2",
             "menu_type": "table",
             "menu_name": "user",
+            "title": "User",
             "parent_name": "master",
             "menu_target_name": "user"
         },
@@ -1258,6 +1262,7 @@
             "order": "3",
             "menu_type": "table",
             "menu_name": "organization",
+            "title": "Organization",
             "parent_name": "master",
             "menu_target_name": "organization"
         },
@@ -1265,6 +1270,7 @@
             "order": "4",
             "menu_type": "table",
             "menu_name": "information",
+            "title": "Information",
             "parent_name": "master",
             "menu_target_name": "information"
         },
@@ -1273,6 +1279,7 @@
             "menu_type": "parent_node",
             "menu_name": "admin",
             "parent_name": null,
+            "title": "Admin Setting",
             "menu_target_name": "admin",
             "icon": "fa-user-circle-o" 
         },
@@ -1280,6 +1287,7 @@
             "order": "1",
             "menu_type": "system",
             "menu_name": "system",
+            "title": "System Setting",
             "parent_name": "admin",
             "menu_target_name": "system"
         },
@@ -1287,6 +1295,7 @@
             "order": "2",
             "menu_type": "system",
             "menu_name": "custom_table",
+            "title": "Custom Table",
             "parent_name": "admin",
             "menu_target_name": "custom_table"
         },
@@ -1294,6 +1303,7 @@
             "order": "3",
             "menu_type": "system",
             "menu_name": "menu",
+            "title": "Menu",
             "parent_name": "admin",
             "menu_target_name": "menu"
         },
@@ -1301,6 +1311,7 @@
             "order": "4",
             "menu_type": "system",
             "menu_name": "template",
+            "title": "Template",
             "parent_name": "admin",
             "menu_target_name": "template"
         },
@@ -1308,6 +1319,7 @@
             "order": "5",
             "menu_type": "system",
             "menu_name": "backup",
+            "title": "Backup",
             "parent_name": "admin",
             "menu_target_name": "backup"
         },
@@ -1315,6 +1327,7 @@
             "order": "6",
             "menu_type": "system",
             "menu_name": "loginuser",
+            "title": "LoginUser",
             "parent_name": "admin",
             "menu_target_name": "loginuser"
         },
@@ -1322,6 +1335,7 @@
             "order": "7",
             "menu_type": "system",
             "menu_name": "role",
+            "title": "Role",
             "parent_name": "admin",
             "menu_target_name": "role"
         },
@@ -1329,6 +1343,7 @@
             "order": "8",
             "menu_type": "system",
             "menu_name": "plugin",
+            "title": "Plugin",
             "parent_name": "admin",
             "menu_target_name": "plugin"
         },
@@ -1336,6 +1351,7 @@
             "order": "9",
             "menu_type": "system",
             "menu_name": "notify",
+            "title": "Notify",
             "parent_name": "admin",
             "menu_target_name": "notify"
         },
@@ -1343,6 +1359,7 @@
             "order": "10",
             "menu_type": "table",
             "menu_name": "mail_template",
+            "title": "Mail Template",
             "parent_name": "admin",
             "menu_target_name": "mail_template"
         },
@@ -1350,6 +1367,7 @@
             "order": "11",
             "menu_type": "table",
             "menu_name": "mail_send_log",
+            "title": "Mail Send Log",
             "parent_name": "admin",
             "menu_target_name": "mail_send_log"
         }

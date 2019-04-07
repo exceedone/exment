@@ -27,7 +27,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected static $templateItems = [
         'excepts' => ['menu_target', 'parent_id'],
         'keys' => ['menu_type', 'menu_name'],
-        'langs' => ['title'],
+        'langs' => [
+            'keys' => ['menu_type', 'menu_name'],
+            'values' => ['title'],
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -126,132 +129,221 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         return $rows;
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($menu, $options = [])
-    {
+    public static function importReplaceJson(&$json, $options = []){
         // Create menu. --------------------------------------------------
         $hasname = array_get($options, 'hasname');
 
         // get parent id
-        $parent_id = null;
+        $parent_id = 0;
         // get parent id from parent_name
-        if (array_key_exists('parent_name', $menu)) {
-            // if $hasname is 0, $menu['parent_name'] is not null(not root) then continue
-            if ($hasname == 0 && !is_null($menu['parent_name'])) {
+        if (array_key_exists('parent_name', $json)) {
+            // if $hasname is 0, $json['parent_name'] is not null(not root) then continue
+            if ($hasname == 0 && !is_null($json['parent_name'])) {
                 return null;
             }
-            // if $hasname is 1, $menu['parent_name'] is null(root) then continue
-            elseif ($hasname == 1 && is_null($menu['parent_name'])) {
+            // if $hasname is 1, $json['parent_name'] is null(root) then continue
+            elseif ($hasname == 1 && is_null($json['parent_name'])) {
                 return null;
             }
 
-            $parent = static::where('menu_name', $menu['parent_name'])->first();
+            $parent = static::where('menu_name', $json['parent_name'])->first();
             if (isset($parent)) {
                 $parent_id = $parent->id;
             }
         }
-        if (is_null($parent_id)) {
-            $parent_id = 0;
-        }
-
-        // set title
-        if (array_key_value_exists('title', $menu)) {
-            $title = array_get($menu, 'title');
-        }
-        // title not exists, translate
-        else {
-            $translate_key = array_key_value_exists('menu_target_name', $menu) ? array_get($menu, 'menu_target_name') : array_get($menu, 'menu_name');
-            $title = exmtrans('menu.system_definitions.'.$translate_key);
-        }
-
-        $menu_type = MenuType::getEnumValue(array_get($menu, 'menu_type'));
-        $obj_menu = static::firstOrNew(['menu_name' => array_get($menu, 'menu_name'), 'parent_id' => $parent_id]);
-        $obj_menu->menu_type = $menu_type;
-        $obj_menu->menu_name = array_get($menu, 'menu_name');
-        $obj_menu->title = $title;
-        $obj_menu->parent_id = $parent_id;
-
-        // get menu target id
-        if (isset($menu['menu_target_id'])) {
-            $obj_menu->menu_target = $menu['menu_target_id'];
-        }
-        // get menu target id from menu_target_name
-        elseif (isset($menu['menu_target_name'])) {
+        $json['parent_id'] = $parent_id;
+        
+        if (isset($json['menu_target_name'])) {
             // case plugin or table
             switch ($menu_type) {
                 case MenuType::PLUGIN:
-                    $parent = Plugin::where('plugin_name', $menu['menu_target_name'])->first();
+                    $parent = Plugin::where('plugin_name', $json['menu_target_name'])->first();
                     if (isset($parent)) {
-                        $obj_menu->menu_target = $parent->id;
+                        $json['menu_target'] = $parent->id;
                     }
                     break;
                 case MenuType::TABLE:
-                    $parent = CustomTable::getEloquent($menu['menu_target_name']);
+                    $parent = CustomTable::getEloquent($json['menu_target_name']);
                     if (isset($parent)) {
-                        $obj_menu->menu_target = $parent->id;
+                        $json['menu_target'] = $parent->id;
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use ($menu) {
-                        return $key == $menu['menu_target_name'];
+                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use ($json) {
+                        return $key == $json['menu_target_name'];
                     })->each(function ($system_menu, $key) use ($obj_menu) {
-                        $obj_menu->menu_target = $key;
+                        $json['menu_target'] = $key;
                     });
                     break;
             }
         }
+        array_forget($json, 'menu_target_name');
 
         // get order
-        if (isset($menu['order'])) {
-            $obj_menu->order = $menu['order'];
-        } else {
-            $obj_menu->order = static::where('parent_id', $obj_menu->parent_id)->max('order') + 1;
+        if (!isset($json['order'])) {
+            $json['order'] = static::where('parent_id', $obj_menu->parent_id)->max('order') + 1;
         }
 
+        // convert menu type
+        $json['menu_type'] = MenuType::getEnumValue($json['menu_type']);
+        
         ///// icon
-        if (isset($menu['icon'])) {
-            $obj_menu->icon = $menu['icon'];
-        }
-        // else, get icon from table, system, etc
-        else {
-            switch ($obj_menu->menu_type) {
+        if (!isset($json['icon'])) {
+            switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $obj_menu->icon = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
+                    $json['icon'] = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
                     break;
                 case MenuType::TABLE:
-                    $obj_menu->icon = CustomTable::getEloquent($obj_menu->menu_name)->icon ?? null;
+                    $json['icon'] = CustomTable::getEloquent($obj_menu->menu_name)->icon ?? null;
                     break;
             }
         }
-        if (is_null($obj_menu->icon)) {
-            $obj_menu->icon = '';
+        if (!isset($json['icon'])) {
+            $json['icon'] = '';
         }
 
         ///// uri
-        if (isset($menu['uri'])) {
-            $obj_menu->uri = $menu['uri'];
-        }
-        // else, get icon from table, system, etc
-        else {
-            switch ($obj_menu->menu_type) {
+        if (!isset($json['uri'])) {
+            switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $obj_menu->uri = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".uri");
+                    $json['uri'] = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".uri");
                     break;
                 case MenuType::TABLE:
-                    $obj_menu->uri = $obj_menu->menu_name;
+                    $json['uri'] = $obj_menu->menu_name;
                     break;
                 case MenuType::TABLE:
-                    $obj_menu->uri = '#';
+                    $json['uri'] = '#';
                     break;
             }
         }
-
-        $obj_menu->saveOrFail();
-
-        return $obj_menu;
     }
+
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($menu, $options = [])
+    // {
+    //     // Create menu. --------------------------------------------------
+    //     $hasname = array_get($options, 'hasname');
+
+    //     // get parent id
+    //     $parent_id = null;
+    //     // get parent id from parent_name
+    //     if (array_key_exists('parent_name', $menu)) {
+    //         // if $hasname is 0, $menu['parent_name'] is not null(not root) then continue
+    //         if ($hasname == 0 && !is_null($menu['parent_name'])) {
+    //             return null;
+    //         }
+    //         // if $hasname is 1, $menu['parent_name'] is null(root) then continue
+    //         elseif ($hasname == 1 && is_null($menu['parent_name'])) {
+    //             return null;
+    //         }
+
+    //         $parent = static::where('menu_name', $menu['parent_name'])->first();
+    //         if (isset($parent)) {
+    //             $parent_id = $parent->id;
+    //         }
+    //     }
+    //     if (is_null($parent_id)) {
+    //         $parent_id = 0;
+    //     }
+
+    //     // set title
+    //     if (array_key_value_exists('title', $menu)) {
+    //         $title = array_get($menu, 'title');
+    //     }
+    //     // title not exists, translate
+    //     else {
+    //         $translate_key = array_key_value_exists('menu_target_name', $menu) ? array_get($menu, 'menu_target_name') : array_get($menu, 'menu_name');
+    //         $title = exmtrans('menu.system_definitions.'.$translate_key);
+    //     }
+
+    //     $menu_type = MenuType::getEnumValue(array_get($menu, 'menu_type'));
+    //     $obj_menu = static::firstOrNew(['menu_name' => array_get($menu, 'menu_name'), 'parent_id' => $parent_id]);
+    //     $obj_menu->menu_type = $menu_type;
+    //     $obj_menu->menu_name = array_get($menu, 'menu_name');
+    //     $obj_menu->title = $title;
+    //     $obj_menu->parent_id = $parent_id;
+
+    //     // get menu target id
+    //     if (isset($menu['menu_target_id'])) {
+    //         $obj_menu->menu_target = $menu['menu_target_id'];
+    //     }
+    //     // get menu target id from menu_target_name
+    //     elseif (isset($menu['menu_target_name'])) {
+    //         // case plugin or table
+    //         switch ($menu_type) {
+    //             case MenuType::PLUGIN:
+    //                 $parent = Plugin::where('plugin_name', $menu['menu_target_name'])->first();
+    //                 if (isset($parent)) {
+    //                     $obj_menu->menu_target = $parent->id;
+    //                 }
+    //                 break;
+    //             case MenuType::TABLE:
+    //                 $parent = CustomTable::getEloquent($menu['menu_target_name']);
+    //                 if (isset($parent)) {
+    //                     $obj_menu->menu_target = $parent->id;
+    //                 }
+    //                 break;
+    //             case MenuType::SYSTEM:
+    //                 $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use ($menu) {
+    //                     return $key == $menu['menu_target_name'];
+    //                 })->each(function ($system_menu, $key) use ($obj_menu) {
+    //                     $obj_menu->menu_target = $key;
+    //                 });
+    //                 break;
+    //         }
+    //     }
+
+    //     // get order
+    //     if (isset($menu['order'])) {
+    //         $obj_menu->order = $menu['order'];
+    //     } else {
+    //         $obj_menu->order = static::where('parent_id', $obj_menu->parent_id)->max('order') + 1;
+    //     }
+
+    //     ///// icon
+    //     if (isset($menu['icon'])) {
+    //         $obj_menu->icon = $menu['icon'];
+    //     }
+    //     // else, get icon from table, system, etc
+    //     else {
+    //         switch ($obj_menu->menu_type) {
+    //             case MenuType::SYSTEM:
+    //                 $obj_menu->icon = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".icon");
+    //                 break;
+    //             case MenuType::TABLE:
+    //                 $obj_menu->icon = CustomTable::getEloquent($obj_menu->menu_name)->icon ?? null;
+    //                 break;
+    //         }
+    //     }
+    //     if (is_null($obj_menu->icon)) {
+    //         $obj_menu->icon = '';
+    //     }
+
+    //     ///// uri
+    //     if (isset($menu['uri'])) {
+    //         $obj_menu->uri = $menu['uri'];
+    //     }
+    //     // else, get icon from table, system, etc
+    //     else {
+    //         switch ($obj_menu->menu_type) {
+    //             case MenuType::SYSTEM:
+    //                 $obj_menu->uri = array_get(Define::MENU_SYSTEM_DEFINITION, $obj_menu->menu_name.".uri");
+    //                 break;
+    //             case MenuType::TABLE:
+    //                 $obj_menu->uri = $obj_menu->menu_name;
+    //                 break;
+    //             case MenuType::TABLE:
+    //                 $obj_menu->uri = '#';
+    //                 break;
+    //         }
+    //     }
+
+    //     $obj_menu->saveOrFail();
+
+    //     return $obj_menu;
+    // }
 
     /**
      * get Table And Column Name

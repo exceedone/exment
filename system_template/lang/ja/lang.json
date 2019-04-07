@@ -3,6 +3,20 @@
     "description": "システム向けのテンプレートです。必ずインストールする必要があります。",
     "custom_tables": [
         {
+            "table_name": "document",
+            "table_view_name": "ドキュメント",
+            "custom_columns": [
+                {
+                    "column_name": "document_name",
+                    "column_view_name": "ドキュメント名"
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_view_name": "ファイルUUID"
+                }
+            ]
+        },
+        {
             "table_name": "base_info",
             "table_view_name": "基本情報",
             "custom_columns": [
@@ -357,6 +371,98 @@
             "role_name": "plugin_access",
             "role_view_name": "プラグイン利用者",
             "description": "このプラグインを利用できます。"
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "system",
+            "menu_name": "home",
+            "title": "HOME"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "master",
+            "title": "マスター管理"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "base_info",
+            "title": "基本情報"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "ユーザー"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "organization",
+            "title": "組織"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "information",
+            "title": "お知らせ"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "管理者設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "システム設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "カスタムテーブル"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "メニュー"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "テンプレート"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "バックアップ"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "ログインユーザー"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "role",
+            "title": "役割"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "title": "プラグイン"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "通知"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "メールテンプレート"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_send_log",
+            "title": "メール送信履歴"
         }
     ]
 }
