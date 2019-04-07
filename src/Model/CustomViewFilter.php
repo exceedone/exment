@@ -17,7 +17,11 @@ class CustomViewFilter extends ModelBase
     use Traits\UseRequestSessionTrait;
 
     protected static $templateItems = [
-        'excepts' => ['id', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'excepts' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
+        'uniqueKeys' => [
+            'custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id', 'view_filter_condition'
+        ],
+        'parent' => 'custom_view_id',
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -30,7 +34,11 @@ class CustomViewFilter extends ModelBase
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
             ],
-        ]
+        ],
+        'enums' => [
+            'view_column_type' => ViewColumnType::class,
+            'view_filter_condition' => ViewColumnFilterOption::class,
+        ],
     ];
 
     public function custom_view()
@@ -60,38 +68,38 @@ class CustomViewFilter extends ModelBase
         return static::getEloquentDefault($id, $withs);
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($view_filter, $options = [])
-    {
-        $custom_table = array_get($options, 'custom_table');
-        $custom_view = array_get($options, 'custom_view');
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($view_filter, $options = [])
+    // {
+    //     $custom_table = array_get($options, 'custom_table');
+    //     $custom_view = array_get($options, 'custom_view');
 
-        // if not set filter_target id, continue
-        list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
-            array_get($view_filter, "view_column_type"),
-            array_get($view_filter, "view_column_target_name"),
-            $custom_table
-        );
+    //     // if not set filter_target id, continue
+    //     list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
+    //         array_get($view_filter, "view_column_type"),
+    //         array_get($view_filter, "view_column_target_name"),
+    //         $custom_table
+    //     );
 
-        if (!isset($view_column_target_id)) {
-            return null;
-        }
+    //     if (!isset($view_column_target_id)) {
+    //         return null;
+    //     }
 
-        $view_column_type = ViewColumnType::getEnumValue(array_get($view_filter, "view_column_type"));
-        $custom_view_filter = CustomViewFilter::firstOrNew([
-            'custom_view_id' => $custom_view->id,
-            'view_column_type' => $view_column_type,
-            'view_column_target_id' => $view_column_target_id,
-            'view_column_table_id' => $view_column_table_id,
-            'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
-        ]);
-        $custom_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
-        $custom_view_filter->saveOrFail();
+    //     $view_column_type = ViewColumnType::getEnumValue(array_get($view_filter, "view_column_type"));
+    //     $custom_view_filter = CustomViewFilter::firstOrNew([
+    //         'custom_view_id' => $custom_view->id,
+    //         'view_column_type' => $view_column_type,
+    //         'view_column_target_id' => $view_column_target_id,
+    //         'view_column_table_id' => $view_column_table_id,
+    //         'view_filter_condition' => array_get($view_filter, "view_filter_condition"),
+    //     ]);
+    //     $custom_view_filter->view_filter_condition_value_text = array_get($view_filter, "view_filter_condition_value_text");
+    //     $custom_view_filter->saveOrFail();
 
-        return $custom_view_filter;
-    }
+    //     return $custom_view_filter;
+    // }
 
     /**
      * set value filter

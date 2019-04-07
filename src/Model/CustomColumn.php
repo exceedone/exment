@@ -25,9 +25,20 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected static $uniqueKeyName = ['custom_table.table_name', 'column_name'];
 
     protected static $templateItems = [
-        'excepts' => ['id', 'suuid', 'custom_table_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
-        'keys' => ['column_name'],
-        'langs' => ['column_view_name', 'description'],
+        'excepts' => ['suuid'],
+        'uniqueKeys' => [
+            'export' => [
+                'custom_table.table_name', 'column_name'
+            ],
+            'import' => [
+                'custom_table_id', 'column_name'
+            ],
+        ],
+        'langs' => [
+            'keys' => ['column_name'],
+            'values' => ['column_view_name', 'description'],
+        ],
+        'parent' => 'custom_table_id',
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -277,76 +288,97 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($json, $options = [])
-    {
-        $system_flg = array_get($options, 'system_flg', false);
-        $custom_table = array_get($options, 'custom_table');
-
-        $column_name = array_get($json, 'column_name');
-        $obj_column = CustomColumn::firstOrNew([
-            'custom_table_id' => $custom_table->id,
-            'column_name' => $column_name
-        ]);
-        $obj_column->column_name = $column_name;
-        $obj_column->column_type = array_get($json, 'column_type');
-        // system flg checks 1. whether import from system, 2. table setting sets 1
-        $column_system_flg = array_get($json, 'system_flg');
-        $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
-
-        ///// set options
-        collect(array_get($json, 'options', []))->each(function ($option, $key) use ($obj_column) {
-            $obj_column->setOption($key, $option, true);
-        });
-
-        // if options has select_target_table_name, get id
-        if (array_key_value_exists('options.select_target_table_name', $json)) {
-            if (is_nullorempty(array_get($json, 'options.select_target_table_name'))) {
-                $obj_column->forgetOption('select_target_table');
-            } else {
-                $id = CustomTable::getEloquent(array_get($json, 'options.select_target_table_name'))->id ?? null;
-                // not set id, continue
-                if (!isset($id)) {
-                    return;
-                }
-                $obj_column->setOption('select_target_table', $id);
-            }
-        } else {
-            $obj_column->forgetOption('select_target_table');
-        }
-        $obj_column->forgetOption('select_target_table_name');
-
+    protected function importSetValue(&$json, $options = []){
         // set characters
         if (array_key_value_exists('options.available_characters', $json)) {
             $available_characters = array_get($json, 'options.available_characters');
             // if string, convert to array
             if (is_string($available_characters)) {
-                $obj_column->setOption('available_characters', explode(",", $available_characters));
+                $this->setOption('available_characters', explode(",", $available_characters));
             }
         }
 
-        ///// set view name
-        // if contains column view name in config
-        if (array_key_value_exists('column_view_name', $json)) {
-            $obj_column->column_view_name = array_get($json, 'column_view_name');
-        }
-        // not exists, get lang using app config
-        else {
-            $obj_column->column_view_name = exmtrans("custom_column.system_definitions.$column_name");
-        }
-
-        $obj_column->save();
-        return $obj_column;
+        //return expects array
+        return ['options.available_characters'];
     }
+    
+    protected function importSaved($json, $options = []){
+        if(!$this->indexEnabled()){
+            return;
+        }
+        $this->alterColumn();
+    }
+
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($json, $options = [])
+    // {
+    //     $system_flg = array_get($options, 'system_flg', false);
+    //     $custom_table = array_get($options, 'custom_table');
+
+    //     $column_name = array_get($json, 'column_name');
+    //     $obj_column = CustomColumn::firstOrNew([
+    //         'custom_table_id' => $custom_table->id,
+    //         'column_name' => $column_name
+    //     ]);
+    //     $obj_column->column_name = $column_name;
+    //     $obj_column->column_type = array_get($json, 'column_type');
+    //     // system flg checks 1. whether import from system, 2. table setting sets 1
+    //     $column_system_flg = array_get($json, 'system_flg');
+    //     $obj_column->system_flg = ($system_flg && (is_null($column_system_flg) || $column_system_flg != 0));
+
+    //     ///// set options
+    //     collect(array_get($json, 'options', []))->each(function ($option, $key) use ($obj_column) {
+    //         $obj_column->setOption($key, $option, true);
+    //     });
+
+    //     // if options has select_target_table_name, get id
+    //     if (array_key_value_exists('options.select_target_table_name', $json)) {
+    //         if (is_nullorempty(array_get($json, 'options.select_target_table_name'))) {
+    //             $obj_column->forgetOption('select_target_table');
+    //         } else {
+    //             $id = CustomTable::getEloquent(array_get($json, 'options.select_target_table_name'))->id ?? null;
+    //             // not set id, continue
+    //             if (!isset($id)) {
+    //                 return;
+    //             }
+    //             $obj_column->setOption('select_target_table', $id);
+    //         }
+    //     } else {
+    //         $obj_column->forgetOption('select_target_table');
+    //     }
+    //     $obj_column->forgetOption('select_target_table_name');
+
+    //     // set characters
+    //     if (array_key_value_exists('options.available_characters', $json)) {
+    //         $available_characters = array_get($json, 'options.available_characters');
+    //         // if string, convert to array
+    //         if (is_string($available_characters)) {
+    //             $obj_column->setOption('available_characters', explode(",", $available_characters));
+    //         }
+    //     }
+
+    //     ///// set view name
+    //     // if contains column view name in config
+    //     if (array_key_value_exists('column_view_name', $json)) {
+    //         $obj_column->column_view_name = array_get($json, 'column_view_name');
+    //     }
+    //     // not exists, get lang using app config
+    //     else {
+    //         $obj_column->column_view_name = exmtrans("custom_column.system_definitions.$column_name");
+    //     }
+
+    //     $obj_column->save();
+    //     return $obj_column;
+    // }
 
     /**
      * import template (for setting other custom column id)
      */
     public static function importTemplateRelationColumn($json, $options = [])
     {
-        $custom_table = array_get($options, 'custom_table');
+        $custom_table = array_get($options, 'parent');
         $column_name = array_get($json, 'column_name');
 
         $obj_column = CustomColumn::firstOrNew([

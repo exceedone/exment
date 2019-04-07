@@ -13,9 +13,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     protected $with = ['parent_custom_table', 'child_custom_table'];
 
     protected static $templateItems = [
-        'excepts' => ['id', 'parent_custom_table', 'child_custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
-        'keys' => ['parent_custom_table_name', 'child_custom_table_name', 'relation_type'],
-        'langs' => ['view_view_name'],
+        'excepts' => ['parent_custom_table', 'child_custom_table'],
+        'langs' => [
+            'keys' => ['parent_custom_table_name', 'child_custom_table_name'],
+            'values' => ['view_view_name'],
+        ],
+        'uniqueKeys' => [
+            'export' => ['parent_custom_table_name', 'child_custom_table_name'],
+            'import' => ['parent_custom_table_id', 'child_custom_table_id'],
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -146,27 +152,27 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         return static::getEloquentDefault($id, $withs);
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($json, $options = [])
-    {
-        $parent_id = CustomTable::getEloquent(array_get($json, 'parent_custom_table_name'))->id ?? null;
-        $child_id = CustomTable::getEloquent(array_get($json, 'child_custom_table_name'))->id ?? null;
-        if (!isset($parent_id) || !isset($child_id)) {
-            return;
-        }
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($json, $options = [])
+    // {
+    //     $parent_id = CustomTable::getEloquent(array_get($json, 'parent_custom_table_name'))->id ?? null;
+    //     $child_id = CustomTable::getEloquent(array_get($json, 'child_custom_table_name'))->id ?? null;
+    //     if (!isset($parent_id) || !isset($child_id)) {
+    //         return;
+    //     }
         
-        // Create relations. --------------------------------------------------
-        $custom_relation = CustomRelation::firstOrNew([
-            'parent_custom_table_id' => $parent_id,
-            'child_custom_table_id' => $child_id
-            ]);
-        $custom_relation->parent_custom_table_id = $parent_id;
-        $custom_relation->child_custom_table_id = $child_id;
-        $custom_relation->relation_type = RelationType::getEnumValue(array_get($json, 'relation_type'));
-        $custom_relation->save();
+    //     // Create relations. --------------------------------------------------
+    //     $custom_relation = CustomRelation::firstOrNew([
+    //         'parent_custom_table_id' => $parent_id,
+    //         'child_custom_table_id' => $child_id
+    //         ]);
+    //     $custom_relation->parent_custom_table_id = $parent_id;
+    //     $custom_relation->child_custom_table_id = $child_id;
+    //     $custom_relation->relation_type = RelationType::getEnumValue(array_get($json, 'relation_type'));
+    //     $custom_relation->save();
 
-        return $custom_relation;
-    }
+    //     return $custom_relation;
+    // }
 }

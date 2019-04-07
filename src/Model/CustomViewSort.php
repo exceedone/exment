@@ -14,7 +14,9 @@ class CustomViewSort extends ModelBase
     use Traits\UseRequestSessionTrait;
 
     protected static $templateItems = [
-        'excepts' => ['id', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'excepts' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
+        'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
+        'parent' => 'custom_view_id',
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -27,7 +29,10 @@ class CustomViewSort extends ModelBase
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
             ],
-        ]
+        ],
+        'enums' => [
+            'view_column_type' => ViewColumnType::class,
+        ],
     ];
 
     public function custom_view()
@@ -57,36 +62,36 @@ class CustomViewSort extends ModelBase
         return static::getEloquentDefault($id, $withs);
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($view_column, $options = [])
-    {
-        $custom_table = array_get($options, 'custom_table');
-        $custom_view = array_get($options, 'custom_view');
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($view_column, $options = [])
+    // {
+    //     $custom_table = array_get($options, 'custom_table');
+    //     $custom_view = array_get($options, 'custom_view');
 
-        list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
-            array_get($view_column, "view_column_type"),
-            array_get($view_column, "view_column_target_name"),
-            $custom_table
-        );
-        // if not set filter_target id, continue
-        if (!isset($view_column_target_id)) {
-            return null;
-        }
+    //     list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
+    //         array_get($view_column, "view_column_type"),
+    //         array_get($view_column, "view_column_target_name"),
+    //         $custom_table
+    //     );
+    //     // if not set filter_target id, continue
+    //     if (!isset($view_column_target_id)) {
+    //         return null;
+    //     }
 
-        $view_column_type = ViewColumnType::getEnumValue(array_get($view_column, "view_column_type"));
-        $custom_view_sort = CustomviewSort::firstOrNew([
-            'custom_view_id' => $custom_view->id,
-            'view_column_type' => $view_column_type,
-            'view_column_target_id' => $view_column_target_id,
-            'view_column_table_id' => $view_column_table_id,
-        ]);
+    //     $view_column_type = ViewColumnType::getEnumValue(array_get($view_column, "view_column_type"));
+    //     $custom_view_sort = CustomviewSort::firstOrNew([
+    //         'custom_view_id' => $custom_view->id,
+    //         'view_column_type' => $view_column_type,
+    //         'view_column_target_id' => $view_column_target_id,
+    //         'view_column_table_id' => $view_column_table_id,
+    //     ]);
         
-        $custom_view_sort->sort = array_get($view_column, "sort", 1);
-        $custom_view_sort->priority = array_get($view_column, "priority", 0);
-        $custom_view_sort->saveOrFail();
+    //     $custom_view_sort->sort = array_get($view_column, "sort", 1);
+    //     $custom_view_sort->priority = array_get($view_column, "priority", 0);
+    //     $custom_view_sort->saveOrFail();
 
-        return $custom_view_sort;
-    }
+    //     return $custom_view_sort;
+    // }
 }

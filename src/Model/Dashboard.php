@@ -20,9 +20,11 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     protected $casts = ['options' => 'json'];
 
     protected static $templateItems = [
-        'excepts' => ['id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
-        'keys' => ['dashboard_name'],
-        'langs' => ['dashboard_view_name'],
+        'excepts' => [],
+        'langs' => [
+            'keys' => ['dashboard_name'],
+            'values' => ['dashboard_view_name'],
+        ],
         'children' =>[
             'dashboard_boxes',
         ],

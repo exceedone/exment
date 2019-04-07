@@ -5,6 +5,7 @@
     "custom_tables": [
         {
             "table_name": "document",
+            "table_view_name": "Document",
             "description": null,
             "showlist_flg": "0",
             "options": {
@@ -18,6 +19,7 @@
             "custom_columns": [
                 {
                     "column_name": "document_name",
+                    "column_view_name": "Document Name",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -27,6 +29,7 @@
                 },
                 {
                     "column_name": "file_uuid",
+                    "column_view_name": "File Uuid",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -37,6 +40,7 @@
         },
         {
             "table_name": "base_info",
+            "table_view_name": "Base Info",
             "description": null,
             "options": {
                 "search_enabled": "0",
@@ -49,6 +53,7 @@
             "custom_columns": [
                 {
                     "column_name": "company_name",
+                    "column_view_name": "Company Name",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -59,24 +64,28 @@
                 },
                 {
                     "column_name": "company_kana",
+                    "column_view_name": "Company Kana",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "zip01",
+                    "column_view_name": "Postal Code1",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "zip02",
+                    "column_view_name": "Postal Code2",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "tel01",
+                    "column_view_name": "Tel1",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -85,6 +94,7 @@
                 },
                 {
                     "column_name": "tel02",
+                    "column_view_name": "Tel2",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -93,6 +103,7 @@
                 },
                 {
                     "column_name": "tel03",
+                    "column_view_name": "Tel3",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -101,6 +112,7 @@
                 },
                 {
                     "column_name": "fax01",
+                    "column_view_name": "FAX1", 
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -109,6 +121,7 @@
                 },
                 {
                     "column_name": "fax02",
+                    "column_view_name": "FAX2",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -117,6 +130,7 @@
                 },
                 {
                     "column_name": "fax03",
+                    "column_view_name": "FAX3",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -125,6 +139,7 @@
                 },
                 {
                     "column_name": "pref",
+                    "column_view_name": "Prefectures",
                     "column_type": "select_valtext",
                     "description": null,
                     "options": {
@@ -133,18 +148,21 @@
                 },
                 {
                     "column_name": "addr01",
+                    "column_view_name": "Address",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "addr02",
+                    "column_view_name": "Address(After Building)",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "company_logo",
+                    "column_view_name": "Company Logo",
                     "column_type": "image",
                     "description": null,
                     "options": {
@@ -153,6 +171,7 @@
                 },
                 {
                     "column_name": "company_stamp",
+                    "column_view_name": "Company Stamp",
                     "column_type": "image",
                     "description": null,
                     "options": {
@@ -161,24 +180,28 @@
                 },
                 {
                     "column_name": "transfer_bank_name",
+                    "column_view_name": "Bank Account-Bank Name",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "transfer_bank_office_name",
+                    "column_view_name": "Bank Account-Office Name",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "transfer_bank_office_no",
+                    "column_view_name": "Bank Account-Office No",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "transfer_bank_account_type",
+                    "column_view_name": "Bank Account-Account Type",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -187,13 +210,14 @@
                 },
                 {
                     "column_name": "transfer_bank_account_no",
+                    "column_view_name": "Bank Account-Account No",
                     "column_type": "text",
                     "description": null,
                     "options": []
                 },
                 {
                     "column_name": "transfer_bank_account_name",
-                    "column_view_name": "Representative bank account-account name",
+                    "column_view_name": "Bank Account-Account Name",
                     "column_type": "text",
                     "description": null,
                     "options": []
@@ -202,6 +226,7 @@
         },
         {
             "table_name": "user",
+            "table_view_name": "User",
             "description": null,
             "options": {
                 "search_enabled": "1",
@@ -213,6 +238,7 @@
             "custom_columns": [
                 {
                     "column_name": "user_code",
+                    "column_view_name": "User Code",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -224,6 +250,7 @@
                 },
                 {
                     "column_name": "user_name",
+                    "column_view_name": "User Name",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -234,6 +261,7 @@
                 },
                 {
                     "column_name": "email",
+                    "column_view_name": "Email",
                     "column_type": "email",
                     "description": null,
                     "options": {
@@ -246,6 +274,7 @@
         },
         {
             "table_name": "organization",
+            "table_view_name": "Organization",
             "description": null,
             "options": {
                 "search_enabled": "1",
@@ -257,6 +286,7 @@
             "custom_columns": [
                 {
                     "column_name": "organization_code",
+                    "column_view_name": "Organization Code",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -268,6 +298,7 @@
                 },
                 {
                     "column_name": "organization_name",
+                    "column_view_name": "Organization Name",
                     "column_type": "text",
                     "description": null,
                     "options": {
@@ -278,6 +309,7 @@
                 },
                 {
                     "column_name": "parent_organization",
+                    "column_view_name": "Parent Organization",
                     "column_type": "select_table",
                     "description": null,
                     "options": {
@@ -441,7 +473,7 @@
         {
             "table_name": "information",
             "table_view_name": "Information",
-            "description": "Notification to notify the user. It can be displayed on a dashboard etc.",
+            "description": "Information to notify the user. It can be displayed on a dashboard etc.",
             "showlist_flg": "1",
             "system_flg": "0",
             "options": {
@@ -524,11 +556,6 @@
             "relation_type": 2,
             "parent_custom_table_name": "organization",
             "child_custom_table_name": "user"
-        },
-        {
-            "relation_type": 1,
-            "parent_custom_table_name": "notify_history",
-            "child_custom_table_name": "notify_history_user"
         }
     ],
     "custom_forms": [

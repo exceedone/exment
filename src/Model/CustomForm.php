@@ -17,9 +17,16 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected static $templateItems = [
-        'excepts' => ['id', 'custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
-        'keys' => ['suuid'],
-        'langs' => ['form_view_name'],
+        'excepts' => ['custom_table', 'form_name'],
+        'langs' => [
+            'keys' => ['suuid'],
+            'values' => ['form_view_name'],
+        ],
+
+        'uniqueKeys' => [
+            'custom_table_id', 'suuid'
+        ],
+
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -34,7 +41,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             ],
         ],
         'children' =>[
-            'custom_form_blocks'
+            'custom_form_blocks' => CustomFormBlock::class
         ],
     ];
 
@@ -153,30 +160,30 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * import template
      */
-    public static function importTemplate($form, $options = [])
-    {
-        $custom_table = CustomTable::getEloquent(array_get($form, 'table_name'));
+    // public static function importTemplate($form, $options = [])
+    // {
+    //     $custom_table = CustomTable::getEloquent(array_get($form, 'table_name'));
 
-        // Create form --------------------------------------------------
-        $custom_form = CustomForm::firstOrNew([
-            'custom_table_id' => $custom_table->id
-            ]);
-        $custom_form->form_view_name = array_get($form, 'form_view_name');
-        $custom_form->default_flg = boolval(array_get($form, 'default_flg'));
-        $custom_form->saveOrFail();
+    //     // Create form --------------------------------------------------
+    //     $custom_form = CustomForm::firstOrNew([
+    //         'custom_table_id' => $custom_table->id
+    //         ]);
+    //     $custom_form->form_view_name = array_get($form, 'form_view_name');
+    //     $custom_form->default_flg = boolval(array_get($form, 'default_flg'));
+    //     $custom_form->saveOrFail();
 
-        // Create form block
-        if (array_get($form, "custom_form_blocks")) {
-            foreach (array_get($form, "custom_form_blocks") as $form_block) {
-                CustomFormBlock::importTemplate($form_block, [
-                    'custom_table' => $custom_table,
-                    'custom_form' => $custom_form,
-                ]);
-            }
-        }
+    //     // Create form block
+    //     if (array_get($form, "custom_form_blocks")) {
+    //         foreach (array_get($form, "custom_form_blocks") as $form_block) {
+    //             CustomFormBlock::importTemplate($form_block, [
+    //                 'custom_table' => $custom_table,
+    //                 'custom_form' => $custom_form,
+    //             ]);
+    //         }
+    //     }
 
-        return $custom_form;
-    }
+    //     return $custom_form;
+    // }
     
     public function deletingChildren()
     {

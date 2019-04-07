@@ -28,27 +28,38 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected static $uniqueKeyName = ['suuid'];
 
     protected static $templateItems = [
-        'excepts' => ['id', 'custom_table', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
-        'keys' => ['suuid'],
-        'langs' => ['view_view_name'],
+        'excepts' => ['custom_table', 'target_view_name'],
+        'uniqueKeys' => ['suuid'],
+        'langs' => [
+            'keys' => ['suuid'],
+            'values' => ['view_view_name'],
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
                     [
                         'replacingName' => 'custom_table_id',
                         'replacedName' => [
-                            'table_name' => 'custom_table.table_name',
+                            'table_name' => 'table_name',
                         ]
                     ]
                 ],
                 'uniqueKeyClassName' => CustomTable::class,
             ],
         ],
+        'defaults' => [
+            'view_type' => ViewType::SYSTEM,
+            'view_kind_type' => ViewKindType::DEFAULT,
+        ],
+        'enums' => [
+            'view_type' => ViewType::class,
+            'view_kind_type' => ViewKindType::class,
+        ],
         'children' =>[
-            'custom_view_columns',
-            'custom_view_filters',
-            'custom_view_sorts',
-            'custom_view_summaries',
+            'custom_view_columns' => CustomViewColumn::class,
+            'custom_view_filters' => CustomViewFilter::class,
+            'custom_view_sorts' => CustomViewSort::class,
+            'custom_view_summaries' => CustomViewSummary::class,
         ],
     ];
 
@@ -71,6 +82,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function custom_view_sorts()
     {
         return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
+    }
+
+    public function getTableNameAttribute()
+    {
+        return $this->custom_table->table_name;
     }
 
     public function custom_view_summaries()
@@ -561,71 +577,70 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return ['id' => $view_column_id, 'text' => $column_view_name, 'is_number' => $is_number];
     }
     
-    /**
-     * import template
-     */
-    public static function importTemplate($view, $options = [])
-    {
-        $custom_table = CustomTable::getEloquent(array_get($view, 'table_name'));
-        $findArray = [
-            'custom_table_id' => $custom_table->id
-        ];
-        // if set suuid in json, set suuid(for dashbrord list)
-        if (array_key_value_exists('suuid', $view)) {
-            $findArray['suuid'] =  array_get($view, 'suuid');
-        } else {
-            $findArray['suuid'] =  short_uuid();
-        }
-        // Create view --------------------------------------------------
-        $custom_view = CustomView::firstOrNew($findArray);
-        $custom_view->custom_table_id = $custom_table->id;
-        $custom_view->suuid = $findArray['suuid'];
-        $custom_view->view_kind_type = ViewKindType::getEnumValue(array_get($view, 'view_kind_type'), ViewKindType::DEFAULT());
-        $custom_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM());
-        $custom_view->view_view_name = array_get($view, 'view_view_name');
-        $custom_view->default_flg = boolval(array_get($view, 'default_flg'));
-        $custom_view->saveOrFail();
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($view, $options = [])
+    // {
+    //     $custom_table = CustomTable::getEloquent(array_get($view, 'table_name'));
+    //     $findArray = [
+    //         'custom_table_id' => $custom_table->id
+    //     ];
+    //     // if set suuid in json, set suuid(for dashbrord list)
+    //     if (array_key_value_exists('suuid', $view)) {
+    //         $findArray['suuid'] =  array_get($view, 'suuid');
+    //     } else {
+    //         $findArray['suuid'] =  short_uuid();
+    //     }
+    //     // Create view --------------------------------------------------
+    //     $custom_view = CustomView::firstOrNew($findArray);
+    //     $custom_view->custom_table_id = $custom_table->id;
+    //     $custom_view->suuid = $findArray['suuid'];
+    //     $custom_view->view_kind_type = ViewKindType::getEnumValue(array_get($view, 'view_kind_type'), ViewKindType::DEFAULT());
+    //     $custom_view->view_type = ViewType::getEnumValue(array_get($view, 'view_type'), ViewType::SYSTEM());
+    //     $custom_view->view_view_name = array_get($view, 'view_view_name');
+    //     $custom_view->default_flg = boolval(array_get($view, 'default_flg'));
+    //     $custom_view->saveOrFail();
         
-        // create view columns --------------------------------------------------
-        if (array_key_exists('custom_view_columns', $view)) {
-            foreach (array_get($view, "custom_view_columns") as $view_column) {
-                CustomViewColumn::importTemplate($view_column, [
-                    'custom_table' => $custom_table,
-                    'custom_view' => $custom_view,
-                ]);
-            }
-        }
+    //     // create view columns --------------------------------------------------
+    //     if (array_key_exists('custom_view_columns', $view)) {
+    //         foreach (array_get($view, "custom_view_columns") as $view_column) {
+    //             CustomViewColumn::importTemplate($view_column, [
+    //                 'parent' => $custom_view,
+    //             ]);
+    //         }
+    //     }
         
-        // create view filters --------------------------------------------------
-        if (array_key_exists('custom_view_filters', $view)) {
-            foreach (array_get($view, "custom_view_filters") as $view_column) {
-                CustomViewFilter::importTemplate($view_column, [
-                    'custom_table' => $custom_table,
-                    'custom_view' => $custom_view,
-                ]);
-            }
-        }
+    //     // create view filters --------------------------------------------------
+    //     if (array_key_exists('custom_view_filters', $view)) {
+    //         foreach (array_get($view, "custom_view_filters") as $view_column) {
+    //             CustomViewFilter::importTemplate($view_column, [
+    //                 'custom_table' => $custom_table,
+    //                 'parent' => $custom_view,
+    //             ]);
+    //         }
+    //     }
         
-        // create view sorts --------------------------------------------------
-        if (array_key_exists('custom_view_sorts', $view)) {
-            foreach (array_get($view, "custom_view_sorts") as $view_column) {
-                CustomViewSort::importTemplate($view_column, [
-                    'custom_table' => $custom_table,
-                    'custom_view' => $custom_view,
-                ]);
-            }
-        }
+    //     // create view sorts --------------------------------------------------
+    //     if (array_key_exists('custom_view_sorts', $view)) {
+    //         foreach (array_get($view, "custom_view_sorts") as $view_column) {
+    //             CustomViewSort::importTemplate($view_column, [
+    //                 'custom_table' => $custom_table,
+    //                 'custom_view' => $custom_view,
+    //             ]);
+    //         }
+    //     }
 
-        // create view summary --------------------------------------------------
-        if (array_key_exists('custom_view_summaries', $view)) {
-            foreach (array_get($view, "custom_view_summaries") as $view_column) {
-                CustomViewSummary::importTemplate($view_column, [
-                    'custom_table' => $custom_table,
-                    'custom_view' => $custom_view,
-                ]);
-            }
-        }
+    //     // create view summary --------------------------------------------------
+    //     if (array_key_exists('custom_view_summaries', $view)) {
+    //         foreach (array_get($view, "custom_view_summaries") as $view_column) {
+    //             CustomViewSummary::importTemplate($view_column, [
+    //                 'custom_table' => $custom_table,
+    //                 'custom_view' => $custom_view,
+    //             ]);
+    //         }
+    //     }
 
-        return $custom_view;
-    }
+    //     return $custom_view;
+    // }
 }

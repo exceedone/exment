@@ -4,6 +4,7 @@
     "custom_tables": [
         {
             "table_name": "base_info",
+            "table_view_name": "基本情報",
             "custom_columns": [
                 {
                     "column_name": "tel01",
@@ -68,6 +69,42 @@
                 {
                     "column_name": "transfer_bank_account_name",
                     "column_view_name": "代表振込先口座-口座名"
+                }
+            ]
+        },
+        {
+            "table_name": "user",
+            "table_view_name": "ユーザー",
+            "custom_columns": [
+                {
+                    "column_name": "user_code",
+                    "column_view_name": "ユーザーコード"
+                },
+                {
+                    "column_name": "user_name",
+                    "column_view_name": "ユーザー名"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "メールアドレス"
+                }
+            ]
+        },
+        {
+            "table_name": "organization",
+            "table_view_name": "組織",
+            "custom_columns": [
+                {
+                    "column_name": "organization_code",
+                    "column_view_name": "組織コード"
+                },
+                {
+                    "column_name": "organization_name",
+                    "column_view_name": "組織名"
+                },
+                {
+                    "column_name": "parent_organization",
+                    "column_view_name": "親組織"
                 }
             ]
         },

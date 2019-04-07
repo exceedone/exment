@@ -16,12 +16,18 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     protected $guarded = ['id'];
     
     protected static $templateItems = [
-        'excepts' => ['id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        'excepts' => [],
         'keys' => ['role_name'],
         'langs' => ['role_view_name', 'description'],
         'children' =>[
             'dashboard_boxes',
         ],
+        'enums' => [
+            'role_type' => RoleType::class,
+        ],
+        'defaults' => [
+            'default_flg' => false,
+        ]
     ];
 
     protected const EXPORT_TEMPLATE_ITEMS = ['role_type', 'role_name', 'role_view_name', 'description', 'permissions'];
@@ -69,32 +75,45 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
         }
     }
     
-    /**
-     * import template
-     */
-    public static function importTemplate($role, $options = [])
-    {
-        // Create role. --------------------------------------------------
-        $role_type = RoleType::getEnumValue(array_get($role, 'role_type'));
-        $obj_role = Role::firstOrNew(['role_type' => $role_type, 'role_name' => array_get($role, 'role_name')]);
-        $obj_role->role_type = $role_type;
-        $obj_role->role_name = array_get($role, 'role_name');
-        $obj_role->role_view_name = array_get($role, 'role_view_name');
-        $obj_role->description = array_get($role, 'description');
-        $obj_role->default_flg = boolval(array_get($role, 'default_flg'));
-
-        // Create role detail.
-        if (array_key_exists('permissions', $role)) {
+    public static function importReplaceJson(&$json, $options = []){
+         // Create role detail.
+        if (array_key_exists('permissions', $json)) {
             $permissions = [];
-            foreach (array_get($role, "permissions") as $permission) {
+            foreach (array_get($json, 'permissions', []) as $permission) {
                 $permissions[$permission] = "1";
             }
-            $obj_role->permissions = $permissions;
+            $json['permissions'] = $permissions;
+        }else{
+            $json['permissions'] = [];
         }
-        $obj_role->saveOrFail();
-
-        return $obj_role;
     }
+
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($role, $options = [])
+    // {
+    //     // Create role. --------------------------------------------------
+    //     $role_type = RoleType::getEnumValue(array_get($role, 'role_type'));
+    //     $obj_role = Role::firstOrNew(['role_type' => $role_type, 'role_name' => array_get($role, 'role_name')]);
+    //     $obj_role->role_type = $role_type;
+    //     $obj_role->role_name = array_get($role, 'role_name');
+    //     $obj_role->role_view_name = array_get($role, 'role_view_name');
+    //     $obj_role->description = array_get($role, 'description');
+    //     $obj_role->default_flg = boolval(array_get($role, 'default_flg'));
+
+    //     // Create role detail.
+    //     if (array_key_exists('permissions', $role)) {
+    //         $permissions = [];
+    //         foreach (array_get($role, "permissions") as $permission) {
+    //             $permissions[$permission] = "1";
+    //         }
+    //         $obj_role->permissions = $permissions;
+    //     }
+    //     $obj_role->saveOrFail();
+
+    //     return $obj_role;
+    // }
     
     /**
      * get eloquent using request settion.

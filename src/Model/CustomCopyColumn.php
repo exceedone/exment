@@ -15,9 +15,11 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
     use Traits\TemplateTrait;
 
     protected static $templateItems = [
-        'excepts' => ['id', 'custom_copy_id', 'from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
+        //'excepts' => ['custom_copy_id', 'from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
+        'excepts' => ['from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
         'keys' => ['from_column_type', 'from_column_target_id', 'to_column_type', 'to_column_target_id', 'copy_column_type'],
         'langs' => [],
+        'parent' => 'custom_copy_id',
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -155,49 +157,74 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         return [];
     }
 
-    /**
-     * import template
-     */
-    public static function importTemplate($copy_column, $options = [])
-    {
-        // create copy columns --------------------------------------------------
-        $custom_copy = array_get($options, "custom_copy");
-        $from_table = array_get($options, "from_table");
-        $to_table = array_get($options, "to_table");
-
-        $from_column_type = array_get($copy_column, "from_column_type");
-        $to_column_type = array_get($copy_column, "to_column_type");
+    public static function importReplaceJson(&$json, $options = []){
+        $custom_copy = array_get($options, 'parent');
 
         // get from and to column
-        $from_column_target = static::getColumnAndTableId(
-            $from_column_type,
-            array_get($copy_column, "from_column_name"),
-            $from_table,
-            true
+        list($from_column_target_id, $from_column_table_id) = static::getColumnAndTableId(
+            array_get($json, "from_column_type"),
+            array_get($json, "from_column_name"),
+            $custom_copy->from_custom_table
         );
-        $to_column_target = static::getColumnAndTableId(
-            $to_column_type,
-            array_get($copy_column, "to_column_name"),
-            $to_table,
-            true
+        list($to_column_target_id, $to_column_table_id) = static::getColumnAndTableId(
+            array_get($json, "to_column_type"),
+            array_get($json, "to_column_name"),
+            $custom_copy->to_custom_table
         );
 
-        if (is_null($to_column_target)) {
-            return null;
-        }
+        $json['custom_copy_id'] = $custom_copy->id;
+        $json['from_column_target_id'] = $from_column_target_id;
+        $json['to_column_target_id'] = $to_column_target_id;
 
-        $from_column_type = $from_column_type ?: CopyColumnType::getEnumValue($from_column_type);
-        $to_column_type = CopyColumnType::getEnumValue($to_column_type);
-        $obj_copy_column = CustomCopyColumn::firstOrNew([
-            'custom_copy_id' => $custom_copy->id,
-            'from_column_type' => $from_column_type,
-            'from_column_target_id' => $from_column_target ?? null,
-            'to_column_type' => $to_column_type,
-            'to_column_target_id' => $to_column_target ?? null,
-            'copy_column_type' => array_get($copy_column, "copy_column_type"),
-        ]);
-        $obj_copy_column->saveOrFail();
-
-        return $obj_copy_column;
+        array_forget($json, 'from_custom_table_name');
+        array_forget($json, 'from_column_name');
+        array_forget($json, 'to_custom_table_name');
+        array_forget($json, 'to_column_name');
     }
+
+    // /**
+    //  * import template
+    //  */
+    // public static function importTemplate($copy_column, $options = [])
+    // {
+    //     // create copy columns --------------------------------------------------
+    //     $custom_copy = array_get($options, "custom_copy");
+    //     $from_table = array_get($options, "from_table");
+    //     $to_table = array_get($options, "to_table");
+
+    //     $from_column_type = array_get($copy_column, "from_column_type");
+    //     $to_column_type = array_get($copy_column, "to_column_type");
+
+    //     // get from and to column
+    //     $from_column_target = static::getColumnAndTableId(
+    //         $from_column_type,
+    //         array_get($copy_column, "from_column_name"),
+    //         $from_table,
+    //         true
+    //     );
+    //     $to_column_target = static::getColumnAndTableId(
+    //         $to_column_type,
+    //         array_get($copy_column, "to_column_name"),
+    //         $to_table,
+    //         true
+    //     );
+
+    //     if (is_null($to_column_target)) {
+    //         return null;
+    //     }
+
+    //     $from_column_type = $from_column_type ?: CopyColumnType::getEnumValue($from_column_type);
+    //     $to_column_type = CopyColumnType::getEnumValue($to_column_type);
+    //     $obj_copy_column = CustomCopyColumn::firstOrNew([
+    //         'custom_copy_id' => $custom_copy->id,
+    //         'from_column_type' => $from_column_type,
+    //         'from_column_target_id' => $from_column_target ?? null,
+    //         'to_column_type' => $to_column_type,
+    //         'to_column_target_id' => $to_column_target ?? null,
+    //         'copy_column_type' => array_get($copy_column, "copy_column_type"),
+    //     ]);
+    //     $obj_copy_column->saveOrFail();
+
+    //     return $obj_copy_column;
+    // }
 }

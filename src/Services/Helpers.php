@@ -400,12 +400,24 @@ if (!function_exists('array_dot_reverse')) {
     }
 }
 
-
-function is_json($string)
-{
-    return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+if (!function_exists('is_json')) {
+    function is_json($string)
+    {
+        return is_string($string) && is_array(json_decode($string, true)) && (json_last_error() == JSON_ERROR_NONE) ? true : false;
+    }
 }
- 
+
+
+if (!function_exists('is_vector')) {
+    /**
+     * whether array is vector array(not associative array)
+     */
+    function is_vector(array $arr)
+    {
+        return array_values($arr) === $arr;
+    }
+}
+
 
 // string --------------------------------------------------
 if (!function_exists('make_password')) {

@@ -479,7 +479,7 @@ class TemplateImporter
     {
         DB::transaction(function () use ($json, $system_flg) {
             // Loop by tables
-            foreach (array_get($json, "custom_tables") as $table) {
+            foreach (array_get($json, "custom_tables", []) as $table) {
                 // Create tables. --------------------------------------------------
                 $obj_table = CustomTable::importTemplate($table, [
                     'system_flg' => $system_flg
@@ -487,28 +487,20 @@ class TemplateImporter
             }
 
             // Re-Loop by tables and create columns
-            foreach (array_get($json, "custom_tables") as $table) {
+            foreach (array_get($json, "custom_tables", []) as $table) {
                 // find tables. --------------------------------------------------
                 $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
                 // Create columns. --------------------------------------------------
-                if (array_key_exists('custom_columns', $table)) {
-                    foreach (array_get($table, 'custom_columns') as $column) {
-                        CustomColumn::importTemplate($column, [
-                            'system_flg' => $system_flg,
-                            'custom_table' => $obj_table,
-                        ]);
-                    }
-                }
-
-                // alter table
-                $columns = $obj_table->getSearchEnabledColumns();
-                foreach ($columns as $column) {
-                    $column->alterColumn();
+                foreach (array_get($table, 'custom_columns', []) as $column) {
+                    CustomColumn::importTemplate($column, [
+                        'system_flg' => $system_flg,
+                        'parent' => $obj_table,
+                    ]);
                 }
             }
 
             // re-loop columns. because we have to get other column id --------------------------------------------------
-            foreach (array_get($json, "custom_tables") as $table) {
+            foreach (array_get($json, "custom_tables", []) as $table) {
                 // find tables. --------------------------------------------------
                 $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
                 // get columns. --------------------------------------------------
@@ -516,54 +508,42 @@ class TemplateImporter
                     foreach (array_get($table, 'custom_columns') as $column) {
                         CustomColumn::importTemplateRelationColumn($column, [
                             'system_flg' => $system_flg,
-                            'custom_table' => $obj_table,
+                            'parent' => $obj_table,
                         ]);
                     }
                 }
             }
 
             // Loop relations.
-            if (array_key_exists('custom_relations', $json)) {
-                foreach (array_get($json, "custom_relations") as $relation) {
-                    CustomRelation::importTemplate($relation);
-                }
+            foreach (array_get($json, "custom_relations", []) as $relation) {
+                CustomRelation::importTemplate($relation);
             }
 
             // loop for form
-            if (array_key_exists('custom_forms', $json)) {
-                foreach (array_get($json, "custom_forms") as $form) {
-                    CustomForm::importTemplate($form);
-                }
+            foreach (array_get($json, "custom_forms", []) as $form) {
+                CustomForm::importTemplate($form);
             }
 
             // loop for view
-            if (array_key_value_exists('custom_views', $json)) {
-                foreach (array_get($json, "custom_views") as $view) {
-                    CustomView::importTemplate($view);
-                }
+            foreach (array_get($json, "custom_views", []) as $view) {
+                CustomView::importTemplate($view);
             }
 
             // loop for copy
-            if (array_key_value_exists('custom_copies', $json)) {
-                foreach (array_get($json, "custom_copies") as $copy) {
-                    CustomCopy::importTemplate($copy);
-                }
+            foreach (array_get($json, "custom_copies", []) as $copy) {
+                CustomCopy::importTemplate($copy);
             }
 
             // Loop for roles.
-            if (array_key_exists('roles', $json)) {
-                foreach (array_get($json, "roles") as $role) {
-                    // Create role. --------------------------------------------------
-                    Role::importTemplate($role);
-                }
+            foreach (array_get($json, "roles", []) as $role) {
+                // Create role. --------------------------------------------------
+                Role::importTemplate($role);
             }
 
             // loop for dashboard
-            if (array_key_value_exists('dashboards', $json)) {
-                foreach (array_get($json, "dashboards") as $dashboard) {
-                    // Create dashboard --------------------------------------------------
-                    Dashboard::importTemplate($dashboard);
-                }
+            foreach (array_get($json, "dashboards", []) as $dashboard) {
+                // Create dashboard --------------------------------------------------
+                Dashboard::importTemplate($dashboard);
             }
 
             // loop for menu
@@ -614,16 +594,16 @@ class TemplateImporter
     /**
      * update template json by language json.
      */
-    public static function mergeTemplate($json, $lang, $fillpath = null)
+    public static function mergeTemplate($json, $langJson, $fillpath = null)
     {
         $result = [];
 
         foreach ($json as $key => $val) {
             $langdata = null;
             if (isset($fillpath)) {
-                $langdata = $fillpath::searchLangData($val, $lang);
-            } elseif (isset($lang[$key])) {
-                $langdata = $lang[$key];
+                $langdata = $fillpath::searchLangData($val, $langJson);
+            } elseif (isset($langJson[$key])) {
+                $langdata = $langJson[$key];
             }
 
             // substitute the key which is only in template.

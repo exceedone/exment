@@ -114,6 +114,8 @@ trait CustomViewColumnTrait
     {
         if (!isset($view_column_type)) {
             $view_column_type = ViewColumnType::COLUMN;
+        }else{
+            $view_column_type = ViewColumnType::getEnumValue($view_column_type);
         }
 
         $target_column_id = null;
@@ -132,7 +134,7 @@ trait CustomViewColumnTrait
             default:
                 // set parent id
                 if ($column_name == ViewColumnType::PARENT_ID || $view_column_type == ViewColumnType::PARENT_ID) {
-                    $target_column_id = Define::CUSTOM_view_column_type_PARENT_ID;
+                    $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
                     // get parent table
                     if (isset($custom_table)) {
                         $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
@@ -179,4 +181,20 @@ trait CustomViewColumnTrait
         }
         return [];
     }
+    
+    public static function importReplaceJson(&$json, $options = []){
+        $custom_view = array_get($options, 'parent');
+
+        list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
+            array_get($json, "view_column_type"),
+            array_get($json, "view_column_target_name"),
+            $custom_view->custom_table
+        );
+
+        $json['view_column_target_id'] = $view_column_target_id;
+        $json['view_column_table_id'] = $view_column_table_id;
+
+        array_forget($json, 'view_column_target_name');
+    }
+
 }

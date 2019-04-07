@@ -17,9 +17,11 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     protected $casts = ['options' => 'json'];
 
     protected static $templateItems = [
-        'excepts' => ['id', 'suuid', 'dashboard_id', 'created_at', 'updated_at', 'deleted_at', 'created_user_id', 'updated_user_id', 'deleted_user_id'],
-        'keys' => ['row_no', 'column_no'],
-        'langs' => ['dashboard_box_view_name'],
+        'excepts' => ['suuid', 'dashboard_id'],
+        'langs' => [
+            'keys' => ['row_no', 'column_no'],
+            'values' => ['dashboard_box_view_name'],
+        ],
         
         'uniqueKeyReplaces' => [
             [

@@ -562,11 +562,6 @@
                     "view_column_type": 0
                 },
                 {
-                    "order": "3",
-                    "view_column_target_name": "target_project",
-                    "view_column_type": 0
-                },
-                {
                     "order": "4",
                     "view_column_target_name": "task_name",
                     "view_column_type": 0
