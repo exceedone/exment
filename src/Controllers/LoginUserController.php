@@ -31,7 +31,7 @@ class LoginUserController extends AdminControllerBase
      * @param Content $content
      * @return Content
      */
-    public function show(Request $request, $id, Content $content)
+    public function show(Request $request, Content $content, $id)
     {
         return redirect(admin_urls('loginuser', $id, 'edit'));
     }
