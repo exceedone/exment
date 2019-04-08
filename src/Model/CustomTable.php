@@ -512,7 +512,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 return [];
             }
         }
-        return $query->get()->pluck("text", "id");
+        return $query->get()->pluck("label", "id");
     }
 
     /**
