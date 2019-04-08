@@ -230,7 +230,15 @@ class LoginUserController extends AdminControllerBase
             if ($has_change) {
                 // mailsend
                 if (array_key_exists('send_password', $data) || isset($data['create_password_auto'])) {
-                    $login_user->sendPassword($password);
+                    try{
+                        $login_user->sendPassword($password);
+                    }
+                    // throw mailsend Exception
+                    catch(\Swift_TransportException $ex){
+                        admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+                        DB::rollback();
+                        return back()->withInput();
+                    }
                 }
                 $login_user->save();
 
