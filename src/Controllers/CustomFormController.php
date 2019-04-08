@@ -100,7 +100,7 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $tableKey, $id)
     {
         if ($this->saveform($request, $id)) {
             admin_toastr(trans('admin.save_succeeded'));
@@ -441,6 +441,7 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function saveform(Request $request, $id = null)
     {
+
         DB::beginTransaction();
         try {
             $inputs = $request->input('custom_form_blocks');

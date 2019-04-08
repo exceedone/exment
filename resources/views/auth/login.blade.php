@@ -23,6 +23,16 @@
                 <span class="glyphicon glyphicon-lock form-control-feedback"></span>
             </div>
             <div class="row">
+                <div class="col-xs-12">
+                    @if(config('admin.auth.remember'))
+                    <div class="checkbox icheck">
+                        <label>
+                            <input type="checkbox" name="remember" value="1" {{ (!old('username') || old('remember')) ? 'checked' : '' }}>
+                            {{ trans('admin.remember_me') }}
+                        </label>
+                    </div>
+                    @endif
+                </div>
                 <!-- /.col -->
                 <div class="col-xs-4 col-md-offset-4">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">

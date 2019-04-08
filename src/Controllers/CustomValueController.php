@@ -167,7 +167,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * file delete custom column.
      */
-    public function filedelete(Request $request, $id)
+    public function filedelete(Request $request, $tableKey, $id)
     {
         if (($response = $this->firstFlow($request, $id)) instanceof Response) {
             return $response;
@@ -209,7 +209,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * for file upload function.
      */
-    public function fileupload(Request $request, $id)
+    public function fileupload(Request $request, $tableKey, $id)
     {
         if (($response = $this->firstFlow($request, $id)) instanceof Response) {
             return $response;
@@ -238,7 +238,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param Request $request
      * @return Response
      */
-    public function pluginClick(Request $request, $id = null)
+    public function pluginClick(Request $request, $tableKey, $id = null)
     {
         if ($request->input('uuid') === null) {
             abort(404);
@@ -278,7 +278,7 @@ class CustomValueController extends AdminControllerTableBase
      * @param Request $request
      * @return Response
      */
-    public function copyClick(Request $request, $id = null)
+    public function copyClick(Request $request, $tableKey, $id = null)
     {
         if ($request->input('uuid') === null) {
             abort(404);

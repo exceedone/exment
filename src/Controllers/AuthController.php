@@ -10,6 +10,7 @@ use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
 
 /**
@@ -264,4 +265,16 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             });
         });
     }
+    
+    /**
+     * @return string|\Symfony\Component\Translation\TranslatorInterface
+     */
+    protected function getFailedLoginMessage()
+    {
+        if(Lang::has('exment::exment.error.login_failed')){
+            return exmtrans('error.login_failed');
+        }
+        return parent::getFailedLoginMessage();
+    }
+
 }

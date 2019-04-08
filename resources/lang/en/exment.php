@@ -291,7 +291,7 @@ return [
             
             'use_loginuser' => 'By checking, this user will be able to log in to the system.',
             'reset_password' => 'By checking, the password will be reset.',
-            'create_password_auto' => 'By checking, the password is automatically generated.',
+            'create_password_auto' => 'By checking, the password is automatically generated. (An email will be sent to the relevant user.)',
             'send_password' => 'By checking, we will e-mail user information to the relevant user.',
         ]
     ],

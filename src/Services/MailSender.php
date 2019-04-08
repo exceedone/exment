@@ -155,6 +155,7 @@ class MailSender
                 'history_body' => $this->history_body,
             ]
         );
+        return true;
     }
 
     /**

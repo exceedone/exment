@@ -59,6 +59,8 @@ return [
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
+        'login_failed' => 'IDまたはパスワードが違います。',
+        'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
     ],
 
     'system' => [
@@ -291,7 +293,7 @@ return [
             
             'use_loginuser' => 'チェックすることで、このユーザーがシステムにログインすることができるようになります。',
             'reset_password' => 'チェックすることで、パスワードが再設定されます。',
-            'create_password_auto' => 'チェックすることで、パスワードが自動生成されます。',
+            'create_password_auto' => 'チェックすることで、パスワードが自動生成されます。(該当ユーザーにメールが送信されます。)',
             'send_password' => 'チェックすることで、該当ユーザーにユーザー情報をメール送信します。',
         ],
         'message' => [

@@ -145,12 +145,17 @@ class LoginUserController extends AdminControllerBase
                     , ['key' => 'create_password_auto', 'nullValue' => true]
                     ])]);
 
+            // "send_password"'s data-filter is whether $id is null or hasvalue
+            $send_password_filter = [
+                ['key' => 'create_password_auto', 'nullValue' => true]
+            ];
+            if(isset($id)){
+                $send_password_filter[] = ['key' => 'reset_password', 'value' => "1"];
+            }
             $form->checkboxone('send_password', exmtrans('user.send_password'))->option(['1' => exmtrans('common.yes')])
                 ->default(1)
                 ->help(exmtrans('user.help.send_password'))
-                ->attribute(['data-filter' => json_encode([
-                    ['key' => 'create_password_auto', 'nullValue' => true]
-                    ])]);
+                ->attribute(['data-filter' => json_encode($send_password_filter)]);
         } else {
             $form->disableSubmit();
         }
