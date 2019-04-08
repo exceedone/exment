@@ -857,7 +857,7 @@ if (!function_exists('replaceTextFromFormat')) {
                                 }
                                 // get value from model
                                 elseif (count($length_array) <= 1) {
-                                    $str = $target_value->getText();
+                                    $str = $target_value->getValue();
                                 } else {
                                     // get comma string from index 1.
                                     $length_array = array_slice($length_array, 1);
@@ -1343,7 +1343,7 @@ if (!function_exists('getUserName')) {
         if ($user->trashed()) {
             return exmtrans('common.trashed_user');
         }
-        return $user->getText();
+        return $user->getValue();
     }
 }
 

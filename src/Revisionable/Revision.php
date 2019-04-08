@@ -315,6 +315,6 @@ class Revision extends Eloquent
         if (!isset($value)) {
             return 'system';
         }
-        return $value->getText();
+        return $value->getValue();
     }
 }
