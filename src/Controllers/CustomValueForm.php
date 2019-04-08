@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\Permission;
 
 trait CustomValueForm
 {
@@ -202,7 +203,12 @@ EOT;
             return;
         }
 
-        // set addRoleForm
+        // if table setting is "one_record_flg" (can save only one record), return
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+            return;
+        }
+
+        // set addRoleForm(dufinition by trait)
         $this->addRoleForm($form, RoleType::VALUE);
     }
 
