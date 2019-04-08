@@ -80,7 +80,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
-            $router->resource('mail', 'MailTemplateController', ['except' => ['show']]);
         
             $router->get('search', 'SearchController@index');
             $router->post('search/list', 'SearchController@getList');
