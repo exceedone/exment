@@ -78,7 +78,7 @@ class ApiTableController extends AdminControllerTableBase
      * @param mixed $id
      * @return mixed
      */
-    public function dataFind($tableKey, $id, Request $request)
+    public function dataFind(Request $request, $tableKey, $id)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
@@ -120,7 +120,7 @@ class ApiTableController extends AdminControllerTableBase
      * update data
      * @return mixed
      */
-    public function dataUpdate($tableKey, $id, Request $request)
+    public function dataUpdate(Request $request, $tableKey, $id)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
@@ -142,7 +142,7 @@ class ApiTableController extends AdminControllerTableBase
      * delete data
      * @return mixed
      */
-    public function dataDelete($tableKey, $id, Request $request)
+    public function dataDelete(Request $request, $tableKey, $id)
     {
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
