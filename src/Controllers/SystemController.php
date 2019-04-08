@@ -32,7 +32,7 @@ class SystemController extends AdminControllerBase
     {
         $this->AdminContent($content);
         $form = $this->getInitializeForm();
-        $form->action('system');
+        $form->action(admin_url('system'));
 
         // Role Setting
         $this->addRoleForm($form, RoleType::SYSTEM);
