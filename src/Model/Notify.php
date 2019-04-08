@@ -54,11 +54,17 @@ class Notify extends ModelBase
                 ];
 
                 // send mail
-                MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user->getValue('email'))
+                try {
+                    MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user->getValue('email'))
                     ->prms($prms)
                     ->user($user)
                     ->custom_value($data)
                     ->send();
+                }
+                // throw mailsend Exception
+                catch (\Swift_TransportException $ex) {
+                    // TODO:loging error
+                }
             }
         }
     }
@@ -87,11 +93,18 @@ class Notify extends ModelBase
             ];
 
             // send mail
-            MailSender::make($mail_template, $user)
+            try {
+                MailSender::make($mail_template, $user)
                 ->prms($prms)
                 ->user($user)
                 ->custom_value($data)
                 ->send();
+            }
+            // throw mailsend Exception
+            catch(\Swift_TransportException $ex){
+                // show warning message
+                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+            }
         }
     }
     
