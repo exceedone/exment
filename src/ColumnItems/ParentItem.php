@@ -58,7 +58,7 @@ class ParentItem implements ItemInterface
      */
     public function text()
     {
-        return $this->value->getText();
+        return $this->value->getLabel();
     }
 
     /**
