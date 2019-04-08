@@ -162,7 +162,7 @@ class CustomValueController extends AdminControllerTableBase
     /**
      * file delete custom column.
      */
-    public function filedelete(Request $request, $id)
+    public function filedelete(Request $request, $tableKey, $id)
     {
         if (($response = $this->firstFlow($request, $id)) instanceof Response) {
             return $response;
