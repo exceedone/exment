@@ -81,6 +81,7 @@ class Notify extends ModelBase
 
         // loop data
         $users = $this->getNotifyTargetUsers($data);
+        
         foreach ($users as $user) {
             if (!$this->approvalSendUser($mail_template, $custom_table, $data, $user)) {
                 continue;
@@ -144,19 +145,37 @@ class Notify extends ModelBase
             return [];
         }
 
-        // if has_roles, return has permission users
-        if ($notify_action_target == NotifyActionTarget::HAS_ROLES) {
-            return AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
+        if(!is_array($notify_action_target)){
+            $notify_action_target = [$notify_action_target];
         }
 
-        $users = $data->getValue($notify_action_target);
-        if (is_null($users)) {
-            return [];
+        // loop
+        $users = collect([]);
+        $ids = [];
+        foreach($notify_action_target as $notify_act){
+
+            // if has_roles, return has permission users
+            if ($notify_act == NotifyActionTarget::HAS_ROLES) {
+                $users_inner = AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
+            }else{
+                $users_inner = $data->getValue($notify_act);
+                if (is_null($users_inner)) {
+                    continue;
+                }
+                if (!($users_inner instanceof Collection)) {
+                    $users_inner = collect([$users_inner]);
+                }
+            }
+
+            foreach($users_inner as $u){
+                if(in_array($u->id, $ids)){
+                    continue;
+                }
+                $ids[] = $u->id;
+                $users->push($u);
+            }
         }
-        if (!($users instanceof Collection)) {
-            $users = collect([$users]);
-        }
-        
+
         return $users;
     }
 
@@ -165,28 +184,28 @@ class Notify extends ModelBase
      */
     protected function approvalSendUser($mail_template, $custom_table, $data, $user)
     {
-        $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
+        // $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
-        // if already send notify in 1 minutes, continue.
-        $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
-        $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
-        $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
-            ::where($index_user, $user->id)
-            ->where($index_mail_template, $mail_template->id)
-            ->where('parent_id', $data->id)
-            ->where('parent_type', $custom_table->table_name)
-            ->get()
-        ;
-        foreach ($mail_send_histories as $mail_send_log) {
-            // If user were sending within 5 minutes, false
-            $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
-            $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
-                ->addMinutes($skip_mitutes);
-            $now = Carbon::now();
-            if ($send_datetime->gt($now)) {
-                return false;
-            }
-        }
+        // // if already send notify in 1 minutes, continue.
+        // $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
+        // $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
+        // $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
+        //     ::where($index_user, $user->id)
+        //     ->where($index_mail_template, $mail_template->id)
+        //     ->where('parent_id', $data->id)
+        //     ->where('parent_type', $custom_table->table_name)
+        //     ->get()
+        // ;
+        // foreach ($mail_send_histories as $mail_send_log) {
+        //     // If user were sending within 5 minutes, false
+        //     $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
+        //     $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
+        //         ->addMinutes($skip_mitutes);
+        //     $now = Carbon::now();
+        //     if ($send_datetime->gt($now)) {
+        //         return false;
+        //     }
+        // }
 
         return true;
     }

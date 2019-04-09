@@ -472,7 +472,7 @@ class CustomValue extends ModelBase
                 continue;
             }
             $label = $this->getValue($column, true);
-            if (!isset($label)) {
+            if (empty($label)) {
                 continue;
             }
             $labels[] = $label;

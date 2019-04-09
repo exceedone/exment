@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table as WidgetTable;
@@ -286,7 +287,8 @@ EOT;
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
             'action_callback' => function(&$link, $custom_table, $data){
-                $link .= '<a href="'.admin_url('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')).'"><i class="fa fa-compress"></i></a>';
+                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')	
+                    ->tooltip(exmtrans('search.header_relation'));
             }
         ]);
 
@@ -301,14 +303,23 @@ EOT;
      */
     protected function getRelationSearch(Request $request, Content $content)
     {
+
+        // get seleted name
+        $table = CustomTable::getEloquent($request->input('table_name'));
+        $model = getModelName($table)::find($request->input('value_id'));
+
+        // get target tables
+        $targetTables = $this->getSearchTargetRelationTable($table);
+        // if if only self table, and query "relation"(force showing relation), then redirect show page
+        if(count($targetTables) == 1 && $request->input('relation') != "1"){
+            return redirect($model->getUrl());
+        }
+
         $this->AdminContent($content);
 
         $content->header(exmtrans('search.header_relation'));
         $content->description(exmtrans('search.description_relation'));
 
-        // get seleted name
-        $table = CustomTable::getEloquent($request->input('table_name'));
-        $model = getModelName($table)::find($request->input('value_id'));
         $value = $model->label;
         $content->body(
             view('exment::search.index', [
@@ -423,7 +434,21 @@ EOT;
         
         // get headers and bodies
         $view = CustomView::getDefault($search_table);
-        list($headers, $bodies) = $view->getDataTable($data);
+
+        // definition action_callback is not $search_type is SELF
+        if($search_type != SearchType::SELF){
+            $option = [
+                'action_callback' => function(&$link, $custom_table, $data){
+                    $link .= (new Linker)
+                        ->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')	
+                        ->tooltip(exmtrans('search.header_relation'));
+                }
+            ];
+        }else{
+            $option = [];
+        }
+
+        list($headers, $bodies) = $view->getDataTable($data, $option);
 
         return ['table_name' => array_get($search_table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->class('table table-hover')->render()];
     }

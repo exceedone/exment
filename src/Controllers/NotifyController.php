@@ -127,7 +127,7 @@ class NotifyController extends AdminControllerBase
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
             $controller = $this;
-            $form->select('notify_action_target', exmtrans("notify.notify_action_target"))
+            $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(function ($val) use ($controller) {
                     return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
                 })
