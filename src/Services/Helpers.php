@@ -1353,6 +1353,13 @@ if (!function_exists('useLoginProvider')) {
      */
     function useLoginProvider()
     {
-        return !is_nullorempty(config('exment.login_providers'));
+        $config = config('exment.login_providers');
+        if (is_nullorempty($config)) {
+            return false;
+        } else if (is_array($config)) {
+            return (count($config) > 0);
+        } else {
+            return true;
+        }
     }
 }

@@ -10,10 +10,12 @@ class Decimal extends CustomItem
 {
     public function prepare()
     {
-        $this->value = parseFloat($this->value);
-        if (array_has($this->custom_column, 'options.decimal_digit')) {
-            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-            $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
+        if (!is_null($this->value())) {
+            $this->value = parseFloat($this->value);
+            if (array_has($this->custom_column, 'options.decimal_digit')) {
+                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
+            }
         }
 
         return $this;
@@ -28,7 +30,13 @@ class Decimal extends CustomItem
         if (boolval(array_get($this->custom_column, 'options.number_format'))
         && is_numeric($this->value())
         && !boolval(array_get($this->options, 'disable_number_format'))) {
-            return number_format($this->value());
+            if (array_has($this->custom_column, 'options.decimal_digit')) {
+                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                $number = number_format($this->value(), $digit);
+                return preg_replace("/\.?0+$/",'', $number);
+            } else {
+                return number_format($this->value());
+            }
         }
         return $this->value();
     }
@@ -57,5 +65,19 @@ class Decimal extends CustomItem
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\DecimalCommaRule;
+    }
+
+    /**
+     * get sort column name as SQL
+     */
+    public function getSortColumn()
+    {
+        $column_name = $this->index();
+        if (array_has($this->custom_column, 'options.decimal_digit')) {
+            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+            return "CAST($column_name AS DECIMAL(50, $digit))";
+        } else {
+            return "CAST($column_name AS SIGNED)";
+        }
     }
 }
