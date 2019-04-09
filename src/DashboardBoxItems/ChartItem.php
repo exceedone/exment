@@ -104,7 +104,7 @@ class ChartItem implements ItemInterface
             // filter model
             $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
             // get data
-            $datalist = $model->all();
+            $datalist = $model->get();
             $chart_label = $datalist->map(function ($val) use ($item_x) {
                 return esc_html($item_x->setCustomValue($val)->text());
             });
