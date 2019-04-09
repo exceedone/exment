@@ -9,7 +9,7 @@ use Encore\Admin\Grid;
  */
 class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
 {
-    protected $table_name;
+    protected $endpoint;
     protected $export_only;
 
     public function __construct($endpoint, Grid $grid, $export_only = false)
@@ -39,7 +39,7 @@ class ExportImportButton extends \Encore\Admin\Grid\Tools\ExportButton
         
         // import
         $import = exmtrans('common.import');
-        $import_template = admin_url('data/'.$this->table_name).'?_export_=all&temp=1'; // laravel-admin 1.6.1
+        $import_template = $this->endpoint.'?_export_=all&temp=1'; // laravel-admin 1.6.1
         $import_template_trans = exmtrans('custom_value.template');
 
         $import_export = $this->export_only ? exmtrans('custom_value.export'): exmtrans('custom_value.import_export');
