@@ -28,7 +28,13 @@ class Decimal extends CustomItem
         if (boolval(array_get($this->custom_column, 'options.number_format'))
         && is_numeric($this->value())
         && !boolval(array_get($this->options, 'disable_number_format'))) {
-            return number_format($this->value());
+            if (array_has($this->custom_column, 'options.decimal_digit')) {
+                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                $number = number_format($this->value(), $digit);
+                return preg_replace("/\.?0+$/",'', $number);
+            } else {
+                return number_format($this->value());
+            }
         }
         return $this->value();
     }
