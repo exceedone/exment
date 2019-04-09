@@ -311,15 +311,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         foreach ($this->custom_view_sorts as $custom_view_sort) {
             // get column target column
             if ($custom_view_sort->view_column_type == ViewColumnType::COLUMN) {
-                $view_column_target = $custom_view_sort->custom_column->getIndexColumnName() ?? null;
-            } elseif ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
-                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
-                $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
-            } elseif ($custom_view_sort->view_column_type == ViewColumnType::PARENT_ID) {
-                $view_column_target = 'parent_id';
+                $view_column_target = $custom_view_sort->custom_column->column_item->getSortColumn();
+                $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
+                //set order
+                $model->orderByRaw("$view_column_target $sort_order");
+            } else {
+                if ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
+                    $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
+                    $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
+                } elseif ($custom_view_sort->view_column_type == ViewColumnType::PARENT_ID) {
+                    $view_column_target = 'parent_id';
+                }
+                //set order
+                $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
             }
-            //set order
-            $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
         }
 
         return $model;

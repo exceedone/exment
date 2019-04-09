@@ -58,4 +58,13 @@ class Integer extends CustomItem
 
         $validates[] = new Validator\IntegerCommaRule;
     }
+
+    /**
+     * get sort column name as SQL
+     */
+    public function getSortColumn()
+    {
+        $column_name = $this->index();
+        return "CAST($column_name AS SIGNED)";
+    }
 }

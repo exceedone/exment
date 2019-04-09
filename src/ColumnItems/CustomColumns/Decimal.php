@@ -10,10 +10,12 @@ class Decimal extends CustomItem
 {
     public function prepare()
     {
-        $this->value = parseFloat($this->value);
-        if (array_has($this->custom_column, 'options.decimal_digit')) {
-            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-            $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
+        if (!is_null($this->value())) {
+            $this->value = parseFloat($this->value);
+            if (array_has($this->custom_column, 'options.decimal_digit')) {
+                $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+                $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
+            }
         }
 
         return $this;
@@ -63,5 +65,19 @@ class Decimal extends CustomItem
     protected function setValidates(&$validates)
     {
         $validates[] = new Validator\DecimalCommaRule;
+    }
+
+    /**
+     * get sort column name as SQL
+     */
+    public function getSortColumn()
+    {
+        $column_name = $this->index();
+        if (array_has($this->custom_column, 'options.decimal_digit')) {
+            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
+            return "CAST($column_name AS DECIMAL(50, $digit))";
+        } else {
+            return "CAST($column_name AS SIGNED)";
+        }
     }
 }
