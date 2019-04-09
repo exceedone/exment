@@ -184,28 +184,28 @@ class Notify extends ModelBase
      */
     protected function approvalSendUser($mail_template, $custom_table, $data, $user)
     {
-        // $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
+        $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
-        // // if already send notify in 1 minutes, continue.
-        // $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
-        // $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
-        // $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
-        //     ::where($index_user, $user->id)
-        //     ->where($index_mail_template, $mail_template->id)
-        //     ->where('parent_id', $data->id)
-        //     ->where('parent_type', $custom_table->table_name)
-        //     ->get()
-        // ;
-        // foreach ($mail_send_histories as $mail_send_log) {
-        //     // If user were sending within 5 minutes, false
-        //     $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
-        //     $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
-        //         ->addMinutes($skip_mitutes);
-        //     $now = Carbon::now();
-        //     if ($send_datetime->gt($now)) {
-        //         return false;
-        //     }
-        // }
+        // if already send notify in 1 minutes, continue.
+        $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
+        $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
+        $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
+            ::where($index_user, $user->id)
+            ->where($index_mail_template, $mail_template->id)
+            ->where('parent_id', $data->id)
+            ->where('parent_type', $custom_table->table_name)
+            ->get()
+        ;
+        foreach ($mail_send_histories as $mail_send_log) {
+            // If user were sending within 5 minutes, false
+            $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
+            $send_datetime = (new Carbon($mail_send_log->getValue('send_datetime')))
+                ->addMinutes($skip_mitutes);
+            $now = Carbon::now();
+            if ($send_datetime->gt($now)) {
+                return false;
+            }
+        }
 
         return true;
     }
