@@ -55,7 +55,7 @@ class ListItem implements ItemInterface
         // check edit permission
         if ($this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $new_url= admin_url("data/{$this->custom_table->table_name}/create");
-            $list_url = admin_url("data/{$this->custom_table->table_name}");
+            $list_url = admin_url("data/{$this->custom_table->table_name}?view=".$this->custom_view->suuid);
         } else {
             $new_url = null;
             $list_url = null;
