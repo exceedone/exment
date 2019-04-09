@@ -116,7 +116,7 @@ EOT;
 
             foreach ($data as $d) {
                 // get label
-                $text = $d->text;
+                $text = $d->label;
                 array_push($results, [
                     'value' => $text
                     , 'text' => $text
@@ -286,7 +286,7 @@ EOT;
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
             'action_callback' => function(&$link, $custom_table, $data){
-                $link .= '<a href="'.admin_base_path('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')).'"><i class="fa fa-compress"></i></a>';
+                $link .= '<a href="'.admin_url('search?table_name='.array_get($custom_table, 'table_name').'&value_id='.array_get($data, 'id')).'"><i class="fa fa-compress"></i></a>';
             }
         ]);
 
