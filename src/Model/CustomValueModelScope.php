@@ -40,6 +40,10 @@ class CustomValueModelScope implements Scope
         } elseif ($table_name == SystemTableName::ORGANIZATION) {
             //TODO
             return;
+        // Add document skip logic
+        } elseif ($table_name == SystemTableName::DOCUMENT) {
+            //TODO
+            return;
         } elseif ($model->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
             return;
         }
