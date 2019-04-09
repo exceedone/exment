@@ -203,8 +203,8 @@ EOT;
             return;
         }
 
-        // if table setting is "one_record_flg" (can save only one record), return
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        // not contains edit all form
+        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
             return;
         }
 
