@@ -200,9 +200,9 @@ EOT;
         if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
             return;
         }
-
-        // if table setting is "one_record_flg" (can save only one record), return
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        
+        // not contains edit all form
+        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
             return;
         }
 
@@ -217,6 +217,10 @@ EOT;
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
+            if(!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM){
+                continue;
+            }
+
             $item = $form_column->column_item;
             if (isset($id)) {
                 $item->id($id);
@@ -234,6 +238,10 @@ EOT;
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
+            if(!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM){
+                continue;
+            }
+            
             $field = $form_column->column_item->setCustomValue($custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no

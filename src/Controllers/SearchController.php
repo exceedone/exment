@@ -59,7 +59,7 @@ class SearchController extends AdminControllerBase
                         window.location.href = '$list_url' + '?table_name=' + ui.item.table_name + '&value_id=' + ui.item.value_id;
                     }
                 },
-            autoFocus: true,
+            autoFocus: false,
             delay: 500,
             minLength: 2,
         })

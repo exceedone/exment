@@ -154,6 +154,8 @@ class ChartItem implements ItemInterface
      */
     public static function setAdminOptions(&$form)
     {
+        $form->description(exmtrans('dashboard.description_chart'));
+
         $form->select('chart_type', exmtrans("dashboard.dashboard_box_options.chart_type"))
                 ->required()
                 ->options(ChartType::transArray("chart.chart_type_options"));

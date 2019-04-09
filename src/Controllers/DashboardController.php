@@ -243,11 +243,11 @@ EOT;
         $form->embeds('options', exmtrans("dashboard.row"), function ($form) {
             for ($row_count = 1; $row_count <= intval(config('exment.dashboard_rows', 4)); $row_count++) {
                 $row = [];
-                if ($row_count > 1) {
-                    $row[] = exmtrans('dashboard.row_options0');
-                }
                 for ($i = 1; $i <= 4; $i++) {
                     $row[$i] = $i.exmtrans('dashboard.row_optionsX');
+                }
+                if ($row_count > 1) {
+                    $row[0] = exmtrans('dashboard.row_options0');
                 }
 
                 // get default
