@@ -461,10 +461,10 @@ class CustomView extends ModelBase
                     
                 // for user --------------------------------------------------
                 case ViewColumnFilterOption::USER_EQ_USER:
-                    $model = $model->where($view_column_target, Admin::user()->base_user()->id);
+                    $model = $model->where($view_column_target, Admin::user()->base_user->id);
                     break;
                 case ViewColumnFilterOption::USER_NE_USER:
-                    $model = $model->where($view_column_target, '<>', Admin::user()->base_user()->id);
+                    $model = $model->where($view_column_target, '<>', Admin::user()->base_user->id);
             }
         }
 
