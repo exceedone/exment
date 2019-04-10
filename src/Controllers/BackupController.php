@@ -162,11 +162,15 @@ class BackupController extends AdminControllerBase
         }
         
         if (isset($result) && $result === 0) {
-            $response = [
-                'result' => true,
-                'toastr' => exmtrans('backup.message.restore_succeeded'),
-                'errors' => [],
-            ];
+            admin_toastr(exmtrans('backup.message.restore_file_success'));
+            \Auth::guard('admin')->logout();
+            $request->session()->invalidate();
+            
+            return response()->json([
+                'result'  => true,
+                'toastr' => exmtrans('backup.message.restore_file_success'),
+                'redirect' => admin_url(''),
+            ]);
         } else {
             $response = [
                 'result' => false,
@@ -199,13 +203,13 @@ class BackupController extends AdminControllerBase
                 }
             }
             return response()->json([
-                'status'  => true,
-                'message' => trans('admin.delete_succeeded'),
+                'result'  => true,
+                'toastr' => trans('admin.delete_succeeded'),
             ]);
         } else {
             return response()->json([
-                'status'  => false,
-                'message' => trans('admin.delete_failed'),
+                'result'  => false,
+                'toastr' => trans('admin.delete_failed'),
             ]);
         }
     }
@@ -225,13 +229,13 @@ class BackupController extends AdminControllerBase
 
         if (isset($result) && $result === 0) {
             return response()->json([
-                'status'  => true,
-                'message' => trans('admin.save_succeeded'),
+                'result'  => true,
+                'toastr' => trans('admin.save_succeeded'),
             ]);
         } else {
             return response()->json([
-                'status'  => false,
-                'message' => exmtrans("backup.message.backup_error"),
+                'result'  => false,
+                'toastr' => exmtrans("backup.message.backup_error"),
             ]);
         }
     }
@@ -262,11 +266,18 @@ class BackupController extends AdminControllerBase
 
         if (isset($result) && $result === 0) {
             admin_toastr(exmtrans('backup.message.restore_file_success'));
-            return redirect(admin_urls('auth', 'logout'));
+            \Auth::guard('admin')->logout();
+            $request->session()->invalidate();
+
+            return response()->json([
+                'result'  => true,
+                'toastr' => exmtrans('backup.message.restore_file_success'),
+                'redirect' => admin_url(''),
+            ]);
         } else {
             return response()->json([
-                'status'  => false,
-                'message' => exmtrans("backup.message.restore_error"),
+                'result'  => false,
+                'toastr' => exmtrans("backup.message.restore_error"),
             ]);
         }
     }
