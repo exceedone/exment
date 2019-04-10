@@ -341,7 +341,10 @@ class CustomView extends ModelBase
             } elseif ($filter->view_column_type == ViewColumnType::PARENT_ID) {
                 //TODO: set as 1:n. develop as n:n
                 $view_column_target = 'parent_id';
+            } elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
+                $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['name'] ?? null;
             }
+            
             $condition_value_text = $filter->view_filter_condition_value_text;
             $view_filter_condition = $filter->view_filter_condition;
             // get filter condition
