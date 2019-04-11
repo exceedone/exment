@@ -147,8 +147,8 @@ class TemplateController extends AdminControllerBase
         $form->action(admin_url('template/export'));
 
         $form->description(exmtrans('template.description_export'));
-        $form->text('template_name', exmtrans('template.template_name'))->help(exmtrans('common.help_code'));
-        $form->text('template_view_name', exmtrans('template.template_view_name'));
+        $form->text('template_name', exmtrans('template.template_name'))->required()->help(exmtrans('common.help_code'));
+        $form->text('template_view_name', exmtrans('template.template_view_name'))->required();
         $form->textarea('description', exmtrans('template.form_description'))->rows(3);
         $form->image('thumbnail', exmtrans('template.thumbnail'))->help(exmtrans('template.help.thumbnail'))->options(Define::FILE_OPTION());
 

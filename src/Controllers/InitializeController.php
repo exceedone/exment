@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -56,8 +57,7 @@ class InitializeController extends Controller
             }
             
             // add user table
-            $user_modelname = getModelName(SystemTableName::USER);
-            $user = new $user_modelname();
+            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
             $user->value = [
                 'user_code' => $request->get('user_code'),
                 'user_name' => $request->get('user_name'),

@@ -26,7 +26,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected $titleColumn = 'title';
 
     public static $templateItems = [
-        'excepts' => ['menu_target'],
+        'excepts' => [
+            'import' => ['permission'],
+            'export' => ['menu_target', 'permission'],
+        ],
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [
             'keys' => ['menu_type', 'menu_name'],
@@ -175,9 +178,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use ($json) {
+                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use (&$json) {
                         return $key == $json['menu_target_name'];
-                    })->each(function ($system_menu, $key) {
+                    })->each(function ($system_menu, $key) use(&$json) {
                         $json['menu_target'] = $key;
                     });
                     break;

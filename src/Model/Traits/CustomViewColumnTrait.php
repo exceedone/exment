@@ -195,6 +195,7 @@ trait CustomViewColumnTrait
         $json['view_column_table_id'] = $view_column_table_id;
 
         array_forget($json, 'view_column_target_name');
+        array_forget($json, 'view_column_table_name');
     }
 
 }

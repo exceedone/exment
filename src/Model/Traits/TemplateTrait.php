@@ -176,7 +176,8 @@ trait TemplateTrait
 
         // except columns
         if (array_key_exists('excepts', $templateItems)) {
-            $array = array_except($array, array_get($templateItems, 'excepts', []));
+            $expects = is_vector($templateItems['excepts']) ? array_get($templateItems, 'excepts', []) : array_get($templateItems, 'excepts.export', []);
+            $array = array_except($array, $expects);
         }
         $array = array_except($array, static::$defaultExcepts);
 
@@ -308,8 +309,11 @@ trait TemplateTrait
             }
 
             // if contains excepts, skip
-            if (array_key_exists('excepts', $templateItems) && in_array($key, $templateItems['excepts'])) {
-                continue;
+            if(array_key_exists('excepts', $templateItems)){
+                $expects = is_vector($templateItems['excepts']) ? array_get($templateItems, 'excepts', []) : array_get($templateItems, 'excepts.import', []);
+                if (in_array($key, $expects)) {
+                    continue;
+                }
             }
 
             // if contains children, skip
