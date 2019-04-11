@@ -64,6 +64,16 @@ class Decimal extends CustomItem
     
     protected function setValidates(&$validates)
     {
+        $options = $this->custom_column->options;
+        
+        // value size
+        if (array_get($options, 'number_min')) {
+            $validates[] = 'min:'.array_get($options, 'number_min');
+        }
+        if (array_get($options, 'number_max')) {
+            $validates[] = 'max:'.array_get($options, 'number_max');
+        }
+
         $validates[] = new Validator\DecimalCommaRule;
     }
 
