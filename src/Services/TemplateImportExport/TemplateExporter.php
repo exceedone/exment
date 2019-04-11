@@ -275,6 +275,10 @@ class TemplateExporter
             // replace id to name
             // add table name
             $view['table_name'] = array_get($view, 'custom_table.table_name');
+            if (is_null($view['table_name'])) {
+                continue;
+            }
+
             // if table contains $options->target_tables, continue
             if (count($target_tables) > 0 && !in_array($view['table_name'], $target_tables)) {
                 continue;
@@ -306,6 +310,18 @@ class TemplateExporter
             // loop custom_view_filters
             if (array_key_value_exists('custom_view_filters', $view)) {
                 foreach ($view['custom_view_filters'] as &$custom_view_filter) {
+                    switch (array_get($custom_view_filter, 'view_column_type')) {
+                        case ViewColumnType::COLUMN:
+                            $custom_view_filter['view_column_target_name'] = array_get($custom_view_filter, 'custom_column.column_name') ?? null;
+                            break;
+                        case ViewColumnType::SYSTEM:
+                            $custom_view_filter['view_column_target_name'] = array_get($custom_view_filter, 'view_column_target');
+                            break;
+                        case ViewColumnType::PARENT_ID:
+                            $custom_view_filter['view_column_target_name'] = 'parent_id';
+                            break;
+                    }
+
                     // if has value view_filter_condition_value_table_id
                     if (array_key_value_exists('view_filter_condition_value_table_id', $custom_view_filter)) {
                         $custom_view_filter['view_filter_condition_value_table_name'] = CustomTable::find($custom_view_filter['view_filter_condition_value_table_id'])->table_name ?? null;
