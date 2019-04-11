@@ -8,6 +8,11 @@ use Encore\Admin\Grid\Filter;
 
 class Boolean extends CustomItem
 {
+    /**
+     * laravel-admin set required. if false, always not-set required
+     */
+    protected $required = false;
+    
     public function text()
     {
         if (array_get($this->custom_column, 'options.true_value') == $this->value()) {

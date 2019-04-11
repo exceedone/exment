@@ -8,6 +8,11 @@ use Encore\Admin\Grid\Filter;
 
 class Yesno extends CustomItem
 {
+    /**
+     * laravel-admin set required. if false, always not-set required
+     */
+    protected $required = false;
+
     public function text()
     {
         return boolval($this->value) ? 'YES' : 'NO';
