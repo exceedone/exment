@@ -16,7 +16,10 @@ class CustomViewColumn extends ModelBase
     protected $with = ['custom_column'];
 
     public static $templateItems = [
-        'excepts' => ['custom_view_id', 'view_column_target', 'custom_column', 'target_view_name'],
+        'excepts' => [
+            'import' => ['view_column_target', 'custom_column', 'target_view_name', 'view_column_name'],
+            'export' => ['custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_column_table_id', 'view_column_target_id'],
+        ],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
         'uniqueKeyReplaces' => [

@@ -17,7 +17,10 @@ class CustomViewFilter extends ModelBase
     use Traits\UseRequestSessionTrait;
 
     public static $templateItems = [
-        'excepts' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
+        'excepts' => [
+            'import' => ['view_column_table_id', 'view_column_target', 'custom_column'],
+            'export' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'view_filter_condition_value_table_id', 'view_filter_condition_value_id'],
+        ],
         'uniqueKeys' => [
             'custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id', 'view_filter_condition'
         ],
