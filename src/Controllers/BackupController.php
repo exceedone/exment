@@ -204,12 +204,12 @@ class BackupController extends AdminControllerBase
             }
             return response()->json([
                 'result'  => true,
-                'toastr' => trans('admin.delete_succeeded'),
+                'message' => trans('admin.delete_succeeded'),
             ]);
         } else {
             return response()->json([
                 'result'  => false,
-                'toastr' => trans('admin.delete_failed'),
+                'message' => trans('admin.delete_failed'),
             ]);
         }
     }
@@ -230,12 +230,12 @@ class BackupController extends AdminControllerBase
         if (isset($result) && $result === 0) {
             return response()->json([
                 'result'  => true,
-                'toastr' => trans('admin.save_succeeded'),
+                'message' => trans('admin.save_succeeded'),
             ]);
         } else {
             return response()->json([
                 'result'  => false,
-                'toastr' => exmtrans("backup.message.backup_error"),
+                'message' => exmtrans("backup.message.backup_error"),
             ]);
         }
     }
@@ -271,7 +271,7 @@ class BackupController extends AdminControllerBase
 
             return response()->json([
                 'result'  => true,
-                'toastr' => exmtrans('backup.message.restore_file_success'),
+                'message' => exmtrans('backup.message.restore_file_success'),
                 'redirect' => admin_url(''),
             ]);
         } else {
