@@ -108,7 +108,7 @@
             }).then(function(result) {
                 var data = result.value;
                 if (typeof data === 'object') {
-                    if (data.status) {
+                    if (data.result) {
                         swal(data.message, '', 'success');
                     } else {
                         swal(data.message, '', 'error');
@@ -145,11 +145,15 @@
             }).then(function(result) {
                 var data = result.value;
                 if (typeof data === 'object') {
-                    if (data.status) {
+                    if (data.result) {
                         swal(data.message, '', 'success');
                     } else {
                         swal(data.message, '', 'error');
                     }
+                }
+
+                if(data.redirect){
+                    $.pjax({ container: '#pjax-container', url: data.redirect });
                 }
             });
 
@@ -214,7 +218,7 @@
             }).then(function(result) {
                 var data = result.value;
                 if (typeof data === 'object') {
-                    if (data.status) {
+                    if (data.result) {
                         swal(data.message, '', 'success');
                     } else {
                         swal(data.message, '', 'error');
