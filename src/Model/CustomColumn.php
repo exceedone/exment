@@ -22,8 +22,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
 
-    protected static $uniqueKeyName = ['custom_table.table_name', 'column_name'];
-
     public static $templateItems = [
         'excepts' => ['suuid'],
         'uniqueKeys' => [

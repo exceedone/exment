@@ -22,7 +22,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
     use \Illuminate\Database\Eloquent\SoftDeletes;
-    
+
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
 

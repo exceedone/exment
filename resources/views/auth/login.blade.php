@@ -23,7 +23,7 @@
                 <span class="glyphicon glyphicon-lock form-control-feedback"></span>
             </div>
             <div class="row">
-                <div class="col-xs-12">
+                <div class="col-xs-12 text-center">
                     @if(config('admin.auth.remember'))
                     <div class="checkbox icheck">
                         <label>
@@ -34,7 +34,7 @@
                     @endif
                 </div>
                 <!-- /.col -->
-                <div class="col-xs-4 col-md-offset-4">
+                <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-primary btn-block btn-flat">{{ trans('admin.login') }}</button>
                 </div>

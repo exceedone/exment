@@ -399,14 +399,19 @@ trait TemplateTrait
      */
     public function getUniqueKeyNames()
     {
-        if (!property_exists(get_called_class(), 'uniqueKeyName')) {
+        if (!property_exists(get_called_class(), 'templateItems') || !array_has(static::$templateItems, 'uniqueKeys')) {
             return [];
         }
-        $keyName = static::$uniqueKeyName;
+
+        $keys = array_get(static::$templateItems, 'uniqueKeys', []);
+        // if this array is not vector, get for export
+        if(!is_vector($keys)){
+            $keys = array_get($keys, 'export', []);
+        }
 
         // get key values
         $keyValues = [];
-        foreach ($keyName as $key) {
+        foreach ($keys as $key) {
             //$array_key is last of $key's dotted
             $array_keys = explode('.', $key);
             $array_key = $array_keys[count($array_keys) - 1];
