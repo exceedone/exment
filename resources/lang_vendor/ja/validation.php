@@ -108,6 +108,9 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
+        'old_password' => [
+            'old_password' => '現在のパスワードが正しくありません。',
+        ],
         'child_custom_table_id' => [
             'loop_relation' => 'すでに関連付けられているテーブルです。',
         ],

@@ -7,9 +7,26 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Providers\CustomUserProvider;
 
 class ExmentCustomValidator extends \Illuminate\Validation\Validator
 {
+    /**
+    * Validation current password
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validateOldPassword($attribute, $value, $parameters)
+    {
+        if (is_null($value)) {
+            return true;
+        }
+        return CustomUserProvider::ValidateCredential(\Exment::user(), ['password' => $value]);
+    }
+
     /**
     * Validation in table
     *

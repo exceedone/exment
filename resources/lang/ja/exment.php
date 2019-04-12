@@ -276,6 +276,7 @@ return [
         'email' => 'メールアドレス',
         'password' => 'パスワード',
         'password_confirmation' => 'パスワード(再入力)',
+        'old_password' => '現在のパスワード',
         'new_password' => '新しいパスワード',
         'new_password_confirmation' => '新しいパスワード(再入力)',
         'send_password' => 'ユーザー情報をメール送信する',
