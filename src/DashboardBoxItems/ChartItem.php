@@ -75,6 +75,9 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
+        if (is_null($this->custom_view)) {
+            return null;
+        }
         $view_column_x = $this->getViewColumn($this->axis_x);
         $view_column_y = $this->getViewColumn($this->axis_y);
         $item_x = $view_column_x->column_item;

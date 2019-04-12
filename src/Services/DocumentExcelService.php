@@ -19,6 +19,7 @@ class DocumentExcelService
     protected $outputfilename;
     protected $filename;
     protected $document_type;
+    protected $uniqueFileName;
 
     protected $model;
     /**
@@ -263,6 +264,23 @@ class DocumentExcelService
     }
 
     /**
+     * get unique file name
+     * @return string File name
+     */
+    public function getUniqueFileName()
+    {
+        if (!isset($this->uniqueFileName)) {
+            $this->uniqueFileName = $this->getFileName();
+            $filepath = path_join($this->getDirPath(), $this->uniqueFileName);
+            if (\File::exists(getFullpath($filepath, config('admin.upload.disk')))) {
+                $ext = DocumentType::getExtension($this->document_type);
+                $this->uniqueFileName = make_uuid().$ext;
+            }
+        }
+        return $this->uniqueFileName;
+    }
+
+    /**
      * get File path after storage/admin.
      * @return string File path
      */
@@ -292,7 +310,7 @@ class DocumentExcelService
      */
     public function getFullPath()
     {
-        $filepath = path_join($this->getDirPath(), $this->getFileName());
+        $filepath = path_join($this->getDirPath(), $this->getUniqueFileName());
         return getFullpath($filepath, config('admin.upload.disk'));
     }
     
