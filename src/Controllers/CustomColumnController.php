@@ -184,7 +184,11 @@ class CustomColumnController extends AdminControllerTableBase
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             $form->number('use_label_flg', exmtrans("custom_column.options.use_label_flg"))
                 ->help(exmtrans("custom_column.help.use_label_flg"))
-                ->default(0);
+                ->min(0)
+                ->max(5)
+                ->default(0)
+                ->help(sprintf(exmtrans("custom_column.help.use_label_flg"), getManualUrl('column?id='.exmtrans('custom_column.options.use_label_flg'))))
+                ;
 
             // setting for each settings of column_type. --------------------------------------------------
 
