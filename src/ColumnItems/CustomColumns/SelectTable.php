@@ -41,6 +41,9 @@ class SelectTable extends CustomItem
 
     protected function getValue($text, $html)
     {
+        if (!is_array($this->value) && preg_match('/\[.+\]/i',$this->value)) {
+            $this->value = json_decode($this->value);
+        }
         $model = getModelName($this->target_table)::find($this->value);
         if (is_null($model)) {
             return null;
@@ -64,7 +67,7 @@ class SelectTable extends CustomItem
             if ($html) {
                 $texts[] = $m->getUrl(true);
             } else {
-                $texts[] = $m->text;
+                $texts[] = $m->getLabel();
             }
         }
         return implode(exmtrans('common.separate_word'), $texts);
