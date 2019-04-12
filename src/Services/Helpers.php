@@ -770,7 +770,7 @@ if (!function_exists('replaceTextFromFormat')) {
                             $targetFormat = $length_array[0];
                         }
 
-                        $targetFormat = strtolower($targetFormat);
+                        //$targetFormat = strtolower($targetFormat);
                         // get length
                         $length_array = explode(":", $targetFormat);
                         $key = $length_array[0];
@@ -951,12 +951,12 @@ if (!function_exists('replaceTextFromFormat')) {
                                 }
                             }
                             // if has $datestrings, conbert using date string
-                            elseif (array_key_exists($key, $dateStrings)) {
-                                $str = Carbon::now()->format($dateStrings[$key]);
+                            elseif (array_key_exists(strtolower($key), $dateStrings)) {
+                                $str = Carbon::now()->format($dateStrings[strtolower($key)]);
                             }
                             // if has $dateValues, conbert using date value
-                            elseif (array_key_exists($key, $dateValues)) {
-                                $str = Carbon::now()->{$dateValues[$key]};
+                            elseif (array_key_exists(strtolower($key), $dateValues)) {
+                                $str = Carbon::now()->{$dateValues[strtolower($key)]};
                                 // if user input length
                                 if (count($length_array) > 1) {
                                     $length = $length_array[1];
