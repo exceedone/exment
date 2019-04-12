@@ -37,7 +37,7 @@ class GridChangeView extends AbstractTool
         // setting menu list
         $settings = [];
         //role check
-        if (Admin::user()->hasPermission(Permission::CUSTOM_VIEW)) {
+        if ($this->custom_table->hasPermission(Permission::CUSTOM_VIEW)) {
             $query_str = '';
             if (intval($this->current_custom_view->view_kind_type) === ViewKindType::AGGREGATE) {
                 $query_str = '?view_kind_type=1';
