@@ -952,11 +952,11 @@ if (!function_exists('replaceTextFromFormat')) {
                             }
                             // if has $datestrings, conbert using date string
                             elseif (array_key_exists(strtolower($key), $dateStrings)) {
-                                $str = Carbon::now()->format($dateStrings[$key]);
+                                $str = Carbon::now()->format($dateStrings[strtolower($key)]);
                             }
                             // if has $dateValues, conbert using date value
                             elseif (array_key_exists(strtolower($key), $dateValues)) {
-                                $str = Carbon::now()->{$dateValues[$key]};
+                                $str = Carbon::now()->{$dateValues[strtolower($key)]};
                                 // if user input length
                                 if (count($length_array) > 1) {
                                     $length = $length_array[1];
