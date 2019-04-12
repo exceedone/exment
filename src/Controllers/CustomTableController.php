@@ -87,15 +87,17 @@ class CustomTableController extends AdminControllerBase
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
             $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
             ;
+            $form->switchbool('use_label_id_flg', exmtrans("custom_table.use_label_id_flg"))
+                ->help(sprintf(exmtrans("custom_table.help.use_label_id_flg"), getManualUrl('column?id='.exmtrans('custom_column.options.use_label_flg'))))
+                ->default("0")
+                ;
             $form->switchbool('one_record_flg', exmtrans("custom_table.one_record_flg"))
                 ->help(exmtrans("custom_table.help.one_record_flg"))
                 ->default("0")
                 ;
-
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
                 ->default("1")
                 ;
-            
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
                 ->default("1")
                 ->attribute(['data-filtertrigger' =>true])

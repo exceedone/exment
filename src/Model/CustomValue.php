@@ -467,6 +467,12 @@ class CustomValue extends ModelBase
 
         // loop for columns and get value
         $labels = [];
+
+        // if table's use_label_id_flg is true, add id
+        if(boolval($custom_table->getOption('use_label_id_flg', false))){
+            $labels[] = '#'.strval($this->id);
+        }
+
         foreach ($columns as $column) {
             if (!isset($column)) {
                 continue;
