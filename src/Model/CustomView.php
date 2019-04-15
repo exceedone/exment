@@ -303,7 +303,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         foreach ($this->custom_view_filters as $filter) {
             $model = $filter->setValueFilter($model, $db_table_name);
-            
         }
         return $model;
     }
