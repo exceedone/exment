@@ -62,3 +62,17 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
 ![Custom Form and view](https://exment.net/docs/img/common/screenshot_form_and_view.jpg)  
   
 ![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)  
+
+
+------------
+# GitHubブランチ
+GitHubブランチは、以下の運用とします。  
+※参考： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
+
+| GitHub ブランチ名 | 派生元 | 説明 |
+| ------------------ | -------------| ------------- |
+| `master` | - | 現在の安定版です。リリースした時点でのソースコードを管理します。 |
+| `hotfix` | master | リリースしたソースコードで、致命的な不具合があったときに緊急対応を行うためのブランチです。push後、developとmasterにマージします。 |
+| `develop` | master | 次期機能などの開発を行うブランチです。 |
+| `feature` | develop | 実装する機能ごとのブランチです。 feature/XXX, feature/YYYなど。開発が完了したら、developにマージを行います。 |
+| `release` | develop | developでの開発完了後、リリース時の微調整を行うためのバージョンです。こちらのブランチで動作確認を行い、完了したら、masterにマージを行います。 |
