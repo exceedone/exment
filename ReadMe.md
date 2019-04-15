@@ -61,8 +61,7 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
   
 ![Custom Form and view](https://exment.net/docs/img/common/screenshot_form_and_view.jpg)  
   
-![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)  
-
+![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)
 
 ------------
 # GitHubブランチ
