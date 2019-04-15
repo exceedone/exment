@@ -961,6 +961,9 @@ const rmcomma = (x) => {
     return x.toString().replace(/,/g, '');
 }
 const trimAny = function (str, any) {
+    if(!hasValue(str)){
+        return str;
+    }
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
 }
 

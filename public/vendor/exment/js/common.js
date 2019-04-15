@@ -746,7 +746,7 @@ var Exment;
                             return {
                                 results: $.map(data.data, function (d) {
                                     d.id = d.id;
-                                    d.text = d.text; // text is custom value text appended.
+                                    d.text = d.label; // label is custom value label appended.
                                     return d;
                                 }),
                                 pagination: {
@@ -1059,6 +1059,9 @@ var rmcomma = function (x) {
     return x.toString().replace(/,/g, '');
 };
 var trimAny = function (str, any) {
+    if (!hasValue(str)) {
+        return str;
+    }
     return str.replace(new RegExp("^" + any + "+|" + any + "+$", "g"), '');
 };
 var selectedRow = function () {
