@@ -37,7 +37,7 @@ class Currency extends Decimal
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
                 $value = number_format($this->value(), $digit);
-                $value = preg_replace("/\.?0+$/",'', $value);
+                //$value = preg_replace("/\.?0+$/",'', $value);
             } else {
                 $value = number_format($this->value());
             }
