@@ -19,7 +19,7 @@ class Define
 
     public const RULES_REGEX_VALUE_FORMAT = '\${(.*?)\}';
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';
-    public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z]{1,32})[a-zA-Z][-_a-zA-Z0-9]+$';
+    public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z])(?!.*[-_]$)[-_a-zA-Z0-9]{1,32}$';
     
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
