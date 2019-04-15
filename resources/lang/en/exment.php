@@ -650,6 +650,10 @@ return [
         ],
         'parent_custom_table' => 'Parent Table',
         'child_custom_table' => 'Child Table',
+
+        'help' => [
+            'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> In addition to this screen, there is one more method of setting the association between Exment tables.</span><br />Please be sure to check the <a href="%s" target="_blank">manual</a> and make the appropriate selection before registration.',
+        ]
     ],
 
     'custom_copy' => [

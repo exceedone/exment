@@ -663,6 +663,10 @@ return [
         ],
         'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
+
+        'help' => [
+            'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> Exmentのテーブル間の関連付け設定方法は、この画面の他に、もう1種類あります。</span><br />登録前に、必ず<a href="%s" target="_blank">マニュアル</a>をご確認いただき、適切な選択を行うようにしてください。',
+        ]
     ],
 
     'custom_copy' => [
