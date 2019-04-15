@@ -205,6 +205,7 @@ class Define
     
     public const HELP_URLS = [
         ['uri'=> 'template', 'help_uri'=> 'template'],
+        ['uri'=> 'search', 'help_uri'=> 'search'],
         ['uri'=> 'table', 'help_uri'=> 'table'],
         ['uri'=> 'column', 'help_uri'=> 'column'],
         ['uri'=> 'relation', 'help_uri'=> 'relation'],

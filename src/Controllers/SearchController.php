@@ -459,7 +459,7 @@ EOT;
      */
     protected function getSearchTargetRelationTable($value_table)
     {
-        $results = [];
+            $results = [];
 
         // 1. For self-table
         array_push($results, $this->getTableArray($value_table, SearchType::SELF));
@@ -470,7 +470,7 @@ EOT;
         $tables = CustomTable
         ::whereHas('custom_columns', function ($query) use ($value_table) {
             $query->whereIn('options->index_enabled', [1, "1"])
-            ->where('options->select_target_table', $value_table->id);
+            ->whereIn('options->select_target_table', [$value_table->id, strval($value_table->id)]);
         })
         ->searchEnabled()
         ->get();
