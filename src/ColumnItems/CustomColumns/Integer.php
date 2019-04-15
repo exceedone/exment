@@ -50,10 +50,10 @@ class Integer extends CustomItem
         
         // value size
         if (array_get($options, 'number_min')) {
-            $validates[] = 'min:'.array_get($options, 'number_min');
+            $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
         }
         if (array_get($options, 'number_max')) {
-            $validates[] = 'max:'.array_get($options, 'number_max');
+            $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
         }
 
         $validates[] = new Validator\IntegerCommaRule;
