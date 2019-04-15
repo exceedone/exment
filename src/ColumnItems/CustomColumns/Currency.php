@@ -64,18 +64,4 @@ class Currency extends Decimal
         }
         $field->attribute(['style' => 'max-width: 200px']);
     }
-
-    /**
-     * get sort column name as SQL
-     */
-    public function getSortColumn()
-    {
-        $column_name = $this->index();
-        if (array_has($this->custom_column, 'options.decimal_digit')) {
-            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-            return "CAST($column_name AS DECIMAL(50, $digit))";
-        } else {
-            return "CAST($column_name AS SIGNED)";
-        }
-    }
 }

@@ -385,12 +385,4 @@ abstract class CustomItem implements ItemInterface
 
         return $validates;
     }
-
-    /**
-     * get sort column name as SQL
-     */
-    public function getSortColumn()
-    {
-        return $this->index();
-    }
 }

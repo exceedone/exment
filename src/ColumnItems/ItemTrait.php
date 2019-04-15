@@ -78,4 +78,27 @@ trait ItemTrait
     {
         return true;
     }
+
+    /**
+     * get cast name for sort
+     */
+    public function getCastName()
+    {
+        return null;
+    }
+
+    /**
+     * get sort column name as SQL
+     */
+    public function getSortColumn()
+    {
+        $cast = $this->getCastName();
+        $index = $this->index();
+        
+        if(!isset($cast)){
+            return $index;
+        }
+
+        return "CAST($index AS $cast)";
+    }
 }

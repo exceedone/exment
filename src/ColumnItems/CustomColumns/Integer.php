@@ -60,11 +60,10 @@ class Integer extends CustomItem
     }
 
     /**
-     * get sort column name as SQL
+     * get cast name for sort
      */
-    public function getSortColumn()
+    public function getCastName()
     {
-        $column_name = $this->index();
-        return "CAST($column_name AS SIGNED)";
+        return "SIGNED";
     }
 }

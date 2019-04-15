@@ -78,16 +78,16 @@ class Decimal extends CustomItem
     }
 
     /**
-     * get sort column name as SQL
+     * get cast name for sort
      */
-    public function getSortColumn()
+    public function getCastName()
     {
-        $column_name = $this->index();
         if (array_has($this->custom_column, 'options.decimal_digit')) {
             $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-            return "CAST($column_name AS DECIMAL(50, $digit))";
+            return "DECIMAL(50, $digit)";
         } else {
-            return "CAST($column_name AS SIGNED)";
+            return "SIGNED";
         }
     }
+    
 }
