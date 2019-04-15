@@ -99,7 +99,8 @@ class SystemItem implements ItemInterface
      */
     public function index()
     {
-        return $this->name();
+        $option = SystemColumn::getOption(['name' => $this->name()]);
+        return array_get($option, 'sqlname', $this->name());
     }
 
     /**
