@@ -19,7 +19,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     protected $with = ['custom_column'];
 
     public static $templateItems = [
-        'excepts' => ['custom_column', 'custom_form_block_id', 'form_column_target'],
+        'excepts' => ['custom_column', 'form_column_target'],
         'langs' => [
             'keys' => ['form_column_target_name'],
             'values' => ['options.html', 'options.text'],
@@ -28,6 +28,10 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
             'form_column_type' => FormColumnType::class,
         ],
         'parent' => 'custom_form_block_id',
+        'uniqueKeys' => [
+            'export' => ['form_column_type', 'form_column_target_name'],
+            'import' => ['custom_form_block_id', 'form_column_target_id', 'form_column_type'],
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -140,6 +144,8 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                 $form_column_target_id = FormColumnType::getOption(['column_name' => $form_column_name])['id'] ?? null;
                 break;
         }
+        array_set($json, 'form_column_target_id', $form_column_target_id);
+        array_forget($json, 'form_column_target_name');
 
         // set changedata_custom_table_id
         if (array_key_value_exists('options.changedata_target_column_name', $json)) {
