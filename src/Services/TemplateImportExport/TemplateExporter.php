@@ -103,6 +103,12 @@ class TemplateExporter
 
         if (!$is_lang) {
             $config['template_name'] = $template_name;
+
+            // get version
+            list($latest, $current) = getExmentVersion();
+            if(isset($current)){
+                $config['version'] = $current;
+            }
         }
         $config['template_view_name'] = $template_view_name;
         $config['description'] = $description;

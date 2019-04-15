@@ -54,7 +54,7 @@ class SupportForV11 extends Migration
             $table->integer('view_column_table_id')->after('view_column_type')->unsigned();
         });
         Schema::table('custom_copy_columns', function (Blueprint $table) {
-            $table->integer('from_column_table_id')->after('from_column_type')->unsigned();
+            $table->integer('from_column_table_id')->nullable()->after('from_column_type')->unsigned();
             $table->integer('to_column_table_id')->after('to_column_type')->unsigned();
         });
         // set default value.

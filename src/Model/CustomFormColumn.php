@@ -42,7 +42,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                         ],
                     ]
                 ],
-                'uniqueKeyClassName' => CustomColumn::class,
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
             ],
             [
                 'replaceNames' => [
@@ -120,6 +120,29 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
     }
 
+    /**
+     * get Table And Column Name
+     */
+    protected function getUniqueKeyValues()
+    {
+        switch ($this->form_column_type) {
+            case FormColumnType::COLUMN:
+                return [
+                    'column_name' => $this->custom_column->column_name ?? null,
+                ];
+            case FormColumnType::SYSTEM:
+                return [
+                    'column_name' => SystemColumn::getOption(['id' => $this->form_column_target_id])['name'],
+                ];
+            
+            case FormColumnType::OTHER:
+                return [
+                    'column_name' => FormColumnType::getOption(['id' => $this->form_column_target_id])['column_name'],
+                ];
+        }
+        return [];
+    }
+    
     protected static function importReplaceJson(&$json, $options = []){
         // set form column type
         if (array_key_exists('form_column_type', $json)) {

@@ -19,6 +19,10 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
             'keys' => ['form_block_target_table_name'],
             'values' => ['form_block_view_name'],
         ],
+        'uniqueKeys' => [
+            'export' => ['form_block_target_table_name'],
+            'import' => ['custom_form_id', 'form_block_target_table_id'],
+        ],
         'enums' => [
             'form_block_type' => FormBlockType::class,
         ],

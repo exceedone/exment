@@ -16,10 +16,17 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 
     public static $templateItems = [
         //'excepts' => ['custom_copy_id', 'from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
-        'excepts' => ['from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
+        'excepts' => [
+            'export' => ['from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_id', 'to_column_target_id', 'from_column_table_id', 'to_column_table_id'],
+            'import' => ['from_custom_column', 'to_custom_column', 'from_column_target', 'to_column_target', 'from_column_target_name', 'to_column_target_name', 'from_column_table_name', 'to_column_table_name'],
+        ],
         'keys' => ['from_column_type', 'from_column_target_id', 'to_column_type', 'to_column_target_id', 'copy_column_type'],
         'langs' => [],
         'parent' => 'custom_copy_id',
+        'uniqueKeys' => [
+            'export' => ['from_column_type', 'from_column_target_name', 'from_column_table_name', 'to_column_type', 'to_column_target_name', 'to_column_table_name'],
+            'import' => ['custom_copy_id', 'from_column_type', 'from_column_table_id', 'from_column_target_id', 'to_column_type', 'to_column_table_id', 'to_column_target_id'],
+        ] ,
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -163,22 +170,24 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         // get from and to column
         list($from_column_target_id, $from_column_table_id) = static::getColumnAndTableId(
             array_get($json, "from_column_type"),
-            array_get($json, "from_column_name"),
+            array_get($json, "from_column_target_name"),
             $custom_copy->from_custom_table
         );
         list($to_column_target_id, $to_column_table_id) = static::getColumnAndTableId(
             array_get($json, "to_column_type"),
-            array_get($json, "to_column_name"),
+            array_get($json, "to_column_target_name"),
             $custom_copy->to_custom_table
         );
 
         $json['custom_copy_id'] = $custom_copy->id;
         $json['from_column_target_id'] = $from_column_target_id;
+        $json['from_column_table_id'] = $from_column_table_id;
         $json['to_column_target_id'] = $to_column_target_id;
+        $json['to_column_table_id'] = $to_column_table_id;
 
-        array_forget($json, 'from_custom_table_name');
-        array_forget($json, 'from_column_name');
-        array_forget($json, 'to_custom_table_name');
-        array_forget($json, 'to_column_name');
+        array_forget($json, 'from_column_table_name');
+        array_forget($json, 'from_column_target_name');
+        array_forget($json, 'to_column_table_name');
+        array_forget($json, 'to_column_target_name');
     }
 }

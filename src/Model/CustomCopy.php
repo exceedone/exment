@@ -22,6 +22,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
             'keys' => ['suuid'],
             'values' => ['options.label'],
         ],
+        'uniqueKeys' => ['suuid'],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [
@@ -43,7 +44,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         ],
         'children' =>[
             'custom_copy_columns' => CustomCopyColumn::class,
-            'custom_copy_input_columns' => CustomCopyInputColumn::class,
+            'custom_copy_input_columns' => CustomCopyColumn::class,
         ],
     ];
     

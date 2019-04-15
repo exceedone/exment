@@ -15,4 +15,19 @@ class FormColumnType extends EnumBase
             2 => ['id' => 2, 'column_name' => 'explain'],
             3 => ['id' => 3, 'column_name' => 'html'],
     ];
+    
+    public static function getEnum($value, $default = null)
+    {
+        $enum = parent::getEnum($value, $default);
+        if (isset($enum)) {
+            return $enum;
+        }
+
+        foreach (self::$options as $key => $v) {
+            if (array_get($v, 'id') == $value) {
+                return parent::getEnum($key);
+            }
+        }
+        return $default;
+    }
 }
