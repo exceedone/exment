@@ -64,7 +64,9 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
 ![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)
 
 ------------
-# GitHubブランチ
+# GitHub運用
+
+## ブランチ
 GitHubブランチは、以下の運用とします。  
 ※参考： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
@@ -75,3 +77,12 @@ GitHubブランチは、以下の運用とします。
 | `develop` | master | 次期機能などの開発を行うブランチです。 |
 | `feature` | develop | 実装する機能ごとのブランチです。 feature/XXX, feature/YYYなど。開発が完了したら、developにマージを行います。 |
 | `release` | develop | developでの開発完了後、リリース時の微調整を行うためのバージョンです。こちらのブランチで動作確認を行い、完了したら、masterにマージを行います。 |
+
+## Commit前 - php-cs-fixer
+GitHubにCommitを行う前に、php-cs-fixerを実施し、ソースコードの整形を行ってください。  
+
+~~~
+composer require --dev friendsofphp/php-cs-fixer #初回のみ
+php-cs-fixer fix ./exment --rules=no_unused_imports #不要なuse削除
+php-cs-fixer fix ./exment/src #全般の整形
+~~~
