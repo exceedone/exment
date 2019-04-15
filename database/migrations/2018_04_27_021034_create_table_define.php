@@ -395,7 +395,8 @@ class CreateTableDefine extends Migration
         // delete all custom_value's table.
         if (Schema::hasTable('custom_tables')) {
             foreach (DB::table('custom_tables')->get() as $value) {
-                Schema::dropIfExists(getDBTableName($value));
+                // drop deleted table, so don't call getDBTableName function
+                Schema::dropIfExists('exm__' . array_get($value, 'suuid'));
             }
         }
 
