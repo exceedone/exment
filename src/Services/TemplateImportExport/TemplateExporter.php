@@ -139,6 +139,9 @@ class TemplateExporter
 
         $configTables = [];
         foreach ($custom_tables as $custom_table) {
+            if (count($target_tables) > 0 && !in_array($custom_table['table_name'], $target_tables)) {
+                continue;
+            }
             $configTables[] = $custom_table->getTemplateExportItems($is_lang);
         }
         $config['custom_tables'] = $configTables;
@@ -151,6 +154,9 @@ class TemplateExporter
             ->get();
         $configForms = [];
         foreach ($custom_forms as $custom_form) {
+            if (count($target_tables) > 0 && !in_array(array_get($custom_form, 'custom_table.table_name'), $target_tables)) {
+                continue;
+            }
             $form = $custom_form->getTemplateExportItems($is_lang);
             $configForms[] = $form;
         }
@@ -170,6 +176,9 @@ class TemplateExporter
             ->get();
         $configViews = [];
         foreach ($custom_views as $custom_view) {
+            if (count($target_tables) > 0 && !in_array(array_get($custom_view, 'custom_table.table_name'), $target_tables)) {
+                continue;
+            }
             $configViews[] = $custom_view->getTemplateExportItems($is_lang);
         }
         $config['custom_views'] = $configViews;
@@ -181,6 +190,9 @@ class TemplateExporter
             ->get();
         $configRelations = [];
         foreach ($custom_relations as $custom_relation) {
+            if (count($target_tables) > 0 && !in_array(array_get($custom_relation, 'parent_custom_table.table_name'), $target_tables)) {
+                continue;
+            }
             $configRelations[] = $custom_relation->getTemplateExportItems($is_lang);
         }
         $config['custom_relations'] = $configRelations;
@@ -191,6 +203,9 @@ class TemplateExporter
             ->get();
         $configCopies = [];
         foreach ($custom_copies as $custom_copy) {
+            if (count($target_tables) > 0 && !in_array(array_get($custom_copy, 'from_custom_table.table_name'), $target_tables)) {
+                continue;
+            }
             $configCopies[] = $custom_copy->getTemplateExportItems($is_lang);
         }
         $config['custom_copies'] = $configCopies;
