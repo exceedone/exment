@@ -5,8 +5,8 @@ use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Schema\Blueprint;
-use Exceeone\Exment\Model\CustomColumn;
-use Exceeone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\CurrencySymbol;
 
 class SupportForV11 extends Migration
 {
@@ -101,7 +101,6 @@ class SupportForV11 extends Migration
         Schema::table('custom_columns', function (Blueprint $table) {
             $table->integer('order')->after('system_flg')->default(0);
         });
-
         
         // Change Custom Column options.currency_symbol
         $columns = CustomColumn::whereNotNull('options->currency_symbol')->get();
