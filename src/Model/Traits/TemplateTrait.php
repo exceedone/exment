@@ -68,9 +68,7 @@ trait TemplateTrait
         });
         
         if (isset($find) && is_array($find)) {
-            $find = collect($find)->filter(function ($value, $key) use ($items) {
-                return collect($items)->contains($key);
-            })->all();
+            $find = array_dot_only($find, $items);
         }
 
         return $find;

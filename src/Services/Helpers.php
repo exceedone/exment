@@ -401,6 +401,20 @@ if (!function_exists('array_dot_reverse')) {
     }
 }
 
+if (!function_exists('array_dot_only')) {
+    /**
+     * arrayonly with dot
+     * @return array
+     */
+    function array_dot_only($array, $keys) {
+        $newArray = [];
+        foreach((array) $keys as $key) {
+            array_set($newArray, $key, array_get($array, $key));
+        }
+        return $newArray;
+    }
+}
+
 if (!function_exists('is_json')) {
     function is_json($string)
     {

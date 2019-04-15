@@ -34,7 +34,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         ],
         'langs' => [
             'keys' => ['column_name'],
-            'values' => ['column_view_name', 'description'],
+            'values' => ['column_view_name', 'description', 'options.help', 'options.placeholder', 'options.select_item_valtext'],
         ],
         'parent' => 'custom_table_id',
         'uniqueKeyReplaces' => [
