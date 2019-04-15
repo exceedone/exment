@@ -77,7 +77,8 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return $this->clearJson('options');
     }
     
-    protected static function importReplaceJson(&$json, $options = []){
+    protected static function importReplaceJson(&$json, $options = [])
+    {
         // get custom table
         $custom_table = $options['parent']->custom_table;
         // target block table
@@ -105,7 +106,8 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         }
     }
 
-    protected function importSetValue(&$json, $options = []){
+    protected function importSetValue(&$json, $options = [])
+    {
         if (!$this->exists) {
             $this->available = true;
         }

@@ -11,9 +11,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
 
@@ -143,11 +141,11 @@ trait CustomValueGrid
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
                     $actions->disableEdit();
-                    // add new edit link	
-                    $linker = (new Linker)	
-                        ->url(admin_urls('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id)	
-                        ->icon('fa-edit')	
-                        ->tooltip(trans('admin.edit'));	
+                    // add new edit link
+                    $linker = (new Linker)
+                        ->url(admin_urls('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id)
+                        ->icon('fa-edit')
+                        ->tooltip(trans('admin.edit'));
                     $actions->prepend($linker);
                 }
 

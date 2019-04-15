@@ -215,5 +215,4 @@ class Define
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
         ['uri'=> 'data', 'help_uri'=> 'data']
     ];
-
 }

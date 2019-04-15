@@ -78,19 +78,20 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
         }
     }
     
-    public static function importReplaceJson(&$json, $options = []){
-         // Create role detail.
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        // Create role detail.
         if (array_key_exists('permissions', $json)) {
             $permissions = [];
             foreach (array_get($json, 'permissions', []) as $key => $permission) {
-                if(is_numeric($key)){
+                if (is_numeric($key)) {
                     $permissions[$permission] = "1";
-                }else{
+                } else {
                     $permissions[$key] = "1";
                 }
             }
             $json['permissions'] = $permissions;
-        }else{
+        } else {
             $json['permissions'] = [];
         }
     }

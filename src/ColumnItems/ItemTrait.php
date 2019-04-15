@@ -95,7 +95,7 @@ trait ItemTrait
         $cast = $this->getCastName();
         $index = $this->index();
         
-        if(!isset($cast)){
+        if (!isset($cast)) {
             return $index;
         }
 

@@ -108,13 +108,13 @@ class TemplateController extends AdminControllerBase
             $paginator = new LengthAwarePaginator(
                 collect($datalist),
                 1,
-                1, 
+                1,
                 1
             );
             // $paginator = new LengthAwarePaginator(
             //     collect($json['data']),
             //     $json['total'],
-            //     $json['per_page'], 
+            //     $json['per_page'],
             //     $json['current_page']
             // );
 

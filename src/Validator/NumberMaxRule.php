@@ -11,7 +11,8 @@ class NumberMaxRule implements Rule
 {
     protected $max;
 
-    public function __construct($parameters){
+    public function __construct($parameters)
+    {
         $this->max = $parameters;
     }
 
@@ -24,14 +25,14 @@ class NumberMaxRule implements Rule
     */
     public function passes($attribute, $value)
     {
-        if(is_null($value)){
+        if (is_null($value)) {
             return true;
         }
 
         // remove comma
         $value = rmcomma($value);
 
-        if(!is_numeric($value)){
+        if (!is_numeric($value)) {
             return true;
         }
 

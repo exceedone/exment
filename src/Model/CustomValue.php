@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
-use Carbon\Carbon;
 
 class CustomValue extends ModelBase
 {
@@ -469,7 +468,7 @@ class CustomValue extends ModelBase
         $labels = [];
 
         // if table's use_label_id_flg is true, add id
-        if(boolval($custom_table->getOption('use_label_id_flg', false))){
+        if (boolval($custom_table->getOption('use_label_id_flg', false))) {
             $labels[] = '#'.strval($this->id);
         }
 

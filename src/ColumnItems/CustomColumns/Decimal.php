@@ -33,7 +33,7 @@ class Decimal extends CustomItem
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
                 $number = number_format($this->value(), $digit);
-                return preg_replace("/\.?0+$/",'', $number);
+                return preg_replace("/\.?0+$/", '', $number);
             } else {
                 return number_format($this->value());
             }
@@ -89,5 +89,4 @@ class Decimal extends CustomItem
             return "SIGNED";
         }
     }
-    
 }

@@ -278,25 +278,25 @@ class ExmentServiceProvider extends ServiceProvider
         });
     }
     
-    /**	
-     * Register the application's policies.	
-     *	
-     * @return void	
-     */	
-    public function registerPolicies()	
-    {	
-        foreach ($this->policies as $key => $value) {	
-            Gate::policy($key, $value);	
-        }	
-    }	
+    /**
+     * Register the application's policies.
+     *
+     * @return void
+     */
+    public function registerPolicies()
+    {
+        foreach ($this->policies as $key => $value) {
+            Gate::policy($key, $value);
+        }
+    }
     
-    /**	
-     * Get the policies defined on the provider.	
-     *	
-     * @return array	
-     */	
-    public function policies()	
-    {	
-        return $this->policies;	
+    /**
+     * Get the policies defined on the provider.
+     *
+     * @return array
+     */
+    public function policies()
+    {
+        return $this->policies;
     }
 }

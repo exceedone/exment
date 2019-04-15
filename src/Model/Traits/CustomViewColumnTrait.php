@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -114,7 +113,7 @@ trait CustomViewColumnTrait
     {
         if (!isset($view_column_type)) {
             $view_column_type = ViewColumnType::COLUMN;
-        }else{
+        } else {
             $view_column_type = ViewColumnType::getEnumValue($view_column_type);
         }
 
@@ -182,7 +181,8 @@ trait CustomViewColumnTrait
         return [];
     }
     
-    public static function importReplaceJson(&$json, $options = []){
+    public static function importReplaceJson(&$json, $options = [])
+    {
         $custom_view = array_get($options, 'parent');
 
         list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
@@ -197,5 +197,4 @@ trait CustomViewColumnTrait
         array_forget($json, 'view_column_target_name');
         array_forget($json, 'view_column_table_name');
     }
-
 }

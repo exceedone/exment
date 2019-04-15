@@ -20,7 +20,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\Permission;
 
 trait CustomValueForm
@@ -217,7 +216,7 @@ EOT;
     {
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if(!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM){
+            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
 
@@ -238,7 +237,7 @@ EOT;
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
-            if(!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM){
+            if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
             

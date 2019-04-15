@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardBoxType;
 
 class DashboardBoxController extends AdminControllerBase

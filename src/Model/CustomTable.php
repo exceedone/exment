@@ -189,12 +189,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public static function findByEndpoint($endpoint = null, $withs = [])
     {
         // get table info
-        if(!isset($endpoint)){
+        if (!isset($endpoint)) {
             $tableKey = app('request')->route()->parameter('tableKey');
             if (!isset($tableKey)) {
                 abort(404);
             }
-        }else{
+        } else {
             $tableKey = $endpoint;
         }
 
@@ -316,7 +316,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $obj;
     }
 
-    protected function importSetValue(&$json, $options = []){
+    protected function importSetValue(&$json, $options = [])
+    {
         $system_flg = array_get($options, 'system_flg', false);
         $table_system_flg = array_get($json, 'system_flg');
         $this->system_flg = ($system_flg && (is_null($table_system_flg) || $table_system_flg != 0));
@@ -334,7 +335,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return ['system_flg', 'showlist_flg'];
     }
 
-    protected function importSaved($json, $options = []){
+    protected function importSaved($json, $options = [])
+    {
         $this->createTable();
     }
     

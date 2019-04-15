@@ -103,7 +103,7 @@ class Notify extends ModelBase
                 ->send();
             }
             // throw mailsend Exception
-            catch(\Swift_TransportException $ex){
+            catch (\Swift_TransportException $ex) {
                 // show warning message
                 admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
             }
@@ -145,19 +145,19 @@ class Notify extends ModelBase
             return [];
         }
 
-        if(!is_array($notify_action_target)){
+        if (!is_array($notify_action_target)) {
             $notify_action_target = [$notify_action_target];
         }
 
         // loop
         $users = collect([]);
         $ids = [];
-        foreach($notify_action_target as $notify_act){
+        foreach ($notify_action_target as $notify_act) {
 
             // if has_roles, return has permission users
             if ($notify_act == NotifyActionTarget::HAS_ROLES) {
                 $users_inner = AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
-            }else{
+            } else {
                 $users_inner = $data->getValue($notify_act);
                 if (is_null($users_inner)) {
                     continue;
@@ -167,8 +167,8 @@ class Notify extends ModelBase
                 }
             }
 
-            foreach($users_inner as $u){
-                if(in_array($u->id, $ids)){
+            foreach ($users_inner as $u) {
+                if (in_array($u->id, $ids)) {
                     continue;
                 }
                 $ids[] = $u->id;

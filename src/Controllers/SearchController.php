@@ -286,8 +286,8 @@ EOT;
         // get headers and bodies
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
-            'action_callback' => function(&$link, $custom_table, $data){
-                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')	
+            'action_callback' => function (&$link, $custom_table, $data) {
+                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
                     ->tooltip(exmtrans('search.header_relation'));
             }
         ]);
@@ -311,7 +311,7 @@ EOT;
         // get target tables
         $targetTables = $this->getSearchTargetRelationTable($table);
         // if if only self table, and query "relation"(force showing relation), then redirect show page
-        if(count($targetTables) == 1 && $request->input('relation') != "1"){
+        if (count($targetTables) == 1 && $request->input('relation') != "1") {
             return redirect($model->getUrl());
         }
 
@@ -436,15 +436,15 @@ EOT;
         $view = CustomView::getDefault($search_table);
 
         // definition action_callback is not $search_type is SELF
-        if($search_type != SearchType::SELF){
+        if ($search_type != SearchType::SELF) {
             $option = [
-                'action_callback' => function(&$link, $custom_table, $data){
+                'action_callback' => function (&$link, $custom_table, $data) {
                     $link .= (new Linker)
-                        ->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')	
+                        ->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
                 }
             ];
-        }else{
+        } else {
             $option = [];
         }
 
@@ -459,7 +459,7 @@ EOT;
      */
     protected function getSearchTargetRelationTable($value_table)
     {
-            $results = [];
+        $results = [];
 
         // 1. For self-table
         array_push($results, $this->getTableArray($value_table, SearchType::SELF));

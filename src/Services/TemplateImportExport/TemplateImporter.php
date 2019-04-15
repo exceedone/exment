@@ -617,13 +617,13 @@ class TemplateImporter
                 $result[$key] = static::mergeTemplate($json[$key], $langdata, static::getModelPath($key));
 
                 // if this model contains table and contains children, get the classname and call child value
-                if(isset($fillpath) && property_exists($fillpath, 'templateItems') && array_has($fillpath::$templateItems, 'children')){
+                if (isset($fillpath) && property_exists($fillpath, 'templateItems') && array_has($fillpath::$templateItems, 'children')) {
                     $children = array_get($fillpath::$templateItems, 'children');
-                    foreach($children as $childkey => $childpath){
+                    foreach ($children as $childkey => $childpath) {
                         if (!array_has($json[$key], $childkey)) {
                             continue;
                         }
-                        if(!isset($langJson[$key]) || !array_has($langJson[$key], $childkey)){
+                        if (!isset($langJson[$key]) || !array_has($langJson[$key], $childkey)) {
                             continue;
                         }
                         // call mergeTemplate for child

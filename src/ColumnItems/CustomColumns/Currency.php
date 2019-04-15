@@ -9,7 +9,7 @@ class Currency extends Decimal
     public function text()
     {
         list($symbol, $value) = $this->getSymbolAndValue();
-        if(!isset($symbol)){
+        if (!isset($symbol)) {
             return $value;
         }
 
@@ -19,14 +19,15 @@ class Currency extends Decimal
     public function html()
     {
         list($symbol, $value) = $this->getSymbolAndValue();
-        if(!isset($symbol)){
+        if (!isset($symbol)) {
             return $value;
         }
 
         return getCurrencySymbolLabel($symbol, true, $value);
     }
 
-    protected function getSymbolAndValue(){
+    protected function getSymbolAndValue()
+    {
         if (is_null($this->value())) {
             return [null, null];
         }
@@ -37,7 +38,7 @@ class Currency extends Decimal
             if (array_has($this->custom_column, 'options.decimal_digit')) {
                 $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
                 $value = number_format($this->value(), $digit);
-                //$value = preg_replace("/\.?0+$/",'', $value);
+            //$value = preg_replace("/\.?0+$/",'', $value);
             } else {
                 $value = number_format($this->value());
             }

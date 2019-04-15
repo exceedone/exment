@@ -204,14 +204,14 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         // get custom_column_id
         $custom_column_id = $parameters[0];
 
-        // when new record, $custom_column_id is null 
+        // when new record, $custom_column_id is null
         if (!$custom_column_id) {
             return true;
         }
 
         // get group key column count of summary view
         $count = CustomView::where('view_kind_type', 1)
-            ->whereHas('custom_view_columns', function($query) use($custom_column_id){
+            ->whereHas('custom_view_columns', function ($query) use ($custom_column_id) {
                 $query->where('view_column_type', 0)
                     ->where("view_column_target_id", $custom_column_id);
             })->count();

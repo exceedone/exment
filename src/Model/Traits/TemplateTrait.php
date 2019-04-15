@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
-use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\TemplateImportResult;
 
 trait TemplateTrait
@@ -38,7 +37,7 @@ trait TemplateTrait
     //         'keys' => ['table_name'],
     //         'values' => ['table_view_name', 'description'],
     //     ],
-    // 
+    //
     //     // 'children': for exporting children values.
     //     // if contains this fields, exporting json.
     //     'children' =>[
@@ -217,11 +216,11 @@ trait TemplateTrait
         // replace json if method exists
         if (method_exists(get_called_class(), 'importReplaceJson')) {
             $result = static::importReplaceJson($json, $options);
-            if($result == TemplateImportResult::ERROR){
+            if ($result == TemplateImportResult::ERROR) {
                 //TODO:error
                 return;
             }
-            if($result == TemplateImportResult::CONITNUE){
+            if ($result == TemplateImportResult::CONITNUE) {
                 return;
             }
         }
@@ -232,29 +231,29 @@ trait TemplateTrait
                 // get replaced value
                 $replaceNames = $uniqueKeyReplace['replaceNames'];
 
-                foreach($replaceNames as $replaceName){
+                foreach ($replaceNames as $replaceName) {
                     // get value from key 'replacedName'
                     $replacedKeyValues = array_get($replaceName, 'replacedName', []);
-                    if(array_has($replacedKeyValues, 'import')){
+                    if (array_has($replacedKeyValues, 'import')) {
                         $replacedKeyValues = $replacedKeyValues['import'];
                     }
 
                     // get targeted value using Eloquent
-                    if(!array_has($uniqueKeyReplace, 'uniqueKeyClassName')){
+                    if (!array_has($uniqueKeyReplace, 'uniqueKeyClassName')) {
                         continue;
                     }
                     $modelname = $uniqueKeyReplace['uniqueKeyClassName'];
                     $eloquentQuery = $modelname::query();
-                    foreach($replacedKeyValues as $replacedKey => $replacedValue){
+                    foreach ($replacedKeyValues as $replacedKey => $replacedValue) {
                         $eloquentQuery->where($replacedKey, array_get($json, $replacedValue));
                     }
                     $eloquent = $eloquentQuery->first();
                     // if has $eloquent, replace json value
-                    if(isset($eloquent)){
+                    if (isset($eloquent)) {
                         array_set($json, $replaceName['replacingName'], $eloquent['id']);
                     }
                     //remove replaced value
-                    foreach($replacedKeyValues as $replacedKey => $replacedValue){
+                    foreach ($replacedKeyValues as $replacedKey => $replacedValue) {
                         array_forget($json, $replacedValue);
                     }
                 }
@@ -262,7 +261,7 @@ trait TemplateTrait
         }
 
         // set json default value
-        if(array_has($templateItems, 'defaults')){
+        if (array_has($templateItems, 'defaults')) {
             $defaults = $templateItems['defaults'];
             foreach ($defaults as $key => $default) {
                 data_fill($json, $key, $default);
@@ -273,15 +272,15 @@ trait TemplateTrait
         $keys = array_get($templateItems, 'uniqueKeys', []);
         $obj_keys = [];
         // if this array is not vector, get for export
-        if(!is_vector($keys)){
+        if (!is_vector($keys)) {
             $keys = array_get($keys, 'import', []);
         }
-        foreach($keys as $key){
+        foreach ($keys as $key) {
             $obj_keys[$key] = array_get($json, $key);
         }
 
         // if contains 'parent' in $options
-        if(array_has($options, 'parent') && array_has($templateItems, 'parent')){
+        if (array_has($options, 'parent') && array_has($templateItems, 'parent')) {
             // get parent model's id
             $parent_id = $options['parent']->id;
             // replace parent id
@@ -297,17 +296,17 @@ trait TemplateTrait
         // loop json value
         foreach ($json as $key => $value) {
             // if contains excepts(by function), skip
-            if($excepts && in_array($key, $excepts)){
+            if ($excepts && in_array($key, $excepts)) {
                 continue;
             }
 
             // if default excepts, skip
-            if(in_array($key, static::$defaultExcepts)){
+            if (in_array($key, static::$defaultExcepts)) {
                 continue;
             }
 
             // if contains excepts, skip
-            if(array_key_exists('excepts', $templateItems)){
+            if (array_key_exists('excepts', $templateItems)) {
                 $expects = is_vector($templateItems['excepts']) ? array_get($templateItems, 'excepts', []) : array_get($templateItems, 'excepts.import', []);
                 if (in_array($key, $expects)) {
                     continue;
@@ -320,10 +319,10 @@ trait TemplateTrait
             }
 
             // if has enums, set as enum value
-            if(array_has($templateItems, 'enums') && array_has($templateItems['enums'], $key)){
+            if (array_has($templateItems, 'enums') && array_has($templateItems['enums'], $key)) {
                 $enumclass = $templateItems['enums'][$key];
                 $obj->{$key} = $enumclass::getEnumValue($value);
-            }else{
+            } else {
                 $obj->{$key} = $value;
             }
         }
@@ -407,7 +406,7 @@ trait TemplateTrait
 
         $keys = array_get(static::$templateItems, 'uniqueKeys', []);
         // if this array is not vector, get for export
-        if(!is_vector($keys)){
+        if (!is_vector($keys)) {
             $keys = array_get($keys, 'export', []);
         }
 

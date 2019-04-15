@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\CopyColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 
 class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -164,7 +163,8 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
         return [];
     }
 
-    public static function importReplaceJson(&$json, $options = []){
+    public static function importReplaceJson(&$json, $options = [])
+    {
         $custom_copy = array_get($options, 'parent');
 
         // get from and to column

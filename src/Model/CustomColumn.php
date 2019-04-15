@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CalcFormulaType;
 use Exceedone\Exment\Enums\ViewColumnType;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -286,7 +285,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
     }
 
-    protected function importSetValue(&$json, $options = []){
+    protected function importSetValue(&$json, $options = [])
+    {
         // set characters
         if (array_key_value_exists('options.available_characters', $json)) {
             $available_characters = array_get($json, 'options.available_characters');
@@ -300,8 +300,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ['options.available_characters'];
     }
     
-    protected function importSaved($json, $options = []){
-        if(!$this->indexEnabled()){
+    protected function importSaved($json, $options = [])
+    {
+        if (!$this->indexEnabled()) {
             return;
         }
         $this->alterColumn();

@@ -101,7 +101,8 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return static::getEloquentDefault($id, $withs);
     }
 
-    protected static function importReplaceJson(&$json, $options = []){
+    protected static function importReplaceJson(&$json, $options = [])
+    {
         // switch dashboard_box_type
         $dashboard_box_type = DashboardBoxType::getEnumValue(array_get($json, 'dashboard_box_type'));
         switch ($dashboard_box_type) {

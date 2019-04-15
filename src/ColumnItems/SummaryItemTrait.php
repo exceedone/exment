@@ -24,7 +24,7 @@ trait SummaryItemTrait
             $raw = "$summary_condition($value_column) AS ".$this->sqlAsName();
         } else {
             $raw = "$value_column AS ".$this->sqlAsName();
-        }     
+        }
 
         return \DB::raw($raw);
     }

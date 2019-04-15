@@ -272,10 +272,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      */
     protected function getFailedLoginMessage()
     {
-        if(Lang::has('exment::exment.error.login_failed')){
+        if (Lang::has('exment::exment.error.login_failed')) {
             return exmtrans('error.login_failed');
         }
         return parent::getFailedLoginMessage();
     }
-
 }

@@ -406,9 +406,10 @@ if (!function_exists('array_dot_only')) {
      * arrayonly with dot
      * @return array
      */
-    function array_dot_only($array, $keys) {
+    function array_dot_only($array, $keys)
+    {
         $newArray = [];
-        foreach((array) $keys as $key) {
+        foreach ((array) $keys as $key) {
             array_set($newArray, $key, array_get($array, $key));
         }
         return $newArray;
@@ -527,15 +528,15 @@ if (!function_exists('get_omitted_string')) {
      */
     function get_omitted_string($text)
     {
-        if(is_null($text)){
+        if (is_null($text)) {
             return $text;
         }
 
-        if(gettype($text) != 'string'){
+        if (gettype($text) != 'string') {
             return $text;
         }
 
-        if(mb_strlen($text) <= Define::GRID_MAX_LENGTH){
+        if (mb_strlen($text) <= Define::GRID_MAX_LENGTH) {
             return $text;
         }
 
@@ -693,7 +694,7 @@ if (!function_exists('getCurrencySymbolLabel')) {
     function getCurrencySymbolLabel($currencySymbol, $html = false, $value = null)
     {
         $currencySymbol = CurrencySymbol::getEnum($currencySymbol);
-        if(is_null($currencySymbol)){
+        if (is_null($currencySymbol)) {
             return $value;
         }
 
@@ -1376,7 +1377,7 @@ if (!function_exists('useLoginProvider')) {
         $config = config('exment.login_providers');
         if (is_nullorempty($config)) {
             return false;
-        } else if (is_array($config)) {
+        } elseif (is_array($config)) {
             return (count($config) > 0);
         } else {
             return true;

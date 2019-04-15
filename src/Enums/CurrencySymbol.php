@@ -14,7 +14,8 @@ class CurrencySymbol extends EnumBase
         'USD' => ['text' => '$', 'html' => '$', 'type' => 'before'],
     ];
 
-    public function getOption(){
+    public function getOption()
+    {
         return array_get(static::$options, $this->getValue());
     }
     

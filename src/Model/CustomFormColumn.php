@@ -143,7 +143,8 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         return [];
     }
     
-    protected static function importReplaceJson(&$json, $options = []){
+    protected static function importReplaceJson(&$json, $options = [])
+    {
         // set form column type
         if (array_key_exists('form_column_type', $json)) {
             $form_column_type = FormColumnType::getEnumValue(array_get($json, "form_column_type"));
@@ -186,7 +187,8 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         }
     }
 
-    protected function importSetValue(&$json, $options = []){
+    protected function importSetValue(&$json, $options = [])
+    {
         if (!$this->exists) {
             $this->order = array_get($options, 'count', 0);
         }

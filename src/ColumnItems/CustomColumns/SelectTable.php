@@ -41,7 +41,7 @@ class SelectTable extends CustomItem
 
     protected function getValue($text, $html)
     {
-        if (!is_array($this->value) && preg_match('/\[.+\]/i',$this->value)) {
+        if (!is_array($this->value) && preg_match('/\[.+\]/i', $this->value)) {
             $this->value = json_decode($this->value);
         }
         $model = getModelName($this->target_table)::find($this->value);

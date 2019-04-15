@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\AbstractTool;
 
 class GridChangeView extends AbstractTool

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use App\Http\Controllers\Controller;
-use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
@@ -441,7 +440,6 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function saveform(Request $request, $id = null)
     {
-
         DB::beginTransaction();
         try {
             $inputs = $request->input('custom_form_blocks');

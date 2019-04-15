@@ -134,7 +134,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         return $rows;
     }
 
-    public static function importReplaceJson(&$json, $options = []){
+    public static function importReplaceJson(&$json, $options = [])
+    {
         // Create menu. --------------------------------------------------
         $hasname = array_get($options, 'hasname');
 
@@ -180,7 +181,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 case MenuType::SYSTEM:
                     $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use (&$json) {
                         return $key == $json['menu_target_name'];
-                    })->each(function ($system_menu, $key) use(&$json) {
+                    })->each(function ($system_menu, $key) use (&$json) {
                         $json['menu_target'] = $key;
                     });
                     break;

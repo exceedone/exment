@@ -6,7 +6,6 @@ use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request as Req;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
@@ -190,10 +189,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ///// add show and edit link
                 // using role
                 $link = (new Linker)
-                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))	
-                    //->linkattributes(['style' => "margin:0 3px;"])	
-                    ->icon('fa-eye')	
-                    ->tooltip(trans('admin.show'))	
+                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
+                    //->linkattributes(['style' => "margin:0 3px;"])
+                    ->icon('fa-eye')
+                    ->tooltip(trans('admin.show'))
                     ->render();
                 if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
                     $link .= (new Linker)
