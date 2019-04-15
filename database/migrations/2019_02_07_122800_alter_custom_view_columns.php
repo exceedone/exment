@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
+use Exceeone\Exment\Model\CustomColumn;
+use Exceeone\Exment\Enums\CurrencySymbol;
+
 class AlterCustomViewColumns extends Migration
 {
     /**
@@ -73,6 +76,20 @@ class AlterCustomViewColumns extends Migration
         Schema::table('custom_columns', function (Blueprint $table) {
             $table->integer('order')->after('system_flg')->default(0);
         });
+
+        
+        // Change Custom Column options.currency_symbol
+        $columns = CustomColumn::whereNotNull('options->currency_symbol')->get();
+        foreach($columns as $column){
+            // update options->currency_symbol
+            $symbol = CurrencySymbol::getEnum($column->getOption('currency_symbol'));
+            if(!isset($symbol)){
+                continue;
+            }
+
+            $column->setOption('currency_symbol', $symbol->getKey());
+            $column->save();
+        }
     }
 
     /**

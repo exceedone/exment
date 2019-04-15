@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
+use Exceedone\Exment\Enums\CurrencySymbol;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -675,14 +676,19 @@ if (!function_exists('getCurrencySymbolLabel')) {
     /**
      * Get Currency Sybmol. ex. $, ￥, ...
      */
-    function getCurrencySymbolLabel($symbol, $value = '123,456.00')
+    function getCurrencySymbolLabel($currencySymbol, $html = false, $value = null)
     {
-        $symbol_item = array_get(Define::CUSTOM_COLUMN_CURRENCYLIST, $symbol);
-        // replace &yen; to ¥
-        // TODO: change logic how to manage mark
-        $symbol = str_replace("&yen;", '¥', $symbol);
-        if (isset($symbol_item)) {
-            if (array_get($symbol_item, 'type') == 'before') {
+        $currencySymbol = CurrencySymbol::getEnum($currencySymbol);
+        if(is_null($currencySymbol)){
+            return $value;
+        }
+
+        $currencyOption = $currencySymbol->getOption();
+        
+        $symbol = $html ? array_get($currencyOption, 'html') : array_get($currencyOption, 'text');
+
+        if (isset($currencyOption)) {
+            if (array_get($currencyOption, 'type') == 'before') {
                 $text = "$symbol$value";
             } else {
                 $text = "$value$symbol";

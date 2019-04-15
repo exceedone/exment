@@ -148,12 +148,6 @@ class Define
         'lower','upper','number','hyphen_underscore','symbol'
     ];
 
-    public const CUSTOM_COLUMN_CURRENCYLIST = [
-        '&yen;' => ['type' => 'before'],
-        '円' => ['type' => 'after'],
-        '$' => ['type' => 'before'],
-    ];
-
     public const CUSTOM_VALUE_IMPORT_KEY = [
         'id',
         'suuid',

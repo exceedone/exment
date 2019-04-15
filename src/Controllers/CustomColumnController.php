@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\CurrencySymbol;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -240,12 +241,14 @@ class CustomColumnController extends AdminControllerTableBase
             $form->select('currency_symbol', exmtrans("custom_column.options.currency_symbol"))
                 ->help(exmtrans("custom_column.help.currency_symbol"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::CURRENCY]])])
+                ->required()
                 ->options(function ($option) {
                     // create options
                     $options = [];
-                    foreach (Define::CUSTOM_COLUMN_CURRENCYLIST as $symbol => $l) {
+                    $currencies = CurrencySymbol::values();
+                    foreach ($currencies as $currency) {
                         // make text
-                        $options[$symbol] = getCurrencySymbolLabel($symbol);
+                        $options[$currency->getValue()] = getCurrencySymbolLabel($currency, true, '123,456.00');
                     }
                     return $options;
                 });
