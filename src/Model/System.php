@@ -211,7 +211,8 @@ class System extends ModelBase
     /**
      * destory value
      */
-    public static function deleteValue($name){
+    public static function deleteValue($name)
+    {
         $system = System::find($name);
         if (!isset($system)) {
             return;
