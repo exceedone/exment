@@ -31,7 +31,7 @@ class SystemController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $form = $this->getInitializeForm();
+        $form = $this->getInitializeForm('system');
         $form->action(admin_url('system'));
 
         // Role Setting

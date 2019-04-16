@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\File;
 
 trait InitializeForm
 {
-    protected function getInitializeForm($add_template = false)
+    protected function getInitializeForm($routeName, $add_template = false)
     {
         $form = new WidgetForm(System::get_system_values());
         $form->disableReset();
@@ -24,13 +24,30 @@ trait InitializeForm
         $form->text('site_name_short', exmtrans("system.site_name_short"))
             ->help(exmtrans("system.help.site_name_short"));
             
+        $fileOption = array_merge(
+            Define::FILE_OPTION(),
+            [
+                'showPreview' => true,
+                'deleteUrl' => admin_urls('system', 'filedelete'),
+                'deleteExtraData'      => [
+                    '_token'           => csrf_token(),
+                    '_method'          => 'PUT',
+                ]
+            ]
+        );
+
+        array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo');
         $form->image('site_logo', exmtrans("system.site_logo"))
             ->help(exmtrans("system.help.site_logo"))
-            ->options(Define::FILE_OPTION())
+            ->options($fileOption)
+            ->attribute(['accept' => "image/*"])
             ;
+            
+        array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo_mini');
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
             ->help(exmtrans("system.help.site_logo_mini"))
-            ->options(Define::FILE_OPTION())
+            ->options($fileOption)
+            ->attribute(['accept' => "image/*"])
             ;
 
         $form->select('site_skin', exmtrans("system.site_skin"))
@@ -58,6 +75,22 @@ trait InitializeForm
         return $form;
     }
 
+    /**
+     * file delete system.
+     */
+    public function filedelete(Request $request)
+    {
+        // get file delete flg column name
+        $del_column_name = $request->input('delete_flg');
+
+        System::deleteValue($del_column_name);
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+ 
     protected function postInitializeForm(Request $request, $validateUser = false)
     {
         if ($validateUser) {
