@@ -3563,9 +3563,17 @@ table img.image_html {
   max-height: 200px;
 }
 
+table img.image_html:hover {
+  opacity: 0.8;
+}
+
 .box-show img.image_html {
   max-width: 100%;
-  max-height: 350px;
+  max-height: 250px;
+}
+
+.box-show img.image_html:hover {
+  opacity: 0.8;
 }
 
 .dd-item {
@@ -3589,5 +3597,8 @@ table img.image_html {
   }
   .navbar #manual_link {
     display: none;
+  }
+  .nprogress-custom-parent {
+    overflow: visible;
   }
 }

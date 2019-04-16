@@ -272,11 +272,19 @@
 table img.image_html{
     max-width: 200px;
     max-height: 200px;
+
+    &:hover{
+        opacity: 0.8;
+    }
 }
 
 .box-show img.image_html{
     max-width: 100%;
-    max-height: 350px;
+    max-height: 250px;
+    
+    &:hover{
+        opacity: 0.8;
+    }
 }
 
 .dd-item{
@@ -310,6 +318,6 @@ table img.image_html{
     }
 
     .nprogress-custom-parent{
-        overflow: :visible;
+        overflow: visible;
     }
 }
