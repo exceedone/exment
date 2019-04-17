@@ -28,7 +28,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/css/common.css?ver='.$date));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$date));
         //Ad::js(asset('vendor/exment/js/common.js'));
-        Ad::js(asset('vendor/exment/chartjs/chart.min.js?ver='.$date));
+        Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$date));
         
         // add admin_url and file delete confirm
