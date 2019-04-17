@@ -159,6 +159,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
         $content->row($this->createShowForm($id));
         $content->row(function ($row) use ($id) {
+            $row->class('row-eq-height');
             $this->setOptionBoxes($row, $id, false);
         });
         return $content;

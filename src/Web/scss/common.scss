@@ -82,6 +82,14 @@
 .row-eq-height {
     display: flex;
     flex-wrap: wrap;
+   
+    [class^="col-"] {
+        margin-bottom: 20px;
+    }
+
+    .box{
+        height:100%; 
+    }
 }
 
 .help_personal{
@@ -203,8 +211,6 @@
 }
 
 .box.box-dashboard{
-    height:100%; 
-    margin-bottom: 20px;
     
     .box-body{
         padding-bottom: 0;
@@ -228,10 +234,6 @@
 
     .pagination{
         margin-bottom: 0;
-    }
-        
-    [class^="col-"] {
-        margin-bottom: 20px;
     }
 }
 
@@ -310,6 +312,6 @@ table img.image_html{
     }
 
     .nprogress-custom-parent{
-        overflow: :visible;
+        overflow: visible;
     }
 }
