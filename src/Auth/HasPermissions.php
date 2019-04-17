@@ -233,9 +233,6 @@ trait HasPermissions
      */
     protected function getPermissions()
     {
-        $permission_system_auths = $this->getSystemPermissions();
-        $permission_tables = $this->getCustomTablePermissions();
-
         $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
             return [
                 RoleType::SYSTEM => $this->getSystemPermissions(),
