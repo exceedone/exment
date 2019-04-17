@@ -88,6 +88,16 @@
     color: #f1f117;
 }
 
+.main-header .logo .logo-lg img{
+    max-width: 200px;
+    max-height: 50px;
+}
+
+.main-header .logo .logo-mini img{
+    max-width: 50px;
+    max-height: 50px;
+}
+
 .sidebar-menu>li>a>.fa, .sidebar-menu>li>a>.glyphicon, .sidebar-menu>li>a>.ion, .sidebar-menu .treeview-menu>li>a>.fa, .sidebar-menu .treeview-menu>li>a>.glyphicon, .sidebar-menu .treeview-menu>li>a>.ion{
     text-align: center;
     margin-right: 2px;

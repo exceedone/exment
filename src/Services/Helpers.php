@@ -1165,7 +1165,7 @@ if (!function_exists('getExmentVersion')) {
                 $current = array_get($version, 'current');
             }
             
-            if ((empty($latest) || empty($current)) && $getFromComposer) {
+            if ((empty($latest) || empty($current))) {
                 // get current version from composer.lock
                 $composer_lock = base_path('composer.lock');
                 if (!\File::exists($composer_lock)) {
@@ -1189,7 +1189,7 @@ if (!function_exists('getExmentVersion')) {
                 $current = array_get($exment, 'version');
                 
                 // if outside api is not permitted, return only current
-                if (config('exment.disabled_outside_api', false)) {
+                if (config('exment.disabled_outside_api', false) || !$getFromComposer) {
                     return [null, $current];
                 }
 

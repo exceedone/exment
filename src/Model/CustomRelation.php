@@ -73,7 +73,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return false;
             }
             return true;
-        });
+        }, false);
     }
 
     /**
@@ -103,7 +103,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return false;
             }
             return true;
-        });
+        }, false);
     }
 
     /**

@@ -556,20 +556,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $options = [];
         
         $this->setColumnOptions(
-        
             $options,
-        
             $this->custom_columns,
-        
             $index_enabled_only,
             true,
-        
             true,
-        
             $append_table,
-        
             $this->id
-        
         );
 
         if ($include_parent) {
