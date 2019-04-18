@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 
 class UpdateCommand extends Command
 {
@@ -60,5 +61,7 @@ class UpdateCommand extends Command
     public function initDatabase()
     {
         $this->call('migrate');
+
+        TemplateImporter::importSystemTemplate(true);
     }
 }
