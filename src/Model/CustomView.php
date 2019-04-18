@@ -186,9 +186,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
+                $link = '';
+                if (isset($options['action_callback'])) {
+                    $options['action_callback']($link, $custom_table, $data);
+                }
+
                 ///// add show and edit link
                 // using role
-                $link = (new Linker)
+                $link .= (new Linker)
                     ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
                     //->linkattributes(['style' => "margin:0 3px;"])
                     ->icon('fa-eye')
@@ -200,9 +205,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                         ->icon('fa-edit')
                         ->tooltip(trans('admin.edit'))
                         ->render();
-                }
-                if (isset($options['action_callback'])) {
-                    $options['action_callback']($link, $custom_table, $data);
                 }
                 // add hidden item about data id
                 $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';

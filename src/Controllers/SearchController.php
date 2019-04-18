@@ -287,8 +287,10 @@ EOT;
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
-                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
+                if (count($custom_table->getRelationTables()) > 0) {
+                    $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
                     ->tooltip(exmtrans('search.header_relation'));
+                }
             }
         ]);
 
@@ -439,9 +441,11 @@ EOT;
         if ($search_type != SearchType::SELF) {
             $option = [
                 'action_callback' => function (&$link, $custom_table, $data) {
-                    $link .= (new Linker)
+                    if(count($custom_table->getRelationTables()) > 0){
+                        $link .= (new Linker)
                         ->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
+                    }
                 }
             ];
         } else {
@@ -461,43 +465,15 @@ EOT;
     {
         $results = [];
 
+        // get relation tables
+        $relationTables = $value_table->getRelationTables();
+
         // 1. For self-table
         array_push($results, $this->getTableArray($value_table, SearchType::SELF));
 
-        // 2. Get tables as "select_table". They contains these columns matching them.
-        // * table_column > options > search_enabled is true.
-        // * table_column > options > select_target_table is table id user selected.
-        $tables = CustomTable
-        ::whereHas('custom_columns', function ($query) use ($value_table) {
-            $query->whereIn('options->index_enabled', [1, "1"])
-            ->whereIn('options->select_target_table', [$value_table->id, strval($value_table->id)]);
-        })
-        ->searchEnabled()
-        ->get();
-
-        foreach ($tables as $table) {
-            // if not role, continue
-            if (!$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                continue;
-            }
-            array_push($results, $this->getTableArray($table, SearchType::SELECT_TABLE));
-        }
-
-        // 3. Get relation tables.
-        // * table "custom_relations" and column "parent_custom_table_id" is $value_table->id.
-        $tables = CustomTable
-        ::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
-        ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
-            ->whereHas('custom_relations', function ($query) use ($value_table) {
-                $query->where('parent_custom_table_id', $value_table->id);
-            })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
-        foreach ($tables as $table) {
-            // if not role, continue
-            $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-            if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                continue;
-            }
-            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY));
+        // loop and add $results
+        foreach($relationTables as $relationTable){
+            array_push($results, $this->getTableArray($relationTable['table'], $relationTable['searchType']));
         }
 
         return $results;
