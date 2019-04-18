@@ -112,11 +112,14 @@ class MenuController extends AdminControllerBase
                 $payload = "<i class='fa {$icon}'></i>&nbsp;<strong>{$branch['title']}</strong>";
 
                 if (!isset($branch['children'])) {
+
                     if (!url()->isValidUrl($uri)) {
+                        $esc_uri = esc_html(trim(admin_base_path($uri), '/'));
                         $uri = admin_url($uri);
+                    }else{
+                        $esc_uri = esc_html($uri);
                     }
 
-                    $esc_uri = esc_html($uri);
                     $payload .= "&nbsp;&nbsp;&nbsp;<a href=\"$uri\" class=\"dd-nodrag\">$esc_uri</a>";
                 }
 
