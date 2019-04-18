@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
