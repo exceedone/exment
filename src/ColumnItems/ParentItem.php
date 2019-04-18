@@ -50,7 +50,7 @@ class ParentItem implements ItemInterface
      */
     public function index()
     {
-        return null;
+        return $this->name();
     }
 
     /**

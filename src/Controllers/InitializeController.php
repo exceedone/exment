@@ -24,7 +24,7 @@ class InitializeController extends Controller
      */
     public function index(Request $request)
     {
-        $form = $this->getInitializeForm(true);
+        $form = $this->getInitializeForm('initialize', true);
         $form->action(admin_url('initialize'));
         $form->disablePjax();
 

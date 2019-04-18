@@ -186,18 +186,15 @@ class System extends ModelBase
             $system->system_value = is_null($value) ? null : implode(',', $value);
         } elseif ($type == 'file') {
             $old_value = $system->system_value;
-            if (is_null($value)) {
-                //TODO: how to check whether file is deleting by user.
-                //$system->system_value = null;
-            } else {
+            if (!is_null($value)) {
                 $move = array_get($setting, 'move');
                 $exmentfile = ExmentFile::storeAs($value, $move, $value->getClientOriginalName());
                 $system->system_value = $exmentfile->path;
             }
 
             // remove old file
-            if (!is_null($old_value)) {
-                Storage::delete($old_value);
+            if (!is_null($value) && !is_null($old_value)) {
+                Storage::disk(config('admin.upload.disk'))->delete($old_value);
             }
         } else {
             $system->system_value = $value;
@@ -208,6 +205,34 @@ class System extends ModelBase
         $config_key = static::getConfigKey($name);
         static::requestSession($config_key, $system->system_value);
 
+        return $system;
+    }
+
+    /**
+     * destory value
+     */
+    public static function deleteValue($name)
+    {
+        $system = System::find($name);
+        if (!isset($system)) {
+            return;
+        }
+        $old_value = $system->system_value;
+        
+        // change set value by type
+        $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+        $type = array_get($setting, 'type');
+
+        if ($type == 'file') {
+            // remove old file
+            if (!is_null($old_value)) {
+                ExmentFile::deleteFileInfo($old_value);
+                Storage::disk(config('admin.upload.disk'))->delete($old_value);
+            }
+        }
+        $system->system_value = null;
+        $system->save();
+        
         return $system;
     }
 

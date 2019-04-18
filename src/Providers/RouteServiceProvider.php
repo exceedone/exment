@@ -59,6 +59,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
             $router->get('system/update', 'SystemController@updatePackage');
+            $router->put('system/filedelete', 'SystemController@filedelete');
             $router->get('system/version', 'SystemController@version');
             
             $router->get('template', 'TemplateController@index');
@@ -146,6 +147,7 @@ class RouteServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
+            $router->put('initialize/filedelete', 'initialize@filedelete');
             $router->get('auth/login', 'AuthController@getLoginExment');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
