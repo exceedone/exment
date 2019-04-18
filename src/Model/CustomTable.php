@@ -825,10 +825,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
-    public function getValueModel()
+    public function getValueModel($id = null)
     {
         $modelname = getModelName($this);
-        $model = new $modelname;
+        if(isset($id)){
+            $model = $modelname::find($id);
+        }else{
+            $model = new $modelname;
+        }
 
         return $model;
     }

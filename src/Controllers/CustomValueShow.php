@@ -29,7 +29,7 @@ trait CustomValueShow
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
         return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
-
+            $custom_value = $this->custom_table->getValueModel($id);
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
@@ -99,16 +99,21 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            if ($modal) {
-                $show->panel()->tools(function ($tools) {
+            $show->panel()->tools(function ($tools) use($modal, $custom_value) {
+                if(count($this->custom_table->getRelationTables()) > 0){
+                    $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
+                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
+                            <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
+                        </a>
+                    </div>');                        
+                }
+                if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
-                });
-            } else {
-                $show->panel()->tools(function ($tools) {
+                } else {
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
-                });
-            }
+                }
+            });
 
             // show plugin button and copy button
             if (!$modal) {

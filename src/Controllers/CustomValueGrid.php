@@ -153,7 +153,7 @@ trait CustomValueGrid
                 // if has relations, add link
                 if(count($relationTables) > 0){
                     $linker = (new Linker)
-                        ->url(admin_urls("search?table_name={$custom_table->table_name}&value_id={$actions->getKey()}"))
+                        ->url($this->row->getRelationSearchUrl())
                         ->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
                     $actions->prepend($linker);
