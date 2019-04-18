@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
 
 class SearchController extends AdminControllerBase
@@ -421,9 +422,20 @@ EOT;
                 break;
             // select_table(select box)
             case SearchType::SELECT_TABLE:
+                // get columns for 
+                $searchColumns = $search_table
+                    ->custom_columns()
+                    ->where('column_type', ColumnType::SELECT_TABLE)
+                    ->where('options->select_target_table', $value_table_id)
+                    ->indexEnabled()
+                    ->get()
+                    ->map(function($c){
+                        return $c->getIndexColumnName();
+                    });
                 $paginate = $search_table->searchValue($value_id, [
                     'isLike' => false,
-                    'paginate' => true
+                    'paginate' => true,
+                    'searchColumns' => $searchColumns,
                 ]);
                 $data = $paginate->items();
                 break;

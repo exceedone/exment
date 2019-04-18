@@ -356,12 +356,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'maxCount' => 5,
                 'paginate' => false,
                 'makeHidden' => false,
+                'searchColumns' => null,
             ],
             $options
         );
         extract($options);
 
-        $search_columns = $this->getSearchEnabledColumns();
+        // if selected target column,
+        $searchColumns =  $options['searchColumns'];
+        if(is_null($searchColumns))
+        {
+            $searchColumns = $this->getSearchEnabledColumns()->map(function($c){
+                return $c->getIndexColumnName();
+            });
+        }
 
         $data = [];
         $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
@@ -369,9 +377,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // get data
         $query = getModelName($this)
-            ::where(function ($wherequery) use ($search_columns, $mark, $value) {
-                foreach ($search_columns as $search_column) {
-                    $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $value);
+            ::where(function ($wherequery) use ($searchColumns, $mark, $value) {
+                foreach ($searchColumns as $searchColumn) {
+                    $wherequery->orWhere($searchColumn, $mark, $value);
                 }
             });
         
