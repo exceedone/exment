@@ -38,7 +38,7 @@ class CustomTableController extends AdminControllerBase
         //$grid->setResource('/admin/table/setorder');
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-        $grid->column('order', exmtrans("custom_table.order"))->editable()->sortable();
+        $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\GridChangePageMenu('table', null, true));
