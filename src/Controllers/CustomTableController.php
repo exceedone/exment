@@ -35,7 +35,6 @@ class CustomTableController extends AdminControllerBase
     protected function grid()
     {
         $grid = new Grid(new CustomTable);
-        //$grid->setResource('/admin/table/setorder');
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
