@@ -334,6 +334,7 @@ return [
         'table' => 'テーブル',
         'table_name' => 'テーブル名(英数字)',
         'table_view_name' => 'テーブル表示名',
+        'order' => '表示順',
         'field_description' => '説明',
         'color' => '色',
         'icon' => 'アイコン',
@@ -375,6 +376,7 @@ return [
         'column_name' => '列名(英数字)',
         'column_view_name' => '列表示名',
         'column_type' => '列種類',
+        'order' => '表示順',
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
         'options' => [

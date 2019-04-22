@@ -98,6 +98,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
         });
+        $grid->column('order', exmtrans("custom_column.order"))->editable('number')->sortable();
 
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
@@ -409,7 +410,9 @@ class CustomColumnController extends AdminControllerTableBase
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
-        })->disableHeader();
+                })->disableHeader();
+
+        $form->number('order', exmtrans("custom_column.order"));
 
         // if create column, add custom form and view
         if (!isset($id)) {
