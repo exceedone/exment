@@ -12,11 +12,13 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
@@ -204,6 +206,50 @@ class CustomValueController extends AdminControllerTableBase
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+ 
+    /**
+     * delete comment.
+     */
+    public function delComment(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+            return $response;
+        }
+        if (!empty($id)) {
+            getModelName(SystemTableName::COMMENT)::find($id)->delete();
+        }
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+ 
+    /**
+     * add comment.
+     */
+    public function addComment(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+            return $response;
+        }
+        $comment = $request->get('comment');
+
+        if (!empty($comment)) {
+            // save Comment Model
+            $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+            $model->parent_id = $id;
+            $model->parent_type = $tableKey;
+            $model->setValue([
+                'comment_detail' => $comment,
+            ]);
+            $model->save();
+        }
+
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.update_succeeded'),
         ]);
     }
  
