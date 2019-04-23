@@ -82,7 +82,10 @@ if (!function_exists('esc_script_tag')) {
             $item->parentNode->removeChild($item);
         }
 
-        $html = $dom->saveHTML();
+        $html = trim($dom->saveHTML());
+        $html = preg_replace('/^<br>/u', '', $html);
+        $html = preg_replace('/<br>$/u', '', $html);
+        
         return $html;
     }
 }

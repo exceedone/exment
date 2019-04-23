@@ -83,7 +83,7 @@
     display: flex;
     flex-wrap: wrap;
    
-    [class^="col-"] {
+    & > [class^="col-"] {
         margin-bottom: 20px;
     }
 

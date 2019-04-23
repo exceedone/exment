@@ -3365,7 +3365,7 @@
   flex-wrap: wrap;
 }
 
-.row-eq-height [class^="col-"] {
+.row-eq-height > [class^="col-"] {
   margin-bottom: 20px;
 }
 
