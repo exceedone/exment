@@ -136,8 +136,7 @@ trait CustomValueGrid
         if (isset($this->custom_table)) {
             // name
             $custom_table = $this->custom_table;
-            $relationTables = $custom_table->getRelationTables();
-            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table, $relationTables) {
+            $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
                 $form_id = Req::get('form');
                 // if has $form_id, remove default edit link, and add new link added form query
                 if (isset($form_id)) {
@@ -147,15 +146,6 @@ trait CustomValueGrid
                         ->url(admin_urls('data', $custom_table->table_name, $actions->getKey(), 'edit').'?form='.$form_id)
                         ->icon('fa-edit')
                         ->tooltip(trans('admin.edit'));
-                    $actions->prepend($linker);
-                }
-
-                // if has relations, add link
-                if(count($relationTables) > 0){
-                    $linker = (new Linker)
-                        ->url($this->row->getRelationSearchUrl())
-                        ->icon('fa-compress')
-                        ->tooltip(exmtrans('search.header_relation'));
                     $actions->prepend($linker);
                 }
 

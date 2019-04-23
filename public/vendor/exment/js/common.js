@@ -192,9 +192,6 @@ var Exment;
                 if ($(ev.target).closest('a').length > 0) {
                     return;
                 }
-                if ($(ev.target).closest('.popover').length > 0) {
-                    return;
-                }
                 //その要素の先祖要素で一番近いtrの
                 //data-href属性の値に書かれているURLに遷移する
                 var linkElem = $(ev.target).closest('tr').find('.fa-eye');
