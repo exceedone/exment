@@ -45,7 +45,7 @@ class SearchController extends AdminControllerBase
                         query: req.term
                     },
                     dataType: "json",
-                    type: "POST",
+                    type: "GET",
                     success: function (data) {
                         search_suggests = data;
                         res(data);
@@ -164,45 +164,24 @@ EOT;
         $content->description(exmtrans('search.description_freeword'));
 
         // create searching javascript
-        $list_url = admin_url("search/list");
         $script = <<<EOT
-    var searchIndex = 0;
-    $(function () {
-        getNaviData();
-    });
-
     function getNaviData() {
         var tables = JSON.parse($('.tables').val());
         for (var i = 0; i < tables.length; i++) {
             var table = tables[i];
+            if(!hasValue(table)){
+                continue;
+            }
 
-            // Get Data
-            $.ajax({
-                url: '$list_url',
-                type: 'POST',
-                data: {
-                    table_name: table.table_name
-                    , query: $('.base_query').val()
-                    , _token: LA.token
-                },
-                dataType: "json"
-            })
-                // Execute when success Ajax Request
-                .done((data) => {
-                    var box = $('.table_' + data.table_name);
-                    box.find('.box-body .box-body-inner-header').html(data.header);
-                    box.find('.box-body .box-body-inner-body').html(data.body);
-                    box.find('.box-body .box-body-inner-footer').html(data.footer);
-                    box.find('.overlay').remove();
-                    Exment.CommonEvent.tableHoverLink();
-                })
-                .always((data) => {
-                });
+            var url = admin_url('search/list?table_name=' + table.table_name + '&query=' + $('.base_query').val());
+            getNaviDataItem(url, table.table_name);
         }
     }
 
 EOT;
         Admin::script($script);
+
+        $this->setCommonScript();
 
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
@@ -283,6 +262,8 @@ EOT;
         $paginate = $table->searchValue($q, [
             'paginate' => true
         ]);
+        $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name={$request->input('table_name')}");
+
         $datalist = $paginate->items();
         
         // Get result HTML.
@@ -325,7 +306,6 @@ EOT;
      */
     protected function getRelationSearch(Request $request, Content $content)
     {
-
         // get seleted name
         $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
@@ -354,45 +334,27 @@ EOT;
         // create searching javascript
         $list_url = admin_url("search/relation");
         $script = <<<EOT
-var searchIndex = 0;
-$(function () {
-    getNaviData();
-});
-
 function getNaviData() {
     var tables = JSON.parse($('.tables').val());
     for (var i = 0; i < tables.length; i++) {
         var table = tables[i];
 
-        // Get data
-        $.ajax({
-            url: '$list_url',
-            type: 'POST',
-            data: {
-                search_table_name: table.table_name
-                , value_table_name: $('.table_name').val()
-                , value_id: $('.value_id').val()
-                , search_type: table.search_type
-                , _token: LA.token
-            },
-            dataType: "json"
-        })
-            // Execute when success Ajax Request
-            .done((data) => {
-                var box = $('.table_' + data.table_name);
-                box.find('.box-body .box-body-inner-header').html(data.header);
-                box.find('.box-body .box-body-inner-body').html(data.body);
-                box.find('.box-body .box-body-inner-footer').html(data.footer);
-                box.find('.overlay').remove();
-                Exment.CommonEvent.tableHoverLink();
-            })
-            .always((data) => {
-            });
+        if(!hasValue(table)){
+            continue;
+        }
+
+        var url = admin_url('search/relation?search_table_name=' + table.table_name 
+            + '&value_table_name=' + $('.table_name').val() 
+            + '&value_id=' + $('.value_id').val()
+            + '&search_type=' + table.search_type
+        );
+        getNaviDataItem(url, table.table_name);
     }
 }
-
 EOT;
         Admin::script($script);
+
+        $this->setCommonScript();
 
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $value);
@@ -437,6 +399,7 @@ EOT;
                     'paginate' => true,
                     'searchColumns' => $searchColumns,
                 ]);
+                
                 $data = $paginate->items();
                 break;
             
@@ -457,6 +420,15 @@ EOT;
                     ->paginate(5);
                 $data = $paginate->items();
                 break;
+        }
+
+        if(isset($paginate)){
+            $paginate->setPath(admin_urls('search', 'relation') 
+                . "?value_table_name={$request->input('value_table_name')}"
+                . "&search_table_name={$request->input('search_table_name')}"
+                . "&value_id={$request->input('value_id')}"
+                . "&search_type={$request->input('search_type')}"
+            );
         }
 
         // Get search result HTML.
@@ -555,5 +527,51 @@ EOT;
             'new_url' => $new_url ?? null,
             'list_url' => $list_url ?? null,
         ])->render();
+    }
+
+    /**
+     * set common script for list or relation search
+     */
+    protected function setCommonScript(){
+
+        // create searching javascript
+        $script = <<<EOT
+    $(function () {
+        getNaviData();
+    });
+
+    function getNaviDataItem(url, table_name){
+        var box = $('.table_' + table_name);
+        box.find('.overlay').show();
+
+        // Get Data
+        $.ajax({
+            url: url,
+            type: 'GET',
+        })
+        // Execute when success Ajax Request
+        .done((data) => {
+            var box = $('.table_' + data.table_name);
+            box.find('.box-body .box-body-inner-header').html(data.header);
+            box.find('.box-body .box-body-inner-body').html(data.body);
+            box.find('.box-body .box-body-inner-footer').html(data.footer);
+            box.find('.overlay').hide();
+            Exment.CommonEvent.tableHoverLink();
+        })
+        .always((data) => {
+        });
+    }
+
+    ///// click dashboard link event
+    $(document).off('click', '[data-ajax-link]').on('click', '[data-ajax-link]', [], function(ev){
+        // get link
+        var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
+        var table_name = $(ev.target).closest('[data-table_name]').data('table_name');
+        getNaviDataItem(url, table_name);
+    });
+
+EOT;
+        Admin::script($script);
+
     }
 }

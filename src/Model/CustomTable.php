@@ -826,7 +826,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                     continue;
                 }
-                $searchType = array_get($table_obj, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
+                $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
                 array_push($results, ['searchType' => $searchType, 'table' => $table_obj]);
             }
     
