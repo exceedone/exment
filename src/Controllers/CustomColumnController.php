@@ -412,7 +412,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
                 })->disableHeader();
 
-        $form->number('order', exmtrans("custom_column.order"));
+        $form->number('order', exmtrans("custom_column.order"))->rules("integer");
 
         // if create column, add custom form and view
         if (!isset($id)) {
