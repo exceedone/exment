@@ -13,7 +13,6 @@
                 "icon": "fa-file",
                 "color": "#999999",
                 "attachment_flg": "0",
-                "comment_flg": "0",
                 "one_record_flg": "0",
                 "all_user_accessable_flg": "1"
             },
@@ -40,33 +39,6 @@
             ]
         },
         {
-            "table_name": "comment",
-            "table_view_name": "Cocument",
-            "description": null,
-            "showlist_flg": "0",
-            "options": {
-                "search_enabled": "0",
-                "icon": "fa-file",
-                "color": "#999999",
-                "attachment_flg": "0",
-                "comment_flg": "0",
-                "one_record_flg": "0",
-                "all_user_editable_flg": "1"
-            },
-            "custom_columns": [
-                {
-                    "column_name": "comment_detail",
-                    "column_view_name": "Cocument detail",
-                    "column_type": "textarea",
-                    "description": null,
-                    "options": {
-                        "use_label_flg": "1",
-                        "index_enabled": "1"
-                    }
-                }
-            ]
-        },
-        {
             "table_name": "base_info",
             "table_view_name": "Base Info",
             "description": null,
@@ -75,7 +47,6 @@
                 "icon": "fa-building",
                 "color": null,
                 "attachment_flg": "0",
-                "comment_flg": "0",
                 "one_record_flg": "1",
                 "all_user_accessable_flg": "1"
             },
@@ -262,8 +233,7 @@
                 "icon": "fa-user",
                 "color": null,
                 "one_record_flg": "0",
-                "attachment_flg": "0",
-                "comment_flg": "0"
+                "attachment_flg": "0"
             },
             "custom_columns": [
                 {
@@ -311,8 +281,7 @@
                 "icon": "fa-sitemap",
                 "color": null,
                 "one_record_flg": "0",
-                "attachment_flg": "0",
-                "comment_flg": "0"
+                "attachment_flg": "0"
             },
             "custom_columns": [
                 {
@@ -359,7 +328,6 @@
                 "icon": "fa-envelope",
                 "color": "#ff9932",
                 "attachment_flg": "0",
-                "comment_flg": "0",
                 "one_record_flg": "0",
                 "revision_flg": "0",
                 "all_user_accessable_flg": "1"
@@ -427,7 +395,6 @@
                 "icon": "fa-envelope-o",
                 "color": "#ffbd3a",
                 "attachment_flg": "0",
-                "comment_flg": "0",
                 "one_record_flg": "0",
                 "revision_flg": "0"
             },
@@ -515,7 +482,6 @@
                 "color": null,
                 "revision_flg": "0",
                 "attachment_flg": "0",
-                "comment_flg": "0",
                 "one_record_flg": "0",
                 "all_user_viewable_flg": "1",
                 "all_user_accessable_flg": "1"

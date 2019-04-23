@@ -37,7 +37,6 @@ class CustomTableController extends AdminControllerBase
         $grid = new Grid(new CustomTable);
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-        $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\GridChangePageMenu('table', null, true));
@@ -82,9 +81,6 @@ class CustomTableController extends AdminControllerBase
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
-        
-        $form->number('order', exmtrans("custom_table.order"))->rules("integer");
-        
         $form->header(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
@@ -100,10 +96,6 @@ class CustomTableController extends AdminControllerBase
                 ->default("0")
                 ;
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
-                ->default("1")
-                ;
-            $form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))
-                ->help(exmtrans("custom_table.help.comment_flg"))
                 ->default("1")
                 ;
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
