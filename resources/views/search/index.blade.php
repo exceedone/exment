@@ -6,7 +6,7 @@
 
     <div class="box-body">
         @foreach($tables as $table)
-        <div class="box box-search table_{{ $table['table_name'] }}" style="{{ $table['box_sytle'] }}" data-table_name="{{ $table['table_name'] }}">
+        <div class="box box-search table_{{ $table['table_name'] }}" style="{{ $table['box_sytle'] }}">
             <div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>
             <div class="box-header with-border">
                 <h3 class="box-title">
@@ -23,12 +23,13 @@
                 </div>
             </div>
             <div class="box-body" style="min-height:100px;">
-                <div class="box-body-inner">
-                    <div class="box-body-inner-header box-body-inneritem"></div>
-                    <div class="box-body-inner-body box-body-inneritem"></div>
-                    <div class="box-body-inner-footer box-body-inneritem"></div>
-                </div>
+
             </div>
+            @if(isset($table['show_list']))
+            <div class="box-footer">
+                <a href="{{ admin_url('data/'.$table['table_name']) }}">{{ exmtrans('search.view_list') }}</a>
+            </div>
+            @endif
         </div>
         @endforeach
     </div>

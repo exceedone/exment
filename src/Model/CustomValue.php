@@ -549,24 +549,6 @@ class CustomValue extends ModelBase
     }
 
     /**
-     * get target custom_value's relation search url
-     */
-    public function getRelationSearchUrl($options = [])
-    {
-        if (is_bool($options)) {
-            $options = ['force' => true];
-        }
-        $options = array_merge(
-            [
-                'force' => false
-            ],
-            $options
-        );
-
-        return admin_url("search?table_name={$this->custom_table->table_name}&value_id={$this->id}" . ($options['force'] ? '&relation=1' : ''));
-    }
-
-    /**
      * get parent value
      */
     public function getParentValue($isonly_label = false)

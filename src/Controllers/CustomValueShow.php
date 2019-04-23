@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
-use Encore\Admin\Show;
+use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
@@ -28,8 +28,8 @@ trait CustomValueShow
     protected function createShowForm($id = null, $modal = false)
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
-        return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
-            $custom_value = $this->custom_table->getValueModel($id);
+        return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
@@ -56,11 +56,12 @@ trait CustomValueShow
                         if (!isset($item)) {
                             continue;
                         }
-                        $show->field($item->name(), $item->label())->as(function ($v) use ($form_column, $item) {
-                            if (is_null($this)) {
-                                return '';
-                            }
-                            return $item->setCustomValue($this)->html();
+                        $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
+                            ->as(function ($v) use ($form_column, $item) {
+                                if (is_null($this)) {
+                                    return '';
+                                }
+                                return $item->setCustomValue($this)->html();
                         })->setEscape(false);
                     }
                 }
@@ -99,21 +100,16 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            $show->panel()->tools(function ($tools) use($modal, $custom_value) {
-                if(count($this->custom_table->getRelationTables()) > 0){
-                    $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
-                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
-                            <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
-                        </a>
-                    </div>');                        
-                }
-                if ($modal) {
+            if ($modal) {
+                $show->panel()->tools(function ($tools) {
                     $tools->disableList();
                     $tools->disableDelete();
-                } else {
+                });
+            } else {
+                $show->panel()->tools(function ($tools) {
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
-                }
-            });
+                });
+            }
 
             // show plugin button and copy button
             if (!$modal) {
