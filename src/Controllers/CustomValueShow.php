@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
-use Encore\Admin\Show;
+use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
@@ -28,7 +28,7 @@ trait CustomValueShow
     protected function createShowForm($id = null, $modal = false)
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
-        return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+        return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
 
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
@@ -56,11 +56,12 @@ trait CustomValueShow
                         if (!isset($item)) {
                             continue;
                         }
-                        $show->field($item->name(), $item->label())->as(function ($v) use ($form_column, $item) {
-                            if (is_null($this)) {
-                                return '';
-                            }
-                            return $item->setCustomValue($this)->html();
+                        $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
+                            ->as(function ($v) use ($form_column, $item) {
+                                if (is_null($this)) {
+                                    return '';
+                                }
+                                return $item->setCustomValue($this)->html();
                         })->setEscape(false);
                     }
                 }
@@ -137,9 +138,8 @@ trait CustomValueShow
         $custom_value = $this->getModelNameDV()::find($id);
         $documents = $this->getDocuments($id, $modal);
         $useFileUpload = $this->useFileUpload($modal);
-        $useComment = $this->useComment($modal);
  
-        $revisions = $this->getRevisions($id, $modal); 
+        $revisions = $this->getRevisions($id, $modal);
 
         if (count($documents) > 0 || $useFileUpload) {
             $form = new WidgetForm;
@@ -212,53 +212,6 @@ EOT;
                 )->setWidth(9, 2);
             }
             $row->column(6, (new Box('更新履歴', $form))->style('info'));
-        }
-
-        if ($useComment) {
-            $comments = $this->getComments($id, $modal);
-            $form = new WidgetForm;
-            $form->disableReset();
-            $form->disableSubmit();
-    
-            if (count($comments) > 0) {
-                $html = [];
-                foreach ($comments as $index => $comment) {
-                    $html[] = "<p>" . view('exment::form.field.commentline', [
-                        'comment' => $comment,
-                        'table_name' => $this->custom_table->table_name,
-                    ])->render() . "</p>";
-                }
-                // loop and add as link
-                $form->html(implode("", $html))
-                    ->plain()
-                    ->setWidth(8, 3);
-            }
-            $form->textarea('comment', exmtrans("common.comment"))
-                ->rows(3)
-                ->setLabelClass(['d-none'])
-                ->setWidth(12, 0);
-            $form->button('add_comment', trans("admin.submit"))
-                ->setElementClass(['btn-primary', 'pull-right', 'add-comment'])
-                ->setWidth(12, 0);
-            $ajax_url = admin_urls('data', $this->custom_table->table_name, $id, 'addcomment');
-            $script = <<<EOT
-            $("input.add-comment").on('click', function(e, params) {
-                var comment = $('textarea.comment').val();
-                $.ajax({
-                    url: "$ajax_url",
-                    data: {
-                        _token: LA.token,
-                        comment: comment
-                    },
-                    type: "POST",
-                    success: function (data) {
-                        $.pjax.reload('#pjax-container');
-                    },
-                });
-            });
-EOT;
-            Admin::script($script);
-            $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));
         }
     }
     
@@ -370,14 +323,6 @@ EOT;
     {
         return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
-
-    /**
-     * whether comment field
-     */
-    protected function useComment($modal = false)
-    {
-        return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
-    }
     
     protected function getDocuments($id, $modal = false)
     {
@@ -385,16 +330,6 @@ EOT;
             return [];
         }
         return getModelName(SystemTableName::DOCUMENT)
-            ::where('parent_id', $id)
-            ->where('parent_type', $this->custom_table->table_name)
-            ->get();
-    }
-    protected function getComments($id, $modal = false)
-    {
-        if ($modal) {
-            return [];
-        }
-        return getModelName(SystemTableName::COMMENT)
             ::where('parent_id', $id)
             ->where('parent_type', $this->custom_table->table_name)
             ->get();
