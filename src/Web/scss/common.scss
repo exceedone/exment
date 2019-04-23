@@ -333,3 +333,52 @@ table img.image_html{
         overflow: visible;
     }
 }
+
+
+// bootstrap --------------------------------------------------
+.btn.btn-pupple { 
+    color: #FFFFFF; 
+    background-color: #8A4ED9; 
+    border-color: #5D49BD; 
+  } 
+
+  .btn.btn-pupple:hover, 
+  .btn.btn-pupple:focus, 
+  .btn.btn-pupple:active, 
+  .btn.btn-pupple.active, 
+  .open .dropdown-toggle.btn.btn-pupple { 
+    color: #FFFFFF; 
+    background-color: #49247A; 
+    border-color: #5D49BD; 
+  }
+
+  .btn.btn-pupple:active, 
+  .btn.btn-pupple.active, 
+  .open .dropdown-toggle.btn.btn-pupple { 
+    background-image: none; 
+  } 
+
+  .btn.btn-pupple.disabled, 
+  .btn.btn-pupple[disabled], 
+  fieldset[disabled] .btn.btn-pupple, 
+  .btn.btn-pupple.disabled:hover, 
+  .btn.btn-pupple[disabled]:hover, 
+  fieldset[disabled] .btn.btn-pupple:hover, 
+  .btn.btn-pupple.disabled:focus, 
+  .btn.btn-pupple[disabled]:focus, 
+  fieldset[disabled] .btn.btn-pupple:focus, 
+  .btn.btn-pupple.disabled:active, 
+  .btn.btn-pupple[disabled]:active, 
+  fieldset[disabled] .btn.btn-pupple:active, 
+  .btn  .btn-pupple.disabled.active, 
+  .btn.btn-pupple[disabled].active, 
+  fieldset[disabled] .btn.btn-pupple.active { 
+    background-color: #8A4ED9; 
+    border-color: #5D49BD; 
+  } 
+
+  .btn.btn-pupple .badge { 
+    color: #8A4ED9; 
+    background-color: #FFFFFF; 
+  } 
+} 

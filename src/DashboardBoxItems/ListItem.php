@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Encore\Admin\Widgets\Table as WidgetTable;
+use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
@@ -86,7 +87,18 @@ class ListItem implements ItemInterface
         $datalist = $this->paginate->items();
 
         // get widget table
-        list($headers, $bodies) = $this->custom_view->getDataTable($datalist);
+        $option = [
+            'action_callback' => function (&$link, $custom_table, $data) {
+                if(count($custom_table->getRelationTables()) > 0){
+                    $link .= (new Linker)
+                    ->url($data->getRelationSearchUrl(true))
+                    ->icon('fa-compress')
+                    ->tooltip(exmtrans('search.header_relation'));
+                }
+            }
+        ];
+        list($headers, $bodies) = $this->custom_view->getDataTable($datalist, $option);
+        
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
 

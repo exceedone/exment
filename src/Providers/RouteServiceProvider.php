@@ -83,9 +83,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
         
             $router->get('search', 'SearchController@index');
-            $router->post('search/list', 'SearchController@getList');
-            $router->post('search/header', 'SearchController@header');
-            $router->post('search/relation', 'SearchController@getRelationList');
+            $router->get('search/list', 'SearchController@getList');
+            $router->get('search/header', 'SearchController@header');
+            $router->get('search/relation', 'SearchController@getRelationList');
         
             $router->get('backup', 'BackupController@index');
             $router->delete('backup/delete', 'BackupController@delete');
