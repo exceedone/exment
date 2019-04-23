@@ -52,7 +52,7 @@ class SearchController extends AdminControllerBase
                 {
                     if(ui.item)
                     {
-                        window.location.href = '$list_url' + '?table_name=' + ui.item.table_name + '&value_id=' + ui.item.value_id;
+                        $.pjax({ container: '#pjax-container', url: '$list_url' + '?table_name=' + ui.item.table_name + '&value_id=' + ui.item.value_id });
                     }
                 },
             autoFocus: false,
@@ -100,7 +100,7 @@ EOT;
         }
         $results = [];
         // Get table list
-        $tables = CustomTable::searchEnabled()->get();
+        $tables = $this->getSearchTargetTable();
         foreach ($tables as $table) {
             // search all data using index --------------------------------------------------
             $data = $table->searchValue($q, [
@@ -168,7 +168,11 @@ EOT;
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
-        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $this->getSearchTargetTable()]));
+
+        $tableArrays = $this->getSearchTargetTable()->map(function($table){
+            return $this->getTableArray($table);
+        });
+        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
         return $content;
     }
     /**
@@ -189,38 +193,13 @@ EOT;
                 if (!$custom_column->indexEnabled()) {
                     return false;
                 }
-                // only set $value_table (for relation search)
-                if (isset($value_table)) {
-                    // get only table as below
-                    // - $table equal self target table
-                    // - $table is child table for $value_table
-                    // $custom_column->column_type is "select_target_table" and $custom_column->options->select_target_table is target_table
-                    $result = false;
-                    if (array_get($table, 'id') == $value_table->id) {
-                        $result = true;
-                    }
-                    
-                    if (!$result) {
-                        
-                        // get custom relation.
-                        if (!is_null(CustomRelation
-                            ::where('parent_custom_table_id', $value_table->id)
-                            ->where('child_custom_table_id', $table['id'])
-                            ->first())) {
-                            $result = true;
-                        }
-                    }
-                    if (!$result) {
-                        return false;
-                    }
-                }
                 return true;
             });
-            if (!is_null($result)) {
-                array_push($results, $this->getTableArray($table));
+            if (!is_null($result) && count($result) > 0) {
+                array_push($results, $table);
             }
         }
-        return $results;
+        return collect($results);
     }
     /**
      * Get search results using query
