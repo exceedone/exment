@@ -83,9 +83,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
         
             $router->get('search', 'SearchController@index');
-            $router->post('search/list', 'SearchController@getList');
-            $router->post('search/header', 'SearchController@header');
-            $router->post('search/relation', 'SearchController@getRelationList');
+            $router->get('search/list', 'SearchController@getList');
+            $router->get('search/header', 'SearchController@header');
+            $router->get('search/relation', 'SearchController@getRelationList');
         
             $router->get('backup', 'BackupController@index');
             $router->delete('backup/delete', 'BackupController@delete');
@@ -106,7 +106,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
-            $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
 
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
@@ -124,7 +123,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('files/{uuid}', function ($uuid) {
                 return File::deleteFile($uuid);
             });
-            $router->delete('{tableKey}/comments/{id}', 'CustomValueController@delComment');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');

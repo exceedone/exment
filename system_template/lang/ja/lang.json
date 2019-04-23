@@ -17,16 +17,6 @@
             ]
         },
         {
-            "table_name": "comment",
-            "table_view_name": "コメント",
-            "custom_columns": [
-                {
-                    "column_name": "comment_detail",
-                    "column_view_name": "コメント詳細"
-                }
-            ]
-        },
-        {
             "table_name": "base_info",
             "table_view_name": "基本情報",
             "custom_columns": [
