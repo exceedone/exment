@@ -111,7 +111,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected static function boot()
     {
         parent::boot();
-        
+                
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
+
         // delete event
         static::deleting(function ($model) {
             // Delete items

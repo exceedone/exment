@@ -246,7 +246,7 @@ class MenuController extends AdminControllerBase
                 }
                 break;
             case MenuType::TABLE:
-                foreach (CustomTable::where('showlist_flg', true)->orderBy('order')->get() as $value) {
+                foreach (CustomTable::where('showlist_flg', true)->get() as $value) {
                     array_push($options, ['id' => $value->id, 'text' => $value->table_view_name]);
                 }
                 break;

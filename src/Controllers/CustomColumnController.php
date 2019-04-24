@@ -104,9 +104,6 @@ class CustomColumnController extends AdminControllerTableBase
             $grid->model()->where('custom_table_id', $this->custom_table->id);
         }
 
-        // set default sort
-        $grid->model()->orderBy('order', 'asc');
-
         //  $grid->disableCreateButton();
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {

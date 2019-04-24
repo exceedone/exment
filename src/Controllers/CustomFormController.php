@@ -338,7 +338,7 @@ class CustomFormController extends AdminControllerTableBase
 
             // get columns by form_block_target_table_id.
             $custom_columns = CustomColumn::where('custom_table_id', array_get($custom_form_block, 'form_block_target_table_id'))
-                ->orderBy('order', 'asc')->get()->toArray();
+                ->get()->toArray();
             $custom_form_columns = [];
             
             // set VIEW_COLUMN_SYSTEM_OPTIONS as header and footer

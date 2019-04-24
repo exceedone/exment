@@ -201,9 +201,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         parent::boot();
 
-        // Order by name ASC
-        static::addGlobalScope('order', function (Builder $builder) {
-            $builder->orderBy('order', 'asc');
-        });
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
     }
 }
