@@ -544,7 +544,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($count <= 100) {
             return null;
         }
-        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "search");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
     }
 
     /**
