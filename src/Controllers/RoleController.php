@@ -89,8 +89,8 @@ class RoleController extends AdminControllerBase
         if (!isset($id)) {
             $form->text('role_name', exmtrans('role.role_name'))
             ->required()
-            ->rules("unique:".Role::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
-            ->help(exmtrans('common.help_code'));
+            ->rules("max:30|unique:".Role::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('role_name', exmtrans('role.role_name'));
         }
