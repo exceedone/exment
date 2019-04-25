@@ -2,10 +2,16 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
+use Encore\Admin\Form\Field\Date;
+use Encore\Admin\Form\Field\Select;
+use Encore\Admin\Form\Field\Text;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Model\CustomTable;
+use Illuminate\Support\Collection;
 
 class SystemItem implements ItemInterface
 {
@@ -158,6 +164,30 @@ class SystemItem implements ItemInterface
     {
         $field = new Field\Display($this->name(), [$this->label()]);
         $field->default($this->value);
+
+        return $field;
+    }
+    
+    public function getFilterField()
+    {
+        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $type = array_get($option, 'type');
+
+        if ($type == 'datetime') {
+            $field = new Date($this->name(), [$this->label()]);
+            $field->default($this->value);
+        } else if ($type == 'user') {
+            $field = new Select($this->name(), [$this->label()]);
+            $field->options(function ($value) {
+                // get DB option value
+                return CustomTable::getEloquent(SystemTableName::USER)
+                    ->getOptions($value, SystemTableName::USER);
+            });
+            $field->default($this->value);
+        } else {
+            $field = new Text($this->name(), [$this->label()]);
+            $field->default($this->value);
+        }
 
         return $field;
     }

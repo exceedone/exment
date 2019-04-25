@@ -38,6 +38,23 @@ class ViewColumnFilterOption extends EnumBase
     const USER_EQ_USER = 2011;
     const USER_NE_USER = 2012;
 
+    public static function VIEW_COLUMN_VALUE_TYPE($filter_option)
+    {
+        switch($filter_option) {
+            case ViewColumnFilterOption::DAY_ON:
+            case ViewColumnFilterOption::DAY_ON_OR_AFTER:
+            case ViewColumnFilterOption::DAY_ON_OR_BEFORE:
+                return ColumnType::DATE;
+            case ViewColumnFilterOption::USER_EQ:
+            case ViewColumnFilterOption::USER_NE:
+                return ColumnType::USER;
+            case ViewColumnFilterOption::EQ:
+            case ViewColumnFilterOption::NE:
+                return ColumnType::TEXT;
+            default:
+                return null;
+        }
+    }
     public static function VIEW_COLUMN_FILTER_OPTIONS()
     {
         return [

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Form\Field\ChangeField;
 
 class CustomViewController extends AdminControllerTableBase
 {
@@ -226,11 +230,7 @@ class CustomViewController extends AdminControllerTableBase
                     }
                     return [];
                 });
-            //TODO:temporary Change
-            // $form->changeField('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
-            //     ->ajax(admin_urls('view', $this->custom_table->table_name, 'filterDialog'));
-            $form->text('view_filter_condition_value_text', exmtrans("custom_view.view_filter_condition_value_text"))
-                ;
+            $form->changeField('view_filter_condition_value', exmtrans("custom_view.view_filter_condition_value_text"));
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
@@ -278,6 +278,29 @@ class CustomViewController extends AdminControllerTableBase
             $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
         });
+        $table_name = $this->custom_table->table_name;
+        $script = <<<EOT
+            $('#has-many-table-custom_view_filters').off('change').on('change', '.view_filter_condition', function (ev) {
+                $.ajax({
+                    url: admin_url("view/$table_name/filter-value"),
+                    type: "GET",
+                    data: {
+                        'target': $(this).closest('tr.has-many-table-custom_view_filters-row').find('select.view_column_target').val(),
+                        'cond_name': $(this).attr('name'),
+                        'cond_val': $(this).val(),
+                    },
+                    context: this,
+                    success: function (data) {
+                        var json = JSON.parse(data);
+                        $(this).closest('tr.has-many-table-custom_view_filters-row').find('td:nth-child(3)>div>div').html(json.html);
+                        if (json.script) {
+                            eval(json.script);
+                        }
+                    },
+                });
+            });
+EOT;
+        Admin::script($script);
         return $form;
     }
     /**
@@ -298,6 +321,32 @@ class CustomViewController extends AdminControllerTableBase
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'))];
         });
+    }
+
+    /**
+     * get filter condition
+     */
+    public function getFilterValue(Request $request)
+    {
+        $data = $request->all();
+
+        if (!array_key_exists('target', $data) ||
+            !array_key_exists('cond_val', $data) ||
+            !array_key_exists('cond_name', $data)) {
+            return [];
+        }
+        $columnname = 'view_filter_condition_value';
+
+        $field = new ChangeField($columnname, exmtrans('custom_view.'.$columnname.'_text'));
+        $field->data([
+            'view_column_target' => $data['target'],
+            'view_filter_condition' => $data['cond_val']
+        ]);
+        $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
+        $field->setElementName($element_name);
+
+        $view = $field->render();
+        return \json_encode(['html' => $view->render(), 'script' => $field->getScript()]);
     }
 
     /**

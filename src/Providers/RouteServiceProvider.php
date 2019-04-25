@@ -111,6 +111,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
+            $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
                         
             $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
             $router->post("navisearch/result/{tableKey}", 'NaviSearchController@getNaviResult');

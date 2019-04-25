@@ -142,14 +142,20 @@ abstract class CustomItem implements ItemInterface
         }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
-
+    
+    public function getFilterField()
+    {
+        $classname = $this->getFilterFieldClass();
+        return $this->getCustomField($classname);
+    }
+    protected function getFilterFieldClass()
+    {
+        return $this->getAdminFieldClass();
+    }
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
-        $options = $this->custom_column->options;
         $form_column_options = $form_column->options ?? null;
-        // form column name. join $column_name_prefix and $column_name
-        $form_column_name = $column_name_prefix.$this->name();
-        
+
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
@@ -157,6 +163,16 @@ abstract class CustomItem implements ItemInterface
             // get field
             $classname = $this->getAdminFieldClass();
         }
+
+        return $this->getCustomField($classname, $form_column_options, $column_name_prefix);
+    }
+
+    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    {
+        $options = $this->custom_column->options;
+        // form column name. join $column_name_prefix and $column_name
+        $form_column_name = $column_name_prefix.$this->name();
+        
         $field = new $classname($form_column_name, [$this->label()]);
         $this->setAdminOptions($field, $form_column_options);
 

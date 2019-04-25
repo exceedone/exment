@@ -10,11 +10,43 @@ use Carbon\Carbon;
 class CustomViewFilter extends ModelBase
 {
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target'];
+    protected $appends = ['view_column_target', 'view_filter_condition_value'];
     use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+
+    /**
+     * get edited view_filter_condition_value_text.
+     */
+    public function getViewFilterConditionValueAttribute()
+    {
+        if (is_string($this->view_filter_condition_value_text)) {
+            $array = json_decode($this->view_filter_condition_value_text);
+            if (is_array($array)){
+                return array_filter($array, function($val) {
+                    return !is_null($val);
+                });
+            }
+        }
+        return $this->view_filter_condition_value_text;
+    }
+    
+    /**
+     * set view_filter_condition_value_text.
+     * * we have to convert int if view_filter_condition_value is array*
+     */
+    public function setViewFilterConditionValueAttribute($view_filter_condition_value)
+    {
+        if (is_array($view_filter_condition_value)) {
+            $array = array_filter($view_filter_condition_value, function($val) {
+                return !is_null($val);
+            });
+            $this->view_filter_condition_value_text = json_encode($array);
+        } else {
+            $this->view_filter_condition_value_text = $view_filter_condition_value;
+        }
+    }
 
     public static $templateItems = [
         'excepts' => [
@@ -84,7 +116,7 @@ class CustomViewFilter extends ModelBase
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
         } elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
-            $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['name'] ?? null;
+            $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
         
         if (isset($db_table_name)) {
