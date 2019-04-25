@@ -50,6 +50,7 @@ return [
         'help' =>[
             'view_name' => '画面に表示する名前を入力してください。',
             'input_available_characters' => '%sで記入してください。',
+            'max_length' => '%s文字以内で記入してください。',
             'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
         ],
     ],
