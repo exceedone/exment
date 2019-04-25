@@ -25,7 +25,7 @@ class Bootstrap
         Ad::js(asset('lib/js/bignumber.min.js'));
 
         // get exment version
-        $ver = getExmentVersion(false)[1];
+        $ver = getExmentCurrentVersion();
         if(!isset($ver)){
             $ver = date('YmdHis');
         }

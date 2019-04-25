@@ -8,13 +8,13 @@ namespace Exment {
         }
 
         public static AddEventOnce() {
-            $(document).on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
-            $(document).on('click', '.delete', {}, CustomFromEvent.deleteColumn);
-            $(document).on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
-            $(document).on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
-            $(document).on('change', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
-            $(document).on('click', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
-            $(document).on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
+            $('.box-custom_form_block').on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $('.box-custom_form_block').on('click', '.delete', {}, CustomFromEvent.deleteColumn);
+            $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
+            $('.box-custom_form_block').on('click', '.changedata-modal', {}, CustomFromEvent.changedataModalEvent);
+            $('.box-custom_form_block').on('change', '.changedata_target_column', {}, CustomFromEvent.changedataColumnEvent);
+            $('.box-custom_form_block').on('click', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
+            $('.box-custom_form_block').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
 
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();

@@ -1251,6 +1251,19 @@ if (!function_exists('getExmentVersion')) {
     }
 }
 
+
+if (!function_exists('getExmentCurrentVersion')) {
+    /**
+     * getExmentCurrentVersion
+     *
+     * @return string this version in server
+     */
+    function getExmentCurrentVersion()
+    {
+        return getExmentVersion(false)[1];
+    }
+}
+
 if (!function_exists('checkLatestVersion')) {
     /**
      * check exment's next version
