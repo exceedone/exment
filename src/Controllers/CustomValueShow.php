@@ -52,6 +52,7 @@ trait CustomValueShow
                 }
                 ////// default block(no relation block)
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
+                    $hasMultiColumn = false;
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         $item = $form_column->column_item;
                         if (!isset($item)) {
@@ -64,6 +65,10 @@ trait CustomValueShow
                                 }
                                 return $item->setCustomValue($this)->html();
                         })->setEscape(false);
+                    }
+
+                    if($custom_form_block->isMultipleColumn()){
+                        $show->setWidth(9, 3);
                     }
                 }
                 ////// relation block
