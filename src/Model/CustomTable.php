@@ -169,6 +169,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         parent::boot();
         
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
+
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -285,9 +288,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // filter id;
             $model = $model->whereIn('id', $permission_table_ids);
         }
-
-        // add default order
-        $model = $model->orderBy('order', 'asc');
 
         if ($options['getModel']) {
             return $model->get();
@@ -544,7 +544,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($count <= 100) {
             return null;
         }
-        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "search");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
     }
 
     /**

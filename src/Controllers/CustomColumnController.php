@@ -104,9 +104,6 @@ class CustomColumnController extends AdminControllerTableBase
             $grid->model()->where('custom_table_id', $this->custom_table->id);
         }
 
-        // set default sort
-        $grid->model()->orderBy('order', 'asc');
-
         //  $grid->disableCreateButton();
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
@@ -154,8 +151,8 @@ class CustomColumnController extends AdminControllerTableBase
             $classname = CustomColumn::class;
             $form->text('column_name', exmtrans("custom_column.column_name"))
                 ->required()
-                ->rules("regex:/".Define::RULES_REGEX_SYSTEM_NAME."/|uniqueInTable:{$classname},{$this->custom_table->id}")
-                ->help(exmtrans('common.help_code'));
+                ->rules("max:30|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/|uniqueInTable:{$classname},{$this->custom_table->id}")
+                ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('column_name', exmtrans("custom_column.column_name"));
         }
