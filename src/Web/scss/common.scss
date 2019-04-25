@@ -79,6 +79,10 @@
     }
 }
 
+.row::before, .row::after{
+    width:0;
+}
+
 .row-eq-height {
     display: flex;
     flex-wrap: wrap;
