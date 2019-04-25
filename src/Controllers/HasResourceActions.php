@@ -29,6 +29,12 @@ trait HasResourceActions
      */
     public function destroy($id)
     {
+        if (method_exists($this, 'validateDestroy')) {
+            $data = $this->validateDestroy($id);
+            if (!empty($data)) {
+                return response()->json($data);
+            }
+        }
         if ($this->form($id)->destroy($id)) {
             $data = [
                 'status'  => true,
