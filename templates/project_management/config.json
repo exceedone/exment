@@ -12,6 +12,7 @@
                 "color": "#0044fc",
                 "one_record_flg": "0",
                 "attachment_flg": "1",
+                "comment_flg": "1",
                 "revision_flg": "1",
                 "search_enabled": "1"
             },
@@ -93,6 +94,7 @@
                 "color": "#ff0808",
                 "one_record_flg": "0",
                 "revision_flg": "1",
+                "comment_flg": "1",
                 "attachment_flg": "1"
             },
             "custom_columns": [
