@@ -121,10 +121,10 @@ class File extends ModelBase
         if (is_null($file)) {
             return;
         }
-        $local_filename = $file->local_filename;
+        $path = $file->path;
         $file->delete();
 
-        Storage::disk(config('admin.upload.disk'))->delete($local_filename);
+        Storage::disk(config('admin.upload.disk'))->delete($path);
     }
 
     /**
