@@ -53,6 +53,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboardbox', 'DashboardBoxController');
 
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
+            $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
         
