@@ -61,22 +61,15 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
      *
      * @return string
      */
-    public function getAvatarAttribute($avatar = null)
+    public function getDisplayAvatarAttribute($avatar = null)
     {
+        $avatar = $this->avatar;
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
         }
         return asset('vendor/exment/images/user.png');
     }
     
-    public function getDatabaseAvatarAttribute(){
-        return $this->attributes['avatar'];
-    }
-
-    public function setDatabaseAvatarAttribute($avatar){
-        $this->attributes['avatar'] = $avatar;
-    }
-
     public function isLoginProvider()
     {
         return !is_nullorempty($this->login_provider);
