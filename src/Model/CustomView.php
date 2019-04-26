@@ -96,6 +96,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $this->custom_view_columns()->delete();
         $this->custom_view_filters()->delete();
+        $this->custom_view_sorts()->delete();
+        $this->custom_view_summaries()->delete();
     }
 
     protected static function boot()

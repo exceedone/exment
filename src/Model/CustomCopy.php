@@ -227,4 +227,19 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         return static::getEloquentDefault($id, $withs);
     }
+        
+    public function deletingChildren()
+    {
+        $this->custom_copy_columns()->delete();
+        $this->custom_copy_input_columns()->delete();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::deleting(function ($model) {
+            $model->deletingChildren();
+        });
+    }
 }
