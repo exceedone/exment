@@ -211,10 +211,11 @@ class CustomValueController extends AdminControllerTableBase
  
     /**
      * delete comment.
+     * //this $id is not data's id. It's comment's id.
      */
     public function delComment(Request $request, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request, null, true)) instanceof Response) {
             return $response;
         }
         if (!empty($id)) {
@@ -231,7 +232,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function addComment(Request $request, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
             return $response;
         }
         $comment = $request->get('comment');
@@ -407,6 +408,7 @@ class CustomValueController extends AdminControllerTableBase
         //Validation table value
         $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
         if (!$this->validateTable($this->custom_table, $roleValue)) {
+            Checker::error();
             return false;
         }
             
