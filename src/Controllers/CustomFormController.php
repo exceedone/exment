@@ -172,8 +172,13 @@ class CustomFormController extends AdminControllerTableBase
             $this->setTableSuggests($form, $custom_form_block, $suggests);
             $custom_form_block['suggests'] = $suggests;
         }
+        
+        // get exment version
+        $ver = getExmentCurrentVersion();
+        if(!isset($ver)){
+            $ver = date('YmdHis');
+        }
 
-        $date = \Carbon\Carbon::now()->format('YmdHis');
         // create endpoint
         $formroot = admin_url("form/{$this->custom_table->table_name}");
         $endpoint = $formroot.(isset($id) ? "/{$id}" : "");
@@ -181,8 +186,8 @@ class CustomFormController extends AdminControllerTableBase
             'formroot' => $formroot,
             'endpoint'=> $endpoint,
             'custom_form_blocks' => $custom_form_blocks,
-            'css' => asset('/vendor/exment/css/customform.css?ver='.$date),
-            'js' => asset('/vendor/exment/js/customform.js?ver='.$date),
+            'css' => asset('/vendor/exment/css/customform.css?ver='.$ver),
+            'js' => asset('/vendor/exment/js/customform.js?ver='.$ver),
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'change_page_menu' => (new Tools\GridChangePageMenu('form', $this->custom_table, false))->render()

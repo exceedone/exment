@@ -53,6 +53,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboardbox', 'DashboardBoxController');
 
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
+            $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
         
@@ -124,7 +125,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('files/{uuid}', function ($uuid) {
                 return File::deleteFile($uuid);
             });
-            $router->delete('{tableKey}/comments/{id}', 'CustomValueController@delComment');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
