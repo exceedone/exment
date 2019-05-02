@@ -82,7 +82,10 @@ if (!function_exists('esc_script_tag')) {
             $item->parentNode->removeChild($item);
         }
 
-        $html = $dom->saveHTML();
+        $html = trim($dom->saveHTML());
+        $html = preg_replace('/^<br>/u', '', $html);
+        $html = preg_replace('/<br>$/u', '', $html);
+        
         return $html;
     }
 }
@@ -526,7 +529,7 @@ if (!function_exists('get_omitted_string')) {
      * if over string length. remove text, add "..."
      * @return string
      */
-    function get_omitted_string($text)
+    function get_omitted_string($text, $length = Define::GRID_MAX_LENGTH)
     {
         if (is_null($text)) {
             return $text;
@@ -536,11 +539,22 @@ if (!function_exists('get_omitted_string')) {
             return $text;
         }
 
-        if (mb_strlen($text) <= Define::GRID_MAX_LENGTH) {
+        if (mb_strlen($text) <= $length) {
             return $text;
         }
 
-        return mb_substr($text, 0, Define::GRID_MAX_LENGTH) . '...';
+        return mb_substr($text, 0, $length) . '...';
+    }
+}
+
+if (!function_exists('replaceBreak')) {
+    /**
+     * replace new line code to <br />
+     * @return string
+     */
+    function replaceBreak($text)
+    {
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text));
     }
 }
 
@@ -1234,6 +1248,19 @@ if (!function_exists('getExmentVersion')) {
         }
         
         return [$latest ?? null, $current ?? null];
+    }
+}
+
+
+if (!function_exists('getExmentCurrentVersion')) {
+    /**
+     * getExmentCurrentVersion
+     *
+     * @return string this version in server
+     */
+    function getExmentCurrentVersion()
+    {
+        return getExmentVersion(false)[1];
     }
 }
 

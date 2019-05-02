@@ -92,11 +92,15 @@ class SelectTable extends CustomItem
 
     protected function setAdminOptions(&$field, $form_column_options)
     {
+        if (!isset($this->target_table)) {
+            return;
+        }
+
         $field->options(function ($value) {
             // get DB option value
             return $this->target_table->getOptions($value, $this->custom_column->custom_table);
         });
-        $ajax = $this->target_table ? $this->target_table->getOptionAjaxUrl() : null;
+        $ajax = $this->target_table->getOptionAjaxUrl();
         if (isset($ajax)) {
             $field->attribute([
                 'data-add-select2' => $this->label(),

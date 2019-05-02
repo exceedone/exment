@@ -12,11 +12,13 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
@@ -125,20 +127,6 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
     
-    // /**
-    //  * Update the specified resource in storage.
-    //  *
-    //  * @param int $id
-    //  *
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function update($id)
-    // {
-    //     // call form using id
-    //     $response = $this->form($id)->update($id);
-    //     return $response;
-    // }
-
     /**
      * Show interface.
      *
@@ -159,6 +147,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
         $content->row($this->createShowForm($id));
         $content->row(function ($row) use ($id) {
+            $row->class('row-eq-height');
             $this->setOptionBoxes($row, $id, false);
         });
         return $content;
@@ -204,6 +193,32 @@ class CustomValueController extends AdminControllerTableBase
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
         ]);
+    }
+ 
+    /**
+     * add comment.
+     */
+    public function addComment(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
+            return $response;
+        }
+        $comment = $request->get('comment');
+
+        if (!empty($comment)) {
+            // save Comment Model
+            $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+            $model->parent_id = $id;
+            $model->parent_type = $tableKey;
+            $model->setValue([
+                'comment_detail' => $comment,
+            ]);
+            $model->save();
+        }
+
+        $url = admin_urls('data', $this->custom_table->table_name, $id);
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect($url);
     }
  
     /**
@@ -360,6 +375,7 @@ class CustomValueController extends AdminControllerTableBase
         //Validation table value
         $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
         if (!$this->validateTable($this->custom_table, $roleValue)) {
+            Checker::error();
             return false;
         }
             

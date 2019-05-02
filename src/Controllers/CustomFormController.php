@@ -172,8 +172,13 @@ class CustomFormController extends AdminControllerTableBase
             $this->setTableSuggests($form, $custom_form_block, $suggests);
             $custom_form_block['suggests'] = $suggests;
         }
+        
+        // get exment version
+        $ver = getExmentCurrentVersion();
+        if (!isset($ver)) {
+            $ver = date('YmdHis');
+        }
 
-        $date = \Carbon\Carbon::now()->format('YmdHis');
         // create endpoint
         $formroot = admin_url("form/{$this->custom_table->table_name}");
         $endpoint = $formroot.(isset($id) ? "/{$id}" : "");
@@ -181,8 +186,8 @@ class CustomFormController extends AdminControllerTableBase
             'formroot' => $formroot,
             'endpoint'=> $endpoint,
             'custom_form_blocks' => $custom_form_blocks,
-            'css' => asset('/vendor/exment/css/customform.css?ver='.$date),
-            'js' => asset('/vendor/exment/js/customform.js?ver='.$date),
+            'css' => asset('/vendor/exment/css/customform.css?ver='.$ver),
+            'js' => asset('/vendor/exment/js/customform.js?ver='.$ver),
             'editmode' => isset($id),
             'form_view_name' => $form->form_view_name,
             'change_page_menu' => (new Tools\GridChangePageMenu('form', $this->custom_table, false))->render()
@@ -338,7 +343,7 @@ class CustomFormController extends AdminControllerTableBase
 
             // get columns by form_block_target_table_id.
             $custom_columns = CustomColumn::where('custom_table_id', array_get($custom_form_block, 'form_block_target_table_id'))
-                ->orderBy('order', 'asc')->get()->toArray();
+                ->get()->toArray();
             $custom_form_columns = [];
             
             // set VIEW_COLUMN_SYSTEM_OPTIONS as header and footer
@@ -483,9 +488,11 @@ class CustomFormController extends AdminControllerTableBase
                     // if key is "NEW_", create new column
                     $new_column = starts_with($column_key, 'NEW_');
 
-                    // when user click delete, execute delete
-                    if (!$new_column && boolval(array_get($column_value, 'delete_flg'))) {
-                        CustomFormColumn::findOrFail($column_key)->delete();
+                    // if delete flg is true, delete and continue
+                    if(boolval(array_get($column_value, 'delete_flg'))){
+                        if (!$new_column){
+                            CustomFormColumn::findOrFail($column_key)->delete();
+                        }
                         continue;
                     } elseif ($new_column) {
                         $column = new CustomFormColumn;

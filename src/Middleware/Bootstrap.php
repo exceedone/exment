@@ -25,8 +25,8 @@ class Bootstrap
         Ad::js(asset('lib/js/bignumber.min.js'));
 
         // get exment version
-        $ver = getExmentVersion(false)[1];
-        if(!isset($ver)){
+        $ver = getExmentCurrentVersion();
+        if (!isset($ver)) {
             $ver = date('YmdHis');
         }
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
@@ -90,13 +90,14 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
                         url: url,
                         data: {
                             _method:'delete',
-                            _token:LA.token
+                            _token:LA.token,
+                            webresponse: true,  
                         },
                         success: function (data) {
                             $.pjax.reload('#pjax-container');
             
                             if (typeof data === 'object') {
-                                if (data.status) {
+                                if (data.status === true || data.result === true) {
                                     swal(data.message, '', 'success');
                                 } else {
                                     swal(data.message, '', 'error');

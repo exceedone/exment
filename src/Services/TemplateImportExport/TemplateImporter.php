@@ -89,13 +89,13 @@ class TemplateImporter
     /**
      * Import System template (from command)
      */
-    public static function importSystemTemplate()
+    public static function importSystemTemplate($is_update = false)
     {
         // get vendor folder
         $templates_base_path = base_path() . '/vendor/exceedone/exment/system_template';
         $path = "$templates_base_path/config.json";
 
-        static::importFromFile($path, true);
+        static::importFromFile($path, true, $is_update);
     }
 
     /**
@@ -406,7 +406,7 @@ class TemplateImporter
     /**
      * execute import from file
      */
-    protected static function importFromFile($basePath, $system_flg=false)
+    protected static function importFromFile($basePath, $system_flg=false, $is_update=false)
     {
         // If file not exists
         if (!File::exists($basePath)) {
@@ -430,7 +430,7 @@ class TemplateImporter
             $json = static::mergeTemplate($json, $lang);
         }
 
-        static::import($json, $system_flg);
+        static::import($json, $system_flg, $is_update);
 
         // get data path
         $basePath = pathinfo($basePath)['dirname'];
@@ -475,13 +475,13 @@ class TemplateImporter
     /**
      * execute
      */
-    public static function import($json, $system_flg = false)
+    public static function import($json, $system_flg = false, $is_update=false)
     {
-        DB::transaction(function () use ($json, $system_flg) {
+        DB::transaction(function () use ($json, $system_flg, $is_update) {
             // Loop by tables
             foreach (array_get($json, "custom_tables", []) as $table) {
                 // Create tables. --------------------------------------------------
-                $obj_table = CustomTable::importTemplate($table, [
+                $obj_table = CustomTable::importTemplate($table, $is_update, [
                     'system_flg' => $system_flg
                 ]);
             }
@@ -492,7 +492,7 @@ class TemplateImporter
                 $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
                 // Create columns. --------------------------------------------------
                 foreach (array_get($table, 'custom_columns', []) as $column) {
-                    CustomColumn::importTemplate($column, [
+                    CustomColumn::importTemplate($column, $is_update, [
                         'system_flg' => $system_flg,
                         'parent' => $obj_table,
                     ]);
@@ -506,7 +506,7 @@ class TemplateImporter
                 // get columns. --------------------------------------------------
                 if (array_key_exists('custom_columns', $table)) {
                     foreach (array_get($table, 'custom_columns') as $column) {
-                        CustomColumn::importTemplateRelationColumn($column, [
+                        CustomColumn::importTemplateRelationColumn($column, $is_update, [
                             'system_flg' => $system_flg,
                             'parent' => $obj_table,
                         ]);
@@ -516,34 +516,34 @@ class TemplateImporter
 
             // Loop relations.
             foreach (array_get($json, "custom_relations", []) as $relation) {
-                CustomRelation::importTemplate($relation);
+                CustomRelation::importTemplate($relation, $is_update);
             }
 
             // loop for form
             foreach (array_get($json, "custom_forms", []) as $form) {
-                CustomForm::importTemplate($form);
+                CustomForm::importTemplate($form, $is_update);
             }
 
             // loop for view
             foreach (array_get($json, "custom_views", []) as $view) {
-                CustomView::importTemplate($view);
+                CustomView::importTemplate($view, $is_update);
             }
 
             // loop for copy
             foreach (array_get($json, "custom_copies", []) as $copy) {
-                CustomCopy::importTemplate($copy);
+                CustomCopy::importTemplate($copy, $is_update);
             }
 
             // Loop for roles.
             foreach (array_get($json, "roles", []) as $role) {
                 // Create role. --------------------------------------------------
-                Role::importTemplate($role);
+                Role::importTemplate($role, $is_update);
             }
 
             // loop for dashboard
             foreach (array_get($json, "dashboards", []) as $dashboard) {
                 // Create dashboard --------------------------------------------------
-                Dashboard::importTemplate($dashboard);
+                Dashboard::importTemplate($dashboard, $is_update);
             }
 
             // loop for menu
@@ -554,7 +554,7 @@ class TemplateImporter
                 foreach ([0, 1] as $hasname) {
                     foreach ($menulist as $menu) {
                         // Create menu. --------------------------------------------------
-                        Menu::importTemplate($menu, [
+                        Menu::importTemplate($menu, $is_update, [
                             'hasname' => $hasname,
                         ]);
                     }

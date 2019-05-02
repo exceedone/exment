@@ -12,6 +12,7 @@
                 "color": null,
                 "one_record_flg": "0",
                 "revision_flg": "1",
+                "comment_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -48,6 +49,7 @@
                 "color": null,
                 "revision_flg": "1",
                 "one_record_flg": "0",
+                "comment_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -84,6 +86,7 @@
                 "color": null,
                 "revision_flg": "1",
                 "one_record_flg": "0",
+                "comment_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -120,6 +123,7 @@
                 "color": null,
                 "revision_flg": "1",
                 "one_record_flg": "0",
+                "comment_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -163,6 +167,7 @@
                 "color": null,
                 "revision_flg": "1",
                 "one_record_flg": "0",
+                "comment_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [
@@ -311,6 +316,7 @@
                 "color": null,
                 "revision_flg": "1",
                 "one_record_flg": "0",
+                "comment_flg": "1",
                 "search_enabled": "1"
             },
             "custom_columns": [

@@ -111,7 +111,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected static function boot()
     {
         parent::boot();
-        
+                
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
+
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -311,7 +314,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     /**
      * import template (for setting other custom column id)
      */
-    public static function importTemplateRelationColumn($json, $options = [])
+    public static function importTemplateRelationColumn($json, $is_update, $options = [])
     {
         $custom_table = array_get($options, 'parent');
         $column_name = array_get($json, 'column_name');
@@ -320,6 +323,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             'custom_table_id' => $custom_table->id,
             'column_name' => $column_name
         ]);
+
+        // if record is already exists skip process, when update
+        if ($is_update && $obj_column->exists) {
+            return $obj_column;
+        }
         
         ///// set options
         // check need update

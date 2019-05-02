@@ -343,7 +343,10 @@ abstract class CustomItem implements ItemInterface
         // // regex rules
         $help_regexes = [];
         if (array_key_value_exists('available_characters', $options)) {
-            $available_characters = array_get($options, 'available_characters');
+            $available_characters = array_get($options, 'available_characters') ?? [];
+            if (is_string($available_characters)) {
+                $available_characters = explode(",", $available_characters);
+            }
             $regexes = [];
             // add regexes using loop
             foreach ($available_characters as $available_character) {

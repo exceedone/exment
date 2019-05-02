@@ -41,13 +41,14 @@ return [
             'success_execute' => 'Execute Success!',
             'error_execute' => 'Execute Error',
             'import_success' => 'Success Import!',
-            'import_error' => 'Success Error. Please Check csv file.',
+            'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
             'wrongdata' => 'Data is wrong. Please check url.',
         ],
 
         'help' =>[
             'view_name' => 'Please enter the name to be displayed.',
+            'max_length' => 'Please enter within %s characters.',
             'input_available_characters' => 'Please enter %s.',
             'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
         ],

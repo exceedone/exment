@@ -1,5 +1,4 @@
 <?php
-
 namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Facades\Admin;
@@ -13,13 +12,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
 
 class SearchController extends AdminControllerBase
 {
     protected $custom_table;
-
     /**
      * Rendering search header for adminLTE header
      */
@@ -28,7 +26,6 @@ class SearchController extends AdminControllerBase
         // create searching javascript
         $ajax_url = admin_url("search/header");
         $list_url = admin_url("search");
-
         $script = <<<EOT
     $(function () {
         if(!hasValue($('.search-form #query'))){
@@ -44,7 +41,7 @@ class SearchController extends AdminControllerBase
                         query: req.term
                     },
                     dataType: "json",
-                    type: "POST",
+                    type: "GET",
                     success: function (data) {
                         search_suggests = data;
                         res(data);
@@ -56,7 +53,7 @@ class SearchController extends AdminControllerBase
                 {
                     if(ui.item)
                     {
-                        window.location.href = '$list_url' + '?table_name=' + ui.item.table_name + '&value_id=' + ui.item.value_id;
+                        $.pjax({ container: '#pjax-container', url: '$list_url' + '?table_name=' + ui.item.table_name + '&value_id=' + ui.item.value_id });
                     }
                 },
             autoFocus: false,
@@ -89,11 +86,8 @@ class SearchController extends AdminControllerBase
     });
 EOT;
         Admin::script($script);
-
         return view('exment::search.search-bar');
     }
-
-
     /**
      * Get result list when users input search bar, by query
      * @param Request $request
@@ -105,16 +99,14 @@ EOT;
         if (!isset($q)) {
             return [];
         }
-
         $results = [];
         // Get table list
-        $tables = CustomTable::searchEnabled()->get();
+        $tables = $this->getSearchTargetTable();
         foreach ($tables as $table) {
             // search all data using index --------------------------------------------------
             $data = $table->searchValue($q, [
                 'maxCount' => 10,
             ]);
-
             foreach ($data as $d) {
                 // get label
                 $text = $d->label;
@@ -132,10 +124,8 @@ EOT;
                 }
             }
         }
-
         return $results;
     }
-
     /**
      * Show search result page.
      */
@@ -147,7 +137,6 @@ EOT;
             return $this->getFreeWord($request, $content);
         }
     }
-
     /**
      * Get free word result page. this function is called when user input word end click enter.
      * @param Request $request
@@ -161,55 +150,32 @@ EOT;
         $this->AdminContent($content);
         $content->header(exmtrans('search.header_freeword'));
         $content->description(exmtrans('search.description_freeword'));
-
         // create searching javascript
-        $list_url = admin_url("search/list");
         $script = <<<EOT
-    var searchIndex = 0;
-    $(function () {
-        getNaviData();
-    });
-
     function getNaviData() {
         var tables = JSON.parse($('.tables').val());
         for (var i = 0; i < tables.length; i++) {
             var table = tables[i];
-
-            // Get Data
-            $.ajax({
-                url: '$list_url',
-                type: 'POST',
-                data: {
-                    table_name: table.table_name
-                    , query: $('.base_query').val()
-                    , _token: LA.token
-                },
-                dataType: "json"
-            })
-                // Execute when success Ajax Request
-                .done((data) => {
-                    console.log(data);
-                    var box = $('.table_' + data.table_name);
-                    box.find('.box-body').html(data.html);
-                    box.find('.overlay').remove();
-                    Exment.CommonEvent.tableHoverLink();
-                })
-                .always((data) => {
-                });
+            if(!hasValue(table)){
+                continue;
+            }
+            var url = admin_url('search/list?table_name=' + table.table_name + '&query=' + $('.base_query').val());
+            getNaviDataItem(url, table.table_name);
         }
     }
-
 EOT;
         Admin::script($script);
-
+        $this->setCommonScript();
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
-        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $this->getSearchTargetTable()]));
+        $tableArrays = $this->getSearchTargetTable()->map(function ($table) {
+            return $this->getTableArray($table);
+        });
+        $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
         return $content;
     }
-
     /**
      * Get Search enabled table list
      */
@@ -222,51 +188,20 @@ EOT;
             if (!$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
                 continue;
             }
-
             // search using column
             $result = array_get($table, 'custom_columns')->first(function ($custom_column) {
                 // this column is search_enabled, add array.
                 if (!$custom_column->indexEnabled()) {
                     return false;
                 }
-
-                // only set $value_table (for relation search)
-                if (isset($value_table)) {
-                    // get only table as below
-                    // - $table equal self target table
-                    // - $table is child table for $value_table
-                    // $custom_column->column_type is "select_target_table" and $custom_column->options->select_target_table is target_table
-                    $result = false;
-                    if (array_get($table, 'id') == $value_table->id) {
-                        $result = true;
-                    }
-                    
-                    if (!$result) {
-                        
-                        // get custom relation.
-                        if (!is_null(CustomRelation
-                            ::where('parent_custom_table_id', $value_table->id)
-                            ->where('child_custom_table_id', $table['id'])
-                            ->first())) {
-                            $result = true;
-                        }
-                    }
-
-                    if (!$result) {
-                        return false;
-                    }
-                }
-
                 return true;
             });
-            if (!is_null($result)) {
-                array_push($results, $this->getTableArray($table));
+            if (!is_null($result) && count($result) > 0) {
+                array_push($results, $table);
             }
         }
-
-        return $results;
+        return collect($results);
     }
-
     /**
      * Get search results using query
      */
@@ -274,25 +209,41 @@ EOT;
     {
         $q = $request->input('query');
         $table = CustomTable::getEloquent($request->input('table_name'), true);
-
+        $boxHeader = $this->getBoxHeaderHtml($table);
         // search all data using index --------------------------------------------------
-        $datalist = $table->searchValue($q);
+        $paginate = $table->searchValue($q, [
+            'paginate' => true
+        ]);
+        $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name={$request->input('table_name')}");
+        $datalist = $paginate->items();
         
         // Get result HTML.
         if (count($datalist) == 0) {
-            return ['table_name' => array_get($table, 'table_name'), "html" => exmtrans('search.no_result')];
+            return [
+                'table_name' => array_get($table, 'table_name'),
+                'header' => $boxHeader,
+                'body' => exmtrans('search.no_result')
+            ];
         }
-
+        $links = $paginate->links('exment::search.links')->toHtml();
         // get headers and bodies
         $view = CustomView::getDefault($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
-                $link .= (new Linker)->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
+                if (count($custom_table->getRelationTables()) > 0) {
+                    $link .= (new Linker)
+                    ->url($data->getRelationSearchUrl(true))
+                    ->icon('fa-compress')
                     ->tooltip(exmtrans('search.header_relation'));
+                }
             }
         ]);
-
-        return ['table_name' => array_get($table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->class('table table-hover')->render()];
+        return [
+            'table_name' => array_get($table, 'table_name'),
+            'header' => $boxHeader,
+            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(),
+            'footer' => $links
+        ];
     }
     
     // For relation search  --------------------------------------------------
@@ -303,23 +254,18 @@ EOT;
      */
     protected function getRelationSearch(Request $request, Content $content)
     {
-
         // get seleted name
         $table = CustomTable::getEloquent($request->input('table_name'));
         $model = getModelName($table)::find($request->input('value_id'));
-
         // get target tables
         $targetTables = $this->getSearchTargetRelationTable($table);
         // if if only self table, and query "relation"(force showing relation), then redirect show page
         if (count($targetTables) == 1 && $request->input('relation') != "1") {
             return redirect($model->getUrl());
         }
-
         $this->AdminContent($content);
-
         $content->header(exmtrans('search.header_relation'));
         $content->description(exmtrans('search.description_relation'));
-
         $value = $model->label;
         $content->body(
             view('exment::search.index', [
@@ -328,55 +274,32 @@ EOT;
             'query' => $value,
             'tables' => $this->getSearchTargetRelationTable($table)])
         );
-
         // create searching javascript
         $list_url = admin_url("search/relation");
         $script = <<<EOT
-var searchIndex = 0;
-$(function () {
-    getNaviData();
-});
-
 function getNaviData() {
     var tables = JSON.parse($('.tables').val());
     for (var i = 0; i < tables.length; i++) {
         var table = tables[i];
-
-        // Get data
-        $.ajax({
-            url: '$list_url',
-            type: 'POST',
-            data: {
-                search_table_name: table.table_name
-                , value_table_name: $('.table_name').val()
-                , value_id: $('.value_id').val()
-                , search_type: table.search_type
-                , _token: LA.token
-            },
-            dataType: "json"
-        })
-            // Execute when success Ajax Request
-            .done((data) => {
-                console.log(data);
-                var box = $('.table_' + data.table_name);
-                box.find('.box-body').html(data.html);
-                box.find('.overlay').remove();
-                Exment.CommonEvent.tableHoverLink();
-            })
-            .always((data) => {
-            });
+        if(!hasValue(table)){
+            continue;
+        }
+        var url = admin_url('search/relation?search_table_name=' + table.table_name 
+            + '&value_table_name=' + $('.table_name').val() 
+            + '&value_id=' + $('.value_id').val()
+            + '&search_type=' + table.search_type
+        );
+        getNaviDataItem(url, table.table_name);
     }
 }
-
 EOT;
         Admin::script($script);
-
+        $this->setCommonScript();
         // add header and description
         $title = sprintf(exmtrans("search.result_label"), $value);
         $this->setPageInfo($title);
         return $content;
     }
-
     /**
      * get query relation value
      */
@@ -390,7 +313,7 @@ EOT;
         /// $search_table is the table for search. it's ex. select_table, relation, ...
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
-
+        $boxHeader = $this->getBoxHeaderHtml($search_table);
         switch ($search_type) {
             // self table
             case SearchType::SELF:
@@ -398,61 +321,87 @@ EOT;
                 break;
             // select_table(select box)
             case SearchType::SELECT_TABLE:
-                // Retrieve the record list whose value is "value_id" in the column "options.select_target_table" of the table "custom column"
-                $selecttable_columns = $search_table->custom_columns()
-                    ->where('column_type', 'select_table')
-                    ->whereIn('options->select_target_table', [$value_table_id, strval($value_table_id)])
-                    ->get();
-
-                $data = $search_table->searchValue($value_id, [
-                    'isLike' => false
+                // get columns for
+                $searchColumns = $search_table
+                    ->custom_columns()
+                    ->where('column_type', ColumnType::SELECT_TABLE)
+                    ->where('options->select_target_table', $value_table_id)
+                    ->indexEnabled()
+                    ->get()
+                    ->map(function ($c) {
+                        return $c->getIndexColumnName();
+                    });
+                $paginate = $search_table->searchValue($value_id, [
+                    'isLike' => false,
+                    'paginate' => true,
+                    'searchColumns' => $searchColumns,
                 ]);
+                
+                $data = $paginate->items();
                 break;
             
             // one_to_many
             case SearchType::ONE_TO_MANY:
-                $data = getModelName($search_table)::where('parent_id', $value_id)->take(5)->get();
+                $paginate = getModelName($search_table)::where('parent_id', $value_id)->paginate(5);
+                $data = $paginate->items();
                 break;
             // many_to_many
             case SearchType::MANY_TO_MANY:
                 $relation_name = CustomRelation::getRelationNameByTables($value_table, $search_table);
-
                 // get search_table value
                 // where: parent_id is value_id
-                $data = getModelName($search_table)
+                $paginate = getModelName($search_table)
                     ::join($relation_name, "$relation_name.child_id", getDBTableName($search_table).".id")
                     ->where("$relation_name.parent_id", $value_id)
-                    ->take(5)
-                    ->get();
+                    ->paginate(5);
+                $data = $paginate->items();
                 break;
         }
-
+        if (isset($paginate)) {
+            $paginate->setPath(
+                admin_urls('search', 'relation')
+                . "?value_table_name={$request->input('value_table_name')}"
+                . "&search_table_name={$request->input('search_table_name')}"
+                . "&value_id={$request->input('value_id')}"
+                . "&search_type={$request->input('search_type')}"
+            );
+        }
         // Get search result HTML.
         if (!$data || count($data) == 0) {
-            return ['table_name' => array_get($search_table, 'table_name'), "html" => exmtrans('search.no_result')];
+            return [
+                'table_name' => array_get($search_table, 'table_name'),
+                'header' => $boxHeader,
+                'body' => exmtrans('search.no_result'),
+            ];
         }
+        // set links
+        $links = isset($paginate) ? $paginate->links('exment::search.links')->toHtml() : "";
         
         // get headers and bodies
         $view = CustomView::getDefault($search_table);
-
         // definition action_callback is not $search_type is SELF
         if ($search_type != SearchType::SELF) {
             $option = [
                 'action_callback' => function (&$link, $custom_table, $data) {
-                    $link .= (new Linker)
-                        ->url(admin_url('search?table_name='.array_get($custom_table, 'table_name').'&relation=1&value_id='.array_get($data, 'id')))->icon('fa-compress')
+                    if (count($custom_table->getRelationTables()) > 0) {
+                        $link .= (new Linker)
+                        ->url($data->getRelationSearchUrl(true))
+                        ->icon('fa-compress')
                         ->tooltip(exmtrans('search.header_relation'));
+                    }
                 }
             ];
         } else {
             $option = [];
         }
-
         list($headers, $bodies) = $view->getDataTable($data, $option);
-
-        return ['table_name' => array_get($search_table, 'table_name'), "html" => (new WidgetTable($headers, $bodies))->class('table table-hover')->render()];
+        return [
+            'table_name' => array_get($search_table, 'table_name'),
+            'header' => $boxHeader,
+            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(),
+            'footer' => $links
+        ];
     }
-
     /**
      * Get Search enabled relation table list.
      * It contains search_type(self, select_table, one_to_many, many_to_many)
@@ -460,49 +409,16 @@ EOT;
     protected function getSearchTargetRelationTable($value_table)
     {
         $results = [];
-
+        // get relation tables
+        $relationTables = $value_table->getRelationTables();
         // 1. For self-table
         array_push($results, $this->getTableArray($value_table, SearchType::SELF));
-
-        // 2. Get tables as "select_table". They contains these columns matching them.
-        // * table_column > options > search_enabled is true.
-        // * table_column > options > select_target_table is table id user selected.
-        $tables = CustomTable
-        ::whereHas('custom_columns', function ($query) use ($value_table) {
-            $query->whereIn('options->index_enabled', [1, "1"])
-            ->whereIn('options->select_target_table', [$value_table->id, strval($value_table->id)]);
-        })
-        ->searchEnabled()
-        ->get();
-
-        foreach ($tables as $table) {
-            // if not role, continue
-            if (!$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                continue;
-            }
-            array_push($results, $this->getTableArray($table, SearchType::SELECT_TABLE));
+        // loop and add $results
+        foreach ($relationTables as $relationTable) {
+            array_push($results, $this->getTableArray($relationTable['table'], $relationTable['searchType']));
         }
-
-        // 3. Get relation tables.
-        // * table "custom_relations" and column "parent_custom_table_id" is $value_table->id.
-        $tables = CustomTable
-        ::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
-        ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
-            ->whereHas('custom_relations', function ($query) use ($value_table) {
-                $query->where('parent_custom_table_id', $value_table->id);
-            })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
-        foreach ($tables as $table) {
-            // if not role, continue
-            $table_obj = CustomTable::getEloquent(array_get($table, 'id'));
-            if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-                continue;
-            }
-            array_push($results, $this->getTableArray($table, array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY));
-        }
-
         return $results;
     }
-
     protected function getTableArray($table, $search_type = null)
     {
         $array = [
@@ -520,5 +436,59 @@ EOT;
             $array['show_list'] = true;
         }
         return $array;
+    }
+    protected function getBoxHeaderHtml($custom_table)
+    {
+        // boxheader
+        $boxHeader = [];
+        // check edit permission
+        if ($custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            $new_url = admin_url("data/{$custom_table->table_name}/create");
+            $list_url = admin_url("data/{$custom_table->table_name}");
+        }
+        return view('exment::dashboard.list.header', [
+            'new_url' => $new_url ?? null,
+            'list_url' => $list_url ?? null,
+        ])->render();
+    }
+    /**
+     * set common script for list or relation search
+     */
+    protected function setCommonScript()
+    {
+        // create searching javascript
+        $script = <<<EOT
+    $(function () {
+        getNaviData();
+    });
+    function getNaviDataItem(url, table_name){
+        var box = $('.table_' + table_name);
+        box.find('.overlay').show();
+        // Get Data
+        $.ajax({
+            url: url,
+            type: 'GET',
+        })
+        // Execute when success Ajax Request
+        .done((data) => {
+            var box = $('.table_' + data.table_name);
+            box.find('.box-body .box-body-inner-header').html(data.header);
+            box.find('.box-body .box-body-inner-body').html(data.body);
+            box.find('.box-body .box-body-inner-footer').html(data.footer);
+            box.find('.overlay').hide();
+            Exment.CommonEvent.tableHoverLink();
+        })
+        .always((data) => {
+        });
+    }
+    ///// click dashboard link event
+    $(document).off('click', '[data-ajax-link]').on('click', '[data-ajax-link]', [], function(ev){
+        // get link
+        var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
+        var table_name = $(ev.target).closest('[data-table_name]').data('table_name');
+        getNaviDataItem(url, table_name);
+    });
+EOT;
+        Admin::script($script);
     }
 }

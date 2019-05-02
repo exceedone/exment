@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
@@ -23,26 +22,6 @@ trait HasPermissions
     use Authenticatable;
     use CanResetPassword;
 
-    public function getNameAttribute()
-    {
-        return array_get($this->base_user->value, "user_name");
-    }
-
-    /**
-     * Get avatar attribute.
-     *
-     * @param string $avatar
-     *
-     * @return string
-     */
-    public function getAvatarAttribute($avatar = null)
-    {
-        if ($avatar) {
-            return Storage::disk(config('admin.upload.disk'))->url($avatar);
-        }
-        return asset('vendor/exment/images/user.png');
-    }
-    
     /**
      * whethere has permission, permission level
      * $role_key * if set array, check whether either items.

@@ -201,7 +201,7 @@ trait TemplateTrait
      *
      * @return array template items
      */
-    public static function importTemplate($array, $options = [])
+    public static function importTemplate($array, $is_update, $options = [])
     {
         //copy array for replacing items
         $json = $array;
@@ -290,6 +290,11 @@ trait TemplateTrait
         // create model
         $obj = static::firstOrNew($obj_keys);
 
+        // if record is exists already skip process, when update
+        if ($is_update && $obj->exists) {
+            return $obj;
+        }
+
         // replace especially datalists
         $excepts = method_exists($obj, 'importSetValue') ? $obj->importSetValue($json, $options) : [];
 
@@ -344,7 +349,7 @@ trait TemplateTrait
     
                 // Create children
                 foreach (array_get($json, $key, []) as $count => $child) {
-                    $classname::importTemplate($child, [
+                    $classname::importTemplate($child, $is_update, [
                         'parent' => $obj,
                         'count' => ($count + 1)
                     ]);

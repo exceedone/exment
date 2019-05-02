@@ -53,6 +53,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('dashboardbox', 'DashboardBoxController');
 
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
+            $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
         
@@ -83,9 +84,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
         
             $router->get('search', 'SearchController@index');
-            $router->post('search/list', 'SearchController@getList');
-            $router->post('search/header', 'SearchController@header');
-            $router->post('search/relation', 'SearchController@getRelationList');
+            $router->get('search/list', 'SearchController@getList');
+            $router->get('search/header', 'SearchController@header');
+            $router->get('search/relation', 'SearchController@getRelationList');
         
             $router->get('backup', 'BackupController@index');
             $router->delete('backup/delete', 'BackupController@delete');
@@ -106,6 +107,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
+            $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
 
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
@@ -184,9 +186,9 @@ class RouteServiceProvider extends ServiceProvider
                 // value --------------------------------------------------
                 $router->get("data/{tableKey}", 'ApiTableController@dataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/query", 'ApiTableController@dataQuery')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/relatedLinkage", 'ApiTableController@relatedLinkage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/{id}", 'ApiTableController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->post("data/{tableKey}/{id}", 'ApiTableController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
-                $router->get("data/{tableKey}/relatedLinkage", 'ApiTableController@relatedLinkage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->post("data/{tableKey}", 'ApiTableController@dataCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                 $router->put("data/{tableKey}/{id}", 'ApiTableController@dataUpdate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                 $router->delete("data/{tableKey}/{id}", 'ApiTableController@dataDelete')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));

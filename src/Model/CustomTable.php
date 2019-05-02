@@ -8,6 +8,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
@@ -158,6 +160,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_forms as $item) {
             $item->deletingChildren();
         }
+        foreach ($this->custom_views as $item) {
+            $item->deletingChildren();
+        }
+        foreach ($this->from_custom_copies as $item) {
+            $item->deletingChildren();
+        }
         foreach ($this->custom_form_block_target_tables as $item) {
             $item->deletingChildren();
         }
@@ -167,6 +175,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         parent::boot();
         
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
+
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -284,15 +295,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model = $model->whereIn('id', $permission_table_ids);
         }
 
-        // add default order
-        $model = $model->orderBy('order', 'asc');
-
         if ($options['getModel']) {
             return $model->get();
         }
         return $model;
     }
 
+    /**
+     * get 'with' array for get eloquent
+     */
     protected static function getWiths($withs)
     {
         if (is_array($withs)) {
@@ -351,22 +362,29 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'maxCount' => 5,
                 'paginate' => false,
                 'makeHidden' => false,
+                'searchColumns' => null,
             ],
             $options
         );
         extract($options);
 
-        $search_columns = $this->getSearchEnabledColumns();
-
+        // if selected target column,
+        $searchColumns =  $options['searchColumns'];
+        if (is_null($searchColumns)) {
+            $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
+                return $c->getIndexColumnName();
+            });
+        }
+        
         $data = [];
         $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         $mark = ($isLike ? 'LIKE' : '=');
 
         // get data
         $query = getModelName($this)
-            ::where(function ($wherequery) use ($search_columns, $mark, $value) {
-                foreach ($search_columns as $search_column) {
-                    $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $value);
+            ::where(function ($wherequery) use ($searchColumns, $mark, $value) {
+                foreach ($searchColumns as $searchColumn) {
+                    $wherequery->orWhere($searchColumn, $mark, $value);
                 }
             });
         
@@ -531,7 +549,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($count <= 100) {
             return null;
         }
-        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "search");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
     }
 
     /**
@@ -769,11 +787,66 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $options;
     }
         
-    public function getValueModel()
+    /**
+     * Get relation tables list.
+     * It contains search_type(select_table, one_to_many, many_to_many)
+     */
+    public function getRelationTables()
+    {
+        // check already execute
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $this->table_name);
+        return System::requestSession($key, function () {
+            $results = [];
+            // 1. Get tables as "select_table". They contains these columns matching them.
+            // * table_column > options > search_enabled is true.
+            // * table_column > options > select_target_table is table id user selected.
+            $tables = static::whereHas('custom_columns', function ($query) {
+                $query->whereIn('options->index_enabled', [1, "1"])
+                ->whereIn('options->select_target_table', [$this->id, strval($this->id)]);
+            })
+            ->searchEnabled()
+            ->get();
+    
+            foreach ($tables as $table) {
+                // if not role, continue
+                $table_obj = static::getEloquent(array_get($table, 'id'));
+                if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                    continue;
+                }
+                array_push($results, ['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj]);
+            }
+    
+            // 2. Get relation tables.
+            // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
+            $tables = static
+            ::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
+            ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
+                ->whereHas('custom_relations', function ($query) {
+                    $query->where('parent_custom_table_id', $this->id);
+                })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
+            foreach ($tables as $table) {
+                // if not role, continue
+                $table_obj = static::getEloquent(array_get($table, 'id'));
+                if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                    continue;
+                }
+                $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
+                array_push($results, ['searchType' => $searchType, 'table' => $table_obj]);
+            }
+    
+            return $results;
+        });
+    }
+
+    public function getValueModel($id = null)
     {
         $modelname = getModelName($this);
-        $model = new $modelname;
-
+        if (isset($id)) {
+            $model = $modelname::find($id);
+        } else {
+            $model = new $modelname;
+        }
+        
         return $model;
     }
 

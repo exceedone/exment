@@ -8,6 +8,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -37,6 +38,7 @@ class CustomTableController extends AdminControllerBase
         $grid = new Grid(new CustomTable);
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
+        $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\GridChangePageMenu('table', null, true));
@@ -71,8 +73,8 @@ class CustomTableController extends AdminControllerBase
         if (!isset($id)) {
             $form->text('table_name', exmtrans("custom_table.table_name"))
                 ->required()
-                ->rules("unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
-                ->help(exmtrans('common.help_code'));
+                ->rules("max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/")
+                ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('table_name', exmtrans("custom_table.table_name"));
         }
@@ -80,6 +82,9 @@ class CustomTableController extends AdminControllerBase
             ->required()
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
+        
+        
+        $form->number('order', exmtrans("custom_table.order"))->rules("integer");
         
         $form->header(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
@@ -96,6 +101,10 @@ class CustomTableController extends AdminControllerBase
                 ->default("0")
                 ;
             $form->switchbool('attachment_flg', exmtrans("custom_table.attachment_flg"))->help(exmtrans("custom_table.help.attachment_flg"))
+                ->default("1")
+                ;
+            $form->switchbool('comment_flg', exmtrans("custom_table.comment_flg"))
+                ->help(exmtrans("custom_table.help.comment_flg"))
                 ->default("1")
                 ;
             $form->switchbool('revision_flg', exmtrans("custom_table.revision_flg"))->help(exmtrans("custom_table.help.revision_flg"))
@@ -231,5 +240,23 @@ class CustomTableController extends AdminControllerBase
             'menu_name' => $model->table_name,
             'menu_target' => $model->id,
         ]);
+    }
+
+    /**
+     * validate before delete.
+     */
+    protected function validateDestroy($id)
+    {
+        // check select_table
+        $column_count = CustomColumn::whereIn('options->select_target_table', [strval($id), intval($id)])
+            ->where('custom_table_id', '<>', $id)
+            ->count();
+
+        if ($column_count > 0) {
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
     }
 }

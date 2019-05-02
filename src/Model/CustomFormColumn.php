@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Illuminate\Database\Eloquent\Builder;
 
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -180,7 +179,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                 list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
                 $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
             } else {
-                $changedata_target_table = $target_table;
+                $changedata_target_table = $options['parent']->target_table;
             }
             array_set($json, 'options.changedata_custom_table_id', $changedata_target_table->id);
             array_set($json, 'options.changedata_target_column_name', $changedata_target_column_name);
@@ -201,9 +200,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         parent::boot();
 
-        // Order by name ASC
-        static::addGlobalScope('order', function (Builder $builder) {
-            $builder->orderBy('order', 'asc');
-        });
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
     }
 }
