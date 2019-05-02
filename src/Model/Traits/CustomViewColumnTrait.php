@@ -3,8 +3,10 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\RelationType;
@@ -12,6 +14,25 @@ use Exceedone\Exment\ColumnItems;
 
 trait CustomViewColumnTrait
 {
+
+    public function custom_view()
+    {
+        return $this->belongsTo(CustomView::class, 'custom_view_id');
+    }
+    
+    public function custom_column()
+    {
+        if ($this->view_column_type == ViewColumnType::SYSTEM) {
+            return null;
+        }
+        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
+    }
+    
+    public function custom_table()
+    {
+        return $this->belongsTo(CustomTable::class, 'view_column_table_id');
+    }
+
     /**
      * get ViewColumnTarget.
      * * we have to convert string if view_column_type is system for custom view form-display*
@@ -159,7 +180,12 @@ trait CustomViewColumnTrait
      */
     protected function getUniqueKeyValues()
     {
-        $table_name = $this->custom_table->table_name;
+        if(isset($this->custom_table)){
+            $table_name = $this->custom_table->table_name;
+        }else{
+            $table_name = $this->custom_view->custom_table->table_name;
+        }
+
         switch ($this->view_column_type) {
             case ViewColumnType::COLUMN:
                 return [

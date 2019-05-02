@@ -8,6 +8,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
@@ -239,5 +240,23 @@ class CustomTableController extends AdminControllerBase
             'menu_name' => $model->table_name,
             'menu_target' => $model->id,
         ]);
+    }
+
+    /**
+     * validate before delete.
+     */
+    protected function validateDestroy($id)
+    {
+        // check select_table
+        $column_count = CustomColumn::whereIn('options->select_target_table', [$id, strval($id)])
+            ->where('custom_table_id', '<>', $id)
+            ->count();
+
+        if($column_count > 0){
+            return [
+                'status'  => false,
+                'message' => exmtrans('custom_value.help.reference_error'),
+            ];
+        }
     }
 }

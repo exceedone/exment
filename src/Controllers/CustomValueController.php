@@ -127,20 +127,6 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
     
-    // /**
-    //  * Update the specified resource in storage.
-    //  *
-    //  * @param int $id
-    //  *
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function update($id)
-    // {
-    //     // call form using id
-    //     $response = $this->form($id)->update($id);
-    //     return $response;
-    // }
-
     /**
      * Show interface.
      *
@@ -210,28 +196,11 @@ class CustomValueController extends AdminControllerTableBase
     }
  
     /**
-     * delete comment.
-     */
-    public function delComment(Request $request, $tableKey, $id)
-    {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
-            return $response;
-        }
-        if (!empty($id)) {
-            getModelName(SystemTableName::COMMENT)::find($id)->delete();
-        }
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
-    }
- 
-    /**
      * add comment.
      */
     public function addComment(Request $request, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
             return $response;
         }
         $comment = $request->get('comment');
@@ -247,10 +216,9 @@ class CustomValueController extends AdminControllerTableBase
             $model->save();
         }
 
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        $url = admin_urls('data', $this->custom_table->table_name, $id);
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect($url);
     }
  
     /**
@@ -407,6 +375,7 @@ class CustomValueController extends AdminControllerTableBase
         //Validation table value
         $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
         if (!$this->validateTable($this->custom_table, $roleValue)) {
+            Checker::error();
             return false;
         }
             

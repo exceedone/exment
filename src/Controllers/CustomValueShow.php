@@ -227,8 +227,9 @@ EOT;
             $comments = $this->getComments($id, $modal);	
             $form = new WidgetForm;	
             $form->disableReset();	
-            $form->disableSubmit();	
-    	
+            $form->action(admin_urls('data', $this->custom_table->table_name, $id, 'addcomment'));
+            $form->setWidth(10, 2);
+
             if (count($comments) > 0) {	
                 $html = [];	
                 foreach ($comments as $index => $comment) {	
@@ -242,32 +243,12 @@ EOT;
                 $form->html(implode("", $html))	
                     ->plain()	
                     ->setWidth(8, 3);	
-            }	
+            }
             $form->textarea('comment', exmtrans("common.comment"))	
                 ->rows(3)	
+                ->required()
                 ->setLabelClass(['d-none'])	
-                ->setWidth(12, 0);	
-            $form->button('add_comment', trans("admin.submit"))	
-                ->setElementClass(['btn-primary', 'pull-right', 'add-comment'])	
-                ->setWidth(12, 0);	
-            $ajax_url = admin_urls('data', $this->custom_table->table_name, $id, 'addcomment');	
-            $script = <<<EOT
-            $("input.add-comment").on('click', function(e, params) {	
-                var comment = $('textarea.comment').val();	
-                $.ajax({	
-                    url: "$ajax_url",	
-                    data: {	
-                        _token: LA.token,	
-                        comment: comment	
-                    },	
-                    type: "POST",	
-                    success: function (data) {	
-                        $.pjax.reload('#pjax-container');	
-                    },	
-                });	
-            });	
-EOT;
-            Admin::script($script);	
+                ->setWidth(12, 0);
             $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));	
         }
     }

@@ -82,20 +82,22 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
     }
 
-    public function getTableNameAttribute()
-    {
-        return $this->custom_table->table_name;
-    }
-
     public function custom_view_summaries()
     {
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
+    }
+
+    public function getTableNameAttribute()
+    {
+        return $this->custom_table->table_name;
     }
 
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();
         $this->custom_view_filters()->delete();
+        $this->custom_view_sorts()->delete();
+        $this->custom_view_summaries()->delete();
     }
 
     protected static function boot()
