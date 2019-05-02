@@ -41,7 +41,7 @@ return [
             'success_execute' => 'Execute Success!',
             'error_execute' => 'Execute Error',
             'import_success' => 'Success Import!',
-            'import_error' => 'Success Error. Please Check csv file.',
+            'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
             'wrongdata' => 'Data is wrong. Please check url.',
         ],
