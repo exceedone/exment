@@ -96,7 +96,7 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
                             $.pjax.reload('#pjax-container');
             
                             if (typeof data === 'object') {
-                                if (data.status) {
+                                if (data.status === true || data.result === true) {
                                     swal(data.message, '', 'success');
                                 } else {
                                     swal(data.message, '', 'error');

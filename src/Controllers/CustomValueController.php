@@ -248,10 +248,9 @@ class CustomValueController extends AdminControllerTableBase
             $model->save();
         }
 
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        $url = admin_urls('data', $this->custom_table->table_name, $id);
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect($url);
     }
  
     /**
