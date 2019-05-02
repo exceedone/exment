@@ -2,12 +2,6 @@
 namespace Exment {
     export class CustomFromEvent {
         public static AddEvent() {
-            CustomFromEvent.addDragEvent();
-            CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
-            $('form').on('submit', CustomFromEvent.ignoreSuggests);
-        }
-
-        public static AddEventOnce() {
             $('.box-custom_form_block').on('ifChanged check', '.icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
             $('.box-custom_form_block').on('click', '.delete', {}, CustomFromEvent.deleteColumn);
             $('.box-custom_form_block').on('click', '.btn-addallitems', {}, CustomFromEvent.addAllItems);
@@ -16,6 +10,12 @@ namespace Exment {
             $('.box-custom_form_block').on('click', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
             $('.box-custom_form_block').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
 
+            CustomFromEvent.addDragEvent();
+            CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
+            $('form').on('submit', CustomFromEvent.ignoreSuggests);
+        }
+
+        public static AddEventOnce() {
             $(document).on('pjax:complete', function (event) {
                 CustomFromEvent.AddEvent();
             });
@@ -176,6 +176,11 @@ namespace Exment {
 
         private static deleteColumn = (ev) => {
             var item = $(ev.target).closest('.custom_form_column_item');
+            if(item.hasClass('deleting')){
+                return;
+            }
+            item.addClass('deleting');
+
             var header_name = CustomFromEvent.getHeaderName(item);
             // Add delete flg
             item.append($('<input/>', {
