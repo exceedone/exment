@@ -252,7 +252,7 @@ class CustomTableController extends AdminControllerBase
             ->where('custom_table_id', '<>', $id)
             ->count();
 
-        if($column_count > 0){
+        if ($column_count > 0) {
             return [
                 'status'  => false,
                 'message' => exmtrans('custom_value.help.reference_error'),

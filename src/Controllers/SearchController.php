@@ -1,5 +1,6 @@
 <?php
 namespace Exceedone\Exment\Controllers;
+
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
@@ -11,9 +12,9 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
+
 class SearchController extends AdminControllerBase
 {
     protected $custom_table;
@@ -169,7 +170,7 @@ EOT;
         $title = sprintf(exmtrans("search.result_label"), $request->input('query'));
         $this->setPageInfo($title, $title, exmtrans("plugin.description"));
 
-        $tableArrays = $this->getSearchTargetTable()->map(function($table){
+        $tableArrays = $this->getSearchTargetTable()->map(function ($table) {
             return $this->getTableArray($table);
         });
         $content->body(view('exment::search.index', ['query' => $request->input('query'), 'tables' => $tableArrays]));
@@ -219,9 +220,9 @@ EOT;
         // Get result HTML.
         if (count($datalist) == 0) {
             return [
-                'table_name' => array_get($table, 'table_name'), 
+                'table_name' => array_get($table, 'table_name'),
                 'header' => $boxHeader,
-                'body' => exmtrans('search.no_result') 
+                'body' => exmtrans('search.no_result')
             ];
         }
         $links = $paginate->links('exment::search.links')->toHtml();
@@ -238,9 +239,9 @@ EOT;
             }
         ]);
         return [
-            'table_name' => array_get($table, 'table_name'), 
+            'table_name' => array_get($table, 'table_name'),
             'header' => $boxHeader,
-            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(), 
+            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(),
             'footer' => $links
         ];
     }
@@ -320,14 +321,14 @@ EOT;
                 break;
             // select_table(select box)
             case SearchType::SELECT_TABLE:
-                // get columns for 
+                // get columns for
                 $searchColumns = $search_table
                     ->custom_columns()
                     ->where('column_type', ColumnType::SELECT_TABLE)
                     ->where('options->select_target_table', $value_table_id)
                     ->indexEnabled()
                     ->get()
-                    ->map(function($c){
+                    ->map(function ($c) {
                         return $c->getIndexColumnName();
                     });
                 $paginate = $search_table->searchValue($value_id, [
@@ -356,8 +357,9 @@ EOT;
                 $data = $paginate->items();
                 break;
         }
-        if(isset($paginate)){
-            $paginate->setPath(admin_urls('search', 'relation') 
+        if (isset($paginate)) {
+            $paginate->setPath(
+                admin_urls('search', 'relation')
                 . "?value_table_name={$request->input('value_table_name')}"
                 . "&search_table_name={$request->input('search_table_name')}"
                 . "&value_id={$request->input('value_id')}"
@@ -367,9 +369,9 @@ EOT;
         // Get search result HTML.
         if (!$data || count($data) == 0) {
             return [
-                'table_name' => array_get($search_table, 'table_name'), 
+                'table_name' => array_get($search_table, 'table_name'),
                 'header' => $boxHeader,
-                'body' => exmtrans('search.no_result'), 
+                'body' => exmtrans('search.no_result'),
             ];
         }
         // set links
@@ -381,7 +383,7 @@ EOT;
         if ($search_type != SearchType::SELF) {
             $option = [
                 'action_callback' => function (&$link, $custom_table, $data) {
-                    if(count($custom_table->getRelationTables()) > 0){
+                    if (count($custom_table->getRelationTables()) > 0) {
                         $link .= (new Linker)
                         ->url($data->getRelationSearchUrl(true))
                         ->icon('fa-compress')
@@ -394,9 +396,9 @@ EOT;
         }
         list($headers, $bodies) = $view->getDataTable($data, $option);
         return [
-            'table_name' => array_get($search_table, 'table_name'), 
+            'table_name' => array_get($search_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(), 
+            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(),
             'footer' => $links
         ];
     }
@@ -412,7 +414,7 @@ EOT;
         // 1. For self-table
         array_push($results, $this->getTableArray($value_table, SearchType::SELF));
         // loop and add $results
-        foreach($relationTables as $relationTable){
+        foreach ($relationTables as $relationTable) {
             array_push($results, $this->getTableArray($relationTable['table'], $relationTable['searchType']));
         }
         return $results;
@@ -452,7 +454,8 @@ EOT;
     /**
      * set common script for list or relation search
      */
-    protected function setCommonScript(){
+    protected function setCommonScript()
+    {
         // create searching javascript
         $script = <<<EOT
     $(function () {

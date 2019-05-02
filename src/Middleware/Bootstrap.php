@@ -26,7 +26,7 @@ class Bootstrap
 
         // get exment version
         $ver = getExmentCurrentVersion();
-        if(!isset($ver)){
+        if (!isset($ver)) {
             $ver = date('YmdHis');
         }
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));

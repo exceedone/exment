@@ -115,7 +115,7 @@ class MenuController extends AdminControllerBase
                     if (!url()->isValidUrl($uri)) {
                         $esc_uri = esc_html(trim(admin_base_path($uri), '/'));
                         $uri = admin_url($uri);
-                    }else{
+                    } else {
                         $esc_uri = esc_html($uri);
                     }
 

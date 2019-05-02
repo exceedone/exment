@@ -92,7 +92,7 @@ class SelectTable extends CustomItem
 
     protected function setAdminOptions(&$field, $form_column_options)
     {
-        if(!isset($this->target_table)){
+        if (!isset($this->target_table)) {
             return;
         }
 

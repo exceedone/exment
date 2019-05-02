@@ -151,7 +151,7 @@ trait CustomValueGrid
                 }
 
                 // if has relations, add link
-                if(count($relationTables) > 0){
+                if (count($relationTables) > 0) {
                     $linker = (new Linker)
                         ->url($this->row->getRelationSearchUrl())
                         ->icon('fa-compress')

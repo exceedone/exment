@@ -344,7 +344,7 @@ abstract class CustomItem implements ItemInterface
         $help_regexes = [];
         if (array_key_value_exists('available_characters', $options)) {
             $available_characters = array_get($options, 'available_characters') ?? [];
-            if(is_string($available_characters)){
+            if (is_string($available_characters)) {
                 $available_characters = explode(",", $available_characters);
             }
             $regexes = [];
