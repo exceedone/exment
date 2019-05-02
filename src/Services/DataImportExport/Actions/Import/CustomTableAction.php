@@ -53,7 +53,7 @@ class CustomTableAction implements ActionInterface
                     'result' => false,
                     'toastr' => exmtrans('common.message.import_error'),
                     'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
-                ]);
+                ], 400);
             }
             $data_imports[] = [
                 'provider' => $provider,
