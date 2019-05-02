@@ -488,9 +488,11 @@ class CustomFormController extends AdminControllerTableBase
                     // if key is "NEW_", create new column
                     $new_column = starts_with($column_key, 'NEW_');
 
-                    // when user click delete, execute delete
-                    if (!$new_column && boolval(array_get($column_value, 'delete_flg'))) {
-                        CustomFormColumn::findOrFail($column_key)->delete();
+                    // if delete flg is true, delete and continue
+                    if(boolval(array_get($column_value, 'delete_flg'))){
+                        if (!$new_column){
+                            CustomFormColumn::findOrFail($column_key)->delete();
+                        }
                         continue;
                     } elseif ($new_column) {
                         $column = new CustomFormColumn;
