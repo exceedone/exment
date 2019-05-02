@@ -90,7 +90,8 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
                         url: url,
                         data: {
                             _method:'delete',
-                            _token:LA.token
+                            _token:LA.token,
+                            webresponse: true,  
                         },
                         success: function (data) {
                             $.pjax.reload('#pjax-container');

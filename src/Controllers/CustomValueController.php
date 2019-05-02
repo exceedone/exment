@@ -127,20 +127,6 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
     
-    // /**
-    //  * Update the specified resource in storage.
-    //  *
-    //  * @param int $id
-    //  *
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function update($id)
-    // {
-    //     // call form using id
-    //     $response = $this->form($id)->update($id);
-    //     return $response;
-    // }
-
     /**
      * Show interface.
      *
@@ -203,24 +189,6 @@ class CustomValueController extends AdminControllerTableBase
             });
         });
 
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
-    }
- 
-    /**
-     * delete comment.
-     * //this $id is not data's id. It's comment's id.
-     */
-    public function delComment(Request $request, $tableKey, $id)
-    {
-        if (($response = $this->firstFlow($request, null, true)) instanceof Response) {
-            return $response;
-        }
-        if (!empty($id)) {
-            getModelName(SystemTableName::COMMENT)::find($id)->delete();
-        }
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),

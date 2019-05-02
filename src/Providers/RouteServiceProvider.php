@@ -125,7 +125,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->delete('files/{uuid}', function ($uuid) {
                 return File::deleteFile($uuid);
             });
-            $router->delete('{tableKey}/comments/{id}', 'CustomValueController@delComment');
             
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
