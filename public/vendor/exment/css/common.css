@@ -3404,6 +3404,10 @@
   padding-left: 10px !important;
 }
 
+.sidebar .user-panel > .image > img {
+  height: 45px;
+}
+
 .form-revision .form-group {
   margin-bottom: 0;
 }
