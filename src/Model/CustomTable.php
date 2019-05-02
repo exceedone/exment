@@ -370,9 +370,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // if selected target column,
         $searchColumns =  $options['searchColumns'];
-        if(is_null($searchColumns))
-        {
-            $searchColumns = $this->getSearchEnabledColumns()->map(function($c){
+        if (is_null($searchColumns)) {
+            $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
                 return $c->getIndexColumnName();
             });
         }
@@ -796,7 +795,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         // check already execute
         $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $this->table_name);
-        return System::requestSession($key, function(){
+        return System::requestSession($key, function () {
             $results = [];
             // 1. Get tables as "select_table". They contains these columns matching them.
             // * table_column > options > search_enabled is true.
@@ -842,9 +841,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function getValueModel($id = null)
     {
         $modelname = getModelName($this);
-        if(isset($id)){
+        if (isset($id)) {
             $model = $modelname::find($id);
-        }else{
+        } else {
             $model = new $modelname;
         }
         

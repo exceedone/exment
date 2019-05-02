@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Illuminate\Database\Eloquent\Builder;
 
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {

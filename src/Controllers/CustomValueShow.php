@@ -12,7 +12,6 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -64,10 +63,10 @@ trait CustomValueShow
                                     return '';
                                 }
                                 return $item->setCustomValue($this)->html();
-                        })->setEscape(false);
+                            })->setEscape(false);
                     }
 
-                    if($custom_form_block->isMultipleColumn()){
+                    if ($custom_form_block->isMultipleColumn()) {
                         $show->setWidth(9, 3);
                     }
                 }
@@ -106,19 +105,19 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            $show->panel()->tools(function ($tools) use($modal, $custom_value) {
-                if(count($this->custom_table->getRelationTables()) > 0){
+            $show->panel()->tools(function ($tools) use ($modal, $custom_value) {
+                if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
                         <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
                             <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
                         </a>
-                    </div>');                        
+                    </div>');
                 }
 
                 if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
-                }else{
+                } else {
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
                     $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
@@ -146,7 +145,7 @@ trait CustomValueShow
         $custom_value = $this->getModelNameDV()::find($id);
         $documents = $this->getDocuments($id, $modal);
         $useFileUpload = $this->useFileUpload($modal);
-        $useComment = $this->useComment($modal);	
+        $useComment = $this->useComment($modal);
  
         $revisions = $this->getRevisions($id, $modal);
 
@@ -223,33 +222,33 @@ EOT;
             $row->column(6, (new Box('更新履歴', $form))->style('info'));
         }
 
-        if ($useComment) {	
-            $comments = $this->getComments($id, $modal);	
-            $form = new WidgetForm;	
-            $form->disableReset();	
+        if ($useComment) {
+            $comments = $this->getComments($id, $modal);
+            $form = new WidgetForm;
+            $form->disableReset();
             $form->action(admin_urls('data', $this->custom_table->table_name, $id, 'addcomment'));
             $form->setWidth(10, 2);
 
-            if (count($comments) > 0) {	
-                $html = [];	
-                foreach ($comments as $index => $comment) {	
-                    $html[] = "<p>" . view('exment::form.field.commentline', [	
-                        'comment' => $comment,	
+            if (count($comments) > 0) {
+                $html = [];
+                foreach ($comments as $index => $comment) {
+                    $html[] = "<p>" . view('exment::form.field.commentline', [
+                        'comment' => $comment,
                         'table_name' => $this->custom_table->table_name,
                         'isAbleRemove' => ($comment->created_user_id == \Exment::user()->base_user_id),
-                    ])->render() . "</p>";	
-                }	
-                // loop and add as link	
-                $form->html(implode("", $html))	
-                    ->plain()	
-                    ->setWidth(8, 3);	
+                    ])->render() . "</p>";
+                }
+                // loop and add as link
+                $form->html(implode("", $html))
+                    ->plain()
+                    ->setWidth(8, 3);
             }
-            $form->textarea('comment', exmtrans("common.comment"))	
-                ->rows(3)	
+            $form->textarea('comment', exmtrans("common.comment"))
+                ->rows(3)
                 ->required()
-                ->setLabelClass(['d-none'])	
+                ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-            $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));	
+            $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));
         }
     }
     
@@ -362,12 +361,12 @@ EOT;
         return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
     
-    /**	
-     * whether comment field	
-     */	
-    protected function useComment($modal = false)	
-    {	
-        return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);	
+    /**
+     * whether comment field
+     */
+    protected function useComment($modal = false)
+    {
+        return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
 
     protected function getDocuments($id, $modal = false)
@@ -381,15 +380,15 @@ EOT;
             ->get();
     }
     
-    protected function getComments($id, $modal = false)	
-    {	
-        if ($modal) {	
-            return [];	
-        }	
-        return getModelName(SystemTableName::COMMENT)	
-            ::where('parent_id', $id)	
-            ->where('parent_type', $this->custom_table->table_name)	
-            ->get();	
+    protected function getComments($id, $modal = false)
+    {
+        if ($modal) {
+            return [];
+        }
+        return getModelName(SystemTableName::COMMENT)
+            ::where('parent_id', $id)
+            ->where('parent_type', $this->custom_table->table_name)
+            ->get();
     }
 
     /**

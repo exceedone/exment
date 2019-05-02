@@ -407,7 +407,7 @@ class CustomColumnController extends AdminControllerTableBase
             // enable multiple
             $form->switchbool('multiple_enabled', exmtrans("custom_column.options.multiple_enabled"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
-                })->disableHeader();
+        })->disableHeader();
 
         $form->number('order', exmtrans("custom_column.order"))->rules("integer");
 
