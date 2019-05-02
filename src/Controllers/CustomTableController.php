@@ -248,7 +248,7 @@ class CustomTableController extends AdminControllerBase
     protected function validateDestroy($id)
     {
         // check select_table
-        $column_count = CustomColumn::whereIn('options->select_target_table', [$id, strval($id)])
+        $column_count = CustomColumn::whereIn('options->select_target_table', [strval($id), intval($id)])
             ->where('custom_table_id', '<>', $id)
             ->count();
 
