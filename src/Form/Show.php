@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form;
 
-use Encore\Admin\Admin;
 use Encore\Admin\Show\Field;
 use Encore\Admin\Show as AdminShow;
 use Illuminate\Support\Collection;
@@ -39,7 +38,7 @@ class Show extends AdminShow
 
         //$this->overwriteExistingField($name);
 
-        return tap($field, function ($field) use($column_no, $name){
+        return tap($field, function ($field) use ($column_no, $name) {
             $columns = $this->fields->get($column_no) ?? new Collection();
             $columns = $columns->filter(function (Field $field) use ($name) {
                 return $field->getName() != $name;

@@ -89,7 +89,7 @@ class ListItem implements ItemInterface
         // get widget table
         $option = [
             'action_callback' => function (&$link, $custom_table, $data) {
-                if(count($custom_table->getRelationTables()) > 0){
+                if (count($custom_table->getRelationTables()) > 0) {
                     $link .= (new Linker)
                     ->url($data->getRelationSearchUrl(true))
                     ->icon('fa-compress')

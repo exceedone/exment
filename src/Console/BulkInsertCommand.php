@@ -55,7 +55,6 @@ class BulkInsertCommand extends Command
 
             // delete working folder
             File::deleteDirectory($path);
-
         } catch (\Exception $e) {
             $this->error($e->getMessage());
             return -1;
@@ -66,9 +65,10 @@ class BulkInsertCommand extends Command
 
     /**
      * get file names in target folder (filter extension)
-     * 
+     *
      */
-    private function getFiles($dir, $ext = 'tsv', $include_sub = false) {
+    private function getFiles($dir, $ext = 'tsv', $include_sub = false)
+    {
         // get files in target folder
         if ($include_sub) {
             $files = File::allFiles($dir);
@@ -76,7 +76,7 @@ class BulkInsertCommand extends Command
             $files = File::files($dir);
         }
         // filter files by extension
-        $files = array_filter($files, function ($file) use($ext) {
+        $files = array_filter($files, function ($file) use ($ext) {
             return preg_match('/.+\.'.$ext.'$/i', $file);
         });
         return $files;
@@ -84,9 +84,10 @@ class BulkInsertCommand extends Command
 
     /**
      * convert all csv files in target folder into tsv files
-     * 
+     *
      */
-    private function convertFiles($dir, $include_sub = false) {
+    private function convertFiles($dir, $include_sub = false)
+    {
 
         // check if directory is exists
         if (!File::isDirectory($dir)) {
@@ -112,17 +113,17 @@ class BulkInsertCommand extends Command
 
     /**
      * convert csv files to tsv files
-     * 
+     *
      */
-    private function convertTsv($tempdir, $files) {
-
+    private function convertTsv($tempdir, $files)
+    {
         foreach ($files as $file) {
             // 1:table_name, (2:sequence number) , 3:extension
             $targets = explode('.', $file->getFilename());
             // get physical table name
             $tablename = getDBTableName($targets[0]);
 
-            switch(count($targets)) {
+            switch (count($targets)) {
                 case 2:
                     $tsvname = $tablename . '.tsv';
                     break;
@@ -140,7 +141,7 @@ class BulkInsertCommand extends Command
             // open input file as csv
             $fileobj = $file->openFile();
             $fileobj->setFlags(
-                \SplFileObject::READ_CSV | 
+                \SplFileObject::READ_CSV |
                 \SplFileObject::READ_AHEAD |
                 \SplFileObject::SKIP_EMPTY
             );
@@ -155,7 +156,7 @@ class BulkInsertCommand extends Command
             $output = new \SplFileObject(path_join($tempdir, $tsvname), 'w');
             $output->setCsvControl("\t");
 
-             $i = 0;
+            $i = 0;
             $header = [];
             foreach ($fileobj as $line) {
                 if ($i == 0) {
@@ -175,15 +176,15 @@ class BulkInsertCommand extends Command
 
     /**
      * edit tsv line
-     * 
+     *
      */
     private function getTsvLine($columns, $header, $line)
     {
-        return array_map(function($field) use ($header, $line) {
+        return array_map(function ($field) use ($header, $line) {
             $data = $this->getTsvData($field, $header, $line);
             // set default data when empty
             if (empty($data)) {
-                switch($field) {
+                switch ($field) {
                     case 'suuid':
                         $data = short_uuid();
                         break;
@@ -195,18 +196,22 @@ class BulkInsertCommand extends Command
 
     /**
      * edit tsv data item
-     * 
+     *
      */
     private function getTsvData($field, $header, $line)
     {
         // extract header item that matches the field name
         $keys = preg_grep('/^'.$field.'(:.+)?$/i', $header);
-        if (count($keys) == 0) return '';
+        if (count($keys) == 0) {
+            return '';
+        }
         $ary = [];
-        foreach($keys as $key => $value) {
+        foreach ($keys as $key => $value) {
             $data = array_key_exists($key, $line)? $line[$key] : '';
             $targets = explode(':', $value);
-            if (count($targets) == 1) return $data;
+            if (count($targets) == 1) {
+                return $data;
+            }
             $ary[trim($targets[1])] = $data;
         }
         // If multiple data match, aggregate in JSON

@@ -154,7 +154,7 @@ class ApiTableController extends AdminControllerTableBase
 
         $custom_value->delete();
 
-        if(boolval($request->input('webresponse'))){
+        if (boolval($request->input('webresponse'))) {
             return response([
                 'result'  => true,
                 'message' => trans('admin.delete_succeeded'),

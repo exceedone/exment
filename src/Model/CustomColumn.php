@@ -325,7 +325,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         ]);
 
         // if record is already exists skip process, when update
-        if ($is_update && $obj_column->exists) return $obj_column;
+        if ($is_update && $obj_column->exists) {
+            return $obj_column;
+        }
         
         ///// set options
         // check need update

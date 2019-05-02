@@ -14,7 +14,6 @@ use Exceedone\Exment\ColumnItems;
 
 trait CustomViewColumnTrait
 {
-
     public function custom_view()
     {
         return $this->belongsTo(CustomView::class, 'custom_view_id');
@@ -180,9 +179,9 @@ trait CustomViewColumnTrait
      */
     protected function getUniqueKeyValues()
     {
-        if(isset($this->custom_table)){
+        if (isset($this->custom_table)) {
             $table_name = $this->custom_table->table_name;
-        }else{
+        } else {
             $table_name = $this->custom_view->custom_table->table_name;
         }
 

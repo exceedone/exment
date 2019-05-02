@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Model;
+
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;

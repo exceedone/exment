@@ -291,7 +291,9 @@ trait TemplateTrait
         $obj = static::firstOrNew($obj_keys);
 
         // if record is exists already skip process, when update
-        if ($is_update && $obj->exists) return $obj;
+        if ($is_update && $obj->exists) {
+            return $obj;
+        }
 
         // replace especially datalists
         $excepts = method_exists($obj, 'importSetValue') ? $obj->importSetValue($json, $options) : [];
