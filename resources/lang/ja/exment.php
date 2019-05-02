@@ -42,7 +42,7 @@ return [
             'success_execute' => '実行完了しました！',
             'error_execute' => '実行失敗しました。',
             'import_success' => 'インポート完了しました！',
-            'import_error' => 'インポート失敗しました。CSVファイルをご確認ください。',
+            'import_error' => 'インポート失敗しました。エラーメッセージをご確認ください。',
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
         ],
