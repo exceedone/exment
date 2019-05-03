@@ -133,7 +133,7 @@ class BulkInsertCommand extends Command
                     break;
                 default:
                     $this->warn('invalid file name (skipped) : ' . $file->getFilename());
-                    continue;
+                    break;
             }
             // get table all column names
             $columns = Schema::getColumnListing($tablename);
