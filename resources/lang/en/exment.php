@@ -38,13 +38,14 @@ return [
         'asc' => 'Asc',
         'desc' => 'Desc',
         'message' => [
-            'confirm_execute'        => 'Are you sure to %s ?',
+            'confirm_execute' => 'Are you sure to %s ?',
             'success_execute' => 'Execute Success!',
             'error_execute' => 'Execute Error',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
             'wrongdata' => 'Data is wrong. Please check url.',
+            'wrongconfig' => 'Wrong config.json.',
         ],
 
         'help' =>[
@@ -60,11 +61,17 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
+        'failure_import_file' => 'The format of the uploaded file is incorrect. Please check it.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
         'login_failed' => 'ID or password is wrong.',
         'mailsend_failed' => 'E-mail transmission failed. Please check your email settings.',
     ],
-    
+
+    'validation' => [
+        'not_has_custom_value' => 'The value entered in :attribute does not exist in table ":table_view_name". Please check the data.',
+        'empty' => 'The value of :attribute can only be blank.',
+    ],
+
     'system' => [
         'system_header' => 'System Setting',
         'system_description' => 'Change the system settings.',
