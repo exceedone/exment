@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
+use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Encore\Admin\Form\Field;
@@ -114,6 +115,7 @@ class SelectTable extends CustomItem
     protected function setValidates(&$validates)
     {
         $validates[] = 'numeric';
+        $validates[] = new CustomValueRule($this->target_table);
     }
 
     public function getAdminFilterWhereQuery($query, $input)

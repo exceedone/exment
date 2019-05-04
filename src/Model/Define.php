@@ -76,6 +76,7 @@ class Define
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
     public const SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES = "custom_table_relation_tables.%s";
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
+    public const SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALIDATION = "custom_value.%s_%s";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
