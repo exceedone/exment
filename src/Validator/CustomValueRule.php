@@ -57,6 +57,6 @@ class CustomValueRule implements Rule
      */
     public function message()
     {
-        return str_replace(':min', $this->min, trans('validation.min.numeric'));
+        return str_replace(':table_view_name', $this->target_table->table_view_name, exmtrans('error.not_has_custom_value'));
     }
 }

@@ -74,7 +74,7 @@ class Select extends CustomItem
     {
         $select_options = $this->custom_column->createSelectOptions();
 
-        $validates[] = Rule::in($select_options);
+        $validates[] = Rule::in(array_keys($select_options));
     }
 
     protected function setAdminFilterOptions(&$filter)
