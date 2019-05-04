@@ -183,12 +183,12 @@ class CustomCopyController extends AdminControllerTableBase
         $form->method('GET');
         $form->modalHeader(trans('admin.setting'));
 
-        $form->select('to_custom_table', 'コピー先のテーブル')
+        $form->select('to_custom_table', exmtrans('custom_copy.to_custom_table_view_name'))
             ->options(function ($option) {
                 return CustomTable::where('showlist_flg', true)->pluck('table_view_name', 'suuid');
             })
             ->setWidth(8, 3)
-            ->help('コピー先のテーブルを選択してください。');
+            ->help(exmtrans('custom_copy.help.to_custom_table_view_name'));
         // add button
         return $form->render()->render();
     }

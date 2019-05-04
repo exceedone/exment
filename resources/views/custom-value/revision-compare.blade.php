@@ -1,7 +1,7 @@
 <div class="box box-revision-compare">
     <div class="box-header with-border">
         <h3 class="box-title">
-            リビジョン
+            {{exmtrans('revision.revision')}}
         </h3>
         @if($has_edit_permission)
         <div class="btn-group pull-right" style="margin-right: 5px">
@@ -27,7 +27,7 @@
             <div class="box-body">
                 <div class="fields-group">
                     <div class="form-group" style="margin-bottom:2em;">
-                        <label class="col-sm-2 control-label">リビジョン選択</label>
+                        <label class="col-sm-2 control-label">{{exmtrans('revision.revision_select')}}</label>
                         <div class="col-sm-5">
                             <select id="revisions" data-add-select2>
                                 @foreach($revisions as $index => $revision)
@@ -35,9 +35,9 @@
                                     No.{{$revision->revision_no}}
                                     &nbsp;
                                     {{$revision->updated_at}}
-                                    &nbsp;({{ exmtrans("common.updated_user") }}：{{ $revision->user }})
+                                    &nbsp;({{ exmtrans("common.updated_user") }}&nbsp;:&nbsp;{{ $revision->user }})
                                     @if($revision->suuid == $newest_revision_suuid)
-                                    &nbsp;最新
+                                    &nbsp;{{exmtrans('revision.new')}}
                                     @endif
                                 </option>
                                 @endforeach
@@ -47,7 +47,7 @@
                     
                     <div class="row">
                         <div class="col-sm-2 ">
-                            <h4 class="pull-right">データ比較</h4>
+                            <h4 class="pull-right">{{exmtrans('revision.compare_revision')}}</h4>
                         </div>
                         <div class="col-sm-8"></div>
                     </div>

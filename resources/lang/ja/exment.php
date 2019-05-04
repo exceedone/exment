@@ -45,6 +45,7 @@ return [
             'import_error' => 'インポート失敗しました。エラーメッセージをご確認ください。',
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
+            'wrongconfig' => 'config.jsonファイルが不正です',
         ],
 
         'help' =>[
@@ -219,6 +220,11 @@ return [
             'errorMess' => 'プラグインファイルを選択してください',
         ],
 
+        'error' => [
+            'samename_plugin' => '同名プラグインが存在します。確認してから一度お試してください。',
+            'wrongname_plugin' => 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。',
+        ],
+    
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
@@ -383,6 +389,7 @@ return [
         'order' => '表示順',
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
+        'auto_number_format_rule' => '自動採番フォーマットのルール',
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
@@ -588,8 +595,8 @@ return [
             'create_sum' => '集計ビュー新規作成',
         ],
         'message' => [
-            'over_filters_max' => '表示条件は5件以上設定できません。',
-            'over_sorts_max' => 'データ並べ替えは5件以上設定できません。',
+            'over_filters_max' => '表示条件は6件以上設定できません。',
+            'over_sorts_max' => 'データ並べ替えは6件以上設定できません。',
         ],
 
         'custom_view_button_label' => 'ビュー',
@@ -687,7 +694,11 @@ return [
         'input_custom_column' => '対象テーブル列',
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
-        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。"
+        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
+
+        'help' => [
+            'to_custom_table_view_name' => 'コピー先のテーブルを選択してください。',
+        ],
     ],
 
     'search' => [
@@ -809,7 +820,20 @@ return [
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
         ],
+    ],
 
+    'revision' => [
+        'update_history' => '更新履歴',
+        'revision' => 'リビジョン',
+        'revision_select' => 'リビジョン選択',
+        'revision_no' => 'リビジョンNo',
+        'revision_id' => 'リビジョンID',
+        'old_revision' => '過去リビジョン',
+        'new_revision' => '最新リビジョン',
+        'revision_info' => 'リビジョン情報',
+        'restore_revision' => 'このリビジョンを復元',
+        'new' => '最新',
+        'compare_revision' => 'リビジョン比較',
     ],
 
     'notify' => [
