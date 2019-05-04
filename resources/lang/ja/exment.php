@@ -809,7 +809,19 @@ return [
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
         ],
+    ],
 
+    'revision' => [
+        'revision' => 'リビジョン',
+        'revision_select' => 'リビジョン選択',
+        'revision_no' => 'リビジョンNo',
+        'revision_id' => 'リビジョンID',
+        'old_revision' => '過去リビジョン',
+        'new_revision' => '最新リビジョン',
+        'revision_info' => 'リビジョン情報',
+        'restore_revision' => 'このリビジョンを復元',
+        'new' => '最新',
+        'compare_revision' => 'リビジョン比較',
     ],
 
     'notify' => [

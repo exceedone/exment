@@ -812,6 +812,19 @@ return [
 
     ],
 
+    'revision' => [
+        'revision' => 'Revision',
+        'revision_select' => 'Select Revision',
+        'revision_no' => 'Revision No',
+        'revision_id' => 'Revision ID',
+        'old_revision' => 'Old Revision',
+        'new_revision' => 'New Revision',
+        'revision_info' => 'Revision Info',
+        'restore_revision' => 'Restore This Revision',
+        'new' => 'Newest',
+        'compare_revision' => 'Compare Revision',
+    ],
+
     'notify' => [
         'header' => 'Notify Setting',
         'header_trigger' => 'Notify Trigger Setting',
