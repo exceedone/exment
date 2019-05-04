@@ -27,6 +27,7 @@ class Define
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
+        'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
