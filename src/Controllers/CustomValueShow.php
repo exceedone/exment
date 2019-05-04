@@ -105,7 +105,7 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            $show->panel()->tools(function ($tools) use ($modal, $custom_value) {
+            $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
                         <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
