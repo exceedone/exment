@@ -219,7 +219,7 @@ EOT;
                     'No.'.($revision->revision_no)
                 )->setWidth(9, 2);
             }
-            $row->column(6, (new Box('更新履歴', $form))->style('info'));
+            $row->column(6, (new Box(exmtrans('revision.update_history'), $form))->style('info'));
         }
 
         if ($useComment) {

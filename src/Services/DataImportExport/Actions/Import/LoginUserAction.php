@@ -82,7 +82,7 @@ class LoginUserAction implements ActionInterface
 
     public function getImportHeaderViewName()
     {
-        return 'ログインユーザー';
+        return exmtrans('menu.system_definitions.loginuser');
     }
     
     /**

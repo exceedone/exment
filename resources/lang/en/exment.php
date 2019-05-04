@@ -687,7 +687,11 @@ return [
         'input_custom_column' => 'Target Table Column',
         'column_description' => 'Please select the copy source column and copy target column from the list respectively.',
         'input_column_description' => 'When copying is done, you can display a form (dialog) to change the value after copying. Please set the target column to be input to the form when copying.',
-        'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value."
+        'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value.",
+
+        'help' => [
+            'to_custom_table_view_name' => 'Please select copy target table.',
+        ],
     ],
 
     'search' => [
@@ -803,16 +807,16 @@ return [
             'help' => 'Please select From the left column and move to the right column.',
         ],
         'auto_number_create' => '(After saving, this value ​​will be registered automatically)',
-        
+
         'help' => [
             'no_columns_admin' => 'Custom column has not been registered. Please register a custom column first.',
             'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
         ],
-
     ],
 
     'revision' => [
+        'update_history' => 'Update History',
         'revision' => 'Revision',
         'revision_select' => 'Select Revision',
         'revision_no' => 'Revision No',

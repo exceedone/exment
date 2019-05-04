@@ -687,7 +687,11 @@ return [
         'input_custom_column' => '対象テーブル列',
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
-        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。"
+        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
+
+        'help' => [
+            'to_custom_table_view_name' => 'コピー先のテーブルを選択してください。',
+        ],
     ],
 
     'search' => [
@@ -812,6 +816,7 @@ return [
     ],
 
     'revision' => [
+        'update_history' => '更新履歴',
         'revision' => 'リビジョン',
         'revision_select' => 'リビジョン選択',
         'revision_no' => 'リビジョンNo',
