@@ -12,11 +12,11 @@ use Exceedone\Exment\Model\CustomTable;
  */
 class CustomValueRule implements Rule
 {
-    protected $target_table;
+    protected $custom_table;
 
     public function __construct($parameters)
     {
-        $this->target_table = CustomTable::getEloquent($parameters);
+        $this->custom_table = CustomTable::getEloquent($parameters);
     }
 
     /**
@@ -37,14 +37,14 @@ class CustomValueRule implements Rule
             return true;
         }
 
-        if(!isset($this->target_table)){
+        if(!isset($this->custom_table)){
             return true;
         }
 
         // get target table's value (use request session)
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALIDATION, $this->target_table->table_name, $value);
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALIDATION, $this->custom_table->table_name, $value);
         $model = System::requestSession($key, function() use($value){
-            return $this->target_table->getValueModel($value);
+            return $this->custom_table->getValueModel($value);
         });
 
         return isset($model);
@@ -57,6 +57,6 @@ class CustomValueRule implements Rule
      */
     public function message()
     {
-        return str_replace(':table_view_name', $this->target_table->table_view_name, exmtrans('error.not_has_custom_value'));
+        return str_replace(':table_view_name', $this->custom_table->table_view_name, exmtrans('validation.not_has_custom_value'));
     }
 }

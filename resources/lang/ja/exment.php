@@ -63,7 +63,11 @@ return [
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
-        'not_has_custom_value' => '入力の値がテーブル「:table_view_name」に存在しません。データをご確認ください。',
+    ],
+
+    'validation' => [
+        'not_has_custom_value' => ':attributeに入力の値が、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'empty' => ':attributeの値は空欄のみ指定できます。',
     ],
 
     'system' => [
