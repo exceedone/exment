@@ -42,7 +42,7 @@ Exmentは、情報資産をWeb上で管理するための、オープンソー�
 
 ### 動作確認ブラウザ
 - Google Chrome
-- Microsoft Edge
+- Internet Explorer
 
 ## その他
 Exmentは、以下のプラグイン・サービスなどを利用しております。
