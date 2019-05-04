@@ -182,10 +182,18 @@ class Initialize
             if (isset($val)) {
                 Config::set('admin.skin', esc_html($val));
             }
+
             // Site layout
             $val = System::site_layout();
             if (isset($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
+            }
+
+            
+            // favicon
+            $val = System::site_favicon();
+            if (isset($val)) {
+                \Admin::setFavicon($val);
             }
         }
     }
