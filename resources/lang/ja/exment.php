@@ -383,6 +383,7 @@ return [
         'order' => '表示順',
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
+        'auto_number_format_rule' => '自動採番フォーマットのルール',
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',

@@ -383,6 +383,7 @@ return [
         'order' => 'Order',
         'add_custom_form_flg' => 'Add to the Default Form',
         'add_custom_view_flg' => 'Add to the Default View',
+        'auto_number_format_rule' => 'Auto Number format of the role',
         'options' => [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
