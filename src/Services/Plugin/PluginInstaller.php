@@ -132,7 +132,7 @@ class PluginInstaller
 
             //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.jsonファイルが不正です'
             if ($json == null) {
-                $response = back()->with('errorMess', 'config.jsonファイルが不正です');
+                $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
             } else {
                 //Validate json file with fields require
                 $checkRuleConfig = static::checkRuleConfigFile($json);
@@ -152,31 +152,31 @@ class PluginInstaller
                         $pluginUpdated = $plugin->saveOrFail();
                         //Rename folder with plugin name
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
-                        admin_toastr('アップロードに成功しました');
+                        admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
                     //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                     elseif ($plugineExistByName <= 0 && $plugineExistByUUID <= 0) {
                         $plugin->save();
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
-                        admin_toastr('アップロードに成功しました');
+                        admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
 
                     //If name has existed but uuid does not existed, then delete folder and return error with message
                     elseif ($plugineExistByName > 0 && $plugineExistByUUID <= 0) {
-                        $response = back()->with('errorMess', '同名プラグインが存在します。確認してから一度お試してください。');
+                        $response = back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
                     }
                     //If uuid has existed but name does not existed, then delete folder and return error with message
                     elseif ($plugineExistByName <= 0 && $plugineExistByUUID > 0) {
-                        $response = back()->with('errorMess', 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。');
+                        $response = back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
                     }
                     //rename folder without Uppercase, space, tab, ...
                     else {
                         $response = back();
                     }
                 } else {
-                    $response = back()->with('errorMess', 'config.jsonファイルが不正です');
+                    $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
                 }
             }
         }

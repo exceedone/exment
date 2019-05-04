@@ -219,6 +219,11 @@ return [
             'errorMess' => 'Select a plugin file.',
         ],
 
+        'error' => [
+            'samename_plugin' => 'There is a plug-in with the same name. Please check and try once.',
+            'wrongname_plugin' => 'UUID exists, but the plug-in name is incorrect. Please check and try again.',
+        ],
+    
         'plugin_type_options' => [
             'page' => 'Page',
             'trigger' => 'Trigger',

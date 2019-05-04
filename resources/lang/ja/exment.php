@@ -45,6 +45,7 @@ return [
             'import_error' => 'インポート失敗しました。エラーメッセージをご確認ください。',
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
+            'wrongconfig' => 'config.jsonファイルが不正です',
         ],
 
         'help' =>[
@@ -219,6 +220,11 @@ return [
             'errorMess' => 'プラグインファイルを選択してください',
         ],
 
+        'error' => [
+            'samename_plugin' => '同名プラグインが存在します。確認してから一度お試してください。',
+            'wrongname_plugin' => 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。',
+        ],
+    
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
