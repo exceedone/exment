@@ -111,6 +111,11 @@ class SelectTable extends CustomItem
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
     }
     
+    protected function setValidates(&$validates)
+    {
+        $validates[] = 'numeric';
+    }
+
     public function getAdminFilterWhereQuery($query, $input)
     {
         $index = $this->index();
