@@ -151,9 +151,7 @@ class CustomTableController extends AdminControllerBase
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);
         
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
-            $tools->disableView();
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::findOrFail($id);

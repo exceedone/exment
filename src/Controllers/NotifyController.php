@@ -144,10 +144,6 @@ class NotifyController extends AdminControllerBase
             ->default($notify_mail_id);
         })->disableHeader();
         
-        disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
-        });
         return $form;
     }
 

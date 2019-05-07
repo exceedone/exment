@@ -162,7 +162,6 @@ class LoginUserController extends AdminControllerBase
 
         $form->disableReset();
         $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
             $tools->disableDelete();
         });
         return $form;

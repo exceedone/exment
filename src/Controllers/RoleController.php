@@ -110,10 +110,6 @@ class RoleController extends AdminControllerBase
                 $form->switchbool($role_define, array_get($transArray, 'label'))->help(array_get($transArray, 'help'));
             }
         });
-        disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
-        });
         return $form;
     }
 }

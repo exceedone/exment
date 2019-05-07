@@ -248,8 +248,6 @@ class CustomViewController extends AdminControllerTableBase
         if (!isset($id)) {
             $id = $form->model()->id;
         }
-
-        disableFormFooter($form);
         
         $custom_table = $this->custom_table;
 
@@ -275,7 +273,6 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
         });
         return $form;

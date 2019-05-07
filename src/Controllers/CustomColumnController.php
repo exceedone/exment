@@ -433,16 +433,10 @@ class CustomColumnController extends AdminControllerTableBase
             $this->addColumnAfterSaved($model);
         });
 
-        $form->footer(function ($footer) {
-            // disable reset btn
-            $footer->disableReset();
-            // disable `View` checkbox
-            $footer->disableViewCheck();
-        });
-        
+        $form->disableCreatingCheck(false);
+        $form->disableEditingCheck(false);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('column', $custom_table, false))->render());
         });
         return $form;

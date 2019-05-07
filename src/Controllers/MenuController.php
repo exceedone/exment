@@ -214,7 +214,6 @@ class MenuController extends AdminControllerBase
                 $form->order = $count + 1;
             }
         });
-        disableFormFooter($form);
     }
 
     // menu_type and menutargetvalue --------------------------------------------------

@@ -130,10 +130,8 @@ class CustomRelationController extends AdminControllerTableBase
 
         $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
         $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->required();
-        disableFormFooter($form);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('relation', $custom_table, false))->render());
         });
         return $form;

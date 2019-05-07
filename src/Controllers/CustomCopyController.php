@@ -162,9 +162,7 @@ class CustomCopyController extends AdminControllerTableBase
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.input_column_description"));
 
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('copy', $custom_table, false))->render());
         });
         return $form;
