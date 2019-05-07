@@ -274,7 +274,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
         
-        Admin::booting(function () {
+        Admin::booted(function () {
             Initialize::initializeFormField();
         });
     }
