@@ -140,11 +140,17 @@ class CustomFormController extends AdminControllerTableBase
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
+            
+            $tools->batch(function (Grid\Tools\BatchActions $actions) {
+                $actions->disableDelete();
+            });
         });
         
         $grid->disableExport();
+        $grid->disableCreateButton();
         $grid->actions(function ($actions) {
             $actions->disableView();
+            $actions->disableDelete();
         });
         return $grid;
     }
