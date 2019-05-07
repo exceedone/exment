@@ -9,7 +9,7 @@
                     <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                     @endforeach @endif
     
-                    <input type="input" class="form-control" placeholder="{{ exmtrans('user.email') }}" name="email" value="{{ old('email') }}">
+                    <input type="input" class="form-control" placeholder="{{ exmtrans('user.email') }}" name="email" value="{{ old('email') }}" required>
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                 </div>  
                 <div class="row">
