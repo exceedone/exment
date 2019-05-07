@@ -196,7 +196,7 @@ EOT;
                 }
                 return true;
             });
-            if (!is_null($result) && count($result) > 0) {
+            if (!is_null($result)) {
                 array_push($results, $table);
             }
         }
