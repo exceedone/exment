@@ -561,6 +561,17 @@ class TemplateImporter
                 }
             }
         });
+
+        // after transaction, execute create table etc
+        foreach (array_get($json, "custom_tables", []) as $table) {
+            $obj = CustomTable::getEloquent(array_get($table, 'table_name'))->importSaved();
+
+            if (array_key_exists('custom_columns', $table)) {
+                foreach (array_get($table, 'custom_columns') as $column) {
+                    CustomColumn::getEloquent(array_get($column, 'column_name'), $obj)->importSaved();
+                }
+            }
+        }
     }
 
     protected static function getTemplateBasePaths()
