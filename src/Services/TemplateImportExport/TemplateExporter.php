@@ -129,6 +129,20 @@ class TemplateExporter
         }
         $config['custom_tables'] = $configTables;
 
+        // get relations --------------------------------------------------
+        $custom_relations = CustomRelation
+            ::with('parent_custom_table')
+            ->with('child_custom_table')
+            ->get();
+        $configRelations = [];
+        foreach ($custom_relations as $custom_relation) {
+            if (count($target_tables) > 0 && !in_array(array_get($custom_relation, 'parent_custom_table.table_name'), $target_tables)) {
+                continue;
+            }
+            $configRelations[] = $custom_relation->getTemplateExportItems($is_lang);
+        }
+        $config['custom_relations'] = $configRelations;
+        
         // get forms --------------------------------------------------
         $custom_forms = CustomForm::with('custom_form_blocks')
             ->with('custom_table')
@@ -165,20 +179,6 @@ class TemplateExporter
             $configViews[] = $custom_view->getTemplateExportItems($is_lang);
         }
         $config['custom_views'] = $configViews;
-        
-        // get relations --------------------------------------------------
-        $custom_relations = CustomRelation
-            ::with('parent_custom_table')
-            ->with('child_custom_table')
-            ->get();
-        $configRelations = [];
-        foreach ($custom_relations as $custom_relation) {
-            if (count($target_tables) > 0 && !in_array(array_get($custom_relation, 'parent_custom_table.table_name'), $target_tables)) {
-                continue;
-            }
-            $configRelations[] = $custom_relation->getTemplateExportItems($is_lang);
-        }
-        $config['custom_relations'] = $configRelations;
         
         // get copies --------------------------------------------------
         $custom_copies = CustomCopy
