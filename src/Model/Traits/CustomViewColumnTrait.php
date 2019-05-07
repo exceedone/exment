@@ -156,7 +156,7 @@ trait CustomViewColumnTrait
                     $target_column_id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
                     // get parent table
                     if (isset($custom_table)) {
-                        $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
+                        $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY, true);
 
                         if (isset($relation)) {
                             $target_table_id = $relation->parent_custom_table_id;

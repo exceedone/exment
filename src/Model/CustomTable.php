@@ -346,9 +346,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return ['system_flg', 'showlist_flg'];
     }
 
-    protected function importSaved($json, $options = [])
+    public function importSaved($options = [])
     {
         $this->createTable();
+
+        return $this;
     }
     
     /**
