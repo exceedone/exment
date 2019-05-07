@@ -17,7 +17,7 @@ class RoleController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("role.header"), exmtrans("role.header"), exmtrans("role.description"));
+        $this->setPageInfo(exmtrans("role.header"), exmtrans("role.header"), exmtrans("role.description"), 'fa-user-secret');
     }
 
     /**

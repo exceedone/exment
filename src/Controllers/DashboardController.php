@@ -25,7 +25,7 @@ class DashboardController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
+        $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
     }
 
     protected function setDashboardInfo(Request $request)

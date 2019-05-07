@@ -22,7 +22,7 @@ class CustomCopyController extends AdminControllerTableBase
     {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_copy.header"), exmtrans("custom_copy.header"), exmtrans("custom_copy.description"));
+        $this->setPageInfo(exmtrans("custom_copy.header"), exmtrans("custom_copy.header"), exmtrans("custom_copy.description"), 'fa-copy');
     }
 
     /**

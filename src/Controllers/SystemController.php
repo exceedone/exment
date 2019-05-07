@@ -20,7 +20,7 @@ class SystemController extends AdminControllerBase
     
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"));
+        $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"), 'fa-cogs');
     }
 
     /**

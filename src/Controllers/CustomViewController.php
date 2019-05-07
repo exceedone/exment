@@ -24,7 +24,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_view.header"), exmtrans("custom_view.header"), exmtrans("custom_view.description"));
+        $this->setPageInfo(exmtrans("custom_view.header"), exmtrans("custom_view.header"), exmtrans("custom_view.description"), 'fa-th-list');
     }
 
     /**

@@ -31,7 +31,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_column.header"), exmtrans("custom_column.header"), exmtrans("custom_column.description"));
+        $this->setPageInfo(exmtrans("custom_column.header"), exmtrans("custom_column.header"), exmtrans("custom_column.description"), 'fa-list');
     }
 
     /**
