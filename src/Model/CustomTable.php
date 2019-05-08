@@ -368,40 +368,65 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'paginate' => false,
                 'makeHidden' => false,
                 'searchColumns' => null,
+                'relation' => false,
             ],
             $options
         );
         extract($options);
 
         // if selected target column,
-        $searchColumns =  $options['searchColumns'];
+        $searchColumns = $options['searchColumns'];
         if (is_null($searchColumns)) {
             $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
                 return $c->getIndexColumnName();
             });
         }
+
+        if(!isset($searchColumns) || count($searchColumns) == 0){
+            return collect([]);
+        }
         
         $data = [];
-        
+
         if(boolval(config('exment.filter_search_full', false))){
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         }else{
             $value = $q . ($isLike ? '%' : '');
         }
-
         $mark = ($isLike ? 'LIKE' : '=');
 
-        // get data
-        $query = getModelName($this)
-            ::where(function ($wherequery) use ($searchColumns, $mark, $value) {
-                foreach ($searchColumns as $searchColumn) {
-                    $wherequery->orWhere($searchColumn, $mark, $value);
-                }
-            });
-        
+        $takeCount = config('exment.keyword_search_count', 1000);        
+
+        // crate union query
+        $queries = [];
+        for($i = 0; $i < count($searchColumns) - 1; $i++){
+            $searchColumn = $searchColumns[$i];
+            $query = getModelName($this)::query();
+            $query->where($searchColumn, $mark, $value)->select('id');
+            if(!boolval($options['relation'])){
+                $query->take($takeCount);
+            }
+
+            $queries[] = $query;
+        }
+
+        $searchColumn = $searchColumns->last();
+        $query = getModelName($this)::query();
+        $query->where($searchColumn, $mark, $value)->select('id');
+        if(!boolval($options['relation'])){
+            $query->take($takeCount);
+        }
+
+        foreach ($queries as $q) {
+            $query->union($q);
+        }
+
+        // get target id list
+        $ids = $query->getQuery()->select('id')->get()->pluck('id');
+
         // return as paginate
         if ($paginate) {
-            $paginates = $query->paginate($maxCount);
+            $paginates = getModelName($this)::whereIn('id', $ids->toArray())->paginate($maxCount);
             if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;
@@ -411,7 +436,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // return default
-        return $query
+        return getModelName($this)
+            ::whereIn('id', $ids->toArray())
             ->take($maxCount)
             ->get();
     }
