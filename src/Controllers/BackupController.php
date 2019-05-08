@@ -156,9 +156,12 @@ class BackupController extends AdminControllerBase
             // store uploaded file
             $filename = $file->store('upload_tmp', 'admin_tmp');
             $fullpath = getFullpath($filename, 'admin_tmp');
-            \Artisan::call('down');
-            $result = \Artisan::call('exment:restore', ['file' => $fullpath]);
-            \Artisan::call('up');
+            try{
+                \Artisan::call('down');
+                $result = \Artisan::call('exment:restore', ['file' => $fullpath]);    
+            }finally{
+                \Artisan::call('up');
+            }
         }
         
         if (isset($result) && $result === 0) {
@@ -259,9 +262,12 @@ class BackupController extends AdminControllerBase
             // get restore file path
             $file = path_join($backup, 'list', $data['file'] . '.zip');
 
-            \Artisan::call('down');
-            $result = \Artisan::call('exment:restore', ['file' => $file]);
-            \Artisan::call('up');
+            try{
+                \Artisan::call('down');
+                $result = \Artisan::call('exment:restore', ['file' => $file]);
+            }finally{
+                \Artisan::call('up');
+            }
         }
 
         if (isset($result) && $result === 0) {
