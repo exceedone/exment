@@ -411,22 +411,32 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $searchColumn = $searchColumns->last();
-        $query = getModelName($this)::query();
-        $query->where($searchColumn, $mark, $value)->select('id');
+        $subquery = getModelName($this)::query();
+        $subquery->where($searchColumn, $mark, $value)->select('id');
         if(!boolval($options['relation'])){
-            $query->take($takeCount);
+            $subquery->take($takeCount);
         }
 
-        foreach ($queries as $q) {
-            $query->union($q);
+        foreach ($queries as $inq) {
+            $subquery->union($inq);
         }
 
-        // get target id list
-        $ids = $query->getQuery()->select('id')->get()->pluck('id');
+        // create main query
+        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
 
         // return as paginate
         if ($paginate) {
-            $paginates = getModelName($this)::whereIn('id', $ids->toArray())->paginate($maxCount);
+            // get data(only id)
+            $paginates = $mainQuery->select('id')->paginate($maxCount);
+
+            // set eloquent data using ids
+            $ids = collect($paginates->items())->map(function($item){
+                return $item->id;
+            });
+
+            // set pager items
+            $paginates->setCollection(getModelName($this)::whereIn('id', $ids->toArray())->get());
+            
             if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;
@@ -436,8 +446,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // return default
+        $ids = $mainQuery->select('id')->take($maxCount)->get()->pluck('id');
         return getModelName($this)
-            ::whereIn('id', $ids->toArray())
+            ::whereIn('id', $ids)
             ->take($maxCount)
             ->get();
     }
