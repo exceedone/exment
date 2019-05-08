@@ -382,7 +382,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         
         $data = [];
-        $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        
+        if(boolval(config('exment.filter_search_full', false))){
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        }else{
+            $value = $q . ($isLike ? '%' : '');
+        }
+
         $mark = ($isLike ? 'LIKE' : '=');
 
         // get data
