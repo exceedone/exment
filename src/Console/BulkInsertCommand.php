@@ -201,14 +201,14 @@ class BulkInsertCommand extends Command
     private function getTsvData($field, $header, $line)
     {
         // extract header item that matches the field name
-        $keys = preg_grep('/^'.$field.'(:.+)?$/i', $header);
+        $keys = preg_grep('/^'.$field.'(\..+)?$/i', $header);
         if (count($keys) == 0) {
             return '';
         }
         $ary = [];
         foreach ($keys as $key => $value) {
             $data = array_key_exists($key, $line)? $line[$key] : '';
-            $targets = explode(':', $value);
+            $targets = explode('.', $value);
             if (count($targets) == 1) {
                 return $data;
             }
