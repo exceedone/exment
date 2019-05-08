@@ -325,7 +325,7 @@ EOT;
                 $searchColumns = $search_table
                     ->custom_columns()
                     ->where('column_type', ColumnType::SELECT_TABLE)
-                    ->where('options->select_target_table', $value_table_id)
+                    ->whereIn('options->select_target_table', [strval($value_table_id), intval($value_table_id)])
                     ->indexEnabled()
                     ->get()
                     ->map(function ($c) {
@@ -334,6 +334,7 @@ EOT;
                 $paginate = $search_table->searchValue($value_id, [
                     'isLike' => false,
                     'paginate' => true,
+                    'relation' => true,
                     'searchColumns' => $searchColumns,
                 ]);
                 
