@@ -40,6 +40,7 @@ class Define
         'backup_automatic_hour' => ['type' => 'int', 'default' => '3', 'group' => 'backup'],
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
+        'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
     ];
 
     public const SYSTEM_SKIN = [

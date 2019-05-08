@@ -93,7 +93,7 @@ class ScheduleCommand extends Command
 
         // get target
         $target = System::backup_target();
-        \Artisan::call('exment:backup', isset($target) ? ['--target' => $target] : []);
+        \Artisan::call('exment:backup', isset($target) ? ['--target' => $target, '--schedule' => 1] : []);
 
         System::backup_automatic_executed($now);
     }

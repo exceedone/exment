@@ -249,6 +249,7 @@ return [
         'enable_automatic' => '自動バックアップ',
         'automatic_term' => '自動バックアップ実行間隔(日)',
         'automatic_hour' => '自動バックアップ開始時間(時)',
+        'history_files' => '保存世代数',
         'upload_zipfile' => 'アップロード(zip)',
         'backup_target_options' => [
             'database' => 'データベース',
@@ -275,6 +276,7 @@ return [
             'enable_automatic' => 'YESにした場合、自動的にバックアップを実行します。',
             'automatic_term' => '自動バックアップを何日おきに実施するかの設定です。例：「3」と入力時、3日おきにバックアップ実行',
             'automatic_hour' => '自動バックアップの開始時間です。例：「3」と入力時、3:00にバックアップ実行開始',
+            'history_files' => '自動バックアップ時に、保持する世代数です。1以上を入力時、入力した整数のバックアップを保持します。',
         ]
     ],
 

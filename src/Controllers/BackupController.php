@@ -78,10 +78,15 @@ class BackupController extends AdminControllerBase
             ->min(1)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-        $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
+            $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
             ->help(exmtrans("backup.help.automatic_hour"))
             ->min(0)
             ->max(23)
+            ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
+
+        $form->number('backup_history_files', exmtrans("backup.history_files"))
+            ->help(exmtrans("backup.help.history_files"))
+            ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
         return new Box(exmtrans("backup.setting_header"), $form);
