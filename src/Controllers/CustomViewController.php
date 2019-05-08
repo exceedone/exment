@@ -210,27 +210,46 @@ class CustomViewController extends AdminControllerTableBase
                 ]);
 
             $form->select('view_filter_condition', exmtrans("custom_view.view_filter_condition"))->required()
-                ->options(function ($val) {
+                ->options(function ($val, $select) {
                     // if null, return empty array.
                     if (!isset($val)) {
                         return [];
                     }
 
-                    ///// To find filter condition array group, filter id
-                    foreach (ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS() as $key => $filter_option_blocks) {
-                        // if match id, return $filter_option_blocks;
-                        if (!is_null(collect($filter_option_blocks)->first(function ($array) use ($val) {
-                            return array_get($array, 'id') == $val;
-                        }))) {
-                            $options = collect($filter_option_blocks)->pluck('name', 'id');
-                            return collect($options)->map(function ($name) {
-                                return exmtrans('custom_view.filter_condition_options.'.$name);
-                            });
+                    $data = $select->data();
+                    $view_column_target = array_get($data, 'view_column_target');
+
+                    if (array_get($data, 'view_column_type') != ViewColumnType::COLUMN) {
+                        list($table_name, $target_id) = explode("-", $view_column_target);
+                        if (is_numeric($target_id)) {
+                            $view_column_target = $table_name . '-' . SystemColumn::getOption(['id' => $target_id])['name'];
                         }
                     }
+
+                    // get column item
+                    $column_item = CustomViewFilter::getColumnItem($view_column_target)
+                        ->options([
+                            'view_column_target' => true,
+                        ]);
+
+                    ///// get column_type
+                    $column_type = $column_item->getViewFilterType();
+
+                    // if null, return []
+                    if (!isset($column_type)) {
+                        return [];
+                    }
+
+                    // get target array
+                    $options = array_get(ViewColumnFilterOption::VIEW_COLUMN_FILTER_OPTIONS(), $column_type);
+                    return collect($options)->mapWithKeys(function ($array) {
+                        return [$array['id'] => exmtrans('custom_view.filter_condition_options.'.$array['name'])];
+                    });
+
                     return [];
                 });
-            $form->changeField('view_filter_condition_value', exmtrans("custom_view.view_filter_condition_value_text"));
+            $form->changeField('view_filter_condition_value', exmtrans("custom_view.view_filter_condition_value_text"))
+                ->rules('changeFieldValue');
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
@@ -364,12 +383,6 @@ EOT;
             ->options([
                 'view_column_target' => true,
             ]);
-
-        if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
-            list($view_column_table_id, $view_column_target) = explode("-", $view_column_target);
-        } else {
-            $view_column_table_id = $this->custom_table->id;
-        }
 
         ///// get column_type
         $column_type = $column_item->getViewFilterType();

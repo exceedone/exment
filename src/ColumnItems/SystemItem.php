@@ -168,25 +168,32 @@ class SystemItem implements ItemInterface
         return $field;
     }
     
-    public function getFilterField()
+    public function getFilterField($value_type = null)
     {
-        $option = SystemColumn::getOption(['name' => $this->column_name]);
-        $type = array_get($option, 'type');
+        if (is_null($value_type)) {
+            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            $value_type = array_get($option, 'type');
+        }
 
-        if ($type == 'datetime') {
-            $field = new Date($this->name(), [$this->label()]);
-            $field->default($this->value);
-        } else if ($type == 'user') {
-            $field = new Select($this->name(), [$this->label()]);
-            $field->options(function ($value) {
-                // get DB option value
-                return CustomTable::getEloquent(SystemTableName::USER)
-                    ->getOptions($value, SystemTableName::USER);
-            });
-            $field->default($this->value);
-        } else {
-            $field = new Text($this->name(), [$this->label()]);
-            $field->default($this->value);
+        switch($value_type) {
+            case 'date':
+            case 'datetime':
+                $field = new Date($this->name(), [$this->label()]);
+                $field->default($this->value);
+                break;
+            case 'user':
+                $field = new Select($this->name(), [$this->label()]);
+                $field->options(function ($value) {
+                    // get DB option value
+                    return CustomTable::getEloquent(SystemTableName::USER)
+                        ->getOptions($value, SystemTableName::USER);
+                });
+                $field->default($this->value);
+                break;
+            default:
+                $field = new Text($this->name(), [$this->label()]);
+                $field->default($this->value);
+                break;
         }
 
         return $field;

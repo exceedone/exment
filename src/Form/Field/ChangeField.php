@@ -16,6 +16,8 @@ class ChangeField extends Field
 {
     protected $view = 'exment::form.field.changefield';
 
+    protected $field = null;
+
     protected function getElementClass() {
         if (preg_match('/(^[^\[\]]+)\[([^\[\]]+)\]\[([^\[\]]+)\]$/', $this->elementName, $array_result)) {
             array_shift($array_result);
@@ -48,14 +50,14 @@ class ChangeField extends Field
     }
     public function render()
     {
-        $viewClass = $this->getViewElementClasses();
+        // $viewClass = $this->getViewElementClasses();
 
         $view_filter_condition = $this->data['view_filter_condition'];
         $view_column_target = $this->data['view_column_target'];
 
         $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
 
-        if (is_null($value_type)) {
+        if ($value_type == 'none') {
             return parent::render();
         }
 
@@ -65,12 +67,13 @@ class ChangeField extends Field
                 'view_column_target' => true,
         ]);
 
-        $field = $column_item->getFilterField();
+        $field = $column_item->getFilterField($value_type);
 
         if (isset($field)) {
             $field->setWidth(12, 0)->setLabelClass(['hidden']);
             $field->value($this->value);
             $field->setElementName($this->elementName)
+                ->setErrorKey($this->getErrorKey())
                 ->setElementClass($this->getElementClass());
             $view = $field->render();
             $this->script = $field->getScript();

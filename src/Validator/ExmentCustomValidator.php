@@ -3,9 +3,11 @@ namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SummaryCondition;
+use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Providers\CustomUserProvider;
 
@@ -163,23 +165,20 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
 
         // get custom_table_id
         $custom_table_id = $parameters[0];
-        // get max index count
-        $max_index_count = is_numeric($parameters[1])? intval($parameters[1]) : 10;
+        // get custom_column id
+        $custom_column_id = $parameters[1];
 
         // get count index columns
         $count = CustomColumn::where('custom_table_id', $custom_table_id)
+        ->where('id', '<>', $custom_column_id)
         ->whereIn('options->index_enabled', [1, "1"])
         ->count();
 
-        if ($count >= $max_index_count) {
+        if ($count >= 10) {
             return false;
         }
 
         return true;
-    }
-    protected function replaceMaxTableIndex($message, $attribute, $rule, $parameters)
-    {
-        return str_replace(':maxlen', $parameters[1], $message);
     }
 
     /**
@@ -220,6 +219,15 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
             return false;
         }
 
+        // get count index columns refered in view filters
+        $count = CustomViewFilter::where('view_column_target_id', $custom_column_id)
+            ->where('view_column_type', 0)
+            ->count();
+
+        if ($count > 0) {
+            return false;
+        }
+
         // get count index columns refered in view sorts
         $count = CustomViewSort::where('view_column_target_id', $custom_column_id)
             ->where('view_column_type', 0)
@@ -231,4 +239,66 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
 
         return true;
     }
+
+    /**
+    * Validation in table
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validateChangeFieldValue($attribute, $value, &$parameters)
+    {
+        $field_name = str_replace('.view_filter_condition_value', '.view_column_target', $attribute);
+        $condition = str_replace('.view_filter_condition_value', '.view_filter_condition', $attribute);
+        $view_column_target = array_get($this->data, $field_name);
+        $view_filter_condition = array_get($this->data, $condition);
+
+        // get column item
+        $column_item = CustomViewFilter::getColumnItem($view_column_target)
+            ->options([
+                'view_column_target' => true,
+            ]);
+
+        ///// get column_type
+        $column_type = $column_item->getViewFilterType();
+
+        if (is_null($column_type)) {
+            return true;
+        }
+
+        $parameters = [$column_type];
+
+        if (empty($value)) {
+            return false;
+        }
+
+        switch ($column_type) {
+            case ViewColumnFilterType::NUMBER:
+                return $this->validateNumeric($attribute, $value);
+                break;
+            case ViewColumnFilterType::DAY:
+                return $this->validateDate($attribute, $value);
+                break;
+        }
+
+        return true;
+    }
+    protected function replaceChangeFieldValue($message, $attribute, $rule, $parameters)
+    {
+        if (count($parameters) > 0) {
+            $name = exmtrans("custom_view.view_filter_condition_value_text");
+            switch($parameters[0]) {
+                case ViewColumnFilterType::NUMBER:
+                    return str_replace(':attribute', $name, trans('validation.numeric'));
+                case ViewColumnFilterType::DAY:
+                    return str_replace(':attribute', $name, trans('validation.date'));
+                default:
+                    return str_replace(':attribute', $name, trans('validation.required'));
+            }
+        }
+        return $message;
+    }
+    
 }

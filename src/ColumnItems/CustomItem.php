@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -143,9 +144,22 @@ abstract class CustomItem implements ItemInterface
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
     
-    public function getFilterField()
+    public function getFilterField($value_type = null)
     {
-        $classname = $this->getFilterFieldClass();
+        switch($value_type) {
+            case "date":
+                $classname = Field\Date::class;
+                break;
+            case "text":
+                $classname = Field\Text::class;
+                break;
+            case "select":
+                $classname = Field\Select::class;
+                break;
+            default:
+                $classname = $this->getFilterFieldClass();
+                break;
+        }
         return $this->getCustomField($classname);
     }
     protected function getFilterFieldClass()
@@ -262,9 +276,20 @@ abstract class CustomItem implements ItemInterface
         // get column_type
         $database_column_type = $this->custom_column->column_type;
         switch ($database_column_type) {
-            case 'date':
-            case 'datetime':
+            case ColumnType::INTEGER:
+            case ColumnType::DECIMAL:
+            case ColumnType::CURRENCY:
+                return ViewColumnFilterType::NUMBER;
+            case ColumnType::SELECT:
+            case ColumnType::SELECT_VALTEXT:
+            case ColumnType::SELECT_TABLE:
+                return ViewColumnFilterType::SELECT;
+            case ColumnType::DATE:
+            case ColumnType::DATETIME:
                 return ViewColumnFilterType::DAY;
+            case ColumnType::IMAGE:
+            case ColumnType::FILE:
+                return ViewColumnFilterType::FILE;
             case SystemTableName::USER:
                 return ViewColumnFilterType::USER;
             default:
