@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -260,7 +261,11 @@ abstract class CustomItem implements ItemInterface
 
     protected function getAdminFilterClass()
     {
-        return Filter\Like::class;
+        if(boolval(config('exment.filter_search_full', false))){
+            return Filter\Like::class;
+        }
+
+        return ExmentFilter\StartsWith::class;
     }
 
     protected function setAdminOptions(&$field, $form_column_options)
