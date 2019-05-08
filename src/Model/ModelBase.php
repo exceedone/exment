@@ -17,10 +17,6 @@ class ModelBase extends Model
     {
         return $this->getUser('updated_user_id');
     }
-    public function getDeletedUserAttribute()
-    {
-        return $this->getUser('deleted_user_id');
-    }
 
     public static function getTableName()
     {
@@ -35,15 +31,12 @@ class ModelBase extends Model
     {
         parent::boot();
 
-        ///// add created_user_id, updated_user_id, deleted_user_id
+        ///// add created_user_id, updated_user_id
         static::creating(function ($model) {
             static::setUser($model, ['created_user_id', 'updated_user_id']);
         });
         static::updating(function ($model) {
             static::setUser($model, ['updated_user_id']);
-        });
-        static::deleting(function ($model) {
-            static::setUser($model, ['updated_user_id', 'deleted_user_id']);
         });
     }
 

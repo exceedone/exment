@@ -23,7 +23,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
@@ -180,11 +179,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // delete event
         static::deleting(function ($model) {
+            // delete custom values table
+            $model->dropTable();
+
             // Delete items
             $model->deletingChildren();
             
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
+            $model->custom_views()->delete();
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
@@ -443,6 +446,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         DynamicDBHelper::createValueTable($table_name);
         System::requestSession($key, 1);
+    }
+
+    public function dropTable(){
+        $table_name = getDBTableName($this);
+        if(!\Schema::hasTable($table_name)){
+            return;
+        }
+        DynamicDBHelper::dropValueTable($table_name);
     }
     
     /**

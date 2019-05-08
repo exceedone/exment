@@ -8,7 +8,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterInterface
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;

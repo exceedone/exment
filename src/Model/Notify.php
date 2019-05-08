@@ -15,7 +15,6 @@ class Notify extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $guarded = ['id'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];

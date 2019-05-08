@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 

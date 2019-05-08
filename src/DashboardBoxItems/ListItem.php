@@ -29,6 +29,10 @@ class ListItem implements ItemInterface
         $this->custom_table = CustomTable::getEloquent($table_id);
         $this->custom_view = CustomView::getEloquent($view_id);
 
+        if(!isset($this->custom_table)){
+            return;
+        }
+
         // if view not found, set view first data
         if (!isset($this->custom_view)) {
             $this->custom_view = $this->custom_table->getDefault();
@@ -146,8 +150,11 @@ class ListItem implements ItemInterface
                 if (!isset($value)) {
                     return [];
                 }
+                if(is_null($view = CustomView::getEloquent($value))){
+                    return [];
+                }
 
-                return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                return $view->custom_table->custom_views()->pluck('view_view_name', 'id');
             });
     }
 

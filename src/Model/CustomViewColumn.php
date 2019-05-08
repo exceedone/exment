@@ -7,7 +7,6 @@ use Exceedone\Exment\Enums\ViewColumnType;
 class CustomViewColumn extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
 

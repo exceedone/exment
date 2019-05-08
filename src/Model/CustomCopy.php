@@ -9,7 +9,6 @@ use Exceedone\Exment\Enums\RelationType;
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
