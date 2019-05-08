@@ -53,6 +53,8 @@ return [
             'max_length' => 'Please enter within %s characters.',
             'input_available_characters' => 'Please enter %s.',
             'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
+            'task_schedule_id' => 'Task Schedule',
+            'task_schedule' => '<br /><b>*You have to do scheduling setting.</b> Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
         ],
     ],
 
@@ -255,6 +257,7 @@ return [
         'enable_automatic' => 'Auto Backup',
         'automatic_term' => 'Auto Backup Execution Interval(day)',
         'automatic_hour' => 'Auto Backup Start Time(hour)',
+        'history_files' => 'Number of preservation generations',
         'upload_zipfile' => 'Upload(zip)',
         'backup_target_options' => [
             'database' => 'Database',
@@ -281,6 +284,7 @@ return [
             'enable_automatic' => 'If it is set to YES, backup will be executed automatically.',
             'automatic_term' => 'It is a setting of how many days to perform automatic backup. Example: When entering "3", execute backup every 3 days',
             'automatic_hour' => 'The start time of the automatic backup. Example: When entering "3", start backup execution at 3:00',
+            'history_files' => 'The number of generations to keep during automatic backup. When 1 or more is input, the backup of the input integer is kept.',
         ]
     ],
 
