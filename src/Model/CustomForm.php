@@ -24,7 +24,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         ],
 
         'uniqueKeys' => [
-            'custom_table_id', 'suuid'
+            'suuid'
         ],
 
         'uniqueKeyReplaces' => [

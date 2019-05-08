@@ -303,12 +303,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ['options.available_characters'];
     }
     
-    protected function importSaved($json, $options = [])
+    public function importSaved($options = [])
     {
         if (!$this->indexEnabled()) {
-            return;
+            return $this;
         }
         $this->alterColumn();
+
+        return $this;
     }
 
     /**

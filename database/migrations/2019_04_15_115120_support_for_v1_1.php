@@ -139,13 +139,6 @@ class SupportForV11 extends Migration
         Schema::table('custom_tables', function (Blueprint $table) {
             $table->unique(['table_name']);
         });
-        // drop order column to custom_tables and custom_columns
-        Schema::table('custom_tables', function (Blueprint $table) {
-            $table->dropColumn('order');
-        });
-        Schema::table('custom_columns', function (Blueprint $table) {
-            $table->dropColumn('order');
-        });
         
         Schema::dropIfExists('custom_view_summaries');
 

@@ -605,8 +605,10 @@ if (!function_exists('getModelName')) {
             }
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            $table->createTable();
-            ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
+            if(!is_null($table)){
+                $table->createTable();
+                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);    
+            }
         }
 
         return "\\".$fillpath;

@@ -58,9 +58,15 @@
 
 @if (session('status'))
 <script>
-  
     $(function () {
       toastr.success('{{ session("status") }}', null, []);
+  });
+</script>
+
+@elseif(session('status_error'))
+<script>
+    $(function () {
+      toastr.error('{{ session("status_error") }}', null, []);
   });
 </script>
 @endif
