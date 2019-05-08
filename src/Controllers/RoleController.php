@@ -17,7 +17,7 @@ class RoleController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("role.header"), exmtrans("role.header"), exmtrans("role.description"));
+        $this->setPageInfo(exmtrans("role.header"), exmtrans("role.header"), exmtrans("role.description"), 'fa-user-secret');
     }
 
     /**
@@ -109,10 +109,6 @@ class RoleController extends AdminControllerBase
                 $transArray = exmtrans("role.role_type_option_$role_type_key.$role_define");
                 $form->switchbool($role_define, array_get($transArray, 'label'))->help(array_get($transArray, 'help'));
             }
-        });
-        disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
         });
         return $form;
     }

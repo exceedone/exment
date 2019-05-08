@@ -25,7 +25,7 @@ class CustomTableController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"));
+        $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"), 'fa-table');
     }
 
     /**
@@ -151,9 +151,7 @@ class CustomTableController extends AdminControllerBase
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);
         
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
-            $tools->disableView();
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::findOrFail($id);

@@ -13,6 +13,7 @@ use Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form;
+use Encore\Admin\Grid;
 use \Html;
 use PDO;
 
@@ -199,10 +200,24 @@ class Initialize
     }
 
     /**
-     * set laravel-admin form field
+     * set laravel-admin 
      */
-    public static function initializeFormField()
+    public static function initializeLaravelAdmin()
     {
+        Grid::init(function (Grid $grid) {
+            $grid->disableColumnSelector();
+        });
+
+        Form::init(function (Form $form) {
+            $form->disableEditingCheck();
+            $form->disableCreatingCheck();
+            $form->disableViewCheck();
+            $form->disableReset();
+            $form->tools(function (Form\Tools $tools) {
+                $tools->disableView();
+            });
+        });
+
         $map = [
             'number'        => Field\Number::class,
             'editor'        => Field\Tinymce::class,

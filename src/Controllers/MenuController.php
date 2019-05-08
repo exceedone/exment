@@ -24,7 +24,7 @@ class MenuController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), exmtrans('menu.description'));
+        $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), exmtrans('menu.description'), 'fa-sitemap');
     }
 
     /**
@@ -214,7 +214,6 @@ class MenuController extends AdminControllerBase
                 $form->order = $count + 1;
             }
         });
-        disableFormFooter($form);
     }
 
     // menu_type and menutargetvalue --------------------------------------------------

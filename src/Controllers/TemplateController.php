@@ -19,7 +19,7 @@ class TemplateController extends AdminControllerBase
         
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"));
+        $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"), 'fa-clone');
     }
 
     /**

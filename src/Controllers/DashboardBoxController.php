@@ -117,12 +117,8 @@ class DashboardBoxController extends AdminControllerBase
             $classname::setAdminOptions($form);
         })->disableHeader();
         
-        disableFormFooter($form);
-
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
-            $tools->disableView();
             $tools->disableList();
-            $tools->disableDelete();
 
             // addhome button
             $tools->append('<a href="'.admin_url('').'" class="btn btn-sm btn-default"  style="margin-right: 5px"><i class="fa fa-home"></i>&nbsp;'. exmtrans('common.home').'</a>');

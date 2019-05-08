@@ -25,7 +25,7 @@ class DashboardController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
+        $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
     }
 
     protected function setDashboardInfo(Request $request)
@@ -271,9 +271,7 @@ EOT;
             }
         })->disableHeader();
 
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
-            $tools->disableView();
             $tools->disableList();
 
             // addhome button

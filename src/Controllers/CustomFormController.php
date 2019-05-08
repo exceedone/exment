@@ -35,7 +35,7 @@ class CustomFormController extends AdminControllerTableBase
     public function __construct(Request $request)
     {
         parent::__construct($request);
-        $this->setPageInfo(exmtrans("custom_form.header"), exmtrans("custom_form.header"), exmtrans("custom_form.description"));
+        $this->setPageInfo(exmtrans("custom_form.header"), exmtrans("custom_form.header"), exmtrans("custom_form.description"), 'fa-keyboard-o');
     }
 
     /**

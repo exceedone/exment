@@ -1097,26 +1097,6 @@ if (!function_exists('getTransArrayValue')) {
 }
 
 // laravel-admin --------------------------------------------------
-if (!function_exists('disableFormFooter')) {
-    /**
-     * disable form footer items
-     *
-     */
-    function disableFormFooter($form)
-    {
-        $form->footer(function ($footer) {
-            // disable reset btn
-            $footer->disableReset();
-            // disable `View` checkbox
-            $footer->disableViewCheck();
-            // disable `Continue editing` checkbox
-            $footer->disableEditingCheck();
-            // disable `Continue Creating` checkbox
-            $footer->disableCreatingCheck();
-        });
-    }
-}
-
 
 if (! function_exists('abortJson')) {
     /**

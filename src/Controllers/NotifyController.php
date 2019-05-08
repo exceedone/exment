@@ -25,7 +25,7 @@ class NotifyController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"));
+        $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
     }
 
     /**
@@ -144,10 +144,6 @@ class NotifyController extends AdminControllerBase
             ->default($notify_mail_id);
         })->disableHeader();
         
-        disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
-        });
         return $form;
     }
 
