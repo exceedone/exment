@@ -11,7 +11,6 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];

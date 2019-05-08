@@ -216,7 +216,7 @@ class PluginInstaller
     protected static function prepareData($json)
     {
         // find or new $plugin
-        $plugin = Plugin::withTrashed()->firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
+        $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
         $plugin->plugin_name = array_get($json, 'plugin_name');
         $plugin->plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'))->getValue() ?? null;
         $plugin->author = array_get($json, 'author');
@@ -225,8 +225,6 @@ class PluginInstaller
         $plugin->plugin_view_name = array_get($json, 'plugin_view_name');
         $plugin->description = array_get($json, 'description');
         $plugin->active_flg = true;
-        // remove deleted at
-        $plugin->deleted_at = null;
         
         // set options
         $options = array_get($plugin, 'options', []);
@@ -259,16 +257,14 @@ class PluginInstaller
     //Check existed plugin name
     protected static function checkPluginNameExisted($name)
     {
-        return Plugin
-            ::withTrashed()->where('plugin_name', '=', $name)
+        return Plugin::where('plugin_name', '=', $name)
             ->count();
     }
 
     //Check existed plugin uuid
     protected static function checkPluginUUIDExisted($uuid)
     {
-        return Plugin
-            ::withTrashed()->where('uuid', '=', $uuid)
+        return Plugin::where('uuid', '=', $uuid)
             ->count();
     }
 

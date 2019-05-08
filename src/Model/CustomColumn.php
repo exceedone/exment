@@ -16,7 +16,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
