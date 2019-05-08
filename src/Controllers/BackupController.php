@@ -70,7 +70,7 @@ class BackupController extends AdminControllerBase
             ;
         
         $form->switchbool('backup_enable_automatic', exmtrans("backup.enable_automatic"))
-            ->help(sprintf(exmtrans("backup.help.enable_automatic"), getManualUrl('quickstart_more#'.exmtrans('backup.task_scheduling'))))
+            ->help(exmtrans("backup.help.enable_automatic") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
             ->attribute(['data-filtertrigger' =>true]);
 
         $form->number('backup_automatic_term', exmtrans("backup.automatic_term"))
