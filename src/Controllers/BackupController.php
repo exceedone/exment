@@ -264,12 +264,10 @@ class BackupController extends AdminControllerBase
         if ($validator->passes()) {
             // get backup folder full path
             $backup = static::disk()->getAdapter()->getPathPrefix();
-            // get restore file path
-            $file = path_join($backup, 'list', $data['file'] . '.zip');
 
             try{
                 \Artisan::call('down');
-                $result = \Artisan::call('exment:restore', ['file' => $file]);
+                $result = \Artisan::call('exment:restore', ['file' => $data['file']]);
             }finally{
                 \Artisan::call('up');
             }
