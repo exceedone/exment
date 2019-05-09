@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SummaryCondition;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
@@ -174,7 +175,7 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         ->whereIn('options->index_enabled', [1, "1"])
         ->count();
 
-        if ($count >= 10) {
+        if ($count >= 20) {
             return false;
         }
 
@@ -255,26 +256,30 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         $view_column_target = array_get($this->data, $field_name);
         $view_filter_condition = array_get($this->data, $condition);
 
-        // get column item
-        $column_item = CustomViewFilter::getColumnItem($view_column_target)
-            ->options([
-                'view_column_target' => true,
-            ]);
+        $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
 
-        ///// get column_type
-        $column_type = $column_item->getViewFilterType();
-
-        if (is_null($column_type)) {
+        if ($value_type == 'none') {
             return true;
         }
 
-        $parameters = [$column_type];
+        if (is_null($value_type)) {
+            // get column item
+            $column_item = CustomViewFilter::getColumnItem($view_column_target)
+                ->options([
+                    'view_column_target' => true,
+                ]);
+
+            ///// get column_type
+            $value_type = $column_item->getViewFilterType();
+        }
+
+        $parameters = [$value_type];
 
         if (empty($value)) {
             return false;
         }
 
-        switch ($column_type) {
+        switch ($value_type) {
             case ViewColumnFilterType::NUMBER:
                 return $this->validateNumeric($attribute, $value);
                 break;

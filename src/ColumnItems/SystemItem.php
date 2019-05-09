@@ -176,7 +176,7 @@ class SystemItem implements ItemInterface
         }
 
         switch($value_type) {
-            case 'date':
+            case 'day':
             case 'datetime':
                 $field = new Date($this->name(), [$this->label()]);
                 $field->default($this->value);

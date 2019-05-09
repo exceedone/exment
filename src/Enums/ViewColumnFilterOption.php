@@ -52,7 +52,7 @@ class ViewColumnFilterOption extends EnumBase
             case ViewColumnFilterOption::DAY_ON:
             case ViewColumnFilterOption::DAY_ON_OR_AFTER:
             case ViewColumnFilterOption::DAY_ON_OR_BEFORE:
-                return ColumnType::DATE;
+                return ViewColumnFilterType::DAY;
             case ViewColumnFilterOption::USER_EQ:
             case ViewColumnFilterOption::USER_NE:
             case ViewColumnFilterOption::EQ:
@@ -66,10 +66,10 @@ class ViewColumnFilterOption extends EnumBase
             case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
             case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
             case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
-                return ColumnType::TEXT;
+                return ViewColumnFilterType::NUMBER;
             case ViewColumnFilterOption::SELECT_EXISTS:
             case ViewColumnFilterOption::SELECT_NOT_EXISTS:
-                return ColumnType::SELECT;
+                return ViewColumnFilterType::SELECT;
             default:
                 return 'none';
         }

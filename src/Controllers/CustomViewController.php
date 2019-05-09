@@ -178,12 +178,12 @@ class CustomViewController extends AdminControllerTableBase
                     ->options($this->custom_table->getSummaryColumnsSelectOptions());
 //                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
                 $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
-                ->options(function ($val) {
-                    return array_map(function ($array) {
-                        return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
-                    }, SummaryCondition::getOptions());
-                })
-                ->rules('required|summaryCondition');
+                    ->options(function ($val) {
+                        return array_map(function ($array) {
+                            return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                        }, SummaryCondition::getOptions());
+                    })
+                    ->required()->rules('summaryCondition');
                 $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
             })->setTableColumnWidth(4, 2, 3, 1)
             ->description(exmtrans("custom_view.description_custom_view_summaries"));

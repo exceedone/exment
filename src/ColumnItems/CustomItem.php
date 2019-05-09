@@ -147,13 +147,13 @@ abstract class CustomItem implements ItemInterface
     public function getFilterField($value_type = null)
     {
         switch($value_type) {
-            case "date":
+            case ViewColumnFilterType::DAY:
                 $classname = Field\Date::class;
                 break;
-            case "text":
-                $classname = Field\Text::class;
+            case ViewColumnFilterType::NUMBER:
+                $classname = Field\Number::class;
                 break;
-            case "select":
+            case ViewColumnFilterType::SELECT:
                 $classname = Field\Select::class;
                 break;
             default:
