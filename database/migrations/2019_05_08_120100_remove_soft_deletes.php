@@ -3,31 +3,32 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Model;
 
 class RemoveSoftDeletes extends Migration
 {
     const SOFT_DELETED_ARRAY = [
-        'custom_relations',
-        'custom_copy_columns',
-        'custom_copies',
-        'custom_view_sorts',
-        'custom_view_summaries',
-        'custom_view_filters',
-        'custom_view_columns',
-        'custom_views',
-        'custom_form_columns',
-        'custom_form_blocks',
-        'custom_forms',
-        'custom_columns',
-        'custom_tables',
-        'dashboard_boxes',
-        'dashboards',
-        'roles',
-        'user_settings',
-        'login_users',
-        'plugins',
-        'notifies',
-        'systems',
+        'custom_relations' => Model\CustomRelation::class,
+        'custom_copy_columns' => Model\CustomCopyColumn::class,
+        'custom_copies' => Model\CustomCopy::class,
+        'custom_view_sorts' => Model\CustomViewSort::class,
+        'custom_view_summaries' => Model\CustomViewSummary::class,
+        'custom_view_filters' => Model\CustomViewFilter::class,
+        'custom_view_columns' => Model\CustomViewColumn::class,
+        'custom_views' => Model\CustomView::class,
+        'custom_form_columns' => Model\CustomFormColumn::class,
+        'custom_form_blocks' => Model\CustomFormBlock::class,
+        'custom_forms' => Model\CustomForm::class,
+        'custom_columns' => Model\CustomColumn::class,
+        'custom_tables' => Model\CustomTable::class,
+        'dashboard_boxes' => Model\DashboardBox::class,
+        'dashboards' => Model\Dashboard::class,
+        'roles' => Model\Role::class,
+        'user_settings' => Model\UserSetting::class,
+        'login_users' => Model\LoginUser::class,
+        'plugins' => Model\Plugin::class,
+        'notifies' => Model\Notify::class,
+        'systems' => Model\System::class,
     ];
 
     const ADD_INDEX_TABLES = [
@@ -50,8 +51,8 @@ class RemoveSoftDeletes extends Migration
         $this->dropExmTables();
         
         // hard delete if already deleted record
-        foreach(static::SOFT_DELETED_ARRAY as $table_name){
-            $this->deleteRecord($table_name);
+        foreach(static::SOFT_DELETED_ARRAY as $table_name => $classname){
+            $this->deleteRecord($table_name, $classname);
         }
 
         // get all deleted_at, deleted_user_id's column
@@ -94,12 +95,15 @@ class RemoveSoftDeletes extends Migration
     /**
      * hard delete 
      */
-    protected function deleteRecord($table_name){
+    protected function deleteRecord($table_name, $classname){
         if(!Schema::hasColumn($table_name, 'deleted_at')){
             return;
         }
 
-        $deleted = \DB::delete("delete from $table_name WHERE deleted_at IS NOT NULL");
+        $classname::whereNotNull('deleted_at')->get()->each(function($row){
+            $row->delete();
+        });
+        //$deleted = \DB::delete("delete from $table_name WHERE deleted_at IS NOT NULL");
     }
 
     /**

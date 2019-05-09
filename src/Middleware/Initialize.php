@@ -202,7 +202,7 @@ class Initialize
     /**
      * set laravel-admin 
      */
-    public static function initializeLaravelAdmin()
+    public static function registeredLaravelAdmin()
     {
         Grid::init(function (Grid $grid) {
             $grid->disableColumnSelector();
@@ -220,7 +220,7 @@ class Initialize
 
         $map = [
             'number'        => Field\Number::class,
-            'editor'        => Field\Tinymce::class,
+            'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,

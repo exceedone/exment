@@ -1364,7 +1364,7 @@ if (!function_exists('getUserName')) {
      * @param string $id
      * @return string user name
      */
-    function getUserName($id)
+    function getUserName($id, $link = false)
     {
         $user = getModelName(SystemTableName::USER)::withTrashed()->find($id);
         if (!isset($user)) {
@@ -1372,6 +1372,10 @@ if (!function_exists('getUserName')) {
         }
         if ($user->trashed()) {
             return exmtrans('common.trashed_user');
+        }
+
+        if($link){
+            return $user->getUrl(true);
         }
         return $user->getLabel();
     }

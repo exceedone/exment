@@ -29,7 +29,7 @@ class SystemItem implements ItemInterface
         } else {
             $this->column_name = $column_name;
         }
-        $this->value = $this->getTargetValue($custom_value);
+        $this->custom_value = $custom_value;
         $this->label = exmtrans("common.$this->column_name");
     }
 
@@ -114,7 +114,7 @@ class SystemItem implements ItemInterface
      */
     public function text()
     {
-        return $this->value;
+        return $this->getTargetValue(false);
     }
 
     /**
@@ -122,8 +122,8 @@ class SystemItem implements ItemInterface
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
     public function html()
-    {
-        return esc_html($this->text());
+    {        
+        return $this->getTargetValue(true);
     }
 
     /**
@@ -136,7 +136,7 @@ class SystemItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
-        $this->value = $this->getTargetValue($custom_value);
+        $this->custom_value = $custom_value;
         if (isset($custom_value)) {
             $this->id = $custom_value->id;
         }
@@ -151,19 +151,27 @@ class SystemItem implements ItemInterface
         return $this->custom_table;
     }
 
-    protected function getTargetValue($custom_value)
+    protected function getTargetValue($html)
     {
         // if options has "summary" (for summary view)
         if (boolval(array_get($this->options, 'summary'))) {
-            return array_get($custom_value, $this->sqlAsName());
+            return array_get($this->custom_value, $this->sqlAsName());
         }
-        return array_get($custom_value, $this->column_name);
+        // if $html, get as html
+        elseif($html){
+            $htmlname = array_get(SystemColumn::getOption(['name' => $this->column_name]), 'htmlname');
+            if(isset($htmlname)){
+                return $this->custom_value->{$htmlname};
+            }
+            return esc_html(array_get($this->custom_value, $this->column_name));
+        }
+        return array_get($this->custom_value, $this->column_name);
     }
     
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $field = new Field\Display($this->name(), [$this->label()]);
-        $field->default($this->value);
+        $field->default($this->text());
 
         return $field;
     }

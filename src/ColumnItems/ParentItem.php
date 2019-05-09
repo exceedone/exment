@@ -81,11 +81,6 @@ class ParentItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
-        // $relation = CustomRelation::getRelationByChild($this->custom_table);
-        // if (!isset($relation)) {
-        //     return $this;
-        // }
-
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
             $this->id = $custom_value->id;

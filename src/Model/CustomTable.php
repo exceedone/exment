@@ -617,7 +617,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $this->getValueModel();
 
         // filter model
-        $model = Admin::user()->filterModel($model, $this);
+        $user = Admin::user();
+        if(isset($user)){
+            $model = $user->filterModel($model, $this);
+        }
         return $model;
     }
     /**
