@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 
@@ -16,9 +17,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     use AdminBuilder;
     use HasPermissions;
     use HasApiTokens;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     
-    //protected $guarded = ['id', 'base_user_id'];
     protected $guarded = ['id'];
 
     protected $hidden = ['password'];
@@ -49,6 +48,27 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         return $this->base_user->value['email'] ?? null;
     }
 
+    public function getNameAttribute()
+    {
+        return array_get($this->base_user->value, "user_name");
+    }
+
+    /**
+     * Get avatar attribute.
+     *
+     * @param string $avatar
+     *
+     * @return string
+     */
+    public function getDisplayAvatarAttribute($avatar = null)
+    {
+        $avatar = $this->avatar;
+        if ($avatar) {
+            return Storage::disk(config('admin.upload.disk'))->url($avatar);
+        }
+        return asset('vendor/exment/images/user.png');
+    }
+    
     public function isLoginProvider()
     {
         return !is_nullorempty($this->login_provider);

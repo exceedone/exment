@@ -14,7 +14,6 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'form_name'],
@@ -24,7 +23,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         ],
 
         'uniqueKeys' => [
-            'custom_table_id', 'suuid'
+            'suuid'
         ],
 
         'uniqueKeyReplaces' => [

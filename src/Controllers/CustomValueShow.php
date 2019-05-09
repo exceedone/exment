@@ -5,14 +5,13 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
-use Encore\Admin\Show;
+use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -20,6 +19,9 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
+/**
+ * CustomValueShow
+ */
 trait CustomValueShow
 {
     /**
@@ -28,7 +30,8 @@ trait CustomValueShow
     protected function createShowForm($id = null, $modal = false)
     {
         //PluginInstaller::pluginPreparing($this->plugins, 'loading');
-        return Admin::show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+        return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+            $custom_value = $this->custom_table->getValueModel($id);
 
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
@@ -51,17 +54,23 @@ trait CustomValueShow
                 }
                 ////// default block(no relation block)
                 if (array_get($custom_form_block, 'form_block_type') == FormBlockType::DEFAULT) {
+                    $hasMultiColumn = false;
                     foreach ($custom_form_block->custom_form_columns as $form_column) {
                         $item = $form_column->column_item;
                         if (!isset($item)) {
                             continue;
                         }
-                        $show->field($item->name(), $item->label())->as(function ($v) use ($form_column, $item) {
-                            if (is_null($this)) {
-                                return '';
-                            }
-                            return $item->setCustomValue($this)->html();
-                        })->setEscape(false);
+                        $show->field($item->name(), $item->label(), array_get($form_column, 'column_no'))
+                            ->as(function ($v) use ($form_column, $item) {
+                                if (is_null($this)) {
+                                    return '';
+                                }
+                                return $item->setCustomValue($this)->html();
+                            })->setEscape(false);
+                    }
+
+                    if ($custom_form_block->isMultipleColumn()) {
+                        $show->setWidth(9, 3);
                     }
                 }
                 ////// relation block
@@ -99,22 +108,24 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            if ($modal) {
-                $show->panel()->tools(function ($tools) {
+            $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
+                if (count($this->custom_table->getRelationTables()) > 0) {
+                    $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
+                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
+                            <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
+                        </a>
+                    </div>');
+                }
+
+                if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
-                });
-            } else {
-                $show->panel()->tools(function ($tools) {
+                } else {
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
-                });
-            }
 
-            // show plugin button and copy button
-            if (!$modal) {
-                $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
-                $copyButtons = $this->custom_table->from_custom_copies;
-                $show->panel()->tools(function ($tools) use ($listButtons, $copyButtons, $id) {
+                    $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
+                    $copyButtons = $this->custom_table->from_custom_copies;
+
                     foreach ($listButtons as $plugin) {
                         $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
                     }
@@ -123,8 +134,8 @@ trait CustomValueShow
                     
                         $tools->append($b->toHtml());
                     }
-                });
-            }
+                }
+            });
         });
     }
 
@@ -139,7 +150,7 @@ trait CustomValueShow
         $useFileUpload = $this->useFileUpload($modal);
         $useComment = $this->useComment($modal);
  
-        $revisions = $this->getRevisions($id, $modal); 
+        $revisions = $this->getRevisions($id, $modal);
 
         if (count($documents) > 0 || $useFileUpload) {
             $form = new WidgetForm;
@@ -211,21 +222,23 @@ EOT;
                     'No.'.($revision->revision_no)
                 )->setWidth(9, 2);
             }
-            $row->column(6, (new Box('更新履歴', $form))->style('info'));
+            $row->column(6, (new Box(exmtrans('revision.update_history'), $form))->style('info'));
         }
 
         if ($useComment) {
             $comments = $this->getComments($id, $modal);
             $form = new WidgetForm;
             $form->disableReset();
-            $form->disableSubmit();
-    
+            $form->action(admin_urls('data', $this->custom_table->table_name, $id, 'addcomment'));
+            $form->setWidth(10, 2);
+
             if (count($comments) > 0) {
                 $html = [];
                 foreach ($comments as $index => $comment) {
                     $html[] = "<p>" . view('exment::form.field.commentline', [
                         'comment' => $comment,
                         'table_name' => $this->custom_table->table_name,
+                        'isAbleRemove' => ($comment->created_user_id == \Exment::user()->base_user_id),
                     ])->render() . "</p>";
                 }
                 // loop and add as link
@@ -235,29 +248,9 @@ EOT;
             }
             $form->textarea('comment', exmtrans("common.comment"))
                 ->rows(3)
+                ->required()
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-            $form->button('add_comment', trans("admin.submit"))
-                ->setElementClass(['btn-primary', 'pull-right', 'add-comment'])
-                ->setWidth(12, 0);
-            $ajax_url = admin_urls('data', $this->custom_table->table_name, $id, 'addcomment');
-            $script = <<<EOT
-            $("input.add-comment").on('click', function(e, params) {
-                var comment = $('textarea.comment').val();
-                $.ajax({
-                    url: "$ajax_url",
-                    data: {
-                        _token: LA.token,
-                        comment: comment
-                    },
-                    type: "POST",
-                    success: function (data) {
-                        $.pjax.reload('#pjax-container');
-                    },
-                });
-            });
-EOT;
-            Admin::script($script);
             $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));
         }
     }
@@ -370,7 +363,7 @@ EOT;
     {
         return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
-
+    
     /**
      * whether comment field
      */
@@ -378,7 +371,7 @@ EOT;
     {
         return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
-    
+
     protected function getDocuments($id, $modal = false)
     {
         if ($modal) {
@@ -389,6 +382,7 @@ EOT;
             ->where('parent_type', $this->custom_table->table_name)
             ->get();
     }
+    
     protected function getComments($id, $modal = false)
     {
         if ($modal) {
@@ -399,7 +393,7 @@ EOT;
             ->where('parent_type', $this->custom_table->table_name)
             ->get();
     }
-    
+
     /**
      * get target data revisions
      */

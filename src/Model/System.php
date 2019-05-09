@@ -12,8 +12,6 @@ use DB;
 
 class System extends ModelBase
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
-    
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
     protected static $requestSession = [];
@@ -227,7 +225,6 @@ class System extends ModelBase
             // remove old file
             if (!is_null($old_value)) {
                 ExmentFile::deleteFileInfo($old_value);
-                Storage::disk(config('admin.upload.disk'))->delete($old_value);
             }
         }
         $system->system_value = null;

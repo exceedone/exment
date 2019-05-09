@@ -35,7 +35,7 @@ class LoginUserAction implements ActionInterface
                     'result' => false,
                     'toastr' => exmtrans('common.message.import_error'),
                     'errors' => ['import_error_message' => ['type' => 'input', 'message' => implode("\r\n", $error_data)]],
-                ]);
+                ], 400);
             }
             $data_imports[] = [
                 'provider' => $provider,
@@ -82,7 +82,7 @@ class LoginUserAction implements ActionInterface
 
     public function getImportHeaderViewName()
     {
-        return 'ログインユーザー';
+        return exmtrans('menu.system_definitions.loginuser');
     }
     
     /**

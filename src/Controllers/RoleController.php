@@ -17,7 +17,7 @@ class RoleController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("role.header"), exmtrans("role.header"), exmtrans("role.description"));
+        $this->setPageInfo(exmtrans("role.header"), exmtrans("role.header"), exmtrans("role.description"), 'fa-user-secret');
     }
 
     /**
@@ -89,8 +89,8 @@ class RoleController extends AdminControllerBase
         if (!isset($id)) {
             $form->text('role_name', exmtrans('role.role_name'))
             ->required()
-            ->rules("unique:".Role::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
-            ->help(exmtrans('common.help_code'));
+            ->rules("max:30|unique:".Role::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+            ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('role_name', exmtrans('role.role_name'));
         }
@@ -109,10 +109,6 @@ class RoleController extends AdminControllerBase
                 $transArray = exmtrans("role.role_type_option_$role_type_key.$role_define");
                 $form->switchbool($role_define, array_get($transArray, 'label'))->help(array_get($transArray, 'help'));
             }
-        });
-        disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
         });
         return $form;
     }

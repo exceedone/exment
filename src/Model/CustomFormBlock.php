@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\FormBlockType;
 
 class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterInterface
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
@@ -77,6 +76,16 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
         return $this->clearJson('options');
     }
     
+    public function isMultipleColumn()
+    {
+        foreach ($this->custom_form_columns as $custom_form_column) {
+            if (array_get($custom_form_column, 'column_no') != 1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected static function importReplaceJson(&$json, $options = [])
     {
         // get custom table

@@ -25,7 +25,7 @@ class DashboardController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"));
+        $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
     }
 
     protected function setDashboardInfo(Request $request)
@@ -229,8 +229,8 @@ EOT;
         if (!isset($id)) {
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
                 ->required()
-                ->rules("unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
-                ->help(exmtrans('common.help_code'));
+                ->rules("max:30|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
+                ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
         }
@@ -271,9 +271,7 @@ EOT;
             }
         })->disableHeader();
 
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
-            $tools->disableView();
             $tools->disableList();
 
             // addhome button

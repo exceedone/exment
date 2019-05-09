@@ -7,6 +7,11 @@ use \Exception;
 
 class DynamicDBHelper
 {
+    public static function dropValueTable($table_name)
+    {
+        DB::statement("DROP TABLE IF EXISTS ".$table_name);
+    }
+
     public static function createValueTable($table_name)
     {
         DB::statement("CREATE TABLE IF NOT EXISTS ".$table_name." LIKE custom_values");

@@ -28,7 +28,7 @@ class CustomViewController extends AdminControllerTableBase
     {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_view.header"), exmtrans("custom_view.header"), exmtrans("custom_view.description"));
+        $this->setPageInfo(exmtrans("custom_view.header"), exmtrans("custom_view.header"), exmtrans("custom_view.description"), 'fa-th-list');
     }
 
     /**
@@ -267,8 +267,6 @@ class CustomViewController extends AdminControllerTableBase
         if (!isset($id)) {
             $id = $form->model()->id;
         }
-
-        disableFormFooter($form);
         
         $custom_table = $this->custom_table;
 
@@ -294,7 +292,6 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
         });
         $table_name = $this->custom_table->table_name;

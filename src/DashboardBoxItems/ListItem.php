@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Encore\Admin\Widgets\Table as WidgetTable;
+use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
@@ -27,6 +28,10 @@ class ListItem implements ItemInterface
         // get table and view
         $this->custom_table = CustomTable::getEloquent($table_id);
         $this->custom_view = CustomView::getEloquent($view_id);
+
+        if(!isset($this->custom_table)){
+            return;
+        }
 
         // if view not found, set view first data
         if (!isset($this->custom_view)) {
@@ -86,7 +91,18 @@ class ListItem implements ItemInterface
         $datalist = $this->paginate->items();
 
         // get widget table
-        list($headers, $bodies) = $this->custom_view->getDataTable($datalist);
+        $option = [
+            'action_callback' => function (&$link, $custom_table, $data) {
+                if (count($custom_table->getRelationTables()) > 0) {
+                    $link .= (new Linker)
+                    ->url($data->getRelationSearchUrl(true))
+                    ->icon('fa-compress')
+                    ->tooltip(exmtrans('search.header_relation'));
+                }
+            }
+        ];
+        list($headers, $bodies) = $this->custom_view->getDataTable($datalist, $option);
+        
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
 
@@ -134,8 +150,11 @@ class ListItem implements ItemInterface
                 if (!isset($value)) {
                     return [];
                 }
+                if(is_null($view = CustomView::getEloquent($value))){
+                    return [];
+                }
 
-                return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                return $view->custom_table->custom_views()->pluck('view_view_name', 'id');
             });
     }
 

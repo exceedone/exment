@@ -24,7 +24,7 @@ class MenuController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), exmtrans('menu.description'));
+        $this->setPageInfo(trans('admin.menu'), trans('admin.menu'), exmtrans('menu.description'), 'fa-sitemap');
     }
 
     /**
@@ -113,10 +113,12 @@ class MenuController extends AdminControllerBase
 
                 if (!isset($branch['children'])) {
                     if (!url()->isValidUrl($uri)) {
+                        $esc_uri = esc_html(trim(admin_base_path($uri), '/'));
                         $uri = admin_url($uri);
+                    } else {
+                        $esc_uri = esc_html($uri);
                     }
 
-                    $esc_uri = esc_html($uri);
                     $payload .= "&nbsp;&nbsp;&nbsp;<a href=\"$uri\" class=\"dd-nodrag\">$esc_uri</a>";
                 }
 
@@ -181,6 +183,7 @@ class MenuController extends AdminControllerBase
         $form->text('title', exmtrans("menu.title"))->required();
         $form->icon('icon', trans('admin.icon'))->default('');
         $form->hidden('order');
+        $form->setWidth(8, 3);
 
         $form->saving(function ($form) {
             // whether set order
@@ -211,7 +214,6 @@ class MenuController extends AdminControllerBase
                 $form->order = $count + 1;
             }
         });
-        disableFormFooter($form);
     }
 
     // menu_type and menutargetvalue --------------------------------------------------

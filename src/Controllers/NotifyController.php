@@ -25,7 +25,7 @@ class NotifyController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"));
+        $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
     }
 
     /**
@@ -108,7 +108,7 @@ class NotifyController extends AdminControllerBase
                 ->options(NotifyBeforeAfter::transKeyArray('notify.notify_beforeafter_options'))
                 ->default(NotifyBeforeAfter::BEFORE)
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
-                ->help(exmtrans("notify.help.notify_beforeafter"));
+                ->help(exmtrans("notify.help.notify_beforeafter") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))));
                 
             $form->number('notify_hour', exmtrans("notify.notify_hour"))
                 ->min(0)
@@ -144,10 +144,6 @@ class NotifyController extends AdminControllerBase
             ->default($notify_mail_id);
         })->disableHeader();
         
-        disableFormFooter($form);
-        $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
-        });
         return $form;
     }
 

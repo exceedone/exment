@@ -274,8 +274,8 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
         
-        Admin::booting(function () {
-            Initialize::initializeFormField();
+        Admin::booted(function () {
+            Initialize::initializeLaravelAdmin();
         });
     }
     

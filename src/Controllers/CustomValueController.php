@@ -36,7 +36,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($request);
 
-        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description);
+        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
@@ -66,16 +66,18 @@ class CustomValueController extends AdminControllerTableBase
                 $id = $record->id;
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                disableFormFooter($form);
                 $content->body($form);
             }
             // no record
             else {
                 $form = $this->form(null);
-                disableFormFooter($form);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 $content->body($form);
             }
+
+            $form->disableViewCheck();
+            $form->disableEditingCheck();
+            $form->disableCreatingCheck();
         } else {
             if ($this->custom_view->view_kind_type == ViewKindType::AGGREGATE) {
                 $content->body($this->gridSummary());
@@ -127,20 +129,6 @@ class CustomValueController extends AdminControllerTableBase
         return $content;
     }
     
-    // /**
-    //  * Update the specified resource in storage.
-    //  *
-    //  * @param int $id
-    //  *
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function update($id)
-    // {
-    //     // call form using id
-    //     $response = $this->form($id)->update($id);
-    //     return $response;
-    // }
-
     /**
      * Show interface.
      *
@@ -210,28 +198,11 @@ class CustomValueController extends AdminControllerTableBase
     }
  
     /**
-     * delete comment.
-     */
-    public function delComment(Request $request, $tableKey, $id)
-    {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
-            return $response;
-        }
-        if (!empty($id)) {
-            getModelName(SystemTableName::COMMENT)::find($id)->delete();
-        }
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
-    }
- 
-    /**
      * add comment.
      */
     public function addComment(Request $request, $tableKey, $id)
     {
-        if (($response = $this->firstFlow($request, $id)) instanceof Response) {
+        if (($response = $this->firstFlow($request, $id, true)) instanceof Response) {
             return $response;
         }
         $comment = $request->get('comment');
@@ -247,10 +218,9 @@ class CustomValueController extends AdminControllerTableBase
             $model->save();
         }
 
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.update_succeeded'),
-        ]);
+        $url = admin_urls('data', $this->custom_table->table_name, $id);
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect($url);
     }
  
     /**
@@ -407,6 +377,7 @@ class CustomValueController extends AdminControllerTableBase
         //Validation table value
         $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
         if (!$this->validateTable($this->custom_table, $roleValue)) {
+            Checker::error();
             return false;
         }
             

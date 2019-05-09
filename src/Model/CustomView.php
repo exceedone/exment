@@ -21,7 +21,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $guarded = ['id', 'suuid'];
 
@@ -82,20 +81,22 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
     }
 
-    public function getTableNameAttribute()
-    {
-        return $this->custom_table->table_name;
-    }
-
     public function custom_view_summaries()
     {
         return $this->hasMany(CustomViewSummary::class, 'custom_view_id');
+    }
+
+    public function getTableNameAttribute()
+    {
+        return $this->custom_table->table_name;
     }
 
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();
         $this->custom_view_filters()->delete();
+        $this->custom_view_sorts()->delete();
+        $this->custom_view_summaries()->delete();
     }
 
     protected static function boot()
@@ -186,9 +187,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
+                $link = '';
+                if (isset($options['action_callback'])) {
+                    $options['action_callback']($link, $custom_table, $data);
+                }
+
                 ///// add show and edit link
                 // using role
-                $link = (new Linker)
+                $link .= (new Linker)
                     ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
                     //->linkattributes(['style' => "margin:0 3px;"])
                     ->icon('fa-eye')
@@ -200,9 +206,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                         ->icon('fa-edit')
                         ->tooltip(trans('admin.edit'))
                         ->render();
-                }
-                if (isset($options['action_callback'])) {
-                    $options['action_callback']($link, $custom_table, $data);
                 }
                 // add hidden item about data id
                 $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';

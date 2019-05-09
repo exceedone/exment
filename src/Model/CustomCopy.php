@@ -9,7 +9,6 @@ use Exceedone\Exment\Enums\RelationType;
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
@@ -226,5 +225,20 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
+    }
+        
+    public function deletingChildren()
+    {
+        $this->custom_copy_columns()->delete();
+        $this->custom_copy_input_columns()->delete();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::deleting(function ($model) {
+            $model->deletingChildren();
+        });
     }
 }

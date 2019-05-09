@@ -16,7 +16,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
@@ -111,7 +110,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected static function boot()
     {
         parent::boot();
-        
+                
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
+
         // delete event
         static::deleting(function ($model) {
             // Delete items
@@ -300,12 +302,14 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ['options.available_characters'];
     }
     
-    protected function importSaved($json, $options = [])
+    public function importSaved($options = [])
     {
         if (!$this->indexEnabled()) {
-            return;
+            return $this;
         }
         $this->alterColumn();
+
+        return $this;
     }
 
     /**
@@ -322,7 +326,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         ]);
 
         // if record is already exists skip process, when update
-        if ($is_update && $obj_column->exists) return $obj_column;
+        if ($is_update && $obj_column->exists) {
+            return $obj_column;
+        }
         
         ///// set options
         // check need update

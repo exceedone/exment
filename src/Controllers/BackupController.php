@@ -19,7 +19,7 @@ class BackupController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("backup.header"), exmtrans("backup.header"), exmtrans("backup.description"));
+        $this->setPageInfo(exmtrans("backup.header"), exmtrans("backup.header"), exmtrans("backup.description"), 'fa-database');
     }
     
     /**
@@ -70,7 +70,7 @@ class BackupController extends AdminControllerBase
             ;
         
         $form->switchbool('backup_enable_automatic', exmtrans("backup.enable_automatic"))
-            ->help(exmtrans("backup.help.enable_automatic"))
+            ->help(exmtrans("backup.help.enable_automatic") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
             ->attribute(['data-filtertrigger' =>true]);
 
         $form->number('backup_automatic_term', exmtrans("backup.automatic_term"))
@@ -78,10 +78,15 @@ class BackupController extends AdminControllerBase
             ->min(1)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-        $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
+            $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
             ->help(exmtrans("backup.help.automatic_hour"))
             ->min(0)
             ->max(23)
+            ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
+
+        $form->number('backup_history_files', exmtrans("backup.history_files"))
+            ->help(exmtrans("backup.help.history_files"))
+            ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
         return new Box(exmtrans("backup.setting_header"), $form);
@@ -156,9 +161,12 @@ class BackupController extends AdminControllerBase
             // store uploaded file
             $filename = $file->store('upload_tmp', 'admin_tmp');
             $fullpath = getFullpath($filename, 'admin_tmp');
-            \Artisan::call('down');
-            $result = \Artisan::call('exment:restore', ['file' => $fullpath]);
-            \Artisan::call('up');
+            try{
+                \Artisan::call('down');
+                $result = \Artisan::call('exment:restore', ['file' => $fullpath]);    
+            }finally{
+                \Artisan::call('up');
+            }
         }
         
         if (isset($result) && $result === 0) {
@@ -259,9 +267,12 @@ class BackupController extends AdminControllerBase
             // get restore file path
             $file = path_join($backup, 'list', $data['file'] . '.zip');
 
-            \Artisan::call('down');
-            $result = \Artisan::call('exment:restore', ['file' => $file]);
-            \Artisan::call('up');
+            try{
+                \Artisan::call('down');
+                $result = \Artisan::call('exment:restore', ['file' => $file]);
+            }finally{
+                \Artisan::call('up');
+            }
         }
 
         if (isset($result) && $result === 0) {

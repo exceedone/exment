@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Console;
 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Console\Command;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
 use \File;
 
@@ -15,7 +17,7 @@ class BackupCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:backup {--target=}';
+    protected $signature = 'exment:backup {--target=} {--schedule}';
 
     /**
      * The console command description.
@@ -91,6 +93,8 @@ class BackupCommand extends Command
 
         // delete temporary folder
         $success = \File::deleteDirectory($this->tempdir);
+
+        $this->removeOldBackups();
 
         return 0;
     }
@@ -278,5 +282,41 @@ class BackupCommand extends Command
         }
 
         exec($command);
+    }
+
+    protected function removeOldBackups(){
+        // get history file counts
+        $backup_history_files = System::backup_history_files();
+        if(!isset($backup_history_files) || $backup_history_files <= 0){
+            return;
+        }
+
+        // check whether batch
+        $schedule = boolval($this->option("schedule"));
+        if(!$schedule){
+            return;
+        }
+
+        $disk = Storage::disk('backup');
+
+        // get files
+        $filenames = $disk->files('list');
+
+        // get file infos
+        $files = collect($filenames)->map(function($filename) use($disk){
+            return [
+                'name' => $filename,
+                'lastModified' => $disk->lastModified($filename),
+            ];
+        })->sortByDesc('lastModified');
+
+        // remove file
+        foreach($files->values()->all() as $index => $file){
+            if($index < $backup_history_files){
+                continue;
+            }
+
+            $disk->delete(array_get($file, 'name'));
+        }
     }
 }

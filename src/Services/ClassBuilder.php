@@ -246,9 +246,9 @@ class ClassBuilder
         Role::roleLoop(RoleType::VALUE(), function ($role, $related_type) use ($builder, $obj) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
-                    "public",
-                    $role->getRoleName($related_type)."()",
-                        "return \$this->morphToMany('$target_model', 'morph', 'value_authoritable', 'morph_id', 'related_id')
+                "public",
+                $role->getRoleName($related_type)."()",
+                "return \$this->morphToMany('$target_model', 'morph', 'value_authoritable', 'morph_id', 'related_id')
                         ->withPivot('related_id', 'related_type', 'role_id')
                         ->wherePivot('related_type', '".$related_type."')
                         ->wherePivot('role_id', {$role->id});"
@@ -279,9 +279,9 @@ class ClassBuilder
         Role::roleLoop(RoleType::TABLE(), function ($role, $related_type) use ($builder) {
             $target_model = getModelName($related_type, true);
             $builder->addMethod(
-                    "public",
-                    $role->getRoleName($related_type)."()",
-                        "return \$this->morphToMany('$target_model', 'morph', 'system_authoritable', 'morph_id', 'related_id')
+                "public",
+                $role->getRoleName($related_type)."()",
+                "return \$this->morphToMany('$target_model', 'morph', 'system_authoritable', 'morph_id', 'related_id')
                         ->withPivot('related_id', 'related_type', 'role_id')
                         ->wherePivot('related_type', '".$related_type."')
                         ->wherePivot('role_id', {$role->id});"

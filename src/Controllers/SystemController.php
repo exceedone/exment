@@ -20,7 +20,7 @@ class SystemController extends AdminControllerBase
     
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"));
+        $this->setPageInfo(exmtrans("system.header"), exmtrans("system.header"), exmtrans("system.system_description"), 'fa-cogs');
     }
 
     /**
@@ -138,7 +138,7 @@ class SystemController extends AdminControllerBase
                         return $dbValue->related_id == $value;
                     })) {
                         DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
-                        [
+                            [
                             'related_id' => $value,
                             'related_type' => $related_type,
                             'morph_id' => null,

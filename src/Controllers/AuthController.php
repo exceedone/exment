@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -100,6 +101,23 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         return redirect($error_url)->withInput()->withErrors([$this->username() => $this->getFailedLoginMessage()]);
+    }
+
+    /**
+     * file delete auth.
+     */
+    public function filedelete(Request $request)
+    {
+        $loginUser = \Exment::user();
+
+        ExmentFile::deleteFileInfo($loginUser->avatar);
+        $loginUser->avatar = null;
+        $loginUser->save();
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
     }
 
     /**
@@ -213,8 +231,24 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
             $form->text('base_user.value.user_name', exmtrans('user.user_name'));
             $form->email('base_user.value.email', exmtrans('user.email'));
+
+            $fileOption = array_merge(
+                Define::FILE_OPTION(),
+                [
+                    'showPreview' => true,
+                    'deleteUrl' => admin_urls('auth', 'setting', 'filedelete'),
+                    'deleteExtraData'      => [
+                        '_token'           => csrf_token(),
+                        '_method'          => 'PUT',
+                        'delete_flg'       => 'avatar',
+                    ]
+                ]
+            );
+
             $form->image('avatar', exmtrans('user.avatar'))
                 ->move('avatar')
+                ->attribute(['accept' => "image/*"])
+                ->options($fileOption)
                 ->name(function ($file) {
                     $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
                     return $exmentfile->filename;
@@ -228,9 +262,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
             $form->setAction(admin_url('auth/setting'));
             $form->ignore(['password_confirmation', 'old_password']);
-            disableFormFooter($form);
             $form->tools(function (Form\Tools $tools) {
-                $tools->disableView();
                 $tools->disableDelete();
             });
 

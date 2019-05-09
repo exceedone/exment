@@ -8,6 +8,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
@@ -21,7 +23,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
@@ -158,6 +159,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($this->custom_forms as $item) {
             $item->deletingChildren();
         }
+        foreach ($this->custom_views as $item) {
+            $item->deletingChildren();
+        }
+        foreach ($this->from_custom_copies as $item) {
+            $item->deletingChildren();
+        }
         foreach ($this->custom_form_block_target_tables as $item) {
             $item->deletingChildren();
         }
@@ -167,13 +174,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         parent::boot();
         
+        // add default order
+        static::addGlobalScope(new OrderScope('order'));
+
         // delete event
         static::deleting(function ($model) {
+            // delete custom values table
+            $model->dropTable();
+
             // Delete items
             $model->deletingChildren();
             
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
+            $model->custom_views()->delete();
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
@@ -284,15 +298,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model = $model->whereIn('id', $permission_table_ids);
         }
 
-        // add default order
-        $model = $model->orderBy('order', 'asc');
-
         if ($options['getModel']) {
             return $model->get();
         }
         return $model;
     }
 
+    /**
+     * get 'with' array for get eloquent
+     */
     protected static function getWiths($withs)
     {
         if (is_array($withs)) {
@@ -335,9 +349,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return ['system_flg', 'showlist_flg'];
     }
 
-    protected function importSaved($json, $options = [])
+    public function importSaved($options = [])
     {
         $this->createTable();
+
+        return $this;
     }
     
     /**
@@ -351,28 +367,76 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'maxCount' => 5,
                 'paginate' => false,
                 'makeHidden' => false,
+                'searchColumns' => null,
+                'relation' => false,
             ],
             $options
         );
         extract($options);
 
-        $search_columns = $this->getSearchEnabledColumns();
+        // if selected target column,
+        $searchColumns = $options['searchColumns'];
+        if (is_null($searchColumns)) {
+            $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
+                return $c->getIndexColumnName();
+            });
+        }
 
+        if(!isset($searchColumns) || count($searchColumns) == 0){
+            return collect([]);
+        }
+        
         $data = [];
-        $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+
+        if(boolval(config('exment.filter_search_full', false))){
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        }else{
+            $value = $q . ($isLike ? '%' : '');
+        }
         $mark = ($isLike ? 'LIKE' : '=');
 
-        // get data
-        $query = getModelName($this)
-            ::where(function ($wherequery) use ($search_columns, $mark, $value) {
-                foreach ($search_columns as $search_column) {
-                    $wherequery->orWhere($search_column->getIndexColumnName(), $mark, $value);
-                }
-            });
-        
+        $takeCount = config('exment.keyword_search_count', 1000);        
+
+        // crate union query
+        $queries = [];
+        for($i = 0; $i < count($searchColumns) - 1; $i++){
+            $searchColumn = $searchColumns[$i];
+            $query = getModelName($this)::query();
+            $query->where($searchColumn, $mark, $value)->select('id');
+            if(!boolval($options['relation'])){
+                $query->take($takeCount);
+            }
+
+            $queries[] = $query;
+        }
+
+        $searchColumn = $searchColumns->last();
+        $subquery = getModelName($this)::query();
+        $subquery->where($searchColumn, $mark, $value)->select('id');
+        if(!boolval($options['relation'])){
+            $subquery->take($takeCount);
+        }
+
+        foreach ($queries as $inq) {
+            $subquery->union($inq);
+        }
+
+        // create main query
+        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+
         // return as paginate
         if ($paginate) {
-            $paginates = $query->paginate($maxCount);
+            // get data(only id)
+            $paginates = $mainQuery->select('id')->paginate($maxCount);
+
+            // set eloquent data using ids
+            $ids = collect($paginates->items())->map(function($item){
+                return $item->id;
+            });
+
+            // set pager items
+            $paginates->setCollection(getModelName($this)::whereIn('id', $ids->toArray())->get());
+            
             if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;
@@ -382,7 +446,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // return default
-        return $query
+        $ids = $mainQuery->select('id')->take($maxCount)->get()->pluck('id');
+        return getModelName($this)
+            ::whereIn('id', $ids)
             ->take($maxCount)
             ->get();
     }
@@ -423,6 +489,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         DynamicDBHelper::createValueTable($table_name);
         System::requestSession($key, 1);
+    }
+
+    public function dropTable(){
+        $table_name = getDBTableName($this);
+        if(!\Schema::hasTable($table_name)){
+            return;
+        }
+        DynamicDBHelper::dropValueTable($table_name);
     }
     
     /**
@@ -531,7 +605,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($count <= 100) {
             return null;
         }
-        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "search");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
     }
 
     /**
@@ -769,11 +843,66 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $options;
     }
         
-    public function getValueModel()
+    /**
+     * Get relation tables list.
+     * It contains search_type(select_table, one_to_many, many_to_many)
+     */
+    public function getRelationTables()
+    {
+        // check already execute
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES, $this->table_name);
+        return System::requestSession($key, function () {
+            $results = [];
+            // 1. Get tables as "select_table". They contains these columns matching them.
+            // * table_column > options > search_enabled is true.
+            // * table_column > options > select_target_table is table id user selected.
+            $tables = static::whereHas('custom_columns', function ($query) {
+                $query->whereIn('options->index_enabled', [1, "1"])
+                ->whereIn('options->select_target_table', [$this->id, strval($this->id)]);
+            })
+            ->searchEnabled()
+            ->get();
+    
+            foreach ($tables as $table) {
+                // if not role, continue
+                $table_obj = static::getEloquent(array_get($table, 'id'));
+                if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                    continue;
+                }
+                array_push($results, ['searchType' => SearchType::SELECT_TABLE, 'table' => $table_obj]);
+            }
+    
+            // 2. Get relation tables.
+            // * table "custom_relations" and column "parent_custom_table_id" is $this->id.
+            $tables = static
+            ::join('custom_relations', 'custom_tables.id', 'custom_relations.parent_custom_table_id')
+            ->join('custom_tables AS child_custom_tables', 'child_custom_tables.id', 'custom_relations.child_custom_table_id')
+                ->whereHas('custom_relations', function ($query) {
+                    $query->where('parent_custom_table_id', $this->id);
+                })->get(['child_custom_tables.*', 'custom_relations.relation_type'])->toArray();
+            foreach ($tables as $table) {
+                // if not role, continue
+                $table_obj = static::getEloquent(array_get($table, 'id'));
+                if (!$table_obj->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                    continue;
+                }
+                $searchType = array_get($table, 'relation_type') == RelationType::ONE_TO_MANY ? SearchType::ONE_TO_MANY : SearchType::MANY_TO_MANY;
+                array_push($results, ['searchType' => $searchType, 'table' => $table_obj]);
+            }
+    
+            return $results;
+        });
+    }
+
+    public function getValueModel($id = null)
     {
         $modelname = getModelName($this);
-        $model = new $modelname;
-
+        if (isset($id)) {
+            $model = $modelname::find($id);
+        } else {
+            $model = new $modelname;
+        }
+        
         return $model;
     }
 

@@ -8,7 +8,6 @@ class CustomViewSort extends ModelBase
 {
     protected $guarded = ['id'];
     protected $appends = ['view_column_target'];
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
@@ -34,24 +33,6 @@ class CustomViewSort extends ModelBase
             'view_column_type' => ViewColumnType::class,
         ],
     ];
-
-    public function custom_view()
-    {
-        return $this->belongsTo(CustomView::class, 'custom_view_id');
-    }
-    
-    public function custom_column()
-    {
-        if ($this->view_column_type == ViewColumnType::SYSTEM) {
-            return null;
-        }
-        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
-    }
-    
-    public function custom_table()
-    {
-        return $this->belongsTo(CustomTable::class, 'view_column_table_id');
-    }
 
     /**
      * get eloquent using request settion.

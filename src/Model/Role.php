@@ -10,7 +10,6 @@ class Role extends ModelBase implements Interfaces\TemplateImporterInterface
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['permissions' => 'json'];
     protected $guarded = ['id'];

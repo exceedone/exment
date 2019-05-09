@@ -82,7 +82,10 @@ if (!function_exists('esc_script_tag')) {
             $item->parentNode->removeChild($item);
         }
 
-        $html = $dom->saveHTML();
+        $html = trim($dom->saveHTML());
+        $html = preg_replace('/^<br>/u', '', $html);
+        $html = preg_replace('/<br>$/u', '', $html);
+        
         return $html;
     }
 }
@@ -602,8 +605,10 @@ if (!function_exists('getModelName')) {
             }
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            $table->createTable();
-            ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
+            if(!is_null($table)){
+                $table->createTable();
+                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);    
+            }
         }
 
         return "\\".$fillpath;
@@ -1092,26 +1097,6 @@ if (!function_exists('getTransArrayValue')) {
 }
 
 // laravel-admin --------------------------------------------------
-if (!function_exists('disableFormFooter')) {
-    /**
-     * disable form footer items
-     *
-     */
-    function disableFormFooter($form)
-    {
-        $form->footer(function ($footer) {
-            // disable reset btn
-            $footer->disableReset();
-            // disable `View` checkbox
-            $footer->disableViewCheck();
-            // disable `Continue editing` checkbox
-            $footer->disableEditingCheck();
-            // disable `Continue Creating` checkbox
-            $footer->disableCreatingCheck();
-        });
-    }
-}
-
 
 if (! function_exists('abortJson')) {
     /**
@@ -1245,6 +1230,19 @@ if (!function_exists('getExmentVersion')) {
         }
         
         return [$latest ?? null, $current ?? null];
+    }
+}
+
+
+if (!function_exists('getExmentCurrentVersion')) {
+    /**
+     * getExmentCurrentVersion
+     *
+     * @return string this version in server
+     */
+    function getExmentCurrentVersion()
+    {
+        return getExmentVersion(false)[1];
     }
 }
 

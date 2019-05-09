@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\RelationType;
 
 class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInterface
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 
@@ -61,7 +60,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     /**
      * get relations by parent table
      */
-    public static function getRelationsByParent($parent_table, $relation_type = null)
+    public static function getRelationsByParent($parent_table, $relation_type = null, $reget_database = false)
     {
         $parent_table = CustomTable::getEloquent($parent_table);
 
@@ -73,15 +72,15 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return false;
             }
             return true;
-        }, false);
+        }, $reget_database);
     }
 
     /**
      * get relation by child table. (Only one record)
      */
-    public static function getRelationByChild($child_table, $relation_type = null)
+    public static function getRelationByChild($child_table, $relation_type = null, $reget_database = false)
     {
-        $items = static::getRelationsByChild($child_table, $relation_type);
+        $items = static::getRelationsByChild($child_table, $relation_type, $reget_database);
         if (isset($items)) {
             return $items->first();
         }
@@ -91,7 +90,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     /**
      * get relation by child table.
      */
-    public static function getRelationsByChild($child_table, $relation_type = null)
+    public static function getRelationsByChild($child_table, $relation_type = null, $reget_database = false)
     {
         $child_table = CustomTable::getEloquent($child_table);
 
@@ -103,7 +102,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 return false;
             }
             return true;
-        }, false);
+        }, $reget_database);
     }
 
     /**

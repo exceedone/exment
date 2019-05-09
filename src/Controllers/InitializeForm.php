@@ -50,6 +50,13 @@ trait InitializeForm
             ->attribute(['accept' => "image/*"])
             ;
 
+        array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
+        $form->image('site_favicon', exmtrans("system.site_favicon"))
+            ->help(exmtrans("system.help.site_favicon"))
+            ->options($fileOption)
+            ->attribute(['accept' => ".ico"])
+            ;
+    
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
             ->help(exmtrans("system.help.site_skin"));
