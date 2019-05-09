@@ -109,7 +109,7 @@ class DashboardBoxController extends AdminControllerBase
         $form->display('dashboard_box_type_display', exmtrans('dashboard.dashboard_box_type'))->default(exmtrans("dashboard.dashboard_box_type_options.$dashboard_box_type"));
         $form->hidden('dashboard_box_type')->default($dashboard_box_type);
 
-        $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->required();
+        $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("max:40")->required();
         
         // Option Setting --------------------------------------------------
         $form->embeds('options', function ($form) use ($dashboard_box_type) {

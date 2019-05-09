@@ -178,9 +178,10 @@ class MenuController extends AdminControllerBase
             ->rules(
                 [
                     Rule::unique(config('admin.database.menu_table'))->ignore($id),
+                    "max:40",
                 ]
             )->help(exmtrans('common.help_code'));
-        $form->text('title', exmtrans("menu.title"))->required();
+        $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
         $form->icon('icon', trans('admin.icon'))->default('');
         $form->hidden('order');
         $form->setWidth(8, 3);
