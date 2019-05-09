@@ -18,6 +18,15 @@ class ModelBase extends Model
         return $this->getUser('updated_user_id');
     }
 
+    public function getCreatedUserTagAttribute()
+    {
+        return $this->getUser('created_user_id', true);
+    }
+    public function getUpdatedUserTagAttribute()
+    {
+        return $this->getUser('updated_user_id', true);
+    }
+
     public static function getTableName()
     {
         return with(new static)->getTable();
@@ -87,12 +96,8 @@ class ModelBase extends Model
     /**
      * get user from id
      */
-    protected function getUser($column)
+    protected function getUser($column, $link = false)
     {
-        return getUserName($this->{$column});
-        if ($value->trashed()) {
-            return exmtrans('common.trashed_user');
-        }
-        return $value->getLabel();
+        return getUserName($this->{$column}, $link);
     }
 }
