@@ -85,7 +85,7 @@ class RemoveSoftDeletes extends Migration
             return;
         }
 
-        foreach (DB::table('custom_tables')->whereNull('deleted_at')->get() as $value) {
+        foreach (DB::table('custom_tables')->whereNotNull('deleted_at')->get() as $value) {
             // drop deleted table, so don't call getDBTableName function
             Schema::dropIfExists('exm__' . $value->suuid);
         }
@@ -156,7 +156,7 @@ class RemoveSoftDeletes extends Migration
             }
 
             foreach($columns as $column){
-                $keyName = $column->Key_name;
+                $keyName = $column->key_name;
                 
                 Schema::table($name, function (Blueprint $t) use($keyName, $name) {
                     $t->dropUnique($keyName);
