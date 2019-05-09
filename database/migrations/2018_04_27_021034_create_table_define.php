@@ -31,7 +31,6 @@ class CreateTableDefine extends Migration
             $table->string('password', 1000);
             $table->string('avatar', 512)->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -65,7 +64,6 @@ class CreateTableDefine extends Migration
             $table->string('system_name')->nullable();
             $table->text('system_value')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->primary('system_name');
@@ -83,7 +81,6 @@ class CreateTableDefine extends Migration
             $table->boolean('active_flg')->default(true);
             $table->json('options')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -92,7 +89,6 @@ class CreateTableDefine extends Migration
             $table->integer('base_user_id')->unsigned()->index();
             $table->json('settings')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -106,7 +102,6 @@ class CreateTableDefine extends Migration
             $table->boolean('default_flg')->default(false);
             $table->json('permissions')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -120,7 +115,6 @@ class CreateTableDefine extends Migration
             $table->json('options')->nullable();
             
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -134,7 +128,6 @@ class CreateTableDefine extends Migration
             $table->string('dashboard_box_type');
             $table->json('options')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
             
             $table->foreign('dashboard_id')->references('id')->on('dashboards');
@@ -150,7 +143,6 @@ class CreateTableDefine extends Migration
             $table->integer('notify_action');
             $table->json('action_settings')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -165,7 +157,6 @@ class CreateTableDefine extends Migration
             $table->json('options')->nullable();
 
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
         });
 
@@ -181,7 +172,6 @@ class CreateTableDefine extends Migration
             $table->json('options')->nullable();
 
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
@@ -193,7 +183,6 @@ class CreateTableDefine extends Migration
             $table->integer('child_custom_table_id')->unsigned();
             $table->integer('relation_type')->default(0);
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('parent_custom_table_id')->references('id')->on('custom_tables');
@@ -207,7 +196,6 @@ class CreateTableDefine extends Migration
             $table->string('form_view_name', 256);
             $table->boolean('default_flg')->default(false);
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
@@ -222,7 +210,6 @@ class CreateTableDefine extends Migration
             $table->boolean('available')->default(false);
             $table->json('options')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_form_id')->references('id')->on('custom_forms');
@@ -238,7 +225,6 @@ class CreateTableDefine extends Migration
             $table->json('options')->nullable();
             $table->integer('order')->default(0);
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_form_block_id')->references('id')->on('custom_form_blocks');
@@ -254,7 +240,6 @@ class CreateTableDefine extends Migration
             $table->boolean('default_flg')->default(false);
             $table->json('options')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_table_id')->references('id')->on('custom_tables');
@@ -267,7 +252,6 @@ class CreateTableDefine extends Migration
             $table->integer('view_column_target_id')->nullable();
             $table->integer('order')->unsigned()->default(0);
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
@@ -283,7 +267,6 @@ class CreateTableDefine extends Migration
             $table->integer('view_filter_condition_value_table_id')->unsigned()->nullable();
             $table->integer('view_filter_condition_value_id')->unsigned()->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
@@ -297,7 +280,6 @@ class CreateTableDefine extends Migration
             $table->integer('sort')->default(1);
             $table->integer('priority')->unsigned()->default(0);
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_view_id')->references('id')->on('custom_views');
@@ -310,7 +292,6 @@ class CreateTableDefine extends Migration
             $table->integer('to_custom_table_id')->unsigned();
             $table->json('options')->nullable();
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('from_custom_table_id')->references('id')->on('custom_tables');
@@ -326,7 +307,6 @@ class CreateTableDefine extends Migration
             $table->integer('to_column_target_id');
             $table->integer('copy_column_type')->default(0);
             $table->timestamps();
-            //$table->softDeletes();
             $table->timeusers();
 
             $table->foreign('custom_copy_id')->references('id')->on('custom_copies');
@@ -335,7 +315,6 @@ class CreateTableDefine extends Migration
         $schema->create('custom_values', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->string('suuid', 20)->index();
-            //$table->integer('custom_table_id')->unsigned();
             $table->nullableMorphs('parent');
             $table->json('value')->nullable();
             $table->string('laravel_admin_escape')->nullable();

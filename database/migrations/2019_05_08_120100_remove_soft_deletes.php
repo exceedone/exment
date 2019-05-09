@@ -48,6 +48,7 @@ class RemoveSoftDeletes extends Migration
     {
         // add index
         $this->addIndex();
+        $this->addDeletedIndex();
 
         $this->dropExmTables();
         
@@ -123,6 +124,43 @@ class RemoveSoftDeletes extends Migration
             });
         }
     }
+
+    /**
+     * add deleted_at key's index
+     */
+    protected function addDeletedIndex(){
+        // add deleted_at index in custom values table
+        if(count(DynamicDBHelper::getDBIndex('custom_values', 'deleted_at', false)) == 0){
+            Schema::table('custom_values', function (Blueprint $t) {
+                $t->index(['deleted_at']);
+            });   
+        }
+        
+        $tables = \DB::select('SHOW TABLES');
+        foreach ($tables as $table) {
+            foreach ($table as $key => $name) {
+                if (stripos($name, 'exm__') === false) {
+                    continue;
+                }
+    
+                $columns = \DB::select("SHOW COLUMNS FROM $name WHERE field IN ('deleted_at')");
+    
+                if(count($columns) == 0){
+                    continue;
+                }
+
+                // check index
+                if(count(DynamicDBHelper::getDBIndex($name, 'deleted_at', false)) > 0){
+                    continue;
+                }
+
+                Schema::table($name, function (Blueprint $t) {
+                    $t->index(['deleted_at'], 'custom_values_deleted_at_index');
+                });  
+            }
+        }
+    }
+
     /**
      * drop deleted record
      */
