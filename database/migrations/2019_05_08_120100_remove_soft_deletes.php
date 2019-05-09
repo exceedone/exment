@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Services\DynamicDBHelper;
 
 class RemoveSoftDeletes extends Migration
 {
@@ -110,10 +111,9 @@ class RemoveSoftDeletes extends Migration
      * add key's index
      */
     protected function addIndex(){
-        
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
-            $columns = \DB::select("SHOW INDEX FROM $table_name WHERE non_unique = 1 AND column_name = '$column_name'");
-
+            $columns = DynamicDBHelper::getDBIndex($table_name, $column_name, false);
+ 
             if(count($columns) > 0){
                 continue;
             }
@@ -153,8 +153,7 @@ class RemoveSoftDeletes extends Migration
      */
     protected function dropSuuidUnique($table){
         foreach ($table as $key => $name) {
-            $columns = \DB::select("SHOW INDEX FROM $name WHERE non_unique = 0 AND column_name = 'suuid'");
-
+            $columns = DynamicDBHelper::getDBIndex($name, 'suuid', true);
             if(count($columns) == 0){
                 continue;
             }
