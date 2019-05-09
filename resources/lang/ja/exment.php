@@ -813,6 +813,7 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
         ],
+        'data_detail' => 'データ確認',
 
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => '候補データ一覧',

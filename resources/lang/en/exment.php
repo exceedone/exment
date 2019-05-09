@@ -819,6 +819,7 @@ return [
                 'skip' => 'Normal data is captured, but error data is not imported.',
             ],
         ],
+        'data_detail' => 'Data Check',
 
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => 'Suggest Data List',

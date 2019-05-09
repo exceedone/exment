@@ -108,7 +108,7 @@ class SystemItem implements ItemInterface
      */
     public function text()
     {
-        return $this->getTargetValue();
+        return $this->getTargetValue(false);
     }
 
     /**
@@ -117,7 +117,7 @@ class SystemItem implements ItemInterface
      */
     public function html()
     {        
-        return esc_html($this->text());
+        return $this->getTargetValue(true);
     }
 
     /**
@@ -145,11 +145,19 @@ class SystemItem implements ItemInterface
         return $this->custom_table;
     }
 
-    protected function getTargetValue()
+    protected function getTargetValue($html)
     {
         // if options has "summary" (for summary view)
         if (boolval(array_get($this->options, 'summary'))) {
             return array_get($this->custom_value, $this->sqlAsName());
+        }
+        // if $html, get as html
+        elseif($html){
+            $htmlname = array_get(SystemColumn::getOption(['name' => $this->column_name]), 'htmlname');
+            if(isset($htmlname)){
+                return $this->custom_value->{$htmlname};
+            }
+            return esc_html(array_get($this->custom_value, $this->column_name));
         }
         return array_get($this->custom_value, $this->column_name);
     }
