@@ -37,7 +37,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('revisions', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->string('revisionable_type');
             $table->integer('revisionable_id');
             $table->integer('revision_no')->unsigned()->default(0);
@@ -98,7 +98,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('roles', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('role_type');
             $table->string('role_name', 256)->index()->unique();
             $table->string('role_view_name', 256);
@@ -112,7 +112,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('dashboards', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('dashboard_type')->default(0);
             $table->string('dashboard_name', 256)->unique();
             $table->string('dashboard_view_name', 40);
@@ -126,7 +126,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('dashboard_boxes', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('dashboard_id')->unsigned();
             $table->integer('row_no')->index();
             $table->integer('column_no')->index();
@@ -142,7 +142,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('notifies', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->string('notify_view_name', 256);
             $table->integer('custom_table_id')->unsigned();
             $table->integer('notify_trigger');
@@ -156,7 +156,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('custom_tables', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->string('table_name', 256)->unique();
             $table->string('table_view_name', 256);
             $table->string('description', 1000)->nullable();
@@ -171,7 +171,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('custom_columns', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('custom_table_id')->unsigned();
             $table->string('column_name')->index();
             $table->string('column_view_name');
@@ -202,7 +202,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('custom_forms', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('custom_table_id')->unsigned();
             $table->string('form_view_name', 256);
             $table->boolean('default_flg')->default(false);
@@ -246,7 +246,7 @@ class CreateTableDefine extends Migration
         
         $schema->create('custom_views', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('custom_table_id')->unsigned();
             $table->integer('view_type')->default(0);
             $table->integer('view_kind_type')->default(0);
@@ -305,7 +305,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('custom_copies', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             $table->integer('from_custom_table_id')->unsigned();
             $table->integer('to_custom_table_id')->unsigned();
             $table->json('options')->nullable();
@@ -334,7 +334,7 @@ class CreateTableDefine extends Migration
 
         $schema->create('custom_values', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->string('suuid', 20)->unique();
+            $table->string('suuid', 20)->index();
             //$table->integer('custom_table_id')->unsigned();
             $table->nullableMorphs('parent');
             $table->json('value')->nullable();
