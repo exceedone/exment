@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
+use Encore\Admin\Form\Field\Select;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 
@@ -107,6 +108,19 @@ class ParentItem implements ItemInterface
         return getModelName($custom_value->parent_type)::find($custom_value->parent_id);
     }
     
+    public function getFilterField()
+    {
+        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id)->first();
+        if (isset($relation)) {
+            $parent_custom_table = $relation->parent_custom_table;
+            $field = new Select($this->name(), [$parent_custom_table->table_view_name]);
+            $field->options(function ($value) use ($parent_custom_table) {
+                // get DB option value
+                return $parent_custom_table->getOptions($value, null, false, true);
+            });
+            return $field;
+        }
+    }
     /**
      * get view filter type
      */
