@@ -100,19 +100,23 @@ trait InitializeForm
  
     protected function postInitializeForm(Request $request, $validateUser = false)
     {
+        $rules = [
+            'site_name' => 'max:30',
+            'site_name_short' => 'max:10',
+        ];
+
         if ($validateUser) {
-            $rules = [
+            $rules = array_merge($rules, [
                 'user_code' => 'required|max:32|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
                 'user_name' => 'required|max:32',
                 'email' => 'required|email',
                 'password' => get_password_rule(true),
-            ];
+            ]);
+        }
 
-            $validation = Validator::make($request->all(), $rules);
-
-            if ($validation->fails()) {
-                return back()->withInput()->withErrors($validation);
-            }
+        $validation = Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            return back()->withInput()->withErrors($validation);
         }
 
         $inputs = $request->all(System::get_system_keys('initialize'));

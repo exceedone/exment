@@ -138,7 +138,7 @@ class CustomCopyController extends AdminControllerTableBase
 
         // exmtrans "plugin". it's same value
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) {
-            $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"));
+            $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"))->rules("max:40");
             $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"))->default('fa-copy');
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
         })->disableHeader();

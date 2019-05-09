@@ -95,7 +95,7 @@ class RoleController extends AdminControllerBase
             $form->display('role_name', exmtrans('role.role_name'));
         }
 
-        $form->text('role_view_name', exmtrans('role.role_view_name'))->required();
+        $form->text('role_view_name', exmtrans('role.role_view_name'))->required()->rules("max:40");
         $form->textarea('description', exmtrans('role.description_field'))->rows(3);
         $form->switchbool('default_flg', exmtrans('role.default_flg'));
 

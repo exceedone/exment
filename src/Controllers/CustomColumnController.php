@@ -159,6 +159,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form->text('column_view_name', exmtrans("custom_column.column_view_name"))
             ->required()
+            ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(ColumnType::transArray("custom_column.column_type_options"))

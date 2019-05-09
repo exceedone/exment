@@ -235,7 +235,9 @@ EOT;
             $form->display('dashboard_name', exmtrans("dashboard.dashboard_name"));
         }
 
-        $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))->required();
+        $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))
+            ->required()
+            ->rules("max:40");
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 

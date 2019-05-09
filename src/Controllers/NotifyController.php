@@ -63,7 +63,7 @@ class NotifyController extends AdminControllerBase
     protected function form($id = null)
     {
         $form = new Form(new Notify);
-        $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required();
+        $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required()->rules("max:40");
         // TODO: only role tables
 
         $form->header(exmtrans('notify.header_trigger'))->hr();

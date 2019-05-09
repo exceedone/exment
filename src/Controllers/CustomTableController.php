@@ -80,6 +80,7 @@ class CustomTableController extends AdminControllerBase
         }
         $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
             ->required()
+            ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
