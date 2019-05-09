@@ -38,12 +38,68 @@ class ViewColumnFilterOption extends EnumBase
     const USER_EQ_USER = 2011;
     const USER_NE_USER = 2012;
 
+    const NUMBER_GT = 3001;
+    const NUMBER_LT = 3002;
+    const NUMBER_GTE = 3003;
+    const NUMBER_LTE = 3004;
+
+    const SELECT_EXISTS = 4001;
+    const SELECT_NOT_EXISTS = 4002;
+
+    public static function VIEW_COLUMN_VALUE_TYPE($filter_option)
+    {
+        switch($filter_option) {
+            case ViewColumnFilterOption::DAY_ON:
+            case ViewColumnFilterOption::DAY_ON_OR_AFTER:
+            case ViewColumnFilterOption::DAY_ON_OR_BEFORE:
+                return ViewColumnFilterType::DAY;
+            case ViewColumnFilterOption::USER_EQ:
+            case ViewColumnFilterOption::USER_NE:
+            case ViewColumnFilterOption::EQ:
+            case ViewColumnFilterOption::NE:
+            case ViewColumnFilterOption::NUMBER_GT:
+            case ViewColumnFilterOption::NUMBER_LT:
+            case ViewColumnFilterOption::NUMBER_GTE:
+            case ViewColumnFilterOption::NUMBER_LTE:
+                return null;
+            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
+            case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_BEFORE:
+            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_AFTER:
+            case ViewColumnFilterOption::DAY_NEXT_X_DAY_OR_BEFORE:
+                return ViewColumnFilterType::NUMBER;
+            case ViewColumnFilterOption::SELECT_EXISTS:
+            case ViewColumnFilterOption::SELECT_NOT_EXISTS:
+                return ViewColumnFilterType::SELECT;
+            default:
+                return 'none';
+        }
+    }
     public static function VIEW_COLUMN_FILTER_OPTIONS()
     {
         return [
             ViewColumnFilterType::DEFAULT => [
                 ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
                 ['id' => ViewColumnFilterOption::NE, 'name' => 'ne'],
+                ['id' => ViewColumnFilterOption::NOT_NULL, 'name' => 'not-null'],
+                ['id' => ViewColumnFilterOption::NULL, 'name' => 'null'],
+            ],
+            ViewColumnFilterType::NUMBER => [
+                ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
+                ['id' => ViewColumnFilterOption::NE, 'name' => 'ne'],
+                ['id' => ViewColumnFilterOption::NUMBER_GT, 'name' => 'gt'],
+                ['id' => ViewColumnFilterOption::NUMBER_LT, 'name' => 'lt'],
+                ['id' => ViewColumnFilterOption::NUMBER_GTE, 'name' => 'gte'],
+                ['id' => ViewColumnFilterOption::NUMBER_LTE, 'name' => 'lte'],
+                ['id' => ViewColumnFilterOption::NOT_NULL, 'name' => 'not-null'],
+                ['id' => ViewColumnFilterOption::NULL, 'name' => 'null'],
+            ],
+            ViewColumnFilterType::SELECT => [
+                ['id' => ViewColumnFilterOption::SELECT_EXISTS, 'name' => 'select-eq'],
+                ['id' => ViewColumnFilterOption::SELECT_NOT_EXISTS, 'name' => 'select-ne'],
+                ['id' => ViewColumnFilterOption::NOT_NULL, 'name' => 'not-null'],
+                ['id' => ViewColumnFilterOption::NULL, 'name' => 'null'],
+            ],
+            ViewColumnFilterType::FILE => [
                 ['id' => ViewColumnFilterOption::NOT_NULL, 'name' => 'not-null'],
                 ['id' => ViewColumnFilterOption::NULL, 'name' => 'null'],
             ],
