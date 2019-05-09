@@ -157,7 +157,9 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return array_get($this->custom_value, $this->sqlAsName());
         }
-        return array_get($this->custom_value, $this->column_name);
+        $val = array_get($this->custom_value, $this->column_name);
+
+        return $html ? esc_html($val) : $val;
     }
     
     public function getAdminField($form_column = null, $column_name_prefix = null)
