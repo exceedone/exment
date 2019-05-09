@@ -2,53 +2,82 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field\Text;
+use Encore\Admin\Form\Field;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Model\CustomViewFilter;
 
 /**
  * change field. If user select other input select, change input field
  */
-class ChangeField extends Text
+class ChangeField extends Field
 {
     protected $view = 'exment::form.field.changefield';
 
-    protected $ajax = '';
+    protected $field = null;
 
-    public function ajax($ajax)
+    protected function getElementClass() {
+        if (preg_match('/(^[^\[\]]+)\[([^\[\]]+)\]\[([^\[\]]+)\]$/', $this->elementName, $array_result)) {
+            array_shift($array_result);
+            $array_result[1] = 'rowno-'.$array_result[1];
+            return $array_result;
+        }
+        return [];
+    }
+
+    /**
+     * Set options.
+     *
+     * @param array|callable|string $options
+     *
+     * @return $this|mixed
+     */
+    public function options($options = [])
     {
-        $this->ajax = $ajax;
+        if ($options instanceof Arrayable) {
+            $options = $options->toArray();
+        }
+
+        if (is_callable($options)) {
+            $this->options = $options;
+        } else {
+            $this->options = (array) $options;
+        }
 
         return $this;
     }
-
     public function render()
     {
-        $url = $this->ajax;
-        $script = <<<EOT
-    $(document).off('click', '.{$this->column}_button').on('click', '.{$this->column}_button', {}, function(event) {
-        // get target row
-        var parent = $(event.target).parents('tr');
-        var targets = parent.find('[data-change_field_target]');
+        // $viewClass = $this->getViewElementClasses();
 
-        // create submits keyvalue
-        var data = {};
-        targets.each(function(index){
-            var key = $(this).data('change_field_target');
-            data[key] = $(this).val();
-        });
-        data['_token'] = LA.token;
+        $view_filter_condition = $this->data['view_filter_condition'];
+        $view_column_target = $this->data['view_column_target'];
 
-        $.ajax({
-            method: 'POST',
-            url: '$url',
-            data: data,
-            success: function (data) {
-                resolve(data);
-            }
-        });
-    });
-EOT;
-        \Admin::script($script);
+        $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
 
-        return parent::render();
+        if ($value_type == 'none') {
+            return parent::render();
+        }
+
+        // get column item
+        $column_item = CustomViewFilter::getColumnItem($view_column_target)
+            ->options([
+                'view_column_target' => true,
+        ]);
+
+        $field = $column_item->getFilterField($value_type);
+
+        if (isset($field)) {
+            $field->setWidth(12, 0)->setLabelClass(['hidden']);
+            $field->value($this->value);
+            $field->setElementName($this->elementName)
+                ->setErrorKey($this->getErrorKey())
+                ->setElementClass($this->getElementClass());
+            $view = $field->render();
+            $this->script = $field->getScript();
+            return $view;
+        }
     }
 }
