@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
-use Exceedone\Exment\Services\DynamicDBHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Schema\Blueprint;
 use Exceedone\Exment\Model\CustomColumn;
@@ -111,7 +110,7 @@ class SupportForV11 extends Migration
             END)');
 
         // drop table name unique index from custom table
-        if(count(DynamicDBHelper::getDBIndex('custom_tables', 'table_name', true)) > 0){
+        if(count(Schema::getUnique('custom_tables', 'table_name')) > 0){
             Schema::table('custom_tables', function (Blueprint $table) {
                 $table->dropUnique(['table_name']);
             });    

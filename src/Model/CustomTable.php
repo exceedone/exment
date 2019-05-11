@@ -11,7 +11,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
-use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
 
 getCustomTableTrait();
@@ -487,7 +486,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        DynamicDBHelper::createValueTable($table_name);
+        \Schema::createValueTable($table_name);
         System::requestSession($key, 1);
     }
 
@@ -496,7 +495,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if(!\Schema::hasTable($table_name)){
             return;
         }
-        DynamicDBHelper::dropValueTable($table_name);
+        \Schema::dropIfExists($table_name);
     }
     
     /**

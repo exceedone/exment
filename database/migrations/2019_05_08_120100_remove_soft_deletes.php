@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Model;
-use Exceedone\Exment\Services\DynamicDBHelper;
 
 class RemoveSoftDeletes extends Migration
 {
@@ -113,7 +112,7 @@ class RemoveSoftDeletes extends Migration
      */
     protected function addIndex(){
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
-            $columns = DynamicDBHelper::getDBIndex($table_name, $column_name, false);
+            $columns = \Schema::getIndex($table_name, $column_name);
  
             if(count($columns) > 0){
                 continue;
@@ -130,7 +129,7 @@ class RemoveSoftDeletes extends Migration
      */
     protected function addDeletedIndex(){
         // add deleted_at index in custom values table
-        if(count(DynamicDBHelper::getDBIndex('custom_values', 'deleted_at', false)) == 0){
+        if(count(Schema::getIndex('custom_values', 'deleted_at')) == 0){
             Schema::table('custom_values', function (Blueprint $t) {
                 $t->index(['deleted_at']);
             });   
@@ -150,7 +149,7 @@ class RemoveSoftDeletes extends Migration
                 }
 
                 // check index
-                if(count(DynamicDBHelper::getDBIndex($name, 'deleted_at', false)) > 0){
+                if(count(Schema::getIndex($name, 'deleted_at')) > 0){
                     continue;
                 }
 
@@ -191,7 +190,7 @@ class RemoveSoftDeletes extends Migration
      */
     protected function dropSuuidUnique($table){
         foreach ($table as $key => $name) {
-            $columns = DynamicDBHelper::getDBIndex($name, 'suuid', true);
+            $columns = \Schema::getUnique($name, 'suuid');
             if(count($columns) == 0){
                 continue;
             }

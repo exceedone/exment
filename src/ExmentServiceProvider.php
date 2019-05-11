@@ -6,6 +6,7 @@ use Storage;
 use Request;
 use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
+use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;
@@ -13,9 +14,10 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
+use Exceedone\Exment\Database as ExmentDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
-use Encore\Admin\AdminServiceProvider as ServiceProvider;
+use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use League\Flysystem\Filesystem;
@@ -117,6 +119,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->bootApp();
         $this->bootSetting();
+        $this->bootDatabase();
 
         $this->publish();
         $this->load();
@@ -227,24 +230,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadViewsFrom(path_join($base_path, 'views'), $plugin->plugin_name);
     }
 
-    /**
-     * Check plugin satisfying conditions
-     */
-    protected function getPluginActivate($pluginName)
-    {
-        $plugin = Plugin
-            ::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->where('options->uri', $pluginName)
-            ->first();
-
-        if ($plugin !== null) {
-            return $plugin;
-        }
-
-        return false;
-    }
-
     protected function bootSetting()
     {
         // Extend --------------------------------------------------
@@ -280,6 +265,17 @@ class ExmentServiceProvider extends ServiceProvider
     }
     
     /**
+     * Boot database for extend
+     *
+     * @return void
+     */
+    protected function bootDatabase(){
+        Connection::resolverFor('mysql', function (...$parameters) {
+            return new ExmentDatabase\MySqlConnection(...$parameters);
+        });
+    }
+
+    /**
      * Register the application's policies.
      *
      * @return void
@@ -299,5 +295,23 @@ class ExmentServiceProvider extends ServiceProvider
     public function policies()
     {
         return $this->policies;
+    }
+    
+    /**
+     * Check plugin satisfying conditions
+     */
+    protected function getPluginActivate($pluginName)
+    {
+        $plugin = Plugin
+            ::where('active_flg', 1)
+            ->where('plugin_type', PluginType::PAGE)
+            ->where('options->uri', $pluginName)
+            ->first();
+
+        if ($plugin !== null) {
+            return $plugin;
+        }
+
+        return false;
     }
 }
