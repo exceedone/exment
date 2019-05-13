@@ -207,16 +207,12 @@ class CustomValue extends ModelBase
     }
 
     /**
-     * set auto number
+     * saved value event.
      */
     protected function savedValue()
     {
-        ///// saving event for image, file event
-        // https://github.com/z-song/laravel-admin/issues/1024
-        // because on value edit display, if before upload file and not upload again, don't post value.
-        $value = $this->value;
-        $id = $this->id;
-        // get image and file columns
+        $this->syncOriginal();
+
         $columns = $this->custom_table
             ->custom_columns
             ->all();
