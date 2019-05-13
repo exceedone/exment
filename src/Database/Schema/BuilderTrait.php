@@ -91,26 +91,51 @@ trait BuilderTrait
         }
     }
 
-    public function getIndex($tableName, $columnName)
+    /**
+     * get index key list
+     *
+     * @param string $tableName
+     * @param string $columnName
+     * @return array index key list
+     */
+    public function getIndexListing($tableName, $columnName)
     {
-        return $this->getUniqueIndex($tableName, $columnName, false);
+        return $this->getUniqueIndexListing($tableName, $columnName, false);
     }
 
-    public function getUnique($tableName, $columnName)
+    /**
+     * get unique key list
+     *
+     * @param string $tableName
+     * @param string $columnName
+     * @return array unique key list
+     */
+    public function getUniqueListing($tableName, $columnName)
     {
-        return $this->getUniqueIndex($tableName, $columnName, true);
+        return $this->getUniqueIndexListing($tableName, $columnName, true);
     }
 
-    protected function getUniqueIndex($tableName, $columnName, $unique)
+    /**
+     * get database unique or index list
+     *
+     * @param string $tableName
+     * @param string $columnName
+     * @param bool $unique
+     * @return array
+     */
+    protected function getUniqueIndexListing($tableName, $columnName, $unique)
     {
         if (!\Schema::hasTable($tableName)) {
             return collect([]);
         }
 
+        $baseTableName = $tableName;
         $tableName = $this->connection->getTablePrefix().$tableName;
 
         $sql = $unique ? $this->grammar->compileGetUnique($tableName) : $this->grammar->compileGetIndex($tableName);
 
-        return $this->connection->select($sql, [$columnName]);
+        $results = $this->connection->select($sql, [$columnName]);
+
+        return $this->connection->getPostProcessor()->processIndexListing($baseTableName, $results);
     }
 }

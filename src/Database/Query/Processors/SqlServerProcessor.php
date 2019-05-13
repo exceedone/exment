@@ -18,4 +18,22 @@ class SqlServerProcessor extends BaseSqlServerProcessor
             return ((object) $result)->table_name;
         }, $results);
     }
+    
+    /**
+     * Process the results of a index listing query.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processIndexListing($tableName, $results)
+    {
+        return collect($results)->map(function ($result) {
+            return [
+                'table_name' => $result->table,
+                'column_name' => $result->column_name,
+                'key_name' => $result->key_name,
+                'unique' => boolval($result->non_unique),
+            ];
+        })->toArray();
+    }
 }

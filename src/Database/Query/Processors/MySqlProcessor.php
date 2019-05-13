@@ -18,4 +18,22 @@ class MySqlProcessor extends BaseMySqlProcessor
             return collect((object) $result)->first();
         }, $results);
     }
+    
+    /**
+     * Process the results of a index listing query.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processIndexListing($tableName, $results)
+    {
+        return collect($results)->map(function ($result) {
+            return [
+                'table_name' => $baseTableName,
+                'column_name' => $row->column_name,
+                'key_name' => $row->key_name,
+                'unique' => boolval($row->is_unique),
+            ];
+        })->toArray();
+    }
 }

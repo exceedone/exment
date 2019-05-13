@@ -110,7 +110,7 @@ class SupportForV11 extends Migration
             END)');
 
         // drop table name unique index from custom table
-        if(count(Schema::getUnique('custom_tables', 'table_name')) > 0){
+        if(count(Schema::getUniqueListing('custom_tables', 'table_name')) > 0){
             Schema::table('custom_tables', function (Blueprint $table) {
                 $table->dropUnique(['table_name']);
             });    

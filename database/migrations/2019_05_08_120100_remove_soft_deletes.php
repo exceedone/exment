@@ -112,7 +112,7 @@ class RemoveSoftDeletes extends Migration
      */
     protected function addIndex(){
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
-            $columns = \Schema::getIndex($table_name, $column_name);
+            $columns = \Schema::getIndexListing($table_name, $column_name);
  
             if(count($columns) > 0){
                 continue;
@@ -129,7 +129,7 @@ class RemoveSoftDeletes extends Migration
      */
     protected function addDeletedIndex(){
         // add deleted_at index in custom values table
-        if(count(Schema::getIndex('custom_values', 'deleted_at')) == 0){
+        if(count(Schema::getIndexListing('custom_values', 'deleted_at')) == 0){
             Schema::table('custom_values', function (Blueprint $t) {
                 $t->index(['deleted_at']);
             });   
@@ -150,7 +150,7 @@ class RemoveSoftDeletes extends Migration
             }
 
             // check index
-            if(count(Schema::getIndex($table, 'deleted_at')) > 0){
+            if(count(Schema::getIndexListing($table, 'deleted_at')) > 0){
                 continue;
             }
 
@@ -188,7 +188,7 @@ class RemoveSoftDeletes extends Migration
      * drop deleted record
      */
     protected function dropSuuidUnique($table){
-        $columns = \Schema::getUnique($table, 'suuid');
+        $columns = \Schema::getUniqueListing($table, 'suuid');
         if(count($columns) == 0){
             return;
         }
