@@ -2,9 +2,9 @@
 
 namespace Exceedone\Exment\Database\Query\Processors;
 
-use Illuminate\Database\Query\Processors\MySqlProcessor as BaseMySqlProcessor;
+use Illuminate\Database\Query\Processors\SqlServerProcessor as BaseSqlServerProcessor;
 
-class MySqlProcessor extends BaseMySqlProcessor
+class SqlServerProcessor extends BaseSqlServerProcessor
 {
     /**
      * Process the results of a table listing query.
@@ -15,7 +15,7 @@ class MySqlProcessor extends BaseMySqlProcessor
     public function processTableListing($results)
     {
         return array_map(function ($result) {
-            return collect((object) $result)->first();
+            return ((object) $result)->table_name;
         }, $results);
     }
     
@@ -29,11 +29,11 @@ class MySqlProcessor extends BaseMySqlProcessor
     {
         return collect($results)->map(function ($result) use($tableName) {
             return [
-                'table_name' => $tableName,
-                'column_name' => $result->field,
+                'table_name' => $result->table_name,
+                'column_name' => $result->column_name,
                 'type' => $result->type,
-                'nullable' => boolval($result->null),
-                'virtual' => strtoupper($result->extra) == 'VIRTUAL GENERATED',
+                'nullable' => boolval($result->nullable),
+                'virtual' => boolval($result->virtual),
             ];
         })->toArray();
     }
@@ -51,7 +51,7 @@ class MySqlProcessor extends BaseMySqlProcessor
                 'table_name' => $tableName,
                 'column_name' => $result->column_name,
                 'key_name' => $result->key_name,
-                'unique' => !boolval($result->non_unique),
+                'unique' => boolval($result->is_unique),
             ];
         })->toArray();
     }

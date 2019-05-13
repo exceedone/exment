@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Decimal extends CustomItem
 {
@@ -82,11 +83,14 @@ class Decimal extends CustomItem
      */
     public function getCastName()
     {
+        $grammar = \DB::getQueryGrammar();
         if (array_has($this->custom_column, 'options.decimal_digit')) {
-            $digit = intval(array_get($this->custom_column, 'options.decimal_digit'));
-            return "DECIMAL(50, $digit)";
+            return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true, [
+                'length' => 50,
+                'decimal_digit' => intval(array_get($this->custom_column, 'options.decimal_digit', 2))
+            ]);
         } else {
-            return "SIGNED";
+            return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
         }
     }
 }

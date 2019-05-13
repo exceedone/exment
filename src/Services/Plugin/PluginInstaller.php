@@ -280,7 +280,7 @@ class PluginInstaller
         // execute query
         return Plugin::where('active_flg', '=', 1)
             ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
-            ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
+            ->where('options->target_tables', $table_name_escape)
             ->get()
             ;
     }
