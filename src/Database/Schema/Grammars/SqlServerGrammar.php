@@ -17,6 +17,33 @@ class SqlServerGrammar extends BaseGrammar
     }
 
     /**
+     * Compile the query to get column difinitions
+     *
+     * @return string
+     */
+    public function compileGetColumnDefinitions($tableName)
+    {
+        $tableName = $this->wrapTable($tableName);
+        return "SELECT
+        TAB.name AS table_name,
+        COL.name AS column_name,
+        TYP.name AS [type],
+        COL.is_computed AS virtual,
+        COL.is_nullable AS nullable
+    From
+        sys.columns COL
+        INNER JOIN
+            sys.tables TAB
+        On  COL.object_id = TAB.object_id
+        INNER JOIN
+            sys.types TYP
+        ON  TYP.user_type_id = COL.user_type_id
+    WHERE
+        TAB.type = 'U'
+        AND TAB.name = '{$tableName}'";
+    }
+
+    /**
      * Compile the query to Create Value Table
      *
      * @return string

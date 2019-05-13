@@ -20,12 +20,31 @@ class SqlServerProcessor extends BaseSqlServerProcessor
     }
     
     /**
+     * Process the results of a Column Definitions query.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processColumnDefinitions($tableName, $results)
+    {
+        return collect($results)->map(function ($result) use($tableName) {
+            return [
+                'table_name' => $result->table_name,
+                'column_name' => $result->column_name,
+                'type' => $result->type,
+                'nullable' => boolval($result->nullable),
+                'virtual' => boolval($result->virtual),
+            ];
+        })->toArray();
+    }
+    
+    /**
      * Process the results of a index listing query.
      *
      * @param  array  $results
      * @return array
      */
-    public function processIndexListing($tableName, $results)
+    public function processIndexDefinitions($tableName, $results)
     {
         return collect($results)->map(function ($result) use($tableName) {
             return [

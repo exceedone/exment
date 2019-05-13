@@ -17,6 +17,16 @@ class MySqlGrammar extends BaseGrammar
     }
 
     /**
+     * Compile the query to get column difinitions
+     *
+     * @return string
+     */
+    public function compileGetColumnDefinitions($tableName)
+    {
+        return "show columns from {$this->wrapTable($tableName)}";
+    }
+
+    /**
      * Compile the query to Create Value Table
      *
      * @return string

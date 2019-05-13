@@ -20,12 +20,31 @@ class MySqlProcessor extends BaseMySqlProcessor
     }
     
     /**
+     * Process the results of a Column Definitions query.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processColumnDefinitions($tableName, $results)
+    {
+        return collect($results)->map(function ($result) use($tableName) {
+            return [
+                'table_name' => $tableName,
+                'column_name' => $result->field,
+                'type' => $result->type,
+                'nullable' => boolval($result->null),
+                'virtual' => strtoupper($result->extra) == 'VIRTUAL GENERATED',
+            ];
+        })->toArray();
+    }
+    
+    /**
      * Process the results of a index listing query.
      *
      * @param  array  $results
      * @return array
      */
-    public function processIndexListing($tableName, $results)
+    public function processIndexDefinitions($tableName, $results)
     {
         return collect($results)->map(function ($result) use($tableName) {
             return [
