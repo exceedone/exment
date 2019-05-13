@@ -21,9 +21,8 @@ class SqlServerGrammar extends BaseGrammar
      *
      * @return string
      */
-    public function compileGetColumnDefinitions($tableName)
+    public function compileColumnDefinitions($tableName)
     {
-        $tableName = $this->wrapTable($tableName);
         return "SELECT
         TAB.name AS table_name,
         COL.name AS column_name,
@@ -40,7 +39,7 @@ class SqlServerGrammar extends BaseGrammar
         ON  TYP.user_type_id = COL.user_type_id
     WHERE
         TAB.type = 'U'
-        AND TAB.name = '{$tableName}'";
+        AND TAB.name = ?";
     }
 
     /**

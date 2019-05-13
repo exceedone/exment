@@ -76,7 +76,7 @@ class SqlServerGrammar extends BaseGrammar
      */
     public function compileInsertGetId(Builder $query, $values, $sequence)
     {
-        if(array_has($values, $sequence) && isset($values[$sequence])){
+        if(strtoupper($sequence) == 'ID' && array_has($values, $sequence) && isset($values[$sequence])){
             // set IDENTITY_INSERT in query.
             return $this->compileEnableIdentityInsert($query->from) . parent::compileInsertGetId($query, $values, $sequence) . $this->compileDisableIdentityInsert($query->from);
         }

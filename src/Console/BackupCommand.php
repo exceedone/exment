@@ -135,14 +135,13 @@ class BackupCommand extends Command
         $file->setCsvControl("\t");
 
         // get column definition
-        $columns   = \DB::getColumnDefinitions();
+        $columns = \Schema::getColumnDefinitions($table);
 
         // get output field name list (not virtual column)
         $outcols = [];
         foreach ($columns as $column) {
-            $array = array_change_key_case(((array)$column));
-            if (boolval($array['virtual'])) {
-                $outcols[] = strtolower($array['field']);
+            if (!boolval($column['virtual'])) {
+                $outcols[] = strtolower($column['column_name']);
             }
         }
         // write column header

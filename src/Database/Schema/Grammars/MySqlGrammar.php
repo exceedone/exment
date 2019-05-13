@@ -21,7 +21,7 @@ class MySqlGrammar extends BaseGrammar
      *
      * @return string
      */
-    public function compileGetColumnDefinitions($tableName)
+    public function compileColumnDefinitions($tableName)
     {
         return "show columns from {$this->wrapTable($tableName)}";
     }
