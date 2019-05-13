@@ -135,22 +135,20 @@ class BackupCommand extends Command
         $file->setCsvControl("\t");
 
         // get column definition
-        $sql       = 'SHOW COLUMNS FROM '.$table;
-        $columns   = \DB::select($sql);
+        $columns = \Schema::getColumnDefinitions($table);
 
         // get output field name list (not virtual column)
         $outcols = [];
         foreach ($columns as $column) {
-            $array = array_change_key_case(((array)$column));
-            if (strtoupper($array['extra']) != 'VIRTUAL GENERATED') {
-                $outcols[] = strtolower($array['field']);
+            if (!boolval($column['virtual'])) {
+                $outcols[] = strtolower($column['column_name']);
             }
         }
         // write column header
         $file->fputcsv($outcols);
 
         // execute backup. contains soft deleted table
-        \DB::table($table)->orderBy('id')->chunk(100, function ($rows) use ($file, $outcols) {
+        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols) {
             foreach ($rows as $row) {
                 $array = (array)$row;
                 $row = array_map(function ($key) use ($array) {

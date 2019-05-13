@@ -2,13 +2,13 @@
 
 namespace Exceedone\Exment\Database;
 
-use Exceedone\Exment\Database\Query\Grammars\MySqlGrammar as QueryGrammar;
-use Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
-use Exceedone\Exment\Database\Schema\MySqlBuilder;
-use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
-use Illuminate\Database\MySqlConnection as BaseConnection;
+use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar as QueryGrammar;
+use Exceedone\Exment\Database\Schema\Grammars\SqlServerGrammar as SchemaGrammar;
+use Exceedone\Exment\Database\Schema\SqlServerBuilder;
+use Exceedone\Exment\Database\Query\Processors\SqlServerProcessor;
+use Illuminate\Database\SqlServerConnection as BaseConnection;
 
-class MySqlConnection extends BaseConnection
+class SqlServerConnection extends BaseConnection
 {
     /**
      * Get a schema builder instance for the connection.
@@ -21,19 +21,19 @@ class MySqlConnection extends BaseConnection
             $this->useDefaultSchemaGrammar();
         }
 
-        return new MySqlBuilder($this);
+        return new SqlServerBuilder($this);
     }
 
     /**
      * Get the default schema grammar instance.
      *
-     * @return MySqlGrammar
+     * @return SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {
         return $this->withTablePrefix(new SchemaGrammar);
     }
-    
+
     /**
      * Get the default query grammar instance.
      *
@@ -47,10 +47,10 @@ class MySqlConnection extends BaseConnection
     /**
      * Get the default post processor instance.
      *
-     * @return MySqlProcessor
+     * @return SqlServerProcessor
      */
     protected function getDefaultPostProcessor()
     {
-        return new MySqlProcessor;
+        return new SqlServerProcessor;
     }
 }

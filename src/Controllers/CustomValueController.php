@@ -401,8 +401,7 @@ class CustomValueController extends AdminControllerTableBase
         foreach ($custom_table->getSelectedItems() as $item) {
             $model = getModelName(array_get($item, 'custom_table_id'));
             $column_name = array_get($item, 'column_name');
-            $raw = "json_unquote(value->'$.$column_name')";
-            if ($model::whereIn(\DB::raw($raw), $list)->exists()) {
+            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
                 return true;
             }
         }
