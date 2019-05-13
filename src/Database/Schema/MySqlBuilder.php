@@ -8,8 +8,9 @@ class MySqlBuilder extends BaseBuilder
 {
     use BuilderTrait;
     
-    protected function getUniqueIndex($tableName, $columnName, $unique){
-        if(!\Schema::hasTable($tableName)){
+    protected function getUniqueIndex($tableName, $columnName, $unique)
+    {
+        if (!\Schema::hasTable($tableName)) {
             return collect([]);
         }
 
@@ -19,7 +20,7 @@ class MySqlBuilder extends BaseBuilder
 
         $rows = $this->connection->select($sql, [$columnName]);
 
-        return collect($rows)->map(function($row){
+        return collect($rows)->map(function ($row) {
             return [
                 'table_name' => $row->table,
                 'column_name' => $row->column_name,

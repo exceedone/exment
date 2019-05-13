@@ -147,7 +147,7 @@ abstract class CustomItem implements ItemInterface
     
     public function getFilterField($value_type = null)
     {
-        switch($value_type) {
+        switch ($value_type) {
             case ViewColumnFilterType::DAY:
                 $classname = Field\Date::class;
                 break;
@@ -302,7 +302,7 @@ abstract class CustomItem implements ItemInterface
 
     protected function getAdminFilterClass()
     {
-        if(boolval(config('exment.filter_search_full', false))){
+        if (boolval(config('exment.filter_search_full', false))) {
             return Filter\Like::class;
         }
 

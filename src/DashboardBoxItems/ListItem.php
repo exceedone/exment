@@ -29,7 +29,7 @@ class ListItem implements ItemInterface
         $this->custom_table = CustomTable::getEloquent($table_id);
         $this->custom_view = CustomView::getEloquent($view_id);
 
-        if(!isset($this->custom_table)){
+        if (!isset($this->custom_table)) {
             return;
         }
 
@@ -150,7 +150,7 @@ class ListItem implements ItemInterface
                 if (!isset($value)) {
                     return [];
                 }
-                if(is_null($view = CustomView::getEloquent($value))){
+                if (is_null($view = CustomView::getEloquent($value))) {
                     return [];
                 }
 

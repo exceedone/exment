@@ -58,13 +58,12 @@ class ForgetPasswordController extends Controller
             'email' => $request->input('email')
         ];
 
-        try{
+        try {
             $response = $broker->sendResetLink($array);
             return $response == Password::RESET_LINK_SENT
                         ? $this->sendResetLinkResponse($response)
                         : $this->sendResetLinkFailedResponse($request, $response);
-        }
-        catch (\Swift_TransportException $ex) {
+        } catch (\Swift_TransportException $ex) {
             return back()->with('status_error', exmtrans('error.mailsend_failed'));
         }
     }

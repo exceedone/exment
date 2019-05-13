@@ -141,10 +141,10 @@ __EOT__;
         // get file
         $targetfile = $file;
         $pathinfo = pathinfo($file);
-        if(!array_has($pathinfo, 'extension') || $pathinfo['extension'] != 'zip'){
+        if (!array_has($pathinfo, 'extension') || $pathinfo['extension'] != 'zip') {
             $targetfile .= '.zip';
         }
-        if(empty($pathinfo['dirname']) || $pathinfo['dirname'] == '.'){
+        if (empty($pathinfo['dirname']) || $pathinfo['dirname'] == '.') {
             // get restore file path
             $targetfile = path_join($backup, 'list', $targetfile);
         }

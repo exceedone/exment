@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Database\Schema;
 
-use Illuminate\Database\Schema\Builder as BaseBuilder;
-
 trait BuilderTrait
 {
     /**
@@ -47,7 +45,7 @@ trait BuilderTrait
     }
 
     /**
-     *  Add Virtual Column and Index 
+     *  Add Virtual Column and Index
      *
      * @param string $db_table_name
      * @param string $db_column_name
@@ -57,7 +55,7 @@ trait BuilderTrait
      */
     public function alterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
     {
-        if(!\Schema::hasTable($db_table_name)){
+        if (!\Schema::hasTable($db_table_name)) {
             return;
         }
 
@@ -65,13 +63,13 @@ trait BuilderTrait
 
         $sqls = $this->grammar->compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name);
 
-        foreach($sqls as $sql){
+        foreach ($sqls as $sql) {
             $this->connection->statement($sql);
         }
     }
 
     /**
-     *  Drop Virtual Column and Index 
+     *  Drop Virtual Column and Index
      *
      * @param string $db_table_name
      * @param string $db_column_name
@@ -80,7 +78,7 @@ trait BuilderTrait
      */
     public function dropIndexColumn($db_table_name, $db_column_name, $index_name)
     {
-        if(!\Schema::hasTable($db_table_name)){
+        if (!\Schema::hasTable($db_table_name)) {
             return;
         }
 
@@ -88,7 +86,7 @@ trait BuilderTrait
 
         $sqls = $this->grammar->compileDropIndexColumn($db_table_name, $db_column_name, $index_name);
 
-        foreach($sqls as $sql){
+        foreach ($sqls as $sql) {
             $this->connection->statement($sql);
         }
     }
@@ -103,8 +101,9 @@ trait BuilderTrait
         return $this->getUniqueIndex($tableName, $columnName, true);
     }
 
-    protected function getUniqueIndex($tableName, $columnName, $unique){
-        if(!\Schema::hasTable($tableName)){
+    protected function getUniqueIndex($tableName, $columnName, $unique)
+    {
+        if (!\Schema::hasTable($tableName)) {
             return collect([]);
         }
 

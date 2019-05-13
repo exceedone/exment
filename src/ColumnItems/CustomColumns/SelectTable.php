@@ -41,7 +41,7 @@ class SelectTable extends CustomItem
 
     protected function getValue($text, $html)
     {
-        if(!isset($this->target_table)){
+        if (!isset($this->target_table)) {
             return;
         }
         

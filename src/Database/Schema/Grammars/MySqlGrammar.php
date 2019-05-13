@@ -58,15 +58,18 @@ class MySqlGrammar extends BaseGrammar
         ];
     }
     
-    public function compileGetIndex($tableName){
+    public function compileGetIndex($tableName)
+    {
         return $this->_compileGetIndex($tableName, false);
     }
     
-    public function compileGetUnique($tableName){
+    public function compileGetUnique($tableName)
+    {
         return $this->_compileGetIndex($tableName, true);
     }
 
-    protected function _compileGetIndex($tableName, $unique){
+    protected function _compileGetIndex($tableName, $unique)
+    {
         $unique_key = boolval($unique) ? 0 : 1;
         return "show index from {$this->wrapTable($tableName)} where non_unique = $unique_key and column_name = ?";
     }

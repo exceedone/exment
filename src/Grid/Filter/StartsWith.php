@@ -1,6 +1,7 @@
 <?php
 
 namespace Exceedone\Exment\Grid\Filter;
+
 use Encore\Admin\Grid\Filter\AbstractFilter;
 
 class StartsWith extends AbstractFilter
