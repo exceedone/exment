@@ -273,6 +273,9 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('mysql', function (...$parameters) {
             return new ExmentDatabase\MySqlConnection(...$parameters);
         });
+        Connection::resolverFor('sqlsrv', function (...$parameters) {
+            return new ExmentDatabase\SqlServerConnection(...$parameters);
+        });
     }
 
     /**
