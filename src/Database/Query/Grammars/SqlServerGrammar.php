@@ -104,4 +104,15 @@ class SqlServerGrammar extends BaseGrammar
     {
         return "SET IDENTITY_INSERT {$this->wrapTable($tableName)} OFF; ";
     }
+
+    /**
+     * Wrap and add json_unquote if needs
+     *
+     * @param mixed $value
+     * @param boolean $prefixAlias
+     * @return string
+     */
+    public function wrapJsonUnquote($value, $prefixAlias = false){
+        return $this->wrap($value, $prefixAlias);
+    }
 }

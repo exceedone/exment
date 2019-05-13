@@ -65,4 +65,15 @@ class MySqlGrammar extends BaseGrammar
 
         return $cast;
     }
+
+    /**
+     * Wrap and add json_unquote if needs
+     *
+     * @param mixed $value
+     * @param boolean $prefixAlias
+     * @return string
+     */
+    public function wrapJsonUnquote($value, $prefixAlias = false){
+        return "json_unquote(" . $this->wrap($value, $prefixAlias) . ")";
+    }
 }

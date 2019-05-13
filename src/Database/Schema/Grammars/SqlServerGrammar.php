@@ -75,9 +75,6 @@ class SqlServerGrammar extends BaseGrammar
     
     public function compileDropIndexColumn($db_table_name, $db_column_name, $index_name)
     {
-        // ALTER TABLE
-        $as_value = "json_unquote(json_extract(`value`,'$.$json_column_name'))";
-
         return [
             "alter table {$db_table_name} drop index {$index_name}",
             "alter table {$db_table_name} drop column {$db_column_name}",

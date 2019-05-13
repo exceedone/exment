@@ -75,8 +75,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedItems()
     {
-        $raw = "json_unquote(options->'$.select_target_table')";
-        return CustomColumn::where(\DB::raw($raw), $this->id)
+        return CustomColumn::where('options->select_target_table', $this->id)
             ->get();
     }
 
@@ -108,8 +107,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedTables()
     {
-        $raw = "json_unquote(options->'$.select_target_table')";
-        return CustomColumn::where(\DB::raw($raw), $this->id)
+        return CustomColumn::where('options->select_target_table', $this->id)
             ->get()
             ->mapWithKeys(function ($item) {
                 $key = $item->getIndexColumnName();
@@ -119,8 +117,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedTableColumns()
     {
-        $raw = "json_unquote(options->'$.select_target_table')";
-        return CustomColumn::where(\DB::raw($raw), $this->id)
+        return CustomColumn::where('options->select_target_table', $this->id)
             ->get()
             ->mapWithKeys(function ($item) {
                 $key = $item->getIndexColumnName();
