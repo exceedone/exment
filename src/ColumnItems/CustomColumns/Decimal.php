@@ -87,10 +87,10 @@ class Decimal extends CustomItem
         if (array_has($this->custom_column, 'options.decimal_digit')) {
             return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true, [
                 'length' => 50,
-                'decimal_digit' => intval(array_get($this->custom_column, 'options.decimal_digit', 0))
+                'decimal_digit' => intval(array_get($this->custom_column, 'options.decimal_digit', 2))
             ]);
         } else {
-            return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
+            return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true);
         }
     }
 }
