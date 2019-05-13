@@ -15,7 +15,7 @@ class MySqlProcessor extends BaseMySqlProcessor
     public function processTableListing($results)
     {
         return array_map(function ($result) {
-            return ((object) $result)->table_name;
+            return collect((object) $result)->first();
         }, $results);
     }
 }
