@@ -48,7 +48,7 @@ class ViewColumnFilterOption extends EnumBase
 
     public static function VIEW_COLUMN_VALUE_TYPE($filter_option)
     {
-        switch($filter_option) {
+        switch ($filter_option) {
             case ViewColumnFilterOption::DAY_ON:
             case ViewColumnFilterOption::DAY_ON_OR_AFTER:
             case ViewColumnFilterOption::DAY_ON_OR_BEFORE:

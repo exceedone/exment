@@ -294,7 +294,7 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     {
         if (count($parameters) > 0) {
             $name = exmtrans("custom_view.view_filter_condition_value_text");
-            switch($parameters[0]) {
+            switch ($parameters[0]) {
                 case ViewColumnFilterType::NUMBER:
                     return str_replace(':attribute', $name, trans('validation.numeric'));
                 case ViewColumnFilterType::DAY:
@@ -305,5 +305,4 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         }
         return $message;
     }
-    
 }

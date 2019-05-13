@@ -52,7 +52,7 @@ class BulkInsertCommand extends Command
 
             $this->line("該当ファイル数：".count($files));
 
-            foreach($files as $index => $file){
+            foreach ($files as $index => $file) {
                 $this->line(($index + 1) . "件目 実施開始 ファイル:{$file->getFileName()}");
 
                 // convert all csv files in target folder

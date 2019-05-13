@@ -380,28 +380,28 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
         }
 
-        if(!isset($searchColumns) || count($searchColumns) == 0){
+        if (!isset($searchColumns) || count($searchColumns) == 0) {
             return collect([]);
         }
         
         $data = [];
 
-        if(boolval(config('exment.filter_search_full', false))){
+        if (boolval(config('exment.filter_search_full', false))) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        }else{
+        } else {
             $value = $q . ($isLike ? '%' : '');
         }
         $mark = ($isLike ? 'LIKE' : '=');
 
-        $takeCount = config('exment.keyword_search_count', 1000);        
+        $takeCount = config('exment.keyword_search_count', 1000);
 
         // crate union query
         $queries = [];
-        for($i = 0; $i < count($searchColumns) - 1; $i++){
+        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
             $searchColumn = $searchColumns[$i];
             $query = getModelName($this)::query();
             $query->where($searchColumn, $mark, $value)->select('id');
-            if(!boolval($options['relation'])){
+            if (!boolval($options['relation'])) {
                 $query->take($takeCount);
             }
 
@@ -411,7 +411,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $searchColumn = $searchColumns->last();
         $subquery = getModelName($this)::query();
         $subquery->where($searchColumn, $mark, $value)->select('id');
-        if(!boolval($options['relation'])){
+        if (!boolval($options['relation'])) {
             $subquery->take($takeCount);
         }
 
@@ -428,7 +428,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $paginates = $mainQuery->select('id')->paginate($maxCount);
 
             // set eloquent data using ids
-            $ids = collect($paginates->items())->map(function($item){
+            $ids = collect($paginates->items())->map(function ($item) {
                 return $item->id;
             });
 
@@ -489,9 +489,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         System::requestSession($key, 1);
     }
 
-    public function dropTable(){
+    public function dropTable()
+    {
         $table_name = getDBTableName($this);
-        if(!\Schema::hasTable($table_name)){
+        if (!\Schema::hasTable($table_name)) {
             return;
         }
         \Schema::dropIfExists($table_name);
@@ -616,7 +617,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // filter model
         $user = Admin::user();
-        if(isset($user)){
+        if (isset($user)) {
             $model = $user->filterModel($model, $this);
         }
         return $model;

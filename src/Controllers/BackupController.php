@@ -78,7 +78,7 @@ class BackupController extends AdminControllerBase
             ->min(1)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
 
-            $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
+        $form->number('backup_automatic_hour', exmtrans("backup.automatic_hour"))
             ->help(exmtrans("backup.help.automatic_hour"))
             ->min(0)
             ->max(23)
@@ -161,10 +161,10 @@ class BackupController extends AdminControllerBase
             // store uploaded file
             $filename = $file->store('upload_tmp', 'admin_tmp');
             $fullpath = getFullpath($filename, 'admin_tmp');
-            try{
+            try {
                 \Artisan::call('down');
-                $result = \Artisan::call('exment:restore', ['file' => $fullpath]);    
-            }finally{
+                $result = \Artisan::call('exment:restore', ['file' => $fullpath]);
+            } finally {
                 \Artisan::call('up');
             }
         }
@@ -265,10 +265,10 @@ class BackupController extends AdminControllerBase
             // get backup folder full path
             $backup = static::disk()->getAdapter()->getPathPrefix();
 
-            try{
+            try {
                 \Artisan::call('down');
                 $result = \Artisan::call('exment:restore', ['file' => $data['file']]);
-            }finally{
+            } finally {
                 \Artisan::call('up');
             }
         }

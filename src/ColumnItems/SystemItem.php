@@ -11,7 +11,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Model\CustomTable;
-use Illuminate\Support\Collection;
 
 class SystemItem implements ItemInterface
 {
@@ -122,7 +121,7 @@ class SystemItem implements ItemInterface
      * *this function calls from non-escaping value method. So please escape if not necessary unescape.
      */
     public function html()
-    {        
+    {
         return $this->getTargetValue(true);
     }
 
@@ -177,7 +176,7 @@ class SystemItem implements ItemInterface
             $value_type = array_get($option, 'type');
         }
 
-        switch($value_type) {
+        switch ($value_type) {
             case 'day':
             case 'datetime':
                 $field = new Date($this->name(), [$this->label()]);

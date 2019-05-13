@@ -605,9 +605,9 @@ if (!function_exists('getModelName')) {
             }
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            if(!is_null($table)){
+            if (!is_null($table)) {
                 $table->createTable();
-                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);    
+                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
             }
         }
 
@@ -1374,7 +1374,7 @@ if (!function_exists('getUserName')) {
             return exmtrans('common.trashed_user');
         }
 
-        if($link){
+        if ($link) {
             return $user->getUrl(true);
         }
         return $user->getLabel();

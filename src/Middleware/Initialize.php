@@ -200,7 +200,7 @@ class Initialize
     }
 
     /**
-     * set laravel-admin 
+     * set laravel-admin
      */
     public static function registeredLaravelAdmin()
     {

@@ -3,10 +3,7 @@
 namespace Exceedone\Exment\Form\Field;
 
 use Encore\Admin\Form\Field;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
-use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Model\CustomViewFilter;
 
 /**
@@ -18,7 +15,8 @@ class ChangeField extends Field
 
     protected $field = null;
 
-    protected function getElementClass() {
+    protected function getElementClass()
+    {
         if (preg_match('/(^[^\[\]]+)\[([^\[\]]+)\]\[([^\[\]]+)\]$/', $this->elementName, $array_result)) {
             array_shift($array_result);
             $array_result[1] = 'rowno-'.$array_result[1];

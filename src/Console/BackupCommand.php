@@ -282,16 +282,17 @@ class BackupCommand extends Command
         exec($command);
     }
 
-    protected function removeOldBackups(){
+    protected function removeOldBackups()
+    {
         // get history file counts
         $backup_history_files = System::backup_history_files();
-        if(!isset($backup_history_files) || $backup_history_files <= 0){
+        if (!isset($backup_history_files) || $backup_history_files <= 0) {
             return;
         }
 
         // check whether batch
         $schedule = boolval($this->option("schedule"));
-        if(!$schedule){
+        if (!$schedule) {
             return;
         }
 
@@ -301,7 +302,7 @@ class BackupCommand extends Command
         $filenames = $disk->files('list');
 
         // get file infos
-        $files = collect($filenames)->map(function($filename) use($disk){
+        $files = collect($filenames)->map(function ($filename) use ($disk) {
             return [
                 'name' => $filename,
                 'lastModified' => $disk->lastModified($filename),
@@ -309,8 +310,8 @@ class BackupCommand extends Command
         })->sortByDesc('lastModified');
 
         // remove file
-        foreach($files->values()->all() as $index => $file){
-            if($index < $backup_history_files){
+        foreach ($files->values()->all() as $index => $file) {
+            if ($index < $backup_history_files) {
                 continue;
             }
 

@@ -22,8 +22,8 @@ class CustomViewFilter extends ModelBase
     {
         if (is_string($this->view_filter_condition_value_text)) {
             $array = json_decode($this->view_filter_condition_value_text);
-            if (is_array($array)){
-                return array_filter($array, function($val) {
+            if (is_array($array)) {
+                return array_filter($array, function ($val) {
                     return !is_null($val);
                 });
             }
@@ -38,7 +38,7 @@ class CustomViewFilter extends ModelBase
     public function setViewFilterConditionValueAttribute($view_filter_condition_value)
     {
         if (is_array($view_filter_condition_value)) {
-            $array = array_filter($view_filter_condition_value, function($val) {
+            $array = array_filter($view_filter_condition_value, function ($val) {
                 return !is_null($val);
             });
             $this->view_filter_condition_value_text = json_encode($array);
@@ -137,7 +137,7 @@ class CustomViewFilter extends ModelBase
             case ViewColumnFilterOption::NUMBER_GTE:
             case ViewColumnFilterOption::NUMBER_LTE:
                 $condition_value_text = str_replace(',', '', $condition_value_text);
-                if(preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $condition_value_text)) {
+                if (preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $condition_value_text)) {
                     $condition_value_text = floatval($condition_value_text);
                 } else {
                     $condition_value_text = intval($condition_value_text);
@@ -273,14 +273,14 @@ class CustomViewFilter extends ModelBase
             // for select --------------------------------------------------
             case ViewColumnFilterOption::SELECT_EXISTS:
                 $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model = $model->where(function($query) use($view_column_target, $raw){
+                $model = $model->where(function ($query) use ($view_column_target, $raw) {
                     $query->where($view_column_target, 'LIKE', '[%]')
                           ->whereNotNull(\DB::raw($raw));
                 })->orWhere($view_column_target, $condition_value_text);
                 break;
             case ViewColumnFilterOption::SELECT_NOT_EXISTS:
                 $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
-                $model = $model->where(function($query) use($view_column_target, $raw){
+                $model = $model->where(function ($query) use ($view_column_target, $raw) {
                     $query->where($view_column_target, 'LIKE', '[%]')
                         ->whereNull(\DB::raw($raw));
                 })->orWhere($view_column_target, '<>', $condition_value_text);

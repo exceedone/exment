@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
-use Illuminate\Support\Facades\Config;
 use Encore\Admin\Auth\Permission as Checker;
 use Exceedone\Exment\Model\CustomTable;
 
@@ -27,7 +25,6 @@ trait ExmentControllerTrait
         if (isset($headericon)) {
             $this->headericon = $headericon;
         }
-
     }
 
     protected function AdminContent($content)

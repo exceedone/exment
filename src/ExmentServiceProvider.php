@@ -269,7 +269,8 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function bootDatabase(){
+    protected function bootDatabase()
+    {
         Connection::resolverFor('mysql', function (...$parameters) {
             return new ExmentDatabase\MySqlConnection(...$parameters);
         });
