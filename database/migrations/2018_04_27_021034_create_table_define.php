@@ -61,7 +61,7 @@ class CreateTableDefine extends Migration
         });
 
         $schema->create('systems', function (ExtendedBlueprint $table) {
-            $table->string('system_name')->nullable();
+            $table->string('system_name');
             $table->text('system_value')->nullable();
             $table->timestamps();
             $table->timeusers();

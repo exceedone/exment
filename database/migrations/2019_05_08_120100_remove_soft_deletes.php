@@ -57,7 +57,7 @@ class RemoveSoftDeletes extends Migration
         }
 
         // get all deleted_at, deleted_user_id's column
-        $tables = \DB::select('SHOW TABLES');
+        $tables = \Schema::getTableListing();
         foreach ($tables as $table) {
             $this->dropDeletedRecord($table);
 
@@ -135,28 +135,28 @@ class RemoveSoftDeletes extends Migration
             });   
         }
         
-        $tables = \DB::select('SHOW TABLES');
+        $tables = \Schema::getTableListing();
         foreach ($tables as $table) {
-            foreach ($table as $key => $name) {
-                if (stripos($name, 'exm__') === false) {
-                    continue;
-                }
-    
-                $columns = \DB::select("SHOW COLUMNS FROM $name WHERE field IN ('deleted_at')");
-    
-                if(count($columns) == 0){
-                    continue;
-                }
-
-                // check index
-                if(count(Schema::getIndex($name, 'deleted_at')) > 0){
-                    continue;
-                }
-
-                Schema::table($name, function (Blueprint $t) {
-                    $t->index(['deleted_at'], 'custom_values_deleted_at_index');
-                });  
+            if (stripos($table, 'exm__') === false) {
+                continue;
             }
+
+            $columns = collect(\Schema::getColumnListing($table))->filter(function($row){
+                return $row == 'deleted_at';
+            });
+
+            if(count($columns) == 0){
+                continue;
+            }
+
+            // check index
+            if(count(Schema::getIndex($table, 'deleted_at')) > 0){
+                continue;
+            }
+
+            Schema::table($table, function (Blueprint $t) {
+                $t->index(['deleted_at'], 'custom_values_deleted_at_index');
+            });  
         }
     }
 
@@ -164,24 +164,23 @@ class RemoveSoftDeletes extends Migration
      * drop deleted record
      */
     protected function dropDeletedRecord($table){
-        foreach ($table as $key => $name) {
-            if (stripos($name, 'exm__') === 0 || $name == 'custom_values') {
-                continue;
-            }
+        if (stripos($table, 'exm__') === 0 || $table == 'custom_values') {
+            return;
+        }
 
-            $columns = \DB::select("SHOW COLUMNS FROM $name WHERE field IN ('deleted_at', 'deleted_user_id')");
+        $columns = collect(\Schema::getColumnListing($table))->filter(function($row){
+            return in_array($row, ['deleted_at', 'deleted_user_id']);
+        });
 
-            if(count($columns) == 0){
-                continue;
-            }
+        if(count($columns) == 0){
+            return;
+        }
 
-            foreach($columns as $column){
-                $field = $column->field;
-                
-                Schema::table($name, function (Blueprint $t) use($field) {
-                    $t->dropColumn($field);
-                });
-            }
+        foreach($columns as $column){
+            
+            Schema::table($table, function (Blueprint $t) use($column) {
+                $t->dropColumn($column);
+            });
         }
     }
     
@@ -189,25 +188,23 @@ class RemoveSoftDeletes extends Migration
      * drop deleted record
      */
     protected function dropSuuidUnique($table){
-        foreach ($table as $key => $name) {
-            $columns = \Schema::getUnique($name, 'suuid');
-            if(count($columns) == 0){
-                continue;
-            }
+        $columns = \Schema::getUnique($table, 'suuid');
+        if(count($columns) == 0){
+            return;
+        }
 
-            foreach($columns as $column){
-                $keyName = $column->key_name;
-                
-                Schema::table($name, function (Blueprint $t) use($keyName, $name) {
-                    $t->dropUnique($keyName);
+        foreach($columns as $column){
+            $keyName = array_get($column, 'key_name');
+            
+            Schema::table($table, function (Blueprint $t) use($keyName, $table) {
+                $t->dropUnique($keyName);
 
-                    if (stripos($name, 'exm__') === 0 || $name == 'custom_values') {
-                        $t->index(['suuid'], 'custom_values_suuid_index');
-                    }else{
-                        $t->index(['suuid']);
-                    }
-                });
-            }
+                if (stripos($table, 'exm__') === 0 || $table == 'custom_values') {
+                    $t->index(['suuid'], 'custom_values_suuid_index');
+                }else{
+                    $t->index(['suuid']);
+                }
+            });
         }
     }
 }

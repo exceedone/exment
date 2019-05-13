@@ -41,8 +41,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function custom_columns()
     {
-        return $this->hasMany(CustomColumn::class, 'custom_table_id')
-            ->orderBy('order');
+        return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
     public function custom_views()
     {

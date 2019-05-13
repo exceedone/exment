@@ -7,6 +7,18 @@ use Illuminate\Database\Schema\Builder as BaseBuilder;
 trait BuilderTrait
 {
     /**
+     * Get the table listing
+     *
+     * @return array
+     */
+    public function getTableListing()
+    {
+        $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetTableListing());
+
+        return $this->connection->getPostProcessor()->processTableListing($results);
+    }
+
+    /**
      * Create Value Table if it not exists.
      *
      * @param  string  $table
@@ -83,27 +95,23 @@ trait BuilderTrait
 
     public function getIndex($tableName, $columnName)
     {
-        if(!\Schema::hasTable($tableName)){
-            return collect([]);
-        }
-
-        $tableName = $this->connection->getTablePrefix().$tableName;
-
-        $sql = $this->grammar->compileGetIndex();
-
-        return $this->connection->selectFromWriteConnection($sql, [$tableName, $columnName]);
+        return $this->getUniqueIndex($tableName, $columnName, false);
     }
 
     public function getUnique($tableName, $columnName)
     {
+        return $this->getUniqueIndex($tableName, $columnName, true);
+    }
+
+    protected function getUniqueIndex($tableName, $columnName, $unique){
         if(!\Schema::hasTable($tableName)){
             return collect([]);
         }
 
         $tableName = $this->connection->getTablePrefix().$tableName;
 
-        $sql = $this->grammar->compileGetUnique();
+        $sql = $unique ? $this->grammar->compileGetUnique($tableName) : $this->grammar->compileGetIndex($tableName);
 
-        return $this->connection->selectFromWriteConnection($sql, [$tableName, $columnName]);
+        return $this->connection->select($sql, [$columnName]);
     }
 }

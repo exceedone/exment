@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Database;
 
 use Exceedone\Exment\Database\Schema\Grammars\MySqlGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\MySqlBuilder;
+use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
 class MySqlConnection extends BaseConnection
@@ -30,5 +31,15 @@ class MySqlConnection extends BaseConnection
     protected function getDefaultSchemaGrammar()
     {
         return $this->withTablePrefix(new SchemaGrammar);
+    }
+    
+    /**
+     * Get the default post processor instance.
+     *
+     * @return MySqlProcessor
+     */
+    protected function getDefaultPostProcessor()
+    {
+        return new MySqlProcessor;
     }
 }

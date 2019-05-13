@@ -2,18 +2,28 @@
 
 namespace Exceedone\Exment\Database\Schema\Grammars;
 
-use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseMySqlGrammar;
+use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
 
-class MySqlGrammar extends BaseMySqlGrammar
+class MySqlGrammar extends BaseGrammar
 {
+    /**
+     * Compile the query to show tables
+     *
+     * @return string
+     */
+    public function compileGetTableListing()
+    {
+        return "show tables";
+    }
+
     /**
      * Compile the query to Create Value Table
      *
      * @return string
      */
-    public function compileCreateValueTable(string $table)
+    public function compileCreateValueTable(string $tableName)
     {
-        return "create table if not exists {$this->wrapTable($table)} like custom_values";
+        return "create table if not exists {$this->wrapTable($tableName)} like custom_values";
     }
 
     /**
@@ -21,9 +31,9 @@ class MySqlGrammar extends BaseMySqlGrammar
      *
      * @return string
      */
-    public function compileCreateRelationValueTable(string $table)
+    public function compileCreateRelationValueTable(string $tableName)
     {
-        return "create table if not exists {$this->wrapTable($table)} like custom_relation_values";
+        return "create table if not exists {$this->wrapTable($tableName)} like custom_relation_values";
     }
     
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
@@ -48,16 +58,16 @@ class MySqlGrammar extends BaseMySqlGrammar
         ];
     }
     
-    public function compileGetIndex(){
-        return $this->_compileGetIndex(false);
+    public function compileGetIndex($tableName){
+        return $this->_compileGetIndex($tableName, false);
     }
     
-    public function compileGetUnique(){
-        return $this->_compileGetIndex(true);
+    public function compileGetUnique($tableName){
+        return $this->_compileGetIndex($tableName, true);
     }
 
-    protected function _compileGetIndex($unique){
+    protected function _compileGetIndex($tableName, $unique){
         $unique_key = boolval($unique) ? 0 : 1;
-        return "show index from ? where non_unique = $unique_key and column_name = ?";
+        return "show index from {$this->wrapTable($tableName)} where non_unique = $unique_key and column_name = ?";
     }
 }
