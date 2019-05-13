@@ -25,7 +25,7 @@ class CustomTableController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"));
+        $this->setPageInfo(exmtrans("custom_table.header"), exmtrans("custom_table.header"), exmtrans("custom_table.description"), 'fa-table');
     }
 
     /**
@@ -80,6 +80,7 @@ class CustomTableController extends AdminControllerBase
         }
         $form->text('table_view_name', exmtrans("custom_table.table_view_name"))
             ->required()
+            ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
@@ -151,9 +152,7 @@ class CustomTableController extends AdminControllerBase
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);
         
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
-            $tools->disableView();
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::findOrFail($id);

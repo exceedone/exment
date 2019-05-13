@@ -7,7 +7,6 @@ use Exceedone\Exment\Enums\DocumentType;
 
 class Plugin extends ModelBase
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\UseRequestSessionTrait;
     
     protected $casts = ['options' => 'json'];

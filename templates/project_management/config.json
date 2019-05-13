@@ -343,6 +343,13 @@
             ]
         }
     ],
+    "custom_relations": [
+        {
+            "relation_type": 1,
+            "parent_custom_table_name": "project",
+            "child_custom_table_name": "task"
+        }
+    ],
     "custom_forms": [
         {
             "suuid": "a0ce41d5d7816f0aab70",
@@ -591,13 +598,6 @@
             ],
             "custom_view_filters": [],
             "table_name": "task"
-        }
-    ],
-    "custom_relations": [
-        {
-            "relation_type": 1,
-            "parent_custom_table_name": "project",
-            "child_custom_table_name": "task"
         }
     ],
     "admin_menu": [

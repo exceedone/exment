@@ -19,6 +19,9 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
+/**
+ * CustomValueShow
+ */
 trait CustomValueShow
 {
     /**
@@ -105,7 +108,7 @@ trait CustomValueShow
             }
 
             // if modal, disable list and delete
-            $show->panel()->tools(function ($tools) use ($modal, $custom_value) {
+            $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
                         <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
@@ -219,7 +222,7 @@ EOT;
                     'No.'.($revision->revision_no)
                 )->setWidth(9, 2);
             }
-            $row->column(6, (new Box('更新履歴', $form))->style('info'));
+            $row->column(6, (new Box(exmtrans('revision.update_history'), $form))->style('info'));
         }
 
         if ($useComment) {

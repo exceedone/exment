@@ -13,6 +13,7 @@ use Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form;
+use Encore\Admin\Grid;
 use \Html;
 use PDO;
 
@@ -64,10 +65,10 @@ class Initialize
             'provider' => 'exment-auth',
         ]);
         // TODO:need.why??
-        // Config::set('auth.guards.api', [
-        //     'driver' => 'passport',
-        //     'provider' => 'exment-auth',
-        // ]);
+        Config::set('auth.guards.api', [
+            'driver' => 'passport',
+            'provider' => 'exment-auth',
+        ]);
     
         if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [
@@ -182,22 +183,44 @@ class Initialize
             if (isset($val)) {
                 Config::set('admin.skin', esc_html($val));
             }
+
             // Site layout
             $val = System::site_layout();
             if (isset($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
+
+            
+            // favicon
+            $val = System::site_favicon();
+            if (isset($val)) {
+                \Admin::setFavicon($val);
+            }
         }
     }
 
     /**
-     * set laravel-admin form field
+     * set laravel-admin
      */
-    public static function initializeFormField()
+    public static function registeredLaravelAdmin()
     {
+        Grid::init(function (Grid $grid) {
+            $grid->disableColumnSelector();
+        });
+
+        Form::init(function (Form $form) {
+            $form->disableEditingCheck();
+            $form->disableCreatingCheck();
+            $form->disableViewCheck();
+            $form->disableReset();
+            $form->tools(function (Form\Tools $tools) {
+                $tools->disableView();
+            });
+        });
+
         $map = [
             'number'        => Field\Number::class,
-            'editor'        => Field\Tinymce::class,
+            'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,

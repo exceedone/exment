@@ -13,6 +13,5 @@ class ExtendedBlueprint extends Blueprint
     {
         $this->unsignedInteger('created_user_id', $precision)->nullable();
         $this->unsignedInteger('updated_user_id', $precision)->nullable();
-        $this->unsignedInteger('deleted_user_id', $precision)->nullable();
     }
 }

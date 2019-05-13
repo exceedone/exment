@@ -2,10 +2,15 @@
 
 namespace Exceedone\Exment\ColumnItems;
 
+use Encore\Admin\Form\Field\Date;
+use Encore\Admin\Form\Field\Select;
+use Encore\Admin\Form\Field\Text;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Model\CustomTable;
 
 class SystemItem implements ItemInterface
 {
@@ -23,7 +28,7 @@ class SystemItem implements ItemInterface
         } else {
             $this->column_name = $column_name;
         }
-        $this->value = $this->getTargetValue($custom_value);
+        $this->custom_value = $custom_value;
         $this->label = exmtrans("common.$this->column_name");
     }
 
@@ -108,7 +113,7 @@ class SystemItem implements ItemInterface
      */
     public function text()
     {
-        return $this->value;
+        return $this->getTargetValue(false);
     }
 
     /**
@@ -117,7 +122,7 @@ class SystemItem implements ItemInterface
      */
     public function html()
     {
-        return esc_html($this->text());
+        return $this->getTargetValue(true);
     }
 
     /**
@@ -130,7 +135,7 @@ class SystemItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
-        $this->value = $this->getTargetValue($custom_value);
+        $this->custom_value = $custom_value;
         if (isset($custom_value)) {
             $this->id = $custom_value->id;
         }
@@ -145,19 +150,52 @@ class SystemItem implements ItemInterface
         return $this->custom_table;
     }
 
-    protected function getTargetValue($custom_value)
+    protected function getTargetValue($html)
     {
         // if options has "summary" (for summary view)
         if (boolval(array_get($this->options, 'summary'))) {
-            return array_get($custom_value, $this->sqlAsName());
+            return array_get($this->custom_value, $this->sqlAsName());
         }
-        return array_get($custom_value, $this->column_name);
+        $val = array_get($this->custom_value, $this->column_name);
+
+        return $html ? esc_html($val) : $val;
     }
     
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $field = new Field\Display($this->name(), [$this->label()]);
-        $field->default($this->value);
+        $field->default($this->text());
+
+        return $field;
+    }
+    
+    public function getFilterField($value_type = null)
+    {
+        if (is_null($value_type)) {
+            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            $value_type = array_get($option, 'type');
+        }
+
+        switch ($value_type) {
+            case 'day':
+            case 'datetime':
+                $field = new Date($this->name(), [$this->label()]);
+                $field->default($this->value);
+                break;
+            case 'user':
+                $field = new Select($this->name(), [$this->label()]);
+                $field->options(function ($value) {
+                    // get DB option value
+                    return CustomTable::getEloquent(SystemTableName::USER)
+                        ->getOptions($value, SystemTableName::USER);
+                });
+                $field->default($this->value);
+                break;
+            default:
+                $field = new Text($this->name(), [$this->label()]);
+                $field->default($this->value);
+                break;
+        }
 
         return $field;
     }

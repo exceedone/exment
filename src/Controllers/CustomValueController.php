@@ -36,7 +36,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($request);
 
-        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description);
+        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
@@ -66,16 +66,18 @@ class CustomValueController extends AdminControllerTableBase
                 $id = $record->id;
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                disableFormFooter($form);
                 $content->body($form);
             }
             // no record
             else {
                 $form = $this->form(null);
-                disableFormFooter($form);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 $content->body($form);
             }
+
+            $form->disableViewCheck();
+            $form->disableEditingCheck();
+            $form->disableCreatingCheck();
         } else {
             if ($this->custom_view->view_kind_type == ViewKindType::AGGREGATE) {
                 $content->body($this->gridSummary());

@@ -539,7 +539,7 @@ class CustomValue extends ModelBase
         if (boolval($options['modal'])) {
             $url .= '?modal=1';
             $href = 'javascript:void(0);';
-            $widgetmodal_url = " data-widgetmodal_url='$url'";
+            $widgetmodal_url = sprintf(" data-widgetmodal_url='$url' data-toggle='tooltip' title='%s'", exmtrans('custom_value.data_detail'));
         } else {
             $href = $url;
             $widgetmodal_url = null;

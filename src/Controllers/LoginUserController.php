@@ -21,7 +21,7 @@ class LoginUserController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"));
+        $this->setPageInfo(exmtrans("user.header"), exmtrans("user.header"), exmtrans("user.description"), 'fa-user-plus');
     }
     
     /**
@@ -162,7 +162,6 @@ class LoginUserController extends AdminControllerBase
 
         $form->disableReset();
         $form->tools(function (Form\Tools $tools) {
-            $tools->disableView();
             $tools->disableDelete();
         });
         return $form;
@@ -245,6 +244,10 @@ class LoginUserController extends AdminControllerBase
                 DB::commit();
             }
             DB::commit();
+        } catch (\Swift_TransportException $ex) {
+            admin_error('Error', exmtrans('error.mailsend_failed'));
+            DB::rollback();
+            return back()->withInput();
         } catch (Exception $ex) {
             DB::rollback();
             throw $ex;

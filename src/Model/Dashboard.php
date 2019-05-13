@@ -14,7 +14,6 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];

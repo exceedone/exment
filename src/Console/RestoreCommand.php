@@ -137,8 +137,20 @@ __EOT__;
     {
         // get backup folder full path
         $backup = Storage::disk('backup')->getAdapter()->getPathPrefix();
+
+        // get file
+        $targetfile = $file;
+        $pathinfo = pathinfo($file);
+        if (!array_has($pathinfo, 'extension') || $pathinfo['extension'] != 'zip') {
+            $targetfile .= '.zip';
+        }
+        if (empty($pathinfo['dirname']) || $pathinfo['dirname'] == '.') {
+            // get restore file path
+            $targetfile = path_join($backup, 'list', $targetfile);
+        }
+        
         // get temporary folder path
-        $tempdir = path_join($backup, 'tmp', pathinfo($file, PATHINFO_FILENAME));
+        $tempdir = path_join($backup, 'tmp', pathinfo($targetfile, PATHINFO_FILENAME));
 
         // create temporary folder if not exists
         if (!File::exists($tempdir)) {
@@ -147,7 +159,7 @@ __EOT__;
 
         // open new zip file
         $zip = new \ZipArchive();
-        if ($zip->open($file) === true) {
+        if ($zip->open($targetfile) === true) {
             $zip->extractTo($tempdir);
             $zip->close();
             return $tempdir;

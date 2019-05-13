@@ -22,7 +22,7 @@ class CustomCopyController extends AdminControllerTableBase
     {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_copy.header"), exmtrans("custom_copy.header"), exmtrans("custom_copy.description"));
+        $this->setPageInfo(exmtrans("custom_copy.header"), exmtrans("custom_copy.header"), exmtrans("custom_copy.description"), 'fa-copy');
     }
 
     /**
@@ -138,7 +138,7 @@ class CustomCopyController extends AdminControllerTableBase
 
         // exmtrans "plugin". it's same value
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) {
-            $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"));
+            $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"))->rules("max:40");
             $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"))->default('fa-copy');
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
         })->disableHeader();
@@ -162,9 +162,7 @@ class CustomCopyController extends AdminControllerTableBase
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.input_column_description"));
 
-        disableFormFooter($form);
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('copy', $custom_table, false))->render());
         });
         return $form;
@@ -183,12 +181,12 @@ class CustomCopyController extends AdminControllerTableBase
         $form->method('GET');
         $form->modalHeader(trans('admin.setting'));
 
-        $form->select('to_custom_table', 'コピー先のテーブル')
+        $form->select('to_custom_table', exmtrans('custom_copy.to_custom_table_view_name'))
             ->options(function ($option) {
                 return CustomTable::where('showlist_flg', true)->pluck('table_view_name', 'suuid');
             })
             ->setWidth(8, 3)
-            ->help('コピー先のテーブルを選択してください。');
+            ->help(exmtrans('custom_copy.help.to_custom_table_view_name'));
         // add button
         return $form->render()->render();
     }

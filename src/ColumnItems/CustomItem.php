@@ -4,7 +4,9 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -142,14 +144,33 @@ abstract class CustomItem implements ItemInterface
         }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
-
+    
+    public function getFilterField($value_type = null)
+    {
+        switch ($value_type) {
+            case ViewColumnFilterType::DAY:
+                $classname = Field\Date::class;
+                break;
+            case ViewColumnFilterType::NUMBER:
+                $classname = Field\Number::class;
+                break;
+            case ViewColumnFilterType::SELECT:
+                $classname = Field\Select::class;
+                break;
+            default:
+                $classname = $this->getFilterFieldClass();
+                break;
+        }
+        return $this->getCustomField($classname);
+    }
+    protected function getFilterFieldClass()
+    {
+        return $this->getAdminFieldClass();
+    }
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
-        $options = $this->custom_column->options;
         $form_column_options = $form_column->options ?? null;
-        // form column name. join $column_name_prefix and $column_name
-        $form_column_name = $column_name_prefix.$this->name();
-        
+
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
@@ -157,6 +178,16 @@ abstract class CustomItem implements ItemInterface
             // get field
             $classname = $this->getAdminFieldClass();
         }
+
+        return $this->getCustomField($classname, $form_column_options, $column_name_prefix);
+    }
+
+    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    {
+        $options = $this->custom_column->options;
+        // form column name. join $column_name_prefix and $column_name
+        $form_column_name = $column_name_prefix.$this->name();
+        
         $field = new $classname($form_column_name, [$this->label()]);
         $this->setAdminOptions($field, $form_column_options);
 
@@ -246,9 +277,20 @@ abstract class CustomItem implements ItemInterface
         // get column_type
         $database_column_type = $this->custom_column->column_type;
         switch ($database_column_type) {
-            case 'date':
-            case 'datetime':
+            case ColumnType::INTEGER:
+            case ColumnType::DECIMAL:
+            case ColumnType::CURRENCY:
+                return ViewColumnFilterType::NUMBER;
+            case ColumnType::SELECT:
+            case ColumnType::SELECT_VALTEXT:
+            case ColumnType::SELECT_TABLE:
+                return ViewColumnFilterType::SELECT;
+            case ColumnType::DATE:
+            case ColumnType::DATETIME:
                 return ViewColumnFilterType::DAY;
+            case ColumnType::IMAGE:
+            case ColumnType::FILE:
+                return ViewColumnFilterType::FILE;
             case SystemTableName::USER:
                 return ViewColumnFilterType::USER;
             default:
@@ -260,7 +302,11 @@ abstract class CustomItem implements ItemInterface
 
     protected function getAdminFilterClass()
     {
-        return Filter\Like::class;
+        if (boolval(config('exment.filter_search_full', false))) {
+            return Filter\Like::class;
+        }
+
+        return ExmentFilter\StartsWith::class;
     }
 
     protected function setAdminOptions(&$field, $form_column_options)

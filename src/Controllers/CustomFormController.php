@@ -35,7 +35,7 @@ class CustomFormController extends AdminControllerTableBase
     public function __construct(Request $request)
     {
         parent::__construct($request);
-        $this->setPageInfo(exmtrans("custom_form.header"), exmtrans("custom_form.header"), exmtrans("custom_form.description"));
+        $this->setPageInfo(exmtrans("custom_form.header"), exmtrans("custom_form.header"), exmtrans("custom_form.description"), 'fa-keyboard-o');
     }
 
     /**
@@ -140,11 +140,17 @@ class CustomFormController extends AdminControllerTableBase
         
         $grid->tools(function (Grid\Tools $tools) {
             $tools->append(new Tools\GridChangePageMenu('form', $this->custom_table, false));
+            
+            $tools->batch(function (Grid\Tools\BatchActions $actions) {
+                $actions->disableDelete();
+            });
         });
         
         $grid->disableExport();
+        $grid->disableCreateButton();
         $grid->actions(function ($actions) {
             $actions->disableView();
+            $actions->disableDelete();
         });
         return $grid;
     }
@@ -489,8 +495,8 @@ class CustomFormController extends AdminControllerTableBase
                     $new_column = starts_with($column_key, 'NEW_');
 
                     // if delete flg is true, delete and continue
-                    if(boolval(array_get($column_value, 'delete_flg'))){
-                        if (!$new_column){
+                    if (boolval(array_get($column_value, 'delete_flg'))) {
+                        if (!$new_column) {
                             CustomFormColumn::findOrFail($column_key)->delete();
                         }
                         continue;
