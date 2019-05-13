@@ -27,12 +27,12 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      */
     public function processIndexListing($tableName, $results)
     {
-        return collect($results)->map(function ($result) {
+        return collect($results)->map(function ($result) use($tableName) {
             return [
-                'table_name' => $result->table,
+                'table_name' => $tableName,
                 'column_name' => $result->column_name,
                 'key_name' => $result->key_name,
-                'unique' => boolval($result->non_unique),
+                'unique' => boolval($result->is_unique),
             ];
         })->toArray();
     }

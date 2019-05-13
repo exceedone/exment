@@ -5,6 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Schema\Blueprint;
+use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\CurrencySymbol;
 
@@ -76,38 +77,45 @@ class SupportForV11 extends Migration
             });
         }
 
-        // set default value.
-        \DB::statement('UPDATE custom_view_columns a SET view_column_table_id = (
-            CASE a.view_column_type
-                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.view_column_target_id)
-                ELSE (SELECT custom_table_id from custom_views where id = a.custom_view_id)
-            END)');
-        \DB::statement('UPDATE custom_view_summaries a SET view_column_table_id = (
-            CASE a.view_column_type
-                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.view_column_target_id)
-                ELSE (SELECT custom_table_id from custom_views where id = a.custom_view_id)
-            END)');
-        \DB::statement('UPDATE custom_view_filters a SET view_column_table_id = (
-            CASE a.view_column_type
-                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.view_column_target_id)
-                ELSE (SELECT custom_table_id from custom_views where id = a.custom_view_id)
-            END)');
-        \DB::statement('UPDATE custom_view_sorts a SET view_column_table_id = (
-            CASE a.view_column_type
-                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.view_column_target_id)
-                ELSE (SELECT custom_table_id from custom_views where id = a.custom_view_id)
-            END)');
+        ///// set default value.
+        $updateClasses = [
+            Model\CustomViewColumn::class,
+            Model\CustomViewSummary::class,
+            Model\CustomViewFilter::class,
+            Model\CustomViewSort::class,
+        ];
+        foreach($updateClasses as $updateClass){
+            $results = $updateClass::with(['custom_column', 'custom_view'])
+            ->get();
 
-        \DB::statement('UPDATE custom_copy_columns a SET from_column_table_id = (
-            CASE a.from_column_type
-                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.from_column_target_id)
-                ELSE (SELECT from_custom_table_id from custom_copies where id = a.custom_copy_id)
-            END), 
-            to_column_table_id = (
-            CASE a.to_column_type
-                WHEN 0 THEN (SELECT custom_table_id from custom_columns where id = a.to_column_target_id)
-                ELSE (SELECT to_custom_table_id from custom_copies where id = a.custom_copy_id)
-            END)');
+            foreach($results as $result){
+                if(array_get($result, 'view_column_type') == 0){
+                    $result->view_column_table_id = array_get($result, 'custom_column.custom_table_id');
+                }else{
+                    $result->view_column_table_id = array_get($result, 'custom_view.custom_table_id');
+                }
+                $result->save();
+            }
+        }
+
+        $results = Model\CustomCopyColumn::with(['from_custom_column', 'to_custom_column', 'custom_copy'])
+            ->get();
+
+        foreach($results as $result){
+            if(array_get($result, 'from_column_type') == 0){
+                $result->from_column_table_id = array_get($result, 'from_custom_column.custom_table_id');
+            }else{
+                $result->from_column_table_id = array_get($result, 'custom_copy.custom_table_id');
+            }
+
+            if(array_get($result, 'to_column_type') == 0){
+                $result->to_column_table_id = array_get($result, 'to_custom_column.custom_table_id');
+            }else{
+                $result->to_column_table_id = array_get($result, 'custom_copy.custom_table_id');
+            }    
+
+            $result->save();
+        }
 
         // drop table name unique index from custom table
         if(count(Schema::getUniqueListing('custom_tables', 'table_name')) > 0){
