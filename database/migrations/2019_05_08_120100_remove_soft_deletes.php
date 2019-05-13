@@ -104,7 +104,6 @@ class RemoveSoftDeletes extends Migration
         $classname::whereNotNull('deleted_at')->get()->each(function($row){
             $row->delete();
         });
-        //$deleted = \DB::delete("delete from $table_name WHERE deleted_at IS NOT NULL");
     }
 
     /**

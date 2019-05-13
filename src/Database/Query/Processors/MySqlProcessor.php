@@ -27,12 +27,12 @@ class MySqlProcessor extends BaseMySqlProcessor
      */
     public function processIndexListing($tableName, $results)
     {
-        return collect($results)->map(function ($result) {
+        return collect($results)->map(function ($result) use($tableName) {
             return [
-                'table_name' => $baseTableName,
-                'column_name' => $row->column_name,
-                'key_name' => $row->key_name,
-                'unique' => boolval($row->is_unique),
+                'table_name' => $tableName,
+                'column_name' => $result->column_name,
+                'key_name' => $result->key_name,
+                'unique' => boolval($result->is_unique),
             ];
         })->toArray();
     }
