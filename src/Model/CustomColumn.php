@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
-use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CalcFormulaType;
@@ -195,11 +194,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         //  if index_enabled = false, and exists, then drop index
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
-            DynamicDBHelper::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
-            DynamicDBHelper::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
     }
     

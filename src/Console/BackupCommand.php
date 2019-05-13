@@ -109,18 +109,16 @@ class BackupCommand extends Command
         $this->dumpDatabase();
 
         // get all table list
-        $tables = \DB::select('SHOW TABLES');
+        $tables = \Schema::getTableListing();
 
         // backup each table
-        foreach ($tables as $table) {
-            foreach ($table as $key => $name) {
-                if (stripos($name, 'exm__') === 0) {
-                    // backup table data which has virtual column
-                    $this->backupTable($name);
-                } else {
-                    // backup table data with mysqldump
-                    $this->dumpDatabase($name);
-                }
+        foreach ($tables as $name) {
+            if (stripos($name, 'exm__') === 0) {
+                // backup table data which has virtual column
+                $this->backupTable($name);
+            } else {
+                // backup table data with mysqldump
+                $this->dumpDatabase($name);
             }
         }
     }
