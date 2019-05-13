@@ -32,7 +32,7 @@ class MySqlProcessor extends BaseMySqlProcessor
                 'table_name' => $tableName,
                 'column_name' => $result->column_name,
                 'key_name' => $result->key_name,
-                'unique' => boolval($result->is_unique),
+                'unique' => !boolval($result->non_unique),
             ];
         })->toArray();
     }
