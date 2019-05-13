@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Form\Field;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Enums\DatabaseDataType;
 
 class Integer extends CustomItem
 {
@@ -64,6 +65,7 @@ class Integer extends CustomItem
      */
     public function getCastName()
     {
-        return "SIGNED";
+        $grammar = \DB::getQueryGrammar();
+        return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
     }
 }

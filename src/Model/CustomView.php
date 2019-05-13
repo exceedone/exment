@@ -68,7 +68,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     public function custom_view_columns()
     {
-        return $this->hasMany(CustomViewColumn::class, 'custom_view_id')->orderBy('order');
+        return $this->hasMany(CustomViewColumn::class, 'custom_view_id');
     }
 
     public function custom_view_filters()
@@ -78,7 +78,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     public function custom_view_sorts()
     {
-        return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
+        return $this->hasMany(CustomViewSort::class, 'custom_view_id');
     }
 
     public function custom_view_summaries()

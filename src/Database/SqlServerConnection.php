@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Database;
 
+use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar as QueryGrammar;
 use Exceedone\Exment\Database\Schema\Grammars\SqlServerGrammar as SchemaGrammar;
 use Exceedone\Exment\Database\Schema\SqlServerBuilder;
 use Exceedone\Exment\Database\Query\Processors\SqlServerProcessor;
@@ -26,11 +27,21 @@ class SqlServerConnection extends BaseConnection
     /**
      * Get the default schema grammar instance.
      *
-     * @return MySqlGrammar
+     * @return SchemaGrammar
      */
     protected function getDefaultSchemaGrammar()
     {
         return $this->withTablePrefix(new SchemaGrammar);
+    }
+
+    /**
+     * Get the default query grammar instance.
+     *
+     * @return QueryGrammar
+     */
+    protected function getDefaultQueryGrammar()
+    {
+        return $this->withTablePrefix(new QueryGrammar);
     }
 
     /**

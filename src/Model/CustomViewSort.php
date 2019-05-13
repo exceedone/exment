@@ -42,4 +42,12 @@ class CustomViewSort extends ModelBase
     {
         return static::getEloquentDefault($id, $withs);
     }
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        // add default order
+        static::addGlobalScope(new OrderScope('priority'));
+    }
 }
