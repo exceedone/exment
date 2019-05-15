@@ -117,6 +117,8 @@ class HasManyTable extends HasMany
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
+        $title = exmtrans("common.error");
+        $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -144,6 +146,17 @@ $('#has-many-table-{$this->column}').on('click', '.remove', function () {
     row.hide();
     row.find('.$removeClass').val(1);
 });
+
+$("button[type='submit']").click(function(){
+    if ($('#has-many-table-{$this->column}-table').attr('required') != undefined) {
+        var cnt = $('#has-many-table-{$this->column}-table tr.has-many-table-{$this->column}-row').filter(':visible').length;
+        if (cnt == 0) { 
+            swal("$title", "$message", "error");
+            return false;
+        };
+    }
+    return true;
+})
 
 EOT;
 

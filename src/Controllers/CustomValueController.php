@@ -25,7 +25,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow, CustomValueSummary;
+    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm;
+    use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
     /**
@@ -79,10 +80,15 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
         } else {
-            if ($this->custom_view->view_kind_type == ViewKindType::AGGREGATE) {
-                $content->body($this->gridSummary());
-            } else {
-                $content->body($this->grid());
+            switch($this->custom_view->view_kind_type) {
+                case ViewKindType::AGGREGATE:
+                    $content->body($this->gridSummary());
+                    break;
+                case ViewKindType::CALENDAR:
+                    $content->body($this->gridCalendar());
+                    break;
+                default:
+                    $content->body($this->grid());
             }
         }
         return $content;

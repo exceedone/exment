@@ -46,6 +46,7 @@ return [
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
+            'exists_row' => '%sは必ず1行以上入力してください。',
         ],
 
         'help' =>[
@@ -547,6 +548,7 @@ return [
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
+        'color' => '表示色',
         'order' => '表示順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
@@ -556,6 +558,7 @@ return [
         'view_summary_condition' => '集計タイプ',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
+        'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
@@ -605,6 +608,7 @@ return [
             'current_view_edit' => '現在のビュー設定変更',
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
+            'create_calendar' => 'カレンダービュー新規作成',
         ],
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
