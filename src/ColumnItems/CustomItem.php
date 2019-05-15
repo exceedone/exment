@@ -168,6 +168,10 @@ abstract class CustomItem implements ItemInterface
             }
         }
 
+        // set disable_number_format
+        $this->custom_column->setOption('number_format', false);
+        $this->options['disable_number_format'] = true;
+
         return $this->getCustomField($classname);
     }
     protected function getFilterFieldClass()
@@ -189,7 +193,7 @@ abstract class CustomItem implements ItemInterface
         return $this->getCustomField($classname, $form_column_options, $column_name_prefix);
     }
 
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
+    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null, $fieldOptions = [])
     {
         $options = $this->custom_column->options;
         // form column name. join $column_name_prefix and $column_name
