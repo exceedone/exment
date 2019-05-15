@@ -9,6 +9,7 @@ use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
 
 abstract class CustomItem implements ItemInterface
 {
@@ -147,20 +148,26 @@ abstract class CustomItem implements ItemInterface
     
     public function getFilterField($value_type = null)
     {
-        switch ($value_type) {
-            case ViewColumnFilterType::DAY:
-                $classname = Field\Date::class;
-                break;
-            case ViewColumnFilterType::NUMBER:
-                $classname = Field\Number::class;
-                break;
-            case ViewColumnFilterType::SELECT:
-                $classname = Field\Select::class;
-                break;
-            default:
-                $classname = $this->getFilterFieldClass();
-                break;
+        if(get_class($this) == AutoNumber::class){
+            $field = $this->getCustomField(Field\Text::class);
+            return $field->default('');
+        }else{
+            switch ($value_type) {
+                case ViewColumnFilterType::DAY:
+                    $classname = Field\Date::class;
+                    break;
+                case ViewColumnFilterType::NUMBER:
+                    $classname = Field\Number::class;
+                    break;
+                case ViewColumnFilterType::SELECT:
+                    $classname = Field\Select::class;
+                    break;
+                default:
+                    $classname = $this->getFilterFieldClass();
+                    break;
+            }
         }
+
         return $this->getCustomField($classname);
     }
     protected function getFilterFieldClass()
