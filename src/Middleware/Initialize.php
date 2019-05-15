@@ -197,7 +197,7 @@ class Initialize
     {
         $map = [
             'number'        => Field\Number::class,
-            'editor'        => Field\Tinymce::class,
+            'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,
