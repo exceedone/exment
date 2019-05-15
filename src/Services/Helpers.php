@@ -98,6 +98,9 @@ if (!function_exists('esc_sql')) {
 }
 
 if (!function_exists('is_nullorempty')) {
+    /**
+     * validate string. null is true, "" is true, 0 and "0" is false.
+     */
     function is_nullorempty($obj)
     {
         if (is_null($obj)) {

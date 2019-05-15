@@ -275,7 +275,7 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
 
         $parameters = [$value_type];
 
-        if (empty($value)) {
+        if (is_nullorempty($value)) {
             return false;
         }
 
