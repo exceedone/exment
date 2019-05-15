@@ -841,6 +841,34 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
         return $options;
     }
+
+    /**
+     * get date columns select options. It contains date, datetime.
+     * 
+     */
+    public function getDateColumnsSelectOptions()
+    {
+        $options = [];
+
+        ///// get table columns
+        $custom_columns = $this->custom_columns;
+        foreach ($custom_columns as $option) {
+            if (!$option->indexEnabled()) {
+                continue;
+            }
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isDate($column_type)) {
+                $options[$this->getOptionKey(array_get($option, 'id'))] = array_get($option, 'column_view_name');
+            }
+        }
+        
+        /// get system date columns
+        foreach (SystemColumn::getOptions(['type' => 'datetime']) as $option) {
+            $options[$this->getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
+        }
+
+        return $options;
+    }
         
     /**
      * Get relation tables list.

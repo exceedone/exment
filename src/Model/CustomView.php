@@ -22,6 +22,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
 
+    protected $appends = ['view_calendar_target'];
     protected $guarded = ['id', 'suuid'];
 
     public static $templateItems = [
@@ -590,5 +591,21 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $is_number = true;
         }
         return ['id' => $view_column_id, 'text' => $column_view_name, 'is_number' => $is_number];
+    }
+    public function getViewCalendarTargetAttribute()
+    {
+        $custom_view_columns = $this->custom_view_columns;
+        if (count($custom_view_columns) > 0) {
+            return $custom_view_columns[0]->view_column_target;
+        }
+        return null;
+    }
+    public function setViewCalendarTargetAttribute($view_calendar_target)
+    {
+        $custom_view_columns = $this->custom_view_columns;
+        if (count($custom_view_columns) == 0) {
+            $this->custom_view_columns = new CustomViewColumns();
+        }
+        $custom_view_columns[0]->view_column_target = $view_calendar_target;
     }
 }
