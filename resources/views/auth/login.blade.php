@@ -27,7 +27,7 @@
                     @if(config('admin.auth.remember'))
                     <div class="checkbox icheck">
                         <label>
-                            <input type="checkbox" name="remember" value="1" {{ (!old('username') || old('remember')) ? 'checked' : '' }}>
+                            <input type="checkbox" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
                             {{ trans('admin.remember_me') }}
                         </label>
                     </div>

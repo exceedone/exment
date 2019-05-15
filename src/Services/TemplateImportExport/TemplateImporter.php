@@ -432,12 +432,14 @@ class TemplateImporter
 
         static::import($json, $system_flg, $is_update);
 
-        // get data path
-        $basePath = pathinfo($basePath)['dirname'];
-        $dataPath = path_join($basePath, 'data');
-        // if exists, execute data copy
-        if (\File::exists($dataPath)) {
-            static::importData($dataPath);
+        if(!$is_update){
+            // get data path
+            $basePath = pathinfo($basePath)['dirname'];
+            $dataPath = path_join($basePath, 'data');
+            // if exists, execute data copy
+            if (\File::exists($dataPath)) {
+                static::importData($dataPath);
+            }
         }
     }
 

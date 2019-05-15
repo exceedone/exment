@@ -11,7 +11,7 @@ class CustomViewColumn extends ModelBase
     use Traits\TemplateTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target'];
+    protected $appends = ['view_column_target', 'view_column_color'];
     protected $with = ['custom_column'];
 
     public static $templateItems = [
@@ -54,5 +54,21 @@ class CustomViewColumn extends ModelBase
 
         // add default order
         static::addGlobalScope(new OrderScope('order'));
+    }
+    public function getViewColumnColorAttribute()
+    {
+        $options = is_null($this->options)? array(): json_decode($this->options, true);
+        return array_get($options, 'color');
+    }
+    public function setViewColumnColorAttribute($view_column_color)
+    {
+        $options = is_null($this->options)? array(): json_decode($this->options, true);
+
+        if (isset($view_column_color)) {
+            $options['color'] = $view_column_color;
+        } else {
+            unset($options['color']);
+        }
+        $this->options = json_encode($options);
     }
 }

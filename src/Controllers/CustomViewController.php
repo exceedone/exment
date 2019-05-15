@@ -100,9 +100,10 @@ class CustomViewController extends AdminControllerTableBase
             if (boolval($actions->row->system_flg)) {
                 $actions->disableDelete();
             }
-            if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE) {
+            if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
+                intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
                 $actions->disableEdit();
-                $actions->prepend('<a href="'.admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.Enums\ViewKindType::AGGREGATE.'"><i class="fa fa-edit"></i></a>');
+                $actions->prepend('<a href="'.admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type.'"><i class="fa fa-edit"></i></a>');
             }
             $actions->disableView();
         });
@@ -113,6 +114,7 @@ class CustomViewController extends AdminControllerTableBase
             $view_kind_types = [
                 ['name' => 'create', 'uri' => 'create'],
                 ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],
+                ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
             ];
 
             $addNewBtn = '<div class="btn-group pull-right">
@@ -162,42 +164,54 @@ class CustomViewController extends AdminControllerTableBase
         $custom_table = $this->custom_table;
         $is_aggregate = false;
 
-        if (intval($view_kind_type) === Enums\ViewKindType::AGGREGATE) {
-            // group columns setting
-            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(true, true, true));
-                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-            })->setTableColumnWidth(4, 3, 2, 1)
-            ->description(exmtrans("custom_view.description_custom_view_groups"));
+        switch(intval($view_kind_type)) {
+            case Enums\ViewKindType::AGGREGATE:
+                // group columns setting
+                $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
+                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true));
+                    $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                    $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
+                })->required()->setTableColumnWidth(4, 3, 2, 1)
+                ->description(exmtrans("custom_view.description_custom_view_groups"));
 
-            // summary columns setting
-            $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getSummaryColumnsSelectOptions());
-//                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
-                $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
-                    ->options(function ($val) {
-                        return array_map(function ($array) {
-                            return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
-                        }, SummaryCondition::getOptions());
-                    })
-                    ->required()->rules('summaryCondition');
-                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-            })->setTableColumnWidth(4, 2, 3, 1)
-            ->description(exmtrans("custom_view.description_custom_view_summaries"));
+                // summary columns setting
+                $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
+                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                        ->options($this->custom_table->getSummaryColumnsSelectOptions());
+    //                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
+                    $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
+                        ->options(function ($val) {
+                            return array_map(function ($array) {
+                                return exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'));
+                            }, SummaryCondition::getOptions());
+                        })
+                        ->required()->rules('summaryCondition');
+                    $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                })->setTableColumnWidth(4, 2, 3, 1)
+                ->description(exmtrans("custom_view.description_custom_view_summaries"));
 
-            $is_aggregate = true;
-        } else {
-            // columns setting
-            $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
-                $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(true));
-                $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-            })->setTableColumnWidth(4, 3, 2, 1)
-            ->description(exmtrans("custom_view.description_custom_view_columns"));
+                $is_aggregate = true;
+                break;
+            case Enums\ViewKindType::CALENDAR:
+                // columns setting
+                $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                        ->options($this->custom_table->getDateColumnsSelectOptions());
+                    $form->color('view_column_color', exmtrans("custom_view.color"));
+                })->required()->setTableColumnWidth(10)
+                ->description(exmtrans("custom_view.description_custom_view_calendar_columns"));
+                break;
+            default:
+                // columns setting
+                $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                        ->options($this->custom_table->getColumnsSelectOptions(true));
+                    $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                    $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
+                })->required()->setTableColumnWidth(4, 3, 2, 1)
+                ->description(exmtrans("custom_view.description_custom_view_columns"));
+                break;
         }
 
         // filter setting
@@ -254,7 +268,7 @@ class CustomViewController extends AdminControllerTableBase
         ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
 
         // sort setting
-        if (intval($view_kind_type) != Enums\ViewKindType::AGGREGATE) {
+        if (intval($view_kind_type) == Enums\ViewKindType::DEFAULT) {
             $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true, true));
