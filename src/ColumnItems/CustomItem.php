@@ -193,7 +193,7 @@ abstract class CustomItem implements ItemInterface
         return $this->getCustomField($classname, $form_column_options, $column_name_prefix);
     }
 
-    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null, $fieldOptions = [])
+    protected function getCustomField($classname, $form_column_options = null, $column_name_prefix = null)
     {
         $options = $this->custom_column->options;
         // form column name. join $column_name_prefix and $column_name
