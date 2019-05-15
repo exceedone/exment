@@ -30,7 +30,7 @@ trait CustomValueCalendar
         $tasks = [];
         foreach($model->get() as $row) {
             $title = $row->getLabel();
-            $url = admin_url('data/contract', $row->id);
+            $url = $row->getUrl();
 
             foreach($custom_view_columns as $custom_view_column) {
                 $target_column = array_get($custom_view_column, 'target_column');
