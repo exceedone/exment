@@ -35,7 +35,15 @@ trait HasResourceActions
                 return response()->json($data);
             }
         }
-        if ($this->form($id)->destroy($id)) {
+        $result = true;
+        collect(explode(',', $id))->filter()->each(function ($id) use(&$result) {
+            if (!$this->form($id)->destroy($id)) {
+                $result = false;
+                return;
+            }
+        });
+
+        if ($result) {
             $data = [
                 'status'  => true,
                 'message' => trans('admin.delete_succeeded'),
