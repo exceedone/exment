@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
-use Encore\Admin\Form\Field;
+use Exceedone\Exment\Form\Field;
 use Encore\Admin\Grid\Filter;
 
 class Boolean extends CustomItem
