@@ -176,7 +176,7 @@ class CustomViewFilter extends ModelBase
                         $value_day = Carbon::today();
                         break;
                     case ViewColumnFilterOption::DAY_TOMORROW:
-                        $value_day = Carbon::tomorow();
+                        $value_day = Carbon::tomorrow();
                         break;
                 }
                 $model = $model->whereDate($view_column_target, $value_day);
