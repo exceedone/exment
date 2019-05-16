@@ -22,7 +22,7 @@ trait CustomValueCalendar
             } else {
                 $target_column = SystemColumn::getOption(['id' => $column->view_column_target_id])['name'];
             }
-            return array('target_column' => $target_column, 'color' => $column->view_column_color);
+            return array('target_column' => $target_column, 'color' => $column->view_column_color, 'font_color' => $column->view_column_font_color);
         });
 
         $tasks = [];
@@ -37,6 +37,7 @@ trait CustomValueCalendar
                     'start' => $row->{$target_column},
                     'url' => $url,
                     'color' => array_get($custom_view_column, 'color'),
+                    'font_color' => array_get($custom_view_column, 'font_color'),
                 );
             }
         }
