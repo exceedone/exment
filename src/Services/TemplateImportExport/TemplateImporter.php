@@ -432,7 +432,7 @@ class TemplateImporter
 
         static::import($json, $system_flg, $is_update);
 
-        if(!$is_update){
+        if (!$is_update) {
             // get data path
             $basePath = pathinfo($basePath)['dirname'];
             $dataPath = path_join($basePath, 'data');

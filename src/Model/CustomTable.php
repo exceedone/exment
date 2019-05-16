@@ -844,7 +844,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get date columns select options. It contains date, datetime.
-     * 
+     *
      */
     public function getDateColumnsSelectOptions()
     {

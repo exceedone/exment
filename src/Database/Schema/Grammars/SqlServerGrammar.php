@@ -81,15 +81,18 @@ class SqlServerGrammar extends BaseGrammar
         ];
     }
     
-    public function compileGetIndex($tableName){
+    public function compileGetIndex($tableName)
+    {
         return $this->_compileGetIndex($tableName, false);
     }
     
-    public function compileGetUnique($tableName){
+    public function compileGetUnique($tableName)
+    {
         return $this->_compileGetIndex($tableName, true);
     }
 
-    protected function _compileGetIndex($tableName, $unique){
+    protected function _compileGetIndex($tableName, $unique)
+    {
         $unique_key = boolval($unique) ? 1 : 0;
         return "select
             COL_NAME(ic.object_id, ic.column_id) as column_name,
