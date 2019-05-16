@@ -5,7 +5,10 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Services\FormHelper;
+use Carbon\Carbon;
 use Validator;
 
 /**
@@ -295,5 +298,63 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return $value;
+    }
+    
+    /**
+     * get calendar data
+     * @return mixed
+     */
+    public function calendarList(Request $request)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        // filtered query
+        $start = $request->get('start');
+        $end = $request->get('end');
+        if (!isset($start) || !isset($end)) {
+            return [];
+        }
+
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
+
+        $table_name = $this->custom_table->table_name;
+        // get paginate
+        $model = $this->custom_table->getValueModel();
+        // filter model
+        $model = \Exment::user()->filterModel($model, $table_name, $this->custom_view);
+
+        $tasks = [];
+        foreach($this->custom_view->custom_view_columns as $custom_view_column) {
+            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
+                $target_column = $custom_view_column->custom_column->getIndexColumnName();
+                $target_column_name = $custom_view_column->custom_column->custom_view_name;
+            } else {
+                $target_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
+                $target_column_name = exmtrans("common.".$target_column);
+            }
+            $view_column_color = $custom_view_column->view_column_color;
+            // clone model for re use
+            $newmodel = clone $model;
+            // add date range condition => get data
+            $data = $newmodel
+                ->where($target_column, '>=', $start->toDateString())
+                ->where($target_column, '<', $end->toDateString())->get();
+            foreach($data as $row) {
+                $dt = $row->{$target_column};
+                if ($dt instanceof Carbon) {
+                    $dt = $dt->toDateTimeString();
+                }
+                $tasks[] = array(
+                    'title' => $row->getLabel(),
+                    'start' => $dt,
+                    'url' => admin_url('data', [$table_name, $row->id]),
+                    'color' => $view_column_color,
+                );
+            }
+        }
+        return json_encode($tasks);
     }
 }

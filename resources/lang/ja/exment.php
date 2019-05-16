@@ -156,6 +156,7 @@ return [
             'list' => 'データ一覧',
             'system' => 'システム',
             'chart' => 'チャート',
+            'calendar' => 'カレンダー',
         ],
         
         'dashboard_box_options' => [
@@ -172,6 +173,7 @@ return [
             'chart_begin_zero' => '０を起点にする',
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
+            'calendar_type' => 'カレンダーの種類',
         ],
 
         'dashboard_box_system_pages' => [
@@ -905,6 +907,18 @@ return [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
+        ]
+    ],
+    
+    'calendar' => [
+        'calendar_type_options' => [
+            'month' => '月別',
+            'list' => 'リスト',
+        ],
+        'calendar_button_options' => [
+            'month' => '月',
+            'week' => '週',
+            'day' => '日',
         ]
     ],
     

@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\ViewKindType;
 
 class DashboardBoxController extends AdminControllerBase
 {
@@ -202,7 +203,7 @@ class DashboardBoxController extends AdminControllerBase
      * get views using table id
      * @param mixed custon_table id
      */
-    public function tableViews(Request $request)
+    public function tableViews(Request $request, $dashboard_type)
     {
         $id = $request->get('q');
         if (!isset($id)) {
@@ -210,7 +211,15 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get custom views
         $custom_table = CustomTable::getEloquent($id);
-        $views = $custom_table->custom_views()->get(['id', 'view_view_name as text']);
+        $views = $custom_table->custom_views->filter(function ($value) use($dashboard_type) {
+                        if ($dashboard_type == DashboardBoxType::CALENDAR) {
+                            return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
+                        } else {
+                            return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                        }
+                    })->map(function ($value) {
+                        return array('id' => $value->id, 'text' => $value->view_view_name);
+                    });
         // if count > 0, return value.
         if (!is_null($views) && count($views) > 0) {
             return $views;

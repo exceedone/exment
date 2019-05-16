@@ -9,6 +9,7 @@ class DashboardBoxType extends EnumBase
     const SYSTEM = 'system';
     const LIST = 'list';
     const CHART = 'chart';
+    const CALENDAR = 'calendar';
 
     public static function DASHBOARD_BOX_TYPE_OPTIONS()
     {
@@ -17,6 +18,7 @@ class DashboardBoxType extends EnumBase
             ['dashboard_box_type' => self::LIST, 'icon' => 'fa-list'],
             ['dashboard_box_type' => self::SYSTEM, 'icon' => 'fa-wrench'],
             ['dashboard_box_type' => self::CHART, 'icon' => 'fa-bar-chart'],
+            ['dashboard_box_type' => self::CALENDAR, 'icon' => 'fa-calendar'],
         ];
     }
 
@@ -29,6 +31,8 @@ class DashboardBoxType extends EnumBase
                 return DashboardBoxItems\ListItem::class;
             case DashboardBoxType::CHART:
                 return DashboardBoxItems\ChartItem::class;
+            case DashboardBoxType::CALENDAR:
+                return DashboardBoxItems\CalendarItem::class;
         }
     }
 }
