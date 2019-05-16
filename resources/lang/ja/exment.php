@@ -542,9 +542,11 @@ return [
         'header' => 'カスタムビュー設定',
         'description' => 'カスタムビューの設定を行います。',
         'view_view_name' => 'ビュー表示名',
+        'view_datalist' => 'このビューでデータ一覧表示',
         'custom_view_columns' => '表示列選択',
         'custom_view_groups' => 'グループ列選択',
         'view_column_name' => '別名表示',
+        'view_kind_type' => 'ビュー種類',
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
@@ -620,6 +622,11 @@ return [
         'custom_view_type_options' => [
             'system' => 'システムビュー',
             'user' => 'ユーザービュー',
+        ],
+        'custom_view_kind_type_options' => [
+            'default' => '通常ビュー',
+            'aggregate' => '集計ビュー',
+            'calendar' => 'カレンダービュー',
         ],
     ],
 

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Grid\Linker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 //use Encore\Admin\Widgets\Form;
@@ -18,6 +19,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Form\Field\ChangeField;
 
 class CustomViewController extends AdminControllerTableBase
@@ -88,7 +90,10 @@ class CustomViewController extends AdminControllerTableBase
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
-        
+        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function($view_kind_type){
+            return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
+        });
+
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
             $table_name = $this->custom_table->table_name;
@@ -106,6 +111,12 @@ class CustomViewController extends AdminControllerTableBase
                 $actions->prepend('<a href="'.admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type.'"><i class="fa fa-edit"></i></a>');
             }
             $actions->disableView();
+
+            $linker = (new Linker)
+                ->url(admin_urls('data', "{$table_name}?view={$actions->row->suuid}"))
+                ->icon('fa-database')
+                ->tooltip(exmtrans('custom_view.view_datalist'));
+            $actions->prepend($linker);
         });
 
         $grid->disableCreateButton();
