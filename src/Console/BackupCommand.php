@@ -80,7 +80,7 @@ class BackupCommand extends Command
 
         // backup database tables
         if (in_array(BackupTarget::DATABASE, $target)) {
-            $this->backupTables();
+            \DB::backupDatabase($this->tempdir);
         }
 
         // backup directory
@@ -97,30 +97,6 @@ class BackupCommand extends Command
         $this->removeOldBackups();
 
         return 0;
-    }
-
-    /**
-     * export table definition and table data
-     *
-     */
-    private function backupTables()
-    {
-        // export table definition
-        $this->dumpDatabase();
-
-        // get all table list
-        $tables = \Schema::getTableListing();
-
-        // backup each table
-        foreach ($tables as $name) {
-            if (stripos($name, 'exm__') === 0) {
-                // backup table data which has virtual column
-                $this->backupTable($name);
-            } else {
-                // backup table data with mysqldump
-                $this->dumpDatabase($name);
-            }
-        }
     }
 
     /**
@@ -245,41 +221,7 @@ class BackupCommand extends Command
             $zip->close();
         }
     }
-    /**
-     * exec mysqldump for backup table definition or table data.
-     *
-     * @param string backup target table (default:null)
-     */
-    private function dumpDatabase($table=null)
-    {
-        // get table connect info
-        $host = config('database.connections.mysql.host', '');
-        $username = config('database.connections.mysql.username', '');
-        $password = config('database.connections.mysql.password', '');
-        $database = config('database.connections.mysql.database', '');
-        $dbport = config('database.connections.mysql.port', '');
-
-        $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
-        $command = sprintf(
-            '%s -h %s -u %s --password=%s -P %s',
-            $mysqldump,
-            $host,
-            $username,
-            $password,
-            $dbport
-        );
-
-        if ($table == null) {
-            $file = path_join($this->tempdir, config('exment.backup_info.def_file', 'table_definition.sql'));
-            $command = sprintf('%s -d %s > %s', $command, $database, $file);
-        } else {
-            $file = sprintf('%s.sql', path_join($this->tempdir, $table));
-            $command = sprintf('%s -t %s %s > %s', $command, $database, $table, $file);
-        }
-
-        exec($command);
-    }
-
+    
     protected function removeOldBackups()
     {
         // get history file counts

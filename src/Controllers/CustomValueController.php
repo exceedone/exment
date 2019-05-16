@@ -80,7 +80,7 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
         } else {
-            switch($this->custom_view->view_kind_type) {
+            switch ($this->custom_view->view_kind_type) {
                 case ViewKindType::AGGREGATE:
                     $content->body($this->gridSummary());
                     break;

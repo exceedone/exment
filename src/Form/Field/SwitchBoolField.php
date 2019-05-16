@@ -13,16 +13,16 @@ class SwitchBoolField extends SwitchField
     
     public function render()
     {
-        if($this->value() === true){
+        if ($this->value() === true) {
             $this->value = '1';
-        }
-        elseif($this->value() === false){
+        } elseif ($this->value() === false) {
             $this->value = '0';
         }
         return parent::render();
     }
 
-    protected function getParentClassname(){
+    protected function getParentClassname()
+    {
         return get_parent_class(get_parent_class(get_parent_class($this)));
     }
 }

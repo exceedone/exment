@@ -21,5 +21,4 @@ class SqlServerBuilder extends BaseBuilder
 
         return $this->connection->getPostProcessor()->processColumnDefinitions($baseTable, $results);
     }
-
 }

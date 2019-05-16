@@ -310,7 +310,10 @@ class CustomColumnController extends AdminControllerTableBase
             // set manual
             $manual_url = getManualUrl('column#'.exmtrans('custom_column.auto_number_format_rule'));
             $form->text('auto_number_format', exmtrans("custom_column.options.auto_number_format"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'])])
+                    ->attribute(['data-filter' => json_encode([
+                        ['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER],
+                        ['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'],
+                    ])])
                     ->help(sprintf(exmtrans("custom_column.help.auto_number_format"), $manual_url))
                 ;
 
