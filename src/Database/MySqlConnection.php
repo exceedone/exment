@@ -61,7 +61,8 @@ class MySqlConnection extends BaseConnection
      * @param string backup target table (default:null)
      * @return void
      */
-    protected function dumpDatabase($tempDir, $table = null){
+    protected function dumpDatabase($tempDir, $table = null)
+    {
         // get table connect info
         $host = config('database.connections.mysql.host', '');
         $username = config('database.connections.mysql.username', '');
@@ -90,7 +91,8 @@ class MySqlConnection extends BaseConnection
         exec($command);
     }
 
-    public function backupDatabase($tempDir){
+    public function backupDatabase($tempDir)
+    {
         // export table definition
         $this->dumpDatabase($tempDir);
 

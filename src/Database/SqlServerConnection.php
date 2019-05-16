@@ -24,7 +24,8 @@ class SqlServerConnection extends BaseConnection
         return new SqlServerBuilder($this);
     }
 
-    public function backupDatabase($tempDir){
+    public function backupDatabase($tempDir)
+    {
         // get table connect info
         $host = config('database.connections.sqlsrv.host', '');
         $username = config('database.connections.sqlsrv.username', '');
