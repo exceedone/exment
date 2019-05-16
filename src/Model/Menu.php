@@ -73,10 +73,10 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
         // get column
         // if SqlServer, needs cast
-        if($grammar instanceof \Illuminate\Database\Query\Grammars\SqlServerGrammar){
+        if ($grammar instanceof \Illuminate\Database\Query\Grammars\SqlServerGrammar) {
             $tableQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'c.id');
             $pluginQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'p.id');
-        }else{
+        } else {
             $tableQuery = $grammar->wrap('c.id');
             $pluginQuery = $grammar->wrap('p.id');
         }
@@ -84,12 +84,12 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         // get all menu, custom table, plugin table.
         $query = DB::table("{$this->getTable()} as m")
             // join table
-            ->leftJoin(CustomTable::getTableName()." as c", function ($join) use($tableQuery) {
+            ->leftJoin(CustomTable::getTableName()." as c", function ($join) use ($tableQuery) {
                 $join->where("m.menu_type", MenuType::TABLE);
                 $join->whereRaw("m.menu_target = ". $tableQuery);
             })
             // join plugin
-            ->leftJoin(Plugin::getTableName()." as p", function ($join) use($pluginQuery) {
+            ->leftJoin(Plugin::getTableName()." as p", function ($join) use ($pluginQuery) {
                 $join->where("m.menu_type", MenuType::PLUGIN);
                 $join->whereRaw("m.menu_target = ". $pluginQuery);
             })

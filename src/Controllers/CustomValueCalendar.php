@@ -2,13 +2,11 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Carbon\Carbon;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\RefreshButton;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueCalendar
 {
@@ -28,11 +26,11 @@ trait CustomValueCalendar
         });
 
         $tasks = [];
-        foreach($model->get() as $row) {
+        foreach ($model->get() as $row) {
             $title = $row->getLabel();
-            $url = admin_url('data/contract', $row->id);
+            $url = $row->getUrl();
 
-            foreach($custom_view_columns as $custom_view_column) {
+            foreach ($custom_view_columns as $custom_view_column) {
                 $target_column = array_get($custom_view_column, 'target_column');
                 $tasks[] = array(
                     'title' => $title,

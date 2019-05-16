@@ -17,7 +17,7 @@ class SwitchField extends AdminSwitchField
     {
         if (is_null($this->value())) {
             $this->value = $this->states['off']['value'];
-        } 
+        }
         
         $this->script = <<<EOT
 
@@ -41,7 +41,8 @@ EOT;
         ]);
     }
 
-    protected function getParentClassname(){
+    protected function getParentClassname()
+    {
         return get_parent_class(get_parent_class($this));
     }
 }

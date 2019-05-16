@@ -71,6 +71,8 @@ trait CustomValueShow
 
                     if ($custom_form_block->isMultipleColumn()) {
                         $show->setWidth(9, 3);
+                    } elseif ($modal) {
+                        $show->setWidth(9, 3);
                     }
                 }
                 ////// relation block

@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Database\Query\Grammars;
 
 use Illuminate\Database\Query\Grammars\MySqlGrammar as BaseGrammar;
-use Illuminate\Database\Query\Builder;
 use Exceedone\Exment\Enums\DatabaseDataType;
 
 class MySqlGrammar extends BaseGrammar
@@ -13,7 +12,8 @@ class MySqlGrammar extends BaseGrammar
      *
      * @return string
      */
-    public function getCastColumn($type, $column, $options = []){
+    public function getCastColumn($type, $column, $options = [])
+    {
         $cast = $this->getCastString($type, $column, $options);
 
         $column = $this->wrap($column);
@@ -26,9 +26,10 @@ class MySqlGrammar extends BaseGrammar
      *
      * @return string
      */
-    public function getCastString($type, $addOption = false, $options = []){
+    public function getCastString($type, $addOption = false, $options = [])
+    {
         $cast = '';
-        switch($type){
+        switch ($type) {
             case DatabaseDataType::TYPE_INTEGER:
                 $cast = 'signed';
                 break;
@@ -46,13 +47,13 @@ class MySqlGrammar extends BaseGrammar
                 break;
         }
 
-        if(!$addOption){
+        if (!$addOption) {
             return $cast;
         }
         
         $length = array_get($options, 'length') ?? 50;
 
-        switch($type){
+        switch ($type) {
             case DatabaseDataType::TYPE_DECIMAL:
                 $decimal_digit = array_get($options, 'decimal_digit') ?? 2;
                 $cast .= "($length, $decimal_digit)";
@@ -73,7 +74,8 @@ class MySqlGrammar extends BaseGrammar
      * @param boolean $prefixAlias
      * @return string
      */
-    public function wrapJsonUnquote($value, $prefixAlias = false){
+    public function wrapJsonUnquote($value, $prefixAlias = false)
+    {
         return "json_unquote(" . $this->wrap($value, $prefixAlias) . ")";
     }
 }

@@ -27,7 +27,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      */
     public function processColumnDefinitions($tableName, $results)
     {
-        return collect($results)->map(function ($result) use($tableName) {
+        return collect($results)->map(function ($result) use ($tableName) {
             return [
                 'table_name' => $tableName,
                 'column_name' => $result->field,
@@ -46,7 +46,7 @@ class MySqlProcessor extends BaseMySqlProcessor
      */
     public function processIndexDefinitions($tableName, $results)
     {
-        return collect($results)->map(function ($result) use($tableName) {
+        return collect($results)->map(function ($result) use ($tableName) {
             return [
                 'table_name' => $tableName,
                 'column_name' => $result->column_name,

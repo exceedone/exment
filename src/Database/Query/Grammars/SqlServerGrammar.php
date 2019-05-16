@@ -13,7 +13,8 @@ class SqlServerGrammar extends BaseGrammar
      *
      * @return string
      */
-    public function getCastColumn($type, $column, $options = []){
+    public function getCastColumn($type, $column, $options = [])
+    {
         $cast = $this->getCastString($type, $column, $options);
 
         $column = $this->wrap($column);
@@ -26,9 +27,10 @@ class SqlServerGrammar extends BaseGrammar
      *
      * @return string
      */
-    public function getCastString($type, $addOption = false, $options = []){
+    public function getCastString($type, $addOption = false, $options = [])
+    {
         $cast = '';
-        switch($type){
+        switch ($type) {
             case DatabaseDataType::TYPE_INTEGER:
                 $cast = 'int';
                 break;
@@ -46,13 +48,13 @@ class SqlServerGrammar extends BaseGrammar
                 break;
         }
 
-        if(!$addOption){
+        if (!$addOption) {
             return $cast;
         }
         
         $length = array_get($options, 'length') ?? 50;
 
-        switch($type){
+        switch ($type) {
             case DatabaseDataType::TYPE_DECIMAL:
                 $decimal_digit = array_get($options, 'decimal_digit') ?? 2;
                 $cast .= "($length, $decimal_digit)";
@@ -76,7 +78,7 @@ class SqlServerGrammar extends BaseGrammar
      */
     public function compileInsertGetId(Builder $query, $values, $sequence)
     {
-        if(strtoupper($sequence) == 'ID' && array_has($values, $sequence) && isset($values[$sequence])){
+        if (strtoupper($sequence) == 'ID' && array_has($values, $sequence) && isset($values[$sequence])) {
             // set IDENTITY_INSERT in query.
             return $this->compileEnableIdentityInsert($query->from) . parent::compileInsertGetId($query, $values, $sequence) . $this->compileDisableIdentityInsert($query->from);
         }
@@ -112,7 +114,8 @@ class SqlServerGrammar extends BaseGrammar
      * @param boolean $prefixAlias
      * @return string
      */
-    public function wrapJsonUnquote($value, $prefixAlias = false){
+    public function wrapJsonUnquote($value, $prefixAlias = false)
+    {
         return $this->wrap($value, $prefixAlias);
     }
 }

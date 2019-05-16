@@ -36,7 +36,7 @@ trait HasResourceActions
             }
         }
         $result = true;
-        collect(explode(',', $id))->filter()->each(function ($id) use(&$result) {
+        collect(explode(',', $id))->filter()->each(function ($id) use (&$result) {
             if (!$this->form($id)->destroy($id)) {
                 $result = false;
                 return;

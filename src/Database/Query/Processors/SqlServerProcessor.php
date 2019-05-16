@@ -27,7 +27,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      */
     public function processColumnDefinitions($tableName, $results)
     {
-        return collect($results)->map(function ($result) use($tableName) {
+        return collect($results)->map(function ($result) use ($tableName) {
             return [
                 'table_name' => $result->table_name,
                 'column_name' => $result->column_name,
@@ -46,7 +46,7 @@ class SqlServerProcessor extends BaseSqlServerProcessor
      */
     public function processIndexDefinitions($tableName, $results)
     {
-        return collect($results)->map(function ($result) use($tableName) {
+        return collect($results)->map(function ($result) use ($tableName) {
             return [
                 'table_name' => $tableName,
                 'column_name' => $result->column_name,

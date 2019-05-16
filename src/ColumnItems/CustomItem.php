@@ -148,10 +148,10 @@ abstract class CustomItem implements ItemInterface
     
     public function getFilterField($value_type = null)
     {
-        if(get_class($this) == AutoNumber::class){
+        if (get_class($this) == AutoNumber::class) {
             $field = $this->getCustomField(Field\Text::class);
             return $field->default('');
-        }else{
+        } else {
             switch ($value_type) {
                 case ViewColumnFilterType::DAY:
                     $classname = Field\Date::class;
