@@ -25,19 +25,21 @@
             plugins: [ 'dayGrid', 'interaction' ],
             height: 'parent',
             fixedWeekCount: false,
+            eventRender: function(info) {
+                $(info.el).popover({
+                    content: info.event.title,
+                    trigger: 'hover',
+                    placement: 'top',
+                    container: 'body'
+                });
+            },
             // put your options and callbacks here
-            events : [
-                @foreach($tasks as $task)
-                {
-                    title : '{{ array_get($task, "title") }}',
-                    start : '{{ array_get($task, "start") }}',
-                    url : '{{ array_get($task, "url") }}',
-                    @if(!is_null(array_get($task, "color")))
-                        color : '{{ array_get($task, "color") }}'
-                    @endif
+            events: {
+                url: "{{ $data_url }}",
+                extraParams: {
+                    view: "{{ $view_id }}",
                 },
-                @endforeach
-            ]
+            },
         });
 
         calendar.render();
