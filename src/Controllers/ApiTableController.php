@@ -335,7 +335,6 @@ class ApiTableController extends AdminControllerTableBase
                 $target_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
                 $target_column_name = exmtrans("common.".$target_column);
             }
-            $view_column_color = $custom_view_column->view_column_color;
             // clone model for re use
             $newmodel = clone $model;
             // add date range condition => get data
@@ -351,7 +350,8 @@ class ApiTableController extends AdminControllerTableBase
                     'title' => $row->getLabel(),
                     'start' => $dt,
                     'url' => admin_url('data', [$table_name, $row->id]),
-                    'color' => $view_column_color,
+                    'color' => $custom_view_column->view_column_color,
+                    'textColor' => $custom_view_column->view_column_font_color,
                 );
             }
         }
