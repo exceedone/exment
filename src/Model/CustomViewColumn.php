@@ -9,10 +9,12 @@ class CustomViewColumn extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
+    use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_column_color'];
+    protected $appends = ['view_column_target', 'view_column_color', 'view_column_font_color'];
     protected $with = ['custom_column'];
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => [
@@ -39,6 +41,15 @@ class CustomViewColumn extends ModelBase
         ],
     ];
 
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+
     /**
      * get eloquent using request settion.
      * now only support only id.
@@ -57,18 +68,23 @@ class CustomViewColumn extends ModelBase
     }
     public function getViewColumnColorAttribute()
     {
-        $options = is_null($this->options)? array(): json_decode($this->options, true);
-        return array_get($options, 'color');
+        return $this->getOption('color');
     }
     public function setViewColumnColorAttribute($view_column_color)
     {
-        $options = is_null($this->options)? array(): json_decode($this->options, true);
+        $this->setOption('color', $view_column_color);
 
-        if (isset($view_column_color)) {
-            $options['color'] = $view_column_color;
-        } else {
-            unset($options['color']);
-        }
-        $this->options = json_encode($options);
+        return $this;
+    }
+    
+    public function getViewColumnFontColorAttribute()
+    {
+        return $this->getOption('font_color');
+    }
+    public function setViewColumnFontColorAttribute($view_column_color)
+    {
+        $this->setOption('font_color', $view_column_color);
+
+        return $this;
     }
 }

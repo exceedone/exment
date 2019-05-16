@@ -549,6 +549,7 @@ return [
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
         'color' => '表示色',
+        'font_color' => '文字色',
         'order' => '表示順',
         'sort' => '並べ替え',
         'priority' => '優先順位',

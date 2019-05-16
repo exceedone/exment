@@ -198,8 +198,9 @@ class CustomViewController extends AdminControllerTableBase
                 $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                         ->options($this->custom_table->getDateColumnsSelectOptions());
-                    $form->color('view_column_color', exmtrans("custom_view.color"));
-                })->required()->setTableColumnWidth(10)
+                        $form->color('view_column_color', exmtrans("custom_view.color"))->default(config('exment.calendor_color_default', '#00008B'));
+                        $form->color('view_column_font_color', exmtrans("custom_view.font_color"))->default(config('exment.calendor_font_color_default', '#FFFFFF'));
+                })->required()->setTableColumnWidth(7, 2, 2, 1)
                 ->description(exmtrans("custom_view.description_custom_view_calendar_columns"));
                 break;
             default:

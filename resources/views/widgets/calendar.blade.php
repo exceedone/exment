@@ -33,7 +33,10 @@
                     start : '{{ array_get($task, "start") }}',
                     url : '{{ array_get($task, "url") }}',
                     @if(!is_null(array_get($task, "color")))
-                        color : '{{ array_get($task, "color") }}'
+                        color : '{{ array_get($task, "color") }}',
+                    @endif
+                    @if(!is_null(array_get($task, "font_color")))
+                        textColor : '{{ array_get($task, "font_color") }}',
                     @endif
                 },
                 @endforeach
