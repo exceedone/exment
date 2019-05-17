@@ -168,7 +168,8 @@ class CustomViewController extends AdminControllerTableBase
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
-        
+        $form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))->default(ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options"));
+
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         
@@ -207,11 +208,13 @@ class CustomViewController extends AdminControllerTableBase
             case Enums\ViewKindType::CALENDAR:
                 // columns setting
                 $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
-                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                    $form->select('view_column_target', exmtrans("custom_view.view_column_start_date"))->required()
+                        ->options($this->custom_table->getDateColumnsSelectOptions());
+                    $form->select('view_column_end_date', exmtrans("custom_view.view_column_end_date"))
                         ->options($this->custom_table->getDateColumnsSelectOptions());
                     $form->color('view_column_color', exmtrans("custom_view.color"))->default(config('exment.calendor_color_default', '#00008B'));
                     $form->color('view_column_font_color', exmtrans("custom_view.font_color"))->default(config('exment.calendor_font_color_default', '#FFFFFF'));
-                })->required()->setTableColumnWidth(7, 2, 2, 1)
+                })->required()->setTableColumnWidth(4, 4, 2, 2, 0)
                 ->description(exmtrans("custom_view.description_custom_view_calendar_columns"));
                 break;
             default:
