@@ -45,6 +45,15 @@ class Initialize
 
     public static function initializeConfig($setDatabase = true)
     {
+        //// set from env
+        if(!is_null($env = env('APP_LOCALE'))){
+            \App::setLocale($env);
+        }
+        if(!is_null($env = env('APP_TIMEZONE'))){
+            Config::set('app.timezone', $env);
+        }
+
+
         ///// set config
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [
