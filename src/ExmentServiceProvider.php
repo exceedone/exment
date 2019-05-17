@@ -259,9 +259,15 @@ class ExmentServiceProvider extends ServiceProvider
 
         Initialize::initializeConfig(false);
         
-        Admin::registered(function () {
-            Initialize::registeredLaravelAdmin();
-        });
+        if(method_exists("\Encore\Admin\Admin", "registered")){
+            Admin::registered(function () {
+                Initialize::registeredLaravelAdmin();
+            });    
+        }else{
+            Admin::booting(function () {
+                Initialize::registeredLaravelAdmin();
+            });
+        }
     }
     
     /**
