@@ -171,9 +171,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         // add default order
         // "order" is added v1.1.0, So if called from v1.1.0, cannot excute. So checked order column
-        if(System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER, function(){
+        if (System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER, function () {
             return \Schema::hasColumn(static::getTableName(), 'order');
-        })){
+        })) {
             static::addGlobalScope(new OrderScope('order'));
         }
 
