@@ -396,6 +396,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $mark = ($isLike ? 'LIKE' : '=');
 
         $takeCount = config('exment.keyword_search_count', 1000);
+        $relationTakeCount = config('exment.keyword_search_relation_count', 5000);
 
         // crate union query
         $queries = [];
@@ -405,6 +406,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->where($searchColumn, $mark, $value)->select('id');
             if (!boolval($options['relation'])) {
                 $query->take($takeCount);
+            }else{
+                $query->take($relationTakeCount);
             }
 
             $queries[] = $query;
@@ -415,6 +418,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $subquery->where($searchColumn, $mark, $value)->select('id');
         if (!boolval($options['relation'])) {
             $subquery->take($takeCount);
+        }else{
+            $subquery->take($relationTakeCount);
         }
 
         foreach ($queries as $inq) {
