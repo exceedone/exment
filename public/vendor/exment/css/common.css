@@ -14,6 +14,11 @@
   font-size: 0.9em;
 }
 
+.asterisk::after {
+  content: " *";
+  color: red;
+}
+
 .w-10 {
   width: 10% !important;
 }

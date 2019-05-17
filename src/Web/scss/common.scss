@@ -16,6 +16,11 @@
     font-size:0.9em;
 }
 
+.asterisk::after{
+    content: " *";
+    color: red;
+}
+
 @for $i from 1 through 10 {
     .w-#{$i * 10} {
         width: $i * 10% !important;
