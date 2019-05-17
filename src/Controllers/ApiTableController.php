@@ -327,7 +327,7 @@ class ApiTableController extends AdminControllerTableBase
         $model = \Exment::user()->filterModel($model, $table_name, $this->custom_view);
 
         $tasks = [];
-        foreach($this->custom_view->custom_view_columns as $custom_view_column) {
+        foreach ($this->custom_view->custom_view_columns as $custom_view_column) {
             if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                 $target_column = $custom_view_column->custom_column->getIndexColumnName();
                 $target_column_name = $custom_view_column->custom_column->custom_view_name;
@@ -341,7 +341,7 @@ class ApiTableController extends AdminControllerTableBase
             $data = $newmodel
                 ->where($target_column, '>=', $start->toDateString())
                 ->where($target_column, '<', $end->toDateString())->get();
-            foreach($data as $row) {
+            foreach ($data as $row) {
                 $dt = $row->{$target_column};
                 if ($dt instanceof Carbon) {
                     $dt = $dt->toDateTimeString();
