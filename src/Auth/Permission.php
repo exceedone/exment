@@ -99,6 +99,7 @@ class Permission
             case "auth/setting":
             case "dashboard":
             case "dashboardbox":
+            case "oauth":
             case "files":
                 return true;
             case "system":
