@@ -164,10 +164,16 @@ class ChartItem implements ItemInterface
                 ->required()
                 ->options(ChartType::transArray("chart.chart_type_options"));
 
+        // get only has summaryview
+        $model = CustomTable::whereHas('custom_views', function($query){
+            $query->where('view_kind_type', ViewKindType::AGGREGATE);
+        });
+        $tables = CustomTable::filterList($model)
+            ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
-        ->required()
-        ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-        ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::CHART]));
+            ->required()
+            ->options($tables)
+            ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::CHART]));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()

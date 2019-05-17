@@ -82,6 +82,7 @@ class CalendarItem implements ItemInterface
         $options = $this->dashboard_box->options;
 
         return view('exment::dashboard.calendar.calendar', [
+            'suuid' => $this->dashboard_box->suuid,
             'calendar_type' => array_get($options, 'calendar_type'),
             'view_id' => $this->custom_view->suuid,
             'data_url' => admin_url('webapi/data', [$this->custom_table->table_name, 'calendar']),
@@ -98,9 +99,15 @@ class CalendarItem implements ItemInterface
                 ->required()
                 ->options(CalendarType::transArray("calendar.calendar_type_options"));
 
+        // get only has calendarview
+        $model = CustomTable::whereHas('custom_views', function($query){
+                $query->where('view_kind_type', ViewKindType::CALENDAR);
+            });
+        $tables = CustomTable::filterList($model)
+            ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
-            ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
+            ->options($tables)
             ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::CALENDAR]));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
