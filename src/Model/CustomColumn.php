@@ -83,6 +83,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ColumnItems\CustomItem::getItem($this);
     }
 
+    public function getSelectTargetTableAttribute()
+    {
+        return CustomTable::getEloquent($this->getOption('select_target_table'));
+    }
+
     public function getOption($key, $default = null)
     {
         return $this->getJson('options', $key, $default);

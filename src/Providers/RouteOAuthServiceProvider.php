@@ -8,25 +8,6 @@ use Exceedone\Exment\Model\Define;
 
 class RouteOAuthServiceProvider extends ServiceProvider
 {
-    protected $oauthDefaultOptions = [
-        'prefix' => 'admin/oauth',
-        'namespace' => '\Laravel\Passport\Http\Controllers',
-        'middleware' => 'adminapi'
-    ];
-
-    protected $oauthAnonymousOptions = [
-        'prefix' => 'admin/oauth',
-        'namespace' => '\Laravel\Passport\Http\Controllers',
-        'middleware' => 'throttle',
-    ];
-
-    protected $oauthWebOptions = [
-        'prefix' => 'admin/oauth',
-        'namespace' => '\Laravel\Passport\Http\Controllers',
-        'middleware' => ['web', 'admin']
-    ];
-
-
     /**
      * Define the routes for the application.
      *
@@ -50,7 +31,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forAuthorization()
     {
-        Route::group($this->oauthWebOptions, function ($router) {
+        Route::group($this->getOauthWebOptions(), function ($router) {
             $router->get('/authorize', [
                 'uses' => 'AuthorizationController@authorize',
             ]);
@@ -72,13 +53,13 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forAccessTokens()
     {
-        Route::group($this->oauthAnonymousOptions, function ($router) {
+        Route::group($this->getOauthAnonymousOptions(), function ($router) {
             $router->post('/token', [
                 'uses' => 'AccessTokenController@issueToken',
             ]);
         });
 
-        Route::group($this->oauthDefaultOptions, function ($router) {
+        Route::group($this->getOauthDefaultOptions(), function ($router) {
             $router->get('/tokens', [
                 'uses' => 'AuthorizedAccessTokenController@forUser',
             ]);
@@ -96,7 +77,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forTransientTokens()
     {
-        Route::group($this->oauthAnonymousOptions, function ($router) {
+        Route::group($this->getOauthAnonymousOptions(), function ($router) {
             $router->get('/token/refresh', [
                 'uses' => 'TransientTokenController@refresh',
             ]);
@@ -110,7 +91,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forClients()
     {
-        Route::group($this->oauthDefaultOptions, function ($router) {
+        Route::group($this->getOauthDefaultOptions(), function ($router) {
             $router->get('/clients', [
                 'uses' => 'ClientController@forUser',
             ]);
@@ -136,7 +117,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     protected function forPersonalAccessTokens()
     {
-        Route::group($this->oauthDefaultOptions, function ($router) {
+        Route::group($this->getOauthDefaultOptions(), function ($router) {
             $router->get('/scopes', [
                 'uses' => 'ScopeController@all',
             ]);
@@ -153,5 +134,27 @@ class RouteOAuthServiceProvider extends ServiceProvider
                 'uses' => 'PersonalAccessTokenController@destroy',
             ]);
         });
+    }
+
+    protected function getOauthDefaultOptions(){
+        return [
+            'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
+            'namespace' => '\Laravel\Passport\Http\Controllers',
+            'middleware' => 'adminapi'
+        ];
+    }
+    protected function getOauthAnonymousOptions(){
+        return [
+            'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
+            'namespace' => '\Laravel\Passport\Http\Controllers',
+            'middleware' => 'throttle',
+        ];
+    }
+    protected function getOauthWebOptions(){
+        return [
+            'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
+            'namespace' => '\Laravel\Passport\Http\Controllers',
+            'middleware' => ['web', 'admin'],
+        ];
     }
 }

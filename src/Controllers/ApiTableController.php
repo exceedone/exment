@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Services\FormHelper;
 use Carbon\Carbon;
@@ -213,6 +214,51 @@ class ApiTableController extends AdminControllerTableBase
             abort(400);
         }
 
+        // replace items
+        if (!is_null($findKeys = $request->get('findKeys'))) {
+            $custom_table = $custom_value->custom_table;
+            foreach($findKeys as $findKey => $findValue){
+                // find column
+                $custom_column = CustomColumn::getEloquent($findKey, $custom_table);
+                if(!isset($custom_column)){
+                    continue;
+                }
+
+                if($custom_column->column_type != ColumnType::SELECT_TABLE){
+                    continue;
+                }
+
+                // get target custom table
+                $findCustomTable = $custom_column->select_target_table;
+                if(!isset($findCustomTable)){
+                    continue;
+                }
+
+                // get target column for getting index
+                $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
+                if(!isset($findCustomColumn)){
+                    continue;
+                }
+
+                if(!$findCustomColumn->indexEnabled()){
+                    //TODO:show error
+                    continue;
+                }
+                $indexColumnName = $findCustomColumn->getIndexColumnName();
+
+                $findCustomValue = $findCustomTable->getValueModel()
+                    ->where($indexColumnName, array_get($value, $findKey))
+                    ->first();
+
+                if(!isset($findCustomValue)){
+                    //TODO:show error
+                    continue;
+                }
+                array_set($value, $findKey, array_get($findCustomValue, 'id'));
+            }
+        }
+
+
         // // get fields for validation
         $validate = $this->validateData($value, $custom_value->id);
         if ($validate !== true) {
@@ -270,11 +316,11 @@ class ApiTableController extends AdminControllerTableBase
         if ($validator->fails()) {
             // create error message
             $errors = [];
-            foreach ($validator->errors()->messages() as $message) {
+            foreach ($validator->errors()->messages() as $key => $message) {
                 if (is_array($message)) {
-                    $errors[] = $message[0];
+                    $errors[$key] = $message[0];
                 } else {
-                    $errors[] = $message;
+                    $errors[$key] = $message;
                 }
             }
             return $errors;
