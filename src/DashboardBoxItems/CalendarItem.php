@@ -82,6 +82,7 @@ class CalendarItem implements ItemInterface
         $options = $this->dashboard_box->options;
 
         return view('exment::dashboard.calendar.calendar', [
+            'suuid' => $this->dashboard_box->suuid,
             'calendar_type' => array_get($options, 'calendar_type'),
             'view_id' => $this->custom_view->suuid,
             'data_url' => admin_url('webapi/data', [$this->custom_table->table_name, 'calendar']),

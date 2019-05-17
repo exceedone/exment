@@ -1,7 +1,7 @@
-<div id='calendar' data-calendar-id="{{$view_id}}"></div>
+<div id='calendar' data-calendar-id="{{$suuid}}"></div>
 <script type="text/javascript">
     $(function () {
-        var calendarEl = $('#calendar[data-calendar-id="{{$view_id}}"]').get(0);
+        var calendarEl = $('#calendar[data-calendar-id="{{$suuid}}"]').get(0);
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale : "{{ $locale }}",
