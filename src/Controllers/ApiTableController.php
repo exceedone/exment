@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
@@ -329,30 +331,63 @@ class ApiTableController extends AdminControllerTableBase
         $tasks = [];
         foreach ($this->custom_view->custom_view_columns as $custom_view_column) {
             if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
-                $target_column = $custom_view_column->custom_column->getIndexColumnName();
-                $target_column_name = $custom_view_column->custom_column->custom_view_name;
+                $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
             } else {
-                $target_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
-                $target_column_name = exmtrans("common.".$target_column);
+                $target_start_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
+            }
+
+            if(isset($custom_view_column->view_column_end_date)){
+                $end_date_target = $custom_view_column->getOption('end_date_target');
+                if($custom_view_column->view_column_end_date_type == ViewColumnType::COLUMN){
+                    $target_end_custom_column = CustomColumn::getEloquent($end_date_target);
+                    $target_end_column = $target_end_custom_column->getIndexColumnName();
+                }else{
+                    $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
+                }
             }
             // clone model for re use
-            $newmodel = clone $model;
+            $query = (clone $model)->query();
             // add date range condition => get data
-            $data = $newmodel
-                ->where($target_column, '>=', $start->toDateString())
-                ->where($target_column, '<', $end->toDateString())->get();
+            $query->where(function($query) use($target_start_column, $start, $end){
+                $query->where($target_start_column, '>=', $start->toDateString())
+                ->where($target_start_column, '<', $end->toDateString());
+            });
+
+            // filter end data
+            //TODO: should not use orwhere
+            if(isset($target_end_column)){
+                $query->orWhere((function($query) use($target_end_column, $start, $end){
+                    $query->where($target_end_column, '>=', $start->toDateString())
+                    ->where($target_end_column, '<', $end->toDateString());
+                }));
+            }
+
+            $data = $query->get();
+
             foreach ($data as $row) {
-                $dt = $row->{$target_column};
+                $dt = $row->{$target_start_column};
+                if(isset($target_end_column)){
+                    $dtEnd = $row->{$target_end_column};
+                }
                 if ($dt instanceof Carbon) {
                     $dt = $dt->toDateTimeString();
                 }
-                $tasks[] = array(
+                if (isset($dtEnd) && $dtEnd instanceof Carbon) {
+                    $dtEnd = $dtEnd->toDateTimeString();
+                }
+                
+                $task = [
                     'title' => $row->getLabel(),
                     'start' => $dt,
                     'url' => admin_url('data', [$table_name, $row->id]),
                     'color' => $custom_view_column->view_column_color,
                     'textColor' => $custom_view_column->view_column_font_color,
-                );
+                ];
+                if(isset($dtEnd)){
+                    $task['end'] = $dtEnd;
+                }
+
+                $tasks[] = $task;
             }
         }
         return json_encode($tasks);
