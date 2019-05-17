@@ -552,6 +552,8 @@ return [
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
+        'view_column_start_date' => '開始日',
+        'view_column_end_date' => '終了日',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
