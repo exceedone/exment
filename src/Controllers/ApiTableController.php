@@ -369,6 +369,10 @@ class ApiTableController extends AdminControllerTableBase
                 if(isset($target_end_column)){
                     $dtEnd = $row->{$target_end_column};
                 }
+                else{
+                    $dtEnd = null;
+                }
+
                 if ($dt instanceof Carbon) {
                     $dt = $dt->toDateTimeString();
                 }
