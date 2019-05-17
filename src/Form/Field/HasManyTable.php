@@ -73,26 +73,27 @@ class HasManyTable extends HasMany
     {
         $tableitems = [];
         $hiddens = [];
+        $requires = [];
         
         foreach ($form->fields() as &$field) {
             // when embeds item,
             if ($field instanceof NestedEmbeds) {
                 $embedfields = $field->fields();
                 foreach ($embedfields as &$embedfield) {
-                    $this->setTableFieldItem($embedfield, $tableitems, $hiddens);
+                    $this->setTableFieldItem($embedfield, $tableitems, $hiddens, $requires);
                 }
             } else {
-                $this->setTableFieldItem($field, $tableitems, $hiddens);
+                $this->setTableFieldItem($field, $tableitems, $hiddens, $requires);
             }
         }
 
-        return [$tableitems, $hiddens];
+        return [$tableitems, $hiddens, $requires];
     }
 
     /**
      * set table field item to header, body, hidden
      */
-    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens)
+    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires)
     {
         // if hidden, set $hiddens
         if ($field instanceof Hidden) {
@@ -100,6 +101,9 @@ class HasManyTable extends HasMany
         } else {
             $tableitems[] = $field;
         }
+
+        // if required true false
+        $requires[] = is_array($field->getAttributes()) && array_has($field->getAttributes(), 'required');
 
         // set label viewclass hidden
         $field->setLabelClass(['hidden']);
@@ -233,17 +237,18 @@ EOT;
         // set header and body info
         $form = $this->buildNestedForm($this->column, $this->builder);
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
-        list($tableitems, $hiddens) = $this->getTableItem($form);
+        list($tableitems, $hiddens, $requires) = $this->getTableItem($form);
 
         // set related forms
         $relatedforms = [];
         // set labelclass hidden
         foreach ($this->buildRelatedForms() as $k => &$relatedform) {
-            list($relatedtableitems, $relatedhiddens) = $this->getTableItem($relatedform);
+            list($relatedtableitems, $relatedhiddens, $relatedrequires) = $this->getTableItem($relatedform);
 
             $relatedforms[$k] = [
                 'tableitems' => $relatedtableitems,
-                'hiddens' => $relatedhiddens
+                'hiddens' => $relatedhiddens,
+                'requires' => $relatedrequires,
             ];
         }
 
@@ -257,6 +262,7 @@ EOT;
             'relationName' => $this->relationName,
             'tableitems' => $tableitems,
             'hiddens' => $hiddens,
+            'requires' => $requires,
             'tablewidth' => $this->tablewidth,
             'tablecolumnwidths' => $this->tablecolumnwidths,
             'description' => $this->description,
