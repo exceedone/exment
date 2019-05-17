@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Tools\RefreshButton;
 use Exceedone\Exment\Form\Tools;
 

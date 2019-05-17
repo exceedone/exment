@@ -90,7 +90,7 @@ class CustomViewController extends AdminControllerTableBase
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
-        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function($view_kind_type){
+        $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
 
@@ -209,8 +209,8 @@ class CustomViewController extends AdminControllerTableBase
                 $hasmany = $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                         ->options($this->custom_table->getDateColumnsSelectOptions());
-                        $form->color('view_column_color', exmtrans("custom_view.color"))->default(config('exment.calendor_color_default', '#00008B'));
-                        $form->color('view_column_font_color', exmtrans("custom_view.font_color"))->default(config('exment.calendor_font_color_default', '#FFFFFF'));
+                    $form->color('view_column_color', exmtrans("custom_view.color"))->default(config('exment.calendor_color_default', '#00008B'));
+                    $form->color('view_column_font_color', exmtrans("custom_view.font_color"))->default(config('exment.calendor_font_color_default', '#FFFFFF'));
                 })->required()->setTableColumnWidth(7, 2, 2, 1)
                 ->description(exmtrans("custom_view.description_custom_view_calendar_columns"));
                 break;
@@ -293,9 +293,9 @@ class CustomViewController extends AdminControllerTableBase
         if (!isset($id)) {
             $id = $form->model()->id;
         }
-        if(isset($id)){
+        if (isset($id)) {
             $suuid = CustomView::find($id)->suuid;
-        }else{
+        } else {
             $suuid = null;
         }
         
@@ -325,7 +325,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
 
-            if(isset($suuid)){
+            if (isset($suuid)) {
                 $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
                 <a href="'. admin_urls('data', "{$custom_table->table_name}?view={$suuid}") . '" class="btn btn-sm btn-pupple" title="'. exmtrans('custom_view.view_datalist') . '">
                     <i class="fa fa-database"></i><span class="hidden-xs"> '. exmtrans('custom_view.view_datalist') . '</span>

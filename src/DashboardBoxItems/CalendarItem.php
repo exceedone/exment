@@ -29,7 +29,7 @@ class CalendarItem implements ItemInterface
         $this->custom_table = CustomTable::getEloquent($table_id);
         $this->custom_view = CustomView::getEloquent($view_id);
 
-        if(!isset($this->custom_table) || !isset($this->custom_view)){
+        if (!isset($this->custom_table) || !isset($this->custom_view)) {
             return;
         }
     }
