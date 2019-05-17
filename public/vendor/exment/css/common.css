@@ -3533,7 +3533,7 @@
 .box.box-dashboard .box-body .box-body-inner-body {
   overflow: auto;
   min-height: 150px;
-  max-height: 300px;
+  max-height: 400px;
   margin-top: 1em;
 }
 
