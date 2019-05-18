@@ -5,7 +5,8 @@
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale : "{{ $locale }}",
-            height: 'auto',
+            //height: 'auto',
+            height: 395, // dashboard box height - 5
             eventRender: function(info) {
                 info.el.setAttribute('data-toggle', 'tooltip');
                 info.el.setAttribute('data-original-title', info.event.title);
