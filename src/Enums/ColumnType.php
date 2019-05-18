@@ -128,18 +128,18 @@ class ColumnType extends EnumBase
     }
 
     /**
-     * get text is date, or datetime  
+     * get text is date, or datetime
      * @return ColumnType
      */
     public static function getDateType($text)
     {
-        if(is_null($text)){
+        if (is_null($text)) {
             return null;
         }
         
-        if(preg_match('/\d{4}-\d{2}-\d{2}$/',$text)){
+        if (preg_match('/\d{4}-\d{2}-\d{2}$/', $text)) {
             return static::DATE;
-        }elseif(preg_match('/\d{4}-\d{2}-\d{2}\h\d{2}:\d{2}:\d{2}$/',$text)){
+        } elseif (preg_match('/\d{4}-\d{2}-\d{2}\h\d{2}:\d{2}:\d{2}$/', $text)) {
             return static::DATETIME;
         }
         return null;

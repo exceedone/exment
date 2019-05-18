@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
-use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
@@ -217,30 +216,30 @@ class ApiTableController extends AdminControllerTableBase
         // replace items
         if (!is_null($findKeys = $request->get('findKeys'))) {
             $custom_table = $custom_value->custom_table;
-            foreach($findKeys as $findKey => $findValue){
+            foreach ($findKeys as $findKey => $findValue) {
                 // find column
                 $custom_column = CustomColumn::getEloquent($findKey, $custom_table);
-                if(!isset($custom_column)){
+                if (!isset($custom_column)) {
                     continue;
                 }
 
-                if($custom_column->column_type != ColumnType::SELECT_TABLE){
+                if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
                     continue;
                 }
 
                 // get target custom table
                 $findCustomTable = $custom_column->select_target_table;
-                if(!isset($findCustomTable)){
+                if (!isset($findCustomTable)) {
                     continue;
                 }
 
                 // get target column for getting index
                 $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-                if(!isset($findCustomColumn)){
+                if (!isset($findCustomColumn)) {
                     continue;
                 }
 
-                if(!$findCustomColumn->indexEnabled()){
+                if (!$findCustomColumn->indexEnabled()) {
                     //TODO:show error
                     continue;
                 }
@@ -250,7 +249,7 @@ class ApiTableController extends AdminControllerTableBase
                     ->where($indexColumnName, array_get($value, $findKey))
                     ->first();
 
-                if(!isset($findCustomValue)){
+                if (!isset($findCustomValue)) {
                     //TODO:show error
                     continue;
                 }
@@ -382,12 +381,12 @@ class ApiTableController extends AdminControllerTableBase
                 $target_start_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
             }
 
-            if(isset($custom_view_column->view_column_end_date)){
+            if (isset($custom_view_column->view_column_end_date)) {
                 $end_date_target = $custom_view_column->getOption('end_date_target');
-                if($custom_view_column->view_column_end_date_type == ViewColumnType::COLUMN){
+                if ($custom_view_column->view_column_end_date_type == ViewColumnType::COLUMN) {
                     $target_end_custom_column = CustomColumn::getEloquent($end_date_target);
                     $target_end_column = $target_end_custom_column->getIndexColumnName();
-                }else{
+                } else {
                     $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
                 }
             }
@@ -396,7 +395,7 @@ class ApiTableController extends AdminControllerTableBase
             $query = $this->getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column ?? null);
             $data = $query->get();
 
-            foreach ($data as $row) {                
+            foreach ($data as $row) {
                 $task = [
                     'title' => $row->getLabel(),
                     'url' => admin_url('data', [$table_name, $row->id]),
@@ -412,21 +411,21 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * Get calendar query 
+     * Get calendar query
      * ex. display: 4/1 - 4/30
      *
      * @param mixed $query
      * @return void
      */
-    protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column){
-
+    protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
+    {
         $query = clone $model;
         // filter end data
-        if(isset($target_end_column)){
+        if (isset($target_end_column)) {
             // filter enddate.
             // ex. 4/1 - endDate - 4/30
             $endQuery = (clone $query);
-            $endQuery = $endQuery->where((function($query) use($target_end_column, $start, $end){
+            $endQuery = $endQuery->where((function ($query) use ($target_end_column, $start, $end) {
                 $query->where($target_end_column, '>=', $start->toDateString())
                 ->where($target_end_column, '<', $end->toDateString());
             }))->select('id');
@@ -434,28 +433,28 @@ class ApiTableController extends AdminControllerTableBase
             // filter start and enddate.
             // ex. startDate - 4/1 - 4/30 - endDate
             $startEndQuery = (clone $query);
-            $startEndQuery = $startEndQuery->where((function($query) use($target_start_column, $target_end_column, $start, $end){
+            $startEndQuery = $startEndQuery->where((function ($query) use ($target_start_column, $target_end_column, $start, $end) {
                 $query->where($target_start_column, '<=', $start->toDateString())
                 ->where($target_end_column, '>=', $end->toDateString());
             }))->select('id');
         }
 
-        if($query instanceof \Illuminate\Database\Eloquent\Model){
+        if ($query instanceof \Illuminate\Database\Eloquent\Model) {
             $query = $query->getQuery();
         }
 
         // filter startDate
         // ex. 4/1 - startDate - 4/30
-        $query->where(function($query) use($target_start_column, $start, $end){
+        $query->where(function ($query) use ($target_start_column, $start, $end) {
             $query->where($target_start_column, '>=', $start->toDateString())
             ->where($target_start_column, '<', $end->toDateString());
         })->select('id');
 
         // union queries
-        if(isset($endQuery)){
+        if (isset($endQuery)) {
             $query->union($endQuery);
         }
-        if(isset($startEndQuery)){
+        if (isset($startEndQuery)) {
             $query->union($startEndQuery);
         }
 
@@ -473,12 +472,12 @@ class ApiTableController extends AdminControllerTableBase
      * @param mixed $row
      * @return void
      */
-    protected function setCalendarDate(&$task, $row, $target_start_column, $target_end_column){
+    protected function setCalendarDate(&$task, $row, $target_start_column, $target_end_column)
+    {
         $dt = $row->{$target_start_column};
-        if(isset($target_end_column)){
+        if (isset($target_end_column)) {
             $dtEnd = $row->{$target_end_column};
-        }
-        else{
+        } else {
             $dtEnd = null;
         }
 
@@ -493,11 +492,11 @@ class ApiTableController extends AdminControllerTableBase
         $dtType = ColumnType::getDateType($dt);
         $dtEndType = ColumnType::getDateType($dtEnd);
 
-        // set 
+        // set
         $allDayBetween = $dtType == ColumnType::DATE && $dtEndType == ColumnType::DATE;
         
         $task['start'] = $dt;
-        if(isset($dtEnd)){
+        if (isset($dtEnd)) {
             $task['end'] = $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
