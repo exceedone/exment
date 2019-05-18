@@ -410,36 +410,55 @@ class ApiTableController extends AdminControllerTableBase
 
             $data = $query->get();
 
-            foreach ($data as $row) {
-                $dt = $row->{$target_start_column};
-                if(isset($target_end_column)){
-                    $dtEnd = $row->{$target_end_column};
-                }
-                else{
-                    $dtEnd = null;
-                }
-
-                if ($dt instanceof Carbon) {
-                    $dt = $dt->toDateTimeString();
-                }
-                if (isset($dtEnd) && $dtEnd instanceof Carbon) {
-                    $dtEnd = $dtEnd->toDateTimeString();
-                }
-                
+            foreach ($data as $row) {                
                 $task = [
                     'title' => $row->getLabel(),
-                    'start' => $dt,
                     'url' => admin_url('data', [$table_name, $row->id]),
                     'color' => $custom_view_column->view_column_color,
                     'textColor' => $custom_view_column->view_column_font_color,
                 ];
-                if(isset($dtEnd)){
-                    $task['end'] = $dtEnd;
-                }
-
+                $this->setCalendarDate($task, $row, $target_start_column, $target_end_column);
+                
                 $tasks[] = $task;
             }
         }
         return json_encode($tasks);
+    }
+
+    /**
+     * Set calendar date. check date or datetime
+     *
+     * @param array $task
+     * @param mixed $row
+     * @return void
+     */
+    protected function setCalendarDate(&$task, $row, $target_start_column, $target_end_column){
+        $dt = $row->{$target_start_column};
+        if(isset($target_end_column)){
+            $dtEnd = $row->{$target_end_column};
+        }
+        else{
+            $dtEnd = null;
+        }
+
+        if ($dt instanceof Carbon) {
+            $dt = $dt->toDateTimeString();
+        }
+        if (isset($dtEnd) && $dtEnd instanceof Carbon) {
+            $dtEnd = $dtEnd->toDateTimeString();
+        }
+        
+        // get columnType
+        $dtType = ColumnType::getDateType($dt);
+        $dtEndType = ColumnType::getDateType($dtEnd);
+
+        // set 
+        $allDayBetween = $dtType == ColumnType::DATE && $dtEndType == ColumnType::DATE;
+        
+        $task['start'] = $dt;
+        if(isset($dtEnd)){
+            $task['end'] = $dtEnd;
+        }
+        $task['allDayBetween'] = $allDayBetween;
     }
 }
