@@ -389,6 +389,8 @@ class ApiTableController extends AdminControllerTableBase
                 } else {
                     $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
                 }
+            }else{
+                $target_end_column = null;
             }
 
             // clone model for re use
