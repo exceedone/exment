@@ -3674,3 +3674,78 @@ fieldset[disabled] .btn.btn-pupple.active {
   color: #8A4ED9;
   background-color: #FFFFFF;
 }
+
+#tile-template .tile-group-item {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tile-template .tile-group-item .tile {
+  background-color: #fff;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#tile-template .tile-group-item .tile:hover {
+  background-color: #ccf2ff;
+}
+
+#tile-template .tile-group-item .tile.active {
+  background-color: #32ccff;
+}
+
+#tile-template .tile-group-item .tile p {
+  margin: 10px 0;
+}
+
+#tile-template .tile-group-item .tile .tile-thumbnail {
+  flex: 1;
+  padding: 3px 5px;
+}
+
+#tile-template .tile-group-item .tile .tile-thumbnail img {
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0 auto;
+  padding: 10px 0;
+  display: block;
+}
+
+#tile-template .tile-group-item .tile .tile-titledescription {
+  flex: 3;
+  padding: 3px;
+}
+
+#tile-template .tile-group-item .tile .tile-titledescription .hasThumbnail {
+  flex: 1;
+}
+
+#tile-template .tile-group-item .tile .tile-title {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+#tile-template .tile-group-item .tile .tile-description {
+  font-size: 0.85em;
+}
+
+#tile-template .overlay-wrapper {
+  min-height: 150px;
+  width: 100%;
+  position: relative;
+}
+
+#tile-template .overlay-wrapper .overlay {
+  margin-left: -15px;
+  margin-right: -15px;
+  width: calc(100% + 30px);
+}
+
+#tile-template .row-eq-height > [class^="col-"] {
+  margin-bottom: 10px;
+}
