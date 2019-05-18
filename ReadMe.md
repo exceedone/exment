@@ -19,6 +19,9 @@
 Exmentは、情報資産をWeb上で管理するための、オープンソースソフトウェアです。
 
 ## 機能
+※スクリーンショット付きのページはこちらをご覧ください
+[https://exment.net/functions](https://exment.net/functions)
+
 - ダッシュボード
 - 画面上からデータ登録
 - 独自テーブル・独自列作成
