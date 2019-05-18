@@ -604,7 +604,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $custom_view_columns = $this->custom_view_columns;
         if (count($custom_view_columns) == 0) {
-            $this->custom_view_columns = new CustomViewColumns();
+            $this->custom_view_columns = new CustomViewColumn();
         }
         $custom_view_columns[0]->view_column_target = $view_calendar_target;
     }
