@@ -53,6 +53,7 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
 + [mPDF](https://github.com/mpdf/mpdf)
 + [PhpSpreadsheet](https://github.com/phpoffice/phpspreadsheet)
 + [TinyMCE](https://www.tiny.cloud/)
++ [FullCalendar](https://github.com/fullcalendar/fullcalendar)
 
 ## スクリーンショット
 ------------
