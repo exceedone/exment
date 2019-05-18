@@ -100,9 +100,9 @@ class CalendarItem implements ItemInterface
                 ->options(CalendarType::transArray("calendar.calendar_type_options"));
 
         // get only has calendarview
-        $model = CustomTable::whereHas('custom_views', function($query){
-                $query->where('view_kind_type', ViewKindType::CALENDAR);
-            });
+        $model = CustomTable::whereHas('custom_views', function ($query) {
+            $query->where('view_kind_type', ViewKindType::CALENDAR);
+        });
         $tables = CustomTable::filterList($model)
             ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))

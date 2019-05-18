@@ -26,12 +26,18 @@
             height: 'parent',
             fixedWeekCount: false,
             eventRender: function(info) {
-                $(info.el).popover({
-                    content: info.event.title,
-                    trigger: 'hover',
-                    placement: 'top',
-                    container: 'body'
-                });
+                info.el.setAttribute('data-toggle', 'tooltip');
+                info.el.setAttribute('data-original-title', info.event.title);
+            },
+            eventDataTransform: function(event) { // call when reading event data
+                if(event.allDayBetween) {
+                    event.end = moment(event.end).add(1, 'days').format('YYYY-MM-DD');
+                }
+                return event;
+            },
+            eventTimeFormat: { // like '14:30:00'
+                hour: '2-digit',
+                minute: '2-digit'
             },
             // put your options and callbacks here
             events: {
@@ -39,7 +45,7 @@
                 extraParams: {
                     view: "{{ $view_id }}",
                 },
-            },
+            }
         });
 
         calendar.render();
@@ -53,5 +59,7 @@
 .fc-sat {
     color: blue;
 }
-
+.fc-day-grid-event:hover{
+    opacity:0.8;
+}
 </style>

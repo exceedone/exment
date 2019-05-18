@@ -406,7 +406,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query->where($searchColumn, $mark, $value)->select('id');
             if (!boolval($options['relation'])) {
                 $query->take($takeCount);
-            }else{
+            } else {
                 $query->take($relationTakeCount);
             }
 
@@ -418,7 +418,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $subquery->where($searchColumn, $mark, $value)->select('id');
         if (!boolval($options['relation'])) {
             $subquery->take($takeCount);
-        }else{
+        } else {
             $subquery->take($relationTakeCount);
         }
 
