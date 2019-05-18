@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Model;
 
-class RemoveSoftDeletes extends Migration
+class SupportForV12 extends Migration
 {
     const SOFT_DELETED_ARRAY = [
         'custom_relations' => Model\CustomRelation::class,
@@ -63,6 +63,11 @@ class RemoveSoftDeletes extends Migration
 
             $this->dropSuuidUnique($table);
         }
+
+        //
+        Schema::table('custom_view_columns', function (Blueprint $table) {
+            $table->json('options')->after('order')->nullable();
+        });
     }
 
     /**
@@ -72,6 +77,11 @@ class RemoveSoftDeletes extends Migration
      */
     public function down()
     {
+        //
+        Schema::table('custom_view_columns', function (Blueprint $table) {
+            $table->dropColumn('options');
+        });
+        
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
             Schema::table($table_name, function (Blueprint $table) use($column_name) {
                 $table->dropIndex([ $column_name]);
