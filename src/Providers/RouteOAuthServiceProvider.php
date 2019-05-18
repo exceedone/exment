@@ -136,21 +136,24 @@ class RouteOAuthServiceProvider extends ServiceProvider
         });
     }
 
-    protected function getOauthDefaultOptions(){
+    protected function getOauthDefaultOptions()
+    {
         return [
             'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
             'namespace' => '\Laravel\Passport\Http\Controllers',
             'middleware' => 'adminapi'
         ];
     }
-    protected function getOauthAnonymousOptions(){
+    protected function getOauthAnonymousOptions()
+    {
         return [
             'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
             'namespace' => '\Laravel\Passport\Http\Controllers',
             'middleware' => 'throttle',
         ];
     }
-    protected function getOauthWebOptions(){
+    protected function getOauthWebOptions()
+    {
         return [
             'prefix' => url_join(config('admin.route.prefix'), 'oauth'),
             'namespace' => '\Laravel\Passport\Http\Controllers',

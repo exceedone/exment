@@ -165,7 +165,7 @@ class ChartItem implements ItemInterface
                 ->options(ChartType::transArray("chart.chart_type_options"));
 
         // get only has summaryview
-        $model = CustomTable::whereHas('custom_views', function($query){
+        $model = CustomTable::whereHas('custom_views', function ($query) {
             $query->where('view_kind_type', ViewKindType::AGGREGATE);
         });
         $tables = CustomTable::filterList($model)
