@@ -7,12 +7,12 @@
             @include('admin::form.error')
     
             <div id="tile-{{$column}}" class="" style="margin:0;">
-                <div class="" style="margin: 0 -10px;">
+                <!-- <div class="" style="margin: 0 -10px;">
                     <div class="input-group">
                         <span class="input-group-addon"><i class="fa fa-search fa-fw"></i></span>
                         <input type="text" id="template_search" name="template_search" value="" class="form-control template_search" placeholder="{{trans('admin.search')}}">
                     </div>
-                </div>
+                </div> -->
                 <div class="overlay-wrapper">
                     <div class="tile-group-items row-eq-height row tile-group"></div>
                     <div class="overlay dark">
