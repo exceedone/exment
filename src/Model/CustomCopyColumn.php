@@ -9,7 +9,6 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
 {
     protected $appends = ['from_column_target', 'to_column_target'];
     use Traits\UseRequestSessionTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
 

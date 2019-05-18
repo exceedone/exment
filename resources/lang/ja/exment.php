@@ -45,6 +45,8 @@ return [
             'import_error' => 'インポート失敗しました。エラーメッセージをご確認ください。',
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
+            'wrongconfig' => 'config.jsonファイルが不正です',
+            'exists_row' => '%sは必ず1行以上入力してください。',
         ],
 
         'help' =>[
@@ -52,6 +54,8 @@ return [
             'input_available_characters' => '%sで記入してください。',
             'max_length' => '%s文字以内で記入してください。',
             'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
+            'task_schedule_id' => 'タスクスケジュール',
+            'task_schedule' => '<br/><b>※タスクスケジュール設定が必要です。</b>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
         ],
     ],
 
@@ -76,6 +80,7 @@ return [
         'site_name_short' => 'サイト名(略)',
         'site_logo' => 'サイトロゴ',
         'site_logo_mini' => 'サイトロゴ(小)',
+        'site_favicon' => 'サイトファビコン(ico)',
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
         'permission_available' => '権限管理を使用する',
@@ -116,6 +121,7 @@ return [
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
             'site_logo' => 'サイトのロゴです。推奨サイズ：200px * 40px',
             'site_logo_mini' => 'サイトのロゴ(小アイコン)です。推奨サイズ：40px * 40px',
+            'site_favicon' => 'サイトのファビコン(.ico)です。ホームページのブックマークなどに利用されます。推奨サイズ：16px * 16px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
@@ -150,6 +156,7 @@ return [
             'list' => 'データ一覧',
             'system' => 'システム',
             'chart' => 'チャート',
+            'calendar' => 'カレンダー',
         ],
         
         'dashboard_box_options' => [
@@ -166,6 +173,7 @@ return [
             'chart_begin_zero' => '０を起点にする',
             'chart_legend' => '凡例を表示する',
             'chart_options' => 'オプション設定',
+            'calendar_type' => 'カレンダーの種類',
         ],
 
         'dashboard_box_system_pages' => [
@@ -219,6 +227,11 @@ return [
             'errorMess' => 'プラグインファイルを選択してください',
         ],
 
+        'error' => [
+            'samename_plugin' => '同名プラグインが存在します。確認してから一度お試してください。',
+            'wrongname_plugin' => 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。',
+        ],
+    
         'plugin_type_options' => [
             'page' => '画面',
             'trigger' => '機能',
@@ -241,6 +254,7 @@ return [
         'enable_automatic' => '自動バックアップ',
         'automatic_term' => '自動バックアップ実行間隔(日)',
         'automatic_hour' => '自動バックアップ開始時間(時)',
+        'history_files' => '保存世代数',
         'upload_zipfile' => 'アップロード(zip)',
         'backup_target_options' => [
             'database' => 'データベース',
@@ -267,6 +281,7 @@ return [
             'enable_automatic' => 'YESにした場合、自動的にバックアップを実行します。',
             'automatic_term' => '自動バックアップを何日おきに実施するかの設定です。例：「3」と入力時、3日おきにバックアップ実行',
             'automatic_hour' => '自動バックアップの開始時間です。例：「3」と入力時、3:00にバックアップ実行開始',
+            'history_files' => '自動バックアップ時に、保持する世代数です。1以上を入力時、入力した整数のバックアップを保持します。',
         ]
     ],
 
@@ -383,6 +398,7 @@ return [
         'order' => '表示順',
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
+        'auto_number_format_rule' => '自動採番フォーマットのルール',
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
@@ -528,12 +544,18 @@ return [
         'header' => 'カスタムビュー設定',
         'description' => 'カスタムビューの設定を行います。',
         'view_view_name' => 'ビュー表示名',
+        'view_datalist' => 'このビューでデータ一覧表示',
         'custom_view_columns' => '表示列選択',
         'custom_view_groups' => 'グループ列選択',
         'view_column_name' => '別名表示',
+        'view_kind_type' => 'ビュー種類',
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
+        'view_column_start_date' => '開始日',
+        'view_column_end_date' => '終了日',
+        'color' => '表示色',
+        'font_color' => '文字色',
         'order' => '表示順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
@@ -543,6 +565,7 @@ return [
         'view_summary_condition' => '集計タイプ',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
+        'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
@@ -556,8 +579,8 @@ return [
             'max' => '最大値',
         ],
         'filter_condition_options' => [
-            'eq' => '以下の値と合致する', 
-            'ne' => '以下の値と合致しない', 
+            'eq' => '検索値と合致する', 
+            'ne' => '検索値と合致しない', 
             'eq-user' => 'ログインユーザーに合致する', 
             'ne-user' => 'ログインユーザーに合致しない', 
             'on' => '指定日',
@@ -580,22 +603,34 @@ return [
             'next-x-day-or-before' => 'X日後の日付以前', 
             'not-null' => '値が空でない',
             'null' => '値が空',
+            'gt' => '検索値より大きい', 
+            'lt' => '検索値より小さい', 
+            'gte' => '検索値以上である', 
+            'lte' => '検索値以下である', 
+            'select-eq' => '検索値を含む', 
+            'select-ne' => '検索値を含まない', 
         ],
         
         'custom_view_menulist' => [
             'current_view_edit' => '現在のビュー設定変更',
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
+            'create_calendar' => 'カレンダービュー新規作成',
         ],
         'message' => [
-            'over_filters_max' => '表示条件は5件以上設定できません。',
-            'over_sorts_max' => 'データ並べ替えは5件以上設定できません。',
+            'over_filters_max' => '表示条件は6件以上設定できません。',
+            'over_sorts_max' => 'データ並べ替えは6件以上設定できません。',
         ],
 
         'custom_view_button_label' => 'ビュー',
         'custom_view_type_options' => [
             'system' => 'システムビュー',
             'user' => 'ユーザービュー',
+        ],
+        'custom_view_kind_type_options' => [
+            'default' => '通常ビュー',
+            'aggregate' => '集計ビュー',
+            'calendar' => 'カレンダービュー',
         ],
     ],
 
@@ -687,7 +722,11 @@ return [
         'input_custom_column' => '対象テーブル列',
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
-        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。"
+        'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
+
+        'help' => [
+            'to_custom_table_view_name' => 'コピー先のテーブルを選択してください。',
+        ],
     ],
 
     'search' => [
@@ -796,6 +835,7 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
         ],
+        'data_detail' => 'データ確認',
 
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => '候補データ一覧',
@@ -809,7 +849,20 @@ return [
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
         ],
+    ],
 
+    'revision' => [
+        'update_history' => '更新履歴',
+        'revision' => 'リビジョン',
+        'revision_select' => 'リビジョン選択',
+        'revision_no' => 'リビジョンNo',
+        'revision_id' => 'リビジョンID',
+        'old_revision' => '過去リビジョン',
+        'new_revision' => '最新リビジョン',
+        'revision_info' => 'リビジョン情報',
+        'restore_revision' => 'このリビジョンを復元',
+        'new' => '最新',
+        'compare_revision' => 'リビジョン比較',
     ],
 
     'notify' => [
@@ -864,6 +917,18 @@ return [
             'bar' => '棒グラフ',
             'line' => '折れ線グラフ',
             'pie' => '円グラフ',
+        ]
+    ],
+    
+    'calendar' => [
+        'calendar_type_options' => [
+            'month' => '月別',
+            'list' => 'リスト',
+        ],
+        'calendar_button_options' => [
+            'month' => '月',
+            'week' => '週',
+            'day' => '日',
         ]
     ],
     

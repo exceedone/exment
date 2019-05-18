@@ -132,7 +132,7 @@ class PluginInstaller
 
             //If $json nothing, then delete folder extracted, return admin/plugin with error message 'config.jsonファイルが不正です'
             if ($json == null) {
-                $response = back()->with('errorMess', 'config.jsonファイルが不正です');
+                $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
             } else {
                 //Validate json file with fields require
                 $checkRuleConfig = static::checkRuleConfigFile($json);
@@ -152,31 +152,31 @@ class PluginInstaller
                         $pluginUpdated = $plugin->saveOrFail();
                         //Rename folder with plugin name
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
-                        admin_toastr('アップロードに成功しました');
+                        admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
                     //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                     elseif ($plugineExistByName <= 0 && $plugineExistByUUID <= 0) {
                         $plugin->save();
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
-                        admin_toastr('アップロードに成功しました');
+                        admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
 
                     //If name has existed but uuid does not existed, then delete folder and return error with message
                     elseif ($plugineExistByName > 0 && $plugineExistByUUID <= 0) {
-                        $response = back()->with('errorMess', '同名プラグインが存在します。確認してから一度お試してください。');
+                        $response = back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
                     }
                     //If uuid has existed but name does not existed, then delete folder and return error with message
                     elseif ($plugineExistByName <= 0 && $plugineExistByUUID > 0) {
-                        $response = back()->with('errorMess', 'UUIDは存在しますが、プラグイン名が正しくありません。 確認してからもう一度お試しください。');
+                        $response = back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
                     }
                     //rename folder without Uppercase, space, tab, ...
                     else {
                         $response = back();
                     }
                 } else {
-                    $response = back()->with('errorMess', 'config.jsonファイルが不正です');
+                    $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
                 }
             }
         }
@@ -216,7 +216,7 @@ class PluginInstaller
     protected static function prepareData($json)
     {
         // find or new $plugin
-        $plugin = Plugin::withTrashed()->firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
+        $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
         $plugin->plugin_name = array_get($json, 'plugin_name');
         $plugin->plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'))->getValue() ?? null;
         $plugin->author = array_get($json, 'author');
@@ -225,8 +225,6 @@ class PluginInstaller
         $plugin->plugin_view_name = array_get($json, 'plugin_view_name');
         $plugin->description = array_get($json, 'description');
         $plugin->active_flg = true;
-        // remove deleted at
-        $plugin->deleted_at = null;
         
         // set options
         $options = array_get($plugin, 'options', []);
@@ -259,16 +257,14 @@ class PluginInstaller
     //Check existed plugin name
     protected static function checkPluginNameExisted($name)
     {
-        return Plugin
-            ::withTrashed()->where('plugin_name', '=', $name)
+        return Plugin::where('plugin_name', '=', $name)
             ->count();
     }
 
     //Check existed plugin uuid
     protected static function checkPluginUUIDExisted($uuid)
     {
-        return Plugin
-            ::withTrashed()->where('uuid', '=', $uuid)
+        return Plugin::where('uuid', '=', $uuid)
             ->count();
     }
 
@@ -284,7 +280,7 @@ class PluginInstaller
         // execute query
         return Plugin::where('active_flg', '=', 1)
             ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
-            ->whereRaw('JSON_CONTAINS(options, \'"'.$table_name_escape.'"\', \'$.target_tables\')')
+            ->where('options->target_tables', $table_name_escape)
             ->get()
             ;
     }

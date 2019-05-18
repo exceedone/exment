@@ -27,6 +27,7 @@ class Define
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
+        'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
@@ -39,6 +40,7 @@ class Define
         'backup_automatic_hour' => ['type' => 'int', 'default' => '3', 'group' => 'backup'],
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
+        'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
     ];
 
     public const SYSTEM_SKIN = [
@@ -76,6 +78,8 @@ class Define
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
     public const SYSTEM_KEY_SESSION_TABLE_RELATION_TABLES = "custom_table_relation_tables.%s";
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
+    public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
+    public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',

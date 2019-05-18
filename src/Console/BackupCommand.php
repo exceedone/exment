@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Console;
 
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Console\Command;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
 use \File;
 
@@ -15,7 +17,7 @@ class BackupCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:backup {--target=}';
+    protected $signature = 'exment:backup {--target=} {--schedule}';
 
     /**
      * The console command description.
@@ -78,7 +80,7 @@ class BackupCommand extends Command
 
         // backup database tables
         if (in_array(BackupTarget::DATABASE, $target)) {
-            $this->backupTables();
+            \DB::backupDatabase($this->tempdir);
         }
 
         // backup directory
@@ -92,33 +94,9 @@ class BackupCommand extends Command
         // delete temporary folder
         $success = \File::deleteDirectory($this->tempdir);
 
+        $this->removeOldBackups();
+
         return 0;
-    }
-
-    /**
-     * export table definition and table data
-     *
-     */
-    private function backupTables()
-    {
-        // export table definition
-        $this->dumpDatabase();
-
-        // get all table list
-        $tables = \DB::select('SHOW TABLES');
-
-        // backup each table
-        foreach ($tables as $table) {
-            foreach ($table as $key => $name) {
-                if (stripos($name, 'exm__') === 0) {
-                    // backup table data which has virtual column
-                    $this->backupTable($name);
-                } else {
-                    // backup table data with mysqldump
-                    $this->dumpDatabase($name);
-                }
-            }
-        }
     }
 
     /**
@@ -133,22 +111,20 @@ class BackupCommand extends Command
         $file->setCsvControl("\t");
 
         // get column definition
-        $sql       = 'SHOW COLUMNS FROM '.$table;
-        $columns   = \DB::select($sql);
+        $columns = \Schema::getColumnDefinitions($table);
 
         // get output field name list (not virtual column)
         $outcols = [];
         foreach ($columns as $column) {
-            $array = array_change_key_case(((array)$column));
-            if (strtoupper($array['extra']) != 'VIRTUAL GENERATED') {
-                $outcols[] = strtolower($array['field']);
+            if (!boolval($column['virtual'])) {
+                $outcols[] = strtolower($column['column_name']);
             }
         }
         // write column header
         $file->fputcsv($outcols);
 
         // execute backup. contains soft deleted table
-        \DB::table($table)->orderBy('id')->chunk(100, function ($rows) use ($file, $outcols) {
+        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols) {
             foreach ($rows as $row) {
                 $array = (array)$row;
                 $row = array_map(function ($key) use ($array) {
@@ -245,38 +221,41 @@ class BackupCommand extends Command
             $zip->close();
         }
     }
-    /**
-     * exec mysqldump for backup table definition or table data.
-     *
-     * @param string backup target table (default:null)
-     */
-    private function dumpDatabase($table=null)
+    
+    protected function removeOldBackups()
     {
-        // get table connect info
-        $host = config('database.connections.mysql.host', '');
-        $username = config('database.connections.mysql.username', '');
-        $password = config('database.connections.mysql.password', '');
-        $database = config('database.connections.mysql.database', '');
-        $dbport = config('database.connections.mysql.port', '');
-
-        $mysqldump = config('exment.backup_info.mysql_dir', '') . 'mysqldump';
-        $command = sprintf(
-            '%s -h %s -u %s --password=%s -P %s',
-            $mysqldump,
-            $host,
-            $username,
-            $password,
-            $dbport
-        );
-
-        if ($table == null) {
-            $file = path_join($this->tempdir, config('exment.backup_info.def_file', 'table_definition.sql'));
-            $command = sprintf('%s -d %s > %s', $command, $database, $file);
-        } else {
-            $file = sprintf('%s.sql', path_join($this->tempdir, $table));
-            $command = sprintf('%s -t %s %s > %s', $command, $database, $table, $file);
+        // get history file counts
+        $backup_history_files = System::backup_history_files();
+        if (!isset($backup_history_files) || $backup_history_files <= 0) {
+            return;
         }
 
-        exec($command);
+        // check whether batch
+        $schedule = boolval($this->option("schedule"));
+        if (!$schedule) {
+            return;
+        }
+
+        $disk = Storage::disk('backup');
+
+        // get files
+        $filenames = $disk->files('list');
+
+        // get file infos
+        $files = collect($filenames)->map(function ($filename) use ($disk) {
+            return [
+                'name' => $filename,
+                'lastModified' => $disk->lastModified($filename),
+            ];
+        })->sortByDesc('lastModified');
+
+        // remove file
+        foreach ($files->values()->all() as $index => $file) {
+            if ($index < $backup_history_files) {
+                continue;
+            }
+
+            $disk->delete(array_get($file, 'name'));
+        }
     }
 }

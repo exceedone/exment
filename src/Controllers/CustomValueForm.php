@@ -340,7 +340,13 @@ EOT;
 
     protected function manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton)
     {
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {        // Disable back btn.
+        $form->disableEditingCheck(false);
+        $form->disableCreatingCheck(false);
+        $form->disableViewCheck(false);
+        
+        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
+            $tools->disableView(false);
+
             // if one_record_flg, disable list
             if (array_get($custom_table->options, 'one_record_flg')) {
                 $tools->disableListButton();
@@ -351,8 +357,6 @@ EOT;
             // if user only view, disable delete and view
             elseif (!$custom_table->hasPermissionEditData($id)) {
                 $tools->disableDelete();
-                $tools->disableView();
-                disableFormFooter($form);
             }
 
             // add plugin button

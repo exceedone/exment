@@ -21,8 +21,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
+    protected $appends = ['view_calendar_target'];
     protected $guarded = ['id', 'suuid'];
 
     public static $templateItems = [
@@ -69,7 +69,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     public function custom_view_columns()
     {
-        return $this->hasMany(CustomViewColumn::class, 'custom_view_id')->orderBy('order');
+        return $this->hasMany(CustomViewColumn::class, 'custom_view_id');
     }
 
     public function custom_view_filters()
@@ -79,7 +79,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     public function custom_view_sorts()
     {
-        return $this->hasMany(CustomViewSort::class, 'custom_view_id')->orderBy('priority');
+        return $this->hasMany(CustomViewSort::class, 'custom_view_id');
     }
 
     public function custom_view_summaries()
@@ -591,5 +591,21 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $is_number = true;
         }
         return ['id' => $view_column_id, 'text' => $column_view_name, 'is_number' => $is_number];
+    }
+    public function getViewCalendarTargetAttribute()
+    {
+        $custom_view_columns = $this->custom_view_columns;
+        if (count($custom_view_columns) > 0) {
+            return $custom_view_columns[0]->view_column_target;
+        }
+        return null;
+    }
+    public function setViewCalendarTargetAttribute($view_calendar_target)
+    {
+        $custom_view_columns = $this->custom_view_columns;
+        if (count($custom_view_columns) == 0) {
+            $this->custom_view_columns[] = new CustomViewColumn();
+        }
+        $custom_view_columns[0]->view_column_target = $view_calendar_target;
     }
 }

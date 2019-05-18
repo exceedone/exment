@@ -98,6 +98,9 @@ if (!function_exists('esc_sql')) {
 }
 
 if (!function_exists('is_nullorempty')) {
+    /**
+     * validate string. null is true, "" is true, 0 and "0" is false.
+     */
     function is_nullorempty($obj)
     {
         if (is_null($obj)) {
@@ -605,9 +608,9 @@ if (!function_exists('getModelName')) {
             }
             // get table. this block isn't called by createCustomTableTrait
             $table = CustomTable::findBySuuid($suuid);
-            if(!is_null($table)){
+            if (!is_null($table)) {
                 $table->createTable();
-                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);    
+                ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
             }
         }
 
@@ -1097,26 +1100,6 @@ if (!function_exists('getTransArrayValue')) {
 }
 
 // laravel-admin --------------------------------------------------
-if (!function_exists('disableFormFooter')) {
-    /**
-     * disable form footer items
-     *
-     */
-    function disableFormFooter($form)
-    {
-        $form->footer(function ($footer) {
-            // disable reset btn
-            $footer->disableReset();
-            // disable `View` checkbox
-            $footer->disableViewCheck();
-            // disable `Continue editing` checkbox
-            $footer->disableEditingCheck();
-            // disable `Continue Creating` checkbox
-            $footer->disableCreatingCheck();
-        });
-    }
-}
-
 
 if (! function_exists('abortJson')) {
     /**
@@ -1384,7 +1367,7 @@ if (!function_exists('getUserName')) {
      * @param string $id
      * @return string user name
      */
-    function getUserName($id)
+    function getUserName($id, $link = false)
     {
         $user = getModelName(SystemTableName::USER)::withTrashed()->find($id);
         if (!isset($user)) {
@@ -1392,6 +1375,10 @@ if (!function_exists('getUserName')) {
         }
         if ($user->trashed()) {
             return exmtrans('common.trashed_user');
+        }
+
+        if ($link) {
+            return $user->getUrl(true);
         }
         return $user->getLabel();
     }

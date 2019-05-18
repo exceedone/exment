@@ -8,7 +8,6 @@ class CustomViewSort extends ModelBase
 {
     protected $guarded = ['id'];
     protected $appends = ['view_column_target'];
-    use \Illuminate\Database\Eloquent\SoftDeletes;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
@@ -42,5 +41,13 @@ class CustomViewSort extends ModelBase
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
+    }
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        // add default order
+        static::addGlobalScope(new OrderScope('priority'));
     }
 }

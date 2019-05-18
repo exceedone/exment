@@ -12,8 +12,6 @@ use DB;
 
 class System extends ModelBase
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
-    
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
     protected static $requestSession = [];

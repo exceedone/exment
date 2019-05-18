@@ -50,6 +50,13 @@ trait InitializeForm
             ->attribute(['accept' => "image/*"])
             ;
 
+        array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
+        $form->image('site_favicon', exmtrans("system.site_favicon"))
+            ->help(exmtrans("system.help.site_favicon"))
+            ->options($fileOption)
+            ->attribute(['accept' => ".ico"])
+            ;
+    
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
             ->help(exmtrans("system.help.site_skin"));
@@ -93,19 +100,23 @@ trait InitializeForm
  
     protected function postInitializeForm(Request $request, $validateUser = false)
     {
+        $rules = [
+            'site_name' => 'max:30',
+            'site_name_short' => 'max:10',
+        ];
+
         if ($validateUser) {
-            $rules = [
+            $rules = array_merge($rules, [
                 'user_code' => 'required|max:32|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
                 'user_name' => 'required|max:32',
                 'email' => 'required|email',
                 'password' => get_password_rule(true),
-            ];
+            ]);
+        }
 
-            $validation = Validator::make($request->all(), $rules);
-
-            if ($validation->fails()) {
-                return back()->withInput()->withErrors($validation);
-            }
+        $validation = Validator::make($request->all(), $rules);
+        if ($validation->fails()) {
+            return back()->withInput()->withErrors($validation);
         }
 
         $inputs = $request->all(System::get_system_keys('initialize'));

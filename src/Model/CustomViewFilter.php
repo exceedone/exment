@@ -10,11 +10,42 @@ use Carbon\Carbon;
 class CustomViewFilter extends ModelBase
 {
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target'];
-    use \Illuminate\Database\Eloquent\SoftDeletes;
+    protected $appends = ['view_column_target', 'view_filter_condition_value'];
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+
+    /**
+     * get edited view_filter_condition_value_text.
+     */
+    public function getViewFilterConditionValueAttribute()
+    {
+        if (is_string($this->view_filter_condition_value_text)) {
+            $array = json_decode($this->view_filter_condition_value_text);
+            if (is_array($array)) {
+                return array_filter($array, function ($val) {
+                    return !is_null($val);
+                });
+            }
+        }
+        return $this->view_filter_condition_value_text;
+    }
+    
+    /**
+     * set view_filter_condition_value_text.
+     * * we have to convert int if view_filter_condition_value is array*
+     */
+    public function setViewFilterConditionValueAttribute($view_filter_condition_value)
+    {
+        if (is_array($view_filter_condition_value)) {
+            $array = array_filter($view_filter_condition_value, function ($val) {
+                return !is_null($val);
+            });
+            $this->view_filter_condition_value_text = json_encode($array);
+        } else {
+            $this->view_filter_condition_value_text = $view_filter_condition_value;
+        }
+    }
 
     public static $templateItems = [
         'excepts' => [
@@ -66,7 +97,7 @@ class CustomViewFilter extends ModelBase
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
         } elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
-            $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['name'] ?? null;
+            $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
         
         if (isset($db_table_name)) {
@@ -78,10 +109,12 @@ class CustomViewFilter extends ModelBase
         switch ($view_filter_condition) {
             // equal
             case ViewColumnFilterOption::EQ:
+            case ViewColumnFilterOption::USER_EQ:
                 $model = $model->where($view_column_target, $condition_value_text);
                 break;
             // not equal
             case ViewColumnFilterOption::NE:
+            case ViewColumnFilterOption::USER_NE:
                 $model = $model->where($view_column_target, '<>', $condition_value_text);
                 break;
             // not null
@@ -95,6 +128,34 @@ class CustomViewFilter extends ModelBase
             case ViewColumnFilterOption::DAY_NULL:
             case ViewColumnFilterOption::USER_NULL:
                 $model = $model->whereNull($view_column_target);
+                break;
+
+            // for number --------------------------------------------------
+            // greater
+            case ViewColumnFilterOption::NUMBER_GT:
+            case ViewColumnFilterOption::NUMBER_LT:
+            case ViewColumnFilterOption::NUMBER_GTE:
+            case ViewColumnFilterOption::NUMBER_LTE:
+                $condition_value_text = str_replace(',', '', $condition_value_text);
+                if (preg_match('/^([1-9]\d*|0)\.(\d+)?$/', $condition_value_text)) {
+                    $condition_value_text = floatval($condition_value_text);
+                } else {
+                    $condition_value_text = intval($condition_value_text);
+                }
+                switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::NUMBER_GT:
+                        $model = $model->where($view_column_target, '>', $condition_value_text);
+                        break;
+                    case ViewColumnFilterOption::NUMBER_LT:
+                        $model = $model->where($view_column_target, '<', $condition_value_text);
+                        break;
+                    case ViewColumnFilterOption::NUMBER_GTE:
+                        $model = $model->where($view_column_target, '>=', $condition_value_text);
+                        break;
+                    case ViewColumnFilterOption::NUMBER_LTE:
+                        $model = $model->where($view_column_target, '<=', $condition_value_text);
+                        break;
+                }
                 break;
             
             // for date --------------------------------------------------
@@ -115,7 +176,7 @@ class CustomViewFilter extends ModelBase
                         $value_day = Carbon::today();
                         break;
                     case ViewColumnFilterOption::DAY_TOMORROW:
-                        $value_day = Carbon::tomorow();
+                        $value_day = Carbon::tomorrow();
                         break;
                 }
                 $model = $model->whereDate($view_column_target, $value_day);
@@ -162,6 +223,8 @@ class CustomViewFilter extends ModelBase
                 break;
                 
             // date and X days before or after
+            case ViewColumnFilterOption::DAY_ON_OR_AFTER:
+            case ViewColumnFilterOption::DAY_ON_OR_BEFORE:
             case ViewColumnFilterOption::DAY_TODAY_OR_AFTER:
             case ViewColumnFilterOption::DAY_TODAY_OR_BEFORE:
             case ViewColumnFilterOption::DAY_LAST_X_DAY_OR_AFTER:
@@ -171,6 +234,14 @@ class CustomViewFilter extends ModelBase
                 $today = Carbon::today();
                 // get target day and where mark
                 switch ($view_filter_condition) {
+                    case ViewColumnFilterOption::DAY_ON_OR_AFTER:
+                        $target_day = Carbon::parse($condition_value_text);
+                        $mark = ">=";
+                        break;
+                    case ViewColumnFilterOption::DAY_ON_OR_BEFORE:
+                        $target_day = Carbon::parse($condition_value_text);
+                        $mark = "<=";
+                        break;
                     case ViewColumnFilterOption::DAY_TODAY_OR_AFTER:
                         $target_day = $today;
                         $mark = ">=";
@@ -199,6 +270,22 @@ class CustomViewFilter extends ModelBase
                 $model = $model->whereDate($view_column_target, $mark, $target_day);
                 break;
                 
+            // for select --------------------------------------------------
+            case ViewColumnFilterOption::SELECT_EXISTS:
+                $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
+                $model = $model->where(function ($query) use ($view_column_target, $raw) {
+                    $query->where($view_column_target, 'LIKE', '[%]')
+                          ->whereNotNull(\DB::raw($raw));
+                })->orWhere($view_column_target, $condition_value_text);
+                break;
+            case ViewColumnFilterOption::SELECT_NOT_EXISTS:
+                $raw = "JSON_SEARCH($view_column_target, 'one', '$condition_value_text')";
+                $model = $model->where(function ($query) use ($view_column_target, $raw) {
+                    $query->where($view_column_target, 'LIKE', '[%]')
+                        ->whereNull(\DB::raw($raw));
+                })->orWhere($view_column_target, '<>', $condition_value_text);
+                break;
+        
             // for user --------------------------------------------------
             case ViewColumnFilterOption::USER_EQ_USER:
                 $model = $model->where($view_column_target, \Exment::user()->base_user->id);

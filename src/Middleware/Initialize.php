@@ -13,6 +13,7 @@ use Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Encore\Admin\Form;
+use Encore\Admin\Grid;
 use \Html;
 use PDO;
 
@@ -44,7 +45,18 @@ class Initialize
 
     public static function initializeConfig($setDatabase = true)
     {
+        //// set from env
+        if (!is_null($env = env('APP_LOCALE'))) {
+            \App::setLocale($env);
+        }
+        if (!is_null($env = env('APP_TIMEZONE'))) {
+            Config::set('app.timezone', $env);
+        }
+
+
         ///// set config
+
+        // for password reset
         if (!Config::has('auth.passwords.exment_admins')) {
             Config::set('auth.passwords.exment_admins', [
                 'provider' => 'exment-auth',
@@ -58,17 +70,25 @@ class Initialize
                 'model' => \Exceedone\Exment\Model\LoginUser::class,
             ]);
         }
+
+        // for api auth
         Config::set('auth.defaults.guard', 'admin');
         Config::set('auth.guards.adminapi', [
             'driver' => 'passport',
             'provider' => 'exment-auth',
         ]);
-        // TODO:need.why??
         Config::set('auth.guards.api', [
             'driver' => 'passport',
             'provider' => 'exment-auth',
         ]);
+
+        // for login
+        Config::set('auth.guards.admin.provider', 'exment-auth-login');
+        Config::set('auth.providers.exment-auth-login', [
+            'driver' => 'exment-auth',
+        ]);
     
+
         if (!Config::has('filesystems.disks.admin')) {
             Config::set('filesystems.disks.admin', [
                 'driver' => 'exment-driver',
@@ -91,6 +111,7 @@ class Initialize
             ]);
         }
 
+        // mysql setting
         Config::set('database.connections.mysql.strict', false);
         Config::set('database.connections.mysql.options', [
             PDO::ATTR_CASE => PDO::CASE_LOWER,
@@ -182,19 +203,41 @@ class Initialize
             if (isset($val)) {
                 Config::set('admin.skin', esc_html($val));
             }
+
             // Site layout
             $val = System::site_layout();
             if (isset($val)) {
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
+
+            
+            // favicon
+            $val = System::site_favicon();
+            if (isset($val)) {
+                \Admin::setFavicon($val);
+            }
         }
     }
 
     /**
-     * set laravel-admin form field
+     * set laravel-admin
      */
-    public static function initializeFormField()
+    public static function registeredLaravelAdmin()
     {
+        Grid::init(function (Grid $grid) {
+            $grid->disableColumnSelector();
+        });
+
+        Form::init(function (Form $form) {
+            $form->disableEditingCheck();
+            $form->disableCreatingCheck();
+            $form->disableViewCheck();
+            $form->disableReset();
+            $form->tools(function (Form\Tools $tools) {
+                $tools->disableView();
+            });
+        });
+
         $map = [
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,

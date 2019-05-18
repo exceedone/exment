@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
 use Encore\Admin\Auth\Database\Menu as AdminMenu;
@@ -67,22 +68,33 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      */
     public function allNodes() : array
     {
-        $orderColumn = DB::getQueryGrammar()->wrap($this->orderColumn);
-        $byOrder = "m.$orderColumn = 0, m.$orderColumn";
+        $grammar = DB::getQueryGrammar();
+        $orderColumn = $grammar->wrap($this->orderColumn);
+
+        // get column
+        // if SqlServer, needs cast
+        if ($grammar instanceof \Illuminate\Database\Query\Grammars\SqlServerGrammar) {
+            $tableQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'c.id');
+            $pluginQuery = $grammar->getCastColumn(DatabaseDataType::TYPE_STRING, 'p.id');
+        } else {
+            $tableQuery = $grammar->wrap('c.id');
+            $pluginQuery = $grammar->wrap('p.id');
+        }
 
         // get all menu, custom table, plugin table.
         $query = DB::table("{$this->getTable()} as m")
             // join table
-            ->leftJoin(CustomTable::getTableName()." as c", function ($join) {
+            ->leftJoin(CustomTable::getTableName()." as c", function ($join) use ($tableQuery) {
                 $join->where("m.menu_type", MenuType::TABLE);
-                $join->on("m.menu_target", "c.id");
+                $join->whereRaw("m.menu_target = ". $tableQuery);
             })
             // join plugin
-            ->leftJoin(Plugin::getTableName()." as p", function ($join) {
+            ->leftJoin(Plugin::getTableName()." as p", function ($join) use ($pluginQuery) {
                 $join->where("m.menu_type", MenuType::PLUGIN);
-                $join->on("m.menu_target", "p.id");
+                $join->whereRaw("m.menu_target = ". $pluginQuery);
             })
-            ->orderByRaw($byOrder);
+            ->orderByRaw("CASE WHEN m.$orderColumn = 0 THEN 1 ELSE 0 END")
+            ->orderByRaw("m.$orderColumn");
 
         //->map(function ($item, $key) {
         //    return (array) $item;

@@ -7,6 +7,8 @@ use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\ViewKindType;
 
 class ListItem implements ItemInterface
 {
@@ -28,6 +30,10 @@ class ListItem implements ItemInterface
         // get table and view
         $this->custom_table = CustomTable::getEloquent($table_id);
         $this->custom_view = CustomView::getEloquent($view_id);
+
+        if (!isset($this->custom_table)) {
+            return;
+        }
 
         // if view not found, set view first data
         if (!isset($this->custom_view)) {
@@ -138,7 +144,7 @@ class ListItem implements ItemInterface
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
             ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-            ->load('options_target_view_id', admin_url('dashboardbox/table_views'));
+            ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::LIST]));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
@@ -147,7 +153,14 @@ class ListItem implements ItemInterface
                     return [];
                 }
 
-                return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                if (is_null($view = CustomView::getEloquent($value))) {
+                    return [];
+                }
+
+                return $view->custom_table->custom_views
+                    ->filter(function ($value) {
+                        return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                    })->pluck('view_view_name', 'id');
             });
     }
 

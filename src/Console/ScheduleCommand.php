@@ -78,17 +78,22 @@ class ScheduleCommand extends Command
             return;
         }
 
+        // set date as minute and second is 0
+        $nowHour = Carbon::create($now->year, $now->month, $now->day, $now->hour, 0, 0);
+
         $last_executed = System::backup_automatic_executed();
         if (isset($last_executed)) {
             $term = System::backup_automatic_term();
-            if ($last_executed->addDay($term)->gt($now->today())) {
+            // set date as minute and second is 0
+            $last_executed = Carbon::create($last_executed->year, $last_executed->month, $last_executed->day + $term, $last_executed->hour, 0, 0);
+            if ($last_executed->gt($nowHour)) {
                 return;
             }
         }
 
         // get target
         $target = System::backup_target();
-        \Artisan::call('exment:backup', isset($target) ? ['--target' => $target] : []);
+        \Artisan::call('exment:backup', isset($target) ? ['--target' => $target, '--schedule' => 1] : []);
 
         System::backup_automatic_executed($now);
     }

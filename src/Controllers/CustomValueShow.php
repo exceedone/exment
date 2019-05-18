@@ -71,6 +71,8 @@ trait CustomValueShow
 
                     if ($custom_form_block->isMultipleColumn()) {
                         $show->setWidth(9, 3);
+                    } elseif ($modal) {
+                        $show->setWidth(9, 3);
                     }
                 }
                 ////// relation block
@@ -222,7 +224,7 @@ EOT;
                     'No.'.($revision->revision_no)
                 )->setWidth(9, 2);
             }
-            $row->column(6, (new Box('更新履歴', $form))->style('info'));
+            $row->column(6, (new Box(exmtrans('revision.update_history'), $form))->style('info'));
         }
 
         if ($useComment) {

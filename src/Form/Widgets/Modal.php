@@ -52,7 +52,7 @@ EOT;
     {
         // add modal for showmodal
         $modal = new Modal();
-        $modal->modalHeader('データ確認'); //TODO:trans
+        $modal->modalHeader(exmtrans('custom_value.data_detail'));
         $modal->modalAttribute(['id' => 'modal-showmodal', 'data-backdrop' => true]);
 
         return $modal->render();

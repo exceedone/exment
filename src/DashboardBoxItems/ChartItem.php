@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
+use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewKindType;
 
@@ -163,10 +164,16 @@ class ChartItem implements ItemInterface
                 ->required()
                 ->options(ChartType::transArray("chart.chart_type_options"));
 
+        // get only has summaryview
+        $model = CustomTable::whereHas('custom_views', function ($query) {
+            $query->where('view_kind_type', ViewKindType::AGGREGATE);
+        });
+        $tables = CustomTable::filterList($model)
+            ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
-        ->required()
-        ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-        ->load('options_target_view_id', admin_url('dashboardbox/table_views'));
+            ->required()
+            ->options($tables)
+            ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::CHART]));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
@@ -174,7 +181,10 @@ class ChartItem implements ItemInterface
                 if (!isset($value)) {
                     return [];
                 }
-                return CustomView::getEloquent($value)->custom_table->custom_views()->pluck('view_view_name', 'id');
+                return CustomView::getEloquent($value)->custom_table->custom_views
+                    ->filter(function ($value) {
+                        return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                    })->pluck('view_view_name', 'id');
             })
             ->loads(
                 ['options_chart_axisx', 'options_chart_axisy'],

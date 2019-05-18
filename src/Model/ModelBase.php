@@ -17,9 +17,14 @@ class ModelBase extends Model
     {
         return $this->getUser('updated_user_id');
     }
-    public function getDeletedUserAttribute()
+
+    public function getCreatedUserTagAttribute()
     {
-        return $this->getUser('deleted_user_id');
+        return $this->getUser('created_user_id', true);
+    }
+    public function getUpdatedUserTagAttribute()
+    {
+        return $this->getUser('updated_user_id', true);
     }
 
     public static function getTableName()
@@ -35,15 +40,12 @@ class ModelBase extends Model
     {
         parent::boot();
 
-        ///// add created_user_id, updated_user_id, deleted_user_id
+        ///// add created_user_id, updated_user_id
         static::creating(function ($model) {
             static::setUser($model, ['created_user_id', 'updated_user_id']);
         });
         static::updating(function ($model) {
             static::setUser($model, ['updated_user_id']);
-        });
-        static::deleting(function ($model) {
-            static::setUser($model, ['updated_user_id', 'deleted_user_id']);
         });
     }
 
@@ -94,12 +96,8 @@ class ModelBase extends Model
     /**
      * get user from id
      */
-    protected function getUser($column)
+    protected function getUser($column, $link = false)
     {
-        return getUserName($this->{$column});
-        if ($value->trashed()) {
-            return exmtrans('common.trashed_user');
-        }
-        return $value->getLabel();
+        return getUserName($this->{$column}, $link);
     }
 }

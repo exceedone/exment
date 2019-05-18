@@ -11,7 +11,6 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
-use Exceedone\Exment\Services\DynamicDBHelper;
 use Encore\Admin\Facades\Admin;
 
 getCustomTableTrait();
@@ -23,7 +22,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
@@ -43,8 +41,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function custom_columns()
     {
-        return $this->hasMany(CustomColumn::class, 'custom_table_id')
-            ->orderBy('order');
+        return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
     public function custom_views()
     {
@@ -78,8 +75,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedItems()
     {
-        $raw = "json_unquote(options->'$.select_target_table')";
-        return CustomColumn::where(\DB::raw($raw), $this->id)
+        return CustomColumn::where('options->select_target_table', $this->id)
             ->get();
     }
 
@@ -111,8 +107,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedTables()
     {
-        $raw = "json_unquote(options->'$.select_target_table')";
-        return CustomColumn::where(\DB::raw($raw), $this->id)
+        return CustomColumn::where('options->select_target_table', $this->id)
             ->get()
             ->mapWithKeys(function ($item) {
                 $key = $item->getIndexColumnName();
@@ -122,8 +117,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getSelectedTableColumns()
     {
-        $raw = "json_unquote(options->'$.select_target_table')";
-        return CustomColumn::where(\DB::raw($raw), $this->id)
+        return CustomColumn::where('options->select_target_table', $this->id)
             ->get()
             ->mapWithKeys(function ($item) {
                 $key = $item->getIndexColumnName();
@@ -176,15 +170,24 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         parent::boot();
         
         // add default order
-        static::addGlobalScope(new OrderScope('order'));
+        // "order" is added v1.1.0, So if called from v1.1.0, cannot excute. So checked order column
+        if (System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER, function () {
+            return \Schema::hasColumn(static::getTableName(), 'order');
+        })) {
+            static::addGlobalScope(new OrderScope('order'));
+        }
 
         // delete event
         static::deleting(function ($model) {
+            // delete custom values table
+            $model->dropTable();
+
             // Delete items
             $model->deletingChildren();
             
             $model->custom_form_block_target_tables()->delete();
             $model->child_custom_relations()->delete();
+            $model->custom_views()->delete();
             $model->custom_forms()->delete();
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
@@ -365,34 +368,80 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'paginate' => false,
                 'makeHidden' => false,
                 'searchColumns' => null,
+                'relation' => false,
             ],
             $options
         );
         extract($options);
 
         // if selected target column,
-        $searchColumns =  $options['searchColumns'];
+        $searchColumns = $options['searchColumns'];
         if (is_null($searchColumns)) {
             $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
                 return $c->getIndexColumnName();
             });
         }
+
+        if (!isset($searchColumns) || count($searchColumns) == 0) {
+            return collect([]);
+        }
         
         $data = [];
-        $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+
+        if (boolval(config('exment.filter_search_full', false))) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
         $mark = ($isLike ? 'LIKE' : '=');
 
-        // get data
-        $query = getModelName($this)
-            ::where(function ($wherequery) use ($searchColumns, $mark, $value) {
-                foreach ($searchColumns as $searchColumn) {
-                    $wherequery->orWhere($searchColumn, $mark, $value);
-                }
-            });
-        
+        $takeCount = config('exment.keyword_search_count', 1000);
+        $relationTakeCount = config('exment.keyword_search_relation_count', 5000);
+
+        // crate union query
+        $queries = [];
+        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+            $searchColumn = $searchColumns[$i];
+            $query = getModelName($this)::query();
+            $query->where($searchColumn, $mark, $value)->select('id');
+            if (!boolval($options['relation'])) {
+                $query->take($takeCount);
+            } else {
+                $query->take($relationTakeCount);
+            }
+
+            $queries[] = $query;
+        }
+
+        $searchColumn = $searchColumns->last();
+        $subquery = getModelName($this)::query();
+        $subquery->where($searchColumn, $mark, $value)->select('id');
+        if (!boolval($options['relation'])) {
+            $subquery->take($takeCount);
+        } else {
+            $subquery->take($relationTakeCount);
+        }
+
+        foreach ($queries as $inq) {
+            $subquery->union($inq);
+        }
+
+        // create main query
+        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+
         // return as paginate
         if ($paginate) {
-            $paginates = $query->paginate($maxCount);
+            // get data(only id)
+            $paginates = $mainQuery->select('id')->paginate($maxCount);
+
+            // set eloquent data using ids
+            $ids = collect($paginates->items())->map(function ($item) {
+                return $item->id;
+            });
+
+            // set pager items
+            $paginates->setCollection(getModelName($this)::whereIn('id', $ids->toArray())->get());
+            
             if (boolval($makeHidden)) {
                 $data = $paginates->makeHidden($this->getMakeHiddenArray());
                 $paginates->data = $data;
@@ -402,7 +451,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // return default
-        return $query
+        $ids = $mainQuery->select('id')->take($maxCount)->get()->pluck('id');
+        return getModelName($this)
+            ::whereIn('id', $ids)
             ->take($maxCount)
             ->get();
     }
@@ -441,8 +492,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        DynamicDBHelper::createValueTable($table_name);
+        \Schema::createValueTable($table_name);
         System::requestSession($key, 1);
+    }
+
+    public function dropTable()
+    {
+        $table_name = getDBTableName($this);
+        if (!\Schema::hasTable($table_name)) {
+            return;
+        }
+        \Schema::dropIfExists($table_name);
     }
     
     /**
@@ -563,7 +623,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $this->getValueModel();
 
         // filter model
-        $model = Admin::user()->filterModel($model, $this);
+        $user = Admin::user();
+        if (isset($user)) {
+            $model = $user->filterModel($model, $this);
+        }
         return $model;
     }
     /**
@@ -788,6 +851,34 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
         return $options;
     }
+
+    /**
+     * get date columns select options. It contains date, datetime.
+     *
+     */
+    public function getDateColumnsSelectOptions()
+    {
+        $options = [];
+
+        ///// get table columns
+        $custom_columns = $this->custom_columns;
+        foreach ($custom_columns as $option) {
+            if (!$option->indexEnabled()) {
+                continue;
+            }
+            $column_type = array_get($option, 'column_type');
+            if (ColumnType::isDate($column_type)) {
+                $options[$this->getOptionKey(array_get($option, 'id'))] = array_get($option, 'column_view_name');
+            }
+        }
+        
+        /// get system date columns
+        foreach (SystemColumn::getOptions(['type' => 'datetime']) as $option) {
+            $options[$this->getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
+        }
+
+        return $options;
+    }
         
     /**
      * Get relation tables list.
@@ -803,7 +894,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // * table_column > options > search_enabled is true.
             // * table_column > options > select_target_table is table id user selected.
             $tables = static::whereHas('custom_columns', function ($query) {
-                $query->whereIn('options->index_enabled', [1, "1"])
+                $query
+                ->withoutGlobalScope(OrderScope::class)
+                ->whereIn('options->index_enabled', [1, "1"])
                 ->whereIn('options->select_target_table', [$this->id, strval($this->id)]);
             })
             ->searchEnabled()

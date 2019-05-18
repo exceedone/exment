@@ -4,8 +4,13 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Services\FormHelper;
+use Carbon\Carbon;
 use Validator;
 
 /**
@@ -208,6 +213,51 @@ class ApiTableController extends AdminControllerTableBase
             abort(400);
         }
 
+        // replace items
+        if (!is_null($findKeys = $request->get('findKeys'))) {
+            $custom_table = $custom_value->custom_table;
+            foreach ($findKeys as $findKey => $findValue) {
+                // find column
+                $custom_column = CustomColumn::getEloquent($findKey, $custom_table);
+                if (!isset($custom_column)) {
+                    continue;
+                }
+
+                if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
+                    continue;
+                }
+
+                // get target custom table
+                $findCustomTable = $custom_column->select_target_table;
+                if (!isset($findCustomTable)) {
+                    continue;
+                }
+
+                // get target column for getting index
+                $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
+                if (!isset($findCustomColumn)) {
+                    continue;
+                }
+
+                if (!$findCustomColumn->indexEnabled()) {
+                    //TODO:show error
+                    continue;
+                }
+                $indexColumnName = $findCustomColumn->getIndexColumnName();
+
+                $findCustomValue = $findCustomTable->getValueModel()
+                    ->where($indexColumnName, array_get($value, $findKey))
+                    ->first();
+
+                if (!isset($findCustomValue)) {
+                    //TODO:show error
+                    continue;
+                }
+                array_set($value, $findKey, array_get($findCustomValue, 'id'));
+            }
+        }
+
+
         // // get fields for validation
         $validate = $this->validateData($value, $custom_value->id);
         if ($validate !== true) {
@@ -265,11 +315,11 @@ class ApiTableController extends AdminControllerTableBase
         if ($validator->fails()) {
             // create error message
             $errors = [];
-            foreach ($validator->errors()->messages() as $message) {
+            foreach ($validator->errors()->messages() as $key => $message) {
                 if (is_array($message)) {
-                    $errors[] = $message[0];
+                    $errors[$key] = $message[0];
                 } else {
-                    $errors[] = $message;
+                    $errors[$key] = $message;
                 }
             }
             return $errors;
@@ -295,5 +345,162 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         return $value;
+    }
+    
+    /**
+     * get calendar data
+     * @return mixed
+     */
+    public function calendarList(Request $request)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        // filtered query
+        $start = $request->get('start');
+        $end = $request->get('end');
+        if (!isset($start) || !isset($end)) {
+            return [];
+        }
+
+        $start = Carbon::parse($start);
+        $end = Carbon::parse($end);
+
+        $table_name = $this->custom_table->table_name;
+        // get paginate
+        $model = $this->custom_table->getValueModel();
+        // filter model
+        $model = \Exment::user()->filterModel($model, $table_name, $this->custom_view);
+
+        $tasks = [];
+        foreach ($this->custom_view->custom_view_columns as $custom_view_column) {
+            if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
+                $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
+            } else {
+                $target_start_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
+            }
+
+            if (isset($custom_view_column->view_column_end_date)) {
+                $end_date_target = $custom_view_column->getOption('end_date_target');
+                if ($custom_view_column->view_column_end_date_type == ViewColumnType::COLUMN) {
+                    $target_end_custom_column = CustomColumn::getEloquent($end_date_target);
+                    $target_end_column = $target_end_custom_column->getIndexColumnName();
+                } else {
+                    $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
+                }
+            }else{
+                $target_end_column = null;
+            }
+
+            // clone model for re use
+            $query = $this->getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column ?? null);
+            $data = $query->get();
+
+            foreach ($data as $row) {
+                $task = [
+                    'title' => $row->getLabel(),
+                    'url' => admin_url('data', [$table_name, $row->id]),
+                    'color' => $custom_view_column->view_column_color,
+                    'textColor' => $custom_view_column->view_column_font_color,
+                ];
+                $this->setCalendarDate($task, $row, $target_start_column, $target_end_column);
+                
+                $tasks[] = $task;
+            }
+        }
+        return json_encode($tasks);
+    }
+
+    /**
+     * Get calendar query
+     * ex. display: 4/1 - 4/30
+     *
+     * @param mixed $query
+     * @return void
+     */
+    protected function getCalendarQuery($model, $start, $end, $target_start_column, $target_end_column)
+    {
+        $query = clone $model;
+        // filter end data
+        if (isset($target_end_column)) {
+            // filter enddate.
+            // ex. 4/1 - endDate - 4/30
+            $endQuery = (clone $query);
+            $endQuery = $endQuery->where((function ($query) use ($target_end_column, $start, $end) {
+                $query->where($target_end_column, '>=', $start->toDateString())
+                ->where($target_end_column, '<', $end->toDateString());
+            }))->select('id');
+
+            // filter start and enddate.
+            // ex. startDate - 4/1 - 4/30 - endDate
+            $startEndQuery = (clone $query);
+            $startEndQuery = $startEndQuery->where((function ($query) use ($target_start_column, $target_end_column, $start, $end) {
+                $query->where($target_start_column, '<=', $start->toDateString())
+                ->where($target_end_column, '>=', $end->toDateString());
+            }))->select('id');
+        }
+
+        if ($query instanceof \Illuminate\Database\Eloquent\Model) {
+            $query = $query->getQuery();
+        }
+
+        // filter startDate
+        // ex. 4/1 - startDate - 4/30
+        $query->where(function ($query) use ($target_start_column, $start, $end) {
+            $query->where($target_start_column, '>=', $start->toDateString())
+            ->where($target_start_column, '<', $end->toDateString());
+        })->select('id');
+
+        // union queries
+        if (isset($endQuery)) {
+            $query->union($endQuery);
+        }
+        if (isset($startEndQuery)) {
+            $query->union($startEndQuery);
+        }
+
+        // get target ids
+        $ids = \DB::query()->fromSub($query, 'sub')->pluck('id');
+
+        // return as eloquent
+        return $model->whereIn('id', $ids);
+    }
+
+    /**
+     * Set calendar date. check date or datetime
+     *
+     * @param array $task
+     * @param mixed $row
+     * @return void
+     */
+    protected function setCalendarDate(&$task, $row, $target_start_column, $target_end_column)
+    {
+        $dt = $row->{$target_start_column};
+        if (isset($target_end_column)) {
+            $dtEnd = $row->{$target_end_column};
+        } else {
+            $dtEnd = null;
+        }
+
+        if ($dt instanceof Carbon) {
+            $dt = $dt->toDateTimeString();
+        }
+        if (isset($dtEnd) && $dtEnd instanceof Carbon) {
+            $dtEnd = $dtEnd->toDateTimeString();
+        }
+        
+        // get columnType
+        $dtType = ColumnType::getDateType($dt);
+        $dtEndType = ColumnType::getDateType($dtEnd);
+
+        // set
+        $allDayBetween = $dtType == ColumnType::DATE && $dtEndType == ColumnType::DATE;
+        
+        $task['start'] = $dt;
+        if (isset($dtEnd)) {
+            $task['end'] = $dtEnd;
+        }
+        $task['allDayBetween'] = $allDayBetween;
     }
 }

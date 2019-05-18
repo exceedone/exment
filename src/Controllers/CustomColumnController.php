@@ -31,7 +31,7 @@ class CustomColumnController extends AdminControllerTableBase
     {
         parent::__construct($request);
         
-        $this->setPageInfo(exmtrans("custom_column.header"), exmtrans("custom_column.header"), exmtrans("custom_column.description"));
+        $this->setPageInfo(exmtrans("custom_column.header"), exmtrans("custom_column.header"), exmtrans("custom_column.description"), 'fa-list');
     }
 
     /**
@@ -159,6 +159,7 @@ class CustomColumnController extends AdminControllerTableBase
 
         $form->text('column_view_name', exmtrans("custom_column.column_view_name"))
             ->required()
+            ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(ColumnType::transArray("custom_column.column_type_options"))
@@ -173,7 +174,7 @@ class CustomColumnController extends AdminControllerTableBase
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_type, $id) {
             $form->switchbool('required', exmtrans("common.reqired"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
-                ->rules("maxTableIndex:{$this->custom_table->id},10|usingIndexColumn:{$id}")
+                ->rules("maxTableIndex:{$this->custom_table->id},$id|usingIndexColumn:{$id}")
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
@@ -307,9 +308,12 @@ class CustomColumnController extends AdminControllerTableBase
                     ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER])]);
 
             // set manual
-            $manual_url = getManualUrl('column#自動採番フォーマットのルール');
+            $manual_url = getManualUrl('column#'.exmtrans('custom_column.auto_number_format_rule'));
             $form->text('auto_number_format', exmtrans("custom_column.options.auto_number_format"))
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'])])
+                    ->attribute(['data-filter' => json_encode([
+                        ['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER],
+                        ['parent' => 1, 'key' => 'options_auto_number_type', 'value' => 'format'],
+                    ])])
                     ->help(sprintf(exmtrans("custom_column.help.auto_number_format"), $manual_url))
                 ;
 
@@ -433,16 +437,10 @@ class CustomColumnController extends AdminControllerTableBase
             $this->addColumnAfterSaved($model);
         });
 
-        $form->footer(function ($footer) {
-            // disable reset btn
-            $footer->disableReset();
-            // disable `View` checkbox
-            $footer->disableViewCheck();
-        });
-        
+        $form->disableCreatingCheck(false);
+        $form->disableEditingCheck(false);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
-            $tools->disableView();
             $tools->add((new Tools\GridChangePageMenu('column', $custom_table, false))->render());
         });
         return $form;

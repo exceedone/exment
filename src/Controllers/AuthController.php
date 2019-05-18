@@ -262,9 +262,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
             $form->setAction(admin_url('auth/setting'));
             $form->ignore(['password_confirmation', 'old_password']);
-            disableFormFooter($form);
             $form->tools(function (Form\Tools $tools) {
-                $tools->disableView();
                 $tools->disableDelete();
             });
 

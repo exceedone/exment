@@ -29,6 +29,7 @@ return [
         'deleted_user' => 'Deleted User',   
         'trashed_user' => '(Already Trashed User)', 
         'attachment' => 'Attachment File',     
+        'comment' => 'Comment',   
         'separate_word' => ',',
         'yes' => 'Yes',
         'no' => 'No',
@@ -37,13 +38,14 @@ return [
         'asc' => 'Asc',
         'desc' => 'Desc',
         'message' => [
-            'confirm_execute'        => 'Are you sure to %s ?',
+            'confirm_execute' => 'Are you sure to %s ?',
             'success_execute' => 'Execute Success!',
             'error_execute' => 'Execute Error',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
             'wrongdata' => 'Data is wrong. Please check url.',
+            'wrongconfig' => 'Wrong config.json.',
         ],
 
         'help' =>[
@@ -51,6 +53,8 @@ return [
             'max_length' => 'Please enter within %s characters.',
             'input_available_characters' => 'Please enter %s.',
             'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
+            'task_schedule_id' => 'Task Schedule',
+            'task_schedule' => '<br /><b>*You have to do scheduling setting.</b> Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
         ],
     ],
 
@@ -59,9 +63,17 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
+        'failure_import_file' => 'The format of the uploaded file is incorrect. Please check it.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
+        'login_failed' => 'ID or password is wrong.',
+        'mailsend_failed' => 'E-mail transmission failed. Please check your email settings.',
     ],
-    
+
+    'validation' => [
+        'not_has_custom_value' => 'The value entered in :attribute does not exist in table ":table_view_name". Please check the data.',
+        'empty' => 'The value of :attribute can only be blank.',
+    ],
+
     'system' => [
         'system_header' => 'System Setting',
         'system_description' => 'Change the system settings.',
@@ -73,6 +85,7 @@ return [
         'site_name_short' => 'Site Name (Short)',
         'site_logo' => 'Site Logo',
         'site_logo_mini' => 'Site Logo(Small)',
+        'site_favicon' => 'Site Favicon(ico)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
         'permission_available' => 'Use Role Management',
@@ -113,6 +126,7 @@ return [
             'site_name_short' => 'An abbreviation for the site name to be displayed when the menu is collapsed.',
             'site_logo' => 'Site logo. Recommended size:200px * 40px',
             'site_logo_mini' => 'Site logo(small size). Recommended size:40px * 40px',
+            'site_favicon' => 'Site Favicon(.ico). It is used for bookmarks on the homepage. Recommended size:16px * 16px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
             'permission_available' => 'If Select YES, management role using user or organozation.',
@@ -129,6 +143,7 @@ return [
         'row' => 'Dashboard Row',
         'description_row' => 'The number of columns to display on the %s row of the dashboard.',
         'description_row2' => 'The number of columns to display on the %s row of the dashboard. *If you select "None", the %s row is not displayed.',
+        'description_chart' => '*To display the chart, you need aggregation view and aggregation items. <br /> If you have not created a summary view, first create a summary view from the view setting screen.',
         'default_dashboard_name' => 'Default Dashboard',
         'not_registered' => 'Not Registered',
         'dashboard_type_options' => [
@@ -215,6 +230,11 @@ return [
             'errorMess' => 'Select a plugin file.',
         ],
 
+        'error' => [
+            'samename_plugin' => 'There is a plug-in with the same name. Please check and try once.',
+            'wrongname_plugin' => 'UUID exists, but the plug-in name is incorrect. Please check and try again.',
+        ],
+    
         'plugin_type_options' => [
             'page' => 'Page',
             'trigger' => 'Trigger',
@@ -237,6 +257,7 @@ return [
         'enable_automatic' => 'Auto Backup',
         'automatic_term' => 'Auto Backup Execution Interval(day)',
         'automatic_hour' => 'Auto Backup Start Time(hour)',
+        'history_files' => 'Number of preservation generations',
         'upload_zipfile' => 'Upload(zip)',
         'backup_target_options' => [
             'database' => 'Database',
@@ -263,6 +284,7 @@ return [
             'enable_automatic' => 'If it is set to YES, backup will be executed automatically.',
             'automatic_term' => 'It is a setting of how many days to perform automatic backup. Example: When entering "3", execute backup every 3 days',
             'automatic_hour' => 'The start time of the automatic backup. Example: When entering "3", start backup execution at 3:00',
+            'history_files' => 'The number of generations to keep during automatic backup. When 1 or more is input, the backup of the input integer is kept.',
         ]
     ],
 
@@ -274,6 +296,7 @@ return [
         'email' => 'Email',
         'password' => 'Password',
         'password_confirmation' => 'Password(Confirm)',
+        'old_password' => 'Current Password',
         'new_password' => 'New Password',
         'new_password_confirmation' => 'New Password(Confirm)',
         'send_password' => 'Send User Info',
@@ -294,6 +317,9 @@ return [
             'reset_password' => 'By checking, the password will be reset.',
             'create_password_auto' => 'By checking, the password is automatically generated. (An email will be sent to the relevant user.)',
             'send_password' => 'By checking, we will e-mail user information to the relevant user.',
+        ],
+        'message' => [
+            'required_password' => 'Enter a password or select Auto-Create.',
         ]
     ],
 
@@ -329,11 +355,14 @@ return [
         'table_name' => 'Table Name',
         'table_view_name' => 'Table View Name',
         'field_description' => 'Description',
+        'order' => 'Order',
         'color' => 'Color',
         'icon' => 'Icon',
         'search_enabled' => 'Search Enabled',
         'one_record_flg' => 'Save Only One Record',
         'attachment_flg' => 'Use Attachment File',
+        'comment_flg' => 'Use Comment',
+        'use_label_id_flg' => 'Use ID as Label',
         'revision_flg' => 'Use Data Revision',
         'revision_count' => 'Data Revision Versioning Count',
         'notify_flg' => 'Notify When Create/Update',
@@ -349,6 +378,8 @@ return [
             'search_enabled' => 'If set on, can search from search display.',
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
             'attachment_flg' => 'If set to YES, you can add attachments to each data.',
+            'comment_flg' => 'If set to YES, comments can be added to each data.',
+            'use_label_id_flg' => 'If set to YES, the value of the data id is displayed as a heading item. Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'revision_flg' => 'If it is set to YES, save the data change history when saving each data. Also, you can restore previous saved information on each data screen.',
             'revision_count' => 'The maximum number of items to save change history of data. When saving more history, the past history is deleted.',
             'notify_flg' => 'If it is set to YES, a notification is sent to authorized users when adding / updating data.',
@@ -367,8 +398,10 @@ return [
         'column_name' => 'Column Name',
         'column_view_name' => 'Column View Name',
         'column_type' => 'Column Type',
+        'order' => 'Order',
         'add_custom_form_flg' => 'Add to the Default Form',
         'add_custom_view_flg' => 'Add to the Default View',
+        'auto_number_format_rule' => 'Auto Number format of the role',
         'options' => [
             'header' => 'Detail Option',
             'index_enabled' => 'Index Enabled',
@@ -573,7 +606,11 @@ return [
             'create' => 'Create View',
             'create_sum' => 'Create Summary View',
         ],
-        
+        'message' => [
+            'over_filters_max' => 'Cannot set 6 or more display filters.',
+            'over_sorts_max' => 'Cannot set 6 or more display sorts.',
+        ],
+
         'custom_view_button_label' => 'View',
         'custom_view_type_options' => [
             'system' => 'System View',
@@ -669,7 +706,11 @@ return [
         'input_custom_column' => 'Target Table Column',
         'column_description' => 'Please select the copy source column and copy target column from the list respectively.',
         'input_column_description' => 'When copying is done, you can display a form (dialog) to change the value after copying. Please set the target column to be input to the form when copying.',
-        'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value."
+        'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value.",
+
+        'help' => [
+            'to_custom_table_view_name' => 'Please select copy target table.',
+        ],
     ],
 
     'search' => [
@@ -753,6 +794,7 @@ return [
     'custom_value' => [
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
+        'export' => 'Export',
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
@@ -777,6 +819,7 @@ return [
                 'skip' => 'Normal data is captured, but error data is not imported.',
             ],
         ],
+        'data_detail' => 'Data Check',
 
         'bootstrap_duallistbox_container' => [
             'nonSelectedListLabel' => 'Suggest Data List',
@@ -784,12 +827,26 @@ return [
             'help' => 'Please select From the left column and move to the right column.',
         ],
         'auto_number_create' => '(After saving, this value ​​will be registered automatically)',
-        
+
         'help' => [
             'no_columns_admin' => 'Custom column has not been registered. Please register a custom column first.',
             'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
+            'reference_error' => 'This data can not be deleted because it is referenced from another table.',
         ],
+    ],
 
+    'revision' => [
+        'update_history' => 'Update History',
+        'revision' => 'Revision',
+        'revision_select' => 'Select Revision',
+        'revision_no' => 'Revision No',
+        'revision_id' => 'Revision ID',
+        'old_revision' => 'Old Revision',
+        'new_revision' => 'New Revision',
+        'revision_info' => 'Revision Info',
+        'restore_revision' => 'Restore This Revision',
+        'new' => 'Newest',
+        'compare_revision' => 'Compare Revision',
     ],
 
     'notify' => [
@@ -837,12 +894,23 @@ return [
         'notify_action_target_options' => [
             'has_roles' => 'Have the Role User',
         ],
-        'chart' => [
-            'chart_type_options' => [
-                'bar' => 'Bar chart',
-                'line' => 'Line chart',
-                'pie' => 'Pie chart',
-            ],
+    ],
+    
+    'chart' => [
+        'chart_type_options' => [
+            'bar' => 'Bar chart',
+            'line' => 'Line chart',
+            'pie' => 'Pie chart',
+        ]
+    ],
+    
+    'api' => [
+        'scopes' => [
+            'me' => 'Get Login User Info',
+            'table_read' => 'Get Table Info',
+            'table_write' => 'Get, Create, Update, Delete Table',
+            'value_read' => 'Get Value',
+            'value_write' => 'Get, Create, Update, Delete Value',
         ],
     ],
 ];

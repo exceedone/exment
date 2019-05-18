@@ -26,7 +26,6 @@ class Morph
         try {
             if (hasTable(SystemTableName::CUSTOM_TABLE)) {
                 $table_names = \DB::table(SystemTableName::CUSTOM_TABLE)
-                    ->whereNull('deleted_at')
                     ->get(['table_name'])
                     ->pluck('table_name');
                     

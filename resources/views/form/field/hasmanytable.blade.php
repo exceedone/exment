@@ -12,11 +12,13 @@
         </div>
     @endif
     <div class="col-sm-{{$tablewidth['width']}} col-sm-offset-{{$tablewidth['offset']}}">
-        <table id="has-many-table-{{$column}}-table" class="table table-bordered has-many-table has-many-table-{{$column}}-table">
+        <table id="has-many-table-{{$column}}-table" class="table table-bordered has-many-table has-many-table-{{$column}}-table" {!! $attributes !!} >
             <thead>
             <tr class="active">
                 @foreach($tableitems as $tableitem)
-                    <th class="text-center {{$loop->index < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[$loop->index] : ''}}">{{ $tableitem->label() }}</th>
+                    <th class="text-center {{$loop->index < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[$loop->index] : ''}} {{$loop->index < count($requires) && boolval($requires[$loop->index]) ? 'asterisk' : ''}}">
+                        {{ $tableitem->label() }}
+                    </th>
                 @endforeach
                 <th class="text-center {{count($tableitems) < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[count($tableitems)] : ''}}">{{trans('admin.action')}}</th>
             </tr>

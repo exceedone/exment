@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\ColumnItems;
-use Exceedone\Exment\Services\DynamicDBHelper;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CalcFormulaType;
@@ -16,7 +15,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
-    use \Illuminate\Database\Eloquent\SoftDeletes;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
@@ -85,6 +83,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return ColumnItems\CustomItem::getItem($this);
     }
 
+    public function getSelectTargetTableAttribute()
+    {
+        return CustomTable::getEloquent($this->getOption('select_target_table'));
+    }
+
     public function getOption($key, $default = null)
     {
         return $this->getJson('options', $key, $default);
@@ -113,7 +116,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         parent::boot();
                 
         // add default order
-        static::addGlobalScope(new OrderScope('order'));
+        // "order" is added v1.1.0, So if called from v1.1.0, cannot excute. So checked order column
+        if (System::requestSession(Define::SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER, function () {
+            return \Schema::hasColumn(static::getTableName(), 'order');
+        })) {
+            static::addGlobalScope(new OrderScope('order'));
+        }
 
         // delete event
         static::deleting(function ($model) {
@@ -196,11 +204,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         //  if index_enabled = false, and exists, then drop index
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
-            DynamicDBHelper::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
-            DynamicDBHelper::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
     }
     

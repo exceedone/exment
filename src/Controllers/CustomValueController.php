@@ -25,7 +25,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm, CustomValueShow, CustomValueSummary;
+    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm;
+    use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
     /**
@@ -36,7 +37,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($request);
 
-        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description);
+        $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
@@ -66,21 +67,28 @@ class CustomValueController extends AdminControllerTableBase
                 $id = $record->id;
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                disableFormFooter($form);
                 $content->body($form);
             }
             // no record
             else {
                 $form = $this->form(null);
-                disableFormFooter($form);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 $content->body($form);
             }
+
+            $form->disableViewCheck();
+            $form->disableEditingCheck();
+            $form->disableCreatingCheck();
         } else {
-            if ($this->custom_view->view_kind_type == ViewKindType::AGGREGATE) {
-                $content->body($this->gridSummary());
-            } else {
-                $content->body($this->grid());
+            switch ($this->custom_view->view_kind_type) {
+                case ViewKindType::AGGREGATE:
+                    $content->body($this->gridSummary());
+                    break;
+                case ViewKindType::CALENDAR:
+                    $content->body($this->gridCalendar());
+                    break;
+                default:
+                    $content->body($this->grid());
             }
         }
         return $content;
@@ -399,8 +407,7 @@ class CustomValueController extends AdminControllerTableBase
         foreach ($custom_table->getSelectedItems() as $item) {
             $model = getModelName(array_get($item, 'custom_table_id'));
             $column_name = array_get($item, 'column_name');
-            $raw = "json_unquote(value->'$.$column_name')";
-            if ($model::whereIn(\DB::raw($raw), $list)->exists()) {
+            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
                 return true;
             }
         }
