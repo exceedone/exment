@@ -123,6 +123,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             static::addGlobalScope(new OrderScope('order'));
         }
 
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
+
         // delete event
         static::deleting(function ($model) {
             // Delete items
