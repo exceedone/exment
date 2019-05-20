@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ApiScope;
+use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -120,6 +121,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootApp();
         $this->bootSetting();
         $this->bootDatabase();
+        $this->bootDebug();
 
         $this->publish();
         $this->load();
@@ -282,6 +284,33 @@ class ExmentServiceProvider extends ServiceProvider
         });
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
+        });
+    }
+
+    /**
+     * Boot database for Debug. if config.exment.debugmode -> true, show sql to larabel.log
+     *
+     * @return void
+     */
+    protected function bootDebug()
+    {
+        if(!boolval(config('exment.debugmode', false))){
+            return;
+        }
+
+        \DB::listen(function ($query) {
+            $sql = $query->sql;
+            for ($i = 0; $i < count($query->bindings); $i++) {
+                $binding = $query->bindings[$i];
+                if($binding instanceof \DateTime){
+                    $binding = $binding->format('Y-m-d H:i:s');
+                }elseif($binding instanceof EnumBase){
+                    $binding = $binding->toString();
+                }
+                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
+            }
+            $now = \Carbon\Carbon::now();
+            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
         });
     }
 

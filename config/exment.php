@@ -1,6 +1,8 @@
 <?php
 
 return [
+    // if true, show sql to larabel.log
+    'debugmode' => false,
 
     'password_rule' => [
       'rule' => '^[ -~]+$',
@@ -40,7 +42,7 @@ return [
       "#339900",
       "#ff6633",
       "#cc0099"
-  ],
+    ],
 
   'driver' => [
     'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
