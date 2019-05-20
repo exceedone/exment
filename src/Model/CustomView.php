@@ -26,7 +26,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $guarded = ['id', 'suuid'];
 
     public static $templateItems = [
-        'excepts' => ['custom_table', 'target_view_name'],
+        'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target'],
         'uniqueKeys' => ['suuid'],
         'langs' => [
             'keys' => ['suuid'],
