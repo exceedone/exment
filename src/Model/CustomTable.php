@@ -177,6 +177,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             static::addGlobalScope(new OrderScope('order'));
         }
 
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
+
         // delete event
         static::deleting(function ($model) {
             // delete custom values table

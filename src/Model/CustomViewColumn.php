@@ -62,6 +62,10 @@ class CustomViewColumn extends ModelBase
     protected static function boot()
     {
         parent::boot();
+        
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
 
         // add default order
         static::addGlobalScope(new OrderScope('order'));

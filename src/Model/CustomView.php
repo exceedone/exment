@@ -21,12 +21,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\AutoSUuidTrait;
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait;
+    use Traits\DatabaseJsonTrait;
 
-    protected $appends = ['view_calendar_target'];
+    protected $appends = ['view_calendar_target', 'pager_count'];
     protected $guarded = ['id', 'suuid'];
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
-        'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target'],
+        'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
         'uniqueKeys' => ['suuid'],
         'langs' => [
             'keys' => ['suuid'],
@@ -92,6 +94,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this->custom_table->table_name;
     }
 
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+
     public function deletingChildren()
     {
         $this->custom_view_columns()->delete();
@@ -104,6 +115,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         parent::boot();
         
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
+
         static::creating(function ($model) {
             $model->setDefaultFlgInTable();
         });
@@ -149,6 +164,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     }
                     return $item->setCustomValue($this)->html();
                 });
+        }
+
+        // set parpage
+        if(is_null(request()->get('per_page')) && isset($this->pager_count)){
+            $grid->paginate($this->pager_count);
         }
     }
     
@@ -223,14 +243,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get default view using table
+     *
+     * @param mixed $tableObj table_name, object or id eic
+     * @param boolean $getSettingValue if true, getting from UserSetting table
+     * @return void
      */
-    public static function getDefault($tableObj)
+    public static function getDefault($tableObj, $getSettingValue = true)
     {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
 
         // get request
-        $request = Req::capture();
+        $request = request();
 
         // get view using query
         if (!is_null($request->input('view'))) {
@@ -244,7 +268,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
         // if url doesn't contain view query, get view user setting.
-        if (!isset($view) && !is_null($user)) {
+        if (!isset($view) && !is_null($user) && $getSettingValue) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
@@ -592,6 +616,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         return ['id' => $view_column_id, 'text' => $column_view_name, 'is_number' => $is_number];
     }
+
     public function getViewCalendarTargetAttribute()
     {
         $custom_view_columns = $this->custom_view_columns;
@@ -600,6 +625,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         return null;
     }
+
     public function setViewCalendarTargetAttribute($view_calendar_target)
     {
         $custom_view_columns = $this->custom_view_columns;
@@ -607,5 +633,17 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $this->custom_view_columns[] = new CustomViewColumn();
         }
         $custom_view_columns[0]->view_column_target = $view_calendar_target;
+    }
+    
+    public function getPagerCountAttribute()
+    {
+        return $this->getOption('pager_count', 20);
+    }
+
+    public function setPagerCountAttribute($val)
+    {
+        $this->setOption('pager_count', $val);
+
+        return $this;
     }
 }

@@ -212,6 +212,7 @@ class Define
         ['uri'=> 'view', 'help_uri'=> 'view'],
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
+        ['uri'=> 'backup', 'help_uri'=> 'backup'],
         ['uri'=> 'role', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],

@@ -454,7 +454,7 @@ class CustomColumnController extends AdminControllerTableBase
         // set custom form columns --------------------------------------------------
         $add_custom_form_flg = app('request')->input('add_custom_form_flg');
         if (boolval($add_custom_form_flg)) {
-            $form = CustomForm::getDefault($this->custom_table);
+            $form = CustomForm::getDefault($this->custom_table, false);
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
             
             // get order
@@ -476,13 +476,17 @@ class CustomColumnController extends AdminControllerTableBase
         // set custom form columns --------------------------------------------------
         $add_custom_view_flg = app('request')->input('add_custom_view_flg');
         if (boolval($add_custom_view_flg)) {
-            $view = CustomView::getDefault($this->custom_table);
+            $view = CustomView::getDefault($this->custom_table, false);
             
             // get order
-            $order = $view->custom_view_columns()
-                ->where('view_column_type', ViewColumnType::COLUMN)
-                ->max('order') ?? 0;
-            $order++;
+            if($view->custom_view_columns()->count() == 0){
+                $order = 1;    
+            }else{
+                $order = $view->custom_view_columns()
+                    ->where('view_column_type', ViewColumnType::COLUMN)
+                    ->max('order') ?? 1;
+                $order++;
+            }
 
             $custom_view_column = new CustomViewColumn;
             $custom_view_column->custom_view_id = $view->id;

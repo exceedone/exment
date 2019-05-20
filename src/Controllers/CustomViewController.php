@@ -168,9 +168,10 @@ class CustomViewController extends AdminControllerTableBase
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
-        $form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))->default(ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options"));
+        //$form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))->default(ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options"));
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
+        $form->select('pager_count', trans("admin.view"))->required()->options(getPagerOptions())->default(20);
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
         
         $custom_table = $this->custom_table;

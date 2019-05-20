@@ -61,9 +61,13 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     
     /**
-     * get default view using table
+     * get default form using table
+     *
+     * @param mixed $tableObj table_name, object or id eic
+     * @param boolean $getSettingValue if true, getting from UserSetting table
+     * @return void
      */
-    public static function getDefault($tableObj)
+    public static function getDefault($tableObj, $getSettingValue = true)
     {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
@@ -82,7 +86,7 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
         // if url doesn't contain form query, get form user setting.
-        if (!isset($form) && !is_null($user)) {
+        if (!isset($form) && !is_null($user) && $getSettingValue) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]));
             $form = CustomForm::findBySuuid($suuid);
