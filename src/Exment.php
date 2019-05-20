@@ -23,6 +23,10 @@ class Exment
 
     public static function error($request, $exception, $callback)
     {
+        if(isApiEndpoint()){
+            return $callback($request, $exception);
+        }
+        
         try {
             // whether has User
             $user = \Exment::user();
