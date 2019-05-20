@@ -76,4 +76,57 @@ trait DatabaseJsonTrait
         $this->{$dbcolumnname} = [];
         return $this;
     }
+    
+    // re-set field data --------------------------------------------------
+    // if user update form and save, but other field remove if not conatins form field, so re-set field before update
+    protected function prepareJson($dbcolumnname)
+    {
+        ///// saving event for image, file event
+        $value = $this->{$dbcolumnname} ?? [];
+        $original = json_decode($this->getOriginal($dbcolumnname), true) ?? [];
+
+        // loop columns
+        $update_flg = false;
+        foreach ($original as $key => $o) {
+            if ($this->setAgainOriginalValue($value, $original, $key)) {
+                $update_flg = true;
+            }
+        }
+
+        // array_forget if $v is null
+        // if not execute this, mysql column "virtual" returns string "null".
+        foreach ($value as $k => $v) {
+            if (is_null($v)) {
+                $update_flg = true;
+                array_forget($value, $k);
+            }
+        }
+
+        // if update
+        if ($update_flg) {
+            $this->setAttribute($dbcolumnname, $value);
+        }
+    }
+
+    /**
+     * whether setting original data. and return setting or not.
+     */
+    protected function setAgainOriginalValue(&$value, $original, $key)
+    {
+        if (is_null($value)) {
+            $value = [];
+        }
+        // if not key, set from original
+        if (array_key_exists($key, $value)) {
+            return false;
+        }
+
+        if (!array_key_value_exists($column_name, $original)) {
+            return false;
+        }
+
+        $value[$column_name] = array_get($original, $column_name);
+        return true;
+    }
+
 }

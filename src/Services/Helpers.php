@@ -1285,6 +1285,19 @@ if (!function_exists('checkLatestVersion')) {
     }
 }
 
+if (!function_exists('getPagerOptions')) {
+    /**
+     * get pager select options
+     */
+    function getPagerOptions($counts = [10, 20, 30, 50, 100])
+    {
+        $options = [];
+        foreach ($counts as $count) {
+            $options[$count] = $count. ' ' . trans('admin.entries');
+        }
+        return $options;
+    }
+}
 
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {
