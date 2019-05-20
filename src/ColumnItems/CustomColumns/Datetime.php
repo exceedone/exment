@@ -8,7 +8,7 @@ class Datetime extends Date
 {
     protected function getAdminFieldClass()
     {
-        return Field\DateTime::class;
+        return Field\Datetime::class;
     }
     
     protected function setAdminFilterOptions(&$filter)
