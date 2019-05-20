@@ -209,10 +209,16 @@ class ApiTableController extends AdminControllerTableBase
     
     protected function saveData($custom_value, $request)
     {
-        if (is_null($value = $request->get('value'))) {
-            abort(400);
+        $validator = Validator::make($request->all(), [
+            'value' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ]);
         }
 
+        $value = $request->get('value');
         // replace items
         if (!is_null($findKeys = $request->get('findKeys'))) {
             $custom_table = $custom_value->custom_table;
@@ -314,17 +320,27 @@ class ApiTableController extends AdminControllerTableBase
         $validator = Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
         if ($validator->fails()) {
             // create error message
-            $errors = [];
-            foreach ($validator->errors()->messages() as $key => $message) {
-                if (is_array($message)) {
-                    $errors[$key] = $message[0];
-                } else {
-                    $errors[$key] = $message;
-                }
-            }
-            return $errors;
+            return $this->getErrorMessages($validator);
         }
         return true;
+    }
+
+    /**
+     * Get error message from validator
+     *
+     * @param [type] $validator
+     * @return array error messages
+     */
+    protected function getErrorMessages($validator){
+        $errors = [];
+        foreach ($validator->errors()->messages() as $key => $message) {
+            if (is_array($message)) {
+                $errors[$key] = $message[0];
+            } else {
+                $errors[$key] = $message;
+            }
+        }
+        return $errors;
     }
 
     /**

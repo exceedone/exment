@@ -167,7 +167,7 @@ if (!function_exists('rmcomma')) {
     }
 }
 
-// File, path  --------------------------------------------------
+// File, path, url  --------------------------------------------------
 if (!function_exists('admin_urls')) {
     /**
      * Join admin url paths.
@@ -334,7 +334,16 @@ if (!function_exists('bytesToHuman')) {
     }
 }
 
-
+if (!function_exists('isApiEndpoint')) {
+    /**
+     * this url is ApiEndpoint
+     */
+    function isApiEndpoint()
+    {
+        $basePath = ltrim(admin_base_path(), '/');
+        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+    }
+}
 
 // array --------------------------------------------------
 if (!function_exists('array_keys_exists')) {
