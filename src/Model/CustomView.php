@@ -223,14 +223,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     /**
      * get default view using table
+     *
+     * @param mixed $tableObj table_name, object or id eic
+     * @param boolean $getSettingValue if true, getting from UserSetting table
+     * @return void
      */
-    public static function getDefault($tableObj)
+    public static function getDefault($tableObj, $getSettingValue = true)
     {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
 
         // get request
-        $request = Req::capture();
+        $request = request();
 
         // get view using query
         if (!is_null($request->input('view'))) {
@@ -244,7 +248,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
         // if url doesn't contain view query, get view user setting.
-        if (!isset($view) && !is_null($user)) {
+        if (!isset($view) && !is_null($user) && $getSettingValue) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
             $view = CustomView::findBySuuid($suuid);
