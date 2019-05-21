@@ -336,7 +336,7 @@ class CustomViewController extends AdminControllerTableBase
 
             if (isset($suuid)) {
                 $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
-                <a href="'. admin_urls('data', "{$custom_table->table_name}?view={$suuid}") . '" class="btn btn-sm btn-pupple" title="'. exmtrans('custom_view.view_datalist') . '">
+                <a href="'. admin_urls('data', "{$custom_table->table_name}?view={$suuid}") . '" class="btn btn-sm btn-purple" title="'. exmtrans('custom_view.view_datalist') . '">
                     <i class="fa fa-database"></i><span class="hidden-xs"> '. exmtrans('custom_view.view_datalist') . '</span>
                 </a>
             </div>');
