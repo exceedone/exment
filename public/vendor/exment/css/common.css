@@ -3629,49 +3629,49 @@ table img.image_html:hover {
   }
 }
 
-.btn.btn-pupple {
+.btn.btn-purple {
   color: #FFFFFF;
-  background-color: #8A4ED9;
-  border-color: #5D49BD;
+  background-color: #9174ae;
+  border-color: #8575d4;
 }
 
-.btn.btn-pupple:hover,
-.btn.btn-pupple:focus,
-.btn.btn-pupple:active,
-.btn.btn-pupple.active,
-.open .dropdown-toggle.btn.btn-pupple {
+.btn.btn-purple:hover,
+.btn.btn-purple:focus,
+.btn.btn-purple:active,
+.btn.btn-purple.active,
+.open .dropdown-toggle.btn.btn-purple {
   color: #FFFFFF;
-  background-color: #49247A;
-  border-color: #5D49BD;
+  background-color: #82689c;
+  border-color: #7564c7;
 }
 
-.btn.btn-pupple:active,
-.btn.btn-pupple.active,
-.open .dropdown-toggle.btn.btn-pupple {
+.btn.btn-purple:active,
+.btn.btn-purple.active,
+.open .dropdown-toggle.btn.btn-purple {
   background-image: none;
 }
 
-.btn.btn-pupple.disabled,
-.btn.btn-pupple[disabled],
-fieldset[disabled] .btn.btn-pupple,
-.btn.btn-pupple.disabled:hover,
-.btn.btn-pupple[disabled]:hover,
-fieldset[disabled] .btn.btn-pupple:hover,
-.btn.btn-pupple.disabled:focus,
-.btn.btn-pupple[disabled]:focus,
-fieldset[disabled] .btn.btn-pupple:focus,
-.btn.btn-pupple.disabled:active,
-.btn.btn-pupple[disabled]:active,
-fieldset[disabled] .btn.btn-pupple:active,
-.btn .btn-pupple.disabled.active,
-.btn.btn-pupple[disabled].active,
-fieldset[disabled] .btn.btn-pupple.active {
-  background-color: #8A4ED9;
-  border-color: #5D49BD;
+.btn.btn-purple.disabled,
+.btn.btn-purple[disabled],
+fieldset[disabled] .btn.btn-purple,
+.btn.btn-purple.disabled:hover,
+.btn.btn-purple[disabled]:hover,
+fieldset[disabled] .btn.btn-purple:hover,
+.btn.btn-purple.disabled:focus,
+.btn.btn-purple[disabled]:focus,
+fieldset[disabled] .btn.btn-purple:focus,
+.btn.btn-purple.disabled:active,
+.btn.btn-purple[disabled]:active,
+fieldset[disabled] .btn.btn-purple:active,
+.btn .btn-purple.disabled.active,
+.btn.btn-purple[disabled].active,
+fieldset[disabled] .btn.btn-purple.active {
+  background-color: #9174ae;
+  border-color: #8575d4;
 }
 
-.btn.btn-pupple .badge {
-  color: #8A4ED9;
+.btn.btn-purple .badge {
+  color: #9174ae;
   background-color: #FFFFFF;
 }
 
