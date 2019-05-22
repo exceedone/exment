@@ -51,6 +51,7 @@ class Initialize
         }
         if (!is_null($env = env('APP_TIMEZONE'))) {
             Config::set('app.timezone', $env);
+            date_default_timezone_set($env);
         }
 
 
