@@ -42,6 +42,10 @@ class File extends ModelBase
             'document_name' => $document_name,
         ]);
         $document_model->save();
+
+        // execute notify
+        $custom_value->notify(false);
+
         return $document_model;
     }
 
