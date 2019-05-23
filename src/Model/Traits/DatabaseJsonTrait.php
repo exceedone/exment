@@ -121,11 +121,11 @@ trait DatabaseJsonTrait
             return false;
         }
 
-        if (!array_key_value_exists($column_name, $original)) {
+        if (!array_key_value_exists($key, $original)) {
             return false;
         }
 
-        $value[$column_name] = array_get($original, $column_name);
+        $value[$key] = array_get($original, $key);
         return true;
     }
 

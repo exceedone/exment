@@ -140,9 +140,11 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $form = new Form(new CustomColumn);
         // set script
-        //TODO: call using pjax
-        $date = \Carbon\Carbon::now()->format('YmdHis');
-        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$date).'"></script>');
+        $ver = getExmentCurrentVersion();
+        if (!isset($ver)) {
+            $ver = date('YmdHis');
+        }
+        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$ver).'"></script>');
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
@@ -251,6 +253,16 @@ class CustomColumnController extends AdminControllerTableBase
                     return $options;
                 });
             //}
+
+            // date, time, datetime
+            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+                ->help(exmtrans("custom_column.help.datetime_now_creating"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
+            $form->switchbool('datetime_now_updating', exmtrans("custom_column.options.datetime_now_updating"))
+                ->help(exmtrans("custom_column.help.datetime_now_updating"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
 
             // select
             // define select-item

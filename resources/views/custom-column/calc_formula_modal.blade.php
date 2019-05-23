@@ -5,7 +5,7 @@
         <div class="calc_formula_area" style="width:100%; border:1px solid black; min-height:100px;">
             @if(is_array($value))
             @foreach($value as $v)
-            <p class="col-value-item" data-type="" data-val="">
+            <p class="col-value-item" data-type="{{ array_get($v, 'type') }}" data-val="{{ array_get($v, 'val') }}">
                 <span>{{ array_get($v, 'text') }}</span>
                 <i class="fa fa-close pull-right col-value-item-remove"></i>
             </p>
