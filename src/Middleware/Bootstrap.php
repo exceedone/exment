@@ -121,7 +121,17 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
 
 EOT;
         Ad::script($script);
-            
+        
+        $this->requireBootstrap();
+
         return $next($request);
+    }
+
+    protected function requireBootstrap(){
+        $file = config('exment.bootstrap', exment_path('bootstrap_exment.php'));
+        if(!\File::exists($file)){
+            return;
+        }
+        require_once $file;
     }
 }

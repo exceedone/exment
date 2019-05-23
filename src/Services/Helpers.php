@@ -168,6 +168,21 @@ if (!function_exists('rmcomma')) {
 }
 
 // File, path  --------------------------------------------------
+if (!function_exists('exment_path')) {
+
+    /**
+     * Get exment path.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function exment_path($path = '')
+    {
+        return ucfirst(config('exment.directory', app_path('Exment'))).($path ? DIRECTORY_SEPARATOR.$path : $path);
+    }
+}
+
 if (!function_exists('admin_urls')) {
     /**
      * Join admin url paths.
