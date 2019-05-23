@@ -179,10 +179,15 @@ class Notify extends ModelBase
     }
 
     /**
-     *
+     * whether $user is target send user
      */
     protected function approvalSendUser($mail_template, $custom_table, $data, $user)
     {
+        // if $user is myself, return false
+        if(\Exment::user()->base_user_id == $user->id){
+            return false;
+        }
+
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.

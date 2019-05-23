@@ -278,7 +278,7 @@ class CustomValue extends ModelBase
     
     
     // notify user --------------------------------------------------
-    protected function notify($create = true)
+    public function notify($create = true)
     {
         // if $saved_notify is false, return
         if ($this->saved_notify === false) {

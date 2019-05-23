@@ -222,6 +222,12 @@ class CustomValueController extends AdminControllerTableBase
                 'comment_detail' => $comment,
             ]);
             $model->save();
+                
+            // execute notify
+            $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+            if(isset($custom_value)){
+                $custom_value->notify(false);
+            }
         }
 
         $url = admin_urls('data', $this->custom_table->table_name, $id);
