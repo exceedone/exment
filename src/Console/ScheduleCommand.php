@@ -19,7 +19,7 @@ class ScheduleCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:schedule';
+    protected $signature = 'exment:schedule {--plugin_id=}';
 
     /**
      * The console command description.
@@ -47,9 +47,13 @@ class ScheduleCommand extends Command
      */
     public function handle()
     {
-        $this->notify();
-        $this->backup();
-        $this->pluginBatch();
+        if(!is_null($plugin_id = $this->option("plugin_id"))){
+            $this->pluginBatch($plugin_id);
+        }else{
+            $this->notify();
+            $this->backup();
+            $this->pluginBatch();
+        }
     }
 
     /**
@@ -106,8 +110,13 @@ class ScheduleCommand extends Command
      *
      * @return void
      */
-    protected function pluginBatch(){
-        $pluginBatches = Plugin::batches();
+    protected function pluginBatch($plugin_id = null){
+        if(isset($plugin_id)){
+            Plugin::find($plugin_id)->getClass()->execute();
+            return;
+        }
+        
+        $pluginBatches = Plugin::getBatches();
         
         foreach($pluginBatches as $pluginBatch){
             // execute batch

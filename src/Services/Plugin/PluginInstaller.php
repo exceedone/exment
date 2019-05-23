@@ -217,12 +217,14 @@ class PluginInstaller
     {
         // find or new $plugin
         $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
-        $plugin->plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'))->getValue() ?? null;
+
+        $plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'));
+        $plugin->plugin_type = $plugin_type->getValue() ?? null;
         
         foreach(['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key){
             $plugin->{$key} = array_get($json, $key);
         }
-        $plugin->active_flg = true;
+        $plugin->active_flg = $plugin_type != PluginType::BATCH;
         
         // set options
         $options = array_get($plugin, 'options', []);

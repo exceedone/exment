@@ -53,12 +53,26 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public static function batches(){
+    public static function getBatches(){
         $now = Carbon::now();
         $hh = $now->hour;
         return static::where('plugin_type', PluginType::BATCH)
             ->where('active_flg', 1)
             ->whereIn('options->batch_hour', [strval($hh), $hh])
+            // only get batch_cron is null
+            ->whereNull('options->batch_cron')
+            ->get();
+    }
+
+    /**
+     * Get Batches filtering has Cron
+     *
+     * @return void
+     */
+    public static function getCronBatches(){
+        return static::where('plugin_type', PluginType::BATCH)
+            ->where('active_flg', 1)
+            ->whereNotNull('options->batch_cron')
             ->get();
     }
 

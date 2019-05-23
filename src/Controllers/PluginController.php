@@ -172,10 +172,13 @@ class PluginController extends AdminControllerBase
                 // Plugin_type = 'page'
                 $form->text('uri', exmtrans("plugin.options.uri"));
             } elseif($plugin_type == PluginType::BATCH) {
-                // Plugin_type = 'page'
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour"))
                     ->default(3);
+                    
+                $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
+                    ->help(exmtrans("plugin.help.batch_cron"))
+                    ->rules('max:100');
             }
 
             if ($plugin_type != PluginType::BATCH) {

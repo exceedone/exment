@@ -8,6 +8,7 @@ use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
@@ -52,6 +53,7 @@ class ExmentServiceProvider extends ServiceProvider
     protected $commands = [
         'Exceedone\Exment\Console\InstallCommand',
         'Exceedone\Exment\Console\UpdateCommand',
+        'Exceedone\Exment\Console\PublishCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
@@ -131,6 +133,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSetting();
         $this->bootDatabase();
         $this->bootDebug();
+        $this->bootSchedule();
 
         $this->publish();
         $this->load();
@@ -190,11 +193,22 @@ class ExmentServiceProvider extends ServiceProvider
         }
         
         $this->commands($this->commands);
+    }
 
+    protected function bootSchedule(){
+        // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+                
+            // set cron event
+            $crons = Plugin::getCronBatches();
+            foreach($crons as $cron){
+                $cronSchedule = $this->app->make(Schedule::class);
+                $cronSchedule->command("exment:schedule --plugin_id={$cron->id}")->cron(array_get($cron, 'options.batch_cron'));                    
+            }
         });
+
     }
 
     protected function bootPassport()
