@@ -140,9 +140,11 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $form = new Form(new CustomColumn);
         // set script
-        //TODO: call using pjax
-        $date = \Carbon\Carbon::now()->format('YmdHis');
-        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$date).'"></script>');
+        $ver = getExmentCurrentVersion();
+        if (!isset($ver)) {
+            $ver = date('YmdHis');
+        }
+        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$ver).'"></script>');
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
