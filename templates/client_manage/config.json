@@ -1,0 +1,877 @@
+{
+    "template_name": "client_manage",
+    "version": "dev-future-develop",
+    "template_view_name": "顧客管理",
+    "description": "シンプルな顧客管理です。対象の顧客の大分類と小分類を登録しておくことで、分類別に顧客を検索することができます。",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "大分類",
+            "description": "大分類",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-id-card",
+                "color": null,
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "大分類コード",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "help": null,
+                        "unique": "1",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [
+                            "lower",
+                            "upper",
+                            "number",
+                            "hyphen_underscore"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "大分類名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "小分類",
+            "description": "小分類",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-id-card-o",
+                "color": null,
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "大分類",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [],
+                        "select_target_table_name": "major_class"
+                    }
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "小分類コード",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "help": null,
+                        "unique": "1",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [
+                            "lower",
+                            "upper",
+                            "number",
+                            "hyphen_underscore"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "小分類名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "顧客情報",
+            "description": "顧客情報",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-users",
+                "color": null,
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "大分類",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [],
+                        "select_target_table_name": "major_class"
+                    }
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "小分類",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [],
+                        "select_target_table_name": "minor_class"
+                    }
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "顧客名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "郵便番号",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "住所",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "TEL",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "FAX",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "メール",
+                    "column_type": "email",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "HP",
+                    "column_type": "url",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "有効フラグ",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "unique": "0",
+                        "default": "1",
+                        "required": "1",
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "1",
+                            "form_column_target_name": "major_class_name"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "2",
+                            "form_column_target_name": "major_class_code"
+                        }
+                    ],
+                    "form_block_target_table_name": "major_class"
+                }
+            ],
+            "table_name": "major_class"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "1",
+                            "form_column_target_name": "major_class"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "3",
+                            "form_column_target_name": "minor_class_name"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "4",
+                            "form_column_target_name": "minor_class_code"
+                        }
+                    ],
+                    "form_block_target_table_name": "minor_class"
+                }
+            ],
+            "table_name": "minor_class"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "1",
+                            "form_column_target_name": "major_class"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "3",
+                            "form_column_target_name": "minor_class"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "4",
+                            "form_column_target_name": "client_name"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "5",
+                            "form_column_target_name": "postal_code"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "6",
+                            "form_column_target_name": "street_address"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "7",
+                            "form_column_target_name": "tel"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "8",
+                            "form_column_target_name": "fax"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "9",
+                            "form_column_target_name": "mail"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "10",
+                            "form_column_target_name": "hp"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "11",
+                            "form_column_target_name": "available_flg"
+                        }
+                    ],
+                    "form_block_target_table_name": "client_manage"
+                }
+            ],
+            "table_name": "client_manage"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "既定のビュー",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "0",
+                    "view_column_table_name": "major_class",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "view_column_table_name": "major_class",
+                    "view_column_target_name": "major_class_name"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "view_column_table_name": "major_class",
+                    "view_column_target_name": "major_class_code"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "major_class"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "既定のビュー",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "1",
+                    "view_column_table_name": "minor_class",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "view_column_table_name": "minor_class",
+                    "view_column_target_name": "major_class"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "view_column_table_name": "minor_class",
+                    "view_column_target_name": "minor_class_name"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "view_column_table_name": "minor_class",
+                    "view_column_target_name": "minor_class_code"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "view_column_table_name": "minor_class",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "view_column_table_name": "minor_class",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "minor_class"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "全顧客情報",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "major_class"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "minor_class"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "client_name"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "5",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "available_flg"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "client_manage"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "有効顧客情報",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "1",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "major_class"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "minor_class"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "client_name"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_filter_condition": "1",
+                    "view_filter_condition_value_text": "1",
+                    "view_filter_condition_value": "1",
+                    "view_column_table_name": "client_manage",
+                    "view_column_target_name": "available_flg"
+                }
+            ],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "client_manage"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "order": "7",
+            "title": "顧客管理",
+            "icon": "fa-user",
+            "uri": "#",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent",
+            "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "8",
+            "title": "大分類",
+            "icon": "fa-id-card",
+            "uri": "major_class",
+            "menu_type": "table",
+            "menu_name": "major_class",
+            "parent_name": "client_manage_parent",
+            "menu_target_name": "major_class"
+        },
+        {
+            "order": "9",
+            "title": "小分類",
+            "icon": "fa-id-card-o",
+            "uri": "minor_class",
+            "menu_type": "table",
+            "menu_name": "minor_class",
+            "parent_name": "client_manage_parent",
+            "menu_target_name": "minor_class"
+        },
+        {
+            "order": "10",
+            "title": "顧客情報",
+            "icon": "fa-users",
+            "uri": "client_manage",
+            "menu_type": "table",
+            "menu_name": "client_manage",
+            "parent_name": "client_manage_parent",
+            "menu_target_name": "client_manage"
+        }
+    ],
+    "thumbnail": "thumbnail.png"
+}

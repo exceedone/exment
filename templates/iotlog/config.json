@@ -1,0 +1,1072 @@
+{
+    "template_name": "iotlog",
+    "version": "v1.2.0",
+    "template_view_name": "IoTログ管理",
+    "description": "IoTのログを収集・分析するためのテンプレートです。",
+    "custom_tables": [
+        {
+            "table_name": "logcode",
+            "table_view_name": "ログコードマスター",
+            "description": "ログコードマスターです。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "1",
+            "options": {
+                "icon": "fa-file-text-o",
+                "color": null,
+                "comment_flg": "0",
+                "revision_flg": "1",
+                "attachment_flg": "0",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "log_code",
+                    "column_view_name": "ログコード",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "1",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [
+                            "lower",
+                            "upper",
+                            "number",
+                            "hyphen_underscore"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "log_name",
+                    "column_view_name": "ログ名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "2",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "説明",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "rows": "6",
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "hardware",
+            "table_view_name": "ハードウェアマスター",
+            "description": "ハードウェアのマスター情報です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "2",
+            "options": {
+                "icon": "fa-server",
+                "color": null,
+                "comment_flg": "0",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "hardware_code",
+                    "column_view_name": "ハードウェアコード",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "1",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [
+                            "lower",
+                            "upper",
+                            "number",
+                            "hyphen_underscore"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "hardware_name",
+                    "column_view_name": "ハードウェア名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "uuid",
+                    "column_view_name": "ハードウェアUUID",
+                    "column_type": "auto_number",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": "random32",
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "hardware-serial",
+            "table_view_name": "ハード-シリアル情報",
+            "description": "ハードウェアマスターの情報をもとに発行した、シリアルの情報です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "3",
+            "options": {
+                "icon": "fa-flickr",
+                "color": null,
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "memo",
+                    "column_view_name": "メモ",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "0",
+                    "options": {
+                        "help": "メモ書きがあればご記入ください。",
+                        "rows": "6",
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "string_length": "1000",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "ハードウェア",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [],
+                        "select_target_table_name": "hardware"
+                    }
+                },
+                {
+                    "column_name": "serial_no",
+                    "column_view_name": "シリアル番号",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "help": "端末ごとに割り振られるシリアル番号です。",
+                        "unique": "1",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "string_length": "256",
+                        "updown_button": "0",
+                        "use_label_flg": "2",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "log_history",
+            "table_view_name": "ログ履歴",
+            "description": "ioT端末から送信されたログを管理します。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "4",
+            "options": {
+                "icon": "fa-file-o",
+                "color": "#0092ff",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "1",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "1",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "logcode",
+                    "column_view_name": "ログコード",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "1",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [],
+                        "select_target_table_name": "logcode"
+                    }
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "ハード-シリアル番号",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "1",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": [],
+                        "select_target_table_name": "hardware-serial"
+                    }
+                },
+                {
+                    "column_name": "occurrence_datetime",
+                    "column_view_name": "発生日時",
+                    "column_type": "datetime",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "placeholder": null,
+                        "index_enabled": "1",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "lat",
+                    "column_view_name": "緯度",
+                    "column_type": "decimal",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "number_max": null,
+                        "number_min": null,
+                        "placeholder": null,
+                        "calc_formula": null,
+                        "decimal_digit": "7",
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                },
+                {
+                    "column_name": "lng",
+                    "column_view_name": "経度",
+                    "column_type": "decimal",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "help": null,
+                        "unique": "0",
+                        "default": null,
+                        "required": "0",
+                        "number_max": null,
+                        "number_min": null,
+                        "placeholder": null,
+                        "calc_formula": null,
+                        "decimal_digit": "7",
+                        "index_enabled": "0",
+                        "number_format": "0",
+                        "updown_button": "0",
+                        "use_label_flg": "0",
+                        "currency_symbol": null,
+                        "auto_number_type": null,
+                        "multiple_enabled": "0",
+                        "available_characters": []
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "c03e6c34df112ebd302e",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "1",
+                            "form_column_target_name": "log_code"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "2",
+                            "form_column_target_name": "log_name"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "3",
+                            "form_column_target_name": "explain"
+                        }
+                    ],
+                    "form_block_target_table_name": "logcode"
+                }
+            ],
+            "table_name": "logcode"
+        },
+        {
+            "suuid": "9eb9f3c99e115882f4a7",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "1",
+                            "form_column_target_name": "hardware_code"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "2",
+                            "form_column_target_name": "hardware_name"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "3",
+                            "form_column_target_name": "uuid"
+                        }
+                    ],
+                    "form_block_target_table_name": "hardware"
+                }
+            ],
+            "table_name": "hardware"
+        },
+        {
+            "suuid": "465c8b6dcd419e8f03b0",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "1",
+                            "form_column_target_name": "logcode"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "2",
+                            "form_column_target_name": "hardware"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "4",
+                            "form_column_target_name": "occurrence_datetime"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "5",
+                            "form_column_target_name": "lat"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": null,
+                            "order": "6",
+                            "form_column_target_name": "lng"
+                        }
+                    ],
+                    "form_block_target_table_name": "log_history"
+                }
+            ],
+            "table_name": "log_history"
+        },
+        {
+            "suuid": "68c35937eb03daa535bf",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": [],
+                    "custom_form_columns": [
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": {
+                                "changedata_target_column_id": null
+                            },
+                            "order": "1",
+                            "form_column_target_name": "hardware"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": {
+                                "changedata_target_column_id": null
+                            },
+                            "order": "2",
+                            "form_column_target_name": "serial_no"
+                        },
+                        {
+                            "form_column_type": "0",
+                            "column_no": "1",
+                            "options": {
+                                "changedata_target_column_id": null
+                            },
+                            "order": "3",
+                            "form_column_target_name": "memo"
+                        }
+                    ],
+                    "form_block_target_table_name": "hardware-serial"
+                }
+            ],
+            "table_name": "hardware-serial"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "191b41ce150b891f1755",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "既定のビュー",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "1",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "logcode",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "logcode",
+                    "view_column_target_name": "log_code"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "logcode",
+                    "view_column_target_name": "log_name"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "logcode",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "logcode",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "logcode"
+        },
+        {
+            "suuid": "0a25c546e8469d710ffe",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "既定のビュー",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "1",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware",
+                    "view_column_target_name": "hardware_code"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware",
+                    "view_column_target_name": "hardware_name"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": {
+                        "color": null,
+                        "font_color": null,
+                        "end_date_type": 1,
+                        "end_date_target": null
+                    },
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "hardware"
+        },
+        {
+            "suuid": "e21ec506aef176e138b9",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "既定のビュー",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "1",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "logcode"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "hardware"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "occurrence_datetime"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "log_history"
+        },
+        {
+            "suuid": "b6510c5fa37b7f7a7a45",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "既定のビュー",
+            "default_flg": "1",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "1",
+                    "order": "1",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware-serial",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware-serial",
+                    "view_column_target_name": "hardware"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware-serial",
+                    "view_column_target_name": "serial_no"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "81",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware-serial",
+                    "view_column_target_name": "created_at"
+                },
+                {
+                    "view_column_type": "1",
+                    "order": "82",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "hardware-serial",
+                    "view_column_target_name": "updated_at"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "hardware-serial"
+        },
+        {
+            "suuid": "42edfad1fd3e209edf04",
+            "view_type": "0",
+            "view_kind_type": "1",
+            "view_view_name": "ログコード別集計",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_end_date": null,
+                    "view_column_color": null,
+                    "view_column_font_color": null,
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "logcode"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [
+                {
+                    "view_column_type": "1",
+                    "view_summary_condition": "3",
+                    "view_column_name": "対象件数",
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "id"
+                }
+            ],
+            "table_name": "log_history"
+        }
+    ],
+    "custom_copies": [],
+    "dashboards": [
+        {
+            "dashboard_type": "0",
+            "dashboard_name": "iotlog_dashboard",
+            "dashboard_view_name": "IoTログ管理ダッシュボード",
+            "default_flg": "1",
+            "options": {
+                "row1": "1",
+                "row2": "1",
+                "row3": "2",
+                "row4": "0"
+            },
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "お知らせ一覧",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "target_table_name": "information",
+                        "target_view_suuid": "99120fd4b360e15993d2"
+                    }
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "ログ一覧",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "pager_count": "20",
+                        "target_table_name": "log_history",
+                        "target_view_suuid": "e21ec506aef176e138b9"
+                    }
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "order": "19",
+            "title": "IoTログ管理",
+            "icon": "fa-line-chart",
+            "uri": "#",
+            "menu_type": "parent_node",
+            "menu_name": "iot",
+            "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "20",
+            "title": "ログコードマスター",
+            "icon": "fa-file-text-o",
+            "uri": "logcode",
+            "menu_type": "table",
+            "menu_name": "logcode",
+            "parent_name": "iot",
+            "menu_target_name": "logcode"
+        },
+        {
+            "order": "21",
+            "title": "ハードウェアマスター",
+            "icon": "fa-server",
+            "uri": "hardware",
+            "menu_type": "table",
+            "menu_name": "hardware",
+            "parent_name": "iot",
+            "menu_target_name": "hardware"
+        },
+        {
+            "order": "22",
+            "title": "ハード-シリアル情報",
+            "icon": "fa-flickr",
+            "uri": "hardware-serial",
+            "menu_type": "table",
+            "menu_name": "hardware-serial",
+            "parent_name": "iot",
+            "menu_target_name": "hardware-serial"
+        },
+        {
+            "order": "23",
+            "title": "ログ履歴",
+            "icon": "fa-file-o",
+            "uri": "log_history",
+            "menu_type": "table",
+            "menu_name": "log_history",
+            "parent_name": "iot",
+            "menu_target_name": "log_history"
+        }
+    ],
+    "thumbnail": "thumbnail.png"
+}

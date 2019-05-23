@@ -86,12 +86,12 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             'admin.bootstrap',
             'admin.permission',
-            'admin.bootstrap2',
             'admin.session',
         ],
         'admin_anonymous' => [
             'admin.initialize',
             'admin.morph',
+            'admin.bootstrap2',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
