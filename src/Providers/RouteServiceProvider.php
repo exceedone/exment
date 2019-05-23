@@ -80,6 +80,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role', 'RoleController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
+            $router->resource('workflow', 'WorkflowController', ['except' => ['show']]);
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
         
@@ -104,6 +105,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            $router->post("data/{tableKey}/{id}/actionClick", 'CustomValueController@actionClick');
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');

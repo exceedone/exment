@@ -344,21 +344,24 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             return $model;
         }
         foreach ($this->custom_view_sorts as $custom_view_sort) {
-            // get column target column
-            if ($custom_view_sort->view_column_type == ViewColumnType::COLUMN) {
+            switch($custom_view_sort->view_column_type) {
+            case ViewColumnType::COLUMN:
                 $view_column_target = $custom_view_sort->custom_column->column_item->getSortColumn();
                 $sort_order = $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc';
                 //set order
                 $model->orderByRaw("$view_column_target $sort_order");
-            } else {
-                if ($custom_view_sort->view_column_type == ViewColumnType::SYSTEM) {
-                    $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
-                    $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
-                } elseif ($custom_view_sort->view_column_type == ViewColumnType::PARENT_ID) {
-                    $view_column_target = 'parent_id';
-                }
+                break;
+            case ViewColumnType::SYSTEM:
+                $system_info = SystemColumn::getOption(['id' => array_get($custom_view_sort, 'view_column_target_id')]);
+                $view_column_target = array_get($system_info, 'sqlname') ?? array_get($system_info, 'name');
                 //set order
                 $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
+                break;
+            case ViewColumnType::PARENT_ID:
+                $view_column_target = 'parent_id';
+                //set order
+                $model->orderby($view_column_target, $custom_view_sort->sort == ViewColumnSort::ASC ? 'asc' : 'desc');
+                break;
             }
         }
 
@@ -597,6 +600,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
                 break;
             case ViewColumnType::SYSTEM:
+            case ViewColumnType::WORKFLOW:
                 $system_info = SystemColumn::getOption(['id' => array_get($custom_view_column, 'view_column_target_id')]);
                 if (is_nullorempty($column_view_name)) {
                     $column_view_name = exmtrans('common.'.$system_info['name']);

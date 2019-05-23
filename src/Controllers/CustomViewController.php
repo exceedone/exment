@@ -182,7 +182,7 @@ class CustomViewController extends AdminControllerTableBase
                 // group columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true));
+                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true, false, true));
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
                 })->required()->setTableColumnWidth(4, 3, 2, 1)
@@ -227,7 +227,7 @@ class CustomViewController extends AdminControllerTableBase
                 // columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true));
+                        ->options($this->custom_table->getColumnsSelectOptions(true, false, false, false, true));
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
                 })->required()->setTableColumnWidth(4, 3, 2, 1)
@@ -238,7 +238,7 @@ class CustomViewController extends AdminControllerTableBase
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate))
+                ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate, true))
                 ->attribute([
                     'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
                     'data-change_field_target' => 'view_column_target',

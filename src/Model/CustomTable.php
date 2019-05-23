@@ -633,15 +633,26 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         return $model;
     }
+
     /**
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param array|CustomTable $table
-     * @param $selected_value
+     * @param boolean $append_table
+     * @param boolean $index_enabled_only
+     * @param boolean $include_parent
+     * @param boolean $include_child
+     * @param boolean $include_workflow
      */
-    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false)
+    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, 
+        $include_parent = false, $include_child = false, $include_workflow = false)
     {
         $options = [];
         
+        if ($include_workflow) {
+            $key = $this->getOptionKey('workflow_status', $append_table, $this->id);
+            $value = exmtrans('common.workflow_status');
+            $options[$key] = $value;
+        }
+
         $this->setColumnOptions(
             $options,
             $this->custom_columns,
@@ -1015,9 +1026,44 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        $hasPermission = $this->_hasPermissionData($id, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+
+        if ($hasPermission && isset($this->workflow_id)) {
+            $hasPermission = $this->_isEditableWorkflow($id);
+        }
+
+        return $hasPermission;
     }
 
+    /** 
+     * Check if current workflow status is editable.
+    */
+    protected function _isEditableWorkflow($id)
+    {
+        // if id is null(for create), return true
+        if (!isset($id)) {
+            return true;
+        }
+
+        if (is_numeric($id)) {
+            $model = getModelName($this)::find($id);
+        } else {
+            $model = $id;
+        }
+
+        if (!isset($model)) {
+            return false;
+        }
+
+        $workflow_value = $model->workflow_value;
+
+        // if workflow_value is not exists, no workflow table or before flow
+        if (!isset($workflow_value)){
+            return true;
+    }
+
+        return $workflow_value->workflow_editable;
+    }
     /**
      * Whether login user has permission about target id data. (protected function)
      */

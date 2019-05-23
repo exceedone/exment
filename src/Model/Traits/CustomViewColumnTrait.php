@@ -21,10 +21,9 @@ trait CustomViewColumnTrait
     
     public function custom_column()
     {
-        if ($this->view_column_type == ViewColumnType::SYSTEM) {
-            return null;
+        if ($this->view_column_type == ViewColumnType::COLUMN) {
+            return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
         }
-        return $this->belongsTo(CustomColumn::class, 'view_column_target_id');
     }
     
     public function custom_table()
@@ -46,6 +45,10 @@ trait CustomViewColumnTrait
         // if tagret is number, column type is column.
         if ($this->view_column_type == ViewColumnType::COLUMN) {
             return $this->custom_column->column_item;
+        }
+        // workflow
+        elseif ($this->view_column_type == ViewColumnType::WORKFLOW) {
+            return ColumnItems\WorkflowItem::getItem($this->custom_table, $this->view_column_target);
         }
         // parent_id
         elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
@@ -78,13 +81,13 @@ trait CustomViewColumnTrait
             return null;
         }
 
-        if ($column_type == ViewColumnType::SYSTEM) {
-            // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
-            $column_type = SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
+        if ($column_type == ViewColumnType::COLUMN) {
+            $column_type = $column_type_target;
         } elseif ($column_type == ViewColumnType::PARENT_ID) {
             $column_type = 'parent_id';
         } else {
-            $column_type = $column_type_target;
+            // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
+            $column_type = SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
         }
 
         return $column_table_id . '-' . $column_type;
@@ -119,10 +122,9 @@ trait CustomViewColumnTrait
             if ($view_column_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $view_column_target === SystemColumn::PARENT_ID) {
                 $column_type = ViewColumnType::PARENT_ID;
                 $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            } elseif (preg_match('/^\d+_\d+$/u', $view_column_target)) {
-                $items = explode('_', $view_column_target);
-                $column_type = ViewColumnType::CHILD_SUM;
-                $column_type_target = $items[1];
+            } elseif ($view_column_target === SystemColumn::WORKFLOW_STATUS) {
+                $column_type = ViewColumnType::WORKFLOW;
+                $column_type_target = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;
             } else {
                 $column_type = ViewColumnType::SYSTEM;
                 $column_type_target = SystemColumn::getOption(['name' => $view_column_target])['id'] ?? null;
@@ -214,6 +216,7 @@ trait CustomViewColumnTrait
                     'column_name' => $this->custom_column->column_name,
                 ];
             case ViewColumnType::SYSTEM:
+            case ViewColumnType::WORKFLOW:
                 return [
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],

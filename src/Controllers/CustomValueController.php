@@ -14,6 +14,8 @@ use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\WorkflowAction;
+use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -294,6 +296,40 @@ class CustomValueController extends AdminControllerTableBase
             return getAjaxResponse($response);
         }
         return getAjaxResponse(false);
+    }
+
+    //Function handle workflow click event
+    /**
+     * @param Request $request
+     * @return Response
+     */
+    public function actionClick(Request $request, $tableKey, $id)
+    {
+        if (is_null($id) || $request->input('action_id') === null) {
+            abort(404);
+        }
+        // get action
+        $action = WorkflowAction::where('id', $request->input('action_id'))->first();
+        if (!isset($action)) {
+            abort(404);
+        }
+        
+        $updated = WorkflowValue::where(['morph_type' => $tableKey, 'morph_id' => $id, 'enabled_flg' => 1])
+            ->update(['enabled_flg' => 0]);
+
+        $data = [
+            'workflow_id' => array_get($action, 'workflow_id'),
+            'morph_type' => $tableKey,
+            'morph_id' => $id,
+            'workflow_status_id' => array_get($action, 'status_to'),
+            'enabled_flg' => 1
+        ];
+        $created = WorkflowValue::create($data);
+
+        return ([
+            'result'  => true,
+            'toastr' => sprintf(exmtrans('common.message.success_execute')),
+        ]);
     }
 
     //Function handle copy click event

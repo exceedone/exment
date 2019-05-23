@@ -148,6 +148,7 @@ class CustomCopyColumn extends ModelBase implements Interfaces\TemplateImporterI
                     'column_name' => $this->{$column_column_key}->column_name ?? null,
                 ];
             case ViewColumnType::SYSTEM:
+            case ViewColumnType::WORKFLOW:
                 return [
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->{$column_target_id_key}])['name'],

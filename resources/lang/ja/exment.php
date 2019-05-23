@@ -27,6 +27,7 @@ return [
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
+        'workflow_status' => 'ワークフローステータス', 
         'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   
         'comment' => 'コメント',   
@@ -343,6 +344,23 @@ return [
         'custom_copy' => 'データコピー設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
+    ],
+
+    'workflow' => [
+        'header' => 'ワークフローテンプレート設定',
+        'description' => 'ワークフローのテンプレートを設定します。作成したテンプレートはカスタムテーブルに紐づけることができます。',
+        'workflow_name' => 'ワークフロー名',
+        'workflow_statuses' => '状態',
+        'workflow_actions' => 'アクション',
+        'description_workflow_statuses' => 'ワークフローで使用するデータの状態を定義します。<br/>例：承認待ち、完了',
+        'description_workflow_actions' => '状態を変化させるアクションを定義します。<br/>例：申請、承認、決裁',
+        'status_name' => '状態名',
+        'action_name' => 'アクション名',
+        'editable_flg' => '編集可否',
+        'action' => 'アクション設定',
+        'status_from' => '開始の状態',
+        'status_to' => '終了の状態',
+        'status_init' => '初期状態',
     ],
 
     'custom_table' => [

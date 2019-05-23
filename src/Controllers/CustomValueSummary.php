@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Grid;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -48,6 +49,7 @@ trait CustomValueSummary
 
         $group_columns = [];
         $custom_tables = [];
+        $sub_queries = [];
         $index = 0;
         // set grouping columns
         foreach ($view->custom_view_columns as $custom_view_column) {
@@ -58,6 +60,8 @@ trait CustomValueSummary
             // parent_id need parent_type
             if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
                 $group_columns[] = $item->sqltypename();
+            } else if ($item instanceof \Exceedone\Exment\ColumnItems\WorkflowItem) {
+                $sub_queries[$item->getTableName()] = $item->getSubquery();
             }
             $column_label = array_get($custom_view_column, 'view_column_name')?? $item->label();
             $this->setSummaryGridItem($item, $index, $column_label, $grid, $custom_tables);
@@ -90,8 +94,6 @@ trait CustomValueSummary
                 ];
             }
         }
-
-        $sub_queries = [];
 
         // get relation parent tables
         $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
@@ -146,7 +148,8 @@ trait CustomValueSummary
 
         // join subquery
         foreach ($sub_queries as $table_no => $sub_query) {
-            $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            $alter_name = is_string($table_no)? $table_no : 'table_'.$table_no;
+            $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As $alter_name"), $db_table_name.'.id', "$alter_name.id");
             $query->mergeBindings($sub_query);
         }
         // set sql grouping columns

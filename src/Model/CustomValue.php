@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 
 class CustomValue extends ModelBase
 {
@@ -47,6 +48,29 @@ class CustomValue extends ModelBase
         });
     }
 
+    public function getWorkflowValueAttribute()
+    {
+        return WorkflowValue::where('morph_id', $this->id)
+            ->where('morph_type', $this->custom_table->table_name)
+            ->where('enabled_flg', 1)
+            ->orderBy('updated_at', 'desc')
+            ->first();
+    }
+
+    public function getWorkflowStatusIdAttribute()
+    {
+        return array_get($this->workflow_value, 'workflow_status_id')?? 0;
+    }
+
+    public function getWorkflowStatusAttribute()
+    {
+        $workflow_value = $this->workflow_value;
+        if (isset($workflow_value)) {
+            return array_get($workflow_value->workflow_status, 'status_name');
+        }
+        return null;
+    }
+
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
     {
@@ -65,6 +89,39 @@ class CustomValue extends ModelBase
             ;
     }
 
+    // get workflow actions which has authority
+    public function workflow_actions()
+    {
+        $workflow_id = array_get($this->custom_table, 'workflow_id');
+        $status_id = $this->workflow_status_id;
+        if ($workflow_id) {
+            $user = \Exment::user()->base_user_id;
+            $organization = \Exment::user()->getOrganizationIds();
+            $actions = WorkflowAction::select()
+                ->leftJoin('workflow_authoritable', 'workflow_authoritable.workflow_action_id', '=', 'workflow_actions.id')
+                ->where('workflow_actions.workflow_id', $workflow_id)
+                ->where('workflow_actions.status_from', $status_id)
+                ->where(function ($query) use($user, $organization){
+                    $query
+                        ->whereNull('workflow_authoritable.related_id')
+                        ->orWhere(function ($query1) use($user) {
+                            $query1
+                                ->where('workflow_authoritable.related_id', '=', $user)
+                                ->where('workflow_authoritable.related_type', '=', SystemTableName::USER);
+                        });
+                    if (count($organization) > 0) {
+                        $query->orWhere(function ($query2) use($organization) {
+                            $query2
+                                ->where('workflow_authoritable.related_id', '=', $organization)
+                                ->where('workflow_authoritable.related_type', '=', SystemTableName::ORGANIZATION);
+                        });
+                    }
+                })->get();
+            return $actions;
+        }
+        return [];
+    }
+ 
     public function parent_custom_value()
     {
         return $this->morphTo();
@@ -627,5 +684,49 @@ class CustomValue extends ModelBase
         }
         $this->value = $revision_value;
         return $this;
+    }
+
+    /**
+     * set workflow status condition
+     */
+    public function scopeWorkflowStatus($query, $condition, $status) {
+        switch ($condition) {
+            case ViewColumnFilterOption::EQ:
+                return $query->whereExists(function ($subqry) use ($status) {
+                    $subqry->select(\DB::raw(1))
+                        ->from('workflow_values')
+                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
+                        ->where('workflow_values.morph_type', $this->custom_table_name)
+                        ->where('workflow_values.enabled_flg', 1)
+                        ->where('workflow_values.workflow_status_id', $status);
+                });
+            case ViewColumnFilterOption::NE:
+                return $query->whereNotExists(function ($subqry) use ($status) {
+                    $subqry->select(\DB::raw(1))
+                        ->from('workflow_values')
+                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
+                        ->where('workflow_values.morph_type', $this->custom_table_name)
+                        ->where('workflow_values.enabled_flg', 1)
+                        ->where('workflow_values.workflow_status_id', $status);
+                    });
+            case ViewColumnFilterOption::NULL:
+                return $query->whereNotExists(function ($subqry) use ($status) {
+                    $subqry->select(\DB::raw(1))
+                        ->from('workflow_values')
+                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
+                        ->where('workflow_values.morph_type', $this->custom_table_name)
+                        ->where('workflow_values.enabled_flg', 1)
+                        ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
+                    });
+            case ViewColumnFilterOption::NOT_NULL:
+                return $query->whereExists(function ($subqry) use ($status) {
+                    $subqry->select(\DB::raw(1))
+                        ->from('workflow_values')
+                        ->whereRaw($this->getTable().'.id = workflow_values.morph_id')
+                        ->where('workflow_values.morph_type', $this->custom_table_name)
+                        ->where('workflow_values.enabled_flg', 1)
+                        ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
+                    });
+        }
     }
 }

@@ -16,6 +16,7 @@ class SystemColumn extends EnumBase
     const CREATED_USER = 'created_user';
     const UPDATED_USER = 'updated_user';
     const DELETED_USER = 'deleted_user';
+    const WORKFLOW_STATUS = 'workflow_status';
     
     protected static $options = [
         'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true],
@@ -28,6 +29,7 @@ class SystemColumn extends EnumBase
         'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'sqlname' => 'created_user_id', 'default' => false, 'order' => 91, 'footer' => true],
         'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'sqlname' => 'updated_user_id', 'default' => false, 'order' => 92, 'footer' => true],
         'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'sqlname' => 'deleted_user_id', 'default' => false, 'order' => 93],
+        'workflow_status' => ['id' => 201, 'name' => 'workflow_status', 'sqlname' => 'workflow_status_id', 'default' => false],
     ];
 
     public function id()

@@ -91,11 +91,16 @@ class CustomViewFilter extends ModelBase
     {
         // get filter target column
         $view_column_target = $this->view_column_target_id;
+        $condition_value_text = $this->view_filter_condition_value_text;
+        $view_filter_condition = $this->view_filter_condition;
         if ($this->view_column_type == ViewColumnType::COLUMN) {
             $view_column_target = CustomColumn::getEloquent($view_column_target)->getIndexColumnName() ?? null;
         } elseif ($this->view_column_type == ViewColumnType::PARENT_ID) {
             //TODO: set as 1:n. develop as n:n
             $view_column_target = 'parent_id';
+        } elseif ($this->view_column_type == ViewColumnType::WORKFLOW) {
+            // TODO filter for workflow
+            return $model->workflowStatus($view_filter_condition, $condition_value_text);
         } elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
             $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
@@ -103,8 +108,6 @@ class CustomViewFilter extends ModelBase
         if (isset($db_table_name)) {
             $view_column_target = $db_table_name.'.'.$view_column_target;
         }
-        $condition_value_text = $this->view_filter_condition_value_text;
-        $view_filter_condition = $this->view_filter_condition;
         // get filter condition
         switch ($view_filter_condition) {
             // equal
