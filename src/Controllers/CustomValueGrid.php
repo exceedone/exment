@@ -26,7 +26,7 @@ trait CustomValueGrid
     {
         $classname = $this->getModelNameDV();
         $grid = new Grid(new $classname);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         
         // get search_enabled_columns and loop
         $search_enabled_columns = $this->custom_table->getSearchEnabledColumns();
@@ -42,10 +42,10 @@ trait CustomValueGrid
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
-        $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'grid_menubutton');
+        $listButton = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
         $this->manageMenuToolButton($grid, $listButton);
 
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $grid;
     }
 

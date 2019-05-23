@@ -19,8 +19,6 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
@@ -105,9 +103,9 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
         $this->AdminContent($content);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form(null));
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
 
@@ -129,9 +127,9 @@ class CustomValueController extends AdminControllerTableBase
             return $redirect;
         }
         $this->AdminContent($content);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form($id)->edit($id));
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
     
@@ -273,7 +271,7 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         // get plugin
-        $plugin = Plugin::where('uuid', $request->input('uuid'))->first();
+        $plugin = Plugin::getPluginByUUID($request->input('uuid'));
         if (!isset($plugin)) {
             abort(404);
         }
