@@ -263,7 +263,8 @@
                 "color": null,
                 "one_record_flg": "0",
                 "attachment_flg": "0",
-                "comment_flg": "0"
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
@@ -312,7 +313,8 @@
                 "color": null,
                 "one_record_flg": "0",
                 "attachment_flg": "0",
-                "comment_flg": "0"
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {

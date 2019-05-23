@@ -120,6 +120,9 @@ class CustomValue extends ModelBase
         });
         
         static::deleting(function ($model) {
+            static::setUser($model, ['deleted_user_id']);
+            $model->save();
+            
             $model->deleteRelationValues();
         });
 
