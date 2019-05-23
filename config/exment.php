@@ -2,7 +2,7 @@
 
 return [
     // if true, show sql to larabel.log
-    'debugmode' => false,
+    'debugmode' => env('EXMENT_DEBUG_MODE', false),
 
     'password_rule' => [
       'rule' => '^[ -~]+$',
