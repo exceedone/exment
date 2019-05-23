@@ -208,6 +208,7 @@ return [
             'event_triggers' => '実施トリガー',
             'label' => 'ボタンのラベル',
             'button_class' => 'ボタンのHTML class',
+            'batch_hour' => 'バッチの実行時間',
             'icon' => 'ボタンのアイコン',
             'uri' => 'URL',
 
@@ -228,6 +229,7 @@ return [
             'icon' => 'ボタンのHTMLに付加するアイコンです。',
             'button_class' => 'ボタンのHTMLに付加するclassです。',
             'errorMess' => 'プラグインファイルを選択してください',
+            'batch_hour' => 'バッチの開始時間です。例：「3」と入力時、3:00にバッチ実行開始',
         ],
 
         'error' => [
@@ -239,6 +241,7 @@ return [
             'page' => '画面',
             'trigger' => '機能',
             'document' => 'ドキュメント',
+            'batch' => 'バッチ',
         ],
     ],
 

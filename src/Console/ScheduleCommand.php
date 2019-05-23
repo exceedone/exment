@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Services\Plugin\PluginBatchBase;
 use Carbon\Carbon;
 
 class ScheduleCommand extends Command
@@ -47,6 +49,7 @@ class ScheduleCommand extends Command
     {
         $this->notify();
         $this->backup();
+        $this->pluginBatch();
     }
 
     /**
@@ -96,5 +99,20 @@ class ScheduleCommand extends Command
         \Artisan::call('exment:backup', isset($target) ? ['--target' => $target, '--schedule' => 1] : []);
 
         System::backup_automatic_executed($now);
+    }
+
+    /**
+     * Execute Plugin Batch
+     *
+     * @return void
+     */
+    protected function pluginBatch(){
+        $pluginBatches = Plugin::batches();
+        
+        foreach($pluginBatches as $pluginBatch){
+            // execute batch
+            $batch = $pluginBatch->getClass();
+            $batch->execute();
+        }
     }
 }

@@ -41,7 +41,7 @@ class CustomValueController extends AdminControllerTableBase
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
-            $this->plugins = PluginInstaller::getPluginByTable($this->custom_table->table_name);
+            $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
         }
     }
 
@@ -279,22 +279,10 @@ class CustomValueController extends AdminControllerTableBase
         }
         
         set_time_limit(240);
-        
-        $classname = $plugin->getNameSpace('Plugin');
-        $fuleFullPath = $plugin->getFullPath('Plugin.php');
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
-            switch (array_get($plugin, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                    $class = new $classname($plugin, $this->custom_table, $id);
-                    break;
-                case PluginType::TRIGGER:
-                    $class = new $classname($plugin, $this->custom_table, $id);
-                    break;
-            }
-        } else {
-            // set default class
-            $class = new PluginDocumentDefault($plugin, $this->custom_table, $id);
-        }
+        $class = $plugin->getClass([
+            'custom_table' => $this->custom_table,
+            'id' => $id
+        ]);
         $response = $class->execute();
         if (isset($response)) {
             return getAjaxResponse($response);

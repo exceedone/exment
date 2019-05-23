@@ -138,9 +138,9 @@ class PluginInstaller
                 $checkRuleConfig = static::checkRuleConfigFile($json);
                 if ($checkRuleConfig) {
                     //Check if the name of the plugin has existed
-                    $plugineExistByName = static::checkPluginNameExisted(array_get($json, 'plugin_name'));
+                    $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
                     //Check if the uuid of the plugin has existed
-                    $plugineExistByUUID = static::checkPluginUUIDExisted(array_get($json, 'uuid'));
+                    $plugineExistByUUID = Plugin::getPluginByUUID(array_get($json, 'uuid'));
                     
                     //If json pass validation, prepare data to do continue
                     $plugin = static::prepareData($json);
@@ -148,7 +148,7 @@ class PluginInstaller
                     $pluginFolder = $plugin->getFullPath();
 
                     //If both name and uuid existed, update data for this plugin
-                    if ($plugineExistByName > 0 && $plugineExistByUUID > 0) {
+                    if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
                         $pluginUpdated = $plugin->saveOrFail();
                         //Rename folder with plugin name
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
@@ -156,7 +156,7 @@ class PluginInstaller
                         $response = back();
                     }
                     //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
-                    elseif ($plugineExistByName <= 0 && $plugineExistByUUID <= 0) {
+                    elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                         $plugin->save();
                         static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
                         admin_toastr(exmtrans('common.message.success_execute'));
@@ -164,11 +164,11 @@ class PluginInstaller
                     }
 
                     //If name has existed but uuid does not existed, then delete folder and return error with message
-                    elseif ($plugineExistByName > 0 && $plugineExistByUUID <= 0) {
+                    elseif (!is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                         $response = back()->with('errorMess', exmtrans('plugin.error.samename_plugin'));
                     }
                     //If uuid has existed but name does not existed, then delete folder and return error with message
-                    elseif ($plugineExistByName <= 0 && $plugineExistByUUID > 0) {
+                    elseif (is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
                         $response = back()->with('errorMess', exmtrans('plugin.error.wrongname_plugin'));
                     }
                     //rename folder without Uppercase, space, tab, ...
@@ -217,13 +217,11 @@ class PluginInstaller
     {
         // find or new $plugin
         $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
-        $plugin->plugin_name = array_get($json, 'plugin_name');
         $plugin->plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'))->getValue() ?? null;
-        $plugin->author = array_get($json, 'author');
-        $plugin->version = array_get($json, 'version');
-        $plugin->uuid = array_get($json, 'uuid');
-        $plugin->plugin_view_name = array_get($json, 'plugin_view_name');
-        $plugin->description = array_get($json, 'description');
+        
+        foreach(['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key){
+            $plugin->{$key} = array_get($json, $key);
+        }
         $plugin->active_flg = true;
         
         // set options
@@ -237,51 +235,15 @@ class PluginInstaller
             }
             $options['target_tables'] = $target_tables;
         }
-        if (array_key_value_exists('label', $json)) {
-            $options['label'] = array_get($json, 'label');
-        }
-        if (array_key_value_exists('icon', $json)) {
-            $options['icon'] = array_get($json, 'icon');
-        }
-        if (array_key_value_exists('button_class', $json)) {
-            $options['button_class'] = array_get($json, 'button_class');
-        }
-        if (array_key_value_exists('document_type', $json)) {
-            $options['document_type'] = array_get($json, 'document_type');
+
+        foreach(['label', 'icon', 'button_class', 'document_type', 'batch_hour'] as $key){
+            if (array_key_value_exists($key, $json)) {
+                $options[$key] = array_get($json, $key);
+            }
         }
         $plugin->options = $options;
 
         return $plugin;
-    }
-
-    //Check existed plugin name
-    protected static function checkPluginNameExisted($name)
-    {
-        return Plugin::where('plugin_name', '=', $name)
-            ->count();
-    }
-
-    //Check existed plugin uuid
-    protected static function checkPluginUUIDExisted($uuid)
-    {
-        return Plugin::where('uuid', '=', $uuid)
-            ->count();
-    }
-
-    //Get plugin by custom_table name
-    //Where active_flg = 1 and target_tables contains custom_table id
-    /**
-     * @param $id
-     * @return mixed
-     */
-    public static function getPluginByTable($table_name)
-    {
-        // execute query
-        return Plugin::where('active_flg', '=', 1)
-            ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
-            ->whereJsonContains('options->target_tables', $table_name)
-            ->get()
-            ;
     }
 
     //Copy tmp folder to app folder
@@ -294,32 +256,6 @@ class PluginInstaller
         File::copyDirectory($tmpPluginFolderPath, $pluginFolderPath);
     }
 
-    public static function route($plugin, $json)
-    {
-        $namespace = $plugin->getNameSpace();
-        Route::group([
-            'prefix'        => config('admin.route.prefix').'/plugins',
-            'namespace'     => $namespace,
-            'middleware'    => config('admin.route.middleware'),
-            'module'        => $namespace,
-        ], function (Router $router) use ($plugin, $namespace, $json) {
-            foreach ($json['route'] as $route) {
-                $methods = is_string($route['method']) ? [$route['method']] : $route['method'];
-                foreach ($methods as $method) {
-                    if ($method === "") {
-                        $method = 'get';
-                    }
-                    $method = strtolower($method);
-                    // call method in these http method
-                    if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        //Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), $json['controller'].'@'.$route['function'].'');
-                        Route::{$method}(url_join(array_get($plugin->options, 'uri'), $route['uri']), 'Office365UserController@'.$route['function']);
-                    }
-                }
-            }
-        });
-    }
-    
     //Check all plugins satisfied take out from function getPluginByTableId
     //If calling event is not button, then call execute function of this plugin
     //Because namspace can't contains specifies symbol
