@@ -128,7 +128,7 @@ EOT;
     }
 
     protected function requireBootstrap(){
-        $file = config('exment.bootstrap', exment_path('bootstrap_exment.php'));
+        $file = config('exment.bootstrap', exment_path('bootstrap.php'));
         if(!\File::exists($file)){
             return;
         }

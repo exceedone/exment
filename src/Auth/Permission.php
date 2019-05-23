@@ -63,7 +63,7 @@ class Permission
     /**
      * @param callable $callback
      */
-    public static function booting(callable $callback)
+    public static function bootingShouldPass(callable $callback)
     {
         static::$bootingShouldPasses[] = $callback;
     }
