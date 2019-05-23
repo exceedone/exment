@@ -85,7 +85,8 @@ class CustomTableController extends AdminControllerBase
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
         
-        $form->number('order', exmtrans("custom_table.order"))->rules("integer");
+        $form->number('order', exmtrans("custom_table.order"))->rules("integer")
+            ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
         
         $form->header(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {

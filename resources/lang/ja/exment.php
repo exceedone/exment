@@ -37,6 +37,8 @@ return [
         'column' => '列',
         'asc' => '昇順',
         'desc' => '降順',
+        'custom_table' => 'カスタムテーブル',
+        'custom_column' => 'カスタム列',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
@@ -56,6 +58,7 @@ return [
             'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
             'task_schedule_id' => 'タスクスケジュール',
             'task_schedule' => '<br/><b>※タスクスケジュール設定が必要です。</b>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'order' => '%sを一覧表示した時の表示順です。',
         ],
     ],
 
