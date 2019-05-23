@@ -254,6 +254,16 @@ class CustomColumnController extends AdminControllerTableBase
                 });
             //}
 
+            // date, time, datetime
+            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+                ->help(exmtrans("custom_column.help.datetime_now_creating"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
+            $form->switchbool('datetime_now_updating', exmtrans("custom_column.options.datetime_now_updating"))
+                ->help(exmtrans("custom_column.help.datetime_now_updating"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
+
             // select
             // define select-item
             $form->textarea('select_item', exmtrans("custom_column.options.select_item"))

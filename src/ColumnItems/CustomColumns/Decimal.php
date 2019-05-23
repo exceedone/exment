@@ -42,6 +42,14 @@ class Decimal extends CustomItem
         return $this->value();
     }
 
+    public function saving(){
+        $rmv = rmcomma($this->value);
+        if ($this->value != $rmv) {
+            return $rmv;
+        }
+        return null;
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\Text::class;
@@ -61,6 +69,7 @@ class Decimal extends CustomItem
         if (!is_null(array_get($options, 'decimal_digit'))) {
             $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
         }
+        $field->attribute('style', 'max-width: 200px');
     }
     
     protected function setValidates(&$validates)
