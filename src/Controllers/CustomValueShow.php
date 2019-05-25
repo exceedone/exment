@@ -364,7 +364,7 @@ EOT;
      */
     protected function useFileUpload($modal = false)
     {
-        // if no permission, return 
+        // if no permission, return
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return [];
         }
@@ -411,7 +411,7 @@ EOT;
             return [];
         }
 
-        // if no permission, return 
+        // if no permission, return
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return [];
         }

@@ -85,6 +85,6 @@ GitHubにCommitを行う前に、php-cs-fixerを実施し、ソースコード�
 ~~~
 composer global require friendsofphp/php-cs-fixer #初回のみ
 %USERPROFILE%\AppData\Roaming\Composer\vendor\bin # 左記を環境変数に追加。%USERPROFILE%は、「C:\Users\XXXX」など、端末のユーザー名に置き換える
-php-cs-fixer fix ./exment --rules=no_unused_imports #不要なuse削除
-php-cs-fixer fix ./exment/src #全般の整形
+php-cs-fixer fix ./vendor/exceedone/exment --rules=no_unused_imports #不要なuse削除
+php-cs-fixer fix ./vendor/exceedone/exment/src #全般の整形
 ~~~

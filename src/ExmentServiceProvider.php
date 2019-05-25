@@ -294,7 +294,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected function bootDebug()
     {
-        if(!boolval(config('exment.debugmode', false))){
+        if (!boolval(config('exment.debugmode', false))) {
             return;
         }
 
@@ -302,9 +302,9 @@ class ExmentServiceProvider extends ServiceProvider
             $sql = $query->sql;
             for ($i = 0; $i < count($query->bindings); $i++) {
                 $binding = $query->bindings[$i];
-                if($binding instanceof \DateTime){
+                if ($binding instanceof \DateTime) {
                     $binding = $binding->format('Y-m-d H:i:s');
-                }elseif($binding instanceof EnumBase){
+                } elseif ($binding instanceof EnumBase) {
                     $binding = $binding->toString();
                 }
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);

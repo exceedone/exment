@@ -172,7 +172,7 @@ class CustomViewController extends AdminControllerTableBase
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
 
-        if($view_kind_type == Enums\ViewKindType::DEFAULT){
+        if ($view_kind_type == Enums\ViewKindType::DEFAULT) {
             $form->select('pager_count', exmtrans("common.pager_count"))
             ->required()
             ->options(getPagerOptions(true))

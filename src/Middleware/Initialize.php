@@ -232,7 +232,7 @@ class Initialize
         Grid::init(function (Grid $grid) {
             $grid->disableColumnSelector();
 
-            if(!is_null($value = System::grid_pager_count())){
+            if (!is_null($value = System::grid_pager_count())) {
                 $grid->paginate($value);
             }
         });

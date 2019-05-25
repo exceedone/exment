@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
-use Illuminate\Http\Request as Req;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
@@ -167,7 +166,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set parpage
-        if(is_null(request()->get('per_page')) && isset($this->pager_count) && $this->pager_count > 0){
+        if (is_null(request()->get('per_page')) && isset($this->pager_count) && $this->pager_count > 0) {
             $grid->paginate($this->pager_count);
         }
     }

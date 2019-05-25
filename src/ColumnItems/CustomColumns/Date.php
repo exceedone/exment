@@ -20,8 +20,9 @@ class Date extends CustomItem
         return $this->value();
     }
 
-    public function saving(){
-        if($this->autoDate()){
+    public function saving()
+    {
+        if ($this->autoDate()) {
             $this->value = $this->getNowString();
             return $this->value;
         }
@@ -31,7 +32,7 @@ class Date extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        if($this->displayDate()){
+        if ($this->displayDate()) {
             return ExmentField\Display::class;
         }
         return Field\Date::class;
@@ -46,7 +47,7 @@ class Date extends CustomItem
     {
         if ($this->displayDate()) {
             $field->default($this->getNowString());
-        }else{
+        } else {
             $field->options(['useCurrent' => false]);
         }
     }
@@ -61,13 +62,14 @@ class Date extends CustomItem
      *
      * @return void
      */
-    protected function autoDate(){
+    protected function autoDate()
+    {
         // if datetime_now_saving is true
-        if(boolval(array_get($this->custom_column, 'options.datetime_now_saving'))){
+        if (boolval(array_get($this->custom_column, 'options.datetime_now_saving'))) {
             return true;
         }
         // if not has id(creating) and datetime_now_creating is true
-        elseif(!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))){
+        elseif (!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))) {
             return true;
         }
         
@@ -79,7 +81,8 @@ class Date extends CustomItem
      *
      * @return void
      */
-    protected function displayDate(){
+    protected function displayDate()
+    {
         // if datetime_now_saving is true
         return boolval(array_get($this->custom_column, 'options.datetime_now_saving')) || boolval(array_get($this->custom_column, 'options.datetime_now_creating'));
     }
@@ -89,7 +92,8 @@ class Date extends CustomItem
      *
      * @return string now string
      */
-    protected function getNowString(){
+    protected function getNowString()
+    {
         return \Carbon\Carbon::now()->format('Y-m-d');
     }
 }

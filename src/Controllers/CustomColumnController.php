@@ -492,9 +492,9 @@ class CustomColumnController extends AdminControllerTableBase
             $view = CustomView::getDefault($this->custom_table, false);
             
             // get order
-            if($view->custom_view_columns()->count() == 0){
-                $order = 1;    
-            }else{
+            if ($view->custom_view_columns()->count() == 0) {
+                $order = 1;
+            } else {
                 $order = $view->custom_view_columns()
                     ->where('view_column_type', ViewColumnType::COLUMN)
                     ->max('order') ?? 1;

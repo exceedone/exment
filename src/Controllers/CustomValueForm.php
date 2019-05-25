@@ -241,7 +241,7 @@ EOT;
                 continue;
             }
             
-            if(is_null($form_column->column_item)){
+            if (is_null($form_column->column_item)) {
                 continue;
             }
 

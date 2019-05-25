@@ -314,14 +314,18 @@ abstract class CustomItem implements ItemInterface
      *
      * @return void
      */
-    public function saving(){}
+    public function saving()
+    {
+    }
 
     /**
      * get value after saving
      *
      * @return void
      */
-    public function saved(){}
+    public function saved()
+    {
+    }
 
     abstract protected function getAdminFieldClass();
 

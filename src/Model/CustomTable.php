@@ -399,14 +399,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         $mark = ($isLike ? 'LIKE' : '=');
 
-        if($relation){
+        if ($relation) {
             $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
-        }else{
+        } else {
             $takeCount = intval(config('exment.keyword_search_count', 1000));
         }
 
         // if not paginate, only take maxCount
-        if(!$paginate){
+        if (!$paginate) {
             $takeCount = min($takeCount, $maxCount);
         }
 

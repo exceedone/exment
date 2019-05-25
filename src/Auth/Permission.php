@@ -218,11 +218,12 @@ class Permission
      *
      * @return void
      */
-    protected function validateCustomValuePermission($systemRole, $endpoint){
+    protected function validateCustomValuePermission($systemRole, $endpoint)
+    {
         // if request has id, permission contains CUSTOM_VALUE_ACCESS
-        if(!is_null($id = request()->id)){
+        if (!is_null($id = request()->id)) {
             $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
-        }else{
+        } else {
             $permissions = PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE;
         }
 

@@ -128,5 +128,4 @@ trait DatabaseJsonTrait
         $value[$key] = array_get($original, $key);
         return true;
     }
-
 }

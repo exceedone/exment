@@ -162,7 +162,7 @@ class CustomValue extends ModelBase
             // get saving value
             $v = $custom_column->column_item->setCustomValue($this)->saving();
             // if has value, update
-            if(isset($v)){
+            if (isset($v)) {
                 array_set($value, $column_name, $v);
                 $update_flg = true;
             }
@@ -222,7 +222,7 @@ class CustomValue extends ModelBase
         $this->syncOriginal();
 
         // if already updated, not save again
-        if($this->already_updated){
+        if ($this->already_updated) {
             return;
         }
 
@@ -238,7 +238,7 @@ class CustomValue extends ModelBase
             $v = $custom_column->column_item->setCustomValue($this)->saved();
 
             // if has value, update
-            if(isset($v)){
+            if (isset($v)) {
                 $this->setValue($column_name, $v);
                 $update_flg = true;
             }

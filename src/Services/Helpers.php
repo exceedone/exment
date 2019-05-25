@@ -1293,7 +1293,7 @@ if (!function_exists('getPagerOptions')) {
     {
         $options = [];
 
-        if($addEmpty){
+        if ($addEmpty) {
             $options[0] = exmtrans("custom_view.pager_count_default");
         }
         foreach ($counts as $count) {

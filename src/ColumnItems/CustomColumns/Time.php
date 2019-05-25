@@ -9,7 +9,7 @@ class Time extends Date
 {
     protected function getAdminFieldClass()
     {
-        if($this->displayDate()){
+        if ($this->displayDate()) {
             return ExmentField\Display::class;
         }
         return Field\Time::class;
@@ -25,7 +25,8 @@ class Time extends Date
      *
      * @return string now string
      */
-    protected function getNowString(){
+    protected function getNowString()
+    {
         return \Carbon\Carbon::now()->format('H:i:s');
     }
 }

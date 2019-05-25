@@ -331,7 +331,8 @@ class ApiTableController extends AdminControllerTableBase
      * @param [type] $validator
      * @return array error messages
      */
-    protected function getErrorMessages($validator){
+    protected function getErrorMessages($validator)
+    {
         $errors = [];
         foreach ($validator->errors()->messages() as $key => $message) {
             if (is_array($message)) {
@@ -405,7 +406,7 @@ class ApiTableController extends AdminControllerTableBase
                 } else {
                     $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
                 }
-            }else{
+            } else {
                 $target_end_column = null;
             }
 
