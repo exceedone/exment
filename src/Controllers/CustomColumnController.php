@@ -255,12 +255,12 @@ class CustomColumnController extends AdminControllerTableBase
             //}
 
             // date, time, datetime
-            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
-                ->help(exmtrans("custom_column.help.datetime_now_creating"))
+            $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
+                ->help(exmtrans("custom_column.help.datetime_now_saving"))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
-            $form->switchbool('datetime_now_updating', exmtrans("custom_column.options.datetime_now_updating"))
-                ->help(exmtrans("custom_column.help.datetime_now_updating"))
+            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+                ->help(exmtrans("custom_column.help.datetime_now_creating"))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
 

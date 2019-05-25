@@ -64,13 +64,12 @@ class Date extends CustomItem
      * @return void
      */
     protected function autoDate(){
-        // if not has id(creating) and datetime_now_creating is true
-        if(!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))){
+        // if datetime_now_saving is true
+        if(boolval(array_get($this->custom_column, 'options.datetime_now_saving'))){
             return true;
         }
-        
-        // if has id(updating) and datetime_now_updating is true
-        elseif(isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_updating'))){
+        // if not has id(creating) and datetime_now_creating is true
+        elseif(!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))){
             return true;
         }
         
