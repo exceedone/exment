@@ -26,6 +26,13 @@ class Permission
      * @var array
      */
     protected $permission_details;
+
+    /**
+     * $shouldPass custom
+     * @var \Closure[]
+     */
+    protected static $bootingShouldPasses = [];
+
     /**
      * Create a new Eloquent model instance.
      *
@@ -54,6 +61,28 @@ class Permission
     }
 
     /**
+     * @param callable $callback
+     */
+    public static function bootingShouldPass(callable $callback)
+    {
+        static::$bootingShouldPasses[] = $callback;
+    }
+
+    /**
+     * Call the booting ShouldPasses for the exment application.
+     */
+    protected function fireShouldPasses($endpoint)
+    {
+        foreach (static::$bootingShouldPasses as $callable) {
+            $result = call_user_func($callable, $endpoint);
+
+            if($result === true || $result === false){
+                return $result;
+            }
+        }
+    }
+
+    /**
      * If request should pass through the current permission.
      *
      * @param Request $request
@@ -77,6 +106,12 @@ class Permission
      */
     public function shouldPass($endpoint) : bool
     {
+        // checking booting function
+        $result = $this->fireShouldPasses($endpoint);
+        if($result === true || $result === false){
+            return $result;
+        }
+
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
