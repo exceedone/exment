@@ -43,6 +43,8 @@ class Initialize
         }
 
         static::initializeConfig();
+        
+        static::requireBootstrap();
 
         return $next($request);
     }
@@ -222,6 +224,14 @@ class Initialize
                 \Admin::setFavicon($val);
             }
         }
+    }
+
+    protected static function requireBootstrap(){
+        $file = config('exment.bootstrap', exment_path('bootstrap.php'));
+        if(!\File::exists($file)){
+            return;
+        }
+        require_once $file;
     }
 
     /**
