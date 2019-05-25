@@ -1289,9 +1289,13 @@ if (!function_exists('getPagerOptions')) {
     /**
      * get pager select options
      */
-    function getPagerOptions($counts = [10, 20, 30, 50, 100])
+    function getPagerOptions($addEmpty = false, $counts = [10, 20, 30, 50, 100])
     {
         $options = [];
+
+        if($addEmpty){
+            $options[0] = exmtrans("custom_view.pager_count_default");
+        }
         foreach ($counts as $count) {
             $options[$count] = $count. ' ' . trans('admin.entries');
         }

@@ -37,6 +37,7 @@ return [
         'column' => '列',
         'asc' => '昇順',
         'desc' => '降順',
+        'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
         'message' => [
@@ -568,6 +569,7 @@ return [
         'order' => '表示順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
+        'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => '表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
