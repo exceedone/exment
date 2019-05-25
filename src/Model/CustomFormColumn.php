@@ -106,7 +106,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         // if tagret is number, column type is column.
         if ($this->form_column_type == FormColumnType::COLUMN) {
-            return $this->custom_column->column_item;
+            return $this->custom_column->column_item ?? null;
         }
         // system
         elseif ($this->form_column_type == FormColumnType::SYSTEM) {

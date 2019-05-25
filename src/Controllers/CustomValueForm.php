@@ -241,6 +241,10 @@ EOT;
                 continue;
             }
             
+            if(is_null($form_column->column_item)){
+                continue;
+            }
+
             $field = $form_column->column_item->setCustomValue($custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
@@ -282,6 +286,9 @@ EOT;
         foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
             foreach ($custom_form_block->custom_form_columns as $form_column) {
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
+                    continue;
+                }
+                if (!isset($form_column->custom_column)) {
                     continue;
                 }
                 $column = $form_column->custom_column;
