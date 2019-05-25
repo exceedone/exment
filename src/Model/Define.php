@@ -34,6 +34,7 @@ class Define
         ///'system_role' => ['type' => 'json'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
+        'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
         // cannot call getValue function
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],

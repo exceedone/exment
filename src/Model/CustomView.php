@@ -637,7 +637,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     
     public function getPagerCountAttribute()
     {
-        return $this->getOption('pager_count', 20);
+        return $this->getOption('pager_count');
     }
 
     public function setPagerCountAttribute($val)

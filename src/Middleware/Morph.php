@@ -8,6 +8,10 @@ use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SystemTableName;
 
+/**
+ * Middleware as Morph.
+ * Set Morph info for Eloquent Morph.
+ */
 class Morph
 {
     public function handle(Request $request, \Closure $next)
