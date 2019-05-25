@@ -21,9 +21,7 @@ class Date extends CustomItem
     }
 
     public function saving(){
-        $update = $this->autoDate();
-
-        if($update){
+        if($this->autoDate()){
             $this->value = $this->getNowString();
             return $this->value;
         }
@@ -33,7 +31,7 @@ class Date extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        if($this->autoDate()){
+        if($this->displayDate()){
             return ExmentField\Display::class;
         }
         return Field\Date::class;
@@ -46,8 +44,8 @@ class Date extends CustomItem
 
     protected function setAdminOptions(&$field, $form_column_options)
     {
-        if ($this->autoDate()) {
-            $field->default(exmtrans('custom_value.auto_number_create'));
+        if ($this->displayDate()) {
+            $field->default($this->getNowString());
         }else{
             $field->options(['useCurrent' => false]);
         }
@@ -74,6 +72,16 @@ class Date extends CustomItem
         }
         
         return false;
+    }
+
+    /**
+     * Whether only display
+     *
+     * @return void
+     */
+    protected function displayDate(){
+        // if datetime_now_saving is true
+        return boolval(array_get($this->custom_column, 'options.datetime_now_saving')) || boolval(array_get($this->custom_column, 'options.datetime_now_creating'));
     }
 
     /**

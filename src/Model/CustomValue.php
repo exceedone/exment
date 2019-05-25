@@ -34,6 +34,12 @@ class CustomValue extends ModelBase
      */
     protected $saved_notify = true;
     
+    /**
+     * already_updated.
+     * if true, not call saved event again.
+     */
+    protected $already_updated = false;
+    
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -215,6 +221,11 @@ class CustomValue extends ModelBase
     {
         $this->syncOriginal();
 
+        // if already updated, not save again
+        if($this->already_updated){
+            return;
+        }
+
         $columns = $this->custom_table
             ->custom_columns
             ->all();
@@ -234,6 +245,7 @@ class CustomValue extends ModelBase
         }
         // if update
         if ($update_flg) {
+            $this->already_updated = true;
             $this->save();
         }
     }

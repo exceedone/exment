@@ -9,7 +9,7 @@ class Time extends Date
 {
     protected function getAdminFieldClass()
     {
-        if($this->autoDate()){
+        if($this->displayDate()){
             return ExmentField\Display::class;
         }
         return Field\Time::class;
