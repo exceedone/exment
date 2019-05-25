@@ -138,7 +138,7 @@ class ListItem implements ItemInterface
     {
         $form->select('pager_count', trans("admin.show"))
             ->required()
-            ->options(static::getPagerOptions())
+            ->options(getPagerOptions([5, 10, 20]))
             ->default(5);
 
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
@@ -201,19 +201,5 @@ class ListItem implements ItemInterface
         $pager_count = $this->dashboard_box->getOption('pager_count') ?? 5;
         // get data
         $this->paginate = $model->paginate($pager_count);
-    }
-
-    /**
-     * get pager select options
-     */
-    protected static function getPagerOptions()
-    {
-        $counts = [5, 10, 20];
-        
-        $options = [];
-        foreach ($counts as $count) {
-            $options[$count] = $count. ' ' . trans('admin.entries');
-        }
-        return $options;
     }
 }

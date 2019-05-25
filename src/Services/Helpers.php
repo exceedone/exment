@@ -167,7 +167,7 @@ if (!function_exists('rmcomma')) {
     }
 }
 
-// File, path  --------------------------------------------------
+// File, path, url  --------------------------------------------------
 if (!function_exists('admin_urls')) {
     /**
      * Join admin url paths.
@@ -334,7 +334,16 @@ if (!function_exists('bytesToHuman')) {
     }
 }
 
-
+if (!function_exists('isApiEndpoint')) {
+    /**
+     * this url is ApiEndpoint
+     */
+    function isApiEndpoint()
+    {
+        $basePath = ltrim(admin_base_path(), '/');
+        return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*');
+    }
+}
 
 // array --------------------------------------------------
 if (!function_exists('array_keys_exists')) {
@@ -1276,6 +1285,23 @@ if (!function_exists('checkLatestVersion')) {
     }
 }
 
+if (!function_exists('getPagerOptions')) {
+    /**
+     * get pager select options
+     */
+    function getPagerOptions($addEmpty = false, $counts = [10, 20, 30, 50, 100])
+    {
+        $options = [];
+
+        if ($addEmpty) {
+            $options[0] = exmtrans("custom_view.pager_count_default");
+        }
+        foreach ($counts as $count) {
+            $options[$count] = $count. ' ' . trans('admin.entries');
+        }
+        return $options;
+    }
+}
 
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {

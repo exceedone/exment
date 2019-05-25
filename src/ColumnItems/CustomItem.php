@@ -309,6 +309,24 @@ abstract class CustomItem implements ItemInterface
         }
     }
 
+    /**
+     * get value before saving
+     *
+     * @return void
+     */
+    public function saving()
+    {
+    }
+
+    /**
+     * get value after saving
+     *
+     * @return void
+     */
+    public function saved()
+    {
+    }
+
     abstract protected function getAdminFieldClass();
 
     protected function getAdminFilterClass()

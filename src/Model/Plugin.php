@@ -8,7 +8,8 @@ use Exceedone\Exment\Enums\DocumentType;
 class Plugin extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
-    
+    use Traits\DatabaseJsonTrait;
+
     protected $casts = ['options' => 'json'];
 
     public static function getFieldById($plugin_id, $field_name)
@@ -72,5 +73,14 @@ class Plugin extends ModelBase
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
+    }
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
     }
 }

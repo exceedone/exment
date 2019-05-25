@@ -9,7 +9,8 @@ use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 
 /**
- * Middleware as Initialization
+ * Middleware as Bootstrap.
+ * Setup for display. ex. set css, js, ...
  */
 class Bootstrap
 {
@@ -33,6 +34,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/fullcalendar/core/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/daygrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/list/main.min.css?ver='.$ver));
+        Ad::css(asset('vendor/exment/fullcalendar/timegrid/main.min.css?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         //Ad::js(asset('vendor/exment/js/common.js'));
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
@@ -42,6 +44,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/fullcalendar/interaction/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/daygrid/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/list/main.min.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/fullcalendar/timegrid/main.min.js?ver='.$ver));
         
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');

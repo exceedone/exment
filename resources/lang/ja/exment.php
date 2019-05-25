@@ -37,6 +37,9 @@ return [
         'column' => '列',
         'asc' => '昇順',
         'desc' => '降順',
+        'pager_count' => '表示件数',
+        'custom_table' => 'カスタムテーブル',
+        'custom_column' => 'カスタム列',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
@@ -56,6 +59,7 @@ return [
             'no_permission' => '権限が割り当てられていません。管理者に連絡し、権限を割り当てるよう依頼してください。',
             'task_schedule_id' => 'タスクスケジュール',
             'task_schedule' => '<br/><b>※タスクスケジュール設定が必要です。</b>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'order' => '%sを一覧表示した時の表示順です。',
         ],
     ],
 
@@ -86,6 +90,7 @@ return [
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
         'system_mail_from' => 'システムメール送信元',
+        'grid_pager_count' => 'データ一覧の表示件数',
         'template' => 'インストールテンプレート',
         'version_header' => 'システムのバージョン情報',
         'version_progress' => 'バージョン情報を取得しています。',
@@ -124,6 +129,7 @@ return [
             'site_favicon' => 'サイトのファビコン(.ico)です。ホームページのブックマークなどに利用されます。推奨サイズ：16px * 16px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
+            'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
             'system_mail_from' => 'システムからメールを送付する際の送信元です。このメールアドレスをFromとして、メールが送付されます。',
@@ -414,6 +420,8 @@ return [
             'number_format' => '数値 カンマ文字列',
             'decimal_digit' => '小数点以下の桁数',
             'updown_button' => '+-ボタン表示',
+            'datetime_now_saving' => '保存時に実行日時を登録',
+            'datetime_now_creating' => '作成時に実行日時を登録',
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
@@ -468,6 +476,8 @@ return [
             'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',
             'select_item' => '改行区切りで選択肢を入力してください。',
+            'datetime_now_saving' => 'データの新規作成ならびに更新時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
+            'datetime_now_creating' => 'データの新規作成時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
             'true_value' => '1つ目の選択肢を保存した場合に登録する値を入力してください。',
@@ -559,6 +569,7 @@ return [
         'order' => '表示順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
+        'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => '表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
@@ -940,5 +951,10 @@ return [
             'value_read' => 'データの取得',
             'value_write' => 'データの取得・新規追加・更新・削除',
         ],
+
+        'errors' => [
+            'access_denied' => '認証できませんでした。アクセストークンが誤っているか、期限が切れています。',
+            'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
+        ]
     ],
 ];

@@ -18,7 +18,7 @@ class AuthenticateApi extends \Encore\Admin\Middleware\Authenticate
     {
         $user = \Exment::user();
         if (is_null($user) || is_null($user->base_user)) {
-            return abortJson(401);
+            return abortJson(401, exmtrans('api.errors.access_denied'));
         }
 
         return $next($request);

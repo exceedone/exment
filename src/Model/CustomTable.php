@@ -177,6 +177,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             static::addGlobalScope(new OrderScope('order'));
         }
 
+        static::saving(function ($model) {
+            $model->prepareJson('options');
+        });
+
         // delete event
         static::deleting(function ($model) {
             // delete custom values table
@@ -395,8 +399,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         $mark = ($isLike ? 'LIKE' : '=');
 
-        $takeCount = config('exment.keyword_search_count', 1000);
-        $relationTakeCount = config('exment.keyword_search_relation_count', 5000);
+        if ($relation) {
+            $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
+        } else {
+            $takeCount = intval(config('exment.keyword_search_count', 1000));
+        }
+
+        // if not paginate, only take maxCount
+        if (!$paginate) {
+            $takeCount = min($takeCount, $maxCount);
+        }
 
         // crate union query
         $queries = [];
@@ -404,11 +416,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $searchColumn = $searchColumns[$i];
             $query = getModelName($this)::query();
             $query->where($searchColumn, $mark, $value)->select('id');
-            if (!boolval($options['relation'])) {
-                $query->take($takeCount);
-            } else {
-                $query->take($relationTakeCount);
-            }
+            $query->take($takeCount);
 
             $queries[] = $query;
         }
@@ -416,11 +424,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $searchColumn = $searchColumns->last();
         $subquery = getModelName($this)::query();
         $subquery->where($searchColumn, $mark, $value)->select('id');
-        if (!boolval($options['relation'])) {
-            $subquery->take($takeCount);
-        } else {
-            $subquery->take($relationTakeCount);
-        }
+        $subquery->take($takeCount);
 
         foreach ($queries as $inq) {
             $subquery->union($inq);

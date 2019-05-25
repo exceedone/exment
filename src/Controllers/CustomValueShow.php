@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 /**
@@ -113,7 +114,7 @@ trait CustomValueShow
             $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
-                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-pupple" title="'. exmtrans('search.header_relation') . '">
+                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-purple" title="'. exmtrans('search.header_relation') . '">
                             <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
                         </a>
                     </div>');
@@ -363,6 +364,11 @@ EOT;
      */
     protected function useFileUpload($modal = false)
     {
+        // if no permission, return
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return [];
+        }
+        
         return !$modal && boolval($this->custom_table->getOption('attachment_flg') ?? true);
     }
     
@@ -405,6 +411,11 @@ EOT;
             return [];
         }
 
+        // if no permission, return
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+            return [];
+        }
+        
         $query = $this->getModelNameDV()::find($id)
             ->revisionHistory()
             ->orderby('id', 'desc');

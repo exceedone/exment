@@ -34,6 +34,12 @@ class CustomValue extends ModelBase
      */
     protected $saved_notify = true;
     
+    /**
+     * already_updated.
+     * if true, not call saved event again.
+     */
+    protected $already_updated = false;
+    
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -120,6 +126,9 @@ class CustomValue extends ModelBase
         });
         
         static::deleting(function ($model) {
+            static::setUser($model, ['deleted_user_id']);
+            $model->save();
+            
             $model->deleteRelationValues();
         });
 
@@ -150,17 +159,16 @@ class CustomValue extends ModelBase
             $column_name = $custom_column->column_name;
             $v = array_get($value, $column_name);
 
-            if ($this->setAgainOriginalValue($value, $original, $custom_column)) {
+            // get saving value
+            $v = $custom_column->column_item->setCustomValue($this)->saving();
+            // if has value, update
+            if (isset($v)) {
+                array_set($value, $column_name, $v);
                 $update_flg = true;
             }
 
-            // remove comma
-            if (ColumnType::isCalc($custom_column->column_type)) {
-                $rmv = rmcomma($v);
-                if ($v != $rmv) {
-                    $value[$column_name] = $rmv;
-                    $update_flg = true;
-                }
+            if ($this->setAgainOriginalValue($value, $original, $custom_column)) {
+                $update_flg = true;
             }
         }
 
@@ -213,6 +221,11 @@ class CustomValue extends ModelBase
     {
         $this->syncOriginal();
 
+        // if already updated, not save again
+        if ($this->already_updated) {
+            return;
+        }
+
         $columns = $this->custom_table
             ->custom_columns
             ->all();
@@ -220,21 +233,19 @@ class CustomValue extends ModelBase
         $update_flg = false;
         // loop columns
         foreach ($columns as $custom_column) {
-            // custom column
             $column_name = array_get($custom_column, 'column_name');
-            switch (array_get($custom_column, 'column_type')) {
-                // if column type is auto_number, set auto number.
-                case ColumnType::AUTO_NUMBER:
-                    $auto_number = $custom_column->column_item->setCustomValue($this)->getAutoNumber();
-                    if (isset($auto_number)) {
-                        $this->setValue($column_name, $auto_number);
-                        $update_flg = true;
-                    }
-                    break;
+            // get saved value
+            $v = $custom_column->column_item->setCustomValue($this)->saved();
+
+            // if has value, update
+            if (isset($v)) {
+                $this->setValue($column_name, $v);
+                $update_flg = true;
             }
         }
         // if update
         if ($update_flg) {
+            $this->already_updated = true;
             $this->save();
         }
     }
@@ -278,7 +289,7 @@ class CustomValue extends ModelBase
     
     
     // notify user --------------------------------------------------
-    protected function notify($create = true)
+    public function notify($create = true)
     {
         // if $saved_notify is false, return
         if ($this->saved_notify === false) {

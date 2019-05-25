@@ -156,8 +156,15 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return array_get($this->custom_value, $this->sqlAsName());
         }
-        $val = array_get($this->custom_value, $this->column_name);
 
+        if ($html) {
+            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            if (!is_null($keyname = array_get($option, 'tagname'))) {
+                return array_get($this->custom_value, $keyname);
+            }
+        }
+
+        $val = array_get($this->custom_value, $this->column_name);
         return $html ? esc_html($val) : $val;
     }
     

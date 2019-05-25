@@ -140,9 +140,11 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $form = new Form(new CustomColumn);
         // set script
-        //TODO: call using pjax
-        $date = \Carbon\Carbon::now()->format('YmdHis');
-        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$date).'"></script>');
+        $ver = getExmentCurrentVersion();
+        if (!isset($ver)) {
+            $ver = date('YmdHis');
+        }
+        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$ver).'"></script>');
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
@@ -251,6 +253,16 @@ class CustomColumnController extends AdminControllerTableBase
                     return $options;
                 });
             //}
+
+            // date, time, datetime
+            $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
+                ->help(exmtrans("custom_column.help.datetime_now_saving"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
+            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+                ->help(exmtrans("custom_column.help.datetime_now_creating"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
 
             // select
             // define select-item
@@ -413,7 +425,8 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
-        $form->number('order', exmtrans("custom_column.order"))->rules("integer");
+        $form->number('order', exmtrans("custom_column.order"))->rules("integer")
+        ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_column')));
 
         // if create column, add custom form and view
         if (!isset($id)) {
@@ -454,7 +467,7 @@ class CustomColumnController extends AdminControllerTableBase
         // set custom form columns --------------------------------------------------
         $add_custom_form_flg = app('request')->input('add_custom_form_flg');
         if (boolval($add_custom_form_flg)) {
-            $form = CustomForm::getDefault($this->custom_table);
+            $form = CustomForm::getDefault($this->custom_table, false);
             $form_block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
             
             // get order
@@ -476,13 +489,17 @@ class CustomColumnController extends AdminControllerTableBase
         // set custom form columns --------------------------------------------------
         $add_custom_view_flg = app('request')->input('add_custom_view_flg');
         if (boolval($add_custom_view_flg)) {
-            $view = CustomView::getDefault($this->custom_table);
+            $view = CustomView::getDefault($this->custom_table, false);
             
             // get order
-            $order = $view->custom_view_columns()
-                ->where('view_column_type', ViewColumnType::COLUMN)
-                ->max('order') ?? 0;
-            $order++;
+            if ($view->custom_view_columns()->count() == 0) {
+                $order = 1;
+            } else {
+                $order = $view->custom_view_columns()
+                    ->where('view_column_type', ViewColumnType::COLUMN)
+                    ->max('order') ?? 1;
+                $order++;
+            }
 
             $custom_view_column = new CustomViewColumn;
             $custom_view_column->custom_view_id = $view->id;
