@@ -3,16 +3,13 @@
 </p>
 
 <p align="center">
-<a href="https://exment.net/docs/#">Document</a> | 
 <a href="https://exment.net/docs/#/ja/">ドキュメント</a>
 </p>
 
 デモ
 ------------
 <p align="center">
-<a href="https://demo.exment.net/admin">Demo Site</a> | 
-<a href="https://demo-jp.exment.net/admin">デモサイト</a>
-<br/>※IDとパスワードは「admin/adminadmin」を入力してください
+<a href="https://exment.net/demo-env" target="_blank">デモサイト一覧</a>
 </p>
 
 ## Exmentとは
