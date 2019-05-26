@@ -29,7 +29,7 @@ return [
     | set exment bootstrap path.
     |
     */
-    'bootstrap' => exment_path('bootstrap.php'),
+    'bootstrap' => app_path('Exment/bootstrap.php'),
 
     /*
     |--------------------------------------------------------------------------
