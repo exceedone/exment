@@ -564,6 +564,7 @@ return [
         'view_column_target' => '対象列',
         'view_column_start_date' => '開始日',
         'view_column_end_date' => '終了日',
+        'copy_view' => 'このビューの複製',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
@@ -624,6 +625,7 @@ return [
         
         'custom_view_menulist' => [
             'current_view_edit' => '現在のビュー設定変更',
+            'current_view_replicate' => '現在のビューを複製',
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',

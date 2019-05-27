@@ -47,6 +47,7 @@ class GridChangeView extends AbstractTool
                     break;
             }
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, $this->current_custom_view->id, 'edit'.$query_str), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_edit')];
+            $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?copy_id=' . $this->current_custom_view->id), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.current_view_replicate')];
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_sum')];
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=2'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_calendar')];

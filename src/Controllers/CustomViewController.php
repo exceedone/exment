@@ -61,6 +61,7 @@ class CustomViewController extends AdminControllerTableBase
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
             return;
         }
+        
         return parent::edit($request, $content, $tableKey, $id);
     }
 
@@ -76,6 +77,11 @@ class CustomViewController extends AdminControllerTableBase
         if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
             return;
         }
+
+        if(!is_null($copy_id = $request->get('copy_id'))){
+            return $this->AdminContent($content)->body($this->form()->replicate($copy_id, ['view_view_name', 'default_flg']));
+        }
+
         return parent::create($request, $content);
     }
 
@@ -99,7 +105,6 @@ class CustomViewController extends AdminControllerTableBase
             $table_name = $this->custom_table->table_name;
         }
 
-        //  $grid->disableCreateButton();
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
             if (boolval($actions->row->system_flg)) {
@@ -116,6 +121,12 @@ class CustomViewController extends AdminControllerTableBase
                 ->url(admin_urls('data', "{$table_name}?view={$actions->row->suuid}"))
                 ->icon('fa-database')
                 ->tooltip(exmtrans('custom_view.view_datalist'));
+            $actions->prepend($linker);
+            
+            $linker = (new Linker)
+                ->url(admin_urls('view', $table_name, "create?copy_id={$actions->row->id}"))
+                ->icon('fa-copy')
+                ->tooltip(exmtrans('custom_view.copy_view'));
             $actions->prepend($linker);
         });
 
