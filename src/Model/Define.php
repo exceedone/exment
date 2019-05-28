@@ -168,7 +168,7 @@ class Define
         ['url' => 'column', 'icon' => 'fa-list', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
         ['url' => 'relation', 'icon' => 'fa-compress', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
         ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => [Permission::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
+        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view'],
         ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];

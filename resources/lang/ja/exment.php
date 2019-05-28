@@ -559,6 +559,7 @@ return [
         'custom_view_columns' => '表示列選択',
         'custom_view_groups' => 'グループ列選択',
         'view_column_name' => '別名表示',
+        'view_type' => 'ビュー権限',
         'view_kind_type' => 'ビュー種類',
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',

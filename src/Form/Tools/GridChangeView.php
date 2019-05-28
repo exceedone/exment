@@ -36,7 +36,7 @@ class GridChangeView extends AbstractTool
         // setting menu list
         $settings = [];
         //role check
-        if ($this->custom_table->hasPermission(Permission::CUSTOM_VIEW)) {
+        //if ($this->custom_table->hasPermission(Permission::CUSTOM_VIEW)) {
             $query_str = '';
             switch (intval($this->current_custom_view->view_kind_type)) {
                 case ViewKindType::AGGREGATE:
@@ -51,7 +51,7 @@ class GridChangeView extends AbstractTool
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_sum')];
             $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=2'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_calendar')];
-        }
+        //}
 
         return view('exment::tools.view-button', [
             'current_custom_view' => $this->current_custom_view,
