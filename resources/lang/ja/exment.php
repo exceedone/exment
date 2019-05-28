@@ -141,6 +141,7 @@ return [
         'header' => 'ダッシュボード',
         'dashboard_name' => 'ダッシュボード名(英数字)',
         'dashboard_view_name' => 'ダッシュボード表示名',
+        'dashboard_type' => 'ダッシュボード種類',
         'row' => 'ダッシュボード%s行目',
         'description_row' => 'ダッシュボードの%s行目に表示する列数です。',
         'description_row2' => 'ダッシュボードの%s行目に表示する列数です。※「なし」を選択すると、%s行目は表示されません。',

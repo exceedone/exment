@@ -224,7 +224,6 @@ EOT;
     protected function form($id = null)
     {
         $form = new Form(new Dashboard);
-        $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
 
         if (!isset($id)) {
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
@@ -238,6 +237,15 @@ EOT;
         $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))
             ->required()
             ->rules("max:40");
+
+        if (Admin::user()->hasPermission(Permission::SYSTEM)) {
+            $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
+                ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
+                ->config('allowClear', false)
+                ->default(DashboardType::SYSTEM);
+        }else{
+            $form->hidden('dashboard_type')->default(DashboardType::USER);
+        }
 
         $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
 
