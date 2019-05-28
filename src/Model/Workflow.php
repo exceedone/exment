@@ -21,4 +21,30 @@ class Workflow extends ModelBase
     {
         return $this->hasMany(WorkflowAction::class, 'workflow_id');
     }
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // delete event
+        static::deleting(function ($model) {
+            // Delete items
+            $model->deletingChildren();
+            
+            $model->workflow_statuses()->delete();
+            $model->workflow_actions()->delete();
+        });
+    }
+    
+    /**
+     * Delete children items
+     */
+    public function deletingChildren()
+    {
+        foreach ($this->workflow_statuses as $item) {
+            $item->deletingChildren();
+        }
+        foreach ($this->workflow_actions as $item) {
+            $item->deletingChildren();
+        }
+    }
 }

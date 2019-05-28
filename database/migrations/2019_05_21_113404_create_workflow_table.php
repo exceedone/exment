@@ -51,7 +51,7 @@ class CreateWorkflowTable extends Migration
             $table->timeusers();
         });
 
-        $schema->create('workflow_authoritable', function (ExtendedBlueprint $table) {
+        $schema->create('workflow_authorities', function (ExtendedBlueprint $table) {
             $table->integer('related_id');
             $table->string('related_type', 255);
             $table->integer('workflow_action_id')->unsigned()->index();
@@ -89,7 +89,7 @@ class CreateWorkflowTable extends Migration
         Schema::dropIfExists('workflow');
         Schema::dropIfExists('workflow_statuses');
         Schema::dropIfExists('workflow_actions');
-        Schema::dropIfExists('workflow_authoritable');
+        Schema::dropIfExists('workflow_authorities');
         Schema::dropIfExists('workflow_values');
         Schema::table('custom_tables', function (Blueprint $table) {
             $table->dropColumn('workflow_id');

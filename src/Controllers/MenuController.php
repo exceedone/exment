@@ -208,7 +208,7 @@ class MenuController extends AdminControllerBase
             if ($isset_order) {
                 $query = Menu::where('parent_id', $parent_id);
                 if (isset($id)) {
-                    $query->whereNot('id', $id);
+                    $query->where('id', '<>', $id);
                 }
                 $count = $query->count();
                 // set order $count+1;

@@ -353,14 +353,23 @@ return [
         'workflow_statuses' => '状態',
         'workflow_actions' => 'アクション',
         'description_workflow_statuses' => 'ワークフローで使用するデータの状態を定義します。<br/>例：承認待ち、完了',
-        'description_workflow_actions' => '状態を変化させるアクションを定義します。<br/>例：申請、承認、決裁',
+        'description_workflow_actions' => '状態を変化させるアクションを定義します。 例：申請、承認、決裁',
         'status_name' => '状態名',
         'action_name' => 'アクション名',
         'editable_flg' => '編集可否',
         'action' => 'アクション設定',
         'status_from' => '開始の状態',
         'status_to' => '終了の状態',
+        'has_autority_users' => '権限ユーザー',
+        'has_autority_organizations' => '権限組織',
         'status_init' => '初期状態',
+        'help' => [
+            'saved_redirect_column' => '保存しました！次はアクションを設定してください。',
+        ],
+        'message' => [
+            'status_nochange' => '開始と終了には異なる状態を選択してください。',
+            'exists_authority' => 'アクションの権限は必ず設定してください。',
+        ],
     ],
 
     'custom_table' => [
@@ -370,6 +379,7 @@ return [
         'table_name' => 'テーブル名(英数字)',
         'table_view_name' => 'テーブル表示名',
         'order' => '表示順',
+        'workflow_id' => 'ワークフロー設定',
         'field_description' => '説明',
         'color' => '色',
         'icon' => 'アイコン',
@@ -785,6 +795,7 @@ return [
             'notify' => '通知',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
+            'workflow' => 'ワークフロー',
         ],
     ],
 

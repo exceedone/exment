@@ -14,6 +14,7 @@ use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
@@ -259,6 +260,29 @@ EOT;
                 ->setWidth(12, 0);
             $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));
         }
+
+        if ($this->useWorkflow($modal)) {
+            $workflows = $this->getWorkflows($id, $modal);
+            $form = new WidgetForm;
+            $form->disableReset();
+            $form->disableSubmit();
+            $form->setWidth(10, 2);
+
+            if (count($workflows) > 0) {
+                $html = [];
+                foreach ($workflows as $index => $workflow) {
+                    $html[] = "<p>" . view('exment::form.field.workflowline', [
+                        'workflow' => $workflow,
+                        'table_name' => $this->custom_table->table_name,
+                    ])->render() . "</p>";
+                }
+                // loop and add as link
+                $form->html(implode("", $html))
+                    ->plain()
+                    ->setWidth(8, 3);
+            }
+            $row->column(6, (new Box(exmtrans("common.workflow_status"), $form))->style('info'));
+        }
     }
     
     /**
@@ -382,6 +406,14 @@ EOT;
     {
         return !$modal && boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
+    
+    /**
+     * whether workflow field
+     */
+    protected function useWorkflow($modal = false)
+    {
+        return !$modal && isset($this->custom_table->workflow_id);
+    }
 
     protected function getDocuments($id, $modal = false)
     {
@@ -402,6 +434,20 @@ EOT;
         return getModelName(SystemTableName::COMMENT)
             ::where('parent_id', $id)
             ->where('parent_type', $this->custom_table->table_name)
+            ->get();
+    }
+    
+    protected function getWorkflows($id, $modal = false)
+    {
+        if ($modal) {
+            return [];
+        }
+        return WorkflowValue
+            ::join('workflow_statuses', 'workflow_statuses.id', 'workflow_values.workflow_status_id')
+            ->select(['workflow_values.created_at', 'workflow_values.created_user_id', 'workflow_statuses.status_name'])
+            ->where('workflow_values.workflow_id', $this->custom_table->workflow_id)
+            ->where('workflow_values.morph_id', $id)
+            ->orderby('workflow_values.created_at', 'desc')
             ->get();
     }
 

@@ -52,6 +52,7 @@ class CustomValue extends ModelBase
     {
         return WorkflowValue::where('morph_id', $this->id)
             ->where('morph_type', $this->custom_table->table_name)
+            ->where('workflow_id', $this->custom_table->workflow_id)
             ->where('enabled_flg', 1)
             ->orderBy('updated_at', 'desc')
             ->first();
@@ -98,22 +99,22 @@ class CustomValue extends ModelBase
             $user = \Exment::user()->base_user_id;
             $organization = \Exment::user()->getOrganizationIds();
             $actions = WorkflowAction::select()
-                ->leftJoin('workflow_authoritable', 'workflow_authoritable.workflow_action_id', '=', 'workflow_actions.id')
+                ->leftJoin('workflow_authorities', 'workflow_authorities.workflow_action_id', '=', 'workflow_actions.id')
                 ->where('workflow_actions.workflow_id', $workflow_id)
                 ->where('workflow_actions.status_from', $status_id)
                 ->where(function ($query) use($user, $organization){
                     $query
-                        ->whereNull('workflow_authoritable.related_id')
+                        ->whereNull('workflow_authorities.related_id')
                         ->orWhere(function ($query1) use($user) {
                             $query1
-                                ->where('workflow_authoritable.related_id', '=', $user)
-                                ->where('workflow_authoritable.related_type', '=', SystemTableName::USER);
+                                ->where('workflow_authorities.related_id', '=', $user)
+                                ->where('workflow_authorities.related_type', '=', SystemTableName::USER);
                         });
                     if (count($organization) > 0) {
                         $query->orWhere(function ($query2) use($organization) {
                             $query2
-                                ->where('workflow_authoritable.related_id', '=', $organization)
-                                ->where('workflow_authoritable.related_type', '=', SystemTableName::ORGANIZATION);
+                                ->where('workflow_authorities.related_id', '=', $organization)
+                                ->where('workflow_authorities.related_type', '=', SystemTableName::ORGANIZATION);
                         });
                     }
                 })->get();

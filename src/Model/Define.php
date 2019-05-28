@@ -127,6 +127,10 @@ class Define
             'uri' => 'template',
             'icon' => 'fa-clone',
         ],
+        'workflow' => [
+            'uri' => 'workflow',
+            'icon' => 'fa-code-fork',
+        ],
         'backup' => [
             'uri' => 'backup',
             'icon' => 'fa-database',

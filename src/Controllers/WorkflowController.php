@@ -5,23 +5,18 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
-// use Encore\Admin\Controllers\HasResourceActions;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowStatus;
-// use Exceedone\Exment\Model\Role;
-// use Exceedone\Exment\Model\Define;
-// use Exceedone\Exment\Model\Menu;
-// use Exceedone\Exment\Form\Tools;
-// use Exceedone\Exment\Enums\MenuType;
-// use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class WorkflowController extends AdminControllerBase
 {
-    use HasResourceActions, RoleForm;
+    use HasResourceActions;
 
     protected $exists = false;
 
@@ -124,7 +119,7 @@ class WorkflowController extends AdminControllerBase
 
             // redirect workflow action page
             if (!$this->exists) {
-                $workflow_action_url = admin_urls('workflow', $model->id, 'action');
+                $workflow_action_url = admin_urls('workflow', $model->id, 'edit?action=1');
     
                 admin_toastr(exmtrans('workflow.help.saved_redirect_column'));
                 return redirect($workflow_action_url);
@@ -148,25 +143,57 @@ class WorkflowController extends AdminControllerBase
         $statuses = WorkflowStatus::where('workflow_id', $id)->get()->pluck('status_name', 'id');
         $statuses->prepend(exmtrans("workflow.status_init"), 0);
 
-        $form->hasManyTable('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use($id, $statuses) {
+        $form->hasMany('workflow_actions', exmtrans("workflow.workflow_actions"), function ($form) use($id, $statuses) {
             $form->text('action_name', exmtrans("workflow.action_name"))->required();
             $form->select('status_from', exmtrans("workflow.status_from"))->required()
                 ->options($statuses);
             $form->select('status_to', exmtrans("workflow.status_to"))->required()
                 ->options($statuses);
             $form->hidden('workflow_id')->default($id);
-        })->setTableColumnWidth(4, 3, 3, 2)
-        ->description(sprintf(exmtrans("workflow.description_workflow_actions")));
+            $form->multipleSelect('has_autority_users', exmtrans("workflow.has_autority_users"))
+                ->options(function() {
+                    return CustomTable::getEloquent(SystemTableName::USER)->getOptions();
+                }
+            );
+            $form->multipleSelect('has_autority_organizations', exmtrans("workflow.has_autority_organizations"))
+                ->options(function() {
+                    return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions();
+                }
+            );
+        });
 
         $form->tools(function (Form\Tools $tools) use ($form, $id) {
             $tools->disableDelete();
         });
 
-        $form->ignore('action');
+        $form->ignore(['action']);
 
-        // $form->saving(function (Form $form) {
-        //     $this->exists = $form->model()->exists;
-        // });
+        $form->saving(function (Form $form) {
+            if (!is_null($form->workflow_actions)) {
+                foreach($form->workflow_actions as $workflow_action) {
+                    if (array_get($workflow_action, 'status_from') == array_get($workflow_action, 'status_to')) {
+                        admin_toastr(exmtrans('workflow.message.status_nochange'), 'error');
+                        return back()->withInput();
+                    }
+                    $has_autority_users = array_get($workflow_action, 'has_autority_users');
+                    if (!is_null($has_autority_users)) {
+                        $cnt = collect($has_autority_users)->reject(function ($val) {
+                            return empty($val);
+                        })->count();
+                        if ($cnt > 0) continue;
+                    }
+                    $has_autority_organizations = array_get($workflow_action, 'has_autority_organizations');
+                    if (!is_null($has_autority_organizations)) {
+                        $cnt = collect($has_autority_organizations)->reject(function ($val) {
+                            return empty($val);
+                        })->count();
+                        if ($cnt > 0) continue;
+                    }
+                    admin_toastr(exmtrans('workflow.message.exists_authority'), 'error');
+                    return back()->withInput();
+                }
+            }
+        });
 
         // $form->saved(function (Form $form) use ($id) {
         //     // create or drop index --------------------------------------------------

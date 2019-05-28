@@ -6,40 +6,77 @@ use Exceedone\Exment\Enums\SystemTableName;
 
 class WorkflowAction extends ModelBase
 {
-    // user workflow_authoritable. it's all role data. only filter workflow_action_id
-    public function action_authoritable_users()
+    protected $appends = ['has_autority_users', 'has_autority_organizations'];
+
+    protected $autority_users;
+    protected $autority_organizations;
+
+    public function setHasAutorityUsersAttribute($value)
     {
-        return $this->morphToMany(getModelName(SystemTableName::USER), 'workflow', 'workflow_authoritable', 'workflow_action_id', 'related_id')
-            ->withPivot('related_id', 'related_type', 'role_id')
-            ->wherePivot('related_type', SystemTableName::USER)
-            ;
+        $this->autority_users = $value;
     }
 
-    // user workflow_authoritable. it's all role data. only filter workflow_action_id
-    public function action_authoritable_organizations()
+    public function setHasAutorityOrganizationsAttribute($value)
     {
-        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'workflow', 'workflow_authoritable', 'workflow_action_id', 'related_id')
-            ->withPivot('related_id', 'related_type', 'role_id')
-            ->wherePivot('related_type', SystemTableName::ORGANIZATION)
-            ;
+        $this->autority_organizations = $value;
     }
-    
+
+    public function getHasAutorityUsersAttribute()
+    {
+        return WorkflowAuthority::where('workflow_action_id', $this->id)
+            ->where('related_type', SystemTableName::USER)->get()->pluck('related_id');
+    }
+
+    public function getHasAutorityOrganizationsAttribute()
+    {
+        return WorkflowAuthority::where('workflow_action_id', $this->id)
+            ->where('related_type', SystemTableName::ORGANIZATION)->get()->pluck('related_id');
+    }
+
+    protected static function boot() {
+        parent::boot();
+
+        static::saved(function ($model) {
+            $model->setActionAuthority();
+        });
+    }
+
+    public function deletingChildren()
+    {
+        WorkflowAuthority::where('workflow_action_id', $this->id)->delete();
+    }
+
     /**
-     * get Authoritable values.
-     * this function selects value_authoritable, and get all values.
+     * set action authority
      */
-    public function getAuthoritable()
+    public function setActionAuthority()
     {
-        $count = $this
-            ->action_authoritable_users()
-            ->where('related_id', \Exment::user()->base_user_id)->count();
-
-        if ($count == 0) {
-            $count = $this
-                ->action_authoritable_organizations()
-                ->whereIn('related_id', \Exment::user()->getOrganizationIds())->count();
+        if (!is_null($this->autority_users)) {
+            $users = [];
+            foreach($this->autority_users as $autority_user) {
+                $users[] = [
+                    'related_id' => $autority_user,
+                    'related_type' => SystemTableName::USER,
+                    'workflow_action_id' => $this->id,
+                ];
+            }
+            WorkflowAuthority::where('workflow_action_id', $this->id)
+                ->where('related_type', SystemTableName::USER)->delete();
+            WorkflowAuthority::insert($users);
         }
 
-        return $count > 0;
+        if (!is_null($this->autority_organizations)) {
+            $organizations = [];
+            foreach($this->autority_organizations as $autority_organization) {
+                $organizations[] = [
+                    'related_id' => $autority_organization,
+                    'related_type' => SystemTableName::ORGANIZATION,
+                    'workflow_action_id' => $this->id,
+                ];
+            }
+            WorkflowAuthority::where('workflow_action_id', $this->id)
+                ->where('related_type', SystemTableName::ORGANIZATION)->delete();
+            WorkflowAuthority::insert($organizations);
+        }
     }
 }

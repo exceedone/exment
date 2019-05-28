@@ -647,7 +647,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = [];
         
-        if ($include_workflow) {
+        if ($include_workflow && isset($this->workflow_id)) {
             $key = $this->getOptionKey('workflow_status', $append_table, $this->id);
             $value = exmtrans('common.workflow_status');
             $options[$key] = $value;
