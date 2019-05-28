@@ -73,6 +73,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
 
+    public function multi_uniques()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', 1);
+    }
+
     public function getSelectedItems()
     {
         return CustomColumn::where('options->select_target_table', $this->id)
@@ -123,6 +129,27 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $key = $item->getIndexColumnName();
                 return [$key => $item];
             })->filter();
+    }
+
+    public function getMultipleUniques($custom_column = null)
+    {
+        return CustomColumnMulti::allRecords(function ($val) use($custom_column) {
+            if(array_get($val, 'custom_table_id') != $this->id){
+                return false;
+            }
+
+            if(!isset($custom_column)){
+                return true;
+            }
+
+            $targetid = CustomColumn::getEloquent($custom_column, $this)->id;
+            foreach([1,2,3] as $key){
+                if($val->{'unique' . $key} == $targetid){
+                    return true;
+                }
+            }
+            return false;
+        }, false);
     }
 
     public function getOption($key, $default = null)
@@ -638,7 +665,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param array|CustomTable $table
      * @param $selected_value
      */
-    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false)
+    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
     {
         $options = [];
         
@@ -646,7 +673,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options,
             $this->custom_columns,
             $index_enabled_only,
-            true,
+            $include_system,
             true,
             $append_table,
             $this->id
@@ -663,7 +690,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $options,
                     $parent->custom_columns,
                     $index_enabled_only,
-                    true,
+                    $include_system,
                     true,
                     $append_table,
                     $parent_id,
@@ -679,7 +706,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $options,
                     $custom_table->custom_columns,
                     $index_enabled_only,
-                    true,
+                    $include_system,
                     true,
                     $append_table,
                     $custom_table->id,
