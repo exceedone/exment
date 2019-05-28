@@ -207,7 +207,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
 
         // select view type
-        if ($this->hasSystemPermission()) {
+        if (!isset($id) && $this->hasSystemPermission()) {
             $form->select('view_type', exmtrans('custom_view.view_type'))
                 ->default(Enums\ViewType::SYSTEM)
                 ->config('allowClear', false)

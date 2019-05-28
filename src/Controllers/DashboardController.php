@@ -238,7 +238,7 @@ EOT;
             ->required()
             ->rules("max:40");
 
-        if (Admin::user()->hasPermission(Permission::SYSTEM)) {
+        if (!isset($id) && Admin::user()->hasPermission(Permission::SYSTEM)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)
