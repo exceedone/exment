@@ -176,4 +176,26 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             });
         });
     }
+
+    public static function hasDashboardEditAuth($id){
+        $dashboard = static::find($id);
+        // check has system permission
+        if(!static::hasSystemPermission()){
+
+            if($dashboard->dashboard_type == DashboardType::SYSTEM){
+                return false;
+            }
+            elseif($dashboard->created_user_id != \Exment::user()->base_user_id){
+                return false;
+            }
+        }elseif($dashboard->dashboard_type == DashboardType::USER && $dashboard->created_user_id != \Exment::user()->base_user_id){
+            return false;
+        }
+
+        return true;
+    }
+    
+    public static function hasSystemPermission(){
+        return \Admin::user()->hasPermission(Permission::SYSTEM);
+    }
 }

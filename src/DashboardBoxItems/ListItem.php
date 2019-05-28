@@ -138,12 +138,14 @@ class ListItem implements ItemInterface
     {
         $form->select('pager_count', trans("admin.show"))
             ->required()
-            ->options(getPagerOptions([5, 10, 20]))
+            ->options(getPagerOptions(false, [5, 10, 20]))
             ->default(5);
 
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
-            ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
+            ->options(CustomTable::filterList(null, [
+                'permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE,
+            ])->pluck('table_view_name', 'id'))
             ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::LIST]));
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
@@ -157,7 +159,8 @@ class ListItem implements ItemInterface
                     return [];
                 }
 
-                return $view->custom_table->custom_views
+                $custom_table = $view->custom_table;
+                return $custom_table->custom_views()->showableViews($custom_table, true)
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
                     })->pluck('view_view_name', 'id');

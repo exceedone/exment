@@ -43,12 +43,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
+
     public function custom_views()
     {
         return $this->hasMany(CustomView::class, 'custom_table_id')
             ->orderBy('view_type')
             ->orderBy('id');
     }
+ 
     public function custom_forms()
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
@@ -282,7 +284,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = array_merge(
             [
-                'getModel' => true
+                'getModel' => true,
+                'permissions' => Permission::CUSTOM_TABLE,
             ],
             $options
         );
@@ -294,7 +297,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if not exists, filter model using permission
         if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = \Exment::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
+            $permission_tables = \Exment::user()->allHasPermissionTables($options['permissions']);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });

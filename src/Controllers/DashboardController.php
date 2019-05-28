@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
@@ -47,6 +48,13 @@ class DashboardController extends AdminControllerBase
     public function edit(Request $request, Content $content, $id)
     {
         $this->setDashboardInfo($request);
+        
+        // check has system permission
+        if(!Dashboard::hasDashboardEditAuth($id)){
+            Checker::error();
+            return false;
+        }
+
         return parent::edit($request, $content, $id);
     }
 
@@ -238,7 +246,7 @@ EOT;
             ->required()
             ->rules("max:40");
 
-        if (!isset($id) && Admin::user()->hasPermission(Permission::SYSTEM)) {
+        if (!isset($id) && Dashboard::hasSystemPermission()) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)
@@ -304,8 +312,7 @@ EOT;
     {
         $content->row(function ($row) use ($content, $row_column_count, $row_no) {
             // check role.
-            //TODO:now system admin. change if user dashboard
-            $has_role = Admin::user()->hasPermission(Permission::SYSTEM);
+            $has_role = Dashboard::hasDashboardEditAuth($this->dashboard->id);
             for ($i = 1; $i <= $row_column_count; $i++) {
                 $func = "dashboard_row{$row_no}_boxes";
                 // get $boxes as $row_no
