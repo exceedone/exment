@@ -115,21 +115,9 @@ class CustomViewController extends AdminControllerTableBase
             $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->display(function ($view_type) {
                 return Enums\ViewType::getEnum($view_type)->transKey("custom_view.custom_view_type_options");
             });
-
-            $grid->model()
-                ->where(function($query){
-                    $query->where(function($query){
-                        $query->where('view_type', Enums\ViewType::SYSTEM);
-                    })->orWhere(function($query){
-                        $query->where('view_type', Enums\ViewType::USER)
-                        ->where('created_user_id', \Exment::user()->base_user_id);
-                    });
-                });
-        }else{
-            $grid->model()
-                ->where('view_type', Enums\ViewType::USER)
-                ->where('created_user_id', \Exment::user()->base_user_id);
         }
+
+        $grid->model()->showableViews($this->custom_table);
         
         $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");

@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\Permission;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -296,6 +297,24 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $view;
     }
     
+    public function scopeShowableViews($query, $custom_table, $showSystem = false)
+    {
+        // has custom_view permission, or $showSystem
+        if ($custom_table->hasPermission(Permission::CUSTOM_VIEW) || $showSystem) {
+            return $query->where(function($query){
+                    $query->where(function($query){
+                        $query->where('view_type', ViewType::SYSTEM);
+                    })->orWhere(function($query){
+                        $query->where('view_type', ViewType::USER)
+                        ->where('created_user_id', \Exment::user()->base_user_id);
+                    });
+                });
+        }else{
+            return $query->where('view_type', ViewType::USER)
+                ->where('created_user_id', \Exment::user()->base_user_id);
+        }
+    }
+
     protected static function createDefaultView($tableObj)
     {
         $view = new CustomView;

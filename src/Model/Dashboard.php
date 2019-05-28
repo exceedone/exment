@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\Permission;
 use Illuminate\Http\Request as Req;
 
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
@@ -155,6 +156,24 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         });
         static::updating(function ($model) {
             $model->setDefaultFlg();
+        });
+    }
+
+    /**
+     * scope user showable Dashboards
+     *
+     * @param [type] $query
+     * @return void
+     */
+    public function scopeShowableDashboards($query)
+    {
+        return $query->where(function($query){
+            $query->where(function($query){
+                $query->where('dashboard_type', DashboardType::SYSTEM);
+            })->orWhere(function($query){
+                $query->where('dashboard_type', DashboardType::USER)
+                    ->where('created_user_id', \Exment::user()->base_user_id);
+            });
         });
     }
 }
