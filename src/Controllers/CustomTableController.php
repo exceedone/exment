@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 // use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -54,6 +55,13 @@ class CustomTableController extends AdminControllerBase
                 $actions->disableDelete();
             }
             $actions->disableView();
+    
+            // add new multiple columns
+            $linker = (new Linker)
+                ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
+                ->icon('fa-exchange')
+                ->tooltip(exmtrans('custom_table.expand_setting'));
+            $actions->prepend($linker);
         });
 
         // filter table --------------------------------------------------
@@ -188,6 +196,34 @@ class CustomTableController extends AdminControllerBase
     }
     
     /**
+     * Make a formMultiColumn.
+     *
+     * @return Form
+     */
+    protected function formMultiColumn($id = null)
+    {
+        $form = new Form(new CustomTable);
+        $form->display('table_name', exmtrans("custom_table.table_name"));
+        $form->display('table_view_name', exmtrans("custom_table.table_view_name"));
+        $form->hidden('columnmulti')->default(1);
+
+        $custom_table = CustomTable::getEloquent($id);
+        $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
+            $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            $form->hidden('multisetting_type')->default(1);
+        })->setTableColumnWidth(4, 4, 3, 1)
+        ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
+
+        $form->ignore('columnmulti');
+        return $form;
+    }
+    
+    /**
      * Edit interface.
      *
      * @param mixed   $id
@@ -199,7 +235,28 @@ class CustomTableController extends AdminControllerBase
         if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
             return;
         }
+
+        if($request->has('columnmulti')){
+            return $this->AdminContent($content)->body($this->formMultiColumn($id)->edit($id));
+        }
+
         return parent::edit($request, $content, $id);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($id)
+    {
+        if(request()->has('columnmulti')){
+            return $this->formMultiColumn($id)->update($id);
+        }
+
+        return $this->form($id)->update($id);
     }
 
     /**

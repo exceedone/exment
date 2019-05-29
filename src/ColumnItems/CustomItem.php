@@ -178,6 +178,7 @@ abstract class CustomItem implements ItemInterface
     {
         return $this->getAdminFieldClass();
     }
+
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $form_column_options = $form_column->options ?? null;
