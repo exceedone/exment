@@ -38,6 +38,7 @@ class CreateCustomColumnMulti extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('custom_column_multisettings');
         //
     }
 }
