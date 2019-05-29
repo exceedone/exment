@@ -1376,13 +1376,21 @@
         {
             "order": "8",
             "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "Workflow",
+            "parent_name": "admin",
+            "menu_target_name": "workflow"
+        },
+        {
+            "order": "9",
+            "menu_type": "system",
             "menu_name": "plugin",
             "title": "Plugin",
             "parent_name": "admin",
             "menu_target_name": "plugin"
         },
         {
-            "order": "9",
+            "order": "10",
             "menu_type": "system",
             "menu_name": "notify",
             "title": "Notify",
@@ -1390,7 +1398,7 @@
             "menu_target_name": "notify"
         },
         {
-            "order": "10",
+            "order": "11",
             "menu_type": "table",
             "menu_name": "mail_template",
             "title": "Mail Template",
@@ -1398,7 +1406,7 @@
             "menu_target_name": "mail_template"
         },
         {
-            "order": "11",
+            "order": "12",
             "menu_type": "table",
             "menu_name": "mail_send_log",
             "title": "Mail Send Log",

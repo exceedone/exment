@@ -86,7 +86,7 @@ class CreateWorkflowTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('workflow');
+        Schema::dropIfExists('workflows');
         Schema::dropIfExists('workflow_statuses');
         Schema::dropIfExists('workflow_actions');
         Schema::dropIfExists('workflow_authorities');

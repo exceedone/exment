@@ -510,6 +510,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "ワークフロー"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "plugin",
             "title": "プラグイン"
         },
