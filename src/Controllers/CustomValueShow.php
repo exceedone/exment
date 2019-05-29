@@ -266,22 +266,20 @@ EOT;
             $form = new WidgetForm;
             $form->disableReset();
             $form->disableSubmit();
-            $form->setWidth(10, 2);
 
             if (count($workflows) > 0) {
                 $html = [];
                 foreach ($workflows as $index => $workflow) {
-                    $html[] = "<p>" . view('exment::form.field.workflowline', [
-                        'workflow' => $workflow,
-                        'table_name' => $this->custom_table->table_name,
-                    ])->render() . "</p>";
+                    $form->html(
+                        view('exment::form.field.workflowline', [
+                            'workflow' => $workflow,
+                            'index' => $index,
+                        ])->render(),
+                        'No.'. ($index + 1)
+                    )->setWidth(10, 2);
                 }
-                // loop and add as link
-                $form->html(implode("", $html))
-                    ->plain()
-                    ->setWidth(8, 3);
             }
-            $row->column(6, (new Box(exmtrans("common.workflow_status"), $form))->style('info'));
+            $row->column(6, (new Box(exmtrans("common.workflow_history"), $form))->style('info'));
         }
     }
     
@@ -444,10 +442,10 @@ EOT;
         }
         return WorkflowValue
             ::join('workflow_statuses', 'workflow_statuses.id', 'workflow_values.workflow_status_id')
-            ->select(['workflow_values.created_at', 'workflow_values.created_user_id', 'workflow_statuses.status_name'])
+            ->select(['workflow_values.created_at', 'workflow_values.created_user_id', 'workflow_values.enabled_flg', 'workflow_statuses.status_name'])
             ->where('workflow_values.workflow_id', $this->custom_table->workflow_id)
             ->where('workflow_values.morph_id', $id)
-            ->orderby('workflow_values.created_at', 'desc')
+            ->orderby('workflow_values.created_at')
             ->get();
     }
 

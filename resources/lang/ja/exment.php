@@ -28,6 +28,7 @@ return [
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
         'workflow_status' => 'ワークフローステータス', 
+        'workflow_history' => 'ワークフロー履歴',
         'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   
         'comment' => 'コメント',   
@@ -369,6 +370,7 @@ return [
         'message' => [
             'status_nochange' => '開始と終了には異なる状態を選択してください。',
             'exists_authority' => 'アクションの権限は必ず設定してください。',
+            'reference_error' => '使用中のワークフローは削除できません。',
         ],
     ],
 

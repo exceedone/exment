@@ -109,6 +109,12 @@ class WorkflowController extends AdminControllerBase
         })->setTableColumnWidth(8, 2, 2)
         ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
         
+        if (isset($id) && CustomTable::where('workflow_id', $id)->count() > 0) {
+            $form->tools(function (Form\Tools $tools) {
+                $tools->disableDelete();
+            });
+        }
+
         $form->saving(function (Form $form) {
             $this->exists = $form->model()->exists;
         });
@@ -162,7 +168,7 @@ class WorkflowController extends AdminControllerBase
             );
         });
 
-        $form->tools(function (Form\Tools $tools) use ($form, $id) {
+        $form->tools(function (Form\Tools $tools) {
             $tools->disableDelete();
         });
 
@@ -170,43 +176,17 @@ class WorkflowController extends AdminControllerBase
 
         $form->saving(function (Form $form) {
             if (!is_null($form->workflow_actions)) {
-                foreach($form->workflow_actions as $workflow_action) {
-                    if (array_get($workflow_action, 'status_from') == array_get($workflow_action, 'status_to')) {
+                $actions = collect($form->workflow_actions)->filter(function ($value) {
+                    return $value[Form::REMOVE_FLAG_NAME] != 1;
+                });
+                foreach($actions as $action) {
+                    if (array_get($action, 'status_from') == array_get($action, 'status_to')) {
                         admin_toastr(exmtrans('workflow.message.status_nochange'), 'error');
                         return back()->withInput();
                     }
-                    $has_autority_users = array_get($workflow_action, 'has_autority_users');
-                    if (!is_null($has_autority_users)) {
-                        $cnt = collect($has_autority_users)->reject(function ($val) {
-                            return empty($val);
-                        })->count();
-                        if ($cnt > 0) continue;
-                    }
-                    $has_autority_organizations = array_get($workflow_action, 'has_autority_organizations');
-                    if (!is_null($has_autority_organizations)) {
-                        $cnt = collect($has_autority_organizations)->reject(function ($val) {
-                            return empty($val);
-                        })->count();
-                        if ($cnt > 0) continue;
-                    }
-                    admin_toastr(exmtrans('workflow.message.exists_authority'), 'error');
-                    return back()->withInput();
                 }
             }
         });
-
-        // $form->saved(function (Form $form) use ($id) {
-        //     // create or drop index --------------------------------------------------
-        //     $model = $form->model();
-
-        //     // redirect workflow action page
-        //     if (!$this->exists) {
-        //         $workflow_action_url = admin_urls('workflow', $model->id, 'action');
-    
-        //         admin_toastr(exmtrans('workflow.help.saved_redirect_column'));
-        //         return redirect($workflow_action_url);
-        //     }
-        // });
 
         return $form;
     }
@@ -216,15 +196,14 @@ class WorkflowController extends AdminControllerBase
      */
     protected function validateDestroy($id)
     {
-        // check select_table
-        $column_count = CustomColumn::whereIn('options->select_target_table', [strval($id), intval($id)])
-            ->where('custom_table_id', '<>', $id)
+        // check referenced from customtable
+        $refer_count = CustomTable::where('workflow_id', $id)
             ->count();
 
-        if ($column_count > 0) {
+        if ($refer_count > 0) {
             return [
                 'status'  => false,
-                'message' => exmtrans('custom_value.help.reference_error'),
+                'message' => exmtrans('workflow.message.reference_error'),
             ];
         }
     }
