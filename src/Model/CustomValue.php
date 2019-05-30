@@ -206,8 +206,6 @@ class CustomValue extends ModelBase
         $update_flg = false;
         foreach ($custom_columns as $custom_column) {
             $column_name = $custom_column->column_name;
-            $v = array_get($value, $column_name);
-
             // get saving value
             $v = $custom_column->column_item->setCustomValue($this)->saving();
             // if has value, update
