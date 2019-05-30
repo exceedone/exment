@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -75,9 +76,9 @@ class WorkflowController extends AdminControllerBase
         }
 
         if ($is_action) {
-            return $this->actionForm($id);
+            return $this->actionForm($id, $is_action);
         } else {
-            return $this->statusForm($id);
+            return $this->statusForm($id, $is_action);
         }
     }
 
@@ -96,9 +97,10 @@ class WorkflowController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function statusForm($id)
+    protected function statusForm($id, $is_action)
     {
         $form = new Form(new Workflow);
+        $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
         $form->text('workflow_name', exmtrans("workflow.workflow_name"))
             ->required()
             ->rules("max:40");
@@ -135,14 +137,42 @@ class WorkflowController extends AdminControllerBase
         return $form;
     }
 
+    protected function getProgressInfo($id, $is_action) {
+        $steps = [];
+        $hasAction = false;
+        $hasStatus = false;
+        $workflow_action_url = null;
+        $workflow_status_url = null;
+        if (isset($id)) {
+            $hasAction = WorkflowAction::where('workflow_id', $id)->count() > 0;
+            $hasStatus = WorkflowStatus::where('workflow_id', $id)->count() > 0;
+            $workflow_action_url = admin_urls('workflow', $id, 'edit?action=1');
+            $workflow_status_url = admin_urls('workflow', $id, 'edit');
+        }
+        $steps[] = [
+            'active' => !$is_action,
+            'complete' => $hasStatus,
+            'url' => $is_action? $workflow_status_url: null,
+            'description' => '状態の定義'
+        ];
+        $steps[] = [
+            'active' => $is_action,
+            'complete' => $hasAction,
+            'url' => !$is_action? $workflow_action_url: null,
+            'description' => 'アクションの設定'
+        ];
+        return $steps;
+    }
+
     /**
      * Make a action edit form builder.
      *
      * @return Form
      */
-    protected function actionForm($id)
+    protected function actionForm($id, $is_action)
     {
         $form = new Form(new Workflow);
+        $form->progressTracker()->options($this->getProgressInfo($id, $is_action));
         $form->hidden('action')->default(1);
         $form->display('workflow_name', exmtrans("workflow.workflow_name"));
 

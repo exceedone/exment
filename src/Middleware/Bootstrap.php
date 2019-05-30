@@ -33,6 +33,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/fullcalendar/core/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/daygrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/list/main.min.css?ver='.$ver));
+        Ad::css(asset('vendor/exment/css/progresstracker.css?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         //Ad::js(asset('vendor/exment/js/common.js'));
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));

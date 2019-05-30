@@ -257,6 +257,7 @@ class Initialize
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
+            'progressTracker'          => Field\ProgressTracker::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
