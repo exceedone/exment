@@ -243,8 +243,8 @@ class CustomViewController extends AdminControllerTableBase
                 // summary columns setting
                 $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getSummaryColumnsSelectOptions());
-                    //                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
+                        ->options($this->custom_table->getSummaryColumnsSelectOptions())
+                        ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
                     $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
                         ->options(function ($val) {
                             return array_map(function ($array) {
