@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Facades\Admin;
 // use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
@@ -55,6 +56,7 @@ class CustomTableController extends AdminControllerBase
                 $actions->disableDelete();
             }
             $actions->disableView();
+            $actions->disableDelete();
     
             // add new multiple columns
             $linker = (new Linker)
@@ -160,8 +162,13 @@ class CustomTableController extends AdminControllerBase
 
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);
-        
-        $form->tools(function (Form\Tools $tools) use ($id, $form) {
+        $deleteButton = $this->confirmDeleteButton($id);
+
+        $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {
+            if (isset($deleteButton)) {
+                $tools->disableDelete();
+                $tools->prepend($deleteButton);
+            }
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::findOrFail($id);
@@ -181,7 +188,6 @@ class CustomTableController extends AdminControllerBase
             // if has value 'add_parent_menu', add menu
             $this->addMenuAfterSaved($model);
 
-
             // redirect custom column page
             if (!$this->exists) {
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
@@ -193,6 +199,90 @@ class CustomTableController extends AdminControllerBase
         });
 
         return $form;
+    }
+
+    /**
+     * Render `delete` button.
+     *
+     * @return string
+     */
+    protected function confirmDeleteButton($id = null)
+    {
+        if (is_null($id)) return null;
+
+        $url = url(admin_urls('table', $id));
+        $listUrl = url(admin_urls('table'));
+        $keyword = Define::DELETE_CONFIRM_KEYWORD;
+        $trans = [
+            'delete_confirm' => trans('admin.delete_confirm'),
+            'confirm'        => trans('admin.confirm'),
+            'cancel'         => trans('admin.cancel'),
+            'delete'         => trans('admin.delete'),
+            'delete_guide'   => sprintf(exmtrans('custom_table.help.delete_confirm_message'), $keyword),
+            'delete_keyword' => exmtrans('custom_table.help.delete_confirm_error'),
+        ];
+
+        $class = uniqid();
+
+        $script = <<<SCRIPT
+
+$('.{$class}-delete').unbind('click').click(function() {
+
+    swal({
+        title: "{$trans['delete_confirm']}",
+        text: "{$trans['delete_guide']}",
+        input: 'text',
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "{$trans['confirm']}",
+        showLoaderOnConfirm: true,
+        cancelButtonText: "{$trans['cancel']}",
+        preConfirm: function(input) {
+            if (input != "$keyword") {
+                return "{$trans['delete_keyword']}";
+            } 
+            return new Promise(function(resolve) {
+                $.ajax({
+                    method: 'post',
+                    url: '{$url}',
+                    data: {
+                        _method:'delete',
+                        _token:LA.token,
+                    },
+                    success: function (data) {
+                        $.pjax({container:'#pjax-container', url: '{$listUrl}' });
+
+                        resolve(data);
+                    }
+                });
+            });
+        }
+    }).then(function(result) {
+        var data = result.value;
+        if (typeof data === 'object') {
+            if (data.status) {
+                swal(data.message, '', 'success');
+            } else {
+                swal(data.message, '', 'error');
+            }
+        } else if (typeof data === 'string') {
+            swal(data, '', 'error');
+        }
+    });
+});
+
+SCRIPT;
+
+        Admin::script($script);
+
+        return <<<HTML
+<div class="btn-group pull-right" style="margin-right: 5px">
+    <a href="javascript:void(0);" class="btn btn-sm btn-danger {$class}-delete" title="{$trans['delete']}">
+        <i class="fa fa-trash"></i><span class="hidden-xs">  {$trans['delete']}</span>
+    </a>
+</div>
+HTML;
     }
     
     /**

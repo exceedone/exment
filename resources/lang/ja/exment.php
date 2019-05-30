@@ -394,6 +394,8 @@ return [
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
+            'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
+            'delete_confirm_error' => 'キーワードが正しくありません。',
         ],
 
         'custom_column_multi' => [
