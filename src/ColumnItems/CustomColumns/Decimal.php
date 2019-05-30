@@ -45,10 +45,10 @@ class Decimal extends CustomItem
     public function saving()
     {
         $rmv = rmcomma($this->value);
-        if ($this->value != $rmv) {
-            return $rmv;
+        if(!isset($rmv)){
+            return null;
         }
-        return null;
+        return $rmv;
     }
 
     protected function getAdminFieldClass()
