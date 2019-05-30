@@ -98,7 +98,7 @@ class CustomViewColumn extends ModelBase
     }
     public function setViewColumnEndDateAttribute($end_date)
     {
-        if(!isset($end_date)){
+        if (!isset($end_date)) {
             $this->setOption('end_date_type', null);
             $this->setOption('end_date_target', null);
             return $this;

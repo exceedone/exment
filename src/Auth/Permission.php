@@ -76,7 +76,7 @@ class Permission
         foreach (static::$bootingShouldPasses as $callable) {
             $result = call_user_func($callable, $endpoint);
 
-            if($result === true || $result === false){
+            if ($result === true || $result === false) {
                 return $result;
             }
         }
@@ -108,7 +108,7 @@ class Permission
     {
         // checking booting function
         $result = $this->fireShouldPasses($endpoint);
-        if($result === true || $result === false){
+        if ($result === true || $result === false) {
             return $result;
         }
 

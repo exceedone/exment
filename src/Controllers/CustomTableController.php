@@ -208,7 +208,9 @@ class CustomTableController extends AdminControllerBase
      */
     protected function confirmDeleteButton($id = null)
     {
-        if (is_null($id)) return null;
+        if (is_null($id)) {
+            return null;
+        }
 
         $url = url(admin_urls('table', $id));
         $listUrl = url(admin_urls('table'));
@@ -326,7 +328,7 @@ HTML;
             return;
         }
 
-        if($request->has('columnmulti')){
+        if ($request->has('columnmulti')) {
             return $this->AdminContent($content)->body($this->formMultiColumn($id)->edit($id));
         }
 
@@ -342,7 +344,7 @@ HTML;
      */
     public function update($id)
     {
-        if(request()->has('columnmulti')){
+        if (request()->has('columnmulti')) {
             return $this->formMultiColumn($id)->update($id);
         }
 

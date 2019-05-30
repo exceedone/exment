@@ -22,7 +22,7 @@ if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
     {
         $trans = trans("exment::exment.$key");
-        if(count($args) > 0){
+        if (count($args) > 0) {
             $trans = vsprintf($trans, $args);
         }
         return $trans;

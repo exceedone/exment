@@ -3,9 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Exceedone\Exment\Model\Dashboard;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
-use Encore\Admin\Facades\Admin;
 
 class DashboardMenu
 {
@@ -37,7 +35,7 @@ class DashboardMenu
         //role check
         $editflg = Dashboard::hasDashboardEditAuth($this->current_dashboard->id);
 
-        if($editflg){
+        if ($editflg) {
             $settings[] = ['url' => admin_urls('dashboard', $this->current_dashboard->id, 'edit'), 'dashboard_view_name' => exmtrans('dashboard.dashboard_menulist.current_dashboard_edit')];
         }
 

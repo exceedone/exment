@@ -14,7 +14,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\Permission;
 
 class CustomView extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -139,17 +138,19 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
     }
 
-    protected function setDefaultFlgFilter($query){
+    protected function setDefaultFlgFilter($query)
+    {
         $query->where('view_type', $this->view_type);
 
-        if($this->view_type == ViewType::USER){
+        if ($this->view_type == ViewType::USER) {
             $query->where('created_user_id', \Exment::user()->base_user_id);
         }
     }
 
-    protected function setDefaultFlgSet(){
+    protected function setDefaultFlgSet()
+    {
         // set if only this flg is system
-        if($this->view_type == ViewType::SYSTEM){
+        if ($this->view_type == ViewType::SYSTEM) {
             $this->default_flg = true;
         }
     }
@@ -320,14 +321,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     
     protected static function showableViews($query)
     {
-        return $query->where(function($query){
-                $query->where(function($query){
-                    $query->where('view_type', ViewType::SYSTEM);
-                })->orWhere(function($query){
-                    $query->where('view_type', ViewType::USER)
+        return $query->where(function ($query) {
+            $query->where(function ($query) {
+                $query->where('view_type', ViewType::SYSTEM);
+            })->orWhere(function ($query) {
+                $query->where('view_type', ViewType::USER)
                         ->where('created_user_id', \Exment::user()->base_user_id ?? null);
-                });
             });
+        });
     }
 
     protected static function createDefaultView($tableObj)

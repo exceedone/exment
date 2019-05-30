@@ -41,9 +41,9 @@ trait DefaultFlgTrait
 
         // if count is 0, set default flg this model is 1
         if (count($idlist) == 0) {
-            if(isset($setCallback)){
+            if (isset($setCallback)) {
                 $this->{$setCallback}();
-            }else{
+            } else {
                 $this->default_flg = true;
             }
         }

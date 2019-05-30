@@ -135,18 +135,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     public function getMultipleUniques($custom_column = null)
     {
-        return CustomColumnMulti::allRecords(function ($val) use($custom_column) {
-            if(array_get($val, 'custom_table_id') != $this->id){
+        return CustomColumnMulti::allRecords(function ($val) use ($custom_column) {
+            if (array_get($val, 'custom_table_id') != $this->id) {
                 return false;
             }
 
-            if(!isset($custom_column)){
+            if (!isset($custom_column)) {
                 return true;
             }
 
             $targetid = CustomColumn::getEloquent($custom_column, $this)->id;
-            foreach([1,2,3] as $key){
-                if($val->{'unique' . $key} == $targetid){
+            foreach ([1,2,3] as $key) {
+                if ($val->{'unique' . $key} == $targetid) {
                     return true;
                 }
             }

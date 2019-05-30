@@ -165,17 +165,19 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         });
     }
 
-    protected function setDefaultFlgFilter($query){
+    protected function setDefaultFlgFilter($query)
+    {
         $query->where('dashboard_type', $this->dashboard_type);
 
-        if($this->dashboard_type == DashboardType::USER){
+        if ($this->dashboard_type == DashboardType::USER) {
             $query->where('created_user_id', \Exment::user()->base_user_id ?? null);
         }
     }
 
-    protected function setDefaultFlgSet(){
+    protected function setDefaultFlgSet()
+    {
         // set if only this flg is system
-        if($this->dashboard_type == DashboardType::SYSTEM){
+        if ($this->dashboard_type == DashboardType::SYSTEM) {
             $this->default_flg = true;
         }
     }
@@ -188,35 +190,35 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      */
     protected static function showableDashboards($query)
     {
-        return $query->where(function($query){
-            $query->where(function($query){
+        return $query->where(function ($query) {
+            $query->where(function ($query) {
                 $query->where('dashboard_type', DashboardType::SYSTEM);
-            })->orWhere(function($query){
+            })->orWhere(function ($query) {
                 $query->where('dashboard_type', DashboardType::USER)
                     ->where('created_user_id', \Exment::user()->base_user_id);
             });
         });
     }
 
-    public static function hasDashboardEditAuth($id){
+    public static function hasDashboardEditAuth($id)
+    {
         $dashboard = static::find($id);
         // check has system permission
-        if(!static::hasSystemPermission()){
-
-            if($dashboard->dashboard_type == DashboardType::SYSTEM){
+        if (!static::hasSystemPermission()) {
+            if ($dashboard->dashboard_type == DashboardType::SYSTEM) {
+                return false;
+            } elseif ($dashboard->created_user_id != \Exment::user()->base_user_id) {
                 return false;
             }
-            elseif($dashboard->created_user_id != \Exment::user()->base_user_id){
-                return false;
-            }
-        }elseif($dashboard->dashboard_type == DashboardType::USER && $dashboard->created_user_id != \Exment::user()->base_user_id){
+        } elseif ($dashboard->dashboard_type == DashboardType::USER && $dashboard->created_user_id != \Exment::user()->base_user_id) {
             return false;
         }
 
         return true;
     }
     
-    public static function hasSystemPermission(){
+    public static function hasSystemPermission()
+    {
         return \Admin::user()->hasPermission(Permission::SYSTEM);
     }
 }

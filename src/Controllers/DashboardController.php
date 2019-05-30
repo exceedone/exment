@@ -50,7 +50,7 @@ class DashboardController extends AdminControllerBase
         $this->setDashboardInfo($request);
         
         // check has system permission
-        if(!Dashboard::hasDashboardEditAuth($id)){
+        if (!Dashboard::hasDashboardEditAuth($id)) {
             Checker::error();
             return false;
         }
@@ -251,7 +251,7 @@ EOT;
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)
                 ->default(DashboardType::SYSTEM);
-        }else{
+        } else {
             $form->hidden('dashboard_type')->default(DashboardType::USER);
         }
 

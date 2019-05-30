@@ -45,7 +45,7 @@ class Decimal extends CustomItem
     public function saving()
     {
         $rmv = rmcomma($this->value);
-        if(!isset($rmv)){
+        if (!isset($rmv)) {
             return null;
         }
         return $rmv;

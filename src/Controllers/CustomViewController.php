@@ -64,14 +64,13 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         // check has system permission
-        if(!$this->hasSystemPermission()){
+        if (!$this->hasSystemPermission()) {
             $view = CustomView::getEloquent($id);
 
-            if($view->view_type == Enums\ViewType::SYSTEM){
+            if ($view->view_type == Enums\ViewType::SYSTEM) {
                 Checker::error();
                 return false;
-            }
-            elseif($view->created_user_id != \Exment::user()->base_user_id){
+            } elseif ($view->created_user_id != \Exment::user()->base_user_id) {
                 Checker::error();
                 return false;
             }
@@ -93,7 +92,7 @@ class CustomViewController extends AdminControllerTableBase
             return;
         }
 
-        if(!is_null($copy_id = $request->get('copy_id'))){
+        if (!is_null($copy_id = $request->get('copy_id'))) {
             return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['view_view_name', 'default_flg', 'view_type']));
         }
 
@@ -194,12 +193,11 @@ class CustomViewController extends AdminControllerTableBase
         $copy_custom_view = CustomView::getEloquent($copy_id);
         if (!is_null($request->input('view_kind_type'))) {
             $view_kind_type = $request->input('view_kind_type');
-        } elseif(!is_null($request->query('view_kind_type'))){
+        } elseif (!is_null($request->query('view_kind_type'))) {
             $view_kind_type =  $request->query('view_kind_type');
-        } elseif(isset($copy_custom_view)){
+        } elseif (isset($copy_custom_view)) {
             $view_kind_type =  array_get($copy_custom_view, 'view_kind_type');
-        }
-        else {
+        } else {
             $view_kind_type = ViewKindType::DEFAULT;
         }
 
@@ -220,7 +218,7 @@ class CustomViewController extends AdminControllerTableBase
                 ->default(Enums\ViewType::SYSTEM)
                 ->config('allowClear', false)
                 ->options(Enums\ViewType::transKeyArray('custom_view.custom_view_type_options'));
-        }else{
+        } else {
             $form->hidden('view_type')->default(Enums\ViewType::USER);
         }
         
@@ -429,7 +427,8 @@ EOT;
         return $form;
     }
 
-    protected function hasSystemPermission(){
+    protected function hasSystemPermission()
+    {
         return $this->custom_table->hasPermission(Permission::CUSTOM_VIEW);
     }
 

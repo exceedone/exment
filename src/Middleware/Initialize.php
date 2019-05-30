@@ -226,9 +226,10 @@ class Initialize
         }
     }
 
-    protected static function requireBootstrap(){
+    protected static function requireBootstrap()
+    {
         $file = config('exment.bootstrap', exment_path('bootstrap.php'));
-        if(!\File::exists($file)){
+        if (!\File::exists($file)) {
             return;
         }
         require_once $file;

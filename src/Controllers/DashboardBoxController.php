@@ -220,9 +220,9 @@ class DashboardBoxController extends AdminControllerBase
                 } else {
                     return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
                 }
-        })->map(function ($value) {
-            return array('id' => $value->id, 'text' => $value->view_view_name);
-        });
+            })->map(function ($value) {
+                return array('id' => $value->id, 'text' => $value->view_view_name);
+            });
         // if count > 0, return value.
         if (!is_null($views) && count($views) > 0) {
             return $views;
