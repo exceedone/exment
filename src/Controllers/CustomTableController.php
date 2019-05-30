@@ -63,7 +63,7 @@ class CustomTableController extends AdminControllerBase
                 ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
                 ->icon('fa-exchange')
                 ->tooltip(exmtrans('custom_table.expand_setting'));
-            $actions->prepend($linker);
+            $actions->append($linker);
         });
 
         // filter table --------------------------------------------------
