@@ -65,7 +65,7 @@ class CustomViewController extends AdminControllerTableBase
 
         // check has system permission
         if(!$this->hasSystemPermission()){
-            $view = CustomView::find($id);
+            $view = CustomView::getEloquent($id);
 
             if($view->view_type == Enums\ViewType::SYSTEM){
                 Checker::error();
@@ -94,7 +94,7 @@ class CustomViewController extends AdminControllerTableBase
         }
 
         if(!is_null($copy_id = $request->get('copy_id'))){
-            return $this->AdminContent($content)->body($this->form()->replicate($copy_id, ['view_view_name', 'default_flg']));
+            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['view_view_name', 'default_flg', 'view_type']));
         }
 
         return parent::create($request, $content);
@@ -185,14 +185,20 @@ class CustomViewController extends AdminControllerTableBase
      *
      * @return Form
      */
-    protected function form($id = null)
+    protected function form($id = null, $copy_id = null)
     {
         // get request
         $request = Request::capture();
+        $copy_custom_view = CustomView::getEloquent($copy_id);
         if (!is_null($request->input('view_kind_type'))) {
             $view_kind_type = $request->input('view_kind_type');
-        } else {
-            $view_kind_type = $request->query('view_kind_type')?? '0';
+        } elseif(!is_null($request->query('view_kind_type'))){
+            $view_kind_type =  $request->query('view_kind_type');
+        } elseif(isset($copy_custom_view)){
+            $view_kind_type =  array_get($copy_custom_view, 'view_kind_type');
+        }
+        else {
+            $view_kind_type = ViewKindType::DEFAULT;
         }
 
         $form = new Form(new CustomView);
@@ -355,7 +361,7 @@ class CustomViewController extends AdminControllerTableBase
             $id = $form->model()->id;
         }
         if (isset($id)) {
-            $suuid = CustomView::find($id)->suuid;
+            $suuid = CustomView::getEloquent($id)->suuid;
         } else {
             $suuid = null;
         }
