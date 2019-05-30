@@ -23,7 +23,7 @@ class GridChangeView extends AbstractTool
         $systemviews = [];
         $userviews = [];
         // get custom view
-        $custom_views = $this->custom_table->custom_views()->showableViews($this->custom_table, true)->get();
+        $custom_views = $this->custom_table->custom_views;
 
         foreach ($custom_views as $v) {
             if ($v->view_type == ViewType::USER) {

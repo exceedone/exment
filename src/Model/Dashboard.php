@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Permission;
 use Illuminate\Http\Request as Req;
+use Illuminate\Database\Eloquent\Builder;
 
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -152,11 +153,31 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         parent::boot();
         
         static::creating(function ($model) {
-            $model->setDefaultFlg();
+            $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
         });
         static::updating(function ($model) {
-            $model->setDefaultFlg();
+            $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
         });
+        
+        // add global scope
+        static::addGlobalScope('showableDashboards', function (Builder $builder) {
+            return static::showableDashboards($builder);
+        });
+    }
+
+    protected function setDefaultFlgFilter($query){
+        $query->where('dashboard_type', $this->dashboard_type);
+
+        if($this->dashboard_type == DashboardType::USER){
+            $query->where('created_user_id', \Exment::user()->base_user_id ?? null);
+        }
+    }
+
+    protected function setDefaultFlgSet(){
+        // set if only this flg is system
+        if($this->dashboard_type == DashboardType::SYSTEM){
+            $this->default_flg = true;
+        }
     }
 
     /**
@@ -165,7 +186,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      * @param [type] $query
      * @return void
      */
-    public function scopeShowableDashboards($query)
+    protected static function showableDashboards($query)
     {
         return $query->where(function($query){
             $query->where(function($query){

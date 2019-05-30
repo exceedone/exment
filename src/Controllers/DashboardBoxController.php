@@ -211,8 +211,7 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get custom views
         $custom_table = CustomTable::getEloquent($id);
-        $views = $custom_table->custom_views()->showableViews($custom_table, true)
-            ->get()
+        $views = $custom_table->custom_views
             ->filter(function ($value) use ($dashboard_type) {
                 if ($dashboard_type == DashboardBoxType::CALENDAR) {
                     return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;

@@ -22,7 +22,7 @@ class DashboardMenu
         $userdashboards = [];
 
         // get dashboard list
-        $dashboards = Dashboard::showableDashboards()->get();
+        $dashboards = Dashboard::get();
 
         foreach ($dashboards as $d) {
             if ($d->dashboard_type == DashboardType::SYSTEM) {

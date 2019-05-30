@@ -161,7 +161,7 @@ class ListItem implements ItemInterface
                 }
 
                 $custom_table = $view->custom_table;
-                return $custom_table->custom_views()->showableViews($custom_table, true)
+                return $custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
                     })->pluck('view_view_name', 'id');
