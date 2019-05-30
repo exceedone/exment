@@ -52,9 +52,6 @@ class CustomTableController extends AdminControllerBase
         }
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
-            if (boolval($actions->row->system_flg)) {
-                $actions->disableDelete();
-            }
             $actions->disableView();
             $actions->disableDelete();
     
@@ -165,7 +162,11 @@ class CustomTableController extends AdminControllerBase
         $deleteButton = $this->confirmDeleteButton($id);
 
         $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {
-            if (isset($deleteButton)) {
+            $custom_table = CustomTable::getEloquent($id);
+            if (isset($custom_table) && boolval($custom_table->system_flg)) {
+                $tools->disableDelete();
+            }
+            elseif (isset($deleteButton)) {
                 $tools->disableDelete();
                 $tools->prepend($deleteButton);
             }
