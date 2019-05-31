@@ -153,6 +153,13 @@ class ExmentServiceProvider extends ServiceProvider
             app('router')->middlewareGroup($key, $middleware);
         }
 
+        // register database
+        $this->app->resolving('db', function ($db, $app) {
+            $db->extend('mariadb', function ($config, $name) use ($app){
+                return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
+            });
+        });
+        
         Passport::ignoreMigrations();
     }
 
@@ -282,6 +289,9 @@ class ExmentServiceProvider extends ServiceProvider
     {
         Connection::resolverFor('mysql', function (...$parameters) {
             return new ExmentDatabase\MySqlConnection(...$parameters);
+        });
+        Connection::resolverFor('mariadb', function (...$parameters) {
+            return new ExmentDatabase\MariaDBConnection(...$parameters);
         });
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
