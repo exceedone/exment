@@ -309,56 +309,20 @@ EOT;
         $value_id = $request->input('value_id');
         // value_table is the table user selected.
         $value_table = CustomTable::getEloquent($request->input('value_table_name'), true);
-        $value_table_id = $value_table->id;
+
         /// $search_table is the table for search. it's ex. select_table, relation, ...
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
+
+        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, [
+            'paginate' => true,
+            'maxCount' => 10,
+        ]);
+
         $boxHeader = $this->getBoxHeaderHtml($search_table);
-        switch ($search_type) {
-            // self table
-            case SearchType::SELF:
-                $data = [getModelName($search_table)::find($value_id)];
-                break;
-            // select_table(select box)
-            case SearchType::SELECT_TABLE:
-                // get columns for
-                $searchColumns = $search_table
-                    ->custom_columns()
-                    ->where('column_type', ColumnType::SELECT_TABLE)
-                    ->whereIn('options->select_target_table', [strval($value_table_id), intval($value_table_id)])
-                    ->indexEnabled()
-                    ->get()
-                    ->map(function ($c) {
-                        return $c->getIndexColumnName();
-                    });
-                $paginate = $search_table->searchValue($value_id, [
-                    'isLike' => false,
-                    'paginate' => true,
-                    'relation' => true,
-                    'searchColumns' => $searchColumns,
-                ]);
-                
-                $data = $paginate->items();
-                break;
-            
-            // one_to_many
-            case SearchType::ONE_TO_MANY:
-                $paginate = getModelName($search_table)::where('parent_id', $value_id)->paginate(5);
-                $data = $paginate->items();
-                break;
-            // many_to_many
-            case SearchType::MANY_TO_MANY:
-                $relation_name = CustomRelation::getRelationNameByTables($value_table, $search_table);
-                // get search_table value
-                // where: parent_id is value_id
-                $paginate = getModelName($search_table)
-                    ::join($relation_name, "$relation_name.child_id", getDBTableName($search_table).".id")
-                    ->where("$relation_name.parent_id", $value_id)
-                    ->paginate(5);
-                $data = $paginate->items();
-                break;
-        }
-        if (isset($paginate)) {
+        if (isset($data) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            $paginate = $data;
+            $data = $paginate->items();
             $paginate->setPath(
                 admin_urls('search', 'relation')
                 . "?value_table_name={$request->input('value_table_name')}"

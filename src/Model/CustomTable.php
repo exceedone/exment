@@ -511,8 +511,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         switch ($search_type) {
             // self table
             case SearchType::SELF:
-                $data = [$this->getValueModel($parent_value_id)];
-                break;
+                return [$this->getValueModel($parent_value_id)];
             // select_table(select box)
             case SearchType::SELECT_TABLE:
                 // get columns for relation child to parent
@@ -529,7 +528,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     'paginate' => $paginate,
                     'relation' => true,
                     'searchColumns' => $searchColumns,
-                    'maxCount' => null,
+                    'maxCount' => $maxCount,
                 ]);
             
             // one_to_many
