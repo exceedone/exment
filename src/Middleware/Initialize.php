@@ -129,6 +129,10 @@ class Initialize
             PDO::MYSQL_ATTR_LOCAL_INFILE => true,
         ]);
 
+        // mariadb setting
+        Config::set('database.connections.mariadb', Config::get('database.connections.mysql'));
+        Config::set('database.connections.mariadb.driver', 'mariadb');
+
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
         Config::set('admin.enable_default_breadcrumb', false);
