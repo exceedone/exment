@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
@@ -494,7 +495,7 @@ EOT;
             $column = $form_column->custom_column;
 
             // if column_type is not select_table, continue
-            if (array_get($column, 'column_type') != 'select_table') {
+            if (!ColumnType::isSelectTable(array_get($column, 'column_type'))) {
                 continue;
             }
             // set columns
@@ -503,27 +504,36 @@ EOT;
 
         // re-loop for relation
         foreach ($columns as $column) {
-            // get relation
-            $relations = CustomRelation::getRelationsByParent(array_get($column, 'options.select_target_table'));
+            // get custom table
+            $custom_table = CustomTable::getEloquent(array_get($column, 'options.select_target_table'));
+            if(!isset($custom_table)){
+                continue;
+            }
+            $relations = $custom_table->getRelationTables();
             // if not exists, continue
             if (!$relations) {
                 continue;
             }
             foreach ($relations as $relation) {
-                // add $relatedlinkage_array if contains
-                $child_custom_table_id = array_get($relation, 'child_custom_table_id');
-                collect($columns)->filter(function ($c) use ($child_custom_table_id) {
-                    return array_get($c, 'options.select_target_table') == $child_custom_table_id;
-                })->each(function ($c) use ($column, $relation, &$relatedlinkage_array) {
+                $child_custom_table = array_get($relation, 'table');
+                collect($columns)->filter(function ($c) use ($child_custom_table) {
+                    return array_get($c, 'options.select_target_table') == $child_custom_table->id;
+                })
+                ->each(function ($c) use ($custom_table, $column, $child_custom_table, $relation, &$relatedlinkage_array) {
                     $column_name = array_get($column, 'column_name');
+                    
                     // if not exists $column_name in $relatedlinkage_array
                     if (!array_has($relatedlinkage_array, $column_name)) {
                         $relatedlinkage_array[$column_name] = [];
                     }
+
                     // add array. key is column name.
                     $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_urls('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
-                        'expand' => ['child_table_id' => $relation->child_custom_table_id],
+                        'url' => admin_urls('webapi', 'data', $custom_table->table_name, 'relatedLinkage'),
+                        'expand' => [
+                            'child_table_id' => $child_custom_table->id,
+                            'search_type' => array_get($relation, 'searchType'),
+                        ],
                         'to' => array_get($c, 'column_name'),
                     ];
                 });

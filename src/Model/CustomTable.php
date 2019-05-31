@@ -437,7 +437,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // if not paginate, only take maxCount
         if (!$paginate) {
-            $takeCount = min($takeCount, $maxCount);
+            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
         }
 
         // crate union query
@@ -490,6 +490,68 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ::whereIn('id', $ids)
             ->take($maxCount)
             ->get();
+    }
+
+    /**
+     * search relation value
+     */
+    public function searchRelationValue($search_type, $parent_value_id, $child_table, $options = [])
+    {
+        $options = array_merge(
+            [
+                'paginate' => false,
+                'maxCount' => 5,
+            ],
+            $options
+        );
+        extract($options);
+        
+        $child_table = static::getEloquent($child_table);
+
+        switch ($search_type) {
+            // self table
+            case SearchType::SELF:
+                $data = [$this->getValueModel($parent_value_id)];
+                break;
+            // select_table(select box)
+            case SearchType::SELECT_TABLE:
+                // get columns for relation child to parent
+                $searchColumns = $child_table->custom_columns()
+                    ->where('column_type', ColumnType::SELECT_TABLE)
+                    ->whereIn('options->select_target_table', [strval($this->id), intval($this->id)])
+                    ->indexEnabled()
+                    ->get()
+                    ->map(function ($c) {
+                        return $c->getIndexColumnName();
+                    });
+                return $child_table->searchValue($parent_value_id, [
+                    'isLike' => false,
+                    'paginate' => $paginate,
+                    'relation' => true,
+                    'searchColumns' => $searchColumns,
+                    'maxCount' => null,
+                ]);
+            
+            // one_to_many
+            case SearchType::ONE_TO_MANY:
+                $query = $child_table->getValueModel()
+                    ->where('parent_id', $parent_value_id)
+                    ->where('parent_type', $this->table_name);
+
+                return $paginate ? $query->paginate($maxCount) : $query->get();
+            // many_to_many
+            case SearchType::MANY_TO_MANY:
+                $relation_name = CustomRelation::getRelationNameByTables($this, $child_table);
+                // get search_table value
+                // where: parent_id is value_id
+                $query = $child_table->getValueModel()
+                    ::join($relation_name, "$relation_name.child_id", getDBTableName($child_table).".id")
+                    ->where("$relation_name.parent_id", $parent_value_id);
+                    
+                return $paginate ? $query->paginate($maxCount) : $query->get();
+        }
+
+        return null;
     }
 
     /**
