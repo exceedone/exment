@@ -224,4 +224,10 @@ class Define
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
         ['uri'=> 'data', 'help_uri'=> 'data']
     ];
+
+    public const YESNO_RADIO = [
+        ''   => 'All',
+        0    => 'NO',
+        1    => 'YES',
+    ];
 }

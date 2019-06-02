@@ -16,11 +16,12 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
 
+    protected $appends = ['required', 'index_enabled', 'unique'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
 
     public static $templateItems = [
-        'excepts' => ['suuid'],
+        'excepts' => ['suuid', 'required', 'index_enabled', 'unique'],
         'uniqueKeys' => [
             'export' => [
                 'custom_table.table_name', 'column_name'
@@ -86,6 +87,36 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function getSelectTargetTableAttribute()
     {
         return CustomTable::getEloquent($this->getOption('select_target_table'));
+    }
+
+    public function getRequiredAttribute()
+    {
+        return $this->getOption('required', false);
+    }
+
+    public function getIndexEnabledAttribute()
+    {
+        return $this->getOption('index_enabled', false);
+    }
+
+    public function getUniqueAttribute()
+    {
+        return $this->getOption('unique', false);
+    }
+
+    public function setRequiredAttribute($value)
+    {
+        return $this->setOption('required', $value);
+    }
+
+    public function setIndexEnabledAttribute($value)
+    {
+        return $this->setOption('index_enabled', $value);
+    }
+
+    public function setUniqueAttribute($value)
+    {
+        return $this->setOption('unique', $value);
     }
 
     public function getOption($key, $default = null)
