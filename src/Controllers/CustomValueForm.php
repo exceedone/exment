@@ -485,27 +485,18 @@ EOT;
      */
     protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
     {
-        // set target_table columns
-        $columns = [];
         // if available is false, continue
         if (!$custom_form_block->available) {
             return;
         }
-        foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $column = $form_column->custom_column;
 
-            // if column_type is not select_table, continue
-            if (!ColumnType::isSelectTable(array_get($column, 'column_type'))) {
-                continue;
-            }
-            // set columns
-            $columns[] = $column;
-        }
-
+        // set target_table columns
+        $columns = $custom_form_block->target_table->getSelectTableColumns();
+        
         // re-loop for relation
         foreach ($columns as $column) {
             // get custom table
-            $custom_table = CustomTable::getEloquent(array_get($column, 'options.select_target_table'));
+            $custom_table = $column->select_target_table;
             if(!isset($custom_table)){
                 continue;
             }
@@ -517,7 +508,7 @@ EOT;
             foreach ($relations as $relation) {
                 $child_custom_table = array_get($relation, 'table');
                 collect($columns)->filter(function ($c) use ($child_custom_table) {
-                    return array_get($c, 'options.select_target_table') == $child_custom_table->id;
+                    return $c->select_target_table && $c->select_target_table->id == $child_custom_table->id;
                 })
                 ->each(function ($c) use ($custom_table, $column, $child_custom_table, $relation, &$relatedlinkage_array) {
                     $column_name = array_get($column, 'column_name');

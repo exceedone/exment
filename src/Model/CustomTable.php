@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
+use \Illuminate\Support\Collection;
 
 getCustomTableTrait();
 
@@ -81,6 +82,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('multisetting_type', 1);
     }
 
+    /**
+     * Get Columns where select_target_table's id is this table.
+     *
+     * @return void
+     */
     public function getSelectedItems()
     {
         return CustomColumn::where('options->select_target_table', $this->id)
@@ -103,6 +109,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $list;
     }
 
+    /**
+     * Get this table's select table's key-value collection.
+     * Key is column index name.
+     * Value is custom column.
+     * Filter is select_target_table
+     * 
+     * @return Collection
+     */
     public function getSelectTableColumns()
     {
         return $this->custom_columns->filter(function ($item) {
@@ -113,6 +127,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
+    /**
+     * Get key-value items.
+     * Key is column index name.
+     * Value is select_target_table's table id.
+     *
+     * @return array
+     */
     public function getSelectedTables()
     {
         return CustomColumn::where('options->select_target_table', $this->id)
@@ -123,6 +144,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             })->filter()->toArray();
     }
 
+    /**
+     * Get key-value items.
+     * Key is column index name.
+     * Value is custom column.
+     *
+     * @return Collection
+     */
     public function getSelectedTableColumns()
     {
         return CustomColumn::where('options->select_target_table', $this->id)

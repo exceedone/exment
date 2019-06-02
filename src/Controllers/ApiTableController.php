@@ -183,15 +183,11 @@ class ApiTableController extends AdminControllerTableBase
         // get selected custom_value id(q)
         $q = $request->get('q');
 
+        // get children items
         $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, [
             'paginate' => false,
             'maxCount' => null,
         ]);
-        // get children items
-        // $datalist = getModelName($child_table)
-        //     ::where('parent_id', $q)
-        //     ->where('parent_type', $this->custom_table->table_name)
-        //     ->get()->pluck('label', 'id');
         return collect($datalist)->map(function ($data) {
             return ['id' => $data->id, 'text' => $data->label];
         });
