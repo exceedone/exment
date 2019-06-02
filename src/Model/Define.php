@@ -193,6 +193,7 @@ class Define
     ];
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
+    public const PARENT_ID_NAME = 'parent_id';
 
     public static function FILE_OPTION()
     {
@@ -222,4 +223,6 @@ class Define
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
         ['uri'=> 'data', 'help_uri'=> 'data']
     ];
+
+    public const SETTING_SHEET_NAME = '##setting##';
 }

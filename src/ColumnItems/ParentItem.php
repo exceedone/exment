@@ -59,7 +59,7 @@ class ParentItem implements ItemInterface
      */
     public function text()
     {
-        return $this->value->getLabel();
+        return isset($this->value) ? $this->value->getLabel() : null;
     }
 
     /**
@@ -68,7 +68,7 @@ class ParentItem implements ItemInterface
      */
     public function html()
     {
-        return $this->value->getUrl(true);
+        return isset($this->value) ? $this->value->getUrl(true) : null;
     }
 
     /**
@@ -107,6 +107,33 @@ class ParentItem implements ItemInterface
 
         return getModelName($custom_value->parent_type)::find($custom_value->parent_id);
     }
+    
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $setting
+     * @return void
+     */
+    public function getImportValue($value, $setting = []){
+        if(!isset($this->custom_table)){
+            return null;
+        }
+
+        if(is_null($target_column_name = array_get($setting, 'target_column_name'))){
+            return $value;
+        }
+
+        // get target value
+        $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
+
+        if(!isset($target_value)){
+            return null;
+        }
+
+        return $target_value->id;
+    }
+
     
     public function getFilterField()
     {

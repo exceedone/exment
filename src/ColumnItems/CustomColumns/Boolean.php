@@ -8,6 +8,8 @@ use Encore\Admin\Grid\Filter;
 
 class Boolean extends CustomItem
 {
+    use ImportValueTrait;
+
     /**
      * laravel-admin set required. if false, always not-set required
      */
@@ -53,5 +55,13 @@ class Boolean extends CustomItem
             array_get($column, 'options.false_value')    => array_get($column, 'options.false_label'),
             array_get($column, 'options.true_value')    => array_get($column, 'options.true_label'),
         ]);
+    }
+    
+    protected function getImportValueOption(){
+        $column = $this->custom_column;
+        return [
+            array_get($column, 'options.false_value')    => array_get($column, 'options.false_label'),
+            array_get($column, 'options.true_value')    => array_get($column, 'options.true_label')
+        ];
     }
 }

@@ -35,11 +35,18 @@ class CustomTableAction implements ActionInterface
     {
         // get target data and model list
         $data_imports = [];
+
         foreach ($datalist as $table_name => &$data) {
             //$target_table = $data['custom_table'];
             $provider = $this->getProvider($table_name);
             if (!isset($provider)) {
                 continue;
+            }
+
+            // get setting info
+            if(array_has($datalist, Define::SETTING_SHEET_NAME)){
+                $settings = $this->getImportTableSetting($datalist[Define::SETTING_SHEET_NAME], $table_name);
+                $options['setting'] = $settings;
             }
 
             $dataObject = $provider->getDataObject($data, $options);
@@ -91,6 +98,8 @@ class CustomTableAction implements ActionInterface
         foreach ($this->relations as $relation) {
             $table_names[] = $relation->getSheetName();
         }
+
+        $table_names[] = Define::SETTING_SHEET_NAME;
 
         return collect($datalist)->filter(function ($data, $keyname) use ($table_names) {
             return in_array($keyname, $table_names);
@@ -176,5 +185,25 @@ class CustomTableAction implements ActionInterface
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         return $this;
+    }
+
+    protected function getImportTableSetting($settingArray, $table_name){
+        if(count($settingArray) <= 2){
+            return [];
+        }
+
+        // get header 
+        $headers = $settingArray[0];
+
+        $bodies = collect(array_slice($settingArray, 2))->filter(function($setting) use($table_name){
+            return count($setting) > 0 && $setting[0] == $table_name;
+        })->toArray();
+
+        $items = [];
+        foreach($bodies as $body){
+            $items[] = array_combine($headers, $body);
+        }
+
+        return $items;
     }
 }
