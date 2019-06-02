@@ -202,6 +202,9 @@ var Exment;
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }
                 if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-external-link');
+                }
+                if (!hasValue(linkElem)) {
                     return;
                 }
                 linkElem.closest('a').click();

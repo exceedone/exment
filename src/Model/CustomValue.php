@@ -510,8 +510,9 @@ class CustomValue extends ModelBase
                 'tag' => false,
                 'uri' => null,
                 'list' => false,
-                'external-link' => false,
+                'icon' => null,
                 'modal' => true,
+                'add_id' => false,
             ],
             $options
         );
@@ -537,8 +538,8 @@ class CustomValue extends ModelBase
         if (!$tag) {
             return $url;
         }
-        if (boolval($options['external-link'])) {
-            $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
+        if (isset($options['icon'])) {
+            $label = '<i class="fa ' . $options['icon'] . '" aria-hidden="true"></i>';
         } else {
             $label = esc_html($this->getLabel());
         }
@@ -550,6 +551,10 @@ class CustomValue extends ModelBase
         } else {
             $href = $url;
             $widgetmodal_url = null;
+        }
+
+        if (boolval($options['add_id'])) {
+            $widgetmodal_url .= " data-id='{$this->id}'";
         }
 
         return "<a href='$href'$widgetmodal_url>$label</a>";

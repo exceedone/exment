@@ -11,16 +11,14 @@ use Exceedone\Exment\Model\CustomRelation;
 class DefaultTableSettingProvider extends ProviderBase
 {
     protected $custom_columns;
+    protected $outputs = [];
 
     public function __construct($args = [])
     {
         parent::__construct();
         $this->custom_table = array_get($args, 'custom_table');
 
-        // get custom columns. only select_valtext, select_table
-        $this->custom_columns = $this->custom_table->custom_columns()
-            ->whereIn('column_type', ColumnType::COLUMN_TYPE_IMPORT_REPLACE())
-            ->get();
+        $this->setOutputData();
     }
 
     /**
@@ -36,11 +34,18 @@ class DefaultTableSettingProvider extends ProviderBase
      */
     public function data()
     {
+        return $this->outputs;
+    }
+
+    protected function setOutputData(){
         // get header and body
         $headers = $this->getHeaders();
 
         $bodies = [];
-        foreach($this->custom_columns as $custom_column){
+
+        // get this column table's columns
+        $custom_columns = static::getTargetColumns($this->custom_table);
+        foreach($custom_columns as $custom_column){
             $bodies[] = [$custom_column->custom_table->table_name, 'value.' . $custom_column->column_name, ''];
         }
 
@@ -53,14 +58,20 @@ class DefaultTableSettingProvider extends ProviderBase
         $relations = CustomRelation::getRelationsByParent($this->custom_table, RelationType::ONE_TO_MANY);
         if(isset($relations)){
             foreach($relations as $relation){
+                // get child column table's columns
+                $custom_columns = static::getTargetColumns($relation->child_custom_table);
+                foreach($custom_columns as $custom_column){
+                    $bodies[] = [$custom_column->custom_table->table_name, 'value.' . $custom_column->column_name, ''];
+                }
+
                 $bodies[] = [$relation->child_custom_table->table_name, 'parent_id', ''];
             }
         }
 
         // get output items
-        $outputs = array_merge($headers, $bodies);
-
-        return $outputs;
+        if(count($bodies) > 0){
+            $this->outputs = array_merge($headers, $bodies);
+        }
     }
 
     /**
@@ -69,7 +80,7 @@ class DefaultTableSettingProvider extends ProviderBase
      * @return boolean
      */
     public function isOutput(){
-        return count($this->custom_columns) > 0;
+        return count($this->outputs) > 0;
     }
 
     /**
@@ -89,4 +100,15 @@ class DefaultTableSettingProvider extends ProviderBase
         return $rows;
     }
 
+    /**
+     * get setting target columns
+     *
+     * @return void
+     */
+    protected static function getTargetColumns($custom_table){
+        // get custom columns. only select_valtext, select_table
+        return $custom_table->custom_columns()
+            ->whereIn('column_type', ColumnType::COLUMN_TYPE_IMPORT_REPLACE())
+            ->get();
+    }
 }
