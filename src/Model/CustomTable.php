@@ -38,7 +38,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'custom_columns' => CustomColumn::class,
             'custom_column_multisettings' => CustomColumnMulti::class,
         ],
-        'ignoreImportChildren' => ['custom_columns'],
+        'ignoreImportChildren' => ['custom_columns', 'custom_column_multisettings'],
     ];
 
     public function custom_columns()

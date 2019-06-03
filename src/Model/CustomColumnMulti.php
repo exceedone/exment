@@ -7,13 +7,14 @@ namespace Exceedone\Exment\Model;
  */
 class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporterInterface
 {
+    use Traits\AutoSUuidTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
 
     protected $appends = ['unique1', 'unique2', 'unique3'];
     protected $casts = ['options' => 'json'];
-    protected $guarded = ['id'];
+    protected $guarded = ['id', 'suuid'];
     protected $table = 'custom_column_multisettings';
 
     public function custom_table()
@@ -32,10 +33,10 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         ],
         'uniqueKeys' => [
             'export' => [
-                'custom_table.table_name', 'multisetting_type'
+                'custom_table.table_name', 'multisetting_type', 'suuid'
             ],
             'import' => [
-                'custom_table_id', 'multisetting_type'
+                'custom_table_id', 'multisetting_type', 'suuid'
             ],
         ],
         'langs' => [
