@@ -391,6 +391,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             [
                 'getModel' => true,
                 'permissions' => Permission::CUSTOM_TABLE,
+                'with' => null,
             ],
             $options
         );
@@ -408,6 +409,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             });
             // filter id;
             $model = $model->whereIn('id', $permission_table_ids);
+        }
+
+        if(isset($options['with'])){
+            $with = is_array($options['with']) ? $options['with'] : [$options['with']];
+            $model->with($with);
         }
 
         if ($options['getModel']) {

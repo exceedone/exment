@@ -120,7 +120,7 @@ class TemplateExporter
     protected static function setTemplateTable(&$config, $target_tables, $is_lang = false)
     {
         // get customtable and columns --------------------------------------------------
-        $custom_tables = CustomTable::with('custom_columns')->get();
+        $custom_tables = CustomTable::filterList(null, ['with' => ['custom_columns']]);
 
         $configTables = [];
         foreach ($custom_tables as $custom_table) {
