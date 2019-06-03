@@ -172,7 +172,14 @@ class CustomValue extends ModelBase
             if (empty($column_keys)) {
                 continue;
             }
-                
+            
+            // if all column's value is empty, continue.
+            if(collect($column_keys)->filter(function($column) use($input){
+                return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
+            })->count() == 0){
+                continue;
+            }
+
             if (isset($this->id)) {
                 $query->where('id', '<>', $this->id);
             }

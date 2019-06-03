@@ -167,6 +167,10 @@ if (!function_exists('rmcomma')) {
      */
     function rmcomma($value)
     {
+        if(is_null($value)){
+            return null;
+        }
+        
         return str_replace(",", "", $value);
     }
 }
