@@ -36,6 +36,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ],
         'children' =>[
             'custom_columns' => CustomColumn::class,
+            'custom_column_multisettings' => CustomColumnMulti::class,
         ],
         'ignoreImportChildren' => ['custom_columns'],
     ];
@@ -74,6 +75,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function custom_form_block_target_tables()
     {
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
+    }
+
+    public function custom_column_multisettings()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id');
     }
 
     public function multi_uniques()
