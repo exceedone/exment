@@ -1,12 +1,9 @@
 <?php
-
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
-
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\DatabaseDataType;
-
 class Decimal extends CustomItem
 {
     public function prepare()
@@ -18,7 +15,6 @@ class Decimal extends CustomItem
                 $this->value = floor($this->value * pow(10, $digit)) / pow(10, $digit);
             }
         }
-
         return $this;
     }
     
@@ -27,7 +23,6 @@ class Decimal extends CustomItem
         if (is_null($this->value())) {
             return null;
         }
-
         if (boolval(array_get($this->custom_column, 'options.number_format'))
         && is_numeric($this->value())
         && !boolval(array_get($this->options, 'disable_number_format'))) {
@@ -41,16 +36,14 @@ class Decimal extends CustomItem
         }
         return $this->value();
     }
-
     public function saving()
     {
         $rmv = rmcomma($this->value);
-        if ($this->value != $rmv) {
-            return $rmv;
+        if(!isset($rmv)){
+            return null;
         }
-        return null;
+        return $rmv;
     }
-
     protected function getAdminFieldClass()
     {
         return Field\Text::class;
@@ -66,7 +59,6 @@ class Decimal extends CustomItem
         if (!is_null(array_get($options, 'number_max'))) {
             $field->attribute(['max' => array_get($options, 'number_max')]);
         }
-
         if (!is_null(array_get($options, 'decimal_digit'))) {
             $field->attribute(['decimal_digit' => array_get($options, 'decimal_digit')]);
         }
@@ -84,10 +76,8 @@ class Decimal extends CustomItem
         if (array_get($options, 'number_max')) {
             $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
         }
-
         $validates[] = new Validator\DecimalCommaRule;
     }
-
     /**
      * get cast name for sort
      */
