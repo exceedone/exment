@@ -230,7 +230,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $table->createTable();
 
         // get whether index_enabled column
-        $index_enabled = $this->indexEnabled();
+        $index_enabled = $this->index_enabled;
         
         // check table column field exists.
         $exists = hasColumn($db_table_name, $db_column_name);
@@ -263,15 +263,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $this->alterColumn();
         }
         return $name;
-    }
-
-    /**
-     * Whether this column has index
-     * @return boolean
-     */
-    public function indexEnabled()
-    {
-        return boolval(array_get($this, 'options.index_enabled'));
     }
 
     /**
@@ -348,7 +339,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     
     public function importSaved($options = [])
     {
-        if (!$this->indexEnabled()) {
+        if (!$this->index_enabled) {
             return $this;
         }
         $this->alterColumn();

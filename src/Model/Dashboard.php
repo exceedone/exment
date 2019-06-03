@@ -195,7 +195,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
                 $query->where('dashboard_type', DashboardType::SYSTEM);
             })->orWhere(function ($query) {
                 $query->where('dashboard_type', DashboardType::USER)
-                    ->where('created_user_id', \Exment::user()->base_user_id);
+                    ->where('created_user_id', \Exment::user()->base_user_id ?? null);
             });
         });
     }
