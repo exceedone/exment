@@ -4,6 +4,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 class SelectValtext extends Select
 {
+    use ImportValueTrait;
+    
     protected function getReturnsValue($select_options, $val, $label)
     {
         // switch column_type and get return value
@@ -18,5 +20,9 @@ class SelectValtext extends Select
             }
         }
         return $returns;
+    }
+    
+    protected function getImportValueOption(){
+        return $this->custom_column->createSelectOptions();
     }
 }

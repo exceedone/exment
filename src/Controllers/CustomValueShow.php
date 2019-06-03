@@ -9,6 +9,7 @@ use Exceedone\Exment\Form\Show;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Box;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
@@ -97,7 +98,20 @@ trait CustomValueShow
                             });
                         });
                         $grid->disableRowSelector();
-                        $grid->disableActions();
+
+                        $grid->actions(function ($actions) {
+                            $actions->disableView();
+                            $actions->disableEdit();
+                            $actions->disableDelete();
+                        
+                            // add show link
+                            $actions->append($actions->row->getUrl([
+                                'tag' => true,
+                                'modal' => true,
+                                'icon' => 'fa-external-link',
+                                'add_id' => true,
+                            ]));
+                        });
                     });
                 }
             }

@@ -9,6 +9,8 @@ use Encore\Admin\Grid\Filter;
 
 class Yesno extends CustomItem
 {
+    use ImportValueTrait;
+    
     /**
      * laravel-admin set required. if false, always not-set required
      */
@@ -32,5 +34,19 @@ class Yesno extends CustomItem
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->radio(Define::YESNO_RADIO);
+    }
+    
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $setting
+     * @return void
+     */
+    public function getImportValueOption(){
+        return [
+            0    => 'NO',
+            1    => 'YES',
+        ];
     }
 }

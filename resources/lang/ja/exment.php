@@ -848,6 +848,7 @@ return [
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
+            'target_column_name' => '置換対象列名(英数字)',
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',

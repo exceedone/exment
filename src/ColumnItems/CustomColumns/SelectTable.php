@@ -159,4 +159,30 @@ class SelectTable extends CustomItem
             }
         }
     }
+    
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $setting
+     * @return void
+     */
+    public function getImportValue($value, $setting = []){
+        if(!isset($this->target_table)){
+            return null;
+        }
+
+        if(is_null($target_column_name = array_get($setting, 'target_column_name'))){
+            return $value;
+        }
+
+        // get target value
+        $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
+
+        if(!isset($target_value)){
+            return null;
+        }
+
+        return $target_value->id;
+    }
 }

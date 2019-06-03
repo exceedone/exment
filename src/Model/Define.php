@@ -195,6 +195,7 @@ class Define
     ];
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
+    public const PARENT_ID_NAME = 'parent_id';
 
     public static function FILE_OPTION()
     {
@@ -225,7 +226,9 @@ class Define
         ['uri'=> 'data', 'help_uri'=> 'data']
     ];
 
-    public const YESNO_RADIO = [
+    public const SETTING_SHEET_NAME = '##setting##';
+
+  public const YESNO_RADIO = [
         ''   => 'All',
         0    => 'NO',
         1    => 'YES',
