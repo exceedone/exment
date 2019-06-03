@@ -674,6 +674,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         $table_name = $this->table_name;
         $display_table = CustomTable::getEloquent($display_table);
+        
         // check table permission. if not exists, show admin_warning
         if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
             if ($showMessage_ifDeny) {

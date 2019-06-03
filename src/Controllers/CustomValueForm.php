@@ -500,6 +500,8 @@ EOT;
             if(!isset($custom_table)){
                 continue;
             }
+
+            // get children tables
             $relations = $custom_table->getRelationTables();
             // if not exists, continue
             if (!$relations) {
