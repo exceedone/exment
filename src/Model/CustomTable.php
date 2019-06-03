@@ -161,6 +161,43 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             })->filter();
     }
 
+    public function getSelectTableRelationColumns(){
+        $result = [];
+
+        $columns = $this->getSelectTableColumns();
+        
+        // re-loop for relation
+        foreach ($columns as $column) {
+            // get custom table
+            $custom_table = $column->select_target_table;
+            if(!isset($custom_table)){
+                continue;
+            }
+
+            // get children tables
+            $relations = $custom_table->getRelationTables();
+            // if not exists, continue
+            if (!$relations) {
+                continue;
+            }
+            foreach ($relations as $relation) {
+                $child_custom_table = array_get($relation, 'table');
+                collect($columns)->filter(function ($child_column) use ($child_custom_table) {
+                    return $child_column->select_target_table && $child_column->select_target_table->id == $child_custom_table->id;
+                })
+                ->each(function ($child_column) use ($column, $relation, &$result) {
+                    $result[] = [
+                        'parent_column' => $column,
+                        'child_column' => $child_column,
+                        'searchType' => array_get($relation, 'searchType'),
+                    ];
+                });
+            }
+        }
+
+        return $result;
+    }
+
     public function getMultipleUniques($custom_column = null)
     {
         return CustomColumnMulti::allRecords(function ($val) use ($custom_column) {
@@ -667,7 +704,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false)
+    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false, $filterCallback = null)
     {
         if (is_null($display_table)) {
             $display_table = $this;
@@ -695,6 +732,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
+        }
+
+        if(isset($filterCallback)){
+            $query = $filterCallback($query);
         }
 
         // when count > 100, create option only value.
@@ -753,6 +794,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         return $model;
     }
+
     /**
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
      * @param array|CustomTable $table
