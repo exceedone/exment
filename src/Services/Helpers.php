@@ -19,9 +19,13 @@ use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
 
 if (!function_exists('exmtrans')) {
-    function exmtrans($key)
+    function exmtrans($key, ...$args)
     {
-        return trans("exment::exment.$key");
+        $trans = trans("exment::exment.$key");
+        if (count($args) > 0) {
+            $trans = vsprintf($trans, $args);
+        }
+        return $trans;
     }
 }
 
@@ -1357,6 +1361,20 @@ if (!function_exists('getDataFromSheet')) {
         }
 
         return $data;
+    }
+}
+
+if (!function_exists('getTrueMark')) {
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    function getTrueMark($val)
+    {
+        if(!boolval($val)){
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
     }
 }
 

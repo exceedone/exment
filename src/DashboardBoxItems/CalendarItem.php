@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\CalendarType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class CalendarItem implements ItemInterface
@@ -103,7 +104,7 @@ class CalendarItem implements ItemInterface
         $model = CustomTable::whereHas('custom_views', function ($query) {
             $query->where('view_kind_type', ViewKindType::CALENDAR);
         });
-        $tables = CustomTable::filterList($model)
+        $tables = CustomTable::filterList($model, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])
             ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()

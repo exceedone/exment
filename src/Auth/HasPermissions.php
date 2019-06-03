@@ -136,7 +136,7 @@ trait HasPermissions
             return false;
         }
 
-        if(is_string($item)){
+        if (is_string($item)) {
             $item = [
                 'uri' => $item
             ];

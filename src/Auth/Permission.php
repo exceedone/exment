@@ -76,7 +76,7 @@ class Permission
         foreach (static::$bootingShouldPasses as $callable) {
             $result = call_user_func($callable, $endpoint);
 
-            if($result === true || $result === false){
+            if ($result === true || $result === false) {
                 return $result;
             }
         }
@@ -108,7 +108,7 @@ class Permission
     {
         // checking booting function
         $result = $this->fireShouldPasses($endpoint);
-        if($result === true || $result === false){
+        if ($result === true || $result === false) {
             return $result;
         }
 
@@ -182,13 +182,13 @@ class Permission
                 return array_key_exists('custom_form', $this->permission_details);
             case "view":
                 if ($systemRole) {
-                    return array_keys_exists([PermissionEnum::CUSTOM_VIEW], $this->permission_details);
+                    return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
-                return array_keys_exists([PermissionEnum::CUSTOM_VIEW], $this->permission_details);
+                return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
             case "data":
                 return $this->validateCustomValuePermission($systemRole, $endpoint);
         }

@@ -69,6 +69,8 @@ class HasMany extends AdminHasMany
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
+        $count = !isset($this->value) ? 0 : count($this->value);
+        $indexName = "index_{$this->column}";
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -78,14 +80,14 @@ class HasMany extends AdminHasMany
          * {count} is increment number of current sub form count.
          */
         $script = <<<EOT
-var index = 0;
+var $indexName = {$count};
 $('#has-many-{$this->column}').on('click', '.add', function () {
 
     var tpl = $('template.{$this->column}-tpl');
 
-    index++;
+    $indexName++;
 
-    var template = tpl.html().replace(/{$defaultKey}/g, index);
+    var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
     $('.has-many-{$this->column}-forms').append(template);
     {$templateScript}
 });
@@ -112,6 +114,8 @@ EOT;
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
+        $count = !isset($this->value) ? 0 : count($this->value);
+        $indexName = "index_{$this->column}";
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -121,14 +125,14 @@ EOT;
          * {count} is increment number of current sub form count.
          */
         $script = <<<EOT
-var index = 0;
+var $indexName = {$count};
 $('#has-many-{$this->column}').on('click', '.add', function () {
 
     var tpl = $('template.{$this->column}-tpl');
 
-    index++;
+    $indexName++;
 
-    var template = tpl.html().replace(/{$defaultKey}/g, index);
+    var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
     $('.has-many-{$this->column}-forms').append(template);
     {$templateScript}
 });

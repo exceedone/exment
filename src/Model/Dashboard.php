@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Model;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\Permission;
 use Illuminate\Http\Request as Req;
+use Illuminate\Database\Eloquent\Builder;
 
 class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -151,10 +153,72 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
         parent::boot();
         
         static::creating(function ($model) {
-            $model->setDefaultFlg();
+            $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
         });
         static::updating(function ($model) {
-            $model->setDefaultFlg();
+            $model->setDefaultFlg(null, 'setDefaultFlgFilter', 'setDefaultFlgSet');
         });
+        
+        // add global scope
+        static::addGlobalScope('showableDashboards', function (Builder $builder) {
+            return static::showableDashboards($builder);
+        });
+    }
+
+    protected function setDefaultFlgFilter($query)
+    {
+        $query->where('dashboard_type', $this->dashboard_type);
+
+        if ($this->dashboard_type == DashboardType::USER) {
+            $query->where('created_user_id', \Exment::user()->base_user_id ?? null);
+        }
+    }
+
+    protected function setDefaultFlgSet()
+    {
+        // set if only this flg is system
+        if ($this->dashboard_type == DashboardType::SYSTEM) {
+            $this->default_flg = true;
+        }
+    }
+
+    /**
+     * scope user showable Dashboards
+     *
+     * @param [type] $query
+     * @return void
+     */
+    protected static function showableDashboards($query)
+    {
+        return $query->where(function ($query) {
+            $query->where(function ($query) {
+                $query->where('dashboard_type', DashboardType::SYSTEM);
+            })->orWhere(function ($query) {
+                $query->where('dashboard_type', DashboardType::USER)
+                    ->where('created_user_id', \Exment::user()->base_user_id ?? null);
+            });
+        });
+    }
+
+    public static function hasDashboardEditAuth($id)
+    {
+        $dashboard = static::find($id);
+        // check has system permission
+        if (!static::hasSystemPermission()) {
+            if ($dashboard->dashboard_type == DashboardType::SYSTEM) {
+                return false;
+            } elseif ($dashboard->created_user_id != \Exment::user()->base_user_id) {
+                return false;
+            }
+        } elseif ($dashboard->dashboard_type == DashboardType::USER && $dashboard->created_user_id != \Exment::user()->base_user_id) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    public static function hasSystemPermission()
+    {
+        return \Admin::user()->hasPermission(Permission::SYSTEM);
     }
 }

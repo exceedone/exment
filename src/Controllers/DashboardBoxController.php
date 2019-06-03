@@ -211,17 +211,18 @@ class DashboardBoxController extends AdminControllerBase
         }
         // get custom views
         $custom_table = CustomTable::getEloquent($id);
-        $views = $custom_table->custom_views->filter(function ($value) use ($dashboard_type) {
-            if ($dashboard_type == DashboardBoxType::CALENDAR) {
-                return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
-            } elseif ($dashboard_type == DashboardBoxType::CHART) {
-                return array_get($value, 'view_kind_type') == ViewKindType::AGGREGATE;
-            } else {
-                return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
-            }
-        })->map(function ($value) {
-            return array('id' => $value->id, 'text' => $value->view_view_name);
-        });
+        $views = $custom_table->custom_views
+            ->filter(function ($value) use ($dashboard_type) {
+                if ($dashboard_type == DashboardBoxType::CALENDAR) {
+                    return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
+                } elseif ($dashboard_type == DashboardBoxType::CHART) {
+                    return array_get($value, 'view_kind_type') == ViewKindType::AGGREGATE;
+                } else {
+                    return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                }
+            })->map(function ($value) {
+                return array('id' => $value->id, 'text' => $value->view_view_name);
+            });
         // if count > 0, return value.
         if (!is_null($views) && count($views) > 0) {
             return $views;

@@ -13,6 +13,10 @@ class Date extends CustomItem
     {
         // if not empty format, using carbon
         $format = array_get($this->custom_column, 'options.format');
+        if (is_nullorempty($format)) {
+            $format = array_get($this->options, 'format');
+        }
+        
         if (!is_nullorempty($format)) {
             return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
         }

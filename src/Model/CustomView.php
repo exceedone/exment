@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Model;
 
+use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
@@ -119,10 +120,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
 
         static::creating(function ($model) {
-            $model->setDefaultFlgInTable();
+            $model->setDefaultFlgInTable('setDefaultFlgFilter', 'setDefaultFlgSet');
         });
         static::updating(function ($model) {
-            $model->setDefaultFlgInTable();
+            $model->setDefaultFlgInTable('setDefaultFlgFilter', 'setDefaultFlgSet');
         });
 
         // delete event
@@ -130,6 +131,28 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // Delete items
             $model->deletingChildren();
         });
+        
+        // add global scope
+        static::addGlobalScope('showableViews', function (Builder $builder) {
+            return static::showableViews($builder);
+        });
+    }
+
+    protected function setDefaultFlgFilter($query)
+    {
+        $query->where('view_type', $this->view_type);
+
+        if ($this->view_type == ViewType::USER) {
+            $query->where('created_user_id', \Exment::user()->base_user_id);
+        }
+    }
+
+    protected function setDefaultFlgSet()
+    {
+        // set if only this flg is system
+        if ($this->view_type == ViewType::SYSTEM) {
+            $this->default_flg = true;
+        }
     }
 
     // custom function --------------------------------------------------
@@ -296,6 +319,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $view;
     }
     
+    protected static function showableViews($query)
+    {
+        return $query->where(function ($query) {
+            $query->where(function ($query) {
+                $query->where('view_type', ViewType::SYSTEM);
+            })->orWhere(function ($query) {
+                $query->where('view_type', ViewType::USER)
+                        ->where('created_user_id', \Exment::user()->base_user_id ?? null);
+            });
+        });
+    }
+
     protected static function createDefaultView($tableObj)
     {
         $view = new CustomView;

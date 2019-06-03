@@ -7,6 +7,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomView;
@@ -55,12 +56,26 @@ class CustomViewController extends AdminControllerTableBase
         $this->setFormViewInfo($request);
         
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return;
         }
         if (!$this->validateTableAndId(CustomView::class, $id, 'view')) {
             return;
         }
+
+        // check has system permission
+        if (!$this->hasSystemPermission()) {
+            $view = CustomView::getEloquent($id);
+
+            if ($view->view_type == Enums\ViewType::SYSTEM) {
+                Checker::error();
+                return false;
+            } elseif ($view->created_user_id != \Exment::user()->base_user_id) {
+                Checker::error();
+                return false;
+            }
+        }
+        
         return parent::edit($request, $content, $tableKey, $id);
     }
 
@@ -73,9 +88,14 @@ class CustomViewController extends AdminControllerTableBase
     {
         $this->setFormViewInfo($request);
         //Validation table value
-        if (!$this->validateTable($this->custom_table, Permission::CUSTOM_TABLE)) {
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             return;
         }
+
+        if (!is_null($copy_id = $request->get('copy_id'))) {
+            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['view_view_name', 'default_flg', 'view_type']));
+        }
+
         return parent::create($request, $content);
     }
 
@@ -90,6 +110,16 @@ class CustomViewController extends AdminControllerTableBase
         $grid->column('custom_table.table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('view_view_name', exmtrans("custom_view.view_view_name"))->sortable();
+        if ($this->hasSystemPermission()) {
+            $grid->column('view_type', exmtrans("custom_view.view_type"))->sortable()->display(function ($view_type) {
+                return Enums\ViewType::getEnum($view_type)->transKey("custom_view.custom_view_type_options");
+            });
+        }
+
+        if (!$this->hasSystemPermission()) {
+            $grid->model()->where('view_type', Enums\ViewType::USER);
+        }
+        
         $grid->column('view_kind_type', exmtrans("custom_view.view_kind_type"))->sortable()->display(function ($view_kind_type) {
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
@@ -99,7 +129,6 @@ class CustomViewController extends AdminControllerTableBase
             $table_name = $this->custom_table->table_name;
         }
 
-        //  $grid->disableCreateButton();
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
             if (boolval($actions->row->system_flg)) {
@@ -116,6 +145,12 @@ class CustomViewController extends AdminControllerTableBase
                 ->url(admin_urls('data', "{$table_name}?view={$actions->row->suuid}"))
                 ->icon('fa-database')
                 ->tooltip(exmtrans('custom_view.view_datalist'));
+            $actions->prepend($linker);
+            
+            $linker = (new Linker)
+                ->url(admin_urls('view', $table_name, "create?copy_id={$actions->row->id}"))
+                ->icon('fa-copy')
+                ->tooltip(exmtrans('custom_view.copy_view'));
             $actions->prepend($linker);
         });
 
@@ -151,19 +186,24 @@ class CustomViewController extends AdminControllerTableBase
      *
      * @return Form
      */
-    protected function form($id = null)
+    protected function form($id = null, $copy_id = null)
     {
         // get request
         $request = Request::capture();
+        $copy_custom_view = CustomView::getEloquent($copy_id);
         if (!is_null($request->input('view_kind_type'))) {
             $view_kind_type = $request->input('view_kind_type');
+        } elseif (!is_null($request->query('view_kind_type'))) {
+            $view_kind_type =  $request->query('view_kind_type');
+        } elseif (isset($copy_custom_view)) {
+            $view_kind_type =  array_get($copy_custom_view, 'view_kind_type');
         } else {
-            $view_kind_type = $request->query('view_kind_type')?? '0';
+            $view_kind_type = ViewKindType::DEFAULT;
         }
 
         $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
-        $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
+
         $form->hidden('view_kind_type')->default($view_kind_type);
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
@@ -172,6 +212,16 @@ class CustomViewController extends AdminControllerTableBase
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
 
+        // select view type
+        if (!isset($id) && $this->hasSystemPermission()) {
+            $form->select('view_type', exmtrans('custom_view.view_type'))
+                ->default(Enums\ViewType::SYSTEM)
+                ->config('allowClear', false)
+                ->options(Enums\ViewType::transKeyArray('custom_view.custom_view_type_options'));
+        } else {
+            $form->hidden('view_type')->default(Enums\ViewType::USER);
+        }
+        
         if ($view_kind_type == Enums\ViewKindType::DEFAULT) {
             $form->select('pager_count', exmtrans("common.pager_count"))
             ->required()
@@ -199,8 +249,8 @@ class CustomViewController extends AdminControllerTableBase
                 // summary columns setting
                 $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getSummaryColumnsSelectOptions());
-                    //                    ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
+                        ->options($this->custom_table->getSummaryColumnsSelectOptions())
+                        ->attribute(['data-linkage' => json_encode(['view_summary_condition' => admin_urls('view', $custom_table->table_name, 'summary-condition')])]);
                     $form->select('view_summary_condition', exmtrans("custom_view.view_summary_condition"))
                         ->options(function ($val) {
                             return array_map(function ($array) {
@@ -311,7 +361,7 @@ class CustomViewController extends AdminControllerTableBase
             $id = $form->model()->id;
         }
         if (isset($id)) {
-            $suuid = CustomView::find($id)->suuid;
+            $suuid = CustomView::getEloquent($id)->suuid;
         } else {
             $suuid = null;
         }
@@ -376,6 +426,12 @@ EOT;
         Admin::script($script);
         return $form;
     }
+
+    protected function hasSystemPermission()
+    {
+        return $this->custom_table->hasPermission(Permission::CUSTOM_VIEW);
+    }
+
     /**
      * get filter condition
      */

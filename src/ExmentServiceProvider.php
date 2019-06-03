@@ -48,6 +48,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\RestoreCommand',
         'Exceedone\Exment\Console\ClientListCommand',
         'Exceedone\Exment\Console\BulkInsertCommand',
+        'Exceedone\Exment\Console\PatchDataCommand',
     ];
 
     /**
