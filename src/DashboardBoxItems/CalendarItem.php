@@ -6,8 +6,10 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\CalendarType;
+use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class CalendarItem implements ItemInterface
@@ -94,7 +96,7 @@ class CalendarItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form)
+    public static function setAdminOptions(&$form, $dashboard)
     {
         $form->select('calendar_type', exmtrans("dashboard.dashboard_box_options.calendar_type"))
                 ->required()
@@ -109,11 +111,14 @@ class CalendarItem implements ItemInterface
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
             ->options($tables)
-            ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::CALENDAR]));
+            ->attribute([
+                'data-linkage' => json_encode(['options_target_view_id' => admin_urls('dashboardbox', 'table_views', DashboardBoxType::CALENDAR)]),
+                'data-linkage-expand' => json_encode(['dashboard_suuid' => $dashboard->suuid])
+            ]);
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
-            ->options(function ($value) {
+            ->options(function ($value) use($dashboard) {
                 if (!isset($value)) {
                     return [];
                 }
@@ -125,7 +130,14 @@ class CalendarItem implements ItemInterface
                 return $view->custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
-                    })->pluck('view_view_name', 'id');
+                    })
+                    ->filter(function ($value) use($view, $dashboard) {
+                        if(array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM){
+                            return true;
+                        }
+                        return array_get($value, 'view_type') == ViewType::SYSTEM;
+                    })
+                    ->pluck('view_view_name', 'id');
             });
     }
 
