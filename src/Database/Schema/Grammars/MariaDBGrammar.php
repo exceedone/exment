@@ -9,7 +9,7 @@ use Illuminate\Database\Schema\Blueprint;
  * https://github.com/ybr-nx/laravel-mariadb
  */
 class MariaDBGrammar extends MySqlGrammar
-{ 
+{
     public function __construct()
     {
         if (!in_array('Check', $this->modifiers)) {
@@ -24,7 +24,8 @@ class MariaDBGrammar extends MySqlGrammar
     protected function modifyCheck(Blueprint $blueprint, Fluent $column)
     {
         if ($this->getType($column) == 'json') {
-            return sprintf(' CHECK (%sJSON_VALID(%s))', 
+            return sprintf(
+                ' CHECK (%sJSON_VALID(%s))',
                 $column->nullable ? ($this->wrap($column->name) . ' IS NULL OR ') : '',
                 $this->wrap($column->name)
             );

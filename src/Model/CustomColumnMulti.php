@@ -122,15 +122,18 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     
 
     // Template Output ----------------------------------------
-    protected function getUniqueKeyValuesUnique1(){
+    protected function getUniqueKeyValuesUnique1()
+    {
         return $this->getUniqueKeyValues('unique1');
     }
 
-    protected function getUniqueKeyValuesUnique2(){
+    protected function getUniqueKeyValuesUnique2()
+    {
         return $this->getUniqueKeyValues('unique2');
     }
 
-    protected function getUniqueKeyValuesUnique3(){
+    protected function getUniqueKeyValuesUnique3()
+    {
         return $this->getUniqueKeyValues('unique3');
     }
 
@@ -140,7 +143,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     protected function getUniqueKeyValues($key)
     {
         $custom_column = CustomColumn::getEloquent($this->{$key});
-        if(!isset($custom_column)){
+        if (!isset($custom_column)) {
             return [
                 'table_name' => null,
                 'column_name' => null,
@@ -180,11 +183,11 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         $column_name = array_get($json, "options.{$key}_column_name");
 
         $forget_flg = true;
-        if(isset($table_name) && isset($column_name)){
+        if (isset($table_name) && isset($column_name)) {
             $custom_table = CustomTable::getEloquent($table_name);
             $custom_column = CustomColumn::getEloquent($column_name, $custom_table);
 
-            if(isset($custom_column)){
+            if (isset($custom_column)) {
                 array_set($json, "options.{$key}_id", $custom_column->id);
             }
         }
@@ -192,5 +195,4 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         array_forget($json, "options.{$key}_table_name");
         array_forget($json, "options.{$key}_column_name");
     }
-
 }

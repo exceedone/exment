@@ -70,7 +70,7 @@ class CustomTableAction implements ActionInterface
 
         $datalist = [];
         foreach ($providers as $provider) {
-            if(!$provider->isOutput()){
+            if (!$provider->isOutput()) {
                 continue;
             }
 

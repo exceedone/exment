@@ -103,12 +103,12 @@ class SelectTable extends CustomItem
 
         $relationColumn = collect($this->custom_column->custom_table
             ->getSelectTableRelationColumns())
-            ->first(function($relationColumn){
+            ->first(function ($relationColumn) {
                 return array_get($relationColumn, 'child_column')->id == $this->custom_column->id;
             });
 
-        $field->options(function ($value) use($relationColumn) {
-            if(isset($relationColumn)){
+        $field->options(function ($value) use ($relationColumn) {
+            if (isset($relationColumn)) {
                 $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
                 $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
                 $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
@@ -119,8 +119,8 @@ class SelectTable extends CustomItem
                     ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
                     ->first();
 
-                if(isset($searchColumn)){
-                    $callback = function(&$query) use($parent_v, $searchColumn){
+                if (isset($searchColumn)) {
+                    $callback = function (&$query) use ($parent_v, $searchColumn) {
                         $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
                         return $query;
                     };
@@ -167,19 +167,20 @@ class SelectTable extends CustomItem
      * @param array $setting
      * @return void
      */
-    public function getImportValue($value, $setting = []){
-        if(!isset($this->target_table)){
+    public function getImportValue($value, $setting = [])
+    {
+        if (!isset($this->target_table)) {
             return null;
         }
 
-        if(is_null($target_column_name = array_get($setting, 'target_column_name'))){
+        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
             return $value;
         }
 
         // get target value
         $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
-        if(!isset($target_value)){
+        if (!isset($target_value)) {
             return null;
         }
 

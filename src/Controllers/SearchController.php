@@ -4,15 +4,12 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
-use Encore\Admin\Widgets\Box;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SearchType;
 
 class SearchController extends AdminControllerBase

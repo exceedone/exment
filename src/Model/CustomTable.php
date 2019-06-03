@@ -120,7 +120,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Key is column index name.
      * Value is custom column.
      * Filter is select_target_table
-     * 
+     *
      * @return Collection
      */
     public function getSelectTableColumns()
@@ -173,7 +173,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @return array contains parent_column, child_column, searchType
      */
-    public function getSelectTableRelationColumns(){
+    public function getSelectTableRelationColumns()
+    {
         $result = [];
 
         $columns = $this->getSelectTableColumns();
@@ -182,7 +183,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($columns as $column) {
             // get custom table
             $custom_table = $column->select_target_table;
-            if(!isset($custom_table)){
+            if (!isset($custom_table)) {
                 continue;
             }
 
@@ -746,7 +747,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query = $this->getOptionsQuery();
         }
 
-        if(isset($filterCallback)){
+        if (isset($filterCallback)) {
             $query = $filterCallback($query);
         }
 

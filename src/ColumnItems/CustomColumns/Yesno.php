@@ -43,7 +43,8 @@ class Yesno extends CustomItem
      * @param array $setting
      * @return void
      */
-    public function getImportValueOption(){
+    public function getImportValueOption()
+    {
         return [
             0    => 'NO',
             1    => 'YES',

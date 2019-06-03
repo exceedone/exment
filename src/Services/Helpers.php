@@ -167,7 +167,7 @@ if (!function_exists('rmcomma')) {
      */
     function rmcomma($value)
     {
-        if(is_null($value)){
+        if (is_null($value)) {
             return null;
         }
         
@@ -1374,7 +1374,7 @@ if (!function_exists('getTrueMark')) {
      */
     function getTrueMark($val)
     {
-        if(!boolval($val)){
+        if (!boolval($val)) {
             return null;
         }
 

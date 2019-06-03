@@ -31,7 +31,7 @@ class MariaDBGrammar extends MySqlGrammar
     public function wrap($value, $prefixAlias = false)
     {
         $mysqlWrap = parent::wrap($value, $prefixAlias);
-        if(Str::contains($mysqlWrap, '.JSON_EXTRACT')) {
+        if (Str::contains($mysqlWrap, '.JSON_EXTRACT')) {
             if (Str::contains($value, '->>')) {
                 $delimiter = '->>';
                 $format = 'JSON_UNQUOTE(JSON_EXTRACT(%s, \'$.%s\'))';
@@ -43,7 +43,10 @@ class MariaDBGrammar extends MySqlGrammar
             $field = collect(explode('.', array_shift($path)))->map(function ($part) {
                 return $this->wrapValue($part);
             })->implode('.');
-            return sprintf($format, $field, collect($path)->map(function ($part) {
+            return sprintf(
+                $format,
+                $field,
+                collect($path)->map(function ($part) {
                     return '"'.$part.'"';
                 })->implode('.')
             );

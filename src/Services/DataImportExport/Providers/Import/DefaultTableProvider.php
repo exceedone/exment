@@ -192,25 +192,25 @@ class DefaultTableProvider extends ProviderBase
                 }
 
                 // convert target key's id
-                if(isset($value)){
-                    if(array_has($options, 'setting')){
-                        $s = collect($options['setting'])->filter(function($s) use($key){
+                if (isset($value)) {
+                    if (array_has($options, 'setting')) {
+                        $s = collect($options['setting'])->filter(function ($s) use ($key) {
                             return isset($s['target_column_name']) && $s['column_name'] == $key;
                         })->first();
                     }
-                    if(isset($target_column->column_item)){
+                    if (isset($target_column->column_item)) {
                         $value = $target_column->column_item->getImportValue($value, $s ?? null);
-                    }    
+                    }
                 }
-            }elseif($key == Define::PARENT_ID_NAME && isset($value)){
+            } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
                 // convert target key's id
-                if(array_has($options, 'setting')){
-                    $s = collect($options['setting'])->filter(function($s) use($key){
+                if (array_has($options, 'setting')) {
+                    $s = collect($options['setting'])->filter(function ($s) use ($key) {
                         return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
                     })->first();
                 }
                 $parent_item = ParentItem::getItem(CustomTable::getEloquent(array_get($data, 'parent_type')));
-                if(isset($parent_item)){
+                if (isset($parent_item)) {
                     $value = $parent_item->getImportValue($value, $s ?? null);
                 }
             }

@@ -35,7 +35,8 @@ abstract class ProviderBase
      *
      * @return boolean
      */
-    public function isOutput(){
+    public function isOutput()
+    {
         return true;
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Connectors\MySqlConnector;
 use Exceedone\Exment\Database\MariaDBConnection;
 
 class MariaDBConnectionFactory extends \Illuminate\Database\Connectors\ConnectionFactory
-{ 
+{
     public function createConnector(array $config)
     {
         return new MySqlConnector;

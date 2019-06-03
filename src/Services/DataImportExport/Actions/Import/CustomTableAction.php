@@ -44,7 +44,7 @@ class CustomTableAction implements ActionInterface
             }
 
             // get setting info
-            if(array_has($datalist, Define::SETTING_SHEET_NAME)){
+            if (array_has($datalist, Define::SETTING_SHEET_NAME)) {
                 $settings = $this->getImportTableSetting($datalist[Define::SETTING_SHEET_NAME], $table_name);
                 $options['setting'] = $settings;
             }
@@ -187,20 +187,21 @@ class CustomTableAction implements ActionInterface
         return $this;
     }
 
-    protected function getImportTableSetting($settingArray, $table_name){
-        if(count($settingArray) <= 2){
+    protected function getImportTableSetting($settingArray, $table_name)
+    {
+        if (count($settingArray) <= 2) {
             return [];
         }
 
-        // get header 
+        // get header
         $headers = $settingArray[0];
 
-        $bodies = collect(array_slice($settingArray, 2))->filter(function($setting) use($table_name){
+        $bodies = collect(array_slice($settingArray, 2))->filter(function ($setting) use ($table_name) {
             return count($setting) > 0 && $setting[0] == $table_name;
         })->toArray();
 
         $items = [];
-        foreach($bodies as $body){
+        foreach ($bodies as $body) {
             $items[] = array_combine($headers, $body);
         }
 

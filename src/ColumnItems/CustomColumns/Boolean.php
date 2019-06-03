@@ -57,7 +57,8 @@ class Boolean extends CustomItem
         ]);
     }
     
-    protected function getImportValueOption(){
+    protected function getImportValueOption()
+    {
         $column = $this->custom_column;
         return [
             array_get($column, 'options.false_value')    => array_get($column, 'options.false_label'),

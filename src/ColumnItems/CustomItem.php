@@ -335,7 +335,8 @@ abstract class CustomItem implements ItemInterface
      * @param array $options
      * @return void
      */
-    public function getImportValue($value, $options = []){
+    public function getImportValue($value, $options = [])
+    {
         return $value;
     }
 

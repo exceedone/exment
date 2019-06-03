@@ -228,7 +228,7 @@ class Define
 
     public const SETTING_SHEET_NAME = '##setting##';
 
-  public const YESNO_RADIO = [
+    public const YESNO_RADIO = [
         ''   => 'All',
         0    => 'NO',
         1    => 'YES',

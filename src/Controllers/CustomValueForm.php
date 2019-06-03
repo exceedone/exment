@@ -15,7 +15,6 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
@@ -493,7 +492,7 @@ EOT;
         // get relation columns
         $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
 
-        foreach($relationColumns as $relationColumn){
+        foreach ($relationColumns as $relationColumn) {
             $parent_column = $relationColumn['parent_column'];
             $parent_column_name = array_get($parent_column, 'column_name');
             $parent_table = $parent_column->select_target_table;

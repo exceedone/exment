@@ -115,19 +115,20 @@ class ParentItem implements ItemInterface
      * @param array $setting
      * @return void
      */
-    public function getImportValue($value, $setting = []){
-        if(!isset($this->custom_table)){
+    public function getImportValue($value, $setting = [])
+    {
+        if (!isset($this->custom_table)) {
             return null;
         }
 
-        if(is_null($target_column_name = array_get($setting, 'target_column_name'))){
+        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
             return $value;
         }
 
         // get target value
         $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
-        if(!isset($target_value)){
+        if (!isset($target_value)) {
             return null;
         }
 

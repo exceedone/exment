@@ -155,7 +155,7 @@ class ExmentServiceProvider extends ServiceProvider
 
         // register database
         $this->app->resolving('db', function ($db, $app) {
-            $db->extend('mariadb', function ($config, $name) use ($app){
+            $db->extend('mariadb', function ($config, $name) use ($app) {
                 return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
             });
         });
