@@ -674,7 +674,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         $table_name = $this->table_name;
         $display_table = CustomTable::getEloquent($display_table);
-        
+
         // check table permission. if not exists, show admin_warning
         if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
             if ($showMessage_ifDeny) {
@@ -880,7 +880,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         foreach ($custom_columns as $custom_column) {
             // if $index_enabled_only = true and options.index_enabled_only is false, continue
-            if ($index_enabled_only && !$custom_column->indexEnabled()) {
+            if ($index_enabled_only && !$custom_column->index_enabled) {
                 continue;
             }
             $key = $this->getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id);
@@ -987,7 +987,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ///// get table columns
         $custom_columns = $this->custom_columns;
         foreach ($custom_columns as $option) {
-            if (!$option->indexEnabled()) {
+            if (!$option->index_enabled) {
                 continue;
             }
             $column_type = array_get($option, 'column_type');

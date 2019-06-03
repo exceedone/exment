@@ -68,7 +68,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
-        if (!$this->custom_column->indexEnabled()) {
+        if (!$this->custom_column->index_enabled) {
             return 'value->'.$this->custom_column->column_name;
         }
         return $this->index();
@@ -113,7 +113,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function indexEnabled()
     {
-        return $this->custom_column->indexEnabled();
+        return $this->custom_column->index_enabled;
     }
 
     public function setCustomValue($custom_value)

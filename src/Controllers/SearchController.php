@@ -191,7 +191,7 @@ EOT;
             // search using column
             $result = array_get($table, 'custom_columns')->first(function ($custom_column) {
                 // this column is search_enabled, add array.
-                if (!$custom_column->indexEnabled()) {
+                if (!$custom_column->index_enabled) {
                     return false;
                 }
                 return true;

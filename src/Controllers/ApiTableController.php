@@ -245,7 +245,7 @@ class ApiTableController extends AdminControllerTableBase
                     continue;
                 }
 
-                if (!$findCustomColumn->indexEnabled()) {
+                if (!$findCustomColumn->index_enabled) {
                     //TODO:show error
                     continue;
                 }
