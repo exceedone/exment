@@ -236,6 +236,7 @@ EOT;
         if (!isset($id)) {
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
                 ->required()
+                ->default(short_uuid())
                 ->rules("max:30|unique:".Dashboard::getTableName()."|regex:/".Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN."/")
                 ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
