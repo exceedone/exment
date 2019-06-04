@@ -68,7 +68,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
-        if (!$this->custom_column->indexEnabled()) {
+        if (!$this->custom_column->index_enabled) {
             return 'value->'.$this->custom_column->column_name;
         }
         return $this->index();
@@ -113,7 +113,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function indexEnabled()
     {
-        return $this->custom_column->indexEnabled();
+        return $this->custom_column->index_enabled;
     }
 
     public function setCustomValue($custom_value)
@@ -178,6 +178,7 @@ abstract class CustomItem implements ItemInterface
     {
         return $this->getAdminFieldClass();
     }
+
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $form_column_options = $form_column->options ?? null;
@@ -325,6 +326,18 @@ abstract class CustomItem implements ItemInterface
      */
     public function saved()
     {
+    }
+
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $options
+     * @return void
+     */
+    public function getImportValue($value, $options = [])
+    {
+        return $value;
     }
 
     abstract protected function getAdminFieldClass();

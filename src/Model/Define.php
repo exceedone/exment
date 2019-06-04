@@ -21,6 +21,8 @@ class Define
     public const RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN = '^[a-zA-Z0-9\-_]*$';
     public const RULES_REGEX_SYSTEM_NAME = '^(?=[a-zA-Z])(?!.*[-_]$)[-_a-zA-Z0-9]+$';
     
+    public const DELETE_CONFIRM_KEYWORD = 'delete me';
+
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
         'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
@@ -168,7 +170,7 @@ class Define
         ['url' => 'column', 'icon' => 'fa-list', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_column'],
         ['url' => 'relation', 'icon' => 'fa-compress', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_relation'],
         ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
-        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => [Permission::CUSTOM_VIEW], 'exmtrans' => 'change_page_menu.custom_view'],
+        ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view'],
         ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
@@ -193,6 +195,7 @@ class Define
     ];
 
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
+    public const PARENT_ID_NAME = 'parent_id';
 
     public static function FILE_OPTION()
     {
@@ -221,5 +224,13 @@ class Define
         ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
         ['uri'=> 'data', 'help_uri'=> 'data']
+    ];
+
+    public const SETTING_SHEET_NAME = '##setting##';
+
+    public const YESNO_RADIO = [
+        ''   => 'All',
+        0    => 'NO',
+        1    => 'YES',
     ];
 }

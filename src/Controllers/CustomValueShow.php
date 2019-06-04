@@ -97,7 +97,20 @@ trait CustomValueShow
                             });
                         });
                         $grid->disableRowSelector();
-                        $grid->disableActions();
+
+                        $grid->actions(function ($actions) {
+                            $actions->disableView();
+                            $actions->disableEdit();
+                            $actions->disableDelete();
+                        
+                            // add show link
+                            $actions->append($actions->row->getUrl([
+                                'tag' => true,
+                                'modal' => true,
+                                'icon' => 'fa-external-link',
+                                'add_id' => true,
+                            ]));
+                        });
                     });
                 }
             }

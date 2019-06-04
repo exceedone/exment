@@ -11,6 +11,8 @@ use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Enums\TemplateExportTarget;
+use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Enums\DashboardType;
 use ZipArchive;
 
 /**
@@ -118,7 +120,7 @@ class TemplateExporter
     protected static function setTemplateTable(&$config, $target_tables, $is_lang = false)
     {
         // get customtable and columns --------------------------------------------------
-        $custom_tables = CustomTable::with('custom_columns')->get();
+        $custom_tables = CustomTable::filterList(null, ['with' => ['custom_columns']]);
 
         $configTables = [];
         foreach ($custom_tables as $custom_table) {
@@ -170,6 +172,7 @@ class TemplateExporter
             ->with('custom_view_filters.custom_column')
             ->with('custom_view_sorts.custom_column')
             ->with('custom_view_summaries.custom_column')
+            ->where('view_type', ViewType::SYSTEM)
             ->get();
         $configViews = [];
         foreach ($custom_views as $custom_view) {
@@ -219,6 +222,7 @@ class TemplateExporter
         // get dashboards --------------------------------------------------
         $dashboards = Dashboard
             ::with('dashboard_boxes')
+            ->where('dashboard_type', DashboardType::SYSTEM)
             ->get();
         $configDashboards = [];
         foreach ($dashboards as $dashboard) {

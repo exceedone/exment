@@ -141,6 +141,7 @@ return [
         'header' => 'ダッシュボード',
         'dashboard_name' => 'ダッシュボード名(英数字)',
         'dashboard_view_name' => 'ダッシュボード表示名',
+        'dashboard_type' => 'ダッシュボード種類',
         'row' => 'ダッシュボード%s行目',
         'description_row' => 'ダッシュボードの%s行目に表示する列数です。',
         'description_row2' => 'ダッシュボードの%s行目に表示する列数です。※「なし」を選択すると、%s行目は表示されません。',
@@ -316,10 +317,10 @@ return [
             'password' => '英数記号で8文字以上記入してください。',
             'change_only' => '変更を行う場合のみ入力します。',
             
-            'use_loginuser' => 'チェックすることで、このユーザーがシステムにログインすることができるようになります。',
-            'reset_password' => 'チェックすることで、パスワードが再設定されます。',
-            'create_password_auto' => 'チェックすることで、パスワードが自動生成されます。(該当ユーザーにメールが送信されます。)',
-            'send_password' => 'チェックすることで、該当ユーザーにユーザー情報をメール送信します。',
+            'use_loginuser' => 'YESにすることで、このユーザーがシステムにログインすることができるようになります。',
+            'reset_password' => 'YESにすることで、パスワードが再設定されます。',
+            'create_password_auto' => 'YESにすることで、パスワードが自動生成されます。(該当ユーザーにメールが送信されます)',
+            'send_password' => 'YESにすることで、該当ユーザーにユーザー情報をメール送信します。',
         ],
         'message' => [
             'required_password' => 'パスワードを入力するか自動生成を選択してください。',
@@ -375,6 +376,7 @@ return [
         'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_parent_menu' => '追加先の親メニュー',
+        'expand_setting' => '拡張設定',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
             'icon' => 'メニューなどに表示するアイコンを選択してください。',
@@ -392,6 +394,19 @@ return [
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
+            'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
+            'delete_confirm_error' => 'キーワードが正しくありません。',
+        ],
+
+        'custom_column_multi' => [
+            'uniques' => '複合ユニークキー',
+            'unique1' => '列1',
+            'unique2' => '列2',
+            'unique3' => '列3',
+
+            'help' => [
+                'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
+            ],
         ],
     ],
     
@@ -558,12 +573,14 @@ return [
         'custom_view_columns' => '表示列選択',
         'custom_view_groups' => 'グループ列選択',
         'view_column_name' => '別名表示',
+        'view_type' => 'ビュー権限',
         'view_kind_type' => 'ビュー種類',
         'custom_view_summaries' => '集計列選択',
         'custom_view_sorts' => 'データ並べ替え',
         'view_column_target' => '対象列',
         'view_column_start_date' => '開始日',
         'view_column_end_date' => '終了日',
+        'copy_view' => 'このビューの複製',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
@@ -624,6 +641,7 @@ return [
         
         'custom_view_menulist' => [
             'current_view_edit' => '現在のビュー設定変更',
+            'current_view_replicate' => '現在のビューを複製',
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',
@@ -830,6 +848,7 @@ return [
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
+            'target_column_name' => '置換対象列名(英数字)',
             'help' => [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
@@ -859,6 +878,7 @@ return [
             'no_columns_admin' => 'カスタム列が登録されていません。先にカスタム列を登録してください。',
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
+            'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
         ],
     ],
 

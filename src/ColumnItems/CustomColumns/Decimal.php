@@ -1,9 +1,11 @@
 <?php
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
+
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\Enums\DatabaseDataType;
+
 class Decimal extends CustomItem
 {
     public function prepare()
@@ -39,7 +41,7 @@ class Decimal extends CustomItem
     public function saving()
     {
         $rmv = rmcomma($this->value);
-        if(!isset($rmv)){
+        if (!isset($rmv)) {
             return null;
         }
         return $rmv;

@@ -484,50 +484,36 @@ EOT;
      */
     protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
     {
-        // set target_table columns
-        $columns = [];
         // if available is false, continue
-        if (!$custom_form_block->available) {
+        if (!$custom_form_block->available || !isset($custom_form_block->target_table)) {
             return;
         }
-        foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $column = $form_column->custom_column;
 
-            // if column_type is not select_table, continue
-            if (array_get($column, 'column_type') != 'select_table') {
-                continue;
-            }
-            // set columns
-            $columns[] = $column;
-        }
+        // get relation columns
+        $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
 
-        // re-loop for relation
-        foreach ($columns as $column) {
-            // get relation
-            $relations = CustomRelation::getRelationsByParent(array_get($column, 'options.select_target_table'));
-            // if not exists, continue
-            if (!$relations) {
-                continue;
+        foreach ($relationColumns as $relationColumn) {
+            $parent_column = $relationColumn['parent_column'];
+            $parent_column_name = array_get($parent_column, 'column_name');
+            $parent_table = $parent_column->select_target_table;
+
+            $child_column = $relationColumn['child_column'];
+            $child_table = $child_column->select_target_table;
+                    
+            // if not exists $column_name in $relatedlinkage_array
+            if (!array_has($relatedlinkage_array, $parent_column_name)) {
+                $relatedlinkage_array[$parent_column_name] = [];
             }
-            foreach ($relations as $relation) {
-                // add $relatedlinkage_array if contains
-                $child_custom_table_id = array_get($relation, 'child_custom_table_id');
-                collect($columns)->filter(function ($c) use ($child_custom_table_id) {
-                    return array_get($c, 'options.select_target_table') == $child_custom_table_id;
-                })->each(function ($c) use ($column, $relation, &$relatedlinkage_array) {
-                    $column_name = array_get($column, 'column_name');
-                    // if not exists $column_name in $relatedlinkage_array
-                    if (!array_has($relatedlinkage_array, $column_name)) {
-                        $relatedlinkage_array[$column_name] = [];
-                    }
-                    // add array. key is column name.
-                    $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_urls('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
-                        'expand' => ['child_table_id' => $relation->child_custom_table_id],
-                        'to' => array_get($c, 'column_name'),
-                    ];
-                });
-            }
+
+            // add array. key is column name.
+            $relatedlinkage_array[$parent_column_name][] = [
+                'url' => admin_urls('webapi', 'data', $parent_table->table_name ?? null, 'relatedLinkage'),
+                'expand' => [
+                    'child_table_id' => $child_table->id ?? null,
+                    'search_type' => array_get($relationColumn, 'searchType'),
+                ],
+                'to' => array_get($child_column, 'column_name'),
+            ];
         }
     }
 }
