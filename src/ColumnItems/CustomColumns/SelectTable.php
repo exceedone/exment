@@ -116,12 +116,12 @@ class SelectTable extends CustomItem
                 $parent_target_table_name = $relationColumn['parent_column']->select_target_table->table_name;
 
                 //TODO:refactor
-                if($relationColumn['searchType'] == SearchType::ONE_TO_MANY){
+                if ($relationColumn['searchType'] == SearchType::ONE_TO_MANY) {
                     $callback = function (&$query) use ($parent_v, $parent_target_table_name) {
                         $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
                         return $query;
                     };
-                }else{
+                } else {
                     $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
                         ->where('column_type', ColumnType::SELECT_TABLE)
                         ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
@@ -133,7 +133,6 @@ class SelectTable extends CustomItem
                         };
                     }
                 }
-
             }
             // get DB option value
             return $this->target_table->getOptions($value, $this->custom_column->custom_table, null, null, $callback ?? null);

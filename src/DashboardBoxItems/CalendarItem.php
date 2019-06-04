@@ -118,7 +118,7 @@ class CalendarItem implements ItemInterface
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
-            ->options(function ($value) use($dashboard) {
+            ->options(function ($value) use ($dashboard) {
                 if (!isset($value)) {
                     return [];
                 }
@@ -131,8 +131,8 @@ class CalendarItem implements ItemInterface
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') == ViewKindType::CALENDAR;
                     })
-                    ->filter(function ($value) use($view, $dashboard) {
-                        if(array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM){
+                    ->filter(function ($value) use ($view, $dashboard) {
+                        if (array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM) {
                             return true;
                         }
                         return array_get($value, 'view_type') == ViewType::SYSTEM;

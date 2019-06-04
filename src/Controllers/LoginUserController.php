@@ -196,7 +196,7 @@ class LoginUserController extends AdminControllerBase
             $has_change = false;
             $is_newuser = false;
             $password = null;
-            if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))){
+            if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
                 $login_user = new LoginUser;
                 $is_newuser = true;
                 $login_user->base_user_id = $user->id;

@@ -230,7 +230,7 @@ class DashboardBoxController extends AdminControllerBase
                 }
             })
             ->filter(function ($value) use ($dashboard) {
-                if($dashboard->dashboard_type != DashboardType::SYSTEM){
+                if ($dashboard->dashboard_type != DashboardType::SYSTEM) {
                     return true;
                 }
                 return array_get($value, 'view_type') == ViewType::SYSTEM;
