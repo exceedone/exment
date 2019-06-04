@@ -22,7 +22,7 @@ interface ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form);
+    public static function setAdminOptions(&$form, $dashboard);
 
     /**
      * saving event

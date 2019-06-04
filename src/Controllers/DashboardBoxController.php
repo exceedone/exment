@@ -12,7 +12,9 @@ use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class DashboardBoxController extends AdminControllerBase
@@ -113,9 +115,9 @@ class DashboardBoxController extends AdminControllerBase
         $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("max:40")->required();
         
         // Option Setting --------------------------------------------------
-        $form->embeds('options', function ($form) use ($dashboard_box_type) {
+        $form->embeds('options', function ($form) use ($dashboard, $dashboard_box_type) {
             $classname = DashboardBoxType::getEnum($dashboard_box_type)->getDashboardBoxItemClass();
-            $classname::setAdminOptions($form);
+            $classname::setAdminOptions($form, $dashboard);
         })->disableHeader();
         
         $form->tools(function (Form\Tools $tools) use ($id, $form) {
@@ -209,6 +211,12 @@ class DashboardBoxController extends AdminControllerBase
         if (!isset($id)) {
             return [];
         }
+        $dashboard_suuid = $request->get('dashboard_suuid');
+        $dashboard = Dashboard::findBySuuid($dashboard_suuid);
+        if (!isset($dashboard)) {
+            return [];
+        }
+
         // get custom views
         $custom_table = CustomTable::getEloquent($id);
         $views = $custom_table->custom_views
@@ -220,7 +228,14 @@ class DashboardBoxController extends AdminControllerBase
                 } else {
                     return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
                 }
-            })->map(function ($value) {
+            })
+            ->filter(function ($value) use ($dashboard) {
+                if($dashboard->dashboard_type != DashboardType::SYSTEM){
+                    return true;
+                }
+                return array_get($value, 'view_type') == ViewType::SYSTEM;
+            })
+            ->map(function ($value) {
                 return array('id' => $value->id, 'text' => $value->view_view_name);
             });
         // if count > 0, return value.

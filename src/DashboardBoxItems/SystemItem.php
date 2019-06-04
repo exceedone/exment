@@ -47,7 +47,7 @@ class SystemItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form)
+    public static function setAdminOptions(&$form, $dashboard)
     {
         // show system item list
         $options = [];
