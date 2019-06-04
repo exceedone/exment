@@ -140,7 +140,7 @@ class LoginUserProvider extends ProviderBase
         }
 
         if ($update_flg) {
-            $model->login_user->password = bcrypt($password);
+            $model->login_user->password = $password;
             $model->login_user->save();
         }
         return $model;

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
+use Illuminate\Support\Facades\Hash;
 
 class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenticatable, \Illuminate\Contracts\Auth\CanResetPassword
 {
@@ -149,10 +150,31 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         // put session
         Session::put("user_setting.$key", $settings);
     }
+
+    protected function setBcryptPassword(){
+        $password = $this->password;
+        $original = $this->getOriginal('password');
+
+        if(!isset($password)){
+            return;
+        }
+        
+        if($password == $original){
+            return;
+        }
+        
+        if(!isset($original) || !Hash::check($password, $original)){
+            $this->password = bcrypt($password);
+        }
+    }
     
     protected static function boot()
     {
         parent::boot();
+
+        static::saving(function($model){
+            $model->setBcryptPassword();
+        });
 
         static::created(function ($model) {
             $model->send(true);
