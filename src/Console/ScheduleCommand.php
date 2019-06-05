@@ -19,7 +19,7 @@ class ScheduleCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:schedule {--plugin_id=}';
+    protected $signature = 'exment:schedule';
 
     /**
      * The console command description.
@@ -47,13 +47,9 @@ class ScheduleCommand extends Command
      */
     public function handle()
     {
-        if(!is_null($plugin_id = $this->option("plugin_id"))){
-            $this->pluginBatch($plugin_id);
-        }else{
-            $this->notify();
-            $this->backup();
-            $this->pluginBatch();
-        }
+        $this->notify();
+        $this->backup();
+        $this->pluginBatch();
     }
 
     /**
@@ -110,18 +106,11 @@ class ScheduleCommand extends Command
      *
      * @return void
      */
-    protected function pluginBatch($plugin_id = null){
-        if(isset($plugin_id)){
-            Plugin::find($plugin_id)->getClass()->execute();
-            return;
-        }
-        
+    protected function pluginBatch(){
         $pluginBatches = Plugin::getBatches();
         
         foreach($pluginBatches as $pluginBatch){
-            // execute batch
-            $batch = $pluginBatch->getClass();
-            $batch->execute();
+            \Artisan::call("exment:batch", ['--uuid' => $pluginBatch->uuid]);
         }
     }
 }

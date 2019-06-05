@@ -237,7 +237,7 @@ class PluginInstaller
             $options['target_tables'] = $target_tables;
         }
 
-        foreach(['label', 'icon', 'button_class', 'document_type', 'batch_hour'] as $key){
+        foreach(['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron'] as $key){
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }

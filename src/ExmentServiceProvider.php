@@ -55,6 +55,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\UpdateCommand',
         'Exceedone\Exment\Console\PublishCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
+        'Exceedone\Exment\Console\BatchCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
         'Exceedone\Exment\Console\ClientListCommand',
@@ -210,10 +211,10 @@ class ExmentServiceProvider extends ServiceProvider
             $schedule->command('exment:schedule')->hourly();
                 
             // set cron event
-            $crons = Plugin::getCronBatches();
-            foreach($crons as $cron){
+            $plugins = Plugin::getCronBatches();
+            foreach($plugins as $plugin){
                 $cronSchedule = $this->app->make(Schedule::class);
-                $cronSchedule->command("exment:schedule --plugin_id={$cron->id}")->cron(array_get($cron, 'options.batch_cron'));                    
+                $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));                    
             }
         });
 
