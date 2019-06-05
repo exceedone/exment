@@ -11,6 +11,7 @@ use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\EnumBase;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -211,10 +212,15 @@ class ExmentServiceProvider extends ServiceProvider
             $schedule->command('exment:schedule')->hourly();
                 
             // set cron event
-            $plugins = Plugin::getCronBatches();
-            foreach($plugins as $plugin){
-                $cronSchedule = $this->app->make(Schedule::class);
-                $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));                    
+            try{
+                if(\Schema::hasTable(SystemTableName::PLUGIN)){
+                    $plugins = Plugin::getCronBatches();
+                    foreach($plugins as $plugin){
+                        $cronSchedule = $this->app->make(Schedule::class);
+                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));                    
+                    }
+                }    
+            }catch(\Exception $ex){
             }
         });
 
