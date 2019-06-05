@@ -43,7 +43,6 @@ class TemplateImporter
                     if (File::exists($langpath)) {
                         $lang = json_decode(File::get($langpath), true);
                         $json = static::mergeTemplate($json, $lang);
-                        \Log::debug($templates_path, ["json" => $json]);
                     }
                     // add thumbnail
                     if (isset($json['thumbnail'])) {
