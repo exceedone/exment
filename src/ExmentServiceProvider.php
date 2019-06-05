@@ -8,9 +8,7 @@ use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
@@ -38,12 +36,26 @@ class ExmentServiceProvider extends ServiceProvider
     ];
 
     /**
+     * ServiceProviders
+     *
+     * @var array
+     */
+    protected $serviceProviders = [
+        ExmentProviders\RouteServiceProvider::class,
+        ExmentProviders\RouteOAuthServiceProvider::class,
+        ExmentProviders\PasswordResetServiceProvider::class,
+        ExmentProviders\PluginServiceProvider::class,
+    ];
+
+    /**
      * @var array commands
      */
     protected $commands = [
         'Exceedone\Exment\Console\InstallCommand',
         'Exceedone\Exment\Console\UpdateCommand',
+        'Exceedone\Exment\Console\PublishCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
+        'Exceedone\Exment\Console\BatchCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
         'Exceedone\Exment\Console\ClientListCommand',
@@ -123,6 +135,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSetting();
         $this->bootDatabase();
         $this->bootDebug();
+        $this->bootSchedule();
 
         $this->publish();
         $this->load();
@@ -130,7 +143,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootPassport();
-        $this->bootPlugin();
     }
 
     /**
@@ -185,16 +197,27 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootApp()
     {
-        $this->app->register(ExmentProviders\RouteServiceProvider::class);
-        $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
-        $this->app->register(ExmentProviders\PasswordResetServiceProvider::class);
+        foreach($this->serviceProviders as $serviceProvider){
+            $this->app->register($serviceProvider);    
+        }
         
         $this->commands($this->commands);
+    }
 
+    protected function bootSchedule(){
+        // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+                
+            // set cron event
+            $plugins = Plugin::getCronBatches();
+            foreach($plugins as $plugin){
+                $cronSchedule = $this->app->make(Schedule::class);
+                $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));                    
+            }
         });
+
     }
 
     protected function bootPassport()
@@ -210,35 +233,6 @@ class ExmentServiceProvider extends ServiceProvider
         Passport::tokensCan(ApiScope::transArray('api.scopes'));
     }
 
-    // plugin --------------------------------------------------
-    
-    /**
-     * Check URI after '/admin/' then get plugin satisfying conditions and execute this plugin
-     */
-    protected function bootPlugin()
-    {
-        $pattern = '@plugins/([^/\?]+)@';
-        preg_match($pattern, Request::url(), $matches);
-
-        if (!isset($matches) || count($matches) <= 1) {
-            return;
-        }
-        $pluginName = $matches[1];
-        
-        $plugin = $this->getPluginActivate($pluginName);
-        if (!isset($plugin)) {
-            return;
-        }
-        $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
-        if (! $this->app->routesAreCached()) {
-            $config_path = path_join($base_path, 'config.json');
-            if (file_exists($config_path)) {
-                $json = json_decode(File::get($config_path), true);
-                PluginInstaller::route($plugin, $json);
-            }
-        }
-        $this->loadViewsFrom(path_join($base_path, 'views'), $plugin->plugin_name);
-    }
 
     protected function bootSetting()
     {
@@ -309,20 +303,7 @@ class ExmentServiceProvider extends ServiceProvider
             return;
         }
 
-        \DB::listen(function ($query) {
-            $sql = $query->sql;
-            for ($i = 0; $i < count($query->bindings); $i++) {
-                $binding = $query->bindings[$i];
-                if ($binding instanceof \DateTime) {
-                    $binding = $binding->format('Y-m-d H:i:s');
-                } elseif ($binding instanceof EnumBase) {
-                    $binding = $binding->toString();
-                }
-                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
-            }
-            $now = \Carbon\Carbon::now();
-            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
-        });
+        Initialize::logDatabase();
     }
 
     /**
@@ -345,23 +326,5 @@ class ExmentServiceProvider extends ServiceProvider
     public function policies()
     {
         return $this->policies;
-    }
-    
-    /**
-     * Check plugin satisfying conditions
-     */
-    protected function getPluginActivate($pluginName)
-    {
-        $plugin = Plugin
-            ::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->where('options->uri', $pluginName)
-            ->first();
-
-        if ($plugin !== null) {
-            return $plugin;
-        }
-
-        return false;
     }
 }

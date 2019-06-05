@@ -15,7 +15,7 @@ trait CustomValueSummary
     {
         $classname = $this->getModelNameDV();
         $grid = new Grid(new $classname);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
 
         $this->setSummaryGrid($grid);
 
@@ -30,7 +30,7 @@ trait CustomValueSummary
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });
 
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $grid;
     }
 

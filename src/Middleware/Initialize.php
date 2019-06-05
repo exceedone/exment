@@ -286,4 +286,21 @@ class Initialize
             Form::extend($abstract, $class);
         }
     }
+
+    public static function logDatabase(){
+        \DB::listen(function ($query) {
+            $sql = $query->sql;
+            for ($i = 0; $i < count($query->bindings); $i++) {
+                $binding = $query->bindings[$i];
+                if($binding instanceof \DateTime){
+                    $binding = $binding->format('Y-m-d H:i:s');
+                }elseif($binding instanceof EnumBase){
+                    $binding = $binding->toString();
+                }
+                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
+            }
+            $now = \Carbon\Carbon::now();
+            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
+        });
+    }
 }

@@ -36,16 +36,16 @@ trait CustomValueForm
         $classname = $this->getModelNameDV();
         $form = new Form(new $classname);
 
-        //PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        //Plugin::pluginPreparing($this->plugins, 'loading');
         // create
         if (!isset($id)) {
             $isButtonCreate = true;
-            $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
         }
         // edit
         else {
             $isButtonCreate = false;
-            $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
         }
 
         //TODO: escape laravel-admin bug.
@@ -317,7 +317,7 @@ EOT;
     {
         // before saving
         $form->saving(function ($form) {
-            PluginInstaller::pluginPreparing($this->plugins, 'saving');
+            Plugin::pluginPreparing($this->plugins, 'saving');
         });
     }
 
@@ -326,7 +326,7 @@ EOT;
         // after saving
         $form->saved(function ($form) {
             $form->model()->setValueAuthoritable();
-            PluginInstaller::pluginPreparing($this->plugins, 'saved');
+            Plugin::pluginPreparing($this->plugins, 'saved');
 
             // if requestsession "file upload uuid"(for set data this value's id and type into files)
             $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);

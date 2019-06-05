@@ -12,13 +12,13 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 /**
  * CustomValueShow
@@ -30,7 +30,7 @@ trait CustomValueShow
      */
     protected function createShowForm($id = null, $modal = false)
     {
-        //PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        //Plugin::pluginPreparing($this->plugins, 'loading');
         return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
@@ -139,7 +139,7 @@ trait CustomValueShow
                 } else {
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
-                    $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
+                    $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
                     $copyButtons = $this->custom_table->from_custom_copies;
 
                     foreach ($listButtons as $plugin) {
