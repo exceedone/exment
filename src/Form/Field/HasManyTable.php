@@ -123,6 +123,8 @@ class HasManyTable extends HasMany
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
         $title = exmtrans("common.error");
         $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
+        $count = !isset($this->value) ? 0 : count($this->value);
+        $indexName = "index_{$this->column}";
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -132,14 +134,14 @@ class HasManyTable extends HasMany
          * {count} is increment number of current sub form count.
          */
         $script = <<<EOT
-var index = 0;
+var $indexName = {$count};
 $('#has-many-table-{$this->column}').on('click', '.add', function () {
 
     var tpl = $('template.{$this->column}-tpl');
 
-    index++;
+    $indexName++;
 
-    var template = tpl.html().replace(/{$defaultKey}/g, index);
+    var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
     $('.has-many-table-{$this->column}-table tbody').append(template);
     {$templateScript}
 });
@@ -178,6 +180,8 @@ EOT;
     {
         $removeClass = NestedForm::REMOVE_FLAG_CLASS;
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
+        $count = !isset($this->value) ? 0 : count($this->value);
+        $indexName = "index_{$this->column}";
 
         $script = <<<EOT
 
@@ -197,11 +201,11 @@ $('#has-many-{$this->column} > .nav').off('click', 'i.close-tab').on('click', 'i
     }
 });
 
-var index = 0;
+var $indexName = {$count};
 $('#has-many-{$this->column} > .header').off('click', '.add').on('click', '.add', function(){
-    index++;
+    $indexName++;
     var navTabHtml = $('#has-many-{$this->column} > template.nav-tab-tpl').html().replace(/{$defaultKey}/g, index);
-    var paneHtml = $('#has-many-{$this->column} > template.pane-tpl').html().replace(/{$defaultKey}/g, index);
+    var paneHtml = $('#has-many-{$this->column} > template.pane-tpl').html().replace(/{$defaultKey}/g, $indexName);
     $('#has-many-{$this->column} > .nav').append(navTabHtml);
     $('#has-many-{$this->column} > .tab-content').append(paneHtml);
     $('#has-many-{$this->column} > .nav > li:last-child a').tab('show');

@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Routing\Router;
 use Symfony\Component\HttpFoundation\Response;

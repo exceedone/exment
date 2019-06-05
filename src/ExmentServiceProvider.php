@@ -59,6 +59,7 @@ class ExmentServiceProvider extends ServiceProvider
         'Exceedone\Exment\Console\RestoreCommand',
         'Exceedone\Exment\Console\ClientListCommand',
         'Exceedone\Exment\Console\BulkInsertCommand',
+        'Exceedone\Exment\Console\PatchDataCommand',
     ];
 
     /**
@@ -89,20 +90,20 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middlewareGroups = [
         'admin' => [
-            'admin.auth',
             'admin.initialize',
+            'admin.auth',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
             'admin.permission',
-            'admin.bootstrap2',
             'admin.session',
         ],
         'admin_anonymous' => [
             'admin.initialize',
             'admin.morph',
+            'admin.bootstrap2',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
@@ -163,6 +164,13 @@ class ExmentServiceProvider extends ServiceProvider
             app('router')->middlewareGroup($key, $middleware);
         }
 
+        // register database
+        $this->app->resolving('db', function ($db, $app) {
+            $db->extend('mariadb', function ($config, $name) use ($app) {
+                return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
+            });
+        });
+        
         Passport::ignoreMigrations();
     }
 
@@ -275,6 +283,9 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('mysql', function (...$parameters) {
             return new ExmentDatabase\MySqlConnection(...$parameters);
         });
+        Connection::resolverFor('mariadb', function (...$parameters) {
+            return new ExmentDatabase\MariaDBConnection(...$parameters);
+        });
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
         });
@@ -287,7 +298,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected function bootDebug()
     {
-        if(!boolval(config('exment.debugmode', false))){
+        if (!boolval(config('exment.debugmode', false))) {
             return;
         }
 

@@ -4,8 +4,11 @@ namespace Exceedone\Exment\Services\DataImportExport\Providers\Import;
 
 use Validator;
 use Carbon\Carbon;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Services\FormHelper;
+use Exceedone\Exment\ColumnItems\ParentItem;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -44,7 +47,7 @@ class DefaultTableProvider extends ProviderBase
             $value_custom = array_combine($headers, $value);
 
             ///// convert data first.
-            $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom);
+            $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom, $options);
 
             // get model
             $modelName = getModelName($this->custom_table);
@@ -170,7 +173,7 @@ class DefaultTableProvider extends ProviderBase
      * @param $data
      * @return array
      */
-    public function dataProcessingFirst($custom_columns, $data)
+    public function dataProcessingFirst($custom_columns, $data, $options = [])
     {
         foreach ($data as $key => &$value) {
             if (strpos($key, "value.") !== false) {
@@ -186,6 +189,29 @@ class DefaultTableProvider extends ProviderBase
                 if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
                     && boolval(array_get($target_column, 'options.multiple_enabled'))) {
                     $value = explode(",", $value);
+                }
+
+                // convert target key's id
+                if (isset($value)) {
+                    if (array_has($options, 'setting')) {
+                        $s = collect($options['setting'])->filter(function ($s) use ($key) {
+                            return isset($s['target_column_name']) && $s['column_name'] == $key;
+                        })->first();
+                    }
+                    if (isset($target_column->column_item)) {
+                        $value = $target_column->column_item->getImportValue($value, $s ?? null);
+                    }
+                }
+            } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
+                // convert target key's id
+                if (array_has($options, 'setting')) {
+                    $s = collect($options['setting'])->filter(function ($s) use ($key) {
+                        return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
+                    })->first();
+                }
+                $parent_item = ParentItem::getItem(CustomTable::getEloquent(array_get($data, 'parent_type')));
+                if (isset($parent_item)) {
+                    $value = $parent_item->getImportValue($value, $s ?? null);
                 }
             }
         }

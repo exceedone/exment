@@ -184,7 +184,7 @@ class Notify extends ModelBase
     protected function approvalSendUser($mail_template, $custom_table, $data, $user)
     {
         // if $user is myself, return false
-        if(\Exment::user()->base_user_id == $user->id){
+        if (\Exment::user()->base_user_id == $user->id) {
             return false;
         }
 

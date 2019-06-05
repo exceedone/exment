@@ -13,6 +13,10 @@ class Date extends CustomItem
     {
         // if not empty format, using carbon
         $format = array_get($this->custom_column, 'options.format');
+        if (is_nullorempty($format)) {
+            $format = array_get($this->options, 'format');
+        }
+        
         if (!is_nullorempty($format)) {
             return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
         }
@@ -20,10 +24,9 @@ class Date extends CustomItem
         return $this->value();
     }
 
-    public function saving(){
-        $update = $this->autoDate();
-
-        if($update){
+    public function saving()
+    {
+        if ($this->autoDate()) {
             $this->value = $this->getNowString();
             return $this->value;
         }
@@ -33,7 +36,7 @@ class Date extends CustomItem
 
     protected function getAdminFieldClass()
     {
-        if($this->autoDate()){
+        if ($this->displayDate()) {
             return ExmentField\Display::class;
         }
         return Field\Date::class;
@@ -46,9 +49,9 @@ class Date extends CustomItem
 
     protected function setAdminOptions(&$field, $form_column_options)
     {
-        if ($this->autoDate()) {
-            $field->default(exmtrans('custom_value.auto_number_create'));
-        }else{
+        if ($this->displayDate()) {
+            $field->default($this->getNowString());
+        } else {
             $field->options(['useCurrent' => false]);
         }
     }
@@ -63,14 +66,14 @@ class Date extends CustomItem
      *
      * @return void
      */
-    protected function autoDate(){
-        // if not has id(creating) and datetime_now_creating is true
-        if(!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))){
+    protected function autoDate()
+    {
+        // if datetime_now_saving is true
+        if (boolval(array_get($this->custom_column, 'options.datetime_now_saving'))) {
             return true;
         }
-        
-        // if has id(updating) and datetime_now_updating is true
-        elseif(isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_updating'))){
+        // if not has id(creating) and datetime_now_creating is true
+        elseif (!isset($this->id) && boolval(array_get($this->custom_column, 'options.datetime_now_creating'))) {
             return true;
         }
         
@@ -78,11 +81,23 @@ class Date extends CustomItem
     }
 
     /**
+     * Whether only display
+     *
+     * @return void
+     */
+    protected function displayDate()
+    {
+        // if datetime_now_saving is true
+        return boolval(array_get($this->custom_column, 'options.datetime_now_saving')) || boolval(array_get($this->custom_column, 'options.datetime_now_creating'));
+    }
+
+    /**
      * get now string for saving
      *
      * @return string now string
      */
-    protected function getNowString(){
+    protected function getNowString()
+    {
         return \Carbon\Carbon::now()->format('Y-m-d');
     }
 }

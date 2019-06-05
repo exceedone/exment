@@ -184,12 +184,12 @@ class ApiTableController extends AdminControllerTableBase
         $q = $request->get('q');
 
         // get children items
-        $datalist = getModelName($child_table)
-            ::where('parent_id', $q)
-            ->where('parent_type', $this->custom_table->table_name)
-            ->get()->pluck('label', 'id');
-        return collect($datalist)->map(function ($value, $key) {
-            return ['id' => $key, 'text' => $value];
+        $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, [
+            'paginate' => false,
+            'maxCount' => null,
+        ]);
+        return collect($datalist)->map(function ($data) {
+            return ['id' => $data->id, 'text' => $data->label];
         });
     }
 
@@ -245,7 +245,7 @@ class ApiTableController extends AdminControllerTableBase
                     continue;
                 }
 
-                if (!$findCustomColumn->indexEnabled()) {
+                if (!$findCustomColumn->index_enabled) {
                     //TODO:show error
                     continue;
                 }
@@ -331,7 +331,8 @@ class ApiTableController extends AdminControllerTableBase
      * @param [type] $validator
      * @return array error messages
      */
-    protected function getErrorMessages($validator){
+    protected function getErrorMessages($validator)
+    {
         $errors = [];
         foreach ($validator->errors()->messages() as $key => $message) {
             if (is_array($message)) {
@@ -405,7 +406,7 @@ class ApiTableController extends AdminControllerTableBase
                 } else {
                     $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
                 }
-            }else{
+            } else {
                 $target_end_column = null;
             }
 

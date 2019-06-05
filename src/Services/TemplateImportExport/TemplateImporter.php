@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
@@ -496,6 +497,13 @@ class TemplateImporter
                 foreach (array_get($table, 'custom_columns', []) as $column) {
                     CustomColumn::importTemplate($column, $is_update, [
                         'system_flg' => $system_flg,
+                        'parent' => $obj_table,
+                    ]);
+                }
+                
+                // Create columnmultis. --------------------------------------------------
+                foreach (array_get($table, 'custom_column_multisettings', []) as $column) {
+                    CustomColumnMulti::importTemplate($column, $is_update, [
                         'parent' => $obj_table,
                     ]);
                 }

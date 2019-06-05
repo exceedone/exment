@@ -97,7 +97,20 @@ trait CustomValueShow
                             });
                         });
                         $grid->disableRowSelector();
-                        $grid->disableActions();
+
+                        $grid->actions(function ($actions) {
+                            $actions->disableView();
+                            $actions->disableEdit();
+                            $actions->disableDelete();
+                        
+                            // add show link
+                            $actions->append($actions->row->getUrl([
+                                'tag' => true,
+                                'modal' => true,
+                                'icon' => 'fa-external-link',
+                                'add_id' => true,
+                            ]));
+                        });
                     });
                 }
             }
@@ -364,7 +377,7 @@ EOT;
      */
     protected function useFileUpload($modal = false)
     {
-        // if no permission, return 
+        // if no permission, return
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return [];
         }
@@ -411,7 +424,7 @@ EOT;
             return [];
         }
 
-        // if no permission, return 
+        // if no permission, return
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return [];
         }

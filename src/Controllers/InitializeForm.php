@@ -19,9 +19,11 @@ trait InitializeForm
         
         $form->header(exmtrans('system.header'))->hr();
         $form->text('site_name', exmtrans("system.site_name"))
+            ->required()
             ->help(exmtrans("system.help.site_name"));
 
         $form->text('site_name_short', exmtrans("system.site_name_short"))
+            ->required()
             ->help(exmtrans("system.help.site_name_short"));
             
         $fileOption = array_merge(
@@ -59,11 +61,18 @@ trait InitializeForm
     
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
+            ->config('allowClear', false)
             ->help(exmtrans("system.help.site_skin"));
 
         $form->select('site_layout', exmtrans("system.site_layout"))
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
+            ->config('allowClear', false)
             ->help(exmtrans("system.help.site_layout"));
+
+        $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
+            ->options(getPagerOptions())
+            ->config('allowClear', false)
+            ->help(exmtrans("system.help.grid_pager_count"));
 
         $form->switchbool('permission_available', exmtrans("system.permission_available"))
             ->help(exmtrans("system.help.permission_available"));
@@ -72,6 +81,7 @@ trait InitializeForm
             ->help(exmtrans("system.help.organization_available"));
 
         $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+            ->required()
             ->help(exmtrans("system.help.system_mail_from"));
 
         // template list

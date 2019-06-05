@@ -223,7 +223,7 @@ class CustomValueController extends AdminControllerTableBase
                 
             // execute notify
             $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
-            if(isset($custom_value)){
+            if (isset($custom_value)) {
                 $custom_value->notify(false);
             }
         }

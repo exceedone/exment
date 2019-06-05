@@ -17,6 +17,10 @@ use Encore\Admin\Grid;
 use \Html;
 use PDO;
 
+/**
+ * Middleware as Initialize.
+ * First call. set config for exment, and set from database.
+ */
 class Initialize
 {
     public function handle(Request $request, \Closure $next)
@@ -39,6 +43,8 @@ class Initialize
         }
 
         static::initializeConfig();
+        
+        static::requireBootstrap();
 
         return $next($request);
     }
@@ -122,6 +128,10 @@ class Initialize
             PDO::ATTR_EMULATE_PREPARES => true,
             PDO::MYSQL_ATTR_LOCAL_INFILE => true,
         ]);
+
+        // mariadb setting
+        Config::set('database.connections.mariadb', Config::get('database.connections.mysql'));
+        Config::set('database.connections.mariadb.driver', 'mariadb');
 
         //override
         Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
@@ -220,6 +230,15 @@ class Initialize
         }
     }
 
+    protected static function requireBootstrap()
+    {
+        $file = config('exment.bootstrap', exment_path('bootstrap.php'));
+        if (!\File::exists($file)) {
+            return;
+        }
+        require_once $file;
+    }
+
     /**
      * set laravel-admin
      */
@@ -227,6 +246,10 @@ class Initialize
     {
         Grid::init(function (Grid $grid) {
             $grid->disableColumnSelector();
+
+            if (!is_null($value = System::grid_pager_count())) {
+                $grid->paginate($value);
+            }
         });
 
         Form::init(function (Form $form) {

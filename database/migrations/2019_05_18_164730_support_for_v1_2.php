@@ -65,9 +65,11 @@ class SupportForV12 extends Migration
         }
 
         //
-        Schema::table('custom_view_columns', function (Blueprint $table) {
-            $table->json('options')->after('order')->nullable();
-        });
+        if(!Schema::hasColumn('custom_view_columns', 'options')){
+            Schema::table('custom_view_columns', function (Blueprint $table) {
+                $table->json('options')->after('order')->nullable();
+            });
+        }
     }
 
     /**

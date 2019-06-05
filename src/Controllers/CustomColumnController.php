@@ -98,6 +98,15 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
         });
+        $grid->column('required', exmtrans("common.reqired"))->sortable()->display(function ($val) {
+            return getTrueMark($val);
+        });
+        $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->sortable()->display(function ($val) {
+            return getTrueMark($val);
+        });
+        $grid->column('unique', exmtrans("custom_column.options.unique"))->sortable()->display(function ($val) {
+            return getTrueMark($val);
+        });
         $grid->column('order', exmtrans("custom_column.order"))->editable('number')->sortable();
 
         if (isset($this->custom_table)) {
@@ -255,12 +264,12 @@ class CustomColumnController extends AdminControllerTableBase
             //}
 
             // date, time, datetime
-            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
-                ->help(exmtrans("custom_column.help.datetime_now_creating"))
+            $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
+                ->help(exmtrans("custom_column.help.datetime_now_saving"))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
-            $form->switchbool('datetime_now_updating', exmtrans("custom_column.options.datetime_now_updating"))
-                ->help(exmtrans("custom_column.help.datetime_now_updating"))
+            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+                ->help(exmtrans("custom_column.help.datetime_now_creating"))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
 
@@ -492,9 +501,9 @@ class CustomColumnController extends AdminControllerTableBase
             $view = CustomView::getDefault($this->custom_table, false);
             
             // get order
-            if($view->custom_view_columns()->count() == 0){
-                $order = 1;    
-            }else{
+            if ($view->custom_view_columns()->count() == 0) {
+                $order = 1;
+            } else {
                 $order = $view->custom_view_columns()
                     ->where('view_column_type', ViewColumnType::COLUMN)
                     ->max('order') ?? 1;

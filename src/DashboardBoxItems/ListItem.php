@@ -7,7 +7,9 @@ use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class ListItem implements ItemInterface
@@ -134,21 +136,27 @@ class ListItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form)
+    public static function setAdminOptions(&$form, $dashboard)
     {
         $form->select('pager_count', trans("admin.show"))
             ->required()
-            ->options(getPagerOptions([5, 10, 20]))
-            ->default(5);
+            ->options(getPagerOptions(true, [5, 10, 20]))
+            ->config('allowClear', false)
+            ->default(0);
 
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
-            ->options(CustomTable::filterList()->pluck('table_view_name', 'id'))
-            ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::LIST]));
+            ->options(CustomTable::filterList(null, [
+                'permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE,
+            ])->pluck('table_view_name', 'id'))
+            ->attribute([
+                'data-linkage' => json_encode(['options_target_view_id' => admin_urls('dashboardbox', 'table_views', DashboardBoxType::LIST)]),
+                'data-linkage-expand' => json_encode(['dashboard_suuid' => $dashboard->suuid])
+            ]);
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
-            ->options(function ($value) {
+            ->options(function ($value) use ($dashboard) {
                 if (!isset($value)) {
                     return [];
                 }
@@ -157,9 +165,16 @@ class ListItem implements ItemInterface
                     return [];
                 }
 
-                return $view->custom_table->custom_views
+                $custom_table = $view->custom_table;
+                return $custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                    })
+                    ->filter(function ($value) use ($view, $dashboard) {
+                        if (array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM) {
+                            return true;
+                        }
+                        return array_get($value, 'view_type') == ViewType::SYSTEM;
                     })->pluck('view_view_name', 'id');
             });
     }

@@ -19,9 +19,13 @@ use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
 
 if (!function_exists('exmtrans')) {
-    function exmtrans($key)
+    function exmtrans($key, ...$args)
     {
-        return trans("exment::exment.$key");
+        $trans = trans("exment::exment.$key");
+        if (count($args) > 0) {
+            $trans = vsprintf($trans, $args);
+        }
+        return $trans;
     }
 }
 
@@ -163,11 +167,30 @@ if (!function_exists('rmcomma')) {
      */
     function rmcomma($value)
     {
+        if (is_null($value)) {
+            return null;
+        }
+        
         return str_replace(",", "", $value);
     }
 }
 
-// File, path, url  --------------------------------------------------
+// File, path  --------------------------------------------------
+if (!function_exists('exment_path')) {
+
+    /**
+     * Get exment path.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function exment_path($path = '')
+    {
+        return ucfirst(config('exment.directory', app_path('Exment'))).($path ? DIRECTORY_SEPARATOR.$path : $path);
+    }
+}
+
 if (!function_exists('admin_urls')) {
     /**
      * Join admin url paths.
@@ -1289,9 +1312,13 @@ if (!function_exists('getPagerOptions')) {
     /**
      * get pager select options
      */
-    function getPagerOptions($counts = [10, 20, 30, 50, 100])
+    function getPagerOptions($addEmpty = false, $counts = [10, 20, 30, 50, 100])
     {
         $options = [];
+
+        if ($addEmpty) {
+            $options[0] = exmtrans("custom_view.pager_count_default");
+        }
         foreach ($counts as $count) {
             $options[$count] = $count. ' ' . trans('admin.entries');
         }
@@ -1338,6 +1365,20 @@ if (!function_exists('getDataFromSheet')) {
         }
 
         return $data;
+    }
+}
+
+if (!function_exists('getTrueMark')) {
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    function getTrueMark($val)
+    {
+        if (!boolval($val)) {
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
     }
 }
 

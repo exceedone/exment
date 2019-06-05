@@ -34,6 +34,12 @@ class CustomValue extends ModelBase
      */
     protected $saved_notify = true;
     
+    /**
+     * already_updated.
+     * if true, not call saved event again.
+     */
+    protected $already_updated = false;
+    
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -134,6 +140,63 @@ class CustomValue extends ModelBase
         static::addGlobalScope(new CustomValueModelScope);
     }
 
+    /**
+     * Validator before saving.
+     * Almost multiple columns validation
+     *
+     * @param array $input laravel-admin input
+     * @return mixed
+     */
+    public function validatorSaving($input)
+    {
+        $errors = [];
+        // getting custom_table's custom_column_multi_uniques
+        $multi_uniques = $this->custom_table->getMultipleUniques();
+        if (!isset($multi_uniques) || count($multi_uniques) == 0) {
+            return true;
+        }
+        foreach ($multi_uniques as $multi_unique) {
+            $query = static::query();
+            $column_keys = [];
+            foreach ([1,2,3] as $key) {
+                if (is_null($column_id = $multi_unique->{'unique' . $key})) {
+                    continue;
+                }
+                $column = CustomColumn::getEloquent($column_id);
+                $column_name = $column->column_name;
+                $query->where('value->' . $column_name, array_get($input, 'value.' . $column_name));
+
+                $column_keys[] = $column;
+            }
+
+            if (empty($column_keys)) {
+                continue;
+            }
+            
+            // if all column's value is empty, continue.
+            if (collect($column_keys)->filter(function ($column) use ($input) {
+                return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
+            })->count() == 0) {
+                continue;
+            }
+
+            if (isset($this->id)) {
+                $query->where('id', '<>', $this->id);
+            }
+
+            if ($query->count() > 0) {
+                $errorTexts = collect($column_keys)->map(function ($column_key) {
+                    return $column_key->column_view_name;
+                });
+                $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
+                foreach ($column_keys as $column_key) {
+                    $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                }
+            }
+        }
+
+        return count($errors) > 0 ? $errors : true;
+    }
 
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
@@ -151,12 +214,10 @@ class CustomValue extends ModelBase
         $update_flg = false;
         foreach ($custom_columns as $custom_column) {
             $column_name = $custom_column->column_name;
-            $v = array_get($value, $column_name);
-
             // get saving value
             $v = $custom_column->column_item->setCustomValue($this)->saving();
             // if has value, update
-            if(isset($v)){
+            if (isset($v)) {
                 array_set($value, $column_name, $v);
                 $update_flg = true;
             }
@@ -215,6 +276,11 @@ class CustomValue extends ModelBase
     {
         $this->syncOriginal();
 
+        // if already updated, not save again
+        if ($this->already_updated) {
+            return;
+        }
+
         $columns = $this->custom_table
             ->custom_columns
             ->all();
@@ -227,13 +293,14 @@ class CustomValue extends ModelBase
             $v = $custom_column->column_item->setCustomValue($this)->saved();
 
             // if has value, update
-            if(isset($v)){
+            if (isset($v)) {
                 $this->setValue($column_name, $v);
                 $update_flg = true;
             }
         }
         // if update
         if ($update_flg) {
+            $this->already_updated = true;
             $this->save();
         }
     }
@@ -498,8 +565,9 @@ class CustomValue extends ModelBase
                 'tag' => false,
                 'uri' => null,
                 'list' => false,
-                'external-link' => false,
+                'icon' => null,
                 'modal' => true,
+                'add_id' => false,
             ],
             $options
         );
@@ -525,8 +593,8 @@ class CustomValue extends ModelBase
         if (!$tag) {
             return $url;
         }
-        if (boolval($options['external-link'])) {
-            $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
+        if (isset($options['icon'])) {
+            $label = '<i class="fa ' . $options['icon'] . '" aria-hidden="true"></i>';
         } else {
             $label = esc_html($this->getLabel());
         }
@@ -538,6 +606,10 @@ class CustomValue extends ModelBase
         } else {
             $href = $url;
             $widgetmodal_url = null;
+        }
+
+        if (boolval($options['add_id'])) {
+            $widgetmodal_url .= " data-id='{$this->id}'";
         }
 
         return "<a href='$href'$widgetmodal_url>$label</a>";
@@ -576,7 +648,7 @@ class CustomValue extends ModelBase
      */
     public function getSum($custom_column)
     {
-        $name = $custom_column->indexEnabled() ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
 
         if (!isset($name)) {
             return 0;

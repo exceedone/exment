@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Model;
 
+use Illuminate\Database\Eloquent\Builder;
 use Encore\Admin\Grid;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Grid\Linker;
-use Illuminate\Http\Request as Req;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewColumnType;
@@ -120,10 +120,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
 
         static::creating(function ($model) {
-            $model->setDefaultFlgInTable();
+            $model->setDefaultFlgInTable('setDefaultFlgFilter', 'setDefaultFlgSet');
         });
         static::updating(function ($model) {
-            $model->setDefaultFlgInTable();
+            $model->setDefaultFlgInTable('setDefaultFlgFilter', 'setDefaultFlgSet');
         });
 
         // delete event
@@ -131,6 +131,28 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // Delete items
             $model->deletingChildren();
         });
+        
+        // add global scope
+        static::addGlobalScope('showableViews', function (Builder $builder) {
+            return static::showableViews($builder);
+        });
+    }
+
+    protected function setDefaultFlgFilter($query)
+    {
+        $query->where('view_type', $this->view_type);
+
+        if ($this->view_type == ViewType::USER) {
+            $query->where('created_user_id', \Exment::user()->base_user_id);
+        }
+    }
+
+    protected function setDefaultFlgSet()
+    {
+        // set if only this flg is system
+        if ($this->view_type == ViewType::SYSTEM) {
+            $this->default_flg = true;
+        }
     }
 
     // custom function --------------------------------------------------
@@ -167,7 +189,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         // set parpage
-        if(is_null(request()->get('per_page')) && isset($this->pager_count)){
+        if (is_null(request()->get('per_page')) && isset($this->pager_count) && $this->pager_count > 0) {
             $grid->paginate($this->pager_count);
         }
     }
@@ -297,6 +319,18 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $view;
     }
     
+    protected static function showableViews($query)
+    {
+        return $query->where(function ($query) {
+            $query->where(function ($query) {
+                $query->where('view_type', ViewType::SYSTEM);
+            })->orWhere(function ($query) {
+                $query->where('view_type', ViewType::USER)
+                        ->where('created_user_id', \Exment::user()->base_user_id ?? null);
+            });
+        });
+    }
+
     protected static function createDefaultView($tableObj)
     {
         $view = new CustomView;
@@ -637,7 +671,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     
     public function getPagerCountAttribute()
     {
-        return $this->getOption('pager_count', 20);
+        return $this->getOption('pager_count');
     }
 
     public function setPagerCountAttribute($val)

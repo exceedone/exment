@@ -4,6 +4,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SearchType;
+use Exceedone\Exment\Enums\ColumnType;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
@@ -100,9 +102,40 @@ class SelectTable extends CustomItem
             return;
         }
 
-        $field->options(function ($value) {
+        $relationColumn = collect($this->custom_column->custom_table
+            ->getSelectTableRelationColumns())
+            ->first(function ($relationColumn) {
+                return array_get($relationColumn, 'child_column')->id == $this->custom_column->id;
+            });
+
+        $field->options(function ($value) use ($relationColumn) {
+            if (isset($relationColumn)) {
+                $parent_value = $this->custom_column->custom_table->getValueModel($this->id);
+                $parent_v = array_get($parent_value, 'value.' . $relationColumn['parent_column']->column_name);
+                $parent_target_table_id = $relationColumn['parent_column']->select_target_table->id;
+                $parent_target_table_name = $relationColumn['parent_column']->select_target_table->table_name;
+
+                //TODO:refactor
+                if ($relationColumn['searchType'] == SearchType::ONE_TO_MANY) {
+                    $callback = function (&$query) use ($parent_v, $parent_target_table_name) {
+                        $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
+                        return $query;
+                    };
+                } else {
+                    $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
+                        ->where('column_type', ColumnType::SELECT_TABLE)
+                        ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
+                        ->first();
+                    if (isset($searchColumn)) {
+                        $callback = function (&$query) use ($parent_v, $searchColumn) {
+                            $query = $query->where("value->{$searchColumn->column_name}", $parent_v);
+                            return $query;
+                        };
+                    }
+                }
+            }
             // get DB option value
-            return $this->target_table->getOptions($value, $this->custom_column->custom_table);
+            return $this->target_table->getOptions($value, $this->custom_column->custom_table, null, null, $callback ?? null);
         });
         $ajax = $this->target_table->getOptionAjaxUrl();
         if (isset($ajax)) {
@@ -133,5 +166,32 @@ class SelectTable extends CustomItem
                 $filter->select($options);
             }
         }
+    }
+    
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $setting
+     * @return void
+     */
+    public function getImportValue($value, $setting = [])
+    {
+        if (!isset($this->target_table)) {
+            return null;
+        }
+
+        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+            return $value;
+        }
+
+        // get target value
+        $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
+
+        if (!isset($target_value)) {
+            return null;
+        }
+
+        return $target_value->id;
     }
 }

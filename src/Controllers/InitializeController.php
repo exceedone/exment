@@ -68,7 +68,7 @@ class InitializeController extends Controller
             // add login_user table
             $loginuser = new LoginUser;
             $loginuser->base_user_id = $user->id;
-            $loginuser->password = bcrypt($request->get('password'));
+            $loginuser->password = $request->get('password');
             $loginuser->saveOrFail();
 
             // add system role

@@ -9,7 +9,8 @@ use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 
 /**
- * Middleware as Initialization
+ * Middleware as Bootstrap.
+ * Setup for display. ex. set css, js, ...
  */
 class Bootstrap
 {
@@ -123,7 +124,7 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
 
 EOT;
         Ad::script($script);
-            
+
         return $next($request);
     }
 }

@@ -22,7 +22,7 @@ trait SummaryItemTrait
 
         // get value_column
         $json_column = \DB::getQueryGrammar()->wrapJsonUnquote("$db_table_name.value->$column_name");
-        $value_column = ($this->custom_column->indexEnabled())? $this->index() : $json_column;
+        $value_column = ($this->custom_column->index_enabled)? $this->index() : $json_column;
         
         if (isset($summary_condition)) {
             $raw = "$summary_condition($value_column) AS ".$this->sqlAsName();
