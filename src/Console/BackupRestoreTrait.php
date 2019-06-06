@@ -64,7 +64,7 @@ trait BackupRestoreTrait
     }
 
     protected static function disk(){
-        return Storage::disk('backup');
+        return Storage::disk(Define::DISKNAME_BACKUP);
     }
 
     protected static function tmpDisk(){

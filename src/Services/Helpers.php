@@ -301,7 +301,7 @@ if (!function_exists('getTmpFolderPath')) {
         if (!$fullpath) {
             return $path;
         }
-        $tmppath = getFullpath($path, 'admin_tmp');
+        $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
         if (!\File::exists($tmppath)) {
             \File::makeDirectory($tmppath, 0755, true);
         }

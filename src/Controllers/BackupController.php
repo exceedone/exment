@@ -257,7 +257,7 @@ class BackupController extends AdminControllerBase
             // get upload file
             $file = $request->file('upload_zipfile');
             // store uploaded file
-            $filename = $file->storeAs('', $file->getClientOriginalName(), 'admin_tmp');
+            $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
             try {
                 \Artisan::call('down');
                 $result = \Artisan::call('exment:restore', ['file' => $filename, '--tmp' => 1]);
@@ -324,10 +324,5 @@ class BackupController extends AdminControllerBase
                 'toastr' => exmtrans("backup.message.restore_error"),
             ]);
         }
-    }
-    
-    protected static function disk()
-    {
-        return Storage::disk('backup');
     }
 }
