@@ -92,7 +92,7 @@ class PluginController extends AdminControllerBase
     protected function destroy($id)
     {
         $this->deleteFolder($id);
-        if ($this->form()->destroy($id)) {
+        if ($this->form($id)->destroy($id)) {
             return response()->json([
                 'status' => true,
                 'message' => trans('admin.delete_succeeded'),
@@ -131,7 +131,7 @@ class PluginController extends AdminControllerBase
             $options['event_triggers'] = $event_triggers;
             $request->merge(['options' => $options]);
         }
-        return $this->form()->update($id);
+        return $this->form($id)->update($id);
     }
 
     /**
@@ -189,11 +189,37 @@ class PluginController extends AdminControllerBase
 
         })->disableHeader();
 
+        $this->setCustomOptionForm($plugin, $form);
+
         // Role setting --------------------------------------------------
-        // TODO:error
-        //$this->addRoleForm($form, RoleType::PLUGIN);
+        // $this->addRoleForm($form, RoleType::PLUGIN);
 
         $form->disableReset();
         return $form;
+    }
+
+    /**
+     * Get plugin custom option
+     *
+     * @param [type] $plugin
+     * @return void
+     */
+    protected function setCustomOptionForm($plugin, &$form){
+        if(!isset($plugin)){
+            return;
+        }
+        
+        $pluginClass = $plugin->getClass();
+        if(!isset($pluginClass)){
+            return;
+        }
+        
+        if(!$pluginClass->useCustomOption()){
+            return;
+        }
+
+        $form->embeds('custom_options', exmtrans("plugin.options.header"), function ($form) use ($pluginClass) {
+            $pluginClass->setCustomOptionForm($form);
+        });
     }
 }
