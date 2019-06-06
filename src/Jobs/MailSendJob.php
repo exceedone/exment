@@ -18,6 +18,8 @@ class MailSendJob extends JobBase
     protected $subject;
     protected $body;
 
+    protected $attachments;
+
     protected $mail_template;
     protected $custom_value;
     protected $user;
@@ -35,6 +37,7 @@ class MailSendJob extends JobBase
         $this->custom_value = array_get($options, 'custom_value');
         $this->user = array_get($options, 'user');
         $this->history_body = array_get($options, 'history_body', true);
+        $this->attachments = array_get($options, 'attachments', []);
     }
 
     public function handle()
@@ -50,6 +53,11 @@ class MailSendJob extends JobBase
             }
             // replace \r\n
             $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $this->body), 'text/html');
+            // attach files
+            foreach($this->attachments as $attachment) {
+                $url = storage_paths('app', config('admin.upload.disk'), $attachment->path);
+                $message->attach($url, ['as' => $attachment->filename]);
+            }
         });
 
         $this->saveMailSendHistory();
@@ -71,7 +79,7 @@ class MailSendJob extends JobBase
         // return count($addresses) == 1 ? $addresses[0] : $addresses;
         return $addresses;
     }
-
+    
     protected function saveMailSendHistory()
     {
         $modelname = getModelName(SystemTableName::MAIL_SEND_LOG);
@@ -84,9 +92,11 @@ class MailSendJob extends JobBase
         $model->setValue('mail_subject', $this->subject);
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));
+        $model->setValue('attachments', $this->attachments->implode('filename', ','));
         
         if (isset($this->user)) {
-            $model->setValue('user', $this->user->id);
+            $userid = is_string($this->user)? $this->user: $this->user->id;
+            $model->setValue('user', $userid);
         }
 
         if (isset($this->custom_value)) {

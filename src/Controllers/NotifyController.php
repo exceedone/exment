@@ -97,6 +97,7 @@ class NotifyController extends AdminControllerBase
                 }
                 return $controller->getTargetColumnOptions(CustomColumn::getEloquent($val)->custom_table, false);
             })
+            ->required()
             ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
             ->help(exmtrans("notify.help.trigger_settings"));
 
@@ -107,6 +108,7 @@ class NotifyController extends AdminControllerBase
             $form->select('notify_beforeafter', exmtrans("notify.notify_beforeafter"))
                 ->options(NotifyBeforeAfter::transKeyArray('notify.notify_beforeafter_options'))
                 ->default(NotifyBeforeAfter::BEFORE)
+                ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_beforeafter") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))));
                 
@@ -115,6 +117,11 @@ class NotifyController extends AdminControllerBase
                 ->max(23)
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_hour"));
+
+            $form->text('notify_button_name', exmtrans("notify.notify_button_name"))
+                ->required()
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::BUTTON]])])
+                ->rules("max:40");
         })->disableHeader();
 
         $form->header(exmtrans("notify.header_action"))->hr();
@@ -141,7 +148,7 @@ class NotifyController extends AdminControllerBase
             $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
                 return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
             })->help(exmtrans("notify.help.mail_template_id"))
-            ->default($notify_mail_id);
+            ->default($notify_mail_id)->required();
         })->disableHeader();
         
         return $form;
@@ -185,7 +192,7 @@ class NotifyController extends AdminControllerBase
             $custom_table = CustomTable::getEloquent($custom_table);
             $options = array_merge($options, CustomColumn
             ::where('custom_table_id', $custom_table->id)
-            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION])
+            ->whereIn('column_type', [ColumnType::USER, ColumnType::ORGANIZATION, ColumnType::EMAIL])
             ->get(
                 ['id', DB::raw('column_view_name as text')]
             )->toArray());

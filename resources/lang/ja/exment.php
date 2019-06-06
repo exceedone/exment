@@ -865,6 +865,21 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
         ],
+        'sendmail' => [
+            'title' => 'メール送信',
+            'mail_title' => 'タイトル',
+            'mail_message' => '本文',
+            'attachment' => '添付ファイル',
+            'send_error_message' => 'エラーメッセージ',
+            'help' => [
+                'send_error_message' => 'メール送信に失敗した場合、この項目に、エラーメッセージを表示します。',
+            ],
+            'message' => [
+                'send_succeeded' => 'メールを送信しました。',
+                'send_error' => 'メール送信に失敗しました。',
+                'empty_error' => 'タイトルと本文は必須項目です。',
+            ],
+        ],
         'data_detail' => 'データ確認',
 
         'bootstrap_duallistbox_container' => [
@@ -913,6 +928,7 @@ return [
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '対象',
         'mail_template_id' => 'メールテンプレート',
+        'notify_button_name' => 'ボタン表示名',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -929,6 +945,7 @@ return [
         'notify_trigger_options' => [
             'time' => '時間の経過',
             'create_update_data' => 'データ新規作成・更新',
+            'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 

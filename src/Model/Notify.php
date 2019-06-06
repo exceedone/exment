@@ -24,6 +24,15 @@ class Notify extends ModelBase
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
 
+    public function getMailTemplate()
+    {
+        $mail_template_id = array_get($this->action_settings, 'mail_template_id');
+
+        if (isset($mail_template_id)) {
+            return getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template_id);
+        }
+    }
+
     public function getTriggerSetting($key, $default = null)
     {
         return $this->getJson('trigger_settings', $key, $default);
@@ -110,6 +119,51 @@ class Notify extends ModelBase
     }
     
     /**
+     * notify_create_update_user
+     */
+    public function notifyButtonClick($data, $subject, $body, $attachments = [])
+    {
+        $custom_table = $data->custom_table;
+        $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
+        $mail_template = $this->getMailTemplate();
+        $attach_files = collect($attachments)->map(function($uuid) {
+            return File::where('uuid', $uuid)->first();
+        })->filter();
+
+        // loop data
+        $users = $this->getNotifyTargetUsers($data);
+        
+        foreach ($users as $user) {
+            if (!$this->approvalSendUser($mail_template, $custom_table, $data, $user)) {
+                continue;
+            }
+
+            $prms = [
+                'user' => $user,
+                'notify' => $this,
+                'target_table' => $custom_table->table_view_name ?? null
+            ];
+
+            // send mail
+            try {
+                MailSender::make($mail_template, $user)
+                ->prms($prms)
+                ->user($user)
+                ->custom_value($data)
+                ->subject($subject)
+                ->body($body)
+                ->attachments($attach_files)
+                ->send();
+            }
+            // throw mailsend Exception
+            catch (\Swift_TransportException $ex) {
+                // show warning message
+                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+            }
+        }
+    }
+    
+    /**
      * get notify target datalist
      */
     protected function getNotifyTargetDatalist()
@@ -161,16 +215,17 @@ class Notify extends ModelBase
                 if (is_null($users_inner)) {
                     continue;
                 }
-                if (!($users_inner instanceof Collection)) {
+                if (is_string($users_inner)) {
                     $users_inner = collect([$users_inner]);
                 }
             }
 
             foreach ($users_inner as $u) {
-                if (in_array($u->id, $ids)) {
+                $uid = is_string($u)? $u: $u->id;
+                if (in_array($uid, $ids)) {
                     continue;
                 }
-                $ids[] = $u->id;
+                $ids[] = $uid;
                 $users->push($u);
             }
         }
@@ -183,8 +238,9 @@ class Notify extends ModelBase
      */
     protected function approvalSendUser($mail_template, $custom_table, $data, $user)
     {
+        $userid = $user->id?? $user;
         // if $user is myself, return false
-        if (\Exment::user()->base_user_id == $user->id) {
+        if (\Exment::user()->base_user_id == $userid) {
             return false;
         }
 
@@ -194,7 +250,7 @@ class Notify extends ModelBase
         $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
         $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
         $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
-            ::where($index_user, $user->id)
+            ::where($index_user, $userid)
             ->where($index_mail_template, $mail_template->id)
             ->where('parent_id', $data->id)
             ->where('parent_type', $custom_table->table_name)

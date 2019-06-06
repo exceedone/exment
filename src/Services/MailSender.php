@@ -18,6 +18,9 @@ class MailSender
     protected $to;
     protected $cc;
     protected $bcc;
+    protected $subject;
+    protected $body;
+    protected $attachments;
 
     protected $mail_template;
     protected $prms;
@@ -31,6 +34,7 @@ class MailSender
         $this->to = $to;
         $this->cc = [];
         $this->bcc = [];
+        $this->attachments = [];
         $this->prms = [];
         $this->history_body = true;
 
@@ -47,6 +51,8 @@ class MailSender
         if (is_null($this->mail_template)) {
             throw new Exception("No MailTemplate. Please set mail template. mail_template:$mail_key_name");
         }
+        $this->subject = $this->mail_template->getValue('mail_subject');
+        $this->body = $this->mail_template->getValue('mail_body');
     }
 
     public static function make($mail_key_name, $to)
@@ -89,6 +95,18 @@ class MailSender
         return $this;
     }
 
+    public function subject($subject)
+    {
+        $this->subject = $subject;
+        return $this;
+    }
+
+    public function body($body)
+    {
+        $this->body = $body;
+        return $this;
+    }
+
     public function custom_value($custom_value)
     {
         $this->custom_value = $custom_value;
@@ -98,6 +116,12 @@ class MailSender
     public function user($user)
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function attachments($attachments)
+    {
+        $this->attachments = $attachments;
         return $this;
     }
     
@@ -120,11 +144,11 @@ class MailSender
     public function send()
     {
         // get subject
-        $subject = $this->replaceWord($this->mail_template->getValue('mail_subject'));
+        $subject = $this->replaceWord($this->subject);
 
         ///// get body using header and footer
         $header = $this->getHeaderFooter(MailTemplateType::HEADER);
-        $body = $this->replaceWord($this->mail_template->getValue('mail_body'));
+        $body = $this->replaceWord($this->body);
         $footer = $this->getHeaderFooter(MailTemplateType::FOOTER);
 
         // total body
@@ -153,6 +177,7 @@ class MailSender
                 'custom_value' => $this->custom_value,
                 'user' => $this->user,
                 'history_body' => $this->history_body,
+                'attachments' => $this->attachments
             ]
         );
         return true;

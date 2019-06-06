@@ -10,9 +10,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-default pull-left" data-dismiss="modal">{{trans('admin.close')}}</button>
-            @if($submit)
-            <button type="button" class="btn btn-info modal-submit">{{ trans('admin.submit') }}</button>
-            @endif
+            <button type="button" class="btn btn-info modal-submit {!! $modalSubmitAttributes !!}">{{ trans('admin.submit') }}</button>
         </div>
   </div>
     </div>
