@@ -218,7 +218,7 @@ class PluginController extends AdminControllerBase
             return;
         }
 
-        $form->embeds('custom_options', exmtrans("plugin.options.header"), function ($form) use ($pluginClass) {
+        $form->embeds('custom_options', exmtrans("plugin.options.custom_options_header"), function ($form) use ($pluginClass) {
             $pluginClass->setCustomOptionForm($form);
         });
     }
