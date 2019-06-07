@@ -208,6 +208,7 @@ return [
         'select_plugin_file' => 'プラグインを選択',
         'options' => [
             'header' => 'オプション設定',
+            'custom_options_header' => 'カスタムオプション',
             'target_tables' => '対象テーブル',
             'event_triggers' => '実施トリガー',
             'label' => 'ボタンのラベル',

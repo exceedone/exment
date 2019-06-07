@@ -13,7 +13,7 @@ class Plugin extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
 
-    protected $casts = ['options' => 'json'];
+    protected $casts = ['options' => 'json', 'custom_options' => 'json'];
 
     public static function getPluginByUUID($uuid)
     {
@@ -113,7 +113,7 @@ class Plugin extends ModelBase
             // set default class
             switch (array_get($this, 'plugin_type')) {
                 case PluginType::DOCUMENT:
-                    $class = new PluginDocumentDefault($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
+                    $class = new PluginDocumentDefault($this, array_get($options, 'custom_table'), array_get($options, 'id'));
                     break;
             }
         }
@@ -246,6 +246,7 @@ class Plugin extends ModelBase
         
         static::saving(function ($model) {
             $model->prepareJson('options');
+            $model->prepareJson('custom_options');
         });
     }
 }
