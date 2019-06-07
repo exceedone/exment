@@ -3,14 +3,12 @@
 namespace Exceedone\Exment;
 
 use Storage;
-use Request;
 use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
@@ -18,7 +16,6 @@ use Exceedone\Exment\Database as ExmentDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;

@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Services\Plugin\PluginBatchBase;
 use Carbon\Carbon;
 
 class ScheduleCommand extends Command

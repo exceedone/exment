@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;

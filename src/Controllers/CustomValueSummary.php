@@ -7,7 +7,6 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 trait CustomValueSummary
 {

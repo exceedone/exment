@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Middleware;
 
 use Closure;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\SystemTableName;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {

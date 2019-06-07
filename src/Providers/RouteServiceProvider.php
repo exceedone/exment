@@ -8,7 +8,6 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Controllers\BackupController;
 
 class RouteServiceProvider extends ServiceProvider
 {

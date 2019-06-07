@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Console;
 
-use Exceedone\Exment\Middleware;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Support\Facades\Storage;
 

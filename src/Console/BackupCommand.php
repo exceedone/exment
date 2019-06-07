@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Console;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;

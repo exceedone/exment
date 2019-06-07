@@ -9,8 +9,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
-use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Controllers\BackupController;
 use Request;
 
 class PluginServiceProvider extends ServiceProvider

@@ -2,13 +2,6 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\JoinedOrgFilterType;
-use Encore\Admin\Widgets\Form as WidgetForm;
 
 /**
  * 
@@ -36,41 +29,6 @@ class DatabaseForm
             'connection_default' => $database_default,
             'database_connection' => $database_connection,
         ]);
-
-        // $form = new WidgetForm();
-        // $form->disableReset();
-        // $form->disablePjax();
-        // $form->action(admin_url('initialize'));
-
-
-        // $form->header('データベース設定');
-
-        // $form->select('connection', '種類')
-        //     ->required()
-        //     ->config('allowClear', false)
-        //     ->options(['mysql' => 'MySQL', 'mariadb' => 'MariaDB', 'sqlsrv' => 'SQL Server (β)'])
-        //     ->default($database_default);
-
-        // $form->text('host', 'ホスト')
-        //     ->required()
-        //     ->default(array_get($database_connection, 'host'));
-            
-        // $form->text('port', 'ポート')
-        //     ->required()
-        //     ->default(array_get($database_connection, 'port'));
-
-        // $form->text('database', 'データベース名')
-        //     ->required()
-        //     ->default(array_get($database_connection, 'database'));
-        
-        // $form->text('username', 'ユーザー名')
-        //     ->required()
-        //     ->default(array_get($database_connection, 'username'));
-
-        // $form->text('password', 'パスワード')
-        //     ->required()
-        //     ->default(array_get($database_connection, 'password'));
-
     }
     
     public function post(){

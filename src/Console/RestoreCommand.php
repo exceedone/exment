@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use \File;
 
 class RestoreCommand extends Command
