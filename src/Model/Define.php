@@ -233,4 +233,7 @@ class Define
         0    => 'NO',
         1    => 'YES',
     ];
+
+    public const DISKNAME_ADMIN_TMP = 'admin_tmp';
+    public const DISKNAME_BACKUP = 'backup';
 }

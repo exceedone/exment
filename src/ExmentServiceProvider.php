@@ -92,8 +92,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middlewareGroups = [
         'admin' => [
-            'admin.initialize',
             'admin.auth',
+            'admin.initialize',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',

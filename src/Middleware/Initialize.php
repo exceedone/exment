@@ -25,10 +25,6 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-            return response(exmtrans('error.not_install'), 500);
-        }
-
         // Get System config
         $initialized = System::initialized();
 
@@ -106,14 +102,14 @@ class Initialize
         
         if (!Config::has('filesystems.disks.admin_tmp')) {
             Config::set('filesystems.disks.admin_tmp', [
-                'driver' => config('exment.driver.tmp', 'local'),
+                'driver' => 'local',
                 'root' => storage_path('app/admin_tmp'),
             ]);
         }
         
         if (!Config::has('filesystems.disks.backup')) {
             Config::set('filesystems.disks.backup', [
-                'driver' => config('exment.driver.backup', 'local'),
+                'driver' => 'local',
                 'root' => storage_path('app/backup'),
             ]);
         }

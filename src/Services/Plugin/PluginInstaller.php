@@ -93,10 +93,10 @@ class PluginInstaller
     {
         // store uploaded file and get tmp path
         $tmpdir = getTmpFolderPath('plugin', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'admin_tmp', true);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
 
-        $filename = $uploadFile->store($tmpdir, 'admin_tmp');
-        $fullpath = getFullpath($filename, 'admin_tmp');
+        $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
+        $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
         // // tmpfolderpath is the folder path uploaded.
         // $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
         $tmpPluginFolderPath = null;
