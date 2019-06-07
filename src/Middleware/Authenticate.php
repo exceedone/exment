@@ -18,10 +18,6 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-            return response(exmtrans('error.not_install'), 500);
-        }
-
         // Get System config
         $shouldPassThrough = shouldPassThrough(false);
         if ($shouldPassThrough) {

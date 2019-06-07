@@ -25,21 +25,33 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        // Get System config
-        $initialized = System::initialized();
-
-        // if path is not "initialize" and not installed, then redirect to initialize
-        if (!shouldPassThrough(true) && !$initialized) {
-            $request->session()->invalidate();
-            return redirect()->guest(admin_base_path('initialize'));
+        $canConnect = true;
+        if(!\DB::canConnection() || !\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
+            $canConnect = false;
+            $path = trim(admin_base_path('install'), '/');
+            if(!$request->is($path)){
+                return redirect()->guest(admin_base_path('install'));
+            }
         }
-        // if path is "initialize" and installed, redirect to login
-        elseif (shouldPassThrough(true) && $initialized) {
-            return redirect()->guest(admin_base_path('auth/login'));
-        }
-
-        static::initializeConfig();
         
+        if($canConnect){
+            $initialized = System::initialized();
+
+            // if path is not "initialize" and not installed, then redirect to initialize
+            if (!shouldPassThrough(true) && !$initialized) {
+                $request->session()->invalidate();
+                return redirect()->guest(admin_base_path('initialize'));
+            }
+            // if path is "initialize" and installed, redirect to login
+            elseif (shouldPassThrough(true) && $initialized) {
+                return redirect()->guest(admin_base_path('auth/login'));
+            }
+    
+            static::initializeConfig();
+        }else{
+            static::initializeConfig(false);
+        }
+
         static::requireBootstrap();
 
         return $next($request);

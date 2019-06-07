@@ -15,7 +15,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class InitializeController extends Controller
+class InstallController extends Controller
 {
     /**
      * Index interface.

@@ -1,17 +1,108 @@
 <?php
+namespace Exceedone\Exment\Services\Installer;
 
-namespace Exceedone\Exment\Controllers;
-
-use Validator;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\TemplateImportExport;
+use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\Role;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Installer\InstallService;
+use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Validator;
 
-trait InitializeForm
+/**
+ * 
+ */
+class InitializeForm
 {
+    use InstallFormTrait;
+
+    public function index(){
+        $form = $this->getInitializeForm('initialize', true);
+        $form->action(admin_url('initialize'));
+        $form->disablePjax();
+
+        // ID and password --------------------------------------------------
+        $form->header(exmtrans('system.administrator'))->hr();
+        $form->text('user_code', exmtrans('user.user_code'))->required()->help(exmtrans('common.help_code'));
+        $form->text('user_name', exmtrans('user.user_name'))->required()->help(exmtrans('user.help.user_name'));
+        $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
+        $form->password('password', exmtrans('user.password'))->required()->help(exmtrans('user.help.password'));
+        $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
+
+        return view('exment::initialize.content', [
+            'content'=> $form->render(),
+            'header' => exmtrans('system.initialize_header'),
+            'description' => exmtrans('system.initialize_description'),
+        ]);
+    }
+    
+    public function post(){
+        $request = request();
+        \DB::beginTransaction();
+        
+        try {
+            $result = $this->postInitializeForm($request, true);
+            if ($result instanceof \Illuminate\Http\RedirectResponse) {
+                return $result;
+            }
+            
+            // add user table
+            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
+            $user->value = [
+                'user_code' => $request->get('user_code'),
+                'user_name' => $request->get('user_name'),
+                'email' => $request->get('email'),
+            ];
+            $user->saveOrFail();
+
+            // add login_user table
+            $loginuser = new LoginUser;
+            $loginuser->base_user_id = $user->id;
+            $loginuser->password = $request->get('password');
+            $loginuser->saveOrFail();
+
+            // add system role
+            \DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
+                [
+                    'related_id' => $user->id,
+                    'related_type' => SystemTableName::USER,
+                    'morph_id' => null,
+                    'morph_type' =>  RoleType::SYSTEM()->lowerKey(),
+                    'role_id' => Role::where('role_type', RoleType::SYSTEM)->first()->id,
+                ]
+            );
+
+            // add system initialized flg.
+            System::initialized(1);
+            \DB::commit();
+
+            admin_toastr(trans('admin.save_succeeded'));
+            $this->guard()->login($loginuser);
+            return redirect(admin_url('/'));
+        } catch (Exception $exception) {
+            //TODO:error handling
+            DB::rollback();
+        }
+    }
+
+    /**
+     * TODO refactor!!!
+     *
+     * @param [type] $routeName
+     * @param boolean $add_template
+     * @return void
+     */
     protected function getInitializeForm($routeName, $add_template = false)
     {
         $form = new WidgetForm(System::get_system_values());
@@ -92,22 +183,6 @@ trait InitializeForm
         return $form;
     }
 
-    /**
-     * file delete system.
-     */
-    public function filedelete(Request $request)
-    {
-        // get file delete flg column name
-        $del_column_name = $request->input('delete_flg');
-
-        System::deleteValue($del_column_name);
-
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
-    }
- 
     protected function postInitializeForm(Request $request, $validateUser = false)
     {
         $rules = [
@@ -210,5 +285,11 @@ trait InitializeForm
             $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);
             TemplateImportExport\TemplateImporter::import($json);
         }
+    }
+    
+
+    protected function guard()
+    {
+        return Auth::guard('admin');
     }
 }

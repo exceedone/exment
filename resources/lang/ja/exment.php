@@ -73,6 +73,14 @@ return [
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
     ],
 
+    'install' => [
+        'installing' => 'インストール実行',
+
+        'help' => [
+            'installing' => '初期データをインストールします。この処理には時間がかかります。',
+        ]
+    ],
+
     'system' => [
         'system_header' => 'システム設定',
         'system_description' => 'システム設定を変更します。',
