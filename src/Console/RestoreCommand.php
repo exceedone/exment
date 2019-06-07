@@ -78,10 +78,8 @@ class RestoreCommand extends Command
             return preg_match('/.+\.tsv$/i', $file);
         });
 
-        // get all table list about "exm__"
-        $exmTables = collect(\Schema::getTableListing())->filter(function($table){            
-            return stripos($table, 'exm__') === 0;
-        })->flatten()->all();
+        // drop unused table
+        $this->dropUnusedTable($files);
 
         // load table data from tsv file
         foreach ($files as $file) {
@@ -105,11 +103,22 @@ class RestoreCommand extends Command
 __EOT__;
             $query = sprintf($cmd, addslashes($file->getPathName()), $table);
             $cnt = \DB::connection()->getpdo()->exec($query);
-
-            $exmTables = collect($exmTables)->filter(function($t) use($table){
-                return $table != $t;
-            })->flatten()->all();
         }
+    }
+
+    /**
+     * Drop unused "exm__" table
+     *
+     * @param [type] $files
+     * @return void
+     */
+    protected function dropUnusedTable($files){
+        $fileTables = collect($files)->map(function($file){
+            return $file->getBasename('.' . $file->getExtension());
+        })->toArray();
+        $exmTables = collect(\Schema::getTableListing())->filter(function($table) use($fileTables){     
+            return stripos($table, 'exm__') === 0 && !in_array($table, $fileTables);
+        })->flatten()->all();
 
         foreach($exmTables as $table){
             \Schema::dropIfExists($table);
