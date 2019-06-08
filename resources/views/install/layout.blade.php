@@ -49,6 +49,12 @@
       radioClass: 'iradio_square-blue',
       increaseArea: '20%' // optional
     });
+
+    $("form").submit(function (e) {
+      //disable the submit button
+      $(':submit').attr("disabled", true);
+      return true;
+    });
   });
 </script>
 

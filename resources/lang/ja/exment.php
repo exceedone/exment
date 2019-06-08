@@ -76,9 +76,23 @@ return [
     'install' => [
         'installing' => 'インストール実行',
 
+        'database' => [
+            'header' => 'データベース設定',
+            'connection' => 'データベース種類',
+            'host' => 'ホスト名',
+            'port' => 'ポート',
+            'database' => 'データベース',
+            'username' => 'ユーザー名',
+            'password' => 'パスワード',
+        ],
+
         'help' => [
             'installing' => '初期データをインストールします。この処理には時間がかかります。',
-        ]
+        ],
+
+        'error' => [
+            'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
+        ],
     ],
 
     'system' => [
