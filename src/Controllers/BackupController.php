@@ -15,7 +15,7 @@ use DB;
 
 class BackupController extends AdminControllerBase
 {
-    use InitializeForm, BackupRestoreTrait;
+    use BackupRestoreTrait;
 
     public function __construct(Request $request)
     {

@@ -15,8 +15,6 @@ use Validator;
 
 class TemplateController extends AdminControllerBase
 {
-    use InitializeForm;
-        
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"), 'fa-clone');
