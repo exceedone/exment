@@ -147,6 +147,8 @@ namespace Exment {
                 allowOutsideClick: false,
                 cancelButtonText: options.cancel,
                 preConfirm: function (input) {
+                    $('.swal2-cancel').hide();
+                    
                     if(hasValue(options.preConfirmValidate)){
                         var result = options.preConfirmValidate(input);
                         if(result !== true){
@@ -169,8 +171,6 @@ namespace Exment {
                             },
                             error: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                                //toastr.error(repsonse.message);
-                                //reject(repsonse);
                             }
                         });
                     });
@@ -183,7 +183,7 @@ namespace Exment {
                 .then(function(result) {
                     var data = result.value;
                     if (typeof data === 'object') {
-                        if (data.status) {
+                        if (data.status === true || data.result === true) {
                             swal(data.message, '', 'success');
                         } else {
                             swal(data.message, '', 'error');
