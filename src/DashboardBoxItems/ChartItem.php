@@ -191,7 +191,7 @@ class ChartItem implements ItemInterface
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
                     })
-                    ->filter(function ($value) use ($view, $dashboard) {
+                    ->filter(function ($value) use ($dashboard) {
                         if (array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM) {
                             return true;
                         }
