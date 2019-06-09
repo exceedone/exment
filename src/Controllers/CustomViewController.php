@@ -156,26 +156,12 @@ class CustomViewController extends AdminControllerTableBase
 
         $grid->disableCreateButton();
         $grid->tools(function (Grid\Tools $tools) {
-            // add new button
-            $view_kind_types = [
-                ['name' => 'create', 'uri' => 'create'],
-                ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],
-                ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
-            ];
-
-            $addNewBtn = '<div class="btn-group pull-right">
-                <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    <i class="fa fa-plus"></i>&nbsp;'.trans('admin.new') . '
-                    <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu" role="menu">';
-            // loop for role types
-            foreach ($view_kind_types as  $view_kind_type) {
-                $addNewBtn .= '<li><a href="'.admin_urls('view', $this->custom_table->table_name, $view_kind_type['uri']).'">'.exmtrans("custom_view.custom_view_menulist.{$view_kind_type['name']}").'</a></li>';
-            }
-            $addNewBtn .= '</ul></div>';
-            $tools->append($addNewBtn);
-            
+            // ctrate newbutton (list) --------------------------------------------------
+            $lists = $this->getMenuItems();
+            $tools->append(view('exment::tools.newlist-button', [
+                'label' => trans('admin.new'),
+                'menu' => $lists
+            ]));
             $tools->append(new Tools\GridChangePageMenu('view', $this->custom_table, false));
         });
         return $grid;
@@ -534,5 +520,24 @@ EOT;
         $form->pushField($column_item->getAdminField());
 
         return $form->render()->render();
+    }
+
+    protected function getMenuItems(){
+        $view_kind_types = [
+            ['name' => 'create', 'uri' => 'create'],
+            ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],
+            ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
+        ];
+
+        // loop for role types
+        $lists = [];
+        foreach ($view_kind_types as  $view_kind_type) {
+            $lists[] = [
+                'href' => admin_urls('view', $this->custom_table->table_name, $view_kind_type['uri']),
+                'label' => exmtrans("custom_view.custom_view_menulist.{$view_kind_type['name']}"),
+            ];
+        }
+
+        return $lists;
     }
 }
