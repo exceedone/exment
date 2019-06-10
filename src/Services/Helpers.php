@@ -360,7 +360,7 @@ if (!function_exists('bytesToHuman')) {
 if (!function_exists('getUploadMaxFileSize')) {
     /**
      * get Upload Max File Size. get php.ini config
-     * 
+     *
      * @return int byte size.
      */
     function getUploadMaxFileSize()

@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -283,14 +282,15 @@ class Initialize
         }
     }
 
-    public static function logDatabase(){
+    public static function logDatabase()
+    {
         \DB::listen(function ($query) {
             $sql = $query->sql;
             for ($i = 0; $i < count($query->bindings); $i++) {
                 $binding = $query->bindings[$i];
-                if($binding instanceof \DateTime){
+                if ($binding instanceof \DateTime) {
                     $binding = $binding->format('Y-m-d H:i:s');
-                }elseif($binding instanceof EnumBase){
+                } elseif ($binding instanceof EnumBase) {
                     $binding = $binding->toString();
                 }
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);

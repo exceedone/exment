@@ -522,7 +522,8 @@ EOT;
         return $form->render()->render();
     }
 
-    protected function getMenuItems(){
+    protected function getMenuItems()
+    {
         $view_kind_types = [
             ['name' => 'create', 'uri' => 'create'],
             ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],

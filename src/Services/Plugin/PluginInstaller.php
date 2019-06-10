@@ -1,14 +1,11 @@
 <?php
 namespace Exceedone\Exment\Services\Plugin;
 
-use App\Http\Controllers\Controller;
 use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Routing\Router;
 use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
 use File;
@@ -220,7 +217,7 @@ class PluginInstaller
         $plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'));
         $plugin->plugin_type = $plugin_type->getValue() ?? null;
         
-        foreach(['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key){
+        foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
         }
         $plugin->active_flg = $plugin_type != PluginType::BATCH;
@@ -237,7 +234,7 @@ class PluginInstaller
             $options['target_tables'] = $target_tables;
         }
 
-        foreach(['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron'] as $key){
+        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }
@@ -256,5 +253,4 @@ class PluginInstaller
         // copy folder
         File::copyDirectory($tmpPluginFolderPath, $pluginFolderPath);
     }
-
 }

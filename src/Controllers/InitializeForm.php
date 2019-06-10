@@ -84,10 +84,10 @@ trait InitializeForm
             ->required()
             ->help(exmtrans("system.help.system_mail_from"));
 
-        if($system_page){
+        if ($system_page) {
             $form->display('max_file_size', exmtrans("common.max_file_size"))
             ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
-            ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));    
+            ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
         }
 
         // template list

@@ -6,7 +6,6 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;

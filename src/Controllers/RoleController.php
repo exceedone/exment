@@ -107,7 +107,8 @@ class RoleController extends AdminControllerBase
      *
      * @return void
      */
-    protected function getMenuItems(){
+    protected function getMenuItems()
+    {
         $base_uri = admin_url('role/create');
         $lists = [];
         // loop for role types

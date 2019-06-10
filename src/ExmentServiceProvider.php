@@ -3,14 +3,12 @@
 namespace Exceedone\Exment;
 
 use Storage;
-use Request;
 use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Enums\EnumBase;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
@@ -18,7 +16,6 @@ use Exceedone\Exment\Database as ExmentDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;
@@ -198,32 +195,32 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootApp()
     {
-        foreach($this->serviceProviders as $serviceProvider){
-            $this->app->register($serviceProvider);    
+        foreach ($this->serviceProviders as $serviceProvider) {
+            $this->app->register($serviceProvider);
         }
         
         $this->commands($this->commands);
     }
 
-    protected function bootSchedule(){
+    protected function bootSchedule()
+    {
         // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
                 
             // set cron event
-            try{
-                if(\Schema::hasTable(SystemTableName::PLUGIN)){
+            try {
+                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
                     $plugins = Plugin::getCronBatches();
-                    foreach($plugins as $plugin){
+                    foreach ($plugins as $plugin) {
                         $cronSchedule = $this->app->make(Schedule::class);
-                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));                    
+                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));
                     }
-                }    
-            }catch(\Exception $ex){
+                }
+            } catch (\Exception $ex) {
             }
         });
-
     }
 
     protected function bootPassport()
