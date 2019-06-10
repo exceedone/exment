@@ -237,11 +237,13 @@ class BackupController extends AdminControllerBase
         $form->modalAttribute('id', 'data_import_modal');
         $form->modalHeader(exmtrans('backup.restore'));
 
+        $fileOption = Define::FILE_OPTION();
         $form->action($import_path)
             ->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
             ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
-            ->options(Define::FILE_OPTION())
-            ->help(exmtrans('backup.help.file_name'));
+            ->attribute(['accept' => ".zip"])
+            ->options($fileOption)
+            ->help(exmtrans('backup.help.file_name') . array_get($fileOption, 'maxFileSizeHelp'));
 
         return $form->render()->render();
     }

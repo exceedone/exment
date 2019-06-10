@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\File;
 
 trait InitializeForm
 {
-    protected function getInitializeForm($routeName, $add_template = false)
+    protected function getInitializeForm($routeName, $add_template = false, $system_page = false)
     {
         $form = new WidgetForm(System::get_system_values());
         $form->disableReset();
@@ -40,21 +40,21 @@ trait InitializeForm
 
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo');
         $form->image('site_logo', exmtrans("system.site_logo"))
-            ->help(exmtrans("system.help.site_logo"))
+            ->help(exmtrans("system.help.site_logo") . exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption)
             ->attribute(['accept' => "image/*"])
             ;
             
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo_mini');
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
-            ->help(exmtrans("system.help.site_logo_mini"))
+            ->help(exmtrans("system.help.site_logo_mini") . exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption)
             ->attribute(['accept' => "image/*"])
             ;
 
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
         $form->image('site_favicon', exmtrans("system.site_favicon"))
-            ->help(exmtrans("system.help.site_favicon"))
+            ->help(exmtrans("system.help.site_favicon") . exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption)
             ->attribute(['accept' => ".ico"])
             ;
@@ -83,6 +83,12 @@ trait InitializeForm
         $form->email('system_mail_from', exmtrans("system.system_mail_from"))
             ->required()
             ->help(exmtrans("system.help.system_mail_from"));
+
+        if($system_page){
+            $form->display('max_file_size', exmtrans("common.max_file_size"))
+            ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
+            ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));    
+        }
 
         // template list
         if ($add_template) {
@@ -178,15 +184,17 @@ trait InitializeForm
             ->help(exmtrans("system.help.template"))
             ;
 
+        $fileOption = Define::FILE_OPTION();
+
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
-            ->help(exmtrans('template.help.upload_template'))
-            ->options(Define::FILE_OPTION());
+            ->help(exmtrans('template.help.upload_template') . array_get($fileOption, 'maxFileSizeHelp'))
+            ->options($fileOption);
 
         $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
             ->rules('mimes:xlsx|nullable')
-            ->help(exmtrans('template.help.upload_template_excel'))
-            ->options(Define::FILE_OPTION());
+            ->help(exmtrans('template.help.upload_template_excel') . array_get($fileOption, 'maxFileSizeHelp'))
+            ->options($fileOption);
     }
 
     /**
