@@ -21,7 +21,7 @@
                 <div class="btn-group pull-right" style="margin-right: 5px">
                     @if(count($dashboardboxes_newbuttons) > 0)
                         <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fa fa-plus"></i>&nbsp;{{trans('admin.new')}}
+                            <i class="fa fa-plus"></i><span class="hidden-xs">&nbsp;{{trans('admin.new')}}</span>
                             <span class="caret"></span>
                         </button>
                         <ul id="dashboard-menu" class="dropdown-menu">

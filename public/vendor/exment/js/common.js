@@ -105,7 +105,7 @@ var Exment;
          *
          */
         CommonEvent.CallbackExmentAjax = function (res) {
-            if (res.result === true) {
+            if (res.result === true || res.status === true) {
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
@@ -144,25 +144,41 @@ var Exment;
             if (options === void 0) { options = []; }
             options = $.extend({
                 title: 'Swal',
+                text: null,
+                type: "warning",
+                input: null,
                 confirm: 'OK',
                 cancel: 'Cancel',
                 method: 'POST',
                 data: [],
+                redirect: null,
+                preConfirmValidate: null
             }, options);
             var data = $.extend({
                 _pjax: true,
                 _token: LA.token,
             }, options.data);
-            swal({
+            if (options.method.toLowerCase == 'delete') {
+                data._method = 'delete';
+                options.method = 'POST';
+            }
+            var swalOptions = {
                 title: options.title,
-                type: "warning",
+                type: options.type,
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
                 confirmButtonText: options.confirm,
                 showLoaderOnConfirm: true,
                 allowOutsideClick: false,
                 cancelButtonText: options.cancel,
-                preConfirm: function () {
+                preConfirm: function (input) {
+                    $('.swal2-cancel').hide();
+                    if (hasValue(options.preConfirmValidate)) {
+                        var result = options.preConfirmValidate(input);
+                        if (result !== true) {
+                            return result;
+                        }
+                    }
                     return new Promise(function (resolve) {
                         $.ajax({
                             type: options.method,
@@ -170,16 +186,38 @@ var Exment;
                             //container: "#pjax-container",
                             data: data,
                             success: function (repsonse) {
+                                if (hasValue(options.redirect)) {
+                                    repsonse.redirect = options.redirect;
+                                }
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
                                 resolve(repsonse);
                             },
                             error: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                                //toastr.error(repsonse.message);
-                                //reject(repsonse);
                             }
                         });
                     });
+                }
+            };
+            if (hasValue(options.input)) {
+                swalOptions.input = options.input;
+            }
+            if (hasValue(options.text)) {
+                swalOptions.text = options.text;
+            }
+            swal(swalOptions)
+                .then(function (result) {
+                var data = result.value;
+                if (typeof data === 'object') {
+                    if (data.status === true || data.result === true) {
+                        swal(data.message, '', 'success');
+                    }
+                    else {
+                        swal(data.message, '', 'error');
+                    }
+                }
+                else if (typeof data === 'string') {
+                    swal(data, '', 'error');
                 }
             });
         };
