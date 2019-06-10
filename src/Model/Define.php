@@ -199,10 +199,17 @@ class Define
 
     public static function FILE_OPTION()
     {
+        // get max size
+        $maxSize = getUploadMaxFileSize();
+
         return [
             'showPreview' => false,
             'showCancel' => false,
             'browseLabel' => trans('admin.browse'),
+            'maxFileSize' => $maxSize / 1024,
+            'maxFileSizeHuman' => bytesToHuman($maxSize),
+            'maxFileSizeHelp' => sprintf(exmtrans('common.max_file_size') . ' : %s', bytesToHuman($maxSize)),
+            'msgSizeTooLarge' => exmtrans('error.size_too_large'),
         ];
     }
     

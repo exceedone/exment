@@ -29,6 +29,7 @@ return [
         'deleted_user' => '削除ユーザー', 
         'trashed_user' => '(削除済ユーザー)', 
         'attachment' => '添付ファイル',   
+        'max_file_size' => 'アップロード上限サイズ',
         'comment' => 'コメント',   
         'separate_word' => '、',
         'yes' => 'はい',
@@ -61,6 +62,8 @@ return [
             'task_schedule_id' => 'タスクスケジュール',
             'task_schedule' => '<br/><b>※タスクスケジュール設定が必要です。</b>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'order' => '%sを一覧表示した時の表示順です。',
+            'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
+            'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。'
         ],
     ],
 
@@ -72,6 +75,7 @@ return [
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
+        'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。'
     ],
 
     'system' => [
