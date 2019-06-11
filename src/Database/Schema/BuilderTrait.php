@@ -5,6 +5,18 @@ namespace Exceedone\Exment\Database\Schema;
 trait BuilderTrait
 {
     /**
+     * Get database version.
+     *
+     * @return void
+     */
+    public function getVersion(){
+        $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetVersion());
+
+        return $this->connection->getPostProcessor()->processSelectVersion($results);
+
+    }
+
+    /**
      * Get the table listing
      *
      * @return array

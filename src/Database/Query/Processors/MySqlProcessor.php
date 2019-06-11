@@ -7,6 +7,19 @@ use Illuminate\Database\Query\Processors\MySqlProcessor as BaseMySqlProcessor;
 class MySqlProcessor extends BaseMySqlProcessor
 {
     /**
+     * Process the results of a get version.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processGetVersion($results)
+    {
+        return array_map(function ($result) {
+            return collect((object) $result)->first();
+        }, $results);
+    }
+
+    /**
      * Process the results of a table listing query.
      *
      * @param  array  $results

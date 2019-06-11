@@ -10,6 +10,8 @@ class DatabaseForm
 {
     use InstallFormTrait;
 
+    protected $database_default = null;
+
     protected const settings = [
         'connection',
         'host',
@@ -61,10 +63,17 @@ class DatabaseForm
         return redirect(admin_url('install'));
     }
 
+    /**
+     * Check Database Connection
+     *
+     * @param [type] $request
+     * @return boolean is connect database
+     */
     protected function canDatabaseConnection($request){
         $inputs = $request->all(static::settings);
         // check connection
         $database_default = $inputs['connection'];
+        $this->database_default = $database_default;
 
         $newConfig = config("database.connections.$database_default");
         $newConfig = array_merge($newConfig, $inputs);
@@ -74,5 +83,9 @@ class DatabaseForm
         \DB::reconnect($database_default);
 
         return \DB::canConnection();
+    }
+
+    protected function checkDatabaseVersion(){
+        \DB::getVersion();
     }
 }

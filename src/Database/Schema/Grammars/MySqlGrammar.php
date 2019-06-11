@@ -7,6 +7,16 @@ use Illuminate\Database\Schema\Grammars\MySqlGrammar as BaseGrammar;
 class MySqlGrammar extends BaseGrammar
 {
     /**
+     * Compile the query to get version
+     *
+     * @return string
+     */
+    public function compileGetVersion()
+    {
+        return "select version";
+    }
+
+    /**
      * Compile the query to show tables
      *
      * @return string
