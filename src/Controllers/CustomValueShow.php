@@ -37,7 +37,7 @@ trait CustomValueShow
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
-                $item = ColumnItems\ParentItem::getItem($relation->parent_custom_table);
+                $item = ColumnItems\ParentItem::getItem($relation->child_custom_table);
 
                 $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
                     if (is_null($this)) {
