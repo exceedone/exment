@@ -12,8 +12,18 @@ trait BuilderTrait
     public function getVersion(){
         $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetVersion());
 
-        return $this->connection->getPostProcessor()->processSelectVersion($results);
+        return $this->connection->getPostProcessor()->processGetVersion($results);
+    }
 
+    /**
+     * Check mariadb
+     *
+     * @return void
+     */
+    public function isMariaDB(){
+        $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetVersion());
+
+        return $this->connection->getPostProcessor()->processIsMariaDB($results);
     }
 
     /**

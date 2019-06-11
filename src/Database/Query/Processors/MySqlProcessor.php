@@ -14,9 +14,32 @@ class MySqlProcessor extends BaseMySqlProcessor
      */
     public function processGetVersion($results)
     {
-        return array_map(function ($result) {
-            return collect((object) $result)->first();
-        }, $results);
+        $versionArray = $this->versionAray($results);
+
+        return $versionArray[0];
+    }
+
+    /**
+     * Process the results of a mariadb
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processIsMariaDB($results)
+    {
+        $versionArray = $this->versionAray($results);
+
+        if(count($versionArray) <= 1)
+        {
+            return false;
+        }
+
+        return strtolower($versionArray[1]) == 'mariadb';
+    }
+
+    protected function versionAray($results){
+        $version = collect(collect($results)->first())->first();
+        return explode('-', $version);
     }
 
     /**

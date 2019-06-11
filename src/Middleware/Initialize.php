@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;

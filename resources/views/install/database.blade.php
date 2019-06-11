@@ -19,7 +19,7 @@
                 <label>{{exmtrans('install.database.connection')}}:</label>
                 <select name="connection" class="form-control">
                     @foreach($connection_options as $key => $value)
-                        <option value="{{$key}}" {{ $key == old('connection', $connection) ? 'selected' : '' }}>{{$value}}</option>
+                        <option value="{{$key}}" {{ $key == old('connection', $connection_default) ? 'selected' : '' }}>{{$value}}</option>
                     @endforeach
                 </select>
             </div>

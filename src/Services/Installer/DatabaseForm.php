@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\DatabaseType;
 
 /**
  * 
@@ -27,7 +28,7 @@ class DatabaseForm
         $database_connection = config("database.connections.$database_default");
 
         $args = [
-            'connection_options' => ['mysql' => 'MySQL', 'mariadb' => 'MariaDB', 'sqlsrv' => 'SQL Server (β)'],
+            'connection_options' => Define::DATABASE_TYPE,
             'connection_default' => $database_default,
         ];
 
@@ -57,6 +58,18 @@ class DatabaseForm
             ]);
         }
         
+        if(($result = $this->checkDatabaseMatch()) !== true){
+            return back()->withInput()->withErrors([
+                'database_canconnection' => $result,
+            ]);
+        }
+        
+        if(($result = $this->checkDatabaseVersion()) !== true){
+            return back()->withInput()->withErrors([
+                'database_canconnection' => $result,
+            ]);
+        }
+
         $inputs = [];
         foreach(static::settings as $s){
             $inputs['DB_' . strtoupper($s)] = $request->get($s);
@@ -87,19 +100,59 @@ class DatabaseForm
         $newConfig = array_merge($newConfig, $inputs);
 
         // set config
-        config(["database.connections.$database_default" =>  $newConfig]);
+        config(["database.connections.$database_default" => $newConfig]);
 
         try{
-            \DB::reconnect($database_default);
+            $this->connection()->disconnect();
+            $this->connection()->reconnect();
         }
         catch (\Exception $exception) {
             return false;
         }
 
-        return \DB::canConnection();
+        return $this->connection()->canConnection();
     }
 
+    /**
+     * Check database minimum version.
+     *
+     * @return void
+     */
     protected function checkDatabaseVersion(){
-        \DB::getVersion();
+        $version = $this->connection()->getVersion();
+
+        if(version_compare($version, Define::DATABASE_MIN_VERSION[$this->database_default]) >= 0){
+            return true;
+        }
+
+        return exmtrans('install.error.not_require_database_version', Define::DATABASE_TYPE[$this->database_default], Define::DATABASE_MIN_VERSION[$this->database_default], $version);
+    }
+    
+    /**
+     * Check database mariadb and mysql mistake/
+     *
+     * @return void
+     */
+    protected function checkDatabaseMatch(){
+        switch($this->database_default){
+            case DatabaseType::SQLSRV:
+                return true;
+            case DatabaseType::MYSQL:
+                if(!$this->connection()->isMariaDB() === true){
+                    return true;
+                }
+                return exmtrans('install.error.mistake_mysql_mariadb', Define::DATABASE_TYPE[DatabaseType::MARIADB], Define::DATABASE_TYPE[DatabaseType::MYSQL]);
+            case DatabaseType::MARIADB:
+                if($this->connection()->isMariaDB() === true){
+                    return true;
+                }
+                return exmtrans('install.error.mistake_mysql_mariadb', Define::DATABASE_TYPE[DatabaseType::MYSQL], Define::DATABASE_TYPE[DatabaseType::MARIADB]);
+        }
+
+        return false;
+    }
+
+    protected function connection(){
+        return \DB::connection($this->database_default);
     }
 }

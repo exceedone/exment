@@ -9,6 +9,15 @@ class SqlServerBuilder extends BaseBuilder
     use BuilderTrait;
     
     /**
+     * Check mariadb
+     *
+     * @return void
+     */
+    public function isMariaDB(){
+        return false;
+    }
+
+    /**
      * Get column difinitions
      *
      * @return array

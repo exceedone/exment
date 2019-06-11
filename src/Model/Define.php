@@ -319,6 +319,18 @@ class Define
     public const CUSTOM_COLUMN_TYPE_PARENT_ID = 0;
     public const PARENT_ID_NAME = 'parent_id';
 
+    public const DATABASE_TYPE = [
+        'mysql' => 'MySQL',
+        'mariadb' => 'MariaDB',
+        'sqlsrv' => 'SQLServer (β)',
+    ];
+
+    public const DATABASE_MIN_VERSION = [
+        'mysql' => '5.7.8',
+        'mariadb' => '10.2.7',
+        'sqlsrv' => '13.0.0.0',
+    ];
+
     public static function FILE_OPTION()
     {
         // get max size

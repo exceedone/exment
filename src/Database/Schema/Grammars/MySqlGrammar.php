@@ -13,7 +13,7 @@ class MySqlGrammar extends BaseGrammar
      */
     public function compileGetVersion()
     {
-        return "select version";
+        return "select version()";
     }
 
     /**
