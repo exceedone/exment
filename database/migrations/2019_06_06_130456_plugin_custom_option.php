@@ -16,6 +16,9 @@ class PluginCustomOption extends Migration
         Schema::table('plugins', function (Blueprint $table) {
             $table->json('custom_options')->nullable()->after('options');
         });
+        Schema::table('custom_relations', function (Blueprint $table) {
+            $table->json('options')->nullable()->after('relation_type');
+        });
     }
 
     /**

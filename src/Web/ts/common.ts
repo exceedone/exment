@@ -534,29 +534,36 @@ namespace Exment {
 
             // get expand data
             var expand = $base.data('linkage-expand');
+            
+            var linkage_text = $base.data('linkage-text');
             // execute linkage event
             for (var key in linkages) {
                 var link = linkages[key];
                 var $target = $parent.find(CommonEvent.getClassKey(key));
-                CommonEvent.linkage($target, link, $base.val(), expand);
+                CommonEvent.linkage($target, link, $base.val(), expand, linkage_text);
             }
         }
 
-        private static linkage($target: JQuery<Element>, url: string, val: any, expand?: any) {
+        private static linkage($target: JQuery<Element>, url: string, val: any, expand?: any, linkage_text?: string) {
             var $d = $.Deferred();
 
             // create querystring
             if (!hasValue(expand)) { expand = {}; }
+            if (!hasValue(linkage_text)) { linkage_text = 'text'; }
+
             expand['q'] = val;
             var query = $.param(expand);
             $.get(url + '?' + query, function (json) {
                 $target.find("option").remove();
+                var options = [];
+                options.push({id: '', text: ''});
+
+                json.forEach(d => {
+                    options.push({id: hasValue(d.id) ? d.id : '', text: d[linkage_text]});
+                });
+
                 $target.select2({
-                    data: $.map(json, function (d) {
-                        d.id = hasValue(d.id) ? d.id : '';
-                        d.text = d.text;
-                        return d;
-                    }),
+                    data: options,
                     "allowClear": true,
                     "placeholder": $target.next().find('.select2-selection__placeholder').text(),
                 }).trigger('change');

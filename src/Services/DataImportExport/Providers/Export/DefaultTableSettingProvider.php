@@ -46,13 +46,13 @@ class DefaultTableSettingProvider extends ProviderBase
         // get this column table's columns
         $custom_columns = static::getTargetColumns($this->custom_table);
         foreach ($custom_columns as $custom_column) {
-            $bodies[] = [$custom_column->custom_table->table_name, 'value.' . $custom_column->column_name, ''];
+            $bodies[] = [$custom_column->custom_table->table_name, 'value.' . $custom_column->column_name, $custom_column->select_import_column->column_name ?? ''];
         }
 
         // get relation
         $relation = CustomRelation::getRelationByChild($this->custom_table);
         if (isset($relation)) {
-            $bodies[] = [$relation->child_custom_table->table_name, 'parent_id', ''];
+            $bodies[] = [$relation->child_custom_table->table_name, 'parent_id', $relation->parent_import_column->column_name ?? ''];
         }
 
         $relations = CustomRelation::getRelationsByParent($this->custom_table, RelationType::ONE_TO_MANY);
@@ -61,10 +61,10 @@ class DefaultTableSettingProvider extends ProviderBase
                 // get child column table's columns
                 $custom_columns = static::getTargetColumns($relation->child_custom_table);
                 foreach ($custom_columns as $custom_column) {
-                    $bodies[] = [$custom_column->custom_table->table_name, 'value.' . $custom_column->column_name, ''];
+                    $bodies[] = [$custom_column->custom_table->table_name, 'value.' . $custom_column->column_name, $custom_column->select_import_column->column_name ?? ''];
                 }
 
-                $bodies[] = [$relation->child_custom_table->table_name, 'parent_id', ''];
+                $bodies[] = [$relation->child_custom_table->table_name, 'parent_id', $relation->parent_import_column->column_name ?? ''];
             }
         }
 

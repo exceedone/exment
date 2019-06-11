@@ -8,8 +8,11 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 {
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+    use Traits\DatabaseJsonTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
 
     protected $with = ['parent_custom_table', 'child_custom_table'];
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => ['parent_custom_table', 'child_custom_table'],
@@ -43,6 +46,18 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                     ]
                 ],
                 'uniqueKeyClassName' => CustomTable::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.parent_import_table_name',
+                            'column_name' => 'options.parent_import_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.parent_import_column_id'],
             ],
         ]
     ];
@@ -149,5 +164,31 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
+    }
+    
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
+    }
+    public function setOption($key, $val = null, $forgetIfNull = false)
+    {
+        return $this->setJson('options', $key, $val, $forgetIfNull);
+    }
+    public function forgetOption($key)
+    {
+        return $this->forgetJson('options', $key);
+    }
+    public function clearOption()
+    {
+        return $this->clearJson('options');
+    }
+    
+    public function getParentImportColumnAttribute(){
+        return CustomColumn::getEloquent($this->getOption('parent_import_column_id'));
+    }
+    
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        static::importReplaceJsonCustomColumn($json, 'options.parent_import_column_id', 'options.parent_import_column_name', 'options.parent_import_table_name', $options);
     }
 }

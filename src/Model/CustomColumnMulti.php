@@ -11,6 +11,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
 
     protected $appends = ['unique1', 'unique2', 'unique3'];
     protected $casts = ['options' => 'json'];
@@ -54,7 +55,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                         ]
                     ]
                 ],
-                'uniqueKeyFunction' => 'getUniqueKeyValuesUnique1',
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['unique1'],
             ],
             [
                 'replaceNames' => [
@@ -65,7 +67,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                         ]
                     ]
                 ],
-                'uniqueKeyFunction' => 'getUniqueKeyValuesUnique2',
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['unique2'],
             ],
             [
                 'replaceNames' => [
@@ -76,7 +79,8 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                         ]
                     ]
                 ],
-                'uniqueKeyFunction' => 'getUniqueKeyValuesUnique3',
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['unique3'],
             ],
         ]
     ];
@@ -122,39 +126,6 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     
 
     // Template Output ----------------------------------------
-    protected function getUniqueKeyValuesUnique1()
-    {
-        return $this->getUniqueKeyValues('unique1');
-    }
-
-    protected function getUniqueKeyValuesUnique2()
-    {
-        return $this->getUniqueKeyValues('unique2');
-    }
-
-    protected function getUniqueKeyValuesUnique3()
-    {
-        return $this->getUniqueKeyValues('unique3');
-    }
-
-    /**
-     * get Table And Column Name
-     */
-    protected function getUniqueKeyValues($key)
-    {
-        $custom_column = CustomColumn::getEloquent($this->{$key});
-        if (!isset($custom_column)) {
-            return [
-                'table_name' => null,
-                'column_name' => null,
-            ];
-        }
-
-        return [
-            'table_name' => $custom_column->custom_table->table_name,
-            'column_name' => $custom_column->column_name,
-        ];
-    }
     
     /**
      * Set json value calling import
