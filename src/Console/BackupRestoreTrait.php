@@ -13,7 +13,8 @@ trait BackupRestoreTrait
      *
      * @return string
      */
-    protected function listDirName(){
+    protected function listDirName()
+    {
         return 'list';
     }
     
@@ -22,7 +23,8 @@ trait BackupRestoreTrait
      *
      * @return string
      */
-    protected function listZipName(){
+    protected function listZipName()
+    {
         return path_join($this->listDirName(), $this->zipName());
     }
     
@@ -31,7 +33,8 @@ trait BackupRestoreTrait
      *
      * @return string
      */
-    protected function tmpDirName(){
+    protected function tmpDirName()
+    {
         return $this->basename;
     }
 
@@ -40,7 +43,8 @@ trait BackupRestoreTrait
      *
      * @return string
      */
-    protected function tmpDirFullPath(){
+    protected function tmpDirFullPath()
+    {
         return static::tmpDisk()->path($this->tmpDirName());
     }
 
@@ -49,7 +53,8 @@ trait BackupRestoreTrait
      *
      * @return string
      */
-    protected function zipName(){
+    protected function zipName()
+    {
         return $this->basename . '.zip';
     }
 
@@ -58,15 +63,18 @@ trait BackupRestoreTrait
      *
      * @return string
      */
-    protected function zipFullPath(){
+    protected function zipFullPath()
+    {
         return static::tmpDisk()->path($this->zipName());
     }
 
-    protected static function disk(){
+    protected static function disk()
+    {
         return Storage::disk(Define::DISKNAME_BACKUP);
     }
 
-    protected static function tmpDisk(){
+    protected static function tmpDisk()
+    {
         return Storage::disk(Define::DISKNAME_ADMIN_TMP);
     }
 

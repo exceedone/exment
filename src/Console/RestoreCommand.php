@@ -111,15 +111,16 @@ __EOT__;
      * @param [type] $files
      * @return void
      */
-    protected function dropUnusedTable($files){
-        $fileTables = collect($files)->map(function($file){
+    protected function dropUnusedTable($files)
+    {
+        $fileTables = collect($files)->map(function ($file) {
             return $file->getBasename('.' . $file->getExtension());
         })->toArray();
-        $exmTables = collect(\Schema::getTableListing())->filter(function($table) use($fileTables){     
+        $exmTables = collect(\Schema::getTableListing())->filter(function ($table) use ($fileTables) {
             return stripos($table, 'exm__') === 0 && !in_array($table, $fileTables);
         })->flatten()->all();
 
-        foreach($exmTables as $table){
+        foreach ($exmTables as $table) {
             \Schema::dropIfExists($table);
         }
     }
@@ -182,9 +183,9 @@ __EOT__;
     protected function restoreDatabase()
     {
         // get all table list about "pivot_"
-        collect(\Schema::getTableListing())->filter(function($table){            
+        collect(\Schema::getTableListing())->filter(function ($table) {
             return stripos($table, 'pivot_') === 0;
-        })->each(function($table){
+        })->each(function ($table) {
             \Schema::dropIfExists($table);
         });
 
@@ -231,9 +232,10 @@ __EOT__;
      *
      * @return mixed
      */
-    protected function getRestoreZip(){
-        // if get from tmp(upload file), 
-        if(boolval($this->option("tmp"))){
+    protected function getRestoreZip()
+    {
+        // if get from tmp(upload file),
+        if (boolval($this->option("tmp"))) {
             return static::tmpDisk()->get($this->zipName());
         }
 

@@ -8,7 +8,8 @@ trait PluginBase
 
     protected $useCustomOption = false;
 
-    public function useCustomOption(){
+    public function useCustomOption()
+    {
         return $this->useCustomOption;
     }
 
@@ -19,6 +20,7 @@ trait PluginBase
      * @param [type] $form
      * @return void
      */
-    public function setCustomOptionForm(&$form){
+    public function setCustomOptionForm(&$form)
+    {
     }
 }

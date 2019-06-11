@@ -111,38 +111,12 @@ class DashboardController extends AdminControllerBase
             $('[data-exment-widget="delete"]').off('click').on('click', function(ev){
                 // get suuid
                 var suuid = $(ev.target).closest('[data-suuid]').data('suuid');
-                swal({
+                var url = admin_url('dashboardbox/delete/' + suuid);
+                Exment.CommonEvent.ShowSwal(url, {
                     title: "$delete_confirm",
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "$confirm",
-                    closeOnConfirm: false,
-                    allowOutsideClick: false,
-                    cancelButtonText: "$cancel",
-                    preConfirm: function() {
-                        return new Promise(function(resolve) {
-                            $.ajax({
-                                method: 'post',
-                                url: admin_url('dashboardbox/delete/' + suuid),
-                                data: {
-                                    _method:'delete',
-                                    _token:LA.token
-                                },
-                                success: function (data) {
-                                    $.pjax.reload('#pjax-container');
-                    
-                                    if (typeof data === 'object') {
-                                        if (data.status) {
-                                            swal(data.message, '', 'success');
-                                        } else {
-                                            swal(data.message, '', 'error');
-                                        }
-                                    }
-                                }
-                            });
-                        });
-                    }
+                    confirm:"$confirm",
+                    method: 'delete',
+                    cancel:"$cancel",
                 });
             });
             

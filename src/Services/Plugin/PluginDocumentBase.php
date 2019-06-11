@@ -18,7 +18,7 @@ abstract class PluginDocumentBase
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
 
-        if(isset($custom_table)){
+        if (isset($custom_table)) {
             $this->custom_value = $custom_table->getValueModel($custom_value_id);
         }
     }

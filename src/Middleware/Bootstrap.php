@@ -85,39 +85,12 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
         // get url
         var url = $(ev.target).closest('[data-exment-delete]').data('exment-delete');
-        swal({
+        
+        Exment.CommonEvent.ShowSwal(url, {
             title: "$delete_confirm",
-            type: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#DD6B55",
-            confirmButtonText: "$confirm",
-            allowOutsideClick: false,
-            closeOnConfirm: false,
-            cancelButtonText: "$cancel",
-            preConfirm: function() {
-                return new Promise(function(resolve) {
-                    $.ajax({
-                        method: 'post',
-                        url: url,
-                        data: {
-                            _method:'delete',
-                            _token:LA.token,
-                            webresponse: true,  
-                        },
-                        success: function (data) {
-                            $.pjax.reload('#pjax-container');
-            
-                            if (typeof data === 'object') {
-                                if (data.status === true || data.result === true) {
-                                    swal(data.message, '', 'success');
-                                } else {
-                                    swal(data.message, '', 'error');
-                                }
-                            }
-                        }
-                    });
-                });
-            }
+            confirm:"$confirm",
+            method: 'delete',
+            cancel:"$cancel",
         });
     });
     

@@ -21,85 +21,7 @@ use Validator;
  */
 class InitializeForm
 {
-    use InstallFormTrait;
-
-    public function index(){
-        $form = $this->getInitializeForm('initialize', true);
-        $form->action(admin_url('initialize'));
-        $form->disablePjax();
-
-        // ID and password --------------------------------------------------
-        $form->header(exmtrans('system.administrator'))->hr();
-        $form->text('user_code', exmtrans('user.user_code'))->required()->help(exmtrans('common.help_code'));
-        $form->text('user_name', exmtrans('user.user_name'))->required()->help(exmtrans('user.help.user_name'));
-        $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
-        $form->password('password', exmtrans('user.password'))->required()->help(exmtrans('user.help.password'));
-        $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
-
-        return view('exment::initialize.content', [
-            'content'=> $form->render(),
-            'header' => exmtrans('system.initialize_header'),
-            'description' => exmtrans('system.initialize_description'),
-        ]);
-    }
-    
-    public function post(){
-        $request = request();
-        \DB::beginTransaction();
-        
-        try {
-            $result = $this->postInitializeForm($request, true);
-            if ($result instanceof \Illuminate\Http\RedirectResponse) {
-                return $result;
-            }
-            
-            // add user table
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
-            $user->value = [
-                'user_code' => $request->get('user_code'),
-                'user_name' => $request->get('user_name'),
-                'email' => $request->get('email'),
-            ];
-            $user->saveOrFail();
-
-            // add login_user table
-            $loginuser = new LoginUser;
-            $loginuser->base_user_id = $user->id;
-            $loginuser->password = $request->get('password');
-            $loginuser->saveOrFail();
-
-            // add system role
-            \DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
-                [
-                    'related_id' => $user->id,
-                    'related_type' => SystemTableName::USER,
-                    'morph_id' => null,
-                    'morph_type' =>  RoleType::SYSTEM()->lowerKey(),
-                    'role_id' => Role::where('role_type', RoleType::SYSTEM)->first()->id,
-                ]
-            );
-
-            // add system initialized flg.
-            System::initialized(1);
-            \DB::commit();
-
-            admin_toastr(trans('admin.save_succeeded'));
-            $this->guard()->login($loginuser);
-            return redirect(admin_url('/'));
-        } catch (Exception $exception) {
-            //TODO:error handling
-            DB::rollback();
-        }
-    }
-
-    /**
-     * TODO refactor!!!
-     *
-     * @param [type] $routeName
-     * @param boolean $add_template
-     * @return void
-     */
-    protected function getInitializeForm($routeName, $add_template = false)
+    protected function getInitializeForm($routeName, $add_template = false, $system_page = false)
     {
         $form = new WidgetForm(System::get_system_values());
         $form->disableReset();
@@ -127,21 +49,21 @@ class InitializeForm
 
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo');
         $form->image('site_logo', exmtrans("system.site_logo"))
-            ->help(exmtrans("system.help.site_logo"))
+            ->help(exmtrans("system.help.site_logo") . exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption)
             ->attribute(['accept' => "image/*"])
             ;
             
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo_mini');
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
-            ->help(exmtrans("system.help.site_logo_mini"))
+            ->help(exmtrans("system.help.site_logo_mini") . exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption)
             ->attribute(['accept' => "image/*"])
             ;
 
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
         $form->image('site_favicon', exmtrans("system.site_favicon"))
-            ->help(exmtrans("system.help.site_favicon"))
+            ->help(exmtrans("system.help.site_favicon") . exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption)
             ->attribute(['accept' => ".ico"])
             ;
@@ -170,6 +92,12 @@ class InitializeForm
         $form->email('system_mail_from', exmtrans("system.system_mail_from"))
             ->required()
             ->help(exmtrans("system.help.system_mail_from"));
+
+        if ($system_page) {
+            $form->display('max_file_size', exmtrans("common.max_file_size"))
+            ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
+            ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
+        }
 
         // template list
         if ($add_template) {
@@ -249,15 +177,17 @@ class InitializeForm
             ->help(exmtrans("system.help.template"))
             ;
 
+        $fileOption = Define::FILE_OPTION();
+
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
-            ->help(exmtrans('template.help.upload_template'))
-            ->options(Define::FILE_OPTION());
+            ->help(exmtrans('template.help.upload_template') . array_get($fileOption, 'maxFileSizeHelp'))
+            ->options($fileOption);
 
         $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
             ->rules('mimes:xlsx|nullable')
-            ->help(exmtrans('template.help.upload_template_excel'))
-            ->options(Define::FILE_OPTION());
+            ->help(exmtrans('template.help.upload_template_excel') . array_get($fileOption, 'maxFileSizeHelp'))
+            ->options($fileOption);
     }
 
     /**

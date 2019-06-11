@@ -104,7 +104,12 @@ trait TemplateTrait
                 if (array_key_exists('uniqueKeyFunction', $uniqueKeyReplace)) {
                     // get unique key names
                     $funcName = $uniqueKeyReplace['uniqueKeyFunction'];
-                    $replacedValue = $this->{$funcName}();
+                    $funcArgs = array_get($uniqueKeyReplace, 'uniqueKeyFunctionArgs', []);
+                    $replacedValue = $this->{$funcName}($funcArgs);
+
+                    foreach ($funcArgs as $funcArg) {
+                        array_forget($array, $funcArg);
+                    }
                 }
 
                 ///// if system enum, get system name

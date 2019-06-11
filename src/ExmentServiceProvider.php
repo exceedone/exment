@@ -200,8 +200,8 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootApp()
     {
-        foreach($this->serviceProviders as $serviceProvider){
-            $this->app->register($serviceProvider);    
+        foreach ($this->serviceProviders as $serviceProvider) {
+            $this->app->register($serviceProvider);
         }
         
         $this->commands($this->commands);
@@ -211,25 +211,25 @@ class ExmentServiceProvider extends ServiceProvider
         }
     }
 
-    protected function bootSchedule(){
+    protected function bootSchedule()
+    {
         // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
                 
             // set cron event
-            try{
-                if(\Schema::hasTable(SystemTableName::PLUGIN)){
+            try {
+                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
                     $plugins = Plugin::getCronBatches();
-                    foreach($plugins as $plugin){
+                    foreach ($plugins as $plugin) {
                         $cronSchedule = $this->app->make(Schedule::class);
-                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));                    
+                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));
                     }
-                }    
-            }catch(\Exception $ex){
+                }
+            } catch (\Exception $ex) {
             }
         });
-
     }
 
     protected function bootPassport()

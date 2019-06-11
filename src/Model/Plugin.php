@@ -53,7 +53,8 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public static function getBatches(){
+    public static function getBatches()
+    {
         $now = Carbon::now();
         $hh = $now->hour;
         return static::where('plugin_type', PluginType::BATCH)
@@ -69,7 +70,8 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public static function getCronBatches(){
+    public static function getCronBatches()
+    {
         return static::where('plugin_type', PluginType::BATCH)
             ->where('active_flg', 1)
             ->whereNotNull('options->batch_cron')
@@ -89,7 +91,8 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public function getClass($options = []){
+    public function getClass($options = [])
+    {
         $options = array_merge([
             'custom_table' => null,
             'id' => null,
@@ -118,7 +121,7 @@ class Plugin extends ModelBase
             }
         }
 
-        if(!isset($class)){
+        if (!isset($class)) {
             throw new \Exception('plugin not found');
         }
 

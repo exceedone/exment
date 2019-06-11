@@ -229,47 +229,20 @@ class CustomTableController extends AdminControllerBase
         $script = <<<SCRIPT
 
 $('.{$class}-delete').unbind('click').click(function() {
-
-    swal({
+    Exment.CommonEvent.ShowSwal("$url", {
         title: "{$trans['delete_confirm']}",
         text: "{$trans['delete_guide']}",
         input: 'text',
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "{$trans['confirm']}",
-        showLoaderOnConfirm: true,
-        cancelButtonText: "{$trans['cancel']}",
-        preConfirm: function(input) {
+        method: 'delete',
+        confirm:"{$trans['confirm']}",
+        cancel:"{$trans['cancel']}",
+        redirect: "$listUrl",
+        preConfirmValidate: function(input){
             if (input != "$keyword") {
                 return "{$trans['delete_keyword']}";
             } 
-            return new Promise(function(resolve) {
-                $.ajax({
-                    method: 'post',
-                    url: '{$url}',
-                    data: {
-                        _method:'delete',
-                        _token:LA.token,
-                    },
-                    success: function (data) {
-                        $.pjax({container:'#pjax-container', url: '{$listUrl}' });
 
-                        resolve(data);
-                    }
-                });
-            });
-        }
-    }).then(function(result) {
-        var data = result.value;
-        if (typeof data === 'object') {
-            if (data.status) {
-                swal(data.message, '', 'success');
-            } else {
-                swal(data.message, '', 'error');
-            }
-        } else if (typeof data === 'string') {
-            swal(data, '', 'error');
+            return true;
         }
     });
 });
