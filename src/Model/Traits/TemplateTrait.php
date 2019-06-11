@@ -107,7 +107,7 @@ trait TemplateTrait
                     $funcArgs = array_get($uniqueKeyReplace, 'uniqueKeyFunctionArgs', []);
                     $replacedValue = $this->{$funcName}($funcArgs);
 
-                    foreach($funcArgs as $funcArg){
+                    foreach ($funcArgs as $funcArg) {
                         array_forget($array, $funcArg);
                     }
                 }

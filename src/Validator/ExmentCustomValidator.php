@@ -130,7 +130,7 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     {
         // get count reverse relation in table;
         $query = CustomRelation::where($attr1, $custom_table_id);
-        if(isset($relation_id)){
+        if (isset($relation_id)) {
             $query = $query->where('id', '<>', $relation_id);
         }
         $rows = $query->get();

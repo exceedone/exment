@@ -69,7 +69,7 @@ class ApiController extends AdminControllerBase
         }
 
         $table = $request->get('q');
-        if(!isset($table)){
+        if (!isset($table)) {
             return [];
         }
 

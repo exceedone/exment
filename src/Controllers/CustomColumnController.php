@@ -306,7 +306,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
                 ->options(function ($select_table, $form) {
                     $data = $form->data();
-                    if(!isset($data) || is_null($select_target_table = array_get($data, 'select_target_table'))){
+                    if (!isset($data) || is_null($select_target_table = array_get($data, 'select_target_table'))) {
                         return [];
                     }
                     return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];

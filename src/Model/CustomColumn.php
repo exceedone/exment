@@ -132,7 +132,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $this->setOption('unique', $value);
     }
 
-    public function getSelectImportColumnAttribute(){
+    public function getSelectImportColumnAttribute()
+    {
         return CustomColumn::getEloquent($this->getOption('select_import_column_id'));
     }
 

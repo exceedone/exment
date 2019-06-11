@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\CustomColumn;
 
 trait UniqueKeyCustomColumnTrait
@@ -13,7 +12,7 @@ trait UniqueKeyCustomColumnTrait
      */
     protected function getUniqueKeyValues($key)
     {
-        if(is_array($key) && count($key) > 0){
+        if (is_array($key) && count($key) > 0) {
             $key = $key[0];
         }
         $custom_column = CustomColumn::getEloquent(array_get($this, $key));
@@ -30,10 +29,11 @@ trait UniqueKeyCustomColumnTrait
         ];
     }
     
-    protected static function importReplaceJsonCustomColumn(&$json, $replace_custom_column_key, $custom_column_key, $custom_table_key, $options = []){
+    protected static function importReplaceJsonCustomColumn(&$json, $replace_custom_column_key, $custom_column_key, $custom_table_key, $options = [])
+    {
         $custom_column = CustomColumn::getEloquent(array_get($json, $custom_column_key), array_get($json, $custom_table_key));
 
-        if(isset($custom_column)){
+        if (isset($custom_column)) {
             array_set($json, $replace_custom_column_key, $custom_column->id);
         }
 

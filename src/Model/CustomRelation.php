@@ -183,7 +183,8 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
         return $this->clearJson('options');
     }
     
-    public function getParentImportColumnAttribute(){
+    public function getParentImportColumnAttribute()
+    {
         return CustomColumn::getEloquent($this->getOption('parent_import_column_id'));
     }
     
