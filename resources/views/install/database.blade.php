@@ -1,18 +1,25 @@
 @extends('exment::install.layout') 
 @section('content')
-        <p class="login-box-msg">{{ trans('admin.setting') }}(2/3) : データベース設定</p>
+        <p class="login-box-msg">{{ trans('admin.setting') }}(2/3) : {{exmtrans('install.database.header')}}</p>
 
         <form action="{{ admin_url('install') }}" method="post">
+            <div class="form-group has-feedback {!! !$errors->has('database_canconnection') ?: 'has-error' !!}">
+
+                @if($errors->has('database_canconnection')) @foreach($errors->get('database_canconnection') as $message)
+                <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
+                @endforeach @endif
+            </div>
+
             <div class="form-group has-feedback {!! !$errors->has('connection') ?: 'has-error' !!}">
 
                 @if($errors->has('connection')) @foreach($errors->get('connection') as $message)
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <label>データベース種類:</label>
+                <label>{{exmtrans('install.database.connection')}}:</label>
                 <select name="connection" class="form-control">
                     @foreach($connection_options as $key => $value)
-                        <option value="{{$key}}" {{ $key == $connection_default ? 'selected' : '' }}>{{$value}}</option>
+                        <option value="{{$key}}" {{ $key == old('connection', $connection) ? 'selected' : '' }}>{{$value}}</option>
                     @endforeach
                 </select>
             </div>
@@ -23,8 +30,8 @@
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <label>ホスト名:</label>
-                <input type="text" class="form-control" name="host" value="{{ array_get($database_connection, 'host') }}" required />
+                <label>{{exmtrans('install.database.host')}}:</label>
+                <input type="text" class="form-control" name="host" value="{{ old('host', $host) }}" required />
             </div>
 
             <div class="form-group has-feedback {!! !$errors->has('port') ?: 'has-error' !!}">
@@ -33,8 +40,8 @@
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <label>ポート:</label>
-                <input type="text" class="form-control" name="port" value="{{ array_get($database_connection, 'port') }}" required />
+                <label>{{exmtrans('install.database.port')}}:</label>
+                <input type="text" class="form-control" name="port" value="{{ old('port', $port) }}" required />
             </div>
 
             <div class="form-group has-feedback {!! !$errors->has('database') ?: 'has-error' !!}">
@@ -42,8 +49,8 @@
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <label>データベース:</label>
-                <input type="text" class="form-control" name="database" value="{{ array_get($database_connection, 'database') }}" required />
+                <label>{{exmtrans('install.database.database')}}:</label>
+                <input type="text" class="form-control" name="database" value="{{ old('database', $database) }}" required />
             </div>
 
             <div class="form-group has-feedback {!! !$errors->has('username') ?: 'has-error' !!}">
@@ -51,8 +58,8 @@
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <label>ユーザー名:</label>
-                <input type="text" class="form-control" name="username" value="{{ array_get($database_connection, 'username') }}" required />
+                <label>{{exmtrans('install.database.username')}}:</label>
+                <input type="text" class="form-control" name="username" value="{{ old('username', $username) }}" required />
             </div>
 
             <div class="form-group has-feedback {!! !$errors->has('password') ?: 'has-error' !!}">
@@ -60,8 +67,8 @@
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
 
-                <label>パスワード:</label>
-                <input type="password" class="form-control" name="password" value="{{ array_get($database_connection, 'password') }}" required />
+                <label>{{exmtrans('install.database.password')}}:</label>
+                <input type="password" class="form-control" name="password" value="{{ old('password', $password) }}" required />
             </div>
 
             <div class="row">

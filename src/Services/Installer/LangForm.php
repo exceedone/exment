@@ -42,6 +42,7 @@ class LangForm
 
         \Artisan::call('key:generate');
         \Artisan::call('passport:keys');
+        \Artisan::call('cache:clear');
         \Artisan::call('config:clear');
 
         return redirect(admin_url('install'));

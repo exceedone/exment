@@ -16,7 +16,7 @@ use Encore\Admin\Widgets\Box;
 
 class SystemController extends AdminControllerBase
 {
-    use InitializeForm, RoleForm;
+    use RoleForm;
     
     public function __construct(Request $request)
     {

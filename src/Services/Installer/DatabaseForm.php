@@ -26,11 +26,16 @@ class DatabaseForm
         $database_default = config('database.default', 'mysql');
         $database_connection = config("database.connections.$database_default");
 
-        return view('exment::install.database', [
+        $args = [
             'connection_options' => ['mysql' => 'MySQL', 'mariadb' => 'MariaDB', 'sqlsrv' => 'SQL Server (β)'],
             'connection_default' => $database_default,
-            'database_connection' => $database_connection,
-        ]);
+        ];
+
+        foreach(static::settings as $s){
+            $args[$s] = array_get($database_connection, $s);
+        }
+
+        return view('exment::install.database', $args);
     }
     
     public function post(){
@@ -47,7 +52,9 @@ class DatabaseForm
         }
 
         if(!$this->canDatabaseConnection($request)){
-            return back()->withInput();
+            return back()->withInput()->withErrors([
+                'database_canconnection' => exmtrans('install.error.database_canconnection'),
+            ]);
         }
         
         $inputs = [];
@@ -58,6 +65,7 @@ class DatabaseForm
 
         $this->setEnv($inputs);
 
+        \Artisan::call('cache:clear');
         \Artisan::call('config:clear');
 
         return redirect(admin_url('install'));
@@ -80,7 +88,13 @@ class DatabaseForm
 
         // set config
         config(["database.connections.$database_default" =>  $newConfig]);
-        \DB::reconnect($database_default);
+
+        try{
+            \DB::reconnect($database_default);
+        }
+        catch (\Exception $exception) {
+            return false;
+        }
 
         return \DB::canConnection();
     }
