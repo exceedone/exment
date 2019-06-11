@@ -452,6 +452,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
+            'select_import_column_id' => 'インポート時のキー列',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
             'true_label_default' => 'はい',
@@ -507,6 +508,8 @@ return [
             'datetime_now_creating' => 'データの新規作成時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
+            'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
+            'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
             'true_value' => '1つ目の選択肢を保存した場合に登録する値を入力してください。',
             'true_label' => '1つ目の選択肢を保存した場合に表示する文字列を入力してください。',
             'false_value' => '2つ目の選択肢を保存した場合に登録する値を入力してください。',
@@ -745,9 +748,11 @@ return [
         ],
         'parent_custom_table' => '親テーブル',
         'child_custom_table' => '子テーブル',
-
+        'parent_import_column_id' => 'インポート時のキー列',
+            
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> Exmentのテーブル間の関連付け設定方法は、この画面の他に、もう1種類あります。</span><br />登録前に、必ず<a href="%s" target="_blank">マニュアル</a>をご確認いただき、適切な選択を行うようにしてください。',
+            'parent_import_column_id' => 'データのインポート時、親テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
         ]
     ],
 
