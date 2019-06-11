@@ -11,12 +11,13 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Form\Widgets\InfoBox;
+use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
 
 class SystemController extends AdminControllerBase
 {
-    use RoleForm;
+    use RoleForm, InitializeFormTrait;
     
     public function __construct(Request $request)
     {

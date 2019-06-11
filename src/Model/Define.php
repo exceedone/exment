@@ -145,7 +145,6 @@ class Define
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
 
     public const SYSTEM_SETTING_NAME_VALUE = [
-        'installed' => ['type' => 'boolean', 'default' => '0'],
         'initialized' => ['type' => 'boolean', 'default' => '0'],
         'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],

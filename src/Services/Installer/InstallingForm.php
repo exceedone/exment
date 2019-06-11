@@ -19,8 +19,6 @@ class InstallingForm
     public function post(){
         \Artisan::call('exment:install');
 
-        System::installed(true);
-
         return redirect(admin_url('initialize'));   
     }
 }

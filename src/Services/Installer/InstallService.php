@@ -5,6 +5,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\InitializeStatus;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomTable;
 
 /**
  * 
@@ -48,7 +49,7 @@ class InstallService
             return InitializeStatus::DATABASE;
         }
         
-        if(!\Schema::hasTable(SystemTableName::SYSTEM) || !System::installed()){
+        if(!\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0){
             return InitializeStatus::INSTALLING;
         }
 

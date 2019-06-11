@@ -25,16 +25,15 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        $canConnect = true;
-        if(!\DB::canConnection() || !\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
-            $canConnect = false;
+        if(!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)){
             $path = trim(admin_base_path('install'), '/');
             if(!$request->is($path)){
                 return redirect()->guest(admin_base_path('install'));
             }
+            static::initializeConfig(false);
         }
         
-        if($canConnect){
+        else{
             $initialized = System::initialized();
 
             // if path is not "initialize" and not installed, then redirect to initialize
@@ -48,10 +47,8 @@ class Initialize
             }
     
             static::initializeConfig();
-        }else{
-            static::initializeConfig(false);
         }
-
+        
         static::requireBootstrap();
 
         return $next($request);
