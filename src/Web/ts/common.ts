@@ -182,7 +182,7 @@ namespace Exment {
             swal(swalOptions)
                 .then(function(result) {
                     var data = result.value;
-                    if (typeof data === 'object') {
+                    if (typeof data === 'object' && hasValue(data.message)) {
                         if (data.status === true || data.result === true) {
                             swal(data.message, '', 'success');
                         } else {
@@ -558,9 +558,9 @@ namespace Exment {
                 var options = [];
                 options.push({id: '', text: ''});
 
-                json.forEach(d => {
+                $.each(json, function(index, d){
                     options.push({id: hasValue(d.id) ? d.id : '', text: d[linkage_text]});
-                });
+                })
 
                 $target.select2({
                     data: options,

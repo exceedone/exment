@@ -208,7 +208,7 @@ var Exment;
             swal(swalOptions)
                 .then(function (result) {
                 var data = result.value;
-                if (typeof data === 'object') {
+                if (typeof data === 'object' && hasValue(data.message)) {
                     if (data.status === true || data.result === true) {
                         swal(data.message, '', 'success');
                     }
@@ -550,7 +550,7 @@ var Exment;
                 $target.find("option").remove();
                 var options = [];
                 options.push({ id: '', text: '' });
-                json.forEach(function (d) {
+                $.each(json, function (index, d) {
                     options.push({ id: hasValue(d.id) ? d.id : '', text: d[linkage_text] });
                 });
                 $target.select2({
