@@ -52,7 +52,7 @@ class DefaultTableSettingProvider extends ProviderBase
         // get relation
         $relation = CustomRelation::getRelationByChild($this->custom_table);
         if (isset($relation)) {
-            $bodies[] = [$relation->parent_custom_table->table_name, 'parent_id', ''];
+            $bodies[] = [$relation->child_custom_table->table_name, 'parent_id', ''];
         }
 
         $relations = CustomRelation::getRelationsByParent($this->custom_table, RelationType::ONE_TO_MANY);
