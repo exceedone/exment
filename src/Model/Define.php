@@ -214,6 +214,9 @@ class Define
     }
     
     public const HELP_URLS = [
+        ['uri'=> '/', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'search', 'help_uri'=> 'search'],
         ['uri'=> 'table', 'help_uri'=> 'table'],
