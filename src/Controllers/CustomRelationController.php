@@ -118,6 +118,7 @@ class CustomRelationController extends AdminControllerTableBase
 
         $form->display('parent_custom_table.table_view_name', exmtrans("custom_relation.parent_custom_table"))->default($this->custom_table->table_view_name);
 
+        $custom_table = $this->custom_table;
         $custom_table_id = $this->custom_table->id;
         $form->select('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->options(function ($child_custom_table_id) use ($custom_table_id) {
             return CustomTable::filterList()
@@ -125,11 +126,25 @@ class CustomRelationController extends AdminControllerTableBase
                 ->pluck('table_view_name', 'id')
                 ->toArray();
         })
-            ->required()
-            ->rules("loopRelation:{$custom_table_id}");
+        ->required()
+        ->rules("loopRelation:{$custom_table_id},{$id}");
 
         $relation_type_options = RelationType::transKeyArray("custom_relation.relation_type_options");
-        $form->select('relation_type', exmtrans("custom_relation.relation_type"))->options($relation_type_options)->required();
+        $form->select('relation_type', exmtrans("custom_relation.relation_type"))
+            ->options($relation_type_options)
+            ->required()
+            ->attribute(['data-filtertrigger' =>true]);
+        
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($custom_table) {
+            $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
+            $form->select('parent_import_column_id', exmtrans("custom_relation.parent_import_column_id"))
+                ->help(exmtrans("custom_relation.help.parent_import_column_id", $manual_url))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])
+                ->options(function ($select_table, $form) use ($custom_table) {
+                    return CustomTable::getEloquent($custom_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
+                });
+        })->disableHeader();
+        
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
             $tools->add((new Tools\GridChangePageMenu('relation', $custom_table, false))->render());

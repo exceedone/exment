@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 
@@ -14,12 +15,23 @@ class ParentItem implements ItemInterface
      * this column's target custom_table
      */
     protected $custom_table;
+
+    /**
+     * this column's parent table
+     */
+    protected $parent_table;
     
     public function __construct($custom_table, $custom_value)
     {
         $this->custom_table = $custom_table;
         $this->value = $this->getTargetValue($custom_value);
-        $this->label = $custom_table->table_view_name;
+
+        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id)->first();
+        if (isset($relation)) {
+            $this->parent_table = $relation->parent_custom_table;
+        }
+
+        $this->label = isset($this->parent_table) ? $this->parent_table->table_view_name : null;
     }
 
     /**
@@ -138,13 +150,11 @@ class ParentItem implements ItemInterface
     
     public function getFilterField()
     {
-        $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $this->custom_table->id)->first();
-        if (isset($relation)) {
-            $parent_custom_table = $relation->parent_custom_table;
-            $field = new Select($this->name(), [$parent_custom_table->table_view_name]);
-            $field->options(function ($value) use ($parent_custom_table) {
+        if ($this->parent_table) {
+            $field = new Select($this->name(), [$this->parent_table->table_view_name]);
+            $field->options(function ($value) {
                 // get DB option value
-                return $parent_custom_table->getOptions($value, null, false, true);
+                return $this->parent_table->getOptions($value, null, false, true);
             });
             return $field;
         }

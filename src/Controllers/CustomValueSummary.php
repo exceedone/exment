@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
+use Exceedone\Exment\Model\Plugin;
 
 trait CustomValueSummary
 {
@@ -15,7 +15,7 @@ trait CustomValueSummary
     {
         $classname = $this->getModelNameDV();
         $grid = new Grid(new $classname);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
 
         $this->setSummaryGrid($grid);
 
@@ -30,7 +30,7 @@ trait CustomValueSummary
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });
 
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $grid;
     }
 

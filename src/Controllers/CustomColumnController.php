@@ -293,7 +293,25 @@ class CustomColumnController extends AdminControllerTableBase
                         $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
                         return $options;
                     })
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE])]);
+                    ->attribute([
+                        'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
+                        'data-linkage' => json_encode([
+                            'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
+                        ]),
+                        'data-linkage-text' => 'column_view_name'
+                    ]);
+                
+            $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
+            $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
+                ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
+                ->options(function ($select_table, $form) {
+                    $data = $form->data();
+                    if (!isset($data) || is_null($select_target_table = array_get($data, 'select_target_table'))) {
+                        return [];
+                    }
+                    return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
+                })
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE])]);
 
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))

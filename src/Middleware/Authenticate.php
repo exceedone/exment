@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Closure;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class Authenticate extends \Encore\Admin\Middleware\Authenticate
 {
@@ -17,6 +18,10 @@ class Authenticate extends \Encore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
+        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return response(exmtrans('error.not_install'), 500);
+        }
+
         // Get System config
         $shouldPassThrough = shouldPassThrough(false);
         if ($shouldPassThrough) {

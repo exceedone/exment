@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -25,10 +24,6 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-            return response(exmtrans('error.not_install'), 500);
-        }
-
         // Get System config
         $initialized = System::initialized();
 
@@ -106,14 +101,14 @@ class Initialize
         
         if (!Config::has('filesystems.disks.admin_tmp')) {
             Config::set('filesystems.disks.admin_tmp', [
-                'driver' => config('exment.driver.tmp', 'local'),
+                'driver' => 'local',
                 'root' => storage_path('app/admin_tmp'),
             ]);
         }
         
         if (!Config::has('filesystems.disks.backup')) {
             Config::set('filesystems.disks.backup', [
-                'driver' => config('exment.driver.backup', 'local'),
+                'driver' => 'local',
                 'root' => storage_path('app/backup'),
             ]);
         }
@@ -285,5 +280,23 @@ class Initialize
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
         }
+    }
+
+    public static function logDatabase()
+    {
+        \DB::listen(function ($query) {
+            $sql = $query->sql;
+            for ($i = 0; $i < count($query->bindings); $i++) {
+                $binding = $query->bindings[$i];
+                if ($binding instanceof \DateTime) {
+                    $binding = $binding->format('Y-m-d H:i:s');
+                } elseif ($binding instanceof EnumBase) {
+                    $binding = $binding->toString();
+                }
+                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
+            }
+            $now = \Carbon\Carbon::now();
+            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
+        });
     }
 }

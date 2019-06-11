@@ -199,14 +199,24 @@ class Define
 
     public static function FILE_OPTION()
     {
+        // get max size
+        $maxSize = getUploadMaxFileSize();
+
         return [
             'showPreview' => false,
             'showCancel' => false,
             'browseLabel' => trans('admin.browse'),
+            'maxFileSize' => $maxSize / 1024,
+            'maxFileSizeHuman' => bytesToHuman($maxSize),
+            'maxFileSizeHelp' => sprintf(exmtrans('common.max_file_size') . ' : %s', bytesToHuman($maxSize)),
+            'msgSizeTooLarge' => exmtrans('error.size_too_large'),
         ];
     }
     
     public const HELP_URLS = [
+        ['uri'=> '/', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'search', 'help_uri'=> 'search'],
         ['uri'=> 'table', 'help_uri'=> 'table'],
@@ -233,4 +243,7 @@ class Define
         0    => 'NO',
         1    => 'YES',
     ];
+
+    public const DISKNAME_ADMIN_TMP = 'admin_tmp';
+    public const DISKNAME_BACKUP = 'backup';
 }

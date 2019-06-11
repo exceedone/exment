@@ -301,7 +301,7 @@ if (!function_exists('getTmpFolderPath')) {
         if (!$fullpath) {
             return $path;
         }
-        $tmppath = getFullpath($path, 'admin_tmp');
+        $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
         if (!\File::exists($tmppath)) {
             \File::makeDirectory($tmppath, 0755, true);
         }
@@ -354,6 +354,25 @@ if (!function_exists('bytesToHuman')) {
         }
 
         return round($bytes, 2) . ' ' . $units[$i];
+    }
+}
+
+if (!function_exists('getUploadMaxFileSize')) {
+    /**
+     * get Upload Max File Size. get php.ini config
+     *
+     * @return int byte size.
+     */
+    function getUploadMaxFileSize()
+    {
+        $post_max_size = (int)(str_replace('M', '', ini_get('post_max_size')));
+        $upload_max_filesize = (int)(str_replace('M', '', ini_get('upload_max_filesize')));
+
+        // return min size post_max_size or upload_max_filesize
+        $minsize = collect([$post_max_size, $upload_max_filesize])->min();
+
+        // return byte size
+        return $minsize * 1024 * 1024;
     }
 }
 

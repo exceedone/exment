@@ -8,7 +8,6 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Controllers\BackupController;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -94,9 +93,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
-            $router->get('backup/download/{ymdhms}', function ($ymdhms) {
-                return BackupController::download($ymdhms);
-            });
+            $router->get('backup/download/{ymdhms}', 'BackupController@download');
         
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
@@ -197,6 +194,7 @@ class RouteServiceProvider extends ServiceProvider
 
                 // table --------------------------------------------------
                 $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("table/indexcolumns", 'ApiController@indexcolumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));

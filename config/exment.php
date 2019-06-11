@@ -173,23 +173,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Driver
-    |--------------------------------------------------------------------------
-    |
-    | Exment driver setting
-    |
-    */
-    'driver' => [
-        // default attachment driver name
-        'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
-        // backup driver name
-        'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
-        // temporary driver name
-        'tmp' => env('EXMENT_DISK_TMP', 'local'),
-    ],
-  
-    /*
-    |--------------------------------------------------------------------------
     | Disabled Outside Api
     |--------------------------------------------------------------------------
     |

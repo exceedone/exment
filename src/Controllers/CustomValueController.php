@@ -15,12 +15,9 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
@@ -41,7 +38,7 @@ class CustomValueController extends AdminControllerTableBase
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
-            $this->plugins = PluginInstaller::getPluginByTable($this->custom_table->table_name);
+            $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
         }
     }
 
@@ -105,9 +102,9 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
         $this->AdminContent($content);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form(null));
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
 
@@ -129,9 +126,9 @@ class CustomValueController extends AdminControllerTableBase
             return $redirect;
         }
         $this->AdminContent($content);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form($id)->edit($id));
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
     
@@ -273,28 +270,16 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         // get plugin
-        $plugin = Plugin::where('uuid', $request->input('uuid'))->first();
+        $plugin = Plugin::getPluginByUUID($request->input('uuid'));
         if (!isset($plugin)) {
             abort(404);
         }
         
         set_time_limit(240);
-        
-        $classname = $plugin->getNameSpace('Plugin');
-        $fuleFullPath = $plugin->getFullPath('Plugin.php');
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
-            switch (array_get($plugin, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                    $class = new $classname($plugin, $this->custom_table, $id);
-                    break;
-                case PluginType::TRIGGER:
-                    $class = new $classname($plugin, $this->custom_table, $id);
-                    break;
-            }
-        } else {
-            // set default class
-            $class = new PluginDocumentDefault($plugin, $this->custom_table, $id);
-        }
+        $class = $plugin->getClass([
+            'custom_table' => $this->custom_table,
+            'id' => $id
+        ]);
         $response = $class->execute();
         if (isset($response)) {
             return getAjaxResponse($response);

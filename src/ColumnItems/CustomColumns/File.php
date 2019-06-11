@@ -41,9 +41,10 @@ class File extends CustomItem
     protected function setAdminOptions(&$field, $form_column_options)
     {
         // set file options
-        $field->options(
-            File::getFileOptions($this->custom_column, $this->id)
-        )->removable();
+        $fileOption = File::getFileOptions($this->custom_column, $this->id);
+        $field->options($fileOption)->removable();
+        $field->help(array_get($fileOption, 'maxFileSizeHelp'));
+        
         // set filename rule
         $field->move($this->getCustomTable()->table_name);
         $field->name(function ($file) {
