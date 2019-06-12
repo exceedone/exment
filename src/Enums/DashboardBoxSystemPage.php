@@ -2,12 +2,15 @@
 
 namespace Exceedone\Exment\Enums;
 
+use Exceedone\Exment\DashboardBoxItems\SystemItems;
+
 class DashboardBoxSystemPage extends EnumBase
 {
     const GUIDELINE = 1;
 
     protected static $options = [
-        'guideline' => ['id' => 1, 'name' => 'guideline'],
+        'guideline' => ['id' => 1, 'name' => 'guideline', 'class' => SystemItems\Guideline::class],
+        'news' => ['id' => 2, 'name' => 'news', 'class' => SystemItems\News::class],
     ];
 
     public function option()
