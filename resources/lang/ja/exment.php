@@ -788,6 +788,7 @@ return [
         'no_result' => '検索結果がありませんでした',
         'result_label' => '「%s」 の検索結果' ,
         'view_list' => '一覧表示',
+        'freeword' => 'フリーワード',
     ],
 
     'menu' => [
