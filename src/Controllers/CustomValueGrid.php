@@ -54,7 +54,10 @@ trait CustomValueGrid
     protected function setCustomGridFilters($grid, $search_enabled_columns)
     {
         $grid->filter(function ($filter) use ($search_enabled_columns) {
+            $filter->disableIdFilter();
+
             $filter->column(1/2, function ($filter) {
+                $filter->equal('id', exmtrans('common.id'));
                 $filter->between('created_at', exmtrans('common.created_at'))->date();
                 $filter->between('updated_at', exmtrans('common.updated_at'))->date();
                 
@@ -79,6 +82,14 @@ trait CustomValueGrid
                     $search_column->column_item->setAdminFilter($filter);
                 }
             });
+            
+            // loop custom column
+            $filter->column(1, function ($filter) {
+                $filter->where(function ($query) {
+                    $query->getModel()->setSearchQueryOrWhere($query, $this->input);
+                }, exmtrans('search.freeword'), 'query');
+            });
+
         });
     }
 

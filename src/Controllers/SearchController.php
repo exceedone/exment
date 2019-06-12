@@ -206,7 +206,7 @@ EOT;
     {
         $q = $request->input('query');
         $table = CustomTable::getEloquent($request->input('table_name'), true);
-        $boxHeader = $this->getBoxHeaderHtml($table);
+        $boxHeader = $this->getBoxHeaderHtml($table, ['query' => $q]);
         // search all data using index --------------------------------------------------
         $paginate = $table->searchValue($q, [
             'paginate' => true
@@ -399,7 +399,7 @@ EOT;
         }
         return $array;
     }
-    protected function getBoxHeaderHtml($custom_table)
+    protected function getBoxHeaderHtml($custom_table, $query = [])
     {
         // boxheader
         $boxHeader = [];
@@ -407,6 +407,10 @@ EOT;
         if ($custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $new_url = admin_url("data/{$custom_table->table_name}/create");
             $list_url = admin_url("data/{$custom_table->table_name}");
+
+            if(boolval(config('exment.search_list_link_filter', false)) && isset($query)){
+                $list_url .= '?' . http_build_query($query);
+            }
         }
         return view('exment::dashboard.list.header', [
             'new_url' => $new_url ?? null,

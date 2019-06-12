@@ -184,6 +184,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Search List Link Filter
+    |--------------------------------------------------------------------------
+    |
+    | Keyword Search or relation search, if click list button, show filtered list. 
+    | If true, filtered
+    |
+    */
+    'search_list_link_filter' => env('EXMENT_SEARCH_LIST_LINK_FILTER', false),
+  
+    /*
+    |--------------------------------------------------------------------------
     | Filter Search Full
     |--------------------------------------------------------------------------
     |

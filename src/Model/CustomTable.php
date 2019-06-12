@@ -492,60 +492,50 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
         extract($options);
 
-        // if selected target column,
-        $searchColumns = $options['searchColumns'];
-        if (is_null($searchColumns)) {
-            $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
-                return $c->getIndexColumnName();
-            });
-        }
-
-        if (!isset($searchColumns) || count($searchColumns) == 0) {
-            return collect([]);
-        }
-        
         $data = [];
 
-        if (boolval(config('exment.filter_search_full', false))) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-        $mark = ($isLike ? 'LIKE' : '=');
+        $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
-        if ($relation) {
-            $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
-        } else {
-            $takeCount = intval(config('exment.keyword_search_count', 1000));
-        }
+        // if (boolval(config('exment.filter_search_full', false))) {
+        //     $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        // } else {
+        //     $value = $q . ($isLike ? '%' : '');
+        // }
+        // $mark = ($isLike ? 'LIKE' : '=');
 
-        // if not paginate, only take maxCount
-        if (!$paginate) {
-            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
-        }
+        // if ($relation) {
+        //     $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
+        // } else {
+        //     $takeCount = intval(config('exment.keyword_search_count', 1000));
+        // }
 
-        // crate union query
-        $queries = [];
-        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = $searchColumns[$i];
-            $query = getModelName($this)::query();
-            $query->where($searchColumn, $mark, $value)->select('id');
-            $query->take($takeCount);
+        // // if not paginate, only take maxCount
+        // if (!$paginate) {
+        //     $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        // }
 
-            $queries[] = $query;
-        }
+        // // crate union query
+        // $queries = [];
+        // for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+        //     $searchColumn = $searchColumns[$i];
+        //     $query = getModelName($this)::query();
+        //     $query->where($searchColumn, $mark, $value)->select('id');
+        //     $query->take($takeCount);
 
-        $searchColumn = $searchColumns->last();
-        $subquery = getModelName($this)::query();
-        $subquery->where($searchColumn, $mark, $value)->select('id');
-        $subquery->take($takeCount);
+        //     $queries[] = $query;
+        // }
 
-        foreach ($queries as $inq) {
-            $subquery->union($inq);
-        }
+        // $searchColumn = $searchColumns->last();
+        // $subquery = getModelName($this)::query();
+        // $subquery->where($searchColumn, $mark, $value)->select('id');
+        // $subquery->take($takeCount);
 
-        // create main query
-        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        // foreach ($queries as $inq) {
+        //     $subquery->union($inq);
+        // }
+
+        // // create main query
+        // $mainQuery =  \DB::query()->fromSub($subquery, 'sub');
 
         // return as paginate
         if ($paginate) {

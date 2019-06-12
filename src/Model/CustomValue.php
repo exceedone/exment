@@ -699,4 +699,118 @@ class CustomValue extends ModelBase
         $this->value = $revision_value;
         return $this;
     }
+
+    /**
+     * Get Query for text search
+     *
+     * @return void
+     */
+    public function getSearchQuery($q, $options = [])
+    {
+        $options = $this->getQueryOptions($q, $options);
+        extract($options);
+
+        // crate union query
+        $queries = [];
+        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+            $searchColumn = $searchColumns[$i];
+            $query = static::query();
+            $query->where($searchColumn, $mark, $value)->select('id');
+            $query->take($takeCount);
+
+            $queries[] = $query;
+        }
+
+        $searchColumn = $searchColumns->last();
+        $subquery = static::query();
+        $subquery->where($searchColumn, $mark, $value)->select('id');
+        $subquery->take($takeCount);
+
+        foreach ($queries as $inq) {
+            $subquery->union($inq);
+        }
+
+        // create main query
+        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+
+        return $mainQuery;
+    }
+
+    /**
+     * Set Query for text search. use orwhere
+     *
+     * @return void
+     */
+    public function setSearchQueryOrWhere(&$query, $q, $options = [])
+    {
+        $options = $this->getQueryOptions($q, $options);
+
+        $query->where(function($query) use($options){
+            extract($options);
+
+            for ($i = 0; $i < count($searchColumns); $i++) {
+                $searchColumn = $searchColumns[$i];
+                $query->orWhere($searchColumn, $mark, $value);
+            }
+        });
+    }
+
+    /**
+     * Get Query Options for search
+     *
+     * @param string $q search text
+     * @param array $options
+     * @return void
+     */
+    protected function getQueryOptions($q, $options = []){
+        $options = array_merge(
+            [
+                'isLike' => true,
+                'maxCount' => 5,
+                'paginate' => false,
+                'makeHidden' => false,
+                'searchColumns' => null,
+                'relation' => false,
+                
+            ],
+            $options
+        );
+        extract($options);
+
+        // if selected target column,
+        if (is_null($searchColumns)) {
+            $searchColumns = $this->custom_table->getSearchEnabledColumns()->map(function ($c) {
+                return $c->getIndexColumnName();
+            });
+        }
+
+        if (!isset($searchColumns) || count($searchColumns) == 0) {
+            return collect([]);
+        }
+        
+        if (boolval(config('exment.filter_search_full', false))) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+        $mark = ($isLike ? 'LIKE' : '=');
+
+        if ($relation) {
+            $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
+        } else {
+            $takeCount = intval(config('exment.keyword_search_count', 1000));
+        }
+
+        // if not paginate, only take maxCount
+        if (!$paginate) {
+            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        }
+
+        $options['searchColumns'] = $searchColumns;
+        $options['takeCount'] = $takeCount;
+        $options['mark'] = $mark;
+        $options['value'] = $value;
+
+        return $options;
+    }
 }
