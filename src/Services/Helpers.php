@@ -1239,8 +1239,13 @@ if (!function_exists('getExmentVersion')) {
                 $current = array_get($exment, 'version');
                 
                 // if outside api is not permitted, return only current
-                if (config('exment.disabled_outside_api', false) || !$getFromComposer) {
+                if (!System::outside_api() || !$getFromComposer) {
                     return [null, $current];
+                }
+
+                // if already executed
+                if(session()->has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)){
+                    return [null, $current];   
                 }
 
                 //// get latest version
@@ -1248,6 +1253,9 @@ if (!function_exists('getExmentVersion')) {
                 $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
                     'http_errors' => false,
                 ]);
+
+                session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
+
                 $contents = $response->getBody()->getContents();
                 if ($response->getStatusCode() != 200) {
                     return [null, null];
@@ -1274,13 +1282,14 @@ if (!function_exists('getExmentVersion')) {
                 }
                 
                 try {
-                    app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                    session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
                         'latest' => $latest, 'current' => $current
                     ]));
                 } catch (\Exception $e) {
                 }
             }
         } catch (\Exception $e) {
+            session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
         }
         
         return [$latest ?? null, $current ?? null];

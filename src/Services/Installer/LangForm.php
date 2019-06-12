@@ -40,8 +40,6 @@ class LangForm
 
         $this->setEnv($inputs);
 
-        \Artisan::call('key:generate');
-        \Artisan::call('passport:keys');
         \Artisan::call('cache:clear');
         \Artisan::call('config:clear');
 

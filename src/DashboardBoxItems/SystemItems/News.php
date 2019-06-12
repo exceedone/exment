@@ -5,6 +5,7 @@ namespace Exceedone\Exment\DashboardBoxItems\SystemItems;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Encore\Admin\Widgets\Table as WidgetTable;
 
 class News
@@ -19,24 +20,28 @@ class News
     protected $outputApi = true;
 
     public function __construct(){
-        if(config('exment.disabled_outside_api', false) === true){
+        if(!System::outside_api()){
             $this->outputApi = false;
             return;
         }
 
-        $client = new \GuzzleHttp\Client();
-        $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
-            'http_errors' => false,
-            'query' => $this->getQuery()
-        ]);
+        try{
+            $client = new \GuzzleHttp\Client();
+            $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
+                'http_errors' => false,
+                'query' => $this->getQuery()
+            ]);
+    
+            $contents = $response->getBody()->getContents();
+            if ($response->getStatusCode() != 200) {
+                return null;
+            }
+    
+            // get wordpress items
+            $this->items = json_decode($contents, true);    
+        }catch(\Exception $ex){
 
-        $contents = $response->getBody()->getContents();
-        if ($response->getStatusCode() != 200) {
-            return null;
         }
-
-        // get wordpress items
-        $this->items = json_decode($contents, true);
     }
 
     /**

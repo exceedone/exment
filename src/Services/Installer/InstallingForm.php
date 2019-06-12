@@ -17,6 +17,8 @@ class InstallingForm
     }
 
     public function post(){
+        \Artisan::call('key:generate');
+        \Artisan::call('passport:keys');
         \Artisan::call('exment:install');
 
         return redirect(admin_url('initialize'));   
