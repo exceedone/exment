@@ -9,6 +9,8 @@ use Exceedone\Exment\Database\Query\Processors\MariaDBProcessor;
 
 class MariaDBConnection extends MySqlConnection
 {
+    use ConnectionTrait;
+    
     /**
      * Get a schema builder instance for the connection.
      *

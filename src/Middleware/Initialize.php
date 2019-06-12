@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -24,20 +25,29 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        // Get System config
-        $initialized = System::initialized();
-
-        // if path is not "initialize" and not installed, then redirect to initialize
-        if (!shouldPassThrough(true) && !$initialized) {
-            $request->session()->invalidate();
-            return redirect()->guest(admin_base_path('initialize'));
+        if(!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)){
+            $path = trim(admin_base_path('install'), '/');
+            if(!$request->is($path)){
+                return redirect()->guest(admin_base_path('install'));
+            }
+            static::initializeConfig(false);
         }
-        // if path is "initialize" and installed, redirect to login
-        elseif (shouldPassThrough(true) && $initialized) {
-            return redirect()->guest(admin_base_path('auth/login'));
-        }
+        
+        else{
+            $initialized = System::initialized();
 
-        static::initializeConfig();
+            // if path is not "initialize" and not installed, then redirect to initialize
+            if (!shouldPassThrough(true) && !$initialized) {
+                $request->session()->invalidate();
+                return redirect()->guest(admin_base_path('initialize'));
+            }
+            // if path is "initialize" and installed, redirect to login
+            elseif (shouldPassThrough(true) && $initialized) {
+                return redirect()->guest(admin_base_path('auth/login'));
+            }
+    
+            static::initializeConfig();
+        }
         
         static::requireBootstrap();
 

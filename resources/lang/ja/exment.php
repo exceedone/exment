@@ -81,6 +81,30 @@ return [
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。'
     ],
 
+    'install' => [
+        'installing' => 'インストール実行',
+
+        'database' => [
+            'header' => 'データベース設定',
+            'connection' => 'データベース種類',
+            'host' => 'ホスト名',
+            'port' => 'ポート',
+            'database' => 'データベース',
+            'username' => 'ユーザー名',
+            'password' => 'パスワード',
+        ],
+
+        'help' => [
+            'installing' => '初期データをインストールします。この処理には時間がかかります。',
+        ],
+
+        'error' => [
+            'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
+            'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
+            'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
+        ],
+    ],
+
     'system' => [
         'system_header' => 'システム設定',
         'system_description' => 'システム設定を変更します。',

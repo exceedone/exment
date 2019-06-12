@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Services\Installer\InstallService;
 
-class InitializeController extends Controller
+class InstallController extends Controller
 {
     /**
      * Index interface.

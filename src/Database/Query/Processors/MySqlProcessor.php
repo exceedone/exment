@@ -7,6 +7,42 @@ use Illuminate\Database\Query\Processors\MySqlProcessor as BaseMySqlProcessor;
 class MySqlProcessor extends BaseMySqlProcessor
 {
     /**
+     * Process the results of a get version.
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processGetVersion($results)
+    {
+        $versionArray = $this->versionAray($results);
+
+        return $versionArray[0];
+    }
+
+    /**
+     * Process the results of a mariadb
+     *
+     * @param  array  $results
+     * @return array
+     */
+    public function processIsMariaDB($results)
+    {
+        $versionArray = $this->versionAray($results);
+
+        if(count($versionArray) <= 1)
+        {
+            return false;
+        }
+
+        return strtolower($versionArray[1]) == 'mariadb';
+    }
+
+    protected function versionAray($results){
+        $version = collect(collect($results)->first())->first();
+        return explode('-', $version);
+    }
+
+    /**
      * Process the results of a table listing query.
      *
      * @param  array  $results
