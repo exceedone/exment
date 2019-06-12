@@ -24,6 +24,8 @@ return [
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
+        'published_at' => '公開日時', 
+        'published_date' => '公開日', 
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
@@ -73,6 +75,7 @@ return [
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
+        'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。'
@@ -190,6 +193,7 @@ return [
 
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
+            'news' => 'Exment新着情報一覧',
         ],
 
         'dashboard_menulist' => [
