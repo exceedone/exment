@@ -1092,6 +1092,7 @@ if (!function_exists('shouldPassThrough')) {
         if ($initialize) {
             $excepts = [
                 admin_base_path('initialize'),
+                admin_base_path('install'),
                 admin_base_path('template/search'),
             ];
         } else {

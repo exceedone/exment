@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Enums\InitializeStatus;
 
 /**
  * 
@@ -39,6 +40,8 @@ class LangForm
         ];
 
         $this->setEnv($inputs);
+
+        InstallService::setInitializeStatus(InitializeStatus::LANG);
 
         \Artisan::call('cache:clear');
         \Artisan::call('config:clear');

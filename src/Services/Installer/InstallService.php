@@ -37,7 +37,12 @@ class InstallService
     }
 
     public static function getStatus(){
-        if(is_null(env('APP_LOCALE'))){
+        
+        if(\DB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0){
+            return InitializeStatus::INITIALIZE;
+        }
+        
+        if(is_null($status = static::getInitializeStatus())){
             return InitializeStatus::LANG;
         }
 
@@ -45,13 +50,19 @@ class InstallService
             return InitializeStatus::DATABASE;
         }
 
-        if(is_null($envInitialize = env(Define::ENV_EXMENT_INITIALIZE))){
+        if($status == InitializeStatus::LANG){
             return InitializeStatus::DATABASE;
         }
         
         if(!\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0){
             return InitializeStatus::INSTALLING;
         }
+        
+        if($status == InitializeStatus::DATABASE){
+            return InitializeStatus::INSTALLING;
+        }
+
+        static::forgetInitializeStatus();
 
         return InitializeStatus::INITIALIZE;
     }
@@ -95,5 +106,17 @@ class InstallService
         }
 
         return new InitializeForm;
+    }
+
+    public static function getInitializeStatus(){
+        return session(Define::SYSTEM_KEY_SESSION_INITIALIZE);
+    }
+
+    public static function setInitializeStatus($status){
+        session([Define::SYSTEM_KEY_SESSION_INITIALIZE => $status]);
+    }
+
+    public static function forgetInitializeStatus(){
+        session()->forget(Define::SYSTEM_KEY_SESSION_INITIALIZE);
     }
 }

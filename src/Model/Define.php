@@ -133,8 +133,6 @@ class Define
         'Pacific_Fiji'         => "(GMT+12:00) Fiji",
     ];
 
-    public const ENV_EXMENT_INITIALIZE = 'EXMENT_INITIALIZE';
-    
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
     public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
