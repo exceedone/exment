@@ -133,13 +133,13 @@ class System extends ModelBase
             if (isset($system)) {
                 $value = $system->system_value;
             }
-            // if don't has data, but has default value in Define, return default value
-            elseif (!is_null(array_get($setting, 'default'))) {
-                $value = array_get($setting, 'default');
-            }
             // if don't has data, but has config value in Define, return value from config
             elseif (!is_null(array_get($setting, 'config'))) {
                 $value = Config::get(array_get($setting, 'config'));
+            }
+            // if don't has data, but has default value in Define, return default value
+            elseif (!is_null(array_get($setting, 'default'))) {
+                $value = array_get($setting, 'default');
             }
     
             $type = array_get($setting, 'type');

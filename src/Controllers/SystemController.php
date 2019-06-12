@@ -40,7 +40,7 @@ class SystemController extends AdminControllerBase
 
         $content->row(new Box(trans('admin.edit'), $form));
 
-        if (!config('exment.disabled_outside_api', false)) {
+        if (System::outside_api()) {
             // Version infomation
             $infoBox = $this->getVersionBox();
             $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));

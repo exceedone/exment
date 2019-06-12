@@ -79,10 +79,16 @@ trait InitializeFormTrait
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
             ->config('allowClear', false)
             ->help(exmtrans("system.help.site_layout"));
+        
         $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
             ->options(getPagerOptions())
             ->config('allowClear', false)
             ->help(exmtrans("system.help.grid_pager_count"));
+            
+        $form->switchbool('outside_api', exmtrans("system.outside_api"))
+            ->default(!config('exment.outside_api') ? 1 : 0)
+            ->help(exmtrans("system.help.outside_api"));
+    
         $form->switchbool('permission_available', exmtrans("system.permission_available"))
             ->help(exmtrans("system.help.permission_available"));
         $form->switchbool('organization_available', exmtrans("system.organization_available"))

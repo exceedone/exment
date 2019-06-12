@@ -133,8 +133,6 @@ class Define
         'Pacific_Fiji'         => "(GMT+12:00) Fiji",
     ];
 
-    public const ENV_EXMENT_INITIALIZE = 'EXMENT_INITIALIZE';
-    
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
     public const COMPOSER_VERSION_CHECK_URL = 'https://repo.packagist.org/p/exceedone/exment.json';
     public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
@@ -154,6 +152,7 @@ class Define
         'site_logo_mini' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
+        'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         ///'system_role' => ['type' => 'json'],
@@ -194,6 +193,7 @@ class Define
     public const SYSTEM_KEY_SESSION_AUTHORITY = "role";
     public const SYSTEM_KEY_SESSION_USER_SETTING = "user_setting";
     public const SYSTEM_KEY_SESSION_SYSTEM_VERSION = "system_version";
+    public const SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE = "system_version_execute";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_IDS = "organization_ids";
     public const SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID = "file_uploaded_uuid";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";

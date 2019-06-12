@@ -3,6 +3,7 @@ namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DatabaseType;
+use Exceedone\Exment\Enums\InitializeStatus;
 
 /**
  * 
@@ -74,9 +75,10 @@ class DatabaseForm
         foreach(static::settings as $s){
             $inputs['DB_' . strtoupper($s)] = $request->get($s);
         }
-        $inputs[Define::ENV_EXMENT_INITIALIZE] = 1;
 
         $this->setEnv($inputs);
+
+        InstallService::setInitializeStatus(InitializeStatus::DATABASE);
 
         \Artisan::call('cache:clear');
         \Artisan::call('config:clear');
