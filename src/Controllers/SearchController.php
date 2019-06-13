@@ -157,7 +157,7 @@ EOT;
                 continue;
             }
             var url = admin_url('search/list?table_name=' + table.table_name + '&query=' + $('.base_query').val());
-            getNaviDataItem(url, table.table_name);
+            getNaviDataItem(url, table.box_key);
         }
     }
 EOT;
@@ -286,7 +286,7 @@ function getNaviData() {
             + '&value_id=' + $('.value_id').val()
             + '&search_type=' + table.search_type
         );
-        getNaviDataItem(url, table.table_name);
+        getNaviDataItem(url, table.box_key);
     }
 }
 EOT;
@@ -397,6 +397,9 @@ EOT;
         if (CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }
+
+        // add table box key
+        $array['box_key'] = short_uuid();
         return $array;
     }
     protected function getBoxHeaderHtml($custom_table)
@@ -423,32 +426,33 @@ EOT;
     $(function () {
         getNaviData();
     });
-    function getNaviDataItem(url, table_name){
-        var box = $('.table_' + table_name);
+    function getNaviDataItem(url, box_key){
+        var box = $('[data-box_key="' + box_key + '"]');
         box.find('.overlay').show();
         // Get Data
         $.ajax({
             url: url,
             type: 'GET',
+            context: {box: box},
         })
         // Execute when success Ajax Request
-        .done((data) => {
-            var box = $('.table_' + data.table_name);
+        .done(function(data){
+            var box = this.box;
             box.find('.box-body .box-body-inner-header').html(data.header);
             box.find('.box-body .box-body-inner-body').html(data.body);
             box.find('.box-body .box-body-inner-footer').html(data.footer);
             box.find('.overlay').hide();
             Exment.CommonEvent.tableHoverLink();
         })
-        .always((data) => {
+        .always(function(data){
         });
     }
     ///// click dashboard link event
     $(document).off('click', '[data-ajax-link]').on('click', '[data-ajax-link]', [], function(ev){
         // get link
         var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
-        var table_name = $(ev.target).closest('[data-table_name]').data('table_name');
-        getNaviDataItem(url, table_name);
+        var box_key = $(ev.target).closest('[data-box_key]').data('box_key');
+        getNaviDataItem(url, box_key);
     });
 EOT;
         Admin::script($script);
