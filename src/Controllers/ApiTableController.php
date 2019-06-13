@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
@@ -375,6 +376,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // filtered query
+        $custom_view = CustomView::getDefault($this->custom_table);
         $start = $request->get('start');
         $end = $request->get('end');
         if (!isset($start) || !isset($end)) {
@@ -388,10 +390,10 @@ class ApiTableController extends AdminControllerTableBase
         // get paginate
         $model = $this->custom_table->getValueModel();
         // filter model
-        $model = \Exment::user()->filterModel($model, $table_name, $this->custom_view);
+        $model = \Exment::user()->filterModel($model, $table_name, $custom_view);
 
         $tasks = [];
-        foreach ($this->custom_view->custom_view_columns as $custom_view_column) {
+        foreach ($custom_view->custom_view_columns as $custom_view_column) {
             if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                 $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
             } else {
