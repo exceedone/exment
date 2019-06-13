@@ -187,6 +187,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 continue;
             }
 
+            // if same table, continue
+            if($this->id == $custom_table->id){
+                continue;
+            }
+
             // get children tables
             $relations = $custom_table->getRelationTables();
             // if not exists, continue
