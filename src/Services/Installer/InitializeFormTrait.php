@@ -80,11 +80,13 @@ trait InitializeFormTrait
             ->config('allowClear', false)
             ->help(exmtrans("system.help.site_layout"));
         
-        $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
+        if($system_page){
+            $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
             ->options(getPagerOptions())
             ->config('allowClear', false)
             ->help(exmtrans("system.help.grid_pager_count"));
-            
+        }
+        
         $form->switchbool('outside_api', exmtrans("system.outside_api"))
             ->default(!config('exment.outside_api') ? 1 : 0)
             ->help(exmtrans("system.help.outside_api"));
