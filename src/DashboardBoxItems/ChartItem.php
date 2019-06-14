@@ -19,6 +19,8 @@ use Exceedone\Exment\Enums\ViewKindType;
 
 class ChartItem implements ItemInterface
 {
+    use TableItemTrait;
+    
     protected $dashboard_box;
 
     protected $custom_table;
@@ -62,7 +64,7 @@ class ChartItem implements ItemInterface
      */
     public function header()
     {
-        return null;
+        return $this->tableheader();
     }
     
     /**
@@ -79,6 +81,10 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
+        if(!$this->hasPermission()){
+            return trans('admin.deny');
+        }
+        
         if (is_null($this->custom_view)) {
             return null;
         }

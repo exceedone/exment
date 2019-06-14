@@ -6,40 +6,37 @@ use Illuminate\Support\Collection;
 
 class SummaryProvider extends DefaultTableProvider
 {
+    protected $custom_view;
+
+    protected $summary_index_and_view_columns;
+    
+    public function __construct($args = [])
+    {
+        parent::__construct($args);
+
+        $this->custom_view = array_get($args, 'custom_view');
+
+        $this->summary_index_and_view_columns = $this->custom_view->getSummaryIndexAndViewColumns();
+    }
+
     /**
      * get data
      */
     public function data()
     {
-        // get header info
-        $columnDefines = $this->getColumnDefines();
         // get header and body
-        $headers = $this->getHeaders($columnDefines);
+        $headers = $this->getHeaders(null);
 
         // if only template, output only headers
         if ($this->template) {
             $bodies = [];
         } else {
-            $bodies = $this->getBodies($this->getRecords(), $columnDefines);
+            $bodies = $this->getBodies($this->getRecords(), null);
         }
         // get output items
         $outputs = array_merge($headers, $bodies);
 
         return $outputs;
-    }
-
-    /**
-     * get column info
-     * @return mixed list. first:fixed column id, suuid, parent_id, parent_type. second: custom columns: third: created_at, updated_at, deleted_at
-     */
-    protected function getColumnDefines()
-    {
-        $firstColumns = ['id','suuid','parent_id','parent_type'];
-        $lastColumns = ['created_at','updated_at','deleted_at'];
-
-        // get custom columns
-        $custom_columns = $this->custom_table->custom_columns()->get(['column_name', 'column_view_name'])->toArray();
-        return [$firstColumns, $custom_columns, $lastColumns];
     }
 
     /**
@@ -50,30 +47,18 @@ class SummaryProvider extends DefaultTableProvider
     {
         // create 2 rows.
         $rows = [];
-
-        list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;
         
         // 1st row, column name
-        $rows[] = array_merge(
-            $firstColumns,
-            collect($custom_columns)->map(function ($value) {
-                return "value.".array_get($value, 'column_name');
-            })->toArray(),
-            $lastColumns
-        );
-
-        // 2st row, column view name
-        $rows[] = array_merge(
-            collect($firstColumns)->map(function ($value) {
-                return exmtrans("common.$value");
-            })->toArray(),
-            collect($custom_columns)->map(function ($value) {
-                return array_get($value, 'column_view_name');
-            })->toArray(),
-            collect($lastColumns)->map(function ($value) {
-                return exmtrans("common.$value");
-            })->toArray()
-        );
+        $rows[] = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) {
+            $item = array_get($summary_index_and_view_column, 'item');
+            return $item->column_item->name() ?? null;
+        })->toArray();
+        
+        $rows[] = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) {
+            $item = array_get($summary_index_and_view_column, 'item');
+            return array_get($item, 'view_column_name')?? $item->column_item->label();
+        })->toArray();
+        
         return $rows;
     }
 
@@ -82,13 +67,7 @@ class SummaryProvider extends DefaultTableProvider
      */
     protected function getRecords()
     {
-        $this->grid->getFilter()->chunk(function ($data) use (&$records) {
-            if (!isset($records)) {
-                $records = new Collection;
-            }
-            $records = $records->merge($data);
-        }) ?? [];
-
+        $records = collect($this->grid->getFilter()->execute());
         return $records;
     }
 
@@ -99,37 +78,24 @@ class SummaryProvider extends DefaultTableProvider
     {
         $bodies = [];
 
-        list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;
-        // convert $custom_columns to pluck column_name array
-        $custom_column_names = collect($custom_columns)->pluck('column_name')->toArray();
         foreach ($records as $record) {
-            $body_items = [];
             // add items
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value."));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
+            $body_items = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) use($record) {
+                $index = array_get($summary_index_and_view_column, 'index');
+                $item = array_get($summary_index_and_view_column, 'item');
+
+                return $item->column_item->options([
+                    'summary' => true,
+                    'summary_index' => $index,
+                    'disable_number_format' => true,
+                    'disable_currency_symbol' => true,
+                ])->setCustomValue($record)->text();
+                //return array_get($record, 'column_' . $index);
+            })->toArray();
 
             $bodies[] = $body_items;
         }
 
         return $bodies;
-    }
-
-    /**
-     * get export body items
-     */
-    protected function getBodyItems($record, $columns, $array_header_key = null)
-    {
-        $body_items = [];
-        foreach ($columns as $column) {
-            // get key.
-            $key = (isset($array_header_key) ? $array_header_key : "").$column;
-            $value = array_get($record, $key);
-            if (is_array($value)) {
-                $value = implode(",", $value);
-            }
-            $body_items[] = $value;
-        }
-        return $body_items;
     }
 }

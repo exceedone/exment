@@ -30,7 +30,8 @@ trait CustomValueSummary
             ->exportAction(new DataImportExport\Actions\Export\SummaryAction(
                 [
                     'grid' => $grid,
-                    'custom_table' => $this->custom_table
+                    'custom_table' => $this->custom_table,
+                    'custom_view' => $this->custom_view,
                 ]
             ));
         $grid->exporter($service);

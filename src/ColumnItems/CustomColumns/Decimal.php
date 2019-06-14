@@ -95,4 +95,13 @@ class Decimal extends CustomItem
             return $grammar->getCastString(DatabaseDataType::TYPE_DECIMAL, true);
         }
     }
+
+    /**
+     * whether column is Numeric
+     *
+     */
+    public function isNumeric()
+    {
+        return true;
+    }
 }

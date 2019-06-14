@@ -14,6 +14,8 @@ use Exceedone\Exment\Enums\ViewKindType;
 
 class ListItem implements ItemInterface
 {
+    use TableItemTrait;
+
     protected $dashboard_box;
     
     protected $custom_table;
@@ -51,29 +53,7 @@ class ListItem implements ItemInterface
      */
     public function header()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
-            return null;
-        }
-    
-        // check edit permission
-        if ($this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            $new_url= admin_url("data/{$this->custom_table->table_name}/create");
-            $list_url = admin_url("data/{$this->custom_table->table_name}?view=".$this->custom_view->suuid);
-        } else {
-            $new_url = null;
-            $list_url = null;
-        }
-
-        return view('exment::dashboard.list.header', [
-            'new_url' => $new_url,
-            'list_url' => $list_url,
-        ])->render();
+        return $this->tableheader();
     }
     
     /**
@@ -82,13 +62,7 @@ class ListItem implements ItemInterface
      */
     public function body()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
+        if(!$this->hasPermission()){
             return trans('admin.deny');
         }
         
@@ -119,13 +93,7 @@ class ListItem implements ItemInterface
      */
     public function footer()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
+        if(!$this->hasPermission()){
             return null;
         }
 

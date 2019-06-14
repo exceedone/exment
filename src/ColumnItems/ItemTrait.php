@@ -110,4 +110,13 @@ trait ItemTrait
     {
         return false;
     }
+
+    /**
+     * whether column is Numeric
+     *
+     */
+    public function isNumeric()
+    {
+        return false;
+    }
 }

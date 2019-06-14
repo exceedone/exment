@@ -411,34 +411,35 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $custom_tables = [];
 
         // set grouping columns
-        foreach ($this->custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->column_item;
+        $view_column_items = $this->getSummaryIndexAndViewColumns();
+        foreach ($view_column_items as $view_column_item) {
+            $item = array_get($view_column_item, 'item');
+            $index = array_get($view_column_item, 'index');
+            $column_item = $item->column_item;
 
-            // first, set group_column. this column's name uses index.
-            $item->options(['groupby' => true, 'group_condition' => array_get($custom_view_column, 'view_group_condition')]);
-            $group_columns[] = $item->sqlname();
-            $item->options(['groupby' => false, 'group_condition' => null]);
+            if($item instanceof CustomViewColumn){
+                // first, set group_column. this column's name uses index.
+                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition')]);
+                $group_columns[] = $column_item->sqlname();
+                $column_item->options(['groupby' => false, 'group_condition' => null]);
 
-            // parent_id need parent_type
-            if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
-                $group_columns[] = $item->sqltypename();
+                // parent_id need parent_type
+                if ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
+                    $group_columns[] = $column_item->sqltypename();
+                }
+
+                $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
+                    'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
+                    'custom_view_column' => $item,
+                ]);
             }
-
-            $alter_column_index = ViewKindType::DEFAULT . '_' . $custom_view_column->id;
-            $this->setSummaryItem($item, $alter_column_index, $custom_tables, $grid, [
-                'column_label' => array_get($custom_view_column, 'view_column_name')?? $item->label(),
-                'custom_view_column' => $custom_view_column,
-            ]);
-        }
-        // set summary columns
-        foreach ($this->custom_view_summaries as $custom_view_summary) {
-            $item = $custom_view_summary->column_item;
-
-            $alter_column_index = ViewKindType::AGGREGATE . '_' . $custom_view_summary->id;
-            $this->setSummaryItem($item, $alter_column_index, $custom_tables, $grid, [
-                'column_label' => array_get($custom_view_summary, 'view_column_name')?? $item->label(),
-                'summary_condition' => $custom_view_summary->view_summary_condition
-            ]);
+            // set summary columns
+            else{
+                $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
+                    'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
+                    'summary_condition' => $item->view_summary_condition
+                ]);
+            }
         }
 
         // set filter columns
@@ -614,6 +615,33 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
         return $sub_query;
+    }
+
+    /**
+     * Get arrays about Summary Column and custom_view_columns and custom_view_summaries
+     *
+     * @return void
+     */
+    public function getSummaryIndexAndViewColumns(){
+
+        $results = [];
+        // set grouping columns
+        foreach ($this->custom_view_columns as $custom_view_column) {
+            $results[] = [
+                'index' => ViewKindType::DEFAULT . '_' . $custom_view_column->id,
+                'item' => $custom_view_column,
+            ];
+        }
+        // set summary columns
+        foreach ($this->custom_view_summaries as $custom_view_summary) {
+            $results[] = [
+                'index' => ViewKindType::AGGREGATE . '_' . $custom_view_summary->id,
+                'item' => $custom_view_summary,
+            ];
+            $item = $custom_view_summary->column_item;
+        }
+
+        return $results;
     }
 
     /**

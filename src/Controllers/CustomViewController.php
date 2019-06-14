@@ -448,8 +448,14 @@ EOT;
         if (!isset($view_column_target)) {
             return [];
         }
-        // target column type for summary is numeric or system only
-        if (is_numeric($view_column_target)) {
+
+        $columnItem = CustomViewColumn::getColumnItem($view_column_target);
+        if(!isset($columnItem)){
+            return [];
+        }
+
+        // only numeric
+        if ($columnItem->isNumeric()) {
             $options = SummaryCondition::getOptions();
         } else {
             $options = SummaryCondition::getOptions(['numeric' => false]);

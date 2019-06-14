@@ -8,6 +8,17 @@ use Exceedone\Exment\Enums\RelationType;
 
 class SummaryAction extends CustomTableAction
 {
+    protected $custom_view;
+    
+    public function __construct($args = [])
+    {
+        $this->custom_table = array_get($args, 'custom_table');
+
+        $this->custom_view = array_get($args, 'custom_view');
+
+        $this->grid = array_get($args, 'grid');
+    }
+
     public function datalist()
     {
         $providers = [];
@@ -15,6 +26,7 @@ class SummaryAction extends CustomTableAction
         // get default data
         $providers[] = new Export\SummaryProvider([
             'custom_table' => $this->custom_table,
+            'custom_view' => $this->custom_view,
             'grid' => $this->grid
         ]);
         
