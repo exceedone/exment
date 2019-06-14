@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\DataImportExport;
 
 trait CustomValueSummary
 {
@@ -24,8 +25,18 @@ trait CustomValueSummary
         $grid->disableRowSelector();
         $grid->disableExport();
 
+        // create exporter
+        $service = (new DataImportExport\DataImportExportService())
+            ->exportAction(new DataImportExport\Actions\Export\SummaryAction(
+                [
+                    'grid' => $grid,
+                    'custom_table' => $this->custom_table
+                ]
+            ));
+        $grid->exporter($service);
+        
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
-            //$tools->append(new Tools\ExportImportButton($this->custom_table->table_name, $grid, true));
+            $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true));
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
         });
