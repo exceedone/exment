@@ -54,13 +54,16 @@ trait CustomValueSummary
             $item = $custom_view_column->column_item;
 
             // first, set group_column. this column's name uses index.
+            $item->options(['groupby' => true, 'group_condition' => array_get($custom_view_column, 'view_group_condition')]);
             $group_columns[] = $item->sqlname();
+            $item->options(['groupby' => false, 'group_condition' => null]);
+
             // parent_id need parent_type
             if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
                 $group_columns[] = $item->sqltypename();
             }
             $column_label = array_get($custom_view_column, 'view_column_name')?? $item->label();
-            $this->setSummaryGridItem($item, $index, $column_label, $grid, $custom_tables);
+            $this->setSummaryGridItem($item, $index, $column_label, $grid, $custom_tables, null, $custom_view_column);
 
             $index++;
         }
@@ -196,13 +199,14 @@ trait CustomValueSummary
     /**
      * set summary grid item
      */
-    protected function setSummaryGridItem($item, $index, $column_label, &$grid, &$custom_tables, $summary_condition = null)
+    protected function setSummaryGridItem($item, $index, $column_label, &$grid, &$custom_tables, $summary_condition = null, $custom_view_column = null)
     {
         $item->options([
             'summary' => true,
             'summary_condition' => $summary_condition,
             'summary_index' => $index,
-            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT)
+            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
+            'group_condition' => array_get($custom_view_column, 'view_group_condition'),
         ]);
 
         $grid->column('column_'.$index, $column_label)

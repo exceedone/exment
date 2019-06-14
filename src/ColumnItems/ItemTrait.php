@@ -101,4 +101,13 @@ trait ItemTrait
 
         return "CAST($index AS $cast)";
     }
+
+    /**
+     * whether column is date
+     *
+     */
+    public function isDate()
+    {
+        return false;
+    }
 }

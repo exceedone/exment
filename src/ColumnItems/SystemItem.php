@@ -57,7 +57,7 @@ class SystemItem implements ItemInterface
     public function getGroupName()
     {
         if (boolval(array_get($this->options, 'summary'))) {
-            $summary_condition = SummaryCondition::getGroupCondition(array_get($this->options, 'summary_condition'));
+            $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
             $alter_name = $this->sqlAsName();
             $raw = "$summary_condition($alter_name) AS $alter_name";
             return \DB::raw($raw);
@@ -205,6 +205,18 @@ class SystemItem implements ItemInterface
         }
 
         return $field;
+    }
+
+    /**
+     * whether column is date
+     *
+     */
+    public function isDate()
+    {
+        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $value_type = array_get($option, 'type');
+
+        return in_array($value_type, ['day', 'datetime']);
     }
 
     /**

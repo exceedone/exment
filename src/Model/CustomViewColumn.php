@@ -12,14 +12,14 @@ class CustomViewColumn extends ModelBase
     use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_column_end_date', 'view_column_color', 'view_column_font_color'];
+    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color'];
     protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => [
-            'import' => ['view_column_target', 'custom_column', 'target_view_name', 'view_column_name'],
-            'export' => ['custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_column_table_id', 'view_column_target_id'],
+            'import' => ['view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_group_condition'],
+            'export' => ['custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_column_table_id', 'view_column_target_id', 'view_group_condition'],
         ],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
@@ -111,6 +111,17 @@ class CustomViewColumn extends ModelBase
 
         return $this;
     }
+
+    
+    public function getViewGroupConditionAttribute()
+    {
+        return $this->getOption('view_group_condition');
+    }
+    public function setViewGroupConditionAttribute($view_group_condition)
+    {
+        return $this->setOption('view_group_condition', $view_group_condition);
+    }
+
     public function getViewColumnEndDateTypeAttribute()
     {
         return $this->getOption('end_date_type');
