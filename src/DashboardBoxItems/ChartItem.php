@@ -96,7 +96,7 @@ class ChartItem implements ItemInterface
                 'summary_index' => $this->axis_x
             ]);
             // get data
-            $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
+            $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name)->get();
             $chart_label = $datalist->map(function ($val) use ($item_x) {
                 $item = $item_x->setCustomValue($val);
                 $option = SystemColumn::getOption(['name' => $item->name()]);

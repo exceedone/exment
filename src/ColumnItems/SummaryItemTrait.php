@@ -40,15 +40,11 @@ trait SummaryItemTrait
     {
         extract($this->getSummaryParams());
         
-        if(isset($group_format)){
-            if(boolval(array_get($this->options, 'groupby'))){
-                $raw = "DATE_FORMAT($value_column, '$group_format')";
-            }else{
-                $raw = "DATE_FORMAT($value_column, '$group_format') AS ".$this->sqlAsName();
-            }
+        if (isset($group_format)) {
+            $raw = "DATE_FORMAT($value_column, '$group_format')";
         }
         else {
-            $raw = "$value_column AS ".$this->sqlAsName();
+            $raw = "$value_column";
         }
 
         return \DB::raw($raw);
