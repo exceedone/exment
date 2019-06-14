@@ -214,9 +214,6 @@ class Define
     }
     
     public const HELP_URLS = [
-        ['uri'=> '/', 'help_uri'=> 'dashboard'],
-        ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
-        ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'search', 'help_uri'=> 'search'],
         ['uri'=> 'table', 'help_uri'=> 'table'],
@@ -233,7 +230,10 @@ class Define
         ['uri'=> 'data/user', 'help_uri'=> 'user'],
         ['uri'=> 'data/mail_template', 'help_uri'=> 'mail'],
         ['uri'=> 'data/base_info', 'help_uri'=> 'base_info'],
-        ['uri'=> 'data', 'help_uri'=> 'data']
+        ['uri'=> 'data', 'help_uri'=> 'data'],
+        ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
+        ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 
     public const SETTING_SHEET_NAME = '##setting##';
