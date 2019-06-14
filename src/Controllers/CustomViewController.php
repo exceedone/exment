@@ -11,10 +11,12 @@ use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\SummaryCondition;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -226,10 +228,29 @@ class CustomViewController extends AdminControllerTableBase
                 // group columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true));
+                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true))
+                        ->attribute([
+                            'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),
+                            'data-change_field_target' => 'view_column_target',
+                        ]);
+                    
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+
+                    $controller = $this;
+                    $form->select('view_group_condition', exmtrans("custom_view.view_group_condition"))
+                        ->options(function ($val, $form) use($controller) {
+                            if(is_null($data = $form->data())){
+                                return [];
+                            }
+                            if(is_null($view_column_target = array_get($data, 'view_column_target'))){
+                                return [];
+                            }
+                            return collect($controller->_getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
+                        });
+
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-                })->required()->setTableColumnWidth(4, 3, 2, 1)
+
+                })->required()->setTableColumnWidth(4, 3, 2, 2, 1)
                 ->description(exmtrans("custom_view.description_custom_view_groups"));
 
                 // summary columns setting
@@ -435,6 +456,36 @@ EOT;
         }
         return collect($options)->map(function ($array) {
             return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.summary_condition_options.'.array_get($array, 'name'))];
+        });
+    }
+
+    public function getGroupCondition(Request $request){
+        return $this->_getGroupCondition($request->get('q'));
+    }
+
+    /**
+     * get group condition
+     */
+    protected function _getGroupCondition($view_column_target = null)
+    {
+        if (!isset($view_column_target)) {
+            return [];
+        }    
+
+        // get column item from $view_column_target
+        $columnItem = CustomViewColumn::getColumnItem($view_column_target);
+        if(!isset($columnItem)){
+            return [];
+        }
+
+        if(!$columnItem->isDate()){
+            return [];
+        }
+
+        // if date, return option
+        $options = GroupCondition::getOptions();
+        return collect($options)->map(function ($array) {
+            return ['id' => array_get($array, 'id'), 'text' => exmtrans('custom_view.group_condition_options.'.array_get($array, 'name'))];
         });
     }
 

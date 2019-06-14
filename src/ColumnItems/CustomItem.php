@@ -68,6 +68,9 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
+        if (boolval(array_get($this->options, 'groupby'))) {
+            return $this->getGroupBySqlName();
+        }
         if (!$this->custom_column->index_enabled) {
             return 'value->'.$this->custom_column->column_name;
         }
