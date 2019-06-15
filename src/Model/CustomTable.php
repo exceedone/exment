@@ -88,6 +88,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('multisetting_type', 1);
     }
 
+    public function table_labels()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', 2);
+    }
+
     /**
      * Get Columns where select_target_table's id is this table.
      *

@@ -85,13 +85,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->index_enabled', [1, "1", true]);
     }
 
-    public function scopeUseLabelFlg($query)
-    {
-        return $query
-            ->whereNotIn('options->use_label_flg', [0, "0"])
-            ->orderBy('options->use_label_flg');
-    }
-
     public function getColumnItemAttribute()
     {
         return ColumnItems\CustomItem::getItem($this);
