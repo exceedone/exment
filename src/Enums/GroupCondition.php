@@ -21,13 +21,4 @@ class GroupCondition extends EnumBase
         ['id' => 'd', 'name' => 'd'],
         ['id' => 'w', 'name' => 'w'],
     ];
-
-    // public static function getGroupCondition($value)
-    // {
-    //     $option = self::getOption(['id' => $value]);
-    //     if (array_get($option, 'countable')) {
-    //         return self::getEnum(self::SUM)->lowerKey();
-    //     }
-    //     return self::getEnum(self::MIN)->lowerKey();
-    // }
 }

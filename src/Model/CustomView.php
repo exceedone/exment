@@ -602,10 +602,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $table_name = array_get($custom_table, 'table_name');
         $sub_query = \DB::table($table_main)
-            ->select("$table_main.id")
+            ->select("$table_name.$key_sub as id")
             ->join($table_name, "$table_main.$key_main", "$table_name.$key_sub")
             ->whereNull("$table_name.deleted_at")
-            ->groupBy("$table_main.id");
+            ->groupBy("$table_name.$key_sub");
         if (array_key_exists('select', $custom_table)) {
             $sub_query->addSelect($custom_table['select']);
         }

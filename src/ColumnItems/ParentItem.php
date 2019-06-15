@@ -95,7 +95,7 @@ class ParentItem implements ItemInterface
     {
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
-            $this->id = $custom_value->id;
+            $this->id = array_get($custom_value, 'id');;
         }
         $this->prepare();
         
