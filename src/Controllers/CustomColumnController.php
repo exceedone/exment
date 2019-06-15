@@ -310,20 +310,19 @@ class CustomColumnController extends AdminControllerTableBase
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
-                ->options(function ($select_table, $form) use($id) {
+                ->options(function ($select_table, $form) use ($id) {
                     $data = $form->data();
-                    if (!isset($data)){
+                    if (!isset($data)) {
                         return [];
                     }
 
                     // whether column_type is user or org
-                    if(!is_null(old('column_type'))){
+                    if (!is_null(old('column_type'))) {
                         $model = CustomColumn::getEloquent(old('column_type'), $this->custom_table);
-                    }
-                    elseif(isset($id) || old('column_type')){
+                    } elseif (isset($id) || old('column_type')) {
                         $model = CustomColumn::getEloquent($id);
                     }
-                    if(isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])){
+                    if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
                         return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
                     }
 

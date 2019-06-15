@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field\Select;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 
@@ -95,7 +94,8 @@ class ParentItem implements ItemInterface
     {
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
-            $this->id = $custom_value->id;
+            $this->id = array_get($custom_value, 'id');
+            ;
         }
         $this->prepare();
         

@@ -100,4 +100,13 @@ class Date extends CustomItem
     {
         return \Carbon\Carbon::now()->format('Y-m-d');
     }
+
+    /**
+     * whether column is date
+     *
+     */
+    public function isDate()
+    {
+        return true;
+    }
 }
