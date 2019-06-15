@@ -93,7 +93,7 @@ class SqlServerGrammar extends BaseGrammar
             case GroupCondition::D:
                 return "format(datepart(DAY, $column), '00')";
             case GroupCondition::W:
-                if($groupBy){
+                if ($groupBy) {
                     return "datepart(WEEKDAY, $column)";
                 }
                 return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
@@ -107,15 +107,14 @@ class SqlServerGrammar extends BaseGrammar
      *
      * @return void
      */
-    protected function getWeekdayCaseWhenQuery($str){
-
+    protected function getWeekdayCaseWhenQuery($str)
+    {
         $queries = [];
 
         // get weekday and no list
         $weekdayNos = $this->getWeekdayNolist();
 
-        foreach($weekdayNos as $no => $weekdayKey){
-
+        foreach ($weekdayNos as $no => $weekdayKey) {
             $weekday = exmtrans('common.weekday.' . $weekdayKey);
             $queries[] = "when {$no} then '$weekday'";
         }
@@ -126,7 +125,8 @@ class SqlServerGrammar extends BaseGrammar
         return "(case {$str} {$when} end)";
     }
 
-    protected function getWeekdayNolist(){
+    protected function getWeekdayNolist()
+    {
         return [
             '1' => 'sun',
             '2' => 'mon',

@@ -74,7 +74,7 @@ class MySqlGrammar extends BaseGrammar
      * @param GroupCondition $groupCondition Y, YM, YMD, ...
      * @param string $column column name
      * @param bool $groupBy if group by query, return true
-     * 
+     *
      * @return void
      */
     public function getDateFormatString($groupCondition, $column, $groupBy = false)
@@ -93,7 +93,7 @@ class MySqlGrammar extends BaseGrammar
             case GroupCondition::D:
                 return "date_format($column, '%d')";
             case GroupCondition::W:
-                if($groupBy){
+                if ($groupBy) {
                     return "date_format($column, '%w')";
                 }
                 return $this->getWeekdayCaseWhenQuery("date_format($column, '%w')");
@@ -107,15 +107,14 @@ class MySqlGrammar extends BaseGrammar
      *
      * @return void
      */
-    protected function getWeekdayCaseWhenQuery($str){
-
+    protected function getWeekdayCaseWhenQuery($str)
+    {
         $queries = [];
 
         // get weekday and no list
         $weekdayNos = $this->getWeekdayNolist();
 
-        foreach($weekdayNos as $no => $weekdayKey){
-
+        foreach ($weekdayNos as $no => $weekdayKey) {
             $weekday = exmtrans('common.weekday.' . $weekdayKey);
             $queries[] = "when {$no} then '$weekday'";
         }
@@ -126,7 +125,8 @@ class MySqlGrammar extends BaseGrammar
         return "(case {$str} {$when} end)";
     }
 
-    protected function getWeekdayNolist(){
+    protected function getWeekdayNolist()
+    {
         return [
             '0' => 'sun',
             '1' => 'mon',

@@ -11,7 +11,8 @@ trait TableItemTrait
      *
      * @return boolean
      */
-    protected function hasPermission(){
+    protected function hasPermission()
+    {
         // if table not found, break
         if (!isset($this->custom_table) || !isset($this->custom_view)) {
             return null;
@@ -27,7 +28,7 @@ trait TableItemTrait
 
     protected function tableheader()
     {
-        if(!$this->hasPermission()){
+        if (!$this->hasPermission()) {
             return null;
         }
 

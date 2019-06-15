@@ -81,7 +81,7 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
-        if(!$this->hasPermission()){
+        if (!$this->hasPermission()) {
             return trans('admin.deny');
         }
         

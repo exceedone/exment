@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
-use Illuminate\Support\Collection;
-
 class SummaryProvider extends DefaultTableProvider
 {
     protected $custom_view;
@@ -80,7 +78,7 @@ class SummaryProvider extends DefaultTableProvider
 
         foreach ($records as $record) {
             // add items
-            $body_items = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) use($record) {
+            $body_items = collect($this->summary_index_and_view_columns)->map(function ($summary_index_and_view_column) use ($record) {
                 $index = array_get($summary_index_and_view_column, 'index');
                 $item = array_get($summary_index_and_view_column, 'item');
 

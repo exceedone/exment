@@ -417,7 +417,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $index = array_get($view_column_item, 'index');
             $column_item = $item->column_item;
 
-            if($item instanceof CustomViewColumn){
+            if ($item instanceof CustomViewColumn) {
                 // first, set group_column. this column's name uses index.
                 $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition')]);
                 $group_columns[] = $column_item->sqlname();
@@ -434,7 +434,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ]);
             }
             // set summary columns
-            else{
+            else {
                 $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
                     'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
                     'summary_condition' => $item->view_summary_condition
@@ -532,8 +532,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 'column_label' => null,
                 'summary_condition' => null,
                 'custom_view_column' => null,
-            ]
-            , $options
+            ],
+            $options
         ));
 
         $item->options([
@@ -561,7 +561,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $custom_tables[$table_id]['select_group'][] = $item->getGroupName();
         }
         
-        if(isset($grid)){
+        if (isset($grid)) {
             $grid->column("column_".$index, $column_label)
             ->sort($item->sortable())
             ->display(function ($id) use ($item, $index) {
@@ -622,8 +622,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @return void
      */
-    public function getSummaryIndexAndViewColumns(){
-
+    public function getSummaryIndexAndViewColumns()
+    {
         $results = [];
         // set grouping columns
         foreach ($this->custom_view_columns as $custom_view_column) {

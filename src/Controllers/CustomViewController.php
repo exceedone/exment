@@ -243,18 +243,17 @@ class CustomViewController extends AdminControllerTableBase
 
                     $controller = $this;
                     $form->select('view_group_condition', exmtrans("custom_view.view_group_condition"))
-                        ->options(function ($val, $form) use($controller) {
-                            if(is_null($data = $form->data())){
+                        ->options(function ($val, $form) use ($controller) {
+                            if (is_null($data = $form->data())) {
                                 return [];
                             }
-                            if(is_null($view_column_target = array_get($data, 'view_column_target'))){
+                            if (is_null($view_column_target = array_get($data, 'view_column_target'))) {
                                 return [];
                             }
                             return collect($controller->_getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
                         });
 
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-
                 })->required()->setTableColumnWidth(4, 3, 2, 2, 1)
                 ->description(exmtrans("custom_view.description_custom_view_groups"));
 
@@ -455,7 +454,7 @@ EOT;
         }
 
         $columnItem = CustomViewColumn::getColumnItem($view_column_target);
-        if(!isset($columnItem)){
+        if (!isset($columnItem)) {
             return [];
         }
 
@@ -470,7 +469,8 @@ EOT;
         });
     }
 
-    public function getGroupCondition(Request $request){
+    public function getGroupCondition(Request $request)
+    {
         return $this->_getGroupCondition($request->get('q'));
     }
 
@@ -481,15 +481,15 @@ EOT;
     {
         if (!isset($view_column_target)) {
             return [];
-        }    
+        }
 
         // get column item from $view_column_target
         $columnItem = CustomViewColumn::getColumnItem($view_column_target);
-        if(!isset($columnItem)){
+        if (!isset($columnItem)) {
             return [];
         }
 
-        if(!$columnItem->isDate()){
+        if (!$columnItem->isDate()) {
             return [];
         }
 

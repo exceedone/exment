@@ -3,8 +3,6 @@
 namespace Exceedone\Exment\Services\DataImportExport\Actions\Export;
 
 use Exceedone\Exment\Services\DataImportExport\Providers\Export;
-use Exceedone\Exment\Model\CustomRelation;
-use Exceedone\Exment\Enums\RelationType;
 
 class SummaryAction extends CustomTableAction
 {

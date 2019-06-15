@@ -22,11 +22,9 @@ trait SummaryItemTrait
         
         if (isset($summary_condition)) {
             $raw = "$summary_condition($value_column) AS ".$this->sqlAsName();
-        } 
-        elseif(isset($group_condition)){
+        } elseif (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, false) . " AS ".$this->sqlAsName();
-        }
-        else {
+        } else {
             $raw = "$value_column AS ".$this->sqlAsName();
         }
 
@@ -42,15 +40,15 @@ trait SummaryItemTrait
         
         if (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, true);
-        }
-        else {
+        } else {
             $raw = "$value_column";
         }
 
         return \DB::raw($raw);
     }
 
-    protected function getSummaryParams(){
+    protected function getSummaryParams()
+    {
         $db_table_name = getDBTableName($this->custom_column->custom_table);
         $column_name = $this->custom_column->column_name;
 

@@ -62,7 +62,7 @@ class ListItem implements ItemInterface
      */
     public function body()
     {
-        if(!$this->hasPermission()){
+        if (!$this->hasPermission()) {
             return trans('admin.deny');
         }
         
@@ -93,7 +93,7 @@ class ListItem implements ItemInterface
      */
     public function footer()
     {
-        if(!$this->hasPermission()){
+        if (!$this->hasPermission()) {
             return null;
         }
 
