@@ -227,6 +227,7 @@ class CustomViewController extends AdminControllerTableBase
         
         $custom_table = $this->custom_table;
         $is_aggregate = false;
+        $manualUrl = getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'));
 
         switch (intval($view_kind_type)) {
             case Enums\ViewKindType::AGGREGATE:
@@ -255,7 +256,7 @@ class CustomViewController extends AdminControllerTableBase
 
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
                 })->required()->setTableColumnWidth(4, 3, 2, 2, 1)
-                ->description(exmtrans("custom_view.description_custom_view_groups"));
+                ->description(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
 
                 // summary columns setting
                 $form->hasManyTable('custom_view_summaries', exmtrans("custom_view.custom_view_summaries"), function ($form) use ($custom_table) {
@@ -271,7 +272,7 @@ class CustomViewController extends AdminControllerTableBase
                         ->required()->rules('summaryCondition');
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                 })->setTableColumnWidth(4, 2, 3, 1)
-                ->description(exmtrans("custom_view.description_custom_view_summaries"));
+                ->description(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
 
                 $is_aggregate = true;
                 break;
@@ -290,7 +291,7 @@ class CustomViewController extends AdminControllerTableBase
                         ->required()
                         ->default(config('exment.calendor_font_color_default', '#FFFFFF'));
                 })->required()->setTableColumnWidth(4, 4, 2, 2, 0)
-                ->description(exmtrans("custom_view.description_custom_view_calendar_columns"));
+                ->description(sprintf(exmtrans("custom_view.description_custom_view_calendar_columns"), $manualUrl));
                 break;
             default:
                 // columns setting
@@ -300,7 +301,7 @@ class CustomViewController extends AdminControllerTableBase
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
                 })->required()->setTableColumnWidth(4, 3, 2, 1)
-                ->description(exmtrans("custom_view.description_custom_view_columns"));
+                ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
                 break;
         }
 
@@ -355,7 +356,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->changeField('view_filter_condition_value', exmtrans("custom_view.view_filter_condition_value_text"))
                 ->rules('changeFieldValue');
         })->setTableColumnWidth(4, 4, 3, 1)
-        ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
+        ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
 
         // sort setting
         if (intval($view_kind_type) == Enums\ViewKindType::DEFAULT) {
@@ -365,7 +366,7 @@ class CustomViewController extends AdminControllerTableBase
                 $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
                 $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
             })->setTableColumnWidth(4, 3, 3, 2)
-            ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
+            ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
         }
 
         if (!isset($id)) {
