@@ -188,7 +188,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // if same table, continue
-            if($this->id == $custom_table->id){
+            if ($this->id == $custom_table->id) {
                 continue;
             }
 
