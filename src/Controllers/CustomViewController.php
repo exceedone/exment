@@ -139,7 +139,12 @@ class CustomViewController extends AdminControllerTableBase
             if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
                 intval($actions->row->view_kind_type) === Enums\ViewKindType::CALENDAR) {
                 $actions->disableEdit();
-                $actions->prepend('<a href="'.admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type.'"><i class="fa fa-edit"></i></a>');
+                
+                $linker = (new Linker)
+                    ->url(admin_urls('view', $table_name, $actions->getKey(), 'edit').'?view_kind_type='.$actions->row->view_kind_type)
+                    ->icon('fa-edit')
+                    ->tooltip(trans('admin.edit'));
+                $actions->prepend($linker);
             }
             $actions->disableView();
 
