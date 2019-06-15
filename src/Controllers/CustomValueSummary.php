@@ -6,6 +6,7 @@ use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Enums\Permission;
 
 trait CustomValueSummary
 {
@@ -17,6 +18,7 @@ trait CustomValueSummary
 
         $this->setSummaryGrid($grid);
 
+        $grid->disableCreateButton();
         $grid->disableFilter();
         $grid->disableActions();
         $grid->disableRowSelector();
@@ -34,6 +36,13 @@ trait CustomValueSummary
         $grid->exporter($service);
         
         $grid->tools(function (Grid\Tools $tools) use ($grid) {
+            // have edit flg
+            $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+            // if user have edit permission, add button
+            if ($edit_flg) {
+                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+            }
+
             $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid, true));
             $tools->append(new Tools\GridChangePageMenu('data', $this->custom_table, false));
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
