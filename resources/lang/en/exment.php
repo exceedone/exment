@@ -56,6 +56,16 @@ return [
             'task_schedule_id' => 'Task Schedule',
             'task_schedule' => '<br /><b>*You have to do scheduling setting.</b> Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
         ],
+
+        'weekday' => [
+            'mon' => 'Mon',
+            'tue' => 'Tue',
+            'wed' => 'Wed',
+            'thu' => 'Thu',
+            'fri' => 'Fri',
+            'sat' => 'Sat',
+            'sun' => 'Sun',
+        ]
     ],
 
     'error' => [
@@ -566,6 +576,15 @@ return [
         'description_custom_view_summaries' => 'Sets the summary columns of data displayed in the view.<br/>*The aggregation target is the column that becomes "ID" "Integer" "Decimal" "Currency" "Date".',
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
+
+        'group_condition_options' => [
+            'y' => 'Year',
+            'ym' => 'Year-Month',
+            'ymd' => 'Year-Month-Day',
+            'm' => 'Month',
+            'd' => 'Day',
+            'w' => 'Weekday',
+        ],
 
         'summary_condition_options' => [
             'sum' => 'Summary',

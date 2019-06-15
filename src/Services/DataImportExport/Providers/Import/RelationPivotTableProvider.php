@@ -11,7 +11,6 @@ class RelationPivotTableProvider extends ProviderBase
 
     public function __construct($args = [])
     {
-        parent::__construct();
         $this->relation = array_get($args, 'relation');
     }
 
