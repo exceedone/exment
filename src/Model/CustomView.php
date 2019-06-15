@@ -26,6 +26,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $appends = ['view_calendar_target', 'pager_count'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
+    protected $with = ['custom_table', 'custom_view_columns'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -293,7 +294,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!isset($view) && !is_null($user) && $getSettingValue) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
-            $view = CustomView::findBySuuid($suuid);
+            if(isset($suuid)){
+                $view = CustomView::findBySuuid($suuid);
+            }
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {

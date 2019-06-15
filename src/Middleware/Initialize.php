@@ -306,7 +306,29 @@ class Initialize
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
             $now = \Carbon\Carbon::now();
-            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
+
+            $log_string = 'SQL: ' . $now->format("YmdHisv")." ".$sql;
+
+            if (boolval(config('exment.debugmode_sqlfunction', false))) {
+                $function = static::getFunctionName();
+                $log_string .= "    , function: $function";
+            }
+    
+            \Log::debug($log_string);
         });
+    }
+
+    protected static function getFunctionName(){
+        $bt = debug_backtrace();
+        $functions = [];
+        $i = 0;
+        foreach($bt as $b){
+            if($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false){
+                $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            $i++;
+        }
+        return implode(" < ", $functions);
     }
 }

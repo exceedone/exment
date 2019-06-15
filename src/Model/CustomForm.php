@@ -89,7 +89,9 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!isset($form) && !is_null($user) && $getSettingValue) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::FORM, $tableObj->table_name]));
-            $form = CustomForm::findBySuuid($suuid);
+            if(isset($suuid)){
+                $form = CustomForm::findBySuuid($suuid);
+            }
         }
 
         // if not exists, get default.

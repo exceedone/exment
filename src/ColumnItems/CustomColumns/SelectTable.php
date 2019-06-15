@@ -4,6 +4,8 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
 use Encore\Admin\Form\Field;
@@ -50,32 +52,41 @@ class SelectTable extends CustomItem
         if (!is_array($this->value) && preg_match('/\[.+\]/i', $this->value)) {
             $this->value = json_decode($this->value);
         }
-        $model = getModelName($this->target_table)::find($this->value);
-        if (is_null($model)) {
-            return null;
-        }
-        if ($text === false) {
-            return $model;
-        }
-        
-        // if $model is array multiple, set as array
-        if (!($model instanceof Collection)) {
-            $model = [$model];
-        }
 
+        $value = is_array($this->value) ? $this->value : [$this->value];
         $texts = [];
-        foreach ($model as $m) {
-            if (is_null($m)) {
-                continue;
+
+        foreach($value as $v){
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->target_table->table_name, $v);
+            $model = System::requestSession($key, function() use($v){
+                return getModelName($this->target_table)::find($v);
+            });
+            if (is_null($model)) {
+                return null;
+            }
+            if ($text === false) {
+                return $model;
             }
             
-            // get text column
-            if ($html) {
-                $texts[] = $m->getUrl(true);
-            } else {
-                $texts[] = $m->getLabel();
+            // if $model is array multiple, set as array
+            if (!($model instanceof Collection)) {
+                $model = [$model];
+            }
+    
+            foreach ($model as $m) {
+                if (is_null($m)) {
+                    continue;
+                }
+                
+                // get text column
+                if ($html) {
+                    $texts[] = $m->getUrl(true);
+                } else {
+                    $texts[] = $m->getLabel();
+                }
             }
         }
+        
         return implode(exmtrans('common.separate_word'), $texts);
     }
     

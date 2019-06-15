@@ -630,10 +630,8 @@ if (!function_exists('getModelName')) {
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
             // cannot use CustomTable::allRecords function
-            $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
-                // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
-                return DB::table(SystemTableName::CUSTOM_TABLE)->get(['id', 'suuid', 'table_name']);
-            }) ?? [];
+            $tables = getAllCustomTables();
+
             $table = collect($tables)->first(function ($table) use ($obj) {
                 if (is_numeric($obj)) {
                     return array_get((array)$table, 'id') == $obj;
@@ -737,6 +735,26 @@ if (!function_exists('getDBTableName')) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
         return 'exm__'.array_get($obj, 'suuid');
+    }
+}
+
+if (!function_exists('getAllCustomTables')) {
+    /**
+     * Get all custom table. * Use the function we cannot Eloquent Custom table.
+     * @return mixed
+     */
+    function getAllCustomTables()
+    {
+        if (!hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return [];
+        }
+
+        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
+            // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
+            return DB::table(SystemTableName::CUSTOM_TABLE)->get();
+        }) ?? [];
+
+        return $tables;
     }
 }
 
