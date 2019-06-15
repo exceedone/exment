@@ -65,6 +65,16 @@ return [
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。'
         ],
+
+        'weekday' => [
+            'mon' => '月',
+            'tue' => '火',
+            'wed' => '水',
+            'thu' => '木',
+            'fri' => '金',
+            'sat' => '土',
+            'sun' => '日',
+        ]
     ],
 
     'error' => [
@@ -621,7 +631,9 @@ return [
             'ymd' => '年月日毎',
             'm' => '月毎',
             'd' => '日毎',
+            'w' => '曜日毎',
         ],
+
         'summary_condition_options' => [
             'sum' => '合計',
             'avg' => '平均',

@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Database\Query\Grammars;
 use Illuminate\Database\Query\Grammars\SqlServerGrammar as BaseGrammar;
 use Illuminate\Database\Query\Builder;
 use Exceedone\Exment\Enums\DatabaseDataType;
+use Exceedone\Exment\Enums\GroupCondition;
 
 class SqlServerGrammar extends BaseGrammar
 {
@@ -66,6 +67,75 @@ class SqlServerGrammar extends BaseGrammar
         }
 
         return $cast;
+    }
+    
+    /**
+     * Get date format string
+     *
+     * @param GroupCondition $groupCondition Y, YM, YMD, ...
+     * @param string $column column name
+     * @param bool $groupBy if group by query, return true
+     * @return void
+     */
+    public function getDateFormatString($groupCondition, $column, $groupBy = false)
+    {
+        $column = $this->wrap($column);
+
+        switch ($groupCondition) {
+            case GroupCondition::Y:
+                return "format(datepart(YEAR, $column), '0000')";
+            case GroupCondition::YM:
+                return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00')";
+            case GroupCondition::YMD:
+                return "format(datepart(YEAR, $column), '0000') + '-' + format(datepart(MONTH, $column), '00') + '-' + format(datepart(DAY, $column), '00')";
+            case GroupCondition::M:
+                return "format(datepart(MONTH, $column), '00')";
+            case GroupCondition::D:
+                return "format(datepart(DAY, $column), '00')";
+            case GroupCondition::W:
+                if($groupBy){
+                    return "datepart(WEEKDAY, $column)";
+                }
+                return $this->getWeekdayCaseWhenQuery("datepart(WEEKDAY, $column)");
+        }
+
+        return null;
+    }
+
+    /**
+     * Get case when query
+     *
+     * @return void
+     */
+    protected function getWeekdayCaseWhenQuery($str){
+
+        $queries = [];
+
+        // get weekday and no list
+        $weekdayNos = $this->getWeekdayNolist();
+
+        foreach($weekdayNos as $no => $weekdayKey){
+
+            $weekday = exmtrans('common.weekday.' . $weekdayKey);
+            $queries[] = "when {$no} then '$weekday'";
+        }
+
+        $queries[] = "else ''";
+
+        $when = implode(" ", $queries);
+        return "(case {$str} {$when} end)";
+    }
+
+    protected function getWeekdayNolist(){
+        return [
+            '1' => 'sun',
+            '2' => 'mon',
+            '3' => 'tue',
+            '4' => 'wed',
+            '5' => 'thu',
+            '6' => 'fri',
+            '7' => 'sat',
+        ];
     }
 
     /**

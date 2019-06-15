@@ -11,21 +11,23 @@ class GroupCondition extends EnumBase
     const YMD = "ymd";
     const M = "m";
     const D = "d";
+    const W = "w";
 
     protected static $options = [
-        'y' => ['id' => 'y', 'name' => 'y', 'sqlformat' => '%Y'],
-        'ym' => ['id' => 'ym', 'name' => 'ym', 'sqlformat' => '%Y-%m'],
-        'ymd' => ['id' => 'ymd', 'name' => 'ymd', 'sqlformat' => '%Y-%m-%d'],
-        'm' => ['id' => 'm', 'name' => 'm', 'sqlformat' => '%m'],
-        'd' => ['id' => 'd', 'name' => 'd', 'sqlformat' => '%d'],
+        ['id' => 'y', 'name' => 'y'],
+        ['id' => 'ym', 'name' => 'ym'],
+        ['id' => 'ymd', 'name' => 'ymd'],
+        ['id' => 'm', 'name' => 'm'],
+        ['id' => 'd', 'name' => 'd'],
+        ['id' => 'w', 'name' => 'w'],
     ];
 
-    public static function getGroupCondition($value)
-    {
-        $option = self::getOption(['id' => $value]);
-        if (array_get($option, 'countable')) {
-            return self::getEnum(self::SUM)->lowerKey();
-        }
-        return self::getEnum(self::MIN)->lowerKey();
-    }
+    // public static function getGroupCondition($value)
+    // {
+    //     $option = self::getOption(['id' => $value]);
+    //     if (array_get($option, 'countable')) {
+    //         return self::getEnum(self::SUM)->lowerKey();
+    //     }
+    //     return self::getEnum(self::MIN)->lowerKey();
+    // }
 }
