@@ -294,9 +294,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!isset($view) && !is_null($user) && $getSettingValue) {
             // get suuid
             $suuid = $user->getSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]));
-            if(isset($suuid)){
-                $view = CustomView::findBySuuid($suuid);
-            }
+            $view = CustomView::findBySuuid($suuid);
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
