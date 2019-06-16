@@ -106,6 +106,7 @@ return [
 
         'help' => [
             'installing' => '初期データをインストールします。この処理には時間がかかります。',
+            'install_success' => 'インストール完了しました！',
         ],
 
         'error' => [
@@ -120,8 +121,8 @@ return [
         'system_description' => 'システム設定を変更します。',
         'header' => 'サイト基本情報',
         'administrator' => '管理者情報',
-        'initialize_header' => 'Exmentインストール',
-        'initialize_description' => 'Exmentの初期設定を画面から登録し、インストールします。',
+        'initialize_header' => 'Exment初期設定',
+        'initialize_description' => 'Exmentの初期設定を行います。',
         'site_name' => 'サイト名',
         'site_name_short' => 'サイト名(略)',
         'site_logo' => 'サイトロゴ',

@@ -23,6 +23,7 @@ class InstallingForm
 
         InstallService::setInitializeStatus(InitializeStatus::INSTALLING);
 
+        admin_toastr(exmtrans('install.help.install_success'));
         return redirect(admin_url('initialize'));
     }
 }
