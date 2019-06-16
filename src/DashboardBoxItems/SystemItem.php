@@ -16,7 +16,7 @@ class SystemItem implements ItemInterface
         $item = collect(DashboardBoxSystemPage::options())->first(function ($value) {
             return array_get($value, 'id') == array_get($this->dashboard_box, 'options.target_system_id');
         });
-        if(!isset($item)){
+        if (!isset($item)) {
             return;
         }
 

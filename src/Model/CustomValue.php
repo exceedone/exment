@@ -515,15 +515,16 @@ class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
 
         $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
-        $columns = System::requestSession($key, function () use ($custom_table) {
-            return $custom_table
-            ->custom_columns()
-            ->useLabelFlg()
-            ->get();
+        $lebel_columns = System::requestSession($key, function () use ($custom_table) {
+            return $custom_table->table_labels;
         });
 
-        if (!isset($columns) || count($columns) == 0) {
+        if (!isset($lebel_columns) || count($lebel_columns) == 0) {
             $columns = [$custom_table->custom_columns->first()];
+        } else {
+            $columns = $lebel_columns->map(function ($lebel_column) {
+                return CustomColumn::getEloquent($lebel_column->table_label_column_id);
+            });
         }
 
         // loop for columns and get value
@@ -745,7 +746,7 @@ class CustomValue extends ModelBase
     {
         $options = $this->getQueryOptions($q, $options);
 
-        $query->where(function($query) use($options){
+        $query->where(function ($query) use ($options) {
             extract($options);
 
             for ($i = 0; $i < count($searchColumns); $i++) {
@@ -762,7 +763,8 @@ class CustomValue extends ModelBase
      * @param array $options
      * @return void
      */
-    protected function getQueryOptions($q, $options = []){
+    protected function getQueryOptions($q, $options = [])
+    {
         $options = array_merge(
             [
                 'isLike' => true,

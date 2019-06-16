@@ -29,15 +29,15 @@ class MySqlProcessor extends BaseMySqlProcessor
     {
         $versionArray = $this->versionAray($results);
 
-        if(count($versionArray) <= 1)
-        {
+        if (count($versionArray) <= 1) {
             return false;
         }
 
         return strtolower($versionArray[1]) == 'mariadb';
     }
 
-    protected function versionAray($results){
+    protected function versionAray($results)
+    {
         $version = collect(collect($results)->first())->first();
         return explode('-', $version);
     }

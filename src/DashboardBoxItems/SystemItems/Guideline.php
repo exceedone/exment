@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\DashboardBoxItems\SystemItems;
 
-use Exceedone\Exment\Enums\DashboardBoxSystemPage;
-
 class Guideline
 {
     /**

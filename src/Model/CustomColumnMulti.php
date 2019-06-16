@@ -13,7 +13,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
 
-    protected $appends = ['unique1', 'unique2', 'unique3'];
+    protected $appends = ['unique1', 'unique2', 'unique3', 'table_label_column_id'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
     protected $table = 'custom_column_multisettings';
@@ -26,7 +26,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
     public static $templateItems = [
         'excepts' => [
             'export' => [
-                'unique1', 'unique2', 'unique3', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id'
+                'unique1', 'unique2', 'unique3', 'options.unique1_id', 'options.unique2_id', 'options.unique3_id', 'options.table_label_column_id'
             ],
             'import' => [
                 'custom_table_id', 'column_name'
@@ -82,6 +82,18 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
                 'uniqueKeyFunctionArgs' => ['unique3'],
             ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.table_label_table_name',
+                            'column_name' => 'options.table_label_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['table_label_column_id'],
+            ],
         ]
     ];
 
@@ -124,6 +136,15 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         return $this;
     }
     
+    public function getTableLabelColumnIdAttribute()
+    {
+        return $this->getOption('table_label_column_id');
+    }
+    public function setTableLabelColumnIdAttribute($value)
+    {
+        $this->setOption('table_label_column_id', $value);
+        return $this;
+    }
 
     // Template Output ----------------------------------------
     
@@ -139,6 +160,7 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         static::importReplaceJsonTableColumn('unique1', $json, $options);
         static::importReplaceJsonTableColumn('unique2', $json, $options);
         static::importReplaceJsonTableColumn('unique3', $json, $options);
+        static::importReplaceJsonTableColumn('table_label_column_id', $json, $options);
     }
 
     /**
@@ -165,5 +187,12 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
 
         array_forget($json, "options.{$key}_table_name");
         array_forget($json, "options.{$key}_column_name");
+    }
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::addGlobalScope(new OrderScope('priority'));
     }
 }

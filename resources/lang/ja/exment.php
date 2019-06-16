@@ -428,6 +428,7 @@ return [
         'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_parent_menu' => '追加先の親メニュー',
+        'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
@@ -451,12 +452,16 @@ return [
         ],
 
         'custom_column_multi' => [
-            'uniques' => '複合ユニークキー',
+            'uniques' => '複合ユニークキー設定',
             'unique1' => '列1',
             'unique2' => '列2',
             'unique3' => '列3',
+            'table_labels' => '見出し表示列設定',
+            'column_target' => '対象列',
+            'priority' => '優先順位',
 
             'help' => [
+                'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。優先順位が1の列から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
             ],
         ],
@@ -506,7 +511,6 @@ return [
             'auto_number_type_random32' => 'ランダム(UUID)',
             'auto_number_format' => '採番フォーマット',
             'multiple_enabled' => '複数選択を許可する',
-            'use_label_flg' => 'ラベルで使用する',
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
         ],
@@ -539,7 +543,6 @@ return [
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
-            'use_label_flg' => 'データを選択時、画面に表示する文言の列です。1以上を値を入力した場合、1から順に見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
             'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',

@@ -13,7 +13,8 @@ class SqlServerBuilder extends BaseBuilder
      *
      * @return void
      */
-    public function isMariaDB(){
+    public function isMariaDB()
+    {
         return false;
     }
 

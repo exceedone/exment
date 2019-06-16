@@ -12,8 +12,11 @@ use DB;
 
 class System extends ModelBase
 {
+    use Traits\UseRequestSessionTrait;
+
     protected $casts = ['role' => 'json'];
     protected $primaryKey = 'system_name';
+    public $incrementing = false;
     protected static $requestSession = [];
 
     public static function __callStatic($name, $argments)
@@ -126,7 +129,10 @@ class System extends ModelBase
     {
         $config_key = static::getConfigKey($name);
         return static::requestSession($config_key, function () use ($name, $setting) {
-            $system = System::find($name);
+            $system = static::allRecords(function ($record) use ($name) {
+                return $record->system_name == $name;
+            }, false)->first();
+
             $value = null;
             
             // if has data, return setting value or default value
@@ -162,7 +168,10 @@ class System extends ModelBase
 
     protected static function set_system_value($name, $setting, $value)
     {
-        $system = System::find($name);
+        $system = static::allRecords(function ($record) use ($name) {
+            return $record->system_name == $name;
+        }, false)->first();
+
         if (!isset($system)) {
             $system = new System;
             $system->system_name = $name;

@@ -89,7 +89,6 @@ trait CustomValueGrid
                     $query->getModel()->setSearchQueryOrWhere($query, $this->input);
                 }, exmtrans('search.freeword'), 'query');
             });
-
         });
     }
 

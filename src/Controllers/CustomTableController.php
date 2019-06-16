@@ -171,8 +171,15 @@ class CustomTableController extends AdminControllerBase
             }
             // if edit mode
             if ($id != null) {
-                $model = CustomTable::findOrFail($id);
-                $tools->add((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $model = CustomTable::getEloquent($id);
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
+                    'label' => exmtrans('custom_table.expand_setting'),
+                    'icon' => 'fa-exchange',
+                ]));
+
+                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
             }
         });
         
@@ -270,7 +277,9 @@ HTML;
         $form = new Form(new CustomTable);
         $form->display('table_name', exmtrans("custom_table.table_name"));
         $form->display('table_view_name', exmtrans("custom_table.table_view_name"));
+        
         $form->hidden('columnmulti')->default(1);
+        $form->ignore('columnmulti');
 
         $custom_table = CustomTable::getEloquent($id);
         $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
@@ -283,8 +292,33 @@ HTML;
             $form->hidden('multisetting_type')->default(1);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
+        
+        $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
+            $form->select('table_label_column_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            
+            $form->number('priority', exmtrans("custom_table.custom_column_multi.priority"))->min(1)->max(5)->default(1)->required();
+            
+            $form->hidden('multisetting_type')->default(2);
+        })->setTableColumnWidth(7, 4, 1)
+        ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
-        $form->ignore('columnmulti');
+        $form->tools(function (Form\Tools $tools) use ($id) {
+            // if edit mode
+            if ($id != null) {
+                $model = CustomTable::getEloquent($id);
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('table', $id, 'edit'),
+                    'label' => exmtrans('custom_table.default_setting'),
+                    'icon' => 'fa-table',
+                ]));
+
+                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+            }
+        });
+        
+
         return $form;
     }
     
