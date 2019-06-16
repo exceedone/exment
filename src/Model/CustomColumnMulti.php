@@ -195,5 +195,4 @@ class CustomColumnMulti extends ModelBase implements Interfaces\TemplateImporter
         
         static::addGlobalScope(new OrderScope('priority'));
     }
-    
 }

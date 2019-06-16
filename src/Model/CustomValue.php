@@ -521,9 +521,9 @@ class CustomValue extends ModelBase
 
         if (!isset($lebel_columns) || count($lebel_columns) == 0) {
             $columns = [$custom_table->custom_columns->first()];
-        }else{
-            $columns = $lebel_columns->map(function($lebel_column){ 
-                return CustomColumn::getEloquent($lebel_column->table_label_column_id); 
+        } else {
+            $columns = $lebel_columns->map(function ($lebel_column) {
+                return CustomColumn::getEloquent($lebel_column->table_label_column_id);
             });
         }
 
@@ -746,7 +746,7 @@ class CustomValue extends ModelBase
     {
         $options = $this->getQueryOptions($q, $options);
 
-        $query->where(function($query) use($options){
+        $query->where(function ($query) use ($options) {
             extract($options);
 
             for ($i = 0; $i < count($searchColumns); $i++) {
@@ -763,7 +763,8 @@ class CustomValue extends ModelBase
      * @param array $options
      * @return void
      */
-    protected function getQueryOptions($q, $options = []){
+    protected function getQueryOptions($q, $options = [])
+    {
         $options = array_merge(
             [
                 'isLike' => true,

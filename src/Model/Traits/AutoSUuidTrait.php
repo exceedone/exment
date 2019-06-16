@@ -14,7 +14,7 @@ trait AutoSUuidTrait
      */
     public static function findBySuuid($suuid)
     {
-        if(!isset($suuid)){
+        if (!isset($suuid)) {
             return null;
         }
         // if exists "allRecords" class, call this

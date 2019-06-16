@@ -9,7 +9,8 @@ trait BuilderTrait
      *
      * @return void
      */
-    public function getVersion(){
+    public function getVersion()
+    {
         $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetVersion());
 
         return $this->connection->getPostProcessor()->processGetVersion($results);
@@ -20,7 +21,8 @@ trait BuilderTrait
      *
      * @return void
      */
-    public function isMariaDB(){
+    public function isMariaDB()
+    {
         $results = $this->connection->selectFromWriteConnection($this->grammar->compileGetVersion());
 
         return $this->connection->getPostProcessor()->processIsMariaDB($results);

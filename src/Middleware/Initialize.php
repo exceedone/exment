@@ -25,15 +25,13 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if(!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)){
+        if (!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
             $path = trim(admin_base_path('install'), '/');
-            if(!$request->is($path)){
+            if (!$request->is($path)) {
                 return redirect()->guest(admin_base_path('install'));
             }
             static::initializeConfig(false);
-        }
-        
-        else{
+        } else {
             $initialized = System::initialized();
 
             // if path is not "initialize" and not installed, then redirect to initialize
@@ -318,12 +316,13 @@ class Initialize
         });
     }
 
-    protected static function getFunctionName(){
+    protected static function getFunctionName()
+    {
         $bt = debug_backtrace();
         $functions = [];
         $i = 0;
-        foreach($bt as $b){
-            if($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false){
+        foreach ($bt as $b) {
+            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
                 $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
             }
 

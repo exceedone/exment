@@ -2,22 +2,16 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Encore\Admin\Widgets\Form as WidgetForm;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Validator;
 
 /**
- * 
+ *
  */
 trait InitializeFormTrait
 {
@@ -80,7 +74,7 @@ trait InitializeFormTrait
             ->config('allowClear', false)
             ->help(exmtrans("system.help.site_layout"));
         
-        if($system_page){
+        if ($system_page) {
             $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
             ->options(getPagerOptions())
             ->config('allowClear', false)

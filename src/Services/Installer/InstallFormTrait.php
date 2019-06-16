@@ -1,14 +1,14 @@
 <?php
 namespace Exceedone\Exment\Services\Installer;
 
-
 /**
- * 
+ *
  */
 trait InstallFormTrait
 {
-    protected function setEnv($data = [], $matchRemove = false){
-        if(empty($data)){
+    protected function setEnv($data = [], $matchRemove = false)
+    {
+        if (empty($data)) {
             return false;
         }
 
@@ -19,13 +19,13 @@ trait InstallFormTrait
 
         
         // Loop through .env-data
-        foreach($env as $env_value){
+        foreach ($env as $env_value) {
 
             // Turn the value into an array and stop after the first split
             // So it's not possible to split e.g. the App-Key by accident
             $entry = explode("=", $env_value, 2);
 
-            if(count($entry) == 0){
+            if (count($entry) == 0) {
                 $newEnvs[] = $entry;
                 continue;
             }
@@ -34,24 +34,24 @@ trait InstallFormTrait
 
             // find same key
             $hasKey = false;
-            foreach($data as $key => $value){
-                if($env_key == $key){
+            foreach ($data as $key => $value) {
+                if ($env_key == $key) {
                     array_forget($data, $key);
                     $hasKey = true;
 
-                    if(!$matchRemove){
+                    if (!$matchRemove) {
                         $newEnvs[] = $key . "=" . $value;
                     }
                 }
             }
-            if(!$hasKey){
+            if (!$hasKey) {
                 $newEnvs[] = $env_value;
             }
         }
 
         
         // Loop through given data
-        foreach((array)$data as $key => $value){
+        foreach ((array)$data as $key => $value) {
             $newEnvs[] = $key . "=" . $value;
         }
 
@@ -62,8 +62,9 @@ trait InstallFormTrait
         file_put_contents(base_path() . '/.env', $env);
     }
     
-    protected function removeEnv($data = []){
-        if(empty($data)){
+    protected function removeEnv($data = [])
+    {
+        if (empty($data)) {
             return false;
         }
         $this->setEnv($data, true);

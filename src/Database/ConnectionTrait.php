@@ -9,7 +9,8 @@ trait ConnectionTrait
      *
      * @return void
      */
-    public function getVersion(){
+    public function getVersion()
+    {
         return $this->getSchemaBuilder()->getVersion();
     }
 
@@ -18,15 +19,17 @@ trait ConnectionTrait
      *
      * @return void
      */
-    public function isMariaDB(){
+    public function isMariaDB()
+    {
         return $this->getSchemaBuilder()->isMariaDB();
     }
 
-    public function canConnection(){
-        try{
+    public function canConnection()
+    {
+        try {
             $this->getSchemaBuilder()->getTableListing();
             return true;
-        }catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return false;
         }
     }

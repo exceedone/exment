@@ -1,9 +1,8 @@
 <?php
 namespace Exceedone\Exment\Services\Installer;
 
-
 /**
- * 
+ *
  */
 interface InstallFormInterface
 {

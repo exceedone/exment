@@ -5,13 +5,14 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\InitializeStatus;
 
 /**
- * 
+ *
  */
 class LangForm
 {
     use InstallFormTrait;
 
-    public function index(){
+    public function index()
+    {
         \Artisan::call('exment:publish');
         
         return view('exment::install.lang', [
@@ -22,7 +23,8 @@ class LangForm
         ]);
     }
     
-    public function post(){
+    public function post()
+    {
         $request = request();
 
         $rules = [

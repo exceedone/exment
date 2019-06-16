@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\SystemTableName;
 
 /**
  * Middleware as Morph.

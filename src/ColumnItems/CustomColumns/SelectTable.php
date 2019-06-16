@@ -56,9 +56,9 @@ class SelectTable extends CustomItem
         $value = is_array($this->value) ? $this->value : [$this->value];
         $texts = [];
 
-        foreach($value as $v){
+        foreach ($value as $v) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->target_table->table_name, $v);
-            $model = System::requestSession($key, function() use($v){
+            $model = System::requestSession($key, function () use ($v) {
                 return getModelName($this->target_table)::find($v);
             });
             if (is_null($model)) {

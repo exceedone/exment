@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\DashboardBoxItems\SystemItems;
 
-use Illuminate\Pagination\LengthAwarePaginator;
-use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Encore\Admin\Widgets\Table as WidgetTable;
@@ -19,13 +17,14 @@ class News
 
     protected $outputApi = true;
 
-    public function __construct(){
-        if(!System::outside_api()){
+    public function __construct()
+    {
+        if (!System::outside_api()) {
             $this->outputApi = false;
             return;
         }
 
-        try{
+        try {
             $client = new \GuzzleHttp\Client();
             $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
                 'http_errors' => false,
@@ -38,9 +37,8 @@ class News
             }
     
             // get wordpress items
-            $this->items = json_decode($contents, true);    
-        }catch(\Exception $ex){
-
+            $this->items = json_decode($contents, true);
+        } catch (\Exception $ex) {
         }
     }
 
@@ -57,7 +55,7 @@ class News
      */
     public function footer()
     {
-        if(!$this->outputApi){
+        if (!$this->outputApi) {
             return null;
         }
         $link = Define::EXMENT_NEWS_LINK;
@@ -70,7 +68,7 @@ class News
      */
     public function body()
     {
-        if(!$this->outputApi){
+        if (!$this->outputApi) {
             return exmtrans('error.disabled_outside_api');
         }
 
@@ -81,7 +79,7 @@ class News
         ];
         $bodies = [];
         
-        foreach($this->items as $item){
+        foreach ($this->items as $item) {
             $date = \Carbon\Carbon::parse(array_get($item, 'date'))->format('Y-m-d');
             $link = array_get($item, 'link');
             $title = array_get($item, 'title.rendered');
@@ -101,7 +99,8 @@ class News
      *
      * @return array query string array
      */
-    protected function getQuery(){
+    protected function getQuery()
+    {
         $request = request();
 
         // get querystring

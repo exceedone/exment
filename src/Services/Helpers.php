@@ -1263,8 +1263,8 @@ if (!function_exists('getExmentVersion')) {
                 }
 
                 // if already executed
-                if(session()->has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)){
-                    return [null, $current];   
+                if (session()->has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)) {
+                    return [null, $current];
                 }
 
                 //// get latest version
