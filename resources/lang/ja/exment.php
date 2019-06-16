@@ -92,6 +92,7 @@ return [
     ],
 
     'install' => [
+        'title' => 'インストール',
         'installing' => 'インストール実行',
 
         'database' => [

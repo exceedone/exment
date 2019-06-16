@@ -103,7 +103,7 @@ class PatchDataCommand extends Command
             $custom_table->table_labels()->save(
                 new CustomColumnMulti([
                     'multisetting_type' => 2,
-                    'table_label_column_id' => $use_label_flg_column->id,
+                    'table_label_id' => $use_label_flg_column->id,
                     'priority' => $use_label_flg_column->getOption('use_label_flg'),
                 ])
             );

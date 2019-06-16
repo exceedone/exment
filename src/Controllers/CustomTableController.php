@@ -294,7 +294,7 @@ HTML;
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
         
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
-            $form->select('table_label_column_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
+            $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
                 ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
             
             $form->number('priority', exmtrans("custom_table.custom_column_multi.priority"))->min(1)->max(5)->default(1)->required();

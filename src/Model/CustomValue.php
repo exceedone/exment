@@ -523,7 +523,7 @@ class CustomValue extends ModelBase
             $columns = [$custom_table->custom_columns->first()];
         } else {
             $columns = $lebel_columns->map(function ($lebel_column) {
-                return CustomColumn::getEloquent($lebel_column->table_label_column_id);
+                return CustomColumn::getEloquent($lebel_column->table_label_id);
             });
         }
 
