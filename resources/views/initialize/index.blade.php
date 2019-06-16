@@ -56,6 +56,14 @@
     LA.token = "{{ csrf_token() }}";
 </script>
 
+@if (session('status'))
+<script>
+    $(function () {
+      toastr.success('{{ session("status") }}', null, []);
+  });
+</script>
+@endif
+
 <!-- REQUIRED JS SCRIPTS -->
 <script src="{{ admin_asset ("/vendor/laravel-admin/nestable/jquery.nestable.js") }}"></script>
 <script src="{{ admin_asset ("/vendor/laravel-admin/toastr/build/toastr.min.js") }}"></script>
