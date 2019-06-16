@@ -54,6 +54,8 @@ class PatchDataCommand extends Command
                 $this->modifyUseLabelFlg();       
                 return;
         }
+
+        $this->error('patch name not found.');
     }
 
     /**
