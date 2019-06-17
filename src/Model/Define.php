@@ -159,6 +159,7 @@ class Define
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
+        'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'initialize'],
         // cannot call getValue function
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
         'backup_automatic_term' => ['type' => 'int', 'default' => '1', 'group' => 'backup'],
@@ -300,6 +301,9 @@ class Define
     ];
 
     public const GRID_MAX_LENGTH = 50;
+
+    public const PAGER_GRID_COUNTS = [10, 20, 30, 50, 100];
+    public const PAGER_DATALIST_COUNTS = [5, 10, 20];
 
     // Template --------------------------------------------------
     public const TEMPLATE_IMPORT_EXCEL_SHEETNAME = [

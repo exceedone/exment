@@ -78,7 +78,14 @@ trait InitializeFormTrait
             $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
             ->options(getPagerOptions())
             ->config('allowClear', false)
+            ->default(20)
             ->help(exmtrans("system.help.grid_pager_count"));
+            
+            $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
+            ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
+            ->config('allowClear', false)
+            ->default(5)
+            ->help(exmtrans("system.help.datalist_pager_count"));
         }
         
         $form->switchbool('outside_api', exmtrans("system.outside_api"))
