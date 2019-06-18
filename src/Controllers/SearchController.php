@@ -313,12 +313,13 @@ EOT;
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
-        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, [
+        $options = [
             'paginate' => true,
             'maxCount' => System::datalist_pager_count() ?? 5,
-        ]);
+        ];
+        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, $options);
 
-        $boxHeader = $this->getBoxHeaderHtml($search_table);
+        $boxHeader = $this->getBoxHeaderHtml($search_table, array_get($options, 'listQuery', []));
         if (isset($data) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             $paginate = $data;
             $data = $paginate->items();

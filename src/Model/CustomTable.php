@@ -580,7 +580,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * search relation value
      */
-    public function searchRelationValue($search_type, $parent_value_id, $child_table, $options = [])
+    public function searchRelationValue($search_type, $parent_value_id, $child_table, &$options = [])
     {
         $options = array_merge(
             [
@@ -608,6 +608,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     ->map(function ($c) {
                         return $c->getIndexColumnName();
                     });
+
+                // set query info
+                if(isset($searchColumns)){
+                    $options['listQuery'] = [
+                        $searchColumns->first() => $parent_value_id,
+                    ];
+                }
+
                 return $child_table->searchValue($parent_value_id, [
                     'isLike' => false,
                     'paginate' => $paginate,
@@ -621,6 +629,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $query = $child_table->getValueModel()
                     ->where('parent_id', $parent_value_id)
                     ->where('parent_type', $this->table_name);
+
+                // set query info
+                $options['listQuery'] = [
+                    'parent_id' => $parent_value_id,
+                ];
 
                 return $paginate ? $query->paginate($maxCount) : $query->get();
             // many_to_many
