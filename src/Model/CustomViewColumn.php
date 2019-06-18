@@ -8,11 +8,12 @@ class CustomViewColumn extends ModelBase
 {
     use Traits\UseRequestSessionTrait;
     use Traits\CustomViewColumnTrait;
+    use Traits\CustomViewColumnOptionTrait;
     use Traits\TemplateTrait;
     use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color'];
+    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type'];
     protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
@@ -40,15 +41,6 @@ class CustomViewColumn extends ModelBase
             'view_column_type' => ViewColumnType::class,
         ],
     ];
-
-    public function getOption($key, $default = null)
-    {
-        return $this->getJson('options', $key, $default);
-    }
-    public function setOption($key, $val = null, $forgetIfNull = false)
-    {
-        return $this->setJson('options', $key, $val, $forgetIfNull);
-    }
 
     /**
      * get eloquent using request settion.

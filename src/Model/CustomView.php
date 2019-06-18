@@ -422,6 +422,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $db_table_name = getDBTableName($table_name);
 
         $group_columns = [];
+        $sort_columns = [];
         $custom_tables = [];
 
         // set grouping columns
@@ -430,6 +431,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $item = array_get($view_column_item, 'item');
             $index = array_get($view_column_item, 'index');
             $column_item = $item->column_item;
+            // set order column
+            if (!empty(array_get($item, 'sort_order'))) {
+                $sort_order = array_get($item, 'sort_order');
+                $sort_type = array_get($item, 'sort_type');
+                $sort_columns[] = ['key' => $sort_order, 'sort_type' => $sort_type, 'column_name' => "column_$index"];
+            }
 
             if ($item instanceof CustomViewColumn) {
                 // first, set group_column. this column's name uses index.
@@ -530,6 +537,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $query = $query->mergeBindings($sub_query);
         }
 
+        if (count($sort_columns) > 0) {
+            $orders = collect($sort_columns)->sortBy('key')->all();
+            foreach($orders as $order) {
+                $query = $query->orderBy(array_get($order, 'column_name'), array_get($order, 'sort_type'));
+            }
+        }
         // set sql grouping columns
         $query = $query->groupBy($group_columns);
 
