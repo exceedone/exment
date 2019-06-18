@@ -117,6 +117,10 @@ class RelationPivotTableProvider extends ProviderBase
      */
     protected function getBodies($records, $columnDefines)
     {
+        if(!isset($records)){
+            return [];
+        }
+        
         $bodies = [];
 
         foreach ($records as $record) {

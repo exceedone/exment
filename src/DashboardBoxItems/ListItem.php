@@ -5,8 +5,10 @@ namespace Exceedone\Exment\DashboardBoxItems;
 use Encore\Admin\Widgets\Table as WidgetTable;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\ViewType;
@@ -108,7 +110,7 @@ class ListItem implements ItemInterface
     {
         $form->select('pager_count', trans("admin.show"))
             ->required()
-            ->options(getPagerOptions(true, [5, 10, 20]))
+            ->options(getPagerOptions(true, Define::PAGER_DATALIST_COUNTS))
             ->config('allowClear', false)
             ->default(0);
 
@@ -187,7 +189,11 @@ class ListItem implements ItemInterface
         }
         
         // pager count
-        $pager_count = $this->dashboard_box->getOption('pager_count') ?? 5;
+        $pager_count = $this->dashboard_box->getOption('pager_count');
+        if(!isset($pager_count) || $pager_count == 0){
+            $pager_count = System::datalist_pager_count() ?? 5;
+        }
+
         // get data
         $this->paginate = $model->paginate($pager_count);
     }

@@ -88,7 +88,15 @@ var Exment;
             for (var i = 0; i < helps.length; i++) {
                 var help = helps[i];
                 // if match first current uri and pathname, set help url
-                if (trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0) {
+                var uri = trimAny(admin_base_path(help.uri), '/');
+                var isMatch = false;
+                if (!hasValue(uri)) {
+                    isMatch = trimAny(pathname, '/') == uri;
+                }
+                else {
+                    isMatch = trimAny(pathname, '/').indexOf(uri) === 0;
+                }
+                if (isMatch) {
                     // set new url
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);

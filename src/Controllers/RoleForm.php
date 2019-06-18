@@ -27,7 +27,7 @@ trait RoleForm
         }
 
         // role setting --------------------------------------------------
-        $form->header(exmtrans('role.permission_header'))->hr();
+        $form->exmheader(exmtrans('role.permission_header'))->hr();
         $description = '';
         switch ($role_type) {
             case RoleType::VALUE:

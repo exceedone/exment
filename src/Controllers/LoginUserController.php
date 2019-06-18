@@ -107,7 +107,7 @@ class LoginUserController extends AdminControllerBase
         $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
 
         if (!$showLoginInfo) {
-            $form->header(exmtrans('user.login'))->hr();
+            $form->exmheader(exmtrans('user.login'))->hr();
             $form->switchbool('use_loginuser', exmtrans('user.use_loginuser'))
                     ->help(exmtrans('user.help.use_loginuser'))
                     ->default($has_loginuser ? '1' : '0')

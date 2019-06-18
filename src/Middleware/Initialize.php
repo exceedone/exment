@@ -271,7 +271,7 @@ class Initialize
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,
-            'header'           => Field\Header::class,
+            'exmheader'           => Field\Header::class,
             'description'           => Field\Description::class,
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,

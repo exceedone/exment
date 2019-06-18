@@ -1360,7 +1360,7 @@ if (!function_exists('getPagerOptions')) {
     /**
      * get pager select options
      */
-    function getPagerOptions($addEmpty = false, $counts = [10, 20, 30, 50, 100])
+    function getPagerOptions($addEmpty = false, $counts = Define::PAGER_GRID_COUNTS)
     {
         $options = [];
 
