@@ -24,7 +24,7 @@ class InitializeForm
         $form->action(admin_url('initialize'));
         $form->disablePjax();
         // ID and password --------------------------------------------------
-        $form->header(exmtrans('system.administrator'))->hr();
+        $form->exmheader(exmtrans('system.administrator'))->hr();
         $form->text('user_code', exmtrans('user.user_code'))->required()->help(exmtrans('common.help_code'));
         $form->text('user_name', exmtrans('user.user_name'))->required()->help(exmtrans('user.help.user_name'));
         $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));

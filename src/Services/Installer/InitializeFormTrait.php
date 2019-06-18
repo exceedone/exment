@@ -26,7 +26,7 @@ trait InitializeFormTrait
         $form = new WidgetForm(System::get_system_values());
         $form->disableReset();
         
-        $form->header(exmtrans('system.header'))->hr();
+        $form->exmheader(exmtrans('system.header'))->hr();
         $form->text('site_name', exmtrans("system.site_name"))
             ->required()
             ->help(exmtrans("system.help.site_name"));
@@ -168,7 +168,7 @@ trait InitializeFormTrait
     
     protected function addTemplateTile($form)
     {
-        $form->header(exmtrans('template.header'))->hr();
+        $form->exmheader(exmtrans('template.header'))->hr();
         // template list
         $form->tile('template', exmtrans("system.template"))
             ->help(exmtrans("system.help.template"))
