@@ -38,8 +38,8 @@ return [
         'no' => 'いいえ',
         'row' => '行',
         'column' => '列',
-        'asc' => '昇順',
-        'desc' => '降順',
+        'row_up' => '1行上へ',
+        'row_down' => '1行下へ',
         'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
@@ -465,7 +465,7 @@ return [
             'priority' => '優先順位',
 
             'help' => [
-                'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。優先順位が1の列から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+                'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
             ],
         ],
@@ -647,7 +647,6 @@ return [
         'font_color' => '文字色',
         'order' => '表示順',
         'sort_order' => '並び順',
-        'sort_type' => '↑↓',
         'sort' => '並べ替え',
         'priority' => '優先順位',
         'pager_count_default' => 'システム設定に合わせる',
@@ -664,9 +663,14 @@ return [
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
+        'help' => [
+            'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
+            'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
+        ],
+
         'column_sort_options' => [
-            '1' => '昇',
-            '-1' => '降',
+            'asc' => '昇順',
+            'desc' => '降順',
         ],
         'group_condition_options' => [
             'y' => '年毎',

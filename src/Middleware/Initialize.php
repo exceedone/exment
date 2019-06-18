@@ -265,6 +265,10 @@ class Initialize
             });
         });
 
+        Grid\Tools::$defaultPosition = 'right';
+        Grid\Concerns\HasQuickSearch::$searchKey = 'query';
+        Grid::$searchKey = 'query';
+
         $map = [
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,

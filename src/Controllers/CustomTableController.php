@@ -297,10 +297,10 @@ HTML;
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
                 ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
             
-            $form->number('priority', exmtrans("custom_table.custom_column_multi.priority"))->min(1)->max(5)->default(1)->required();
-            
+            $form->hidden('priority')->default(1);
             $form->hidden('multisetting_type')->default(2);
-        })->setTableColumnWidth(7, 4, 1)
+        })->setTableColumnWidth(10, 2)
+        ->rowUpDown('priority')
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
         $form->tools(function (Form\Tools $tools) use ($id) {
