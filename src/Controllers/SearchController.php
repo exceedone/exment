@@ -9,6 +9,7 @@ use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 
@@ -209,7 +210,8 @@ EOT;
         $boxHeader = $this->getBoxHeaderHtml($table, ['query' => $q]);
         // search all data using index --------------------------------------------------
         $paginate = $table->searchValue($q, [
-            'paginate' => true
+            'paginate' => true,
+            'maxCount' => System::datalist_pager_count() ?? 5
         ]);
         $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name={$request->input('table_name')}");
         $datalist = $paginate->items();
@@ -311,12 +313,13 @@ EOT;
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
-        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, [
+        $options = [
             'paginate' => true,
-            'maxCount' => 10,
-        ]);
+            'maxCount' => System::datalist_pager_count() ?? 5,
+        ];
+        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, $options);
 
-        $boxHeader = $this->getBoxHeaderHtml($search_table);
+        $boxHeader = $this->getBoxHeaderHtml($search_table, array_get($options, 'listQuery', []));
         if (isset($data) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             $paginate = $data;
             $data = $paginate->items();

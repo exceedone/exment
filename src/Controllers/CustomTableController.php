@@ -95,7 +95,7 @@ class CustomTableController extends AdminControllerBase
         $form->number('order', exmtrans("custom_table.order"))->rules("integer")
             ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
         
-        $form->header(exmtrans('common.detail_setting'))->hr();
+        $form->exmheader(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
