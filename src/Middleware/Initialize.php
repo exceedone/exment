@@ -265,6 +265,8 @@ class Initialize
             });
         });
 
+        Grid\Tools::$defaultPosition = 'right';
+
         $map = [
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
