@@ -281,7 +281,7 @@ class CustomViewController extends AdminControllerTableBase
                     $form->select('sort_type', exmtrans("custom_view.sort_type"))
                         ->options(Enums\ViewColumnSort::transArray('custom_view.column_sort_options'))
                         ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
-                })->setTableColumnWidth(3, 2, 3, 1, 1, 1)
+                })->setTableColumnWidth(4, 2, 3, 1, 1, 1)
                 ->description(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
 
                 $is_aggregate = true;
