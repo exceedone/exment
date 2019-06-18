@@ -95,6 +95,10 @@ class LoginUserProvider extends ProviderBase
      */
     protected function getBodies($records)
     {
+        if(!isset($records)){
+            return [];
+        }
+        
         $bodies = [];
 
         foreach ($records as $record) {
