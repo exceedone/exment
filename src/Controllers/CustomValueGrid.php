@@ -53,6 +53,10 @@ trait CustomValueGrid
      */
     protected function setCustomGridFilters($grid, $search_enabled_columns)
     {
+        $grid->quickSearch(function ($model, $input) {
+            $model->eloquent()->setSearchQueryOrWhere($model, $input);
+        }, 'left');
+
         $grid->filter(function ($filter) use ($search_enabled_columns) {
             $filter->disableIdFilter();
 
@@ -81,13 +85,6 @@ trait CustomValueGrid
                 foreach ($search_enabled_columns as $search_column) {
                     $search_column->column_item->setAdminFilter($filter);
                 }
-            });
-            
-            // loop custom column
-            $filter->column(1, function ($filter) {
-                $filter->where(function ($query) {
-                    $query->getModel()->setSearchQueryOrWhere($query, $this->input);
-                }, exmtrans('search.freeword'), 'query');
             });
         });
     }
