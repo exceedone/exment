@@ -68,7 +68,7 @@ trait SummaryItemTrait
         ];
     }
     
-    protected function sqlAsName()
+    public function sqlAsName()
     {
         return "column_".array_get($this->options, 'summary_index');
     }
