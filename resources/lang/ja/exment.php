@@ -646,13 +646,15 @@ return [
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
+        'sort_order' => '並び順',
+        'sort_type' => '↑↓',
         'sort' => '並べ替え',
         'priority' => '優先順位',
         'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => '表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
-        'view_group_condition' => 'グループ列タイプ',
+        'view_group_condition' => '列タイプ',
         'view_summary_condition' => '集計タイプ',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
@@ -662,6 +664,10 @@ return [
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
+        'column_sort_options' => [
+            '1' => '昇',
+            '-1' => '降',
+        ],
         'group_condition_options' => [
             'y' => '年毎',
             'ym' => '年月毎',

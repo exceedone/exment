@@ -254,8 +254,13 @@ class CustomViewController extends AdminControllerTableBase
                             return collect($controller->_getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
                         });
 
-                    $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-                })->required()->setTableColumnWidth(4, 3, 2, 2, 1)
+                    $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required()->setFieldWidth(50);
+                    $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                        ->options(array_merge([''], range(1, 5)));
+                    $form->select('sort_type', exmtrans("custom_view.sort_type"))
+                        ->options(Enums\ViewColumnSort::transArray('custom_view.column_sort_options'))
+                        ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
+                })->required()->setTableColumnWidth(3, 3, 2, 1, 1, 1, 1)
                 ->description(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
 
                 // summary columns setting
@@ -271,7 +276,12 @@ class CustomViewController extends AdminControllerTableBase
                         })
                         ->required()->rules('summaryCondition');
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                })->setTableColumnWidth(4, 2, 3, 1)
+                    $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                        ->options(array_merge([''], range(1, 5)));
+                    $form->select('sort_type', exmtrans("custom_view.sort_type"))
+                        ->options(Enums\ViewColumnSort::transArray('custom_view.column_sort_options'))
+                        ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
+                })->setTableColumnWidth(4, 2, 3, 1, 1, 1)
                 ->description(sprintf(exmtrans("custom_view.description_custom_view_summaries"), $manualUrl));
 
                 $is_aggregate = true;

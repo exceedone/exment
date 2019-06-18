@@ -8,6 +8,7 @@ class Number extends \Encore\Admin\Form\Field\Number
 
     protected $disableUpdown = false;
     protected $defaultEmpty = false;
+    protected $fieldWidth = 100;
 
     public function disableUpdown()
     {
@@ -18,6 +19,12 @@ class Number extends \Encore\Admin\Form\Field\Number
     public function defaultEmpty()
     {
         $this->defaultEmpty = true;
+        return $this;
+    }
+
+    public function setFieldWidth($fieldWidth)
+    {
+        $this->fieldWidth = $fieldWidth;
         return $this;
     }
 
@@ -45,7 +52,7 @@ $('{$this->getElementClassSelector()}:not(.initialized)')
     });
 
 EOT;
-            $this->prepend('')->defaultAttribute('style', 'width: 100px');
+            $this->prepend('')->defaultAttribute('style', 'width: '.$this->fieldWidth.'px');
         } else {
             $this->defaultAttribute('style', 'max-width: 200px;');
         }

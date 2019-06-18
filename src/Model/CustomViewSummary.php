@@ -7,11 +7,14 @@ use Exceedone\Exment\Enums\ViewColumnType;
 class CustomViewSummary extends ModelBase
 {
     use Traits\CustomViewColumnTrait;
+    use Traits\CustomViewColumnOptionTrait;
+    use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target'];
+    protected $appends = ['view_column_target', 'sort_order', 'sort_type'];
+    protected $casts = ['options' => 'json'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
