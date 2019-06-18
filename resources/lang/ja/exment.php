@@ -467,7 +467,7 @@ return [
             'priority' => '優先順位',
 
             'help' => [
-                'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。優先順位が1の列から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+                'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
             ],
         ],
