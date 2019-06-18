@@ -208,15 +208,16 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $options
         );
         $custom_table = $this->custom_table;
-        // get custom view columns
-        $custom_view_columns = $this->custom_view_columns;
+        // get custom view columns and custom view summaries
+        $view_column_items = $this->getSummaryIndexAndViewColumns();
         
         // create headers
         $headers = [];
-        foreach ($custom_view_columns as $custom_view_column) {
-            $headers[] = $custom_view_column
+        foreach ($view_column_items as $view_column_item) {
+            $item = array_get($view_column_item, 'item');
+            $headers[] = $item
                 ->column_item
-                ->label(array_get($custom_view_column, 'view_column_name'))
+                ->label(array_get($item, 'view_column_name'))
                 ->label();
         }
         $headers[] = trans('admin.action');
@@ -226,8 +227,20 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (isset($datalist)) {
             foreach ($datalist as $data) {
                 $body_items = [];
-                foreach ($custom_view_columns as $custom_view_column) {
-                    $item = $custom_view_column->column_item;
+                foreach ($view_column_items as $view_column_item) {
+                    $column = array_get($view_column_item, 'item');
+                    $item = $column->column_item;
+                    if ($this->view_kind_type == ViewKindType::AGGREGATE) {
+                        $index = array_get($view_column_item, 'index');
+                        $summary_condition = array_get($column, 'view_summary_condition');
+                        $item->options([
+                            'summary' => true,
+                            'summary_index' => $index,
+                            'summary_condition' => $summary_condition,
+                            'group_condition' => array_get($column, 'view_group_condition'),
+                            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
+                        ]);
+                    }
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 

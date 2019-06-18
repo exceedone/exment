@@ -177,8 +177,14 @@ class ListItem implements ItemInterface
         
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel();
-        // filter model
-        $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+
+        if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
+            // filter model
+            $model = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
+        } else {
+            // filter model
+            $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+        }
         
         // pager count
         $pager_count = $this->dashboard_box->getOption('pager_count') ?? 5;
