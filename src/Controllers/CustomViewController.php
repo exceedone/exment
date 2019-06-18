@@ -254,8 +254,9 @@ class CustomViewController extends AdminControllerTableBase
                             return collect($controller->_getGroupCondition($view_column_target))->pluck('text', 'id')->toArray();
                         });
 
-                    $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
+                    $form->hidden('order')->default(0);
                 })->required()->setTableColumnWidth(4, 3, 2, 2, 1)
+                ->rowUpDown('order')
                 ->description(sprintf(exmtrans("custom_view.description_custom_view_groups"), $manualUrl));
 
                 // summary columns setting
@@ -299,8 +300,9 @@ class CustomViewController extends AdminControllerTableBase
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                         ->options($this->custom_table->getColumnsSelectOptions(true));
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                    $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required();
-                })->required()->setTableColumnWidth(4, 3, 2, 1)
+                    $form->hidden('order')->default(0);
+                })->required()->setTableColumnWidth(7, 3, 2)
+                ->rowUpDown('order')
                 ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
                 break;
         }
@@ -364,8 +366,9 @@ class CustomViewController extends AdminControllerTableBase
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true, true));
                 $form->select('sort', exmtrans("custom_view.sort"))->options([1 => exmtrans('common.asc'), -1 => exmtrans('common.desc')])->required()->default(1);
-                $form->number('priority', exmtrans("custom_view.priority"))->min(0)->max(99)->required();
-            })->setTableColumnWidth(4, 3, 3, 2)
+                $form->hidden('priority')->default(0);
+            })->setTableColumnWidth(7, 3, 2)
+            ->rowUpDown('priority')
             ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
         }
 
@@ -401,6 +404,7 @@ class CustomViewController extends AdminControllerTableBase
                 }
             }
         });
+
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
 

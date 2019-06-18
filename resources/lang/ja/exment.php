@@ -40,6 +40,8 @@ return [
         'column' => '列',
         'asc' => '昇順',
         'desc' => '降順',
+        'row_up' => '1行上へ',
+        'row_down' => '1行下へ',
         'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
