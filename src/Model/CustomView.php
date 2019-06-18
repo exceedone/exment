@@ -540,7 +540,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (count($sort_columns) > 0) {
             $orders = collect($sort_columns)->sortBy('key')->all();
             foreach($orders as $order) {
-                $query = $query->orderBy(array_get($order, 'column_name'), array_get($order, 'sort_type'));
+                $sort = ViewColumnSort::getEnum(array_get($order, 'sort_type'), ViewColumnSort::ASC)->lowerKey();
+                $query = $query->orderBy(array_get($order, 'column_name'), $sort);
             }
         }
         // set sql grouping columns

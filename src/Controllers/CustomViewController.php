@@ -255,7 +255,8 @@ class CustomViewController extends AdminControllerTableBase
                         });
 
                     $form->number('order', exmtrans("custom_view.order"))->min(0)->max(99)->required()->setFieldWidth(50);
-                    $form->number('sort_order', exmtrans("custom_view.sort_order"))->min(0)->max(99)->defaultEmpty()->setFieldWidth(50);
+                    $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                        ->options(array_merge([''], range(1, 5)));
                     $form->select('sort_type', exmtrans("custom_view.sort_type"))
                         ->options(Enums\ViewColumnSort::transArray('custom_view.column_sort_options'))
                         ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
@@ -275,7 +276,8 @@ class CustomViewController extends AdminControllerTableBase
                         })
                         ->required()->rules('summaryCondition');
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                    $form->number('sort_order', exmtrans("custom_view.sort_order"))->min(0)->max(99)->setFieldWidth(50);
+                    $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                        ->options(array_merge([''], range(1, 5)));
                     $form->select('sort_type', exmtrans("custom_view.sort_type"))
                         ->options(Enums\ViewColumnSort::transArray('custom_view.column_sort_options'))
                         ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
