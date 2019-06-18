@@ -89,26 +89,27 @@ class HasManyTable extends HasMany
         $tableitems = [];
         $hiddens = [];
         $requires = [];
+        $helps = [];
         
         foreach ($form->fields() as &$field) {
             // when embeds item,
             if ($field instanceof NestedEmbeds) {
                 $embedfields = $field->fields();
                 foreach ($embedfields as &$embedfield) {
-                    $this->setTableFieldItem($embedfield, $tableitems, $hiddens, $requires);
+                    $this->setTableFieldItem($embedfield, $tableitems, $hiddens, $requires, $helps);
                 }
             } else {
-                $this->setTableFieldItem($field, $tableitems, $hiddens, $requires);
+                $this->setTableFieldItem($field, $tableitems, $hiddens, $requires, $helps);
             }
         }
 
-        return [$tableitems, $hiddens, $requires];
+        return [$tableitems, $hiddens, $requires, $helps];
     }
 
     /**
      * set table field item to header, body, hidden
      */
-    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires)
+    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires, &$helps)
     {
         // if hidden, set $hiddens
         if ($field instanceof Hidden) {
@@ -123,6 +124,14 @@ class HasManyTable extends HasMany
         // set label viewclass hidden
         $field->setLabelClass(['hidden']);
         $field->setWidth(12, 0);
+
+        // get help text
+        if(!empty($help = $field->getHelpText())){
+            $helps[] = $help;
+            $field->forgetHelp();
+        }else{
+            $helps[] = null;
+        }
     }
     
     /**
@@ -316,18 +325,19 @@ EOT;
         $form = $this->buildNestedForm($this->column, $this->builder);
                 
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
-        list($tableitems, $hiddens, $requires) = $this->getTableItem($form);
+        list($tableitems, $hiddens, $requires, $helps) = $this->getTableItem($form);
 
         // set related forms
         $relatedforms = [];
         // set labelclass hidden
         foreach ($this->buildRelatedForms() as $k => &$relatedform) {
-            list($relatedtableitems, $relatedhiddens, $relatedrequires) = $this->getTableItem($relatedform);
+            list($relatedtableitems, $relatedhiddens, $relatedrequires, $relatedhelps) = $this->getTableItem($relatedform);
 
             $relatedforms[$k] = [
                 'tableitems' => $relatedtableitems,
                 'hiddens' => $relatedhiddens,
                 'requires' => $relatedrequires,
+                'helps' => $relatedhelps,
             ];
         }
 
@@ -342,6 +352,7 @@ EOT;
             'hasRowUpDown' => isset($this->rowUpDown),
             'tableitems' => $tableitems,
             'hiddens' => $hiddens,
+            'helps' => $helps,
             'requires' => $requires,
             'tablewidth' => $this->tablewidth,
             'tablecolumnwidths' => $this->tablecolumnwidths,

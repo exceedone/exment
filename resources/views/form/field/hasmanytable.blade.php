@@ -18,6 +18,10 @@
                 @foreach($tableitems as $tableitem)
                     <th class="text-center {{$loop->index < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[$loop->index] : ''}} {{$loop->index < count($requires) && boolval($requires[$loop->index]) ? 'asterisk' : ''}}">
                         {{ $tableitem->label() }}
+
+                        @if($loop->index < count($helps) && isset($helps[$loop->index]))
+                        <i class="fa fa-info-circle" data-help-text="{{$helps[$loop->index]}}" data-help-title="{{ $tableitem->label() }}"></i>
+                        @endif
                     </th>
                 @endforeach
                 <th class="text-center {{count($tableitems) < count($tablecolumnwidths) ? 'col-sm-'.$tablecolumnwidths[count($tableitems)] : ''}}">{{trans('admin.action')}}</th>

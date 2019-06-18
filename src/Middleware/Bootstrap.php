@@ -94,6 +94,14 @@ $("input[type='file']").on("filepredelete", function(jqXHR) {
         });
     });
     
+    $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, function(ev){
+        var elem = $(ev.target).closest('[data-help-text]');
+        swal(
+            elem.data('help-title'),
+            elem.data('help-text'),
+            'info'
+        );
+    });
 
 EOT;
         Ad::script($script);

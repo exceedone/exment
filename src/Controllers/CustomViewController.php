@@ -255,8 +255,10 @@ class CustomViewController extends AdminControllerTableBase
                         });
 
                     $form->select('sort_order', exmtrans("custom_view.sort_order"))
-                        ->options(array_merge([''], range(1, 5)));
+                        ->options(array_merge([''], range(1, 5)))
+                        ->help(exmtrans('custom_view.help.sort_order_summaries'));
                     $form->select('sort_type', exmtrans("custom_view.sort"))
+                    ->help(exmtrans('custom_view.help.sort_type'))
                         ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                         ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
                         
@@ -278,8 +280,10 @@ class CustomViewController extends AdminControllerTableBase
                         ->required()->rules('summaryCondition');
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"))->icon(null);
                     $form->select('sort_order', exmtrans("custom_view.sort_order"))
+                        ->help(exmtrans('custom_view.help.sort_order_summaries'))
                         ->options(array_merge([''], range(1, 5)));
                     $form->select('sort_type', exmtrans("custom_view.sort"))
+                        ->help(exmtrans('custom_view.help.sort_type'))
                         ->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                         ->config('allowClear', false)->default(Enums\ViewColumnSort::ASC);
                 })->setTableColumnWidth(4, 2, 2, 1, 2, 1)
@@ -375,7 +379,10 @@ class CustomViewController extends AdminControllerTableBase
             $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                 ->options($this->custom_table->getColumnsSelectOptions(true, true));
-                $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))->required()->default(1);
+                $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
+                    ->required()
+                    ->default(1)
+                    ->help(exmtrans('custom_view.help.sort_type'));
                 $form->hidden('priority')->default(0);
             })->setTableColumnWidth(7, 3, 2)
             ->rowUpDown('priority')
