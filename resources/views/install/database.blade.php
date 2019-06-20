@@ -68,7 +68,7 @@
                 @endforeach @endif
 
                 <label>{{exmtrans('install.database.password')}}:</label>
-                <input type="password" class="form-control" name="password" value="{{ old('password', $password) }}" required />
+                <input type="password" class="form-control" name="password" value="{{ old('password', $password) }}" />
             </div>
 
             <div class="row">
