@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -17,6 +18,8 @@ abstract class CustomItem implements ItemInterface
     use SummaryItemTrait;
     
     protected $custom_column;
+    
+    protected $custom_table;
 
     /**
      * laravel-admin set required. if false, always not-set required
@@ -34,6 +37,7 @@ abstract class CustomItem implements ItemInterface
     public function __construct($custom_column, $custom_value)
     {
         $this->custom_column = $custom_column;
+        $this->custom_table = $custom_column->custom_table;
         $this->label = $this->custom_column->column_view_name;
         $this->setCustomValue($custom_value);
         $this->options = [];
@@ -67,6 +71,9 @@ abstract class CustomItem implements ItemInterface
     {
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
+        }
+        if (boolval(array_get($this->options, 'groupby'))) {
+            return $this->getGroupBySqlName();
         }
         if (!$this->custom_column->index_enabled) {
             return 'value->'.$this->custom_column->column_name;
@@ -120,7 +127,7 @@ abstract class CustomItem implements ItemInterface
     {
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
-            $this->id = $custom_value->id;
+            $this->id = array_get($custom_value, 'id');
         }
 
         $this->prepare();
@@ -130,7 +137,7 @@ abstract class CustomItem implements ItemInterface
 
     public function getCustomTable()
     {
-        return $this->custom_column->custom_table;
+        return $this->custom_table;
     }
 
     protected function getTargetValue($custom_value)
@@ -404,17 +411,15 @@ abstract class CustomItem implements ItemInterface
      */
     public function getColumnValidates(&$result_options)
     {
-        $custom_table = $this->custom_column->custom_table;
-        $custom_column = $this->custom_column;
-        $options = array_get($custom_column, 'options');
+        $options = array_get($this->custom_column, 'options');
 
         $validates = [];
         // setting options --------------------------------------------------
         // unique
         if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
             // add unique field
-            $unique_table_name = getDBTableName($custom_table); // database table name
-            $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name
+            $unique_table_name = getDBTableName($this->custom_table); // database table name
+            $unique_column_name = "value->".array_get($this->custom_column, 'column_name'); // column name
             
             $uniqueRules = [$unique_table_name, $unique_column_name];
             // create rules.if isset id, add

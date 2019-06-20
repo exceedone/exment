@@ -88,6 +88,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ->where('multisetting_type', 1);
     }
 
+    public function table_labels()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', 2);
+    }
+
     /**
      * Get Columns where select_target_table's id is this table.
      *
@@ -184,6 +190,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             // get custom table
             $custom_table = $column->select_target_table;
             if (!isset($custom_table)) {
+                continue;
+            }
+
+            // if same table, continue
+            if ($this->id == $custom_table->id) {
                 continue;
             }
 
@@ -492,60 +503,50 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
         extract($options);
 
-        // if selected target column,
-        $searchColumns = $options['searchColumns'];
-        if (is_null($searchColumns)) {
-            $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
-                return $c->getIndexColumnName();
-            });
-        }
-
-        if (!isset($searchColumns) || count($searchColumns) == 0) {
-            return collect([]);
-        }
-        
         $data = [];
 
-        if (boolval(config('exment.filter_search_full', false))) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-        $mark = ($isLike ? 'LIKE' : '=');
+        $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
-        if ($relation) {
-            $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
-        } else {
-            $takeCount = intval(config('exment.keyword_search_count', 1000));
-        }
+        // if (boolval(config('exment.filter_search_full', false))) {
+        //     $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        // } else {
+        //     $value = $q . ($isLike ? '%' : '');
+        // }
+        // $mark = ($isLike ? 'LIKE' : '=');
 
-        // if not paginate, only take maxCount
-        if (!$paginate) {
-            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
-        }
+        // if ($relation) {
+        //     $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
+        // } else {
+        //     $takeCount = intval(config('exment.keyword_search_count', 1000));
+        // }
 
-        // crate union query
-        $queries = [];
-        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = $searchColumns[$i];
-            $query = getModelName($this)::query();
-            $query->where($searchColumn, $mark, $value)->select('id');
-            $query->take($takeCount);
+        // // if not paginate, only take maxCount
+        // if (!$paginate) {
+        //     $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        // }
 
-            $queries[] = $query;
-        }
+        // // crate union query
+        // $queries = [];
+        // for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+        //     $searchColumn = $searchColumns[$i];
+        //     $query = getModelName($this)::query();
+        //     $query->where($searchColumn, $mark, $value)->select('id');
+        //     $query->take($takeCount);
 
-        $searchColumn = $searchColumns->last();
-        $subquery = getModelName($this)::query();
-        $subquery->where($searchColumn, $mark, $value)->select('id');
-        $subquery->take($takeCount);
+        //     $queries[] = $query;
+        // }
 
-        foreach ($queries as $inq) {
-            $subquery->union($inq);
-        }
+        // $searchColumn = $searchColumns->last();
+        // $subquery = getModelName($this)::query();
+        // $subquery->where($searchColumn, $mark, $value)->select('id');
+        // $subquery->take($takeCount);
 
-        // create main query
-        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        // foreach ($queries as $inq) {
+        //     $subquery->union($inq);
+        // }
+
+        // // create main query
+        // $mainQuery =  \DB::query()->fromSub($subquery, 'sub');
 
         // return as paginate
         if ($paginate) {
@@ -579,7 +580,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * search relation value
      */
-    public function searchRelationValue($search_type, $parent_value_id, $child_table, $options = [])
+    public function searchRelationValue($search_type, $parent_value_id, $child_table, &$options = [])
     {
         $options = array_merge(
             [
@@ -607,6 +608,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     ->map(function ($c) {
                         return $c->getIndexColumnName();
                     });
+
+                // set query info
+                if(isset($searchColumns)){
+                    $options['listQuery'] = [
+                        $searchColumns->first() => $parent_value_id,
+                    ];
+                }
+
                 return $child_table->searchValue($parent_value_id, [
                     'isLike' => false,
                     'paginate' => $paginate,
@@ -620,6 +629,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $query = $child_table->getValueModel()
                     ->where('parent_id', $parent_value_id)
                     ->where('parent_type', $this->table_name);
+
+                // set query info
+                $options['listQuery'] = [
+                    'parent_id' => $parent_value_id,
+                ];
 
                 return $paginate ? $query->paginate($maxCount) : $query->get();
             // many_to_many

@@ -1129,6 +1129,15 @@
 					"options": {
 						"target_system_name": "guideline"
 					}
+				},
+				{
+					"row_no": "2",
+					"column_no": "2",
+					"dashboard_box_view_name": "Exment Newslist",
+					"dashboard_box_type": "system",
+					"options": {
+						"target_system_name": "news"
+					}
 				}
 			]
 		}

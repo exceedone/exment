@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Middleware;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Field;
@@ -24,20 +25,27 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        // Get System config
-        $initialized = System::initialized();
+        if (!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
+            $path = trim(admin_base_path('install'), '/');
+            if (!$request->is($path)) {
+                return redirect()->guest(admin_base_path('install'));
+            }
+            static::initializeConfig(false);
+        } else {
+            $initialized = System::initialized();
 
-        // if path is not "initialize" and not installed, then redirect to initialize
-        if (!shouldPassThrough(true) && !$initialized) {
-            $request->session()->invalidate();
-            return redirect()->guest(admin_base_path('initialize'));
+            // if path is not "initialize" and not installed, then redirect to initialize
+            if (!shouldPassThrough(true) && !$initialized) {
+                $request->session()->invalidate();
+                return redirect()->guest(admin_base_path('initialize'));
+            }
+            // if path is "initialize" and installed, redirect to login
+            elseif (shouldPassThrough(true) && $initialized) {
+                return redirect()->guest(admin_base_path('auth/login'));
+            }
+    
+            static::initializeConfig();
         }
-        // if path is "initialize" and installed, redirect to login
-        elseif (shouldPassThrough(true) && $initialized) {
-            return redirect()->guest(admin_base_path('auth/login'));
-        }
-
-        static::initializeConfig();
         
         static::requireBootstrap();
 
@@ -257,13 +265,17 @@ class Initialize
             });
         });
 
+        Grid\Tools::$defaultPosition = 'right';
+        Grid\Concerns\HasQuickSearch::$searchKey = 'query';
+        Grid::$searchKey = 'query';
+
         $map = [
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,
-            'header'           => Field\Header::class,
+            'exmheader'           => Field\Header::class,
             'description'           => Field\Description::class,
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
@@ -296,7 +308,30 @@ class Initialize
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
             $now = \Carbon\Carbon::now();
-            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
+
+            $log_string = 'SQL: ' . $now->format("YmdHisv")." ".$sql;
+
+            if (boolval(config('exment.debugmode_sqlfunction', false))) {
+                $function = static::getFunctionName();
+                $log_string .= "    , function: $function";
+            }
+    
+            \Log::debug($log_string);
         });
+    }
+
+    protected static function getFunctionName()
+    {
+        $bt = debug_backtrace();
+        $functions = [];
+        $i = 0;
+        foreach ($bt as $b) {
+            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
+                $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            $i++;
+        }
+        return implode(" < ", $functions);
     }
 }

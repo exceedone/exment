@@ -88,7 +88,15 @@ var Exment;
             for (var i = 0; i < helps.length; i++) {
                 var help = helps[i];
                 // if match first current uri and pathname, set help url
-                if (trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0) {
+                var uri = trimAny(admin_base_path(help.uri), '/');
+                var isMatch = false;
+                if (!hasValue(uri)) {
+                    isMatch = trimAny(pathname, '/') == uri;
+                }
+                else {
+                    isMatch = trimAny(pathname, '/').indexOf(uri) === 0;
+                }
+                if (isMatch) {
                     // set new url
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
@@ -225,28 +233,34 @@ var Exment;
          * if click grid row, move page
          */
         CommonEvent.tableHoverLink = function () {
-            $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev) {
-                // if e.target closest"a" is length > 0, return
-                if ($(ev.target).closest('a').length > 0) {
-                    return;
-                }
-                if ($(ev.target).closest('.popover').length > 0) {
-                    return;
-                }
-                //その要素の先祖要素で一番近いtrの
-                //data-href属性の値に書かれているURLに遷移する
-                var linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                }
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-external-link');
-                }
-                if (!hasValue(linkElem)) {
-                    return;
-                }
-                linkElem.closest('a').click();
-            }).addClass('tableHoverLinkEvent');
+            var $target = $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent');
+            $target.on('mousedown', function (ev) {
+                $target.on('mouseup mousemove', function handler(ev) {
+                    // only click
+                    if (ev.type === 'mouseup') {
+                        // if e.target closest"a" is length > 0, return
+                        if ($(ev.target).closest('a').length > 0) {
+                            return;
+                        }
+                        if ($(ev.target).closest('.popover').length > 0) {
+                            return;
+                        }
+                        var linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                        }
+                        if (!hasValue(linkElem)) {
+                            linkElem = $(ev.target).closest('tr').find('.fa-external-link');
+                        }
+                        if (!hasValue(linkElem)) {
+                            return;
+                        }
+                        linkElem.closest('a').click();
+                    }
+                    $target.off('mouseup mousemove', handler);
+                });
+            });
+            $target.addClass('tableHoverLinkEvent');
         };
         /**
          * Set changedata event
@@ -1130,8 +1144,11 @@ var admin_base_path = function (path) {
     if (admin_base_uri.length > 0) {
         urls.push(admin_base_uri);
     }
-    urls.push(trimAny($('#admin_prefix').val(), '/'));
-    var prefix = '/' + urls.join('/');
+    var prefix = trimAny($('#admin_prefix').val(), '/');
+    if (hasValue(prefix)) {
+        urls.push(prefix);
+    }
+    prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 };

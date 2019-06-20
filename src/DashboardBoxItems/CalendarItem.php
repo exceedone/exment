@@ -14,6 +14,8 @@ use Exceedone\Exment\Enums\ViewKindType;
 
 class CalendarItem implements ItemInterface
 {
+    use TableItemTrait;
+    
     protected $dashboard_box;
 
     protected $custom_table;
@@ -43,7 +45,7 @@ class CalendarItem implements ItemInterface
      */
     public function header()
     {
-        return null;
+        return $this->tableheader();
     }
     
     /**

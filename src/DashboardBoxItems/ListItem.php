@@ -5,8 +5,10 @@ namespace Exceedone\Exment\DashboardBoxItems;
 use Encore\Admin\Widgets\Table as WidgetTable;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\ViewType;
@@ -14,6 +16,8 @@ use Exceedone\Exment\Enums\ViewKindType;
 
 class ListItem implements ItemInterface
 {
+    use TableItemTrait;
+
     protected $dashboard_box;
     
     protected $custom_table;
@@ -51,29 +55,7 @@ class ListItem implements ItemInterface
      */
     public function header()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
-            return null;
-        }
-    
-        // check edit permission
-        if ($this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
-            $new_url= admin_url("data/{$this->custom_table->table_name}/create");
-            $list_url = admin_url("data/{$this->custom_table->table_name}?view=".$this->custom_view->suuid);
-        } else {
-            $new_url = null;
-            $list_url = null;
-        }
-
-        return view('exment::dashboard.list.header', [
-            'new_url' => $new_url,
-            'list_url' => $list_url,
-        ])->render();
+        return $this->tableheader();
     }
     
     /**
@@ -82,13 +64,7 @@ class ListItem implements ItemInterface
      */
     public function body()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
+        if (!$this->hasPermission()) {
             return trans('admin.deny');
         }
         
@@ -119,13 +95,7 @@ class ListItem implements ItemInterface
      */
     public function footer()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
+        if (!$this->hasPermission()) {
             return null;
         }
 
@@ -140,7 +110,7 @@ class ListItem implements ItemInterface
     {
         $form->select('pager_count', trans("admin.show"))
             ->required()
-            ->options(getPagerOptions(true, [5, 10, 20]))
+            ->options(getPagerOptions(true, Define::PAGER_DATALIST_COUNTS))
             ->config('allowClear', false)
             ->default(0);
 
@@ -209,11 +179,21 @@ class ListItem implements ItemInterface
         
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel();
-        // filter model
-        $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+
+        if (array_get($this->custom_view, 'view_kind_type') == ViewKindType::AGGREGATE) {
+            // filter model
+            $model = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
+        } else {
+            // filter model
+            $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+        }
         
         // pager count
-        $pager_count = $this->dashboard_box->getOption('pager_count') ?? 5;
+        $pager_count = $this->dashboard_box->getOption('pager_count');
+        if(!isset($pager_count) || $pager_count == 0){
+            $pager_count = System::datalist_pager_count() ?? 5;
+        }
+
         // get data
         $this->paginate = $model->paginate($pager_count);
     }

@@ -53,8 +53,15 @@ trait CustomValueGrid
      */
     protected function setCustomGridFilters($grid, $search_enabled_columns)
     {
+        $grid->quickSearch(function ($model, $input) {
+            $model->eloquent()->setSearchQueryOrWhere($model, $input);
+        }, 'left');
+
         $grid->filter(function ($filter) use ($search_enabled_columns) {
+            $filter->disableIdFilter();
+
             $filter->column(1/2, function ($filter) {
+                $filter->equal('id', exmtrans('common.id'));
                 $filter->between('created_at', exmtrans('common.created_at'))->date();
                 $filter->between('updated_at', exmtrans('common.updated_at'))->date();
                 

@@ -29,6 +29,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
+        $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
     }
@@ -109,6 +110,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
+            $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
                         
             $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
@@ -161,6 +163,18 @@ class RouteServiceProvider extends ServiceProvider
                 $router->get('auth/login/{provider}', 'AuthController@getLoginProvider');
                 $router->get('auth/login/{provider}/callback', 'AuthController@callbackLoginProvider');
             }
+        });
+    }
+    
+    protected function mapExmentInstallWebRotes()
+    {
+        Route::group([
+            'prefix'        => config('admin.route.prefix'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['web', 'admin_install'],
+        ], function (Router $router) {
+            $router->get('install', 'InstallController@index');
+            $router->post('install', 'InstallController@post');
         });
     }
     

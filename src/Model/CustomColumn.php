@@ -20,9 +20,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     protected $appends = ['required', 'index_enabled', 'unique'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
+    protected $with = ['custom_table'];
+
 
     public static $templateItems = [
-        'excepts' => ['suuid', 'required', 'index_enabled', 'unique'],
+        'excepts' => ['suuid', 'required', 'index_enabled', 'unique', 'custom_table'],
         'uniqueKeys' => [
             'export' => [
                 'custom_table.table_name', 'column_name'
@@ -83,13 +85,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function scopeIndexEnabled($query)
     {
         return $query->whereIn('options->index_enabled', [1, "1", true]);
-    }
-
-    public function scopeUseLabelFlg($query)
-    {
-        return $query
-            ->whereNotIn('options->use_label_flg', [0, "0"])
-            ->orderBy('options->use_label_flg');
     }
 
     public function getColumnItemAttribute()

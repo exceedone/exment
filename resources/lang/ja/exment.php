@@ -24,6 +24,8 @@ return [
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
+        'published_at' => '公開日時', 
+        'published_date' => '公開日', 
         'created_user' => '作成ユーザー',
         'updated_user' => '更新ユーザー', 
         'deleted_user' => '削除ユーザー', 
@@ -36,8 +38,8 @@ return [
         'no' => 'いいえ',
         'row' => '行',
         'column' => '列',
-        'asc' => '昇順',
-        'desc' => '降順',
+        'row_up' => '1行上へ',
+        'row_down' => '1行下へ',
         'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
@@ -65,6 +67,16 @@ return [
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
             'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。'
         ],
+
+        'weekday' => [
+            'mon' => '月',
+            'tue' => '火',
+            'wed' => '水',
+            'thu' => '木',
+            'fri' => '金',
+            'sat' => '土',
+            'sun' => '日',
+        ]
     ],
 
     'error' => [
@@ -73,9 +85,36 @@ return [
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
+        'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。'
+    ],
+
+    'install' => [
+        'title' => 'インストール',
+        'installing' => 'インストール実行',
+
+        'database' => [
+            'header' => 'データベース設定',
+            'connection' => 'データベース種類',
+            'host' => 'ホスト名',
+            'port' => 'ポート',
+            'database' => 'データベース',
+            'username' => 'ユーザー名',
+            'password' => 'パスワード',
+        ],
+
+        'help' => [
+            'installing' => '初期データをインストールします。この処理には時間がかかります。',
+            'install_success' => 'インストール完了しました！',
+        ],
+
+        'error' => [
+            'database_canconnection' => 'データベースに接続できませんでした。設定内容をご確認ください。',
+            'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
+            'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
+        ],
     ],
 
     'system' => [
@@ -83,8 +122,8 @@ return [
         'system_description' => 'システム設定を変更します。',
         'header' => 'サイト基本情報',
         'administrator' => '管理者情報',
-        'initialize_header' => 'Exmentインストール',
-        'initialize_description' => 'Exmentの初期設定を画面から登録し、インストールします。',
+        'initialize_header' => 'Exment初期設定',
+        'initialize_description' => 'Exmentの初期設定を行います。',
         'site_name' => 'サイト名',
         'site_name_short' => 'サイト名(略)',
         'site_logo' => 'サイトロゴ',
@@ -92,10 +131,12 @@ return [
         'site_favicon' => 'サイトファビコン(ico)',
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
+        'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
         'system_mail_from' => 'システムメール送信元',
         'grid_pager_count' => 'データ一覧の表示件数',
+        'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'template' => 'インストールテンプレート',
         'version_header' => 'システムのバージョン情報',
         'version_progress' => 'バージョン情報を取得しています。',
@@ -134,7 +175,9 @@ return [
             'site_favicon' => 'サイトのファビコン(.ico)です。ホームページのブックマークなどに利用されます。推奨サイズ：16px * 16px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
+            'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
+            'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
             'system_mail_from' => 'システムからメールを送付する際の送信元です。このメールアドレスをFromとして、メールが送付されます。',
@@ -190,6 +233,7 @@ return [
 
         'dashboard_box_system_pages' => [
             'guideline' => 'ガイドライン',
+            'news' => 'Exment新着情報一覧',
         ],
 
         'dashboard_menulist' => [
@@ -388,6 +432,7 @@ return [
         'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'add_parent_menu_flg' => 'メニューに追加する',
         'add_parent_menu' => '追加先の親メニュー',
+        'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
         'help' => [
             'color' => '検索などで使用する、テーブルの色を設定します。',
@@ -411,12 +456,16 @@ return [
         ],
 
         'custom_column_multi' => [
-            'uniques' => '複合ユニークキー',
+            'uniques' => '複合ユニークキー設定',
             'unique1' => '列1',
             'unique2' => '列2',
             'unique3' => '列3',
+            'table_labels' => '見出し表示列設定',
+            'column_target' => '対象列',
+            'priority' => '優先順位',
 
             'help' => [
+                'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
             ],
         ],
@@ -466,7 +515,6 @@ return [
             'auto_number_type_random32' => 'ランダム(UUID)',
             'auto_number_format' => '採番フォーマット',
             'multiple_enabled' => '複数選択を許可する',
-            'use_label_flg' => 'ラベルで使用する',
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
         ],
@@ -499,7 +547,6 @@ return [
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
-            'use_label_flg' => 'データを選択時、画面に表示する文言の列です。1以上を値を入力した場合、1から順に見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
             'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',
@@ -599,20 +646,40 @@ return [
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
+        'sort_order' => '並び順',
         'sort' => '並べ替え',
         'priority' => '優先順位',
         'pager_count_default' => 'システム設定に合わせる',
         'custom_view_filters' => '表示条件',
         'view_filter_condition' => '検索条件',
         'view_filter_condition_value_text' => '検索値',
+        'view_group_condition' => '列タイプ',
         'view_summary_condition' => '集計タイプ',
         'default_view_name' => '既定のビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
-        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。',
+        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+
+        'help' => [
+            'sort_type' => 'ソートを、「昇順(小さい順)」で実行するか、「降順（大きい順）」で実行するか、指定します。',
+            'sort_order_summaries' => '取得するデータをソートします。<br />「グループ列」「集計列」の中から、数値の小さい順に、ソートを実行します。',
+        ],
+
+        'column_sort_options' => [
+            'asc' => '昇順',
+            'desc' => '降順',
+        ],
+        'group_condition_options' => [
+            'y' => '年毎',
+            'ym' => '年月毎',
+            'ymd' => '年月日毎',
+            'm' => '月毎',
+            'd' => '日毎',
+            'w' => '曜日毎',
+        ],
 
         'summary_condition_options' => [
             'sum' => '合計',
@@ -784,6 +851,7 @@ return [
         'no_result' => '検索結果がありませんでした',
         'result_label' => '「%s」 の検索結果' ,
         'view_list' => '一覧表示',
+        'freeword' => 'フリーワード',
     ],
 
     'menu' => [

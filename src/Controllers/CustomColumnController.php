@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -174,7 +175,12 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(ColumnType::transArray("custom_column.column_type_options"))
-        ->attribute(['data-filtertrigger' =>true])
+        ->attribute(['data-filtertrigger' =>true,
+            'data-linkage' => json_encode([
+                'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
+            ]),
+            'data-linkage-text' => 'column_view_name'
+        ])
         ->required();
 
         if (!isset($id)) {
@@ -192,14 +198,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->text('default', exmtrans("custom_column.options.default"));
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
-            $form->number('use_label_flg', exmtrans("custom_column.options.use_label_flg"))
-                ->help(exmtrans("custom_column.help.use_label_flg"))
-                ->min(0)
-                ->max(5)
-                ->default(0)
-                ->help(sprintf(exmtrans("custom_column.help.use_label_flg"), getManualUrl('column?id='.exmtrans('custom_column.options.use_label_flg'))))
-                ;
-
+            
             // setting for each settings of column_type. --------------------------------------------------
 
             // text
@@ -290,7 +289,7 @@ class CustomColumnController extends AdminControllerTableBase
                     ->help(exmtrans("custom_column.help.select_target_table"))
                     ->required()
                     ->options(function ($select_table) {
-                        $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
+                        $options = CustomTable::filterList()->whereNotIn('table_name', [SystemTableName::USER, SystemTableName::ORGANIZATION])->pluck('table_view_name', 'id')->toArray();
                         return $options;
                     })
                     ->attribute([
@@ -304,14 +303,29 @@ class CustomColumnController extends AdminControllerTableBase
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
-                ->options(function ($select_table, $form) {
+                ->options(function ($select_table, $form) use ($id) {
                     $data = $form->data();
-                    if (!isset($data) || is_null($select_target_table = array_get($data, 'select_target_table'))) {
+                    if (!isset($data)) {
+                        return [];
+                    }
+
+                    // whether column_type is user or org
+                    if (!is_null(old('column_type'))) {
+                        $model = CustomColumn::getEloquent(old('column_type'), $this->custom_table);
+                    } elseif (isset($id) || old('column_type')) {
+                        $model = CustomColumn::getEloquent($id);
+                    }
+                    if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
+                        return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
+                    }
+
+                    // select_table
+                    if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
                         return [];
                     }
                     return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
                 })
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION]])]);
 
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))

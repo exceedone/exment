@@ -257,6 +257,7 @@
     }
     .box-body .box-body-inner-header{
         overflow: hidden;
+        padding: 5px 0;
     }
     .box-body .box-body-inner-body{
         overflow: auto;
@@ -304,6 +305,10 @@
 
 .swal2-container {
     zoom: 1.3;
+}
+
+[data-help-text] {
+    cursor: pointer;
 }
 
 .form-group .radio-inline:first-child{

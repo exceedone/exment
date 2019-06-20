@@ -10,6 +10,8 @@ use Illuminate\Database\MySqlConnection as BaseConnection;
 
 class MySqlConnection extends BaseConnection
 {
+    use ConnectionTrait;
+    
     /**
      * Get a schema builder instance for the connection.
      *
