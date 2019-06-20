@@ -220,7 +220,9 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ->label(array_get($item, 'view_column_name'))
                 ->label();
         }
-        $headers[] = trans('admin.action');
+        if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+            $headers[] = trans('admin.action');
+        }
         
         // get table bodies
         $bodies = [];
@@ -250,23 +252,25 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
 
                 ///// add show and edit link
-                // using role
-                $link .= (new Linker)
-                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
-                    //->linkattributes(['style' => "margin:0 3px;"])
-                    ->icon('fa-eye')
-                    ->tooltip(trans('admin.show'))
-                    ->render();
-                if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+                    // using role
                     $link .= (new Linker)
-                        ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin.edit'))
+                        ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
+                        //->linkattributes(['style' => "margin:0 3px;"])
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'))
                         ->render();
+                    if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                        $link .= (new Linker)
+                            ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
+                            ->icon('fa-edit')
+                            ->tooltip(trans('admin.edit'))
+                            ->render();
+                    }
+                    // add hidden item about data id
+                    $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
+                    $body_items[] = $link;
                 }
-                // add hidden item about data id
-                $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
-                $body_items[] = $link;
 
                 // add items to body
                 $bodies[] = $body_items;
