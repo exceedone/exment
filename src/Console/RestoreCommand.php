@@ -110,16 +110,17 @@ __EOT__;
      */
     protected function dropUnusedTable($files)
     {
-        $fileTables = collect($files)->map(function ($file) {
-            return $file->getBasename('.' . $file->getExtension());
-        })->toArray();
-        $exmTables = collect(\Schema::getTableListing())->filter(function ($table) use ($fileTables) {
-            return stripos($table, 'exm__') === 0 && !in_array($table, $fileTables);
-        })->flatten()->all();
+        return;
+        // $fileTables = collect($files)->map(function ($file) {
+        //     return $file->getBasename('.' . $file->getExtension());
+        // })->toArray();
+        // $exmTables = collect(\Schema::getTableListing())->filter(function ($table) use ($fileTables) {
+        //     return stripos($table, 'exm__') === 0 && !in_array($table, $fileTables);
+        // })->flatten()->all();
 
-        foreach ($exmTables as $table) {
-            \Schema::dropIfExists($table);
-        }
+        // foreach ($exmTables as $table) {
+        //     \Schema::dropIfExists($table);
+        // }
     }
 
     /**
