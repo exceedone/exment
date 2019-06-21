@@ -28,7 +28,7 @@ class News
             $client = new \GuzzleHttp\Client();
             $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
                 'http_errors' => false,
-                'query' => $this->getQuery()
+                'query' => $this->getQuery(),
             ]);
     
             $contents = $response->getBody()->getContents();
@@ -106,7 +106,7 @@ class News
         // get querystring
         $query = [
             'categories' => 6,
-            'per_page' => 5,
+            'per_page' => System::datalist_pager_count() ?? 5,
             'page' => $request->get('page') ?? 1,
         ];
 
