@@ -205,40 +205,31 @@ namespace Exment {
          * if click grid row, move page
          */
         public static tableHoverLink() {
-            var $target = $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent');
-            $target.on('mousedown', function (ev) {
-                $target.on('mouseup mousemove', function handler(ev) {
-                  // only click
-                  if (ev.type === 'mouseup') {
-                    // if e.target closest"a" is length > 0, return
-                    if ($(ev.target).closest('a').length > 0) {
-                        return;
-                    }
-                    if ($(ev.target).closest('.popover').length > 0) {
-                        return;
-                    }
-                    
-                    var linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
-                    }
-                    if (!hasValue(linkElem)) {
-                        linkElem = $(ev.target).closest('tr').find('.fa-external-link');
-                    }
-                    if (!hasValue(linkElem)) {
-                        return;
-                    }
-                    linkElem.closest('a').click();
-                  }
-                  $target.off('mouseup mousemove', handler);
-                });
-              });
-            
-            $target.addClass('tableHoverLinkEvent');
+            $('table').find('[data-id]').closest('tr').not('.tableHoverLinkEvent').on('click', function (ev: JQueryEventObject) {
+                // if e.target closest"a" is length > 0, return
+                if ($(ev.target).closest('a').length > 0) {
+                    return;
+                }
+                if ($(ev.target).closest('.popover').length > 0) {
+                    return;
+                }
+                
+                var linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                }
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-external-link');
+                }
+                if (!hasValue(linkElem)) {
+                    return;
+                }
+                linkElem.closest('a').click();
+            }).addClass('tableHoverLinkEvent');
         }
 
         /**
-        * 日付の計算
+        * Calc Date
         */
         private static calcDate = () => {
             var $type = $('.subscription_claim_type');
