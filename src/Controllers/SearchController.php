@@ -414,7 +414,7 @@ EOT;
             $new_url = admin_url("data/{$custom_table->table_name}/create");
             $list_url = admin_url("data/{$custom_table->table_name}");
 
-            if (boolval(config('exment.search_list_link_filter', false)) && isset($query)) {
+            if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
                 $list_url .= '?' . http_build_query($query);
             }
         }
