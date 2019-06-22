@@ -596,6 +596,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         switch ($search_type) {
             // self table
             case SearchType::SELF:
+                // set query info
+                $options['listQuery'] = [
+                    'id' => $parent_value_id,
+                ];
+                
                 return [$this->getValueModel($parent_value_id)];
             // select_table(select box)
             case SearchType::SELECT_TABLE:

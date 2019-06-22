@@ -190,7 +190,7 @@ return [
     | If true, filtered
     |
     */
-    'search_list_link_filter' => env('EXMENT_SEARCH_LIST_LINK_FILTER', false),
+    'search_list_link_filter' => env('EXMENT_SEARCH_LIST_LINK_FILTER', true),
   
     /*
     |--------------------------------------------------------------------------
