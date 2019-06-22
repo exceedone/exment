@@ -1,4 +1,4 @@
-<div class="btn-group pull-right" style="margin-right: 5px">
+<div class="btn-group pull-right hidden-xs" style="margin-right: 5px">
     <button type="button" class="btn btn-sm btn-twitter dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         <i class="fa fa-download"></i> {{$button_caption}}
         <span class="caret"></span>

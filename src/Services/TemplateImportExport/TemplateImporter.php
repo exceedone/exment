@@ -43,7 +43,6 @@ class TemplateImporter
                     if (File::exists($langpath)) {
                         $lang = json_decode(File::get($langpath), true);
                         $json = static::mergeTemplate($json, $lang);
-                        \Log::debug($templates_path, ["json" => $json]);
                     }
                     // add thumbnail
                     if (isset($json['thumbnail'])) {
@@ -106,10 +105,10 @@ class TemplateImporter
     {
         // store uploaded file
         $tmpdir = getTmpFolderPath('template', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'admin_tmp', true);
+        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
 
-        $filename = $uploadFile->store($tmpdir, 'admin_tmp');
-        $fullpath = getFullpath($filename, 'admin_tmp');
+        $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
+        $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
 
         // zip
         $zip = new ZipArchive;
@@ -582,6 +581,9 @@ class TemplateImporter
                 }
             }
         }
+
+        // patch use_label_flg
+        \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
     }
 
     protected static function getTemplateBasePaths()

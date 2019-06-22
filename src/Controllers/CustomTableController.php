@@ -95,7 +95,7 @@ class CustomTableController extends AdminControllerBase
         $form->number('order', exmtrans("custom_table.order"))->rules("integer")
             ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
         
-        $form->header(exmtrans('common.detail_setting'))->hr();
+        $form->exmheader(exmtrans('common.detail_setting'))->hr();
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
@@ -171,8 +171,15 @@ class CustomTableController extends AdminControllerBase
             }
             // if edit mode
             if ($id != null) {
-                $model = CustomTable::findOrFail($id);
-                $tools->add((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $model = CustomTable::getEloquent($id);
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
+                    'label' => exmtrans('custom_table.expand_setting'),
+                    'icon' => 'fa-exchange',
+                ]));
+
+                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
             }
         });
         
@@ -229,47 +236,20 @@ class CustomTableController extends AdminControllerBase
         $script = <<<SCRIPT
 
 $('.{$class}-delete').unbind('click').click(function() {
-
-    swal({
+    Exment.CommonEvent.ShowSwal("$url", {
         title: "{$trans['delete_confirm']}",
         text: "{$trans['delete_guide']}",
         input: 'text',
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "{$trans['confirm']}",
-        showLoaderOnConfirm: true,
-        cancelButtonText: "{$trans['cancel']}",
-        preConfirm: function(input) {
+        method: 'delete',
+        confirm:"{$trans['confirm']}",
+        cancel:"{$trans['cancel']}",
+        redirect: "$listUrl",
+        preConfirmValidate: function(input){
             if (input != "$keyword") {
                 return "{$trans['delete_keyword']}";
             } 
-            return new Promise(function(resolve) {
-                $.ajax({
-                    method: 'post',
-                    url: '{$url}',
-                    data: {
-                        _method:'delete',
-                        _token:LA.token,
-                    },
-                    success: function (data) {
-                        $.pjax({container:'#pjax-container', url: '{$listUrl}' });
 
-                        resolve(data);
-                    }
-                });
-            });
-        }
-    }).then(function(result) {
-        var data = result.value;
-        if (typeof data === 'object') {
-            if (data.status) {
-                swal(data.message, '', 'success');
-            } else {
-                swal(data.message, '', 'error');
-            }
-        } else if (typeof data === 'string') {
-            swal(data, '', 'error');
+            return true;
         }
     });
 });
@@ -297,7 +277,9 @@ HTML;
         $form = new Form(new CustomTable);
         $form->display('table_name', exmtrans("custom_table.table_name"));
         $form->display('table_view_name', exmtrans("custom_table.table_view_name"));
+        
         $form->hidden('columnmulti')->default(1);
+        $form->ignore('columnmulti');
 
         $custom_table = CustomTable::getEloquent($id);
         $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
@@ -310,8 +292,33 @@ HTML;
             $form->hidden('multisetting_type')->default(1);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
+        
+        $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
+            $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            
+            $form->hidden('priority')->default(1);
+            $form->hidden('multisetting_type')->default(2);
+        })->setTableColumnWidth(10, 2)
+        ->rowUpDown('priority')
+        ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
-        $form->ignore('columnmulti');
+        $form->tools(function (Form\Tools $tools) use ($id) {
+            // if edit mode
+            if ($id != null) {
+                $model = CustomTable::getEloquent($id);
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('table', $id, 'edit'),
+                    'label' => exmtrans('custom_table.default_setting'),
+                    'icon' => 'fa-table',
+                ]));
+
+                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+            }
+        });
+        
+
         return $form;
     }
     

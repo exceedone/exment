@@ -8,7 +8,6 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Controllers\BackupController;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -30,6 +29,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
+        $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
     }
@@ -94,9 +94,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('backup/save', 'BackupController@save');
             $router->post('backup/setting', 'BackupController@postSetting');
             $router->post('backup/import', 'BackupController@import');
-            $router->get('backup/download/{ymdhms}', function ($ymdhms) {
-                return BackupController::download($ymdhms);
-            });
+            $router->get('backup/download/{ymdhms}', 'BackupController@download');
         
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
@@ -114,6 +112,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
+            $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
                         
             $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
@@ -169,6 +168,18 @@ class RouteServiceProvider extends ServiceProvider
         });
     }
     
+    protected function mapExmentInstallWebRotes()
+    {
+        Route::group([
+            'prefix'        => config('admin.route.prefix'),
+            'namespace'     => $this->namespace,
+            'middleware'    => ['web', 'admin_install'],
+        ], function (Router $router) {
+            $router->get('install', 'InstallController@index');
+            $router->post('install', 'InstallController@post');
+        });
+    }
+    
     protected function mapExmentApiRotes()
     {
         // define adminapi(for webapi), api(for web)
@@ -199,6 +210,7 @@ class RouteServiceProvider extends ServiceProvider
 
                 // table --------------------------------------------------
                 $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("table/indexcolumns", 'ApiController@indexcolumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));

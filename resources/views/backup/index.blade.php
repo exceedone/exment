@@ -80,83 +80,26 @@
 {!! $modal !!} 
 <script type="text/javascript">
     function deletefile(id) {
-        swal({
-                title: "{{trans('admin.delete_confirm')}}",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "{{trans('admin.confirm')}}",
-                showLoaderOnConfirm: true,
-                cancelButtonText: "{{trans('admin.cancel')}}",
-                preConfirm: function() {
-                    return new Promise(function(resolve) {
-                        $.ajax({
-                            method: 'post',
-                            url: '{{admin_url("backup/delete")}}',
-                            data: {
-                                _method:'delete',
-                                _token:'{{ csrf_token() }}',
-                                files: id
-                            },
-                            success: function (data) {
-                                $.pjax.reload('#pjax-container');
-                                resolve(data);
-                            }
-                        });
-                    });
-                }
-            }).then(function(result) {
-                var data = result.value;
-                if (typeof data === 'object') {
-                    if (data.result) {
-                        swal(data.message, '', 'success');
-                    } else {
-                        swal(data.message, '', 'error');
-                    }
-                }
-            });
+        Exment.CommonEvent.ShowSwal('{{admin_url("backup/delete")}}', {
+            title: "{{trans('admin.delete_confirm')}}",
+            method: 'delete',
+            confirm:"{{trans('admin.confirm')}}",
+            cancel:"{{trans('admin.cancel')}}",
+            data: {
+                files: id
+            },
+        });
     }
     function restore(id) {
-        swal({
-                title: "{{exmtrans('backup.message.restore_confirm')}}",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "{{trans('admin.confirm')}}",
-                showLoaderOnConfirm: true,
-                cancelButtonText: "{{trans('admin.cancel')}}",
-                preConfirm: function() {
-                    return new Promise(function(resolve) {
-                        $.ajax({
-                            method: 'post',
-                            url: '{{admin_url("backup/restore")}}',
-                            data: {
-                                _method:'post',
-                                _token:'{{ csrf_token() }}',
-                                file: id
-                            },
-                            success: function (data) {
-                                $.pjax.reload('#pjax-container');
-                                resolve(data);
-                            }
-                        });
-                    });
-                }
-            }).then(function(result) {
-                var data = result.value;
-                if (typeof data === 'object') {
-                    if (data.result) {
-                        swal(data.message, '', 'success');
-                    } else {
-                        swal(data.message, '', 'error');
-                    }
-                }
-
-                if(data.redirect){
-                    $.pjax({ container: '#pjax-container', url: data.redirect });
-                }
-            });
-
+        Exment.CommonEvent.ShowSwal('{{admin_url("backup/restore")}}', {
+            title: "{{exmtrans('backup.message.restore_confirm')}}",
+            text: "{{exmtrans('common.message.execution_takes_time')}}" + "{{exmtrans('backup.message.restore_confirm_text')}}",
+            confirm:"{{trans('admin.confirm')}}",
+            cancel:"{{trans('admin.cancel')}}",
+            data: {
+                file: id
+            },
+        });
     }
     $(document).ready(function () {
         $('.grid-refresh').on('click', function() {
@@ -191,39 +134,11 @@
             restore(id);
         });
         $('.btn-backup').unbind('click').click(function() {
-            swal({
+            Exment.CommonEvent.ShowSwal('{{admin_url("backup/save")}}', {
                 title: "{{exmtrans('backup.message.backup_confirm')}}",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "{{trans('admin.confirm')}}",
-                showLoaderOnConfirm: true,
-                cancelButtonText: "{{trans('admin.cancel')}}",
-                preConfirm: function() {
-                    return new Promise(function(resolve) {
-                        $.ajax({
-                            method: 'post',
-                            url: '{{admin_url("backup/save")}}',
-                            data: {
-                                _method:'post',
-                                _token:'{{ csrf_token() }}',
-                            },
-                            success: function (data) {
-                                $.pjax.reload('#pjax-container');
-                                resolve(data);
-                            }
-                        });
-                    });
-                }
-            }).then(function(result) {
-                var data = result.value;
-                if (typeof data === 'object') {
-                    if (data.result) {
-                        swal(data.message, '', 'success');
-                    } else {
-                        swal(data.message, '', 'error');
-                    }
-                }
+                text: "{{exmtrans('common.message.execution_takes_time')}}",
+                confirm:"{{trans('admin.confirm')}}",
+                cancel:"{{trans('admin.cancel')}}"
             });
         });
 

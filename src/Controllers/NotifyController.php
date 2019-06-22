@@ -66,7 +66,7 @@ class NotifyController extends AdminControllerBase
         $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required()->rules("max:40");
         // TODO: only role tables
 
-        $form->header(exmtrans('notify.header_trigger'))->hr();
+        $form->exmheader(exmtrans('notify.header_trigger'))->hr();
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
         ->required()
         ->options(function ($custom_table_id) {
@@ -124,7 +124,7 @@ class NotifyController extends AdminControllerBase
                 ->rules("max:40");
         })->disableHeader();
 
-        $form->header(exmtrans("notify.header_action"))->hr();
+        $form->exmheader(exmtrans("notify.header_action"))->hr();
         $form->select('notify_action', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->default(NotifyAction::EMAIL)

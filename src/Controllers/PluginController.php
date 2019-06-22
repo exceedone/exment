@@ -92,7 +92,7 @@ class PluginController extends AdminControllerBase
     protected function destroy($id)
     {
         $this->deleteFolder($id);
-        if ($this->form()->destroy($id)) {
+        if ($this->form($id)->destroy($id)) {
             return response()->json([
                 'status' => true,
                 'message' => trans('admin.delete_succeeded'),
@@ -131,7 +131,7 @@ class PluginController extends AdminControllerBase
             $options['event_triggers'] = $event_triggers;
             $request->merge(['options' => $options]);
         }
-        return $this->form()->update($id);
+        return $this->form($id)->update($id);
     }
 
     /**
@@ -168,20 +168,58 @@ class PluginController extends AdminControllerBase
                         return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
                     })->help(exmtrans("plugin.help.event_triggers"));
                 }
-            } else {
+            } elseif ($plugin_type == PluginType::PAGE) {
                 // Plugin_type = 'page'
                 $form->text('uri', exmtrans("plugin.options.uri"));
+            } elseif ($plugin_type == PluginType::BATCH) {
+                $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
+                    ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
+                    ->default(3);
+                    
+                $form->text('batch_cron', exmtrans("plugin.options.batch_cron"))
+                    ->help(exmtrans("plugin.help.batch_cron") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
+                    ->rules('max:100');
             }
-            $form->text('label', exmtrans("plugin.options.label"));
-            $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
-            $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+
+            if ($plugin_type != PluginType::BATCH) {
+                $form->text('label', exmtrans("plugin.options.label"));
+                $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+                $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+            }
         })->disableHeader();
 
+        $this->setCustomOptionForm($plugin, $form);
+
         // Role setting --------------------------------------------------
-        // TODO:error
-        //$this->addRoleForm($form, RoleType::PLUGIN);
+        // $this->addRoleForm($form, RoleType::PLUGIN);
 
         $form->disableReset();
         return $form;
+    }
+
+    /**
+     * Get plugin custom option
+     *
+     * @param [type] $plugin
+     * @return void
+     */
+    protected function setCustomOptionForm($plugin, &$form)
+    {
+        if (!isset($plugin)) {
+            return;
+        }
+        
+        $pluginClass = $plugin->getClass();
+        if (!isset($pluginClass)) {
+            return;
+        }
+        
+        if (!$pluginClass->useCustomOption()) {
+            return;
+        }
+
+        $form->embeds('custom_options', exmtrans("plugin.options.custom_options_header"), function ($form) use ($pluginClass) {
+            $pluginClass->setCustomOptionForm($form);
+        });
     }
 }

@@ -9,6 +9,7 @@ use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 
@@ -157,7 +158,7 @@ EOT;
                 continue;
             }
             var url = admin_url('search/list?table_name=' + table.table_name + '&query=' + $('.base_query').val());
-            getNaviDataItem(url, table.table_name);
+            getNaviDataItem(url, table.box_key);
         }
     }
 EOT;
@@ -206,10 +207,11 @@ EOT;
     {
         $q = $request->input('query');
         $table = CustomTable::getEloquent($request->input('table_name'), true);
-        $boxHeader = $this->getBoxHeaderHtml($table);
+        $boxHeader = $this->getBoxHeaderHtml($table, ['query' => $q]);
         // search all data using index --------------------------------------------------
         $paginate = $table->searchValue($q, [
-            'paginate' => true
+            'paginate' => true,
+            'maxCount' => System::datalist_pager_count() ?? 5
         ]);
         $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name={$request->input('table_name')}");
         $datalist = $paginate->items();
@@ -286,7 +288,7 @@ function getNaviData() {
             + '&value_id=' + $('.value_id').val()
             + '&search_type=' + table.search_type
         );
-        getNaviDataItem(url, table.table_name);
+        getNaviDataItem(url, table.box_key);
     }
 }
 EOT;
@@ -311,12 +313,13 @@ EOT;
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
-        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, [
+        $options = [
             'paginate' => true,
-            'maxCount' => 10,
-        ]);
+            'maxCount' => System::datalist_pager_count() ?? 5,
+        ];
+        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, $options);
 
-        $boxHeader = $this->getBoxHeaderHtml($search_table);
+        $boxHeader = $this->getBoxHeaderHtml($search_table, array_get($options, 'listQuery', []));
         if (isset($data) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             $paginate = $data;
             $data = $paginate->items();
@@ -397,9 +400,12 @@ EOT;
         if (CustomTable::getEloquent($table)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
             $array['show_list'] = true;
         }
+
+        // add table box key
+        $array['box_key'] = short_uuid();
         return $array;
     }
-    protected function getBoxHeaderHtml($custom_table)
+    protected function getBoxHeaderHtml($custom_table, $query = [])
     {
         // boxheader
         $boxHeader = [];
@@ -407,6 +413,10 @@ EOT;
         if ($custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $new_url = admin_url("data/{$custom_table->table_name}/create");
             $list_url = admin_url("data/{$custom_table->table_name}");
+
+            if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
+                $list_url .= '?' . http_build_query($query);
+            }
         }
         return view('exment::dashboard.list.header', [
             'new_url' => $new_url ?? null,
@@ -423,32 +433,33 @@ EOT;
     $(function () {
         getNaviData();
     });
-    function getNaviDataItem(url, table_name){
-        var box = $('.table_' + table_name);
+    function getNaviDataItem(url, box_key){
+        var box = $('[data-box_key="' + box_key + '"]');
         box.find('.overlay').show();
         // Get Data
         $.ajax({
             url: url,
             type: 'GET',
+            context: {box: box},
         })
         // Execute when success Ajax Request
-        .done((data) => {
-            var box = $('.table_' + data.table_name);
+        .done(function(data){
+            var box = this.box;
             box.find('.box-body .box-body-inner-header').html(data.header);
             box.find('.box-body .box-body-inner-body').html(data.body);
             box.find('.box-body .box-body-inner-footer').html(data.footer);
             box.find('.overlay').hide();
             Exment.CommonEvent.tableHoverLink();
         })
-        .always((data) => {
+        .always(function(data){
         });
     }
     ///// click dashboard link event
     $(document).off('click', '[data-ajax-link]').on('click', '[data-ajax-link]', [], function(ev){
         // get link
         var url = $(ev.target).closest('[data-ajax-link]').data('ajax-link');
-        var table_name = $(ev.target).closest('[data-table_name]').data('table_name');
-        getNaviDataItem(url, table_name);
+        var box_key = $(ev.target).closest('[data-box_key]').data('box_key');
+        getNaviDataItem(url, box_key);
     });
 EOT;
         Admin::script($script);

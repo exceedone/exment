@@ -26,6 +26,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $appends = ['view_calendar_target', 'pager_count'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
+    protected $with = ['custom_table', 'custom_view_columns'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -207,26 +208,41 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $options
         );
         $custom_table = $this->custom_table;
-        // get custom view columns
-        $custom_view_columns = $this->custom_view_columns;
+        // get custom view columns and custom view summaries
+        $view_column_items = $this->getSummaryIndexAndViewColumns();
         
         // create headers
         $headers = [];
-        foreach ($custom_view_columns as $custom_view_column) {
-            $headers[] = $custom_view_column
+        foreach ($view_column_items as $view_column_item) {
+            $item = array_get($view_column_item, 'item');
+            $headers[] = $item
                 ->column_item
-                ->label(array_get($custom_view_column, 'view_column_name'))
+                ->label(array_get($item, 'view_column_name'))
                 ->label();
         }
-        $headers[] = trans('admin.action');
+        if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+            $headers[] = trans('admin.action');
+        }
         
         // get table bodies
         $bodies = [];
         if (isset($datalist)) {
             foreach ($datalist as $data) {
                 $body_items = [];
-                foreach ($custom_view_columns as $custom_view_column) {
-                    $item = $custom_view_column->column_item;
+                foreach ($view_column_items as $view_column_item) {
+                    $column = array_get($view_column_item, 'item');
+                    $item = $column->column_item;
+                    if ($this->view_kind_type == ViewKindType::AGGREGATE) {
+                        $index = array_get($view_column_item, 'index');
+                        $summary_condition = array_get($column, 'view_summary_condition');
+                        $item->options([
+                            'summary' => true,
+                            'summary_index' => $index,
+                            'summary_condition' => $summary_condition,
+                            'group_condition' => array_get($column, 'view_group_condition'),
+                            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
+                        ]);
+                    }
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
@@ -236,23 +252,25 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
 
                 ///// add show and edit link
-                // using role
-                $link .= (new Linker)
-                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
-                    //->linkattributes(['style' => "margin:0 3px;"])
-                    ->icon('fa-eye')
-                    ->tooltip(trans('admin.show'))
-                    ->render();
-                if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+                    // using role
                     $link .= (new Linker)
-                        ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin.edit'))
+                        ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
+                        //->linkattributes(['style' => "margin:0 3px;"])
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'))
                         ->render();
+                    if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                        $link .= (new Linker)
+                            ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
+                            ->icon('fa-edit')
+                            ->tooltip(trans('admin.edit'))
+                            ->render();
+                    }
+                    // add hidden item about data id
+                    $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
+                    $body_items[] = $link;
                 }
-                // add hidden item about data id
-                $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
-                $body_items[] = $link;
 
                 // add items to body
                 $bodies[] = $body_items;
@@ -402,46 +420,62 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     /**
      * set value summary
      */
-    public function getValueSummary($model, $table_name)
+    public function getValueSummary(&$query, $table_name, $grid = null)
     {
         // get table id
         $db_table_name = getDBTableName($table_name);
 
         $group_columns = [];
+        $sort_columns = [];
         $custom_tables = [];
 
         // set grouping columns
-        foreach ($this->custom_view_columns as $custom_view_column) {
-            $item = $custom_view_column->column_item;
-
-            // first, set group_column. this column's name uses index.
-            $group_columns[] = $item->sqlname();
-            // parent_id need parent_type
-            if ($item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
-                $group_columns[] = $item->sqltypename();
+        $view_column_items = $this->getSummaryIndexAndViewColumns();
+        foreach ($view_column_items as $view_column_item) {
+            $item = array_get($view_column_item, 'item');
+            $index = array_get($view_column_item, 'index');
+            $column_item = $item->column_item;
+            // set order column
+            if (!empty(array_get($item, 'sort_order'))) {
+                $sort_order = array_get($item, 'sort_order');
+                $sort_type = array_get($item, 'sort_type');
+                $sort_columns[] = ['key' => $sort_order, 'sort_type' => $sort_type, 'column_name' => "column_$index"];
             }
 
-            $alter_column_index = ViewKindType::DEFAULT . '_' . $custom_view_column->id;
+            if ($item instanceof CustomViewColumn) {
+                // first, set group_column. this column's name uses index.
+                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition')]);
+                $group_columns[] = $column_item->sqlname();
+                $column_item->options(['groupby' => false, 'group_condition' => null]);
 
-            $this->setSummaryItem($item, $alter_column_index, $custom_tables);
-        }
-        // set summary columns
-        foreach ($this->custom_view_summaries as $custom_view_summary) {
-            $item = $custom_view_summary->column_item;
+                // parent_id need parent_type
+                if ($column_item instanceof \Exceedone\Exment\ColumnItems\ParentItem) {
+                    $group_columns[] = $column_item->sqltypename();
+                }
 
-            $alter_column_index = ViewKindType::AGGREGATE . '_' . $custom_view_summary->id;
-            $this->setSummaryItem($item, $alter_column_index, $custom_tables, $custom_view_summary->view_summary_condition);
+                $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
+                    'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
+                    'custom_view_column' => $item,
+                ]);
+            }
+            // set summary columns
+            else {
+                $this->setSummaryItem($column_item, $index, $custom_tables, $grid, [
+                    'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
+                    'summary_condition' => $item->view_summary_condition
+                ]);
+            }
         }
 
         // set filter columns
         foreach ($this->custom_view_filters as $custom_view_filter) {
-            $custom_table_id = array_get($custom_view_filter, 'view_column_table_id');
+            $target_table_id = array_get($custom_view_filter, 'view_column_table_id');
 
-            if (array_key_exists($custom_table_id, $custom_tables)) {
-                $custom_tables[$custom_table_id]['filter'][] = $custom_view_filter;
+            if (array_key_exists($target_table_id, $custom_tables)) {
+                $custom_tables[$target_table_id]['filter'][] = $custom_view_filter;
             } else {
-                $custom_tables[$custom_table_id] = [
-                    'table_name' => getDBTableName($custom_table_id),
+                $custom_tables[$target_table_id] = [
+                    'table_name' => getDBTableName($target_table_id),
                     'filter' => [$custom_view_filter]
                 ];
             }
@@ -462,14 +496,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         foreach ($custom_tables as $table_id => $custom_table) {
             // add select column and filter
             if ($table_id == $custom_table_id) {
-                $this->addQuery($model, $db_table_name, $custom_table);
+                $this->addQuery($query, $db_table_name, $custom_table);
                 continue;
             }
             // join parent table
             if ($parent_relations->contains(function ($value, $key) use ($table_id) {
                 return $value->parent_custom_table->id == $table_id;
             })) {
-                $this->addQuery($model, $db_table_name, $custom_table, 'parent_id', 'id');
+                $this->addQuery($query, $db_table_name, $custom_table, 'parent_id', 'id');
                 continue;
             }
             // create subquery grouping child table
@@ -478,7 +512,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             })) {
                 $sub_query = $this->getSubQuery($db_table_name, 'id', 'parent_id', $custom_table);
                 if (array_key_exists('select_group', $custom_table)) {
-                    $model = $model->addSelect($custom_table['select_group']);
+                    $query = $query->addSelect($custom_table['select_group']);
                 }
                 $sub_queries[] = $sub_query;
                 continue;
@@ -486,7 +520,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             // join table refered from target table
             if (in_array($table_id, $select_table_columns)) {
                 $column_key = array_search($table_id, $select_table_columns);
-                $this->addQuery($model, $db_table_name, $custom_table, $column_key, 'id');
+                $this->addQuery($query, $db_table_name, $custom_table, $column_key, 'id');
                 continue;
             }
             // create subquery grouping table refer to target table
@@ -494,7 +528,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $column_key = array_search($table_id, $selected_table_columns);
                 $sub_query = $this->getSubQuery($db_table_name, 'id', $column_key, $custom_table);
                 if (array_key_exists('select_group', $custom_table)) {
-                    $model = $model->addSelect($custom_table['select_group']);
+                    $query = $query->addSelect($custom_table['select_group']);
                 }
                 $sub_queries[] = $sub_query;
                 continue;
@@ -503,26 +537,43 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // join subquery
         foreach ($sub_queries as $table_no => $sub_query) {
-            $model = $model->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
-            $model = $model->mergeBindings($sub_query);
+            $query = $query->leftjoin(\DB::raw('('.$sub_query->toSql().") As table_$table_no"), $db_table_name.'.id', "table_$table_no.id");
+            $query = $query->mergeBindings($sub_query);
         }
 
+        if (count($sort_columns) > 0) {
+            $orders = collect($sort_columns)->sortBy('key')->all();
+            foreach ($orders as $order) {
+                $sort = ViewColumnSort::getEnum(array_get($order, 'sort_type'), ViewColumnSort::ASC)->lowerKey();
+                $query = $query->orderBy(array_get($order, 'column_name'), $sort);
+            }
+        }
         // set sql grouping columns
-        $model = $model->groupBy($group_columns);
+        $query = $query->groupBy($group_columns);
 
-        $datalist = $model->get();
-
-        return $datalist;
+        return $query;
     }
+    
     /**
-     * set summary grid item
+     * set summary item
      */
-    protected function setSummaryItem($item, $index, &$custom_tables, $summary_condition = null)
+    protected function setSummaryItem($item, $index, &$custom_tables, $grid, $options = [])
     {
+        extract(array_merge(
+            [
+                'column_label' => null,
+                'summary_condition' => null,
+                'custom_view_column' => null,
+            ],
+            $options
+        ));
+
         $item->options([
             'summary' => true,
             'summary_condition' => $summary_condition,
-            'summary_index' => $index
+            'summary_index' => $index,
+            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
+            'group_condition' => array_get($custom_view_column, 'view_group_condition'),
         ]);
 
         $table_id = $item->getCustomTable()->id;
@@ -541,26 +592,41 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (isset($summary_condition)) {
             $custom_tables[$table_id]['select_group'][] = $item->getGroupName();
         }
+        
+        if (isset($grid)) {
+            $grid->column("column_".$index, $column_label)
+            ->sort($item->sortable())
+            ->display(function ($id) use ($item, $index) {
+                $option = SystemColumn::getOption(['name' => $item->name()]);
+                if (array_get($option, 'type') == 'user') {
+                    return esc_html(getUserName($id));
+                } else {
+                    return $item->setCustomValue($this)->html();
+                }
+            });
+        }
     }
+
     /**
      * add select column and filter and join table to main query
      */
-    protected function addQuery(&$model, $table_main, $custom_table, $key_main = null, $key_sub = null)
+    protected function addQuery(&$query, $table_main, $custom_table, $key_main = null, $key_sub = null)
     {
         $table_name = array_get($custom_table, 'table_name');
         if ($table_name != $table_main) {
-            $model = $model->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
-            $model = $model->whereNull("$table_name.deleted_at");
+            $query = $query->join($table_name, "$table_main.$key_main", "$table_name.$key_sub");
+            $query = $query->whereNull("$table_name.deleted_at");
         }
         if (array_key_exists('select', $custom_table)) {
-            $model = $model->addSelect($custom_table['select']);
+            $query = $query->addSelect($custom_table['select']);
         }
         if (array_key_exists('filter', $custom_table)) {
             foreach ($custom_table['filter'] as $filter) {
-                $filter->setValueFilter($model, $table_name);
+                $filter->setValueFilter($query, $table_name);
             }
         }
     }
+    
     /**
      * add select column and filter and join table to sub query
      */
@@ -568,10 +634,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $table_name = array_get($custom_table, 'table_name');
         $sub_query = \DB::table($table_main)
-            ->select("$table_main.id")
+            ->select("$table_name.$key_sub as id")
             ->join($table_name, "$table_main.$key_main", "$table_name.$key_sub")
             ->whereNull("$table_name.deleted_at")
-            ->groupBy("$table_main.id");
+            ->groupBy("$table_name.$key_sub");
         if (array_key_exists('select', $custom_table)) {
             $sub_query->addSelect($custom_table['select']);
         }
@@ -581,6 +647,33 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
         }
         return $sub_query;
+    }
+
+    /**
+     * Get arrays about Summary Column and custom_view_columns and custom_view_summaries
+     *
+     * @return void
+     */
+    public function getSummaryIndexAndViewColumns()
+    {
+        $results = [];
+        // set grouping columns
+        foreach ($this->custom_view_columns as $custom_view_column) {
+            $results[] = [
+                'index' => ViewKindType::DEFAULT . '_' . $custom_view_column->id,
+                'item' => $custom_view_column,
+            ];
+        }
+        // set summary columns
+        foreach ($this->custom_view_summaries as $custom_view_summary) {
+            $results[] = [
+                'index' => ViewKindType::AGGREGATE . '_' . $custom_view_summary->id,
+                'item' => $custom_view_summary,
+            ];
+            $item = $custom_view_summary->column_item;
+        }
+
+        return $results;
     }
 
     /**

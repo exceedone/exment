@@ -7,10 +7,22 @@ use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 class SystemItem implements ItemInterface
 {
     protected $dashboard_box;
+    protected $systemItem;
     
     public function __construct($dashboard_box)
     {
         $this->dashboard_box = $dashboard_box;
+
+        $item = collect(DashboardBoxSystemPage::options())->first(function ($value) {
+            return array_get($value, 'id') == array_get($this->dashboard_box, 'options.target_system_id');
+        });
+        if (!isset($item)) {
+            return;
+        }
+
+        // get class
+        $class = $item['class'];
+        $this->systemItem = new $class;
     }
 
     /**
@@ -18,7 +30,7 @@ class SystemItem implements ItemInterface
      */
     public function header()
     {
-        return null;
+        return $this->systemItem->header();
     }
     
     /**
@@ -26,7 +38,7 @@ class SystemItem implements ItemInterface
      */
     public function footer()
     {
-        return null;
+        return $this->systemItem->footer();
     }
     
     /**
@@ -34,14 +46,7 @@ class SystemItem implements ItemInterface
      */
     public function body()
     {
-        $item = collect(DashboardBoxSystemPage::options())->first(function ($value) {
-            return array_get($value, 'id') == array_get($this->dashboard_box, 'options.target_system_id');
-        });
-        if (isset($item)) {
-            $html = view('exment::dashboard.system.'.array_get($item, 'name'))->render() ?? null;
-        }
-        
-        return $html ?? null;
+        return $this->systemItem->body();
     }
 
     /**

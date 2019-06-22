@@ -11,12 +11,13 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Form\Widgets\InfoBox;
+use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
 
 class SystemController extends AdminControllerBase
 {
-    use InitializeForm, RoleForm;
+    use RoleForm, InitializeFormTrait;
     
     public function __construct(Request $request)
     {
@@ -31,7 +32,7 @@ class SystemController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $form = $this->getInitializeForm('system');
+        $form = $this->getInitializeForm('system', false, true);
         $form->action(admin_url('system'));
 
         // Role Setting
@@ -39,7 +40,7 @@ class SystemController extends AdminControllerBase
 
         $content->row(new Box(trans('admin.edit'), $form));
 
-        if (!config('exment.disabled_outside_api', false)) {
+        if (System::outside_api()) {
             // Version infomation
             $infoBox = $this->getVersionBox();
             $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));

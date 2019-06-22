@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -15,8 +16,8 @@ use Validator;
 
 class TemplateController extends AdminControllerBase
 {
-    use InitializeForm;
-        
+    use InitializeFormTrait;
+    
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("template.header"), exmtrans("template.header"), exmtrans("template.description"), 'fa-clone');
@@ -150,7 +151,11 @@ class TemplateController extends AdminControllerBase
         $form->text('template_name', exmtrans('template.template_name'))->required()->help(exmtrans('common.help_code'))->rules("max:30");
         $form->text('template_view_name', exmtrans('template.template_view_name'))->required()->rules("max:40");
         $form->textarea('description', exmtrans('template.form_description'))->rows(3);
-        $form->image('thumbnail', exmtrans('template.thumbnail'))->help(exmtrans('template.help.thumbnail'))->options(Define::FILE_OPTION());
+
+        $fileOption = Define::FILE_OPTION();
+        $form->image('thumbnail', exmtrans('template.thumbnail'))
+            ->help(exmtrans('template.help.thumbnail'). exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
+            ->options($fileOption);
 
         // export target
         $form->checkbox('export_target', exmtrans('template.export_target'))

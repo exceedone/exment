@@ -115,6 +115,10 @@ class DefaultTableProvider extends ProviderBase
      */
     protected function getBodies($records, $columnDefines)
     {
+        if (!isset($records)) {
+            return [];
+        }
+        
         $bodies = [];
 
         list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;

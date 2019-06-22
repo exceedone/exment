@@ -2,15 +2,13 @@
 
 namespace Exceedone\Exment\Console;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\BackupTarget;
-use \File;
 
 class BackupCommand extends Command
 {
-    use CommandTrait;
+    use CommandTrait, BackupRestoreTrait;
 
     /**
      * The name and signature of the console command.
@@ -25,27 +23,6 @@ class BackupCommand extends Command
      * @var string
      */
     protected $description = 'Backup database definition, table data, files in selected folder';
-
-    /**
-     * console command start time (YmdHis)
-     *
-     * @var string
-     */
-    protected $starttime;
-
-    /**
-     * temporary folder path store files for archive
-     *
-     * @var string
-     */
-    protected $tempdir;
-
-    /**
-     * list folder path store backup files
-     *
-     * @var string
-     */
-    protected $listdir;
 
     /**
      * Create a new command instance.
@@ -66,8 +43,6 @@ class BackupCommand extends Command
      */
     public function handle()
     {
-        $this->starttime = date('YmdHis');
-
         $target = $this->option("target") ?? BackupTarget::arrays();
 
         if (is_string($target)) {
@@ -76,11 +51,11 @@ class BackupCommand extends Command
             })->filter()->toArray();
         }
 
-        $this->getBackupPath();
+        $this->initBackupRestore();
 
         // backup database tables
         if (in_array(BackupTarget::DATABASE, $target)) {
-            \DB::backupDatabase($this->tempdir);
+            \DB::backupDatabase($this->tmpDirFullPath());
         }
 
         // backup directory
@@ -92,7 +67,8 @@ class BackupCommand extends Command
         $this->createZip();
 
         // delete temporary folder
-        $success = \File::deleteDirectory($this->tempdir);
+        $success = static::tmpDisk()->deleteDirectory($this->tmpDirName());
+        static::tmpDisk()->delete($this->zipName());
 
         $this->removeOldBackups();
 
@@ -100,66 +76,11 @@ class BackupCommand extends Command
     }
 
     /**
-     * backup table data except virtual generated column.
-     *
-     * @param string backup target table
-     */
-    private function backupTable($table)
-    {
-        // create tsv file
-        $file = new \SplFileObject(path_join($this->tempdir, $table.'.tsv'), 'w');
-        $file->setCsvControl("\t");
-
-        // get column definition
-        $columns = \Schema::getColumnDefinitions($table);
-
-        // get output field name list (not virtual column)
-        $outcols = [];
-        foreach ($columns as $column) {
-            if (!boolval($column['virtual'])) {
-                $outcols[] = strtolower($column['column_name']);
-            }
-        }
-        // write column header
-        $file->fputcsv($outcols);
-
-        // execute backup. contains soft deleted table
-        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols) {
-            foreach ($rows as $row) {
-                $array = (array)$row;
-                $row = array_map(function ($key) use ($array) {
-                    return $array[$key];
-                }, $outcols);
-                // write detail data
-                $file->fputcsv($row);
-            }
-        });
-    }
-    /**
-     * get and create backup folder path
-     *
-     */
-    private function getBackupPath()
-    {
-        // edit temporary folder path for store archive file
-        $this->tempdir = storage_paths('app', 'backup', 'tmp', $this->starttime);
-        // edit zip folder path
-        $this->listdir = storage_paths('app', 'backup', 'list');
-        // create temporary folder if not exists
-        if (!File::exists($this->tempdir)) {
-            File::makeDirectory($this->tempdir, 0755, true);
-        }
-        // create zip folder if not exists
-        if (!File::exists($this->listdir)) {
-            File::makeDirectory($this->listdir, 0755, true);
-        }
-    }
-    /**
      * copy folder to temp directory
      *
      * @return bool true:success/false:fail
      */
-    private function copyFiles($target)
+    protected function copyFiles($target)
     {
         // get directory paths
         $settings = collect($target)->map(function ($val) {
@@ -178,15 +99,14 @@ class BackupCommand extends Command
                 if (!\File::exists($from)) {
                     continue;
                 }
-                $to = path_join($this->tempdir, $setting);
-                if (!File::exists($from)) {
-                    continue;
-                }
-                if (!File::exists($to)) {
-                    File::makeDirectory($to, 0755, true);
+
+                $to = path_join($this->tmpDirName(), $setting);
+
+                if (!static::tmpDisk()->exists($to)) {
+                    static::tmpDisk()->makeDirectory($to, 0755, true);
                 }
 
-                $success = \File::copyDirectory($from, $to);
+                $success = \File::copyDirectory($from, static::tmpDisk()->path($to));
                 if (!$success) {
                     return false;
                 }
@@ -198,28 +118,28 @@ class BackupCommand extends Command
      * archive whole folder(sql and tsv only) to zip.
      *
      */
-    private function createZip()
+    protected function createZip()
     {
-        // set last directory name to zipfile name
-        $filename = $this->starttime . '.zip';
-
         // open new zip file
         $zip = new \ZipArchive();
-        $res = $zip->open(path_join($this->listdir, $filename), \ZipArchive::CREATE);
+        $res = $zip->open($this->zipFullPath(), \ZipArchive::CREATE);
 
         if ($res === true) {
             // iterator all files in folder
-            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tempdir));
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->tmpDirFullPath()));
             foreach ($files as $name => $file) {
                 if ($file->isDir()) {
                     continue;
                 }
                 $filePath = $file->getRealPath();
-                $relativePath = substr($filePath, strlen($this->tempdir) + 1);
+                $relativePath = substr($filePath, strlen($this->tmpDirFullPath()) + 1);
                 $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
         }
+
+        // upload file
+        static::disk()->put($this->listZipName(), static::tmpDisk()->get($this->zipName()));
     }
     
     protected function removeOldBackups()
@@ -236,7 +156,7 @@ class BackupCommand extends Command
             return;
         }
 
-        $disk = Storage::disk('backup');
+        $disk = static::disk();
 
         // get files
         $filenames = $disk->files('list');

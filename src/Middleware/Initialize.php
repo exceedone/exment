@@ -25,24 +25,27 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-            return response(exmtrans('error.not_install'), 500);
-        }
+        if (!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
+            $path = trim(admin_base_path('install'), '/');
+            if (!$request->is($path)) {
+                return redirect()->guest(admin_base_path('install'));
+            }
+            static::initializeConfig(false);
+        } else {
+            $initialized = System::initialized();
 
-        // Get System config
-        $initialized = System::initialized();
-
-        // if path is not "initialize" and not installed, then redirect to initialize
-        if (!shouldPassThrough(true) && !$initialized) {
-            $request->session()->invalidate();
-            return redirect()->guest(admin_base_path('initialize'));
+            // if path is not "initialize" and not installed, then redirect to initialize
+            if (!shouldPassThrough(true) && !$initialized) {
+                $request->session()->invalidate();
+                return redirect()->guest(admin_base_path('initialize'));
+            }
+            // if path is "initialize" and installed, redirect to login
+            elseif (shouldPassThrough(true) && $initialized) {
+                return redirect()->guest(admin_base_path('auth/login'));
+            }
+    
+            static::initializeConfig();
         }
-        // if path is "initialize" and installed, redirect to login
-        elseif (shouldPassThrough(true) && $initialized) {
-            return redirect()->guest(admin_base_path('auth/login'));
-        }
-
-        static::initializeConfig();
         
         static::requireBootstrap();
 
@@ -106,14 +109,14 @@ class Initialize
         
         if (!Config::has('filesystems.disks.admin_tmp')) {
             Config::set('filesystems.disks.admin_tmp', [
-                'driver' => config('exment.driver.tmp', 'local'),
+                'driver' => 'local',
                 'root' => storage_path('app/admin_tmp'),
             ]);
         }
         
         if (!Config::has('filesystems.disks.backup')) {
             Config::set('filesystems.disks.backup', [
-                'driver' => config('exment.driver.backup', 'local'),
+                'driver' => 'local',
                 'root' => storage_path('app/backup'),
             ]);
         }
@@ -262,13 +265,17 @@ class Initialize
             });
         });
 
+        Grid\Tools::$defaultPosition = 'right';
+        Grid\Concerns\HasQuickSearch::$searchKey = 'query';
+        Grid::$searchKey = 'query';
+
         $map = [
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
             'display'        => Field\Display::class,
             'link'           => Field\Link::class,
-            'header'           => Field\Header::class,
+            'exmheader'           => Field\Header::class,
             'description'           => Field\Description::class,
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
@@ -285,5 +292,46 @@ class Initialize
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);
         }
+    }
+
+    public static function logDatabase()
+    {
+        \DB::listen(function ($query) {
+            $sql = $query->sql;
+            for ($i = 0; $i < count($query->bindings); $i++) {
+                $binding = $query->bindings[$i];
+                if ($binding instanceof \DateTime) {
+                    $binding = $binding->format('Y-m-d H:i:s');
+                } elseif ($binding instanceof EnumBase) {
+                    $binding = $binding->toString();
+                }
+                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
+            }
+            $now = \Carbon\Carbon::now();
+
+            $log_string = 'SQL: ' . $now->format("YmdHisv")." ".$sql;
+
+            if (boolval(config('exment.debugmode_sqlfunction', false))) {
+                $function = static::getFunctionName();
+                $log_string .= "    , function: $function";
+            }
+    
+            \Log::debug($log_string);
+        });
+    }
+
+    protected static function getFunctionName()
+    {
+        $bt = debug_backtrace();
+        $functions = [];
+        $i = 0;
+        foreach ($bt as $b) {
+            if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
+                $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            $i++;
+        }
+        return implode(" < ", $functions);
     }
 }

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Exceedone\Exment\Model\Define;
 use \File;
 
 class Csv extends FormatBase
@@ -31,10 +32,10 @@ class Csv extends FormatBase
         // if zip, extract
         if ($extension == 'zip') {
             $tmpdir = getTmpFolderPath('data', false);
-            $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), 'admin_tmp', true);
+            $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
             
-            $filename = $file->store($tmpdir, 'admin_tmp');
-            $fullpath = getFullpath($filename, 'admin_tmp');
+            $filename = $file->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
+            $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
     
             // open zip file
             $zip = new \ZipArchive;

@@ -43,6 +43,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | exment debug mode add function in sql
+    |--------------------------------------------------------------------------
+    |
+    | if true, function details when calling sql in laravel.log
+    |
+    */
+    'debugmode_sqlfunction' => env('EXMENT_DEBUG_MODE_SQLFUNCTION', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | password rule
     |--------------------------------------------------------------------------
     |
@@ -173,32 +183,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Driver
+    | Search List Link Filter
     |--------------------------------------------------------------------------
     |
-    | Exment driver setting
+    | Keyword Search or relation search, if click list button, show filtered list. 
+    | If true, filtered
     |
     */
-    'driver' => [
-        // default attachment driver name
-        'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
-        // backup driver name
-        'backup' => env('EXMENT_DRIVER_BACKUP', 'local'),
-        // temporary driver name
-        'tmp' => env('EXMENT_DISK_TMP', 'local'),
-    ],
+    'search_list_link_filter' => env('EXMENT_SEARCH_LIST_LINK_FILTER', true),
   
-    /*
-    |--------------------------------------------------------------------------
-    | Disabled Outside Api
-    |--------------------------------------------------------------------------
-    |
-    | If set true, not call outside data.
-    | Ex. version check, template search
-    |
-    */
-    'disabled_outside_api' => env('EXMENT_DISABLED_OUTSIDE_API', false),
-
     /*
     |--------------------------------------------------------------------------
     | Filter Search Full

@@ -77,4 +77,13 @@ class Integer extends CustomItem
         $grammar = \DB::getQueryGrammar();
         return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
     }
+
+    /**
+     * whether column is Numeric
+     *
+     */
+    public function isNumeric()
+    {
+        return true;
+    }
 }

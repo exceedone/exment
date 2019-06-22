@@ -15,13 +15,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
 
     protected $appends = ['required', 'index_enabled', 'unique'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
+    protected $with = ['custom_table'];
+
 
     public static $templateItems = [
-        'excepts' => ['suuid', 'required', 'index_enabled', 'unique'],
+        'excepts' => ['suuid', 'required', 'index_enabled', 'unique', 'custom_table'],
         'uniqueKeys' => [
             'export' => [
                 'custom_table.table_name', 'column_name'
@@ -47,6 +50,18 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 ],
                 'uniqueKeyClassName' => CustomTable::class,
             ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.select_import_table_name',
+                            'column_name' => 'options.select_import_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.select_import_column_id'],
+            ],
         ]
     ];
 
@@ -70,13 +85,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function scopeIndexEnabled($query)
     {
         return $query->whereIn('options->index_enabled', [1, "1", true]);
-    }
-
-    public function scopeUseLabelFlg($query)
-    {
-        return $query
-            ->whereNotIn('options->use_label_flg', [0, "0"])
-            ->orderBy('options->use_label_flg');
     }
 
     public function getColumnItemAttribute()
@@ -117,6 +125,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function setUniqueAttribute($value)
     {
         return $this->setOption('unique', $value);
+    }
+
+    public function getSelectImportColumnAttribute()
+    {
+        return CustomColumn::getEloquent($this->getOption('select_import_column_id'));
     }
 
     public function getOption($key, $default = null)
@@ -442,5 +455,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         array_set($array, 'options.calc_formula', $calc_formula);
         
         return $array;
+    }
+    
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options);
     }
 }
