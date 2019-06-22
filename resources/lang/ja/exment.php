@@ -878,7 +878,7 @@ return [
             'template' => 'テンプレート',
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
-            'notify' => '通知',
+            'notify' => '通知・メール送信',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
         ],
