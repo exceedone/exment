@@ -11,6 +11,13 @@ class Tile extends Field
     protected $view = 'exment::form.field.tile';
 
     protected $multipled;
+    
+    /**
+     * Set overlay loading (for ajax)
+     *
+     * @var boolean
+     */
+    protected $overlay = false;
 
     public function __construct($column, $arguments = array())
     {
@@ -46,9 +53,16 @@ class Tile extends Field
         return $this;
     }
 
+    public function overlay($overlay = true){
+        $this->overlay = $overlay;
+
+        return $this;
+    }
+
     public function multiple()
     {
         $this->multipled = true;
+
         return $this;
     }
 
@@ -77,7 +91,7 @@ class Tile extends Field
         $multipled = $this->multipled ? 'true': 'false';
 
         // template search url
-        $script = <<<EOT
+        $this->script = <<<EOT
     
     $(document).on('click', '[data-ajax-link]', {}, function(ev){
         searchTemplate(null, $(ev.target).data('ajax-link'));
@@ -104,10 +118,10 @@ class Tile extends Field
     });
 
 EOT;
-        Admin::script($script);
 
         return parent::render()->with([
             'options'  => $this->options,
+            'overlay' => $this->overlay,
         ]);
     }
 }

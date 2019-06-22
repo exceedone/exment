@@ -172,6 +172,7 @@ trait InitializeFormTrait
         // template list
         $form->tile('template', exmtrans("system.template"))
             ->help(exmtrans("system.help.template"))
+            ->overlay()
             ;
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
