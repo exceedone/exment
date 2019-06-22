@@ -181,6 +181,39 @@ trait InitializeFormTrait
             ->rules('mimes:xlsx|nullable')
             ->help(exmtrans('template.help.upload_template_excel'))
             ->options(Define::FILE_OPTION());
+
+            
+        // template search url
+        $template_search_url = admin_urls('api', 'template', 'search');
+        $script = <<<EOT
+    
+    $(function(){
+        searchTemplate(null);
+    });
+
+    function searchTemplate(q, url){
+        if(!hasValue(url)){
+            url = '$template_search_url';
+        }
+        $('#tile-template .overlay').show();
+        $.ajax({
+            method: 'POST',
+            url: url,
+            data: {
+                q: q,
+                name: 'template',
+                column: 'template',
+                _token:LA.token,
+            },
+            success: function (data) {
+                $('#tile-template .tile-group-items').html(data);
+                $('#tile-template .overlay').hide();
+            }
+        });
+    }
+EOT;
+        \Admin::script($script);
+
     }
     /**
      * Upload Template

@@ -77,22 +77,7 @@ class Tile extends Field
         $multipled = $this->multipled ? 'true': 'false';
 
         // template search url
-        $template_search_url = admin_urls('api', 'template', 'search');
-        $name = $this->formatName($this->column);
         $script = <<<EOT
-    
-    var template_search_timeout;
-    var before = '';
-    $('#tile-{$this->column} #template_search').keyup(function(event) {
-        var val = $(event.target).val();
-        if(val != before){
-            before = val;
-            clearTimeout(template_search_timeout);
-            template_search_timeout = setTimeout(function(){
-                searchTemplate($(event.target).val());
-            }, 300);
-        }
-    });
     
     $(document).on('click', '[data-ajax-link]', {}, function(ev){
         searchTemplate(null, $(ev.target).data('ajax-link'));
@@ -118,30 +103,6 @@ class Tile extends Field
         }
     });
 
-    $(function(){
-        searchTemplate(null);
-    });
-
-    function searchTemplate(q, url){
-        if(!hasValue(url)){
-            url = '$template_search_url';
-        }
-        $('#tile-{$this->column} .overlay').show();
-        $.ajax({
-            method: 'POST',
-            url: url,
-            data: {
-                q: q,
-                name: '{$name}',
-                column: '{$this->column}',
-                _token:LA.token,
-            },
-            success: function (data) {
-                $('#tile-{$this->column} .tile-group-items').html(data);
-                $('#tile-{$this->column} .overlay').hide();
-            }
-        });
-    }
 EOT;
         Admin::script($script);
 

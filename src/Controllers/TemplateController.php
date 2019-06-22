@@ -188,6 +188,7 @@ class TemplateController extends AdminControllerBase
         $form->hidden('_token')->default(csrf_token());
 
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
+        
     }
 
     /**
