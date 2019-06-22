@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
@@ -334,42 +335,8 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $mail_template = $notify->getMailTemplate();
-        if (!isset($mail_template)) {
-            abort(404);
-        }
-
-        // create form fields
-        $form = new \Exceedone\Exment\Form\Widgets\ModalInnerForm();
-        $form->disableReset();
-        $form->disableSubmit();
-        $form->modalAttribute('id', 'data_notify_modal');
-        $form->modalHeader(exmtrans('custom_value.sendmail.title'));
-
-        $form->action(admin_urls('data', $tableKey, $id, 'sendMail'));
-    
-        $form->text('mail_title', exmtrans('custom_value.sendmail.mail_title'))
-            ->default(array_get($mail_template->value, 'mail_subject'))
-            ->required()
-            ->setWidth(8, 3);
-        $form->textarea('mail_message', exmtrans('custom_value.sendmail.mail_message'))
-            ->default(array_get($mail_template->value, 'mail_body'))
-            ->required()
-            ->setWidth(8, 3)
-            ->rows(10);
-        $options = ExmentFile::where('parent_type', $tableKey)
-            ->where('parent_id', $id)->get()->pluck('filename', 'uuid');
-        $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
-            ->options($options)
-            ->setWidth(8, 3);
-        $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
-            ->attribute(['readonly' => true, 'placeholder' => ''])
-            ->setWidth(8, 3)
-            ->rows(1)
-            ->addElementClass('send_error_message');
-        $form->hidden('mail_key_name')->default(array_get($mail_template->value, 'mail_key_name'));
-        $form->hidden('mail_template_id')->default($targetid);
-
+        $form = NotifyService::getNotifyDialogForm($notify, $targetid, $tableKey, $id);
+        
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -382,41 +349,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function sendMail(Request $request, $tableKey, $id = null)
     {
-        $title = $request->get('mail_title');
-        $message = $request->get('mail_message');
-        $attachments = $request->get('mail_attachment');
-        $mail_key_name = $request->get('mail_key_name');
-        $mail_template_id = $request->get('mail_template_id');
-
-        if (!isset($mail_key_name) || !isset($mail_template_id)) {
-            abort(404);
-        }
-
-        $errors = [];
-
-        if (isset($title) && isset($message)) {
-            try {
-                $notify = Notify::where('suuid', $mail_template_id)->first();
-                $custom_value = $this->getModelNameDV()::find($id);
-                $notify->notifyButtonClick($custom_value, $title, $message, $attachments);
-            } catch(Exception $ex) {
-                return getAjaxResponse([
-                    'result'  => false,
-                    'errors' => ['send_error_message' => ['type' => 'input', 
-                        'message' => exmtrans('custom_value.sendmail.message.send_error')]],
-                ]);
-            }
-            return getAjaxResponse([
-                'result'  => true,
-                'toastr' => exmtrans('custom_value.sendmail.message.send_succeeded'),
-            ]);
-        } else {
-            return getAjaxResponse([
-                'result'  => false,
-                'errors' => ['send_error_message' => ['type' => 'input', 
-                    'message' => exmtrans('custom_value.sendmail.message.empty_error')]],
-            ]);
-        }
+        return NotifyService::sendNotifyMail($this->custom_table);
     }
 
     /**
