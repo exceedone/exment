@@ -9,6 +9,7 @@ use Encore\Admin\Widgets\Table as WidgetTable;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SearchType;
 
@@ -206,10 +207,11 @@ EOT;
     {
         $q = $request->input('query');
         $table = CustomTable::getEloquent($request->input('table_name'), true);
-        $boxHeader = $this->getBoxHeaderHtml($table);
+        $boxHeader = $this->getBoxHeaderHtml($table, ['query' => $q]);
         // search all data using index --------------------------------------------------
         $paginate = $table->searchValue($q, [
-            'paginate' => true
+            'paginate' => true,
+            'maxCount' => System::datalist_pager_count() ?? 5
         ]);
         $paginate->setPath(admin_urls('search', 'list') . "?query=$q&table_name={$request->input('table_name')}");
         $datalist = $paginate->items();
@@ -311,12 +313,13 @@ EOT;
         $search_table = CustomTable::getEloquent($request->input('search_table_name'), true);
         $search_type = $request->input('search_type');
 
-        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, [
+        $options = [
             'paginate' => true,
-            'maxCount' => 10,
-        ]);
+            'maxCount' => System::datalist_pager_count() ?? 5,
+        ];
+        $data = $value_table->searchRelationValue($search_type, $value_id, $search_table, $options);
 
-        $boxHeader = $this->getBoxHeaderHtml($search_table);
+        $boxHeader = $this->getBoxHeaderHtml($search_table, array_get($options, 'listQuery', []));
         if (isset($data) && $data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
             $paginate = $data;
             $data = $paginate->items();
@@ -402,7 +405,7 @@ EOT;
         $array['box_key'] = short_uuid();
         return $array;
     }
-    protected function getBoxHeaderHtml($custom_table)
+    protected function getBoxHeaderHtml($custom_table, $query = [])
     {
         // boxheader
         $boxHeader = [];
@@ -410,6 +413,10 @@ EOT;
         if ($custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             $new_url = admin_url("data/{$custom_table->table_name}/create");
             $list_url = admin_url("data/{$custom_table->table_name}");
+
+            if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
+                $list_url .= '?' . http_build_query($query);
+            }
         }
         return view('exment::dashboard.list.header', [
             'new_url' => $new_url ?? null,

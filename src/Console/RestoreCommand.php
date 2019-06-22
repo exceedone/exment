@@ -77,9 +77,6 @@ class RestoreCommand extends Command
             return preg_match('/.+\.tsv$/i', $file);
         });
 
-        // drop unused table
-        $this->dropUnusedTable($files);
-
         // load table data from tsv file
         foreach ($files as $file) {
             $table = $file->getBasename('.' . $file->getExtension());

@@ -19,17 +19,18 @@ class CreateCustomColumnMulti extends Migration
             return new ExtendedBlueprint($table, $callback);
         });
 
-        //
-        $schema->create('custom_column_multisettings', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->string('suuid', 20)->index();
-            $table->integer('custom_table_id')->unsigned();
-            $table->integer('multisetting_type')->default(1);
-            $table->json('options')->nullable();
-            $table->integer('priority')->unsigned()->default(0);
-            $table->timestamps();
-            $table->timeusers();
-        });
+        if(!\Schema::hasTable('custom_column_multisettings')){
+            $schema->create('custom_column_multisettings', function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->string('suuid', 20)->index();
+                $table->integer('custom_table_id')->unsigned();
+                $table->integer('multisetting_type')->default(1);
+                $table->json('options')->nullable();
+                $table->integer('priority')->unsigned()->default(0);
+                $table->timestamps();
+                $table->timeusers();
+            });
+        }
     }
 
     /**

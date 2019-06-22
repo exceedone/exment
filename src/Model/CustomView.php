@@ -26,6 +26,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected $appends = ['view_calendar_target', 'pager_count'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json'];
+    protected $with = ['custom_table', 'custom_view_columns'];
 
     public static $templateItems = [
         'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
@@ -207,26 +208,41 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $options
         );
         $custom_table = $this->custom_table;
-        // get custom view columns
-        $custom_view_columns = $this->custom_view_columns;
+        // get custom view columns and custom view summaries
+        $view_column_items = $this->getSummaryIndexAndViewColumns();
         
         // create headers
         $headers = [];
-        foreach ($custom_view_columns as $custom_view_column) {
-            $headers[] = $custom_view_column
+        foreach ($view_column_items as $view_column_item) {
+            $item = array_get($view_column_item, 'item');
+            $headers[] = $item
                 ->column_item
-                ->label(array_get($custom_view_column, 'view_column_name'))
+                ->label(array_get($item, 'view_column_name'))
                 ->label();
         }
-        $headers[] = trans('admin.action');
+        if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+            $headers[] = trans('admin.action');
+        }
         
         // get table bodies
         $bodies = [];
         if (isset($datalist)) {
             foreach ($datalist as $data) {
                 $body_items = [];
-                foreach ($custom_view_columns as $custom_view_column) {
-                    $item = $custom_view_column->column_item;
+                foreach ($view_column_items as $view_column_item) {
+                    $column = array_get($view_column_item, 'item');
+                    $item = $column->column_item;
+                    if ($this->view_kind_type == ViewKindType::AGGREGATE) {
+                        $index = array_get($view_column_item, 'index');
+                        $summary_condition = array_get($column, 'view_summary_condition');
+                        $item->options([
+                            'summary' => true,
+                            'summary_index' => $index,
+                            'summary_condition' => $summary_condition,
+                            'group_condition' => array_get($column, 'view_group_condition'),
+                            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
+                        ]);
+                    }
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
@@ -236,23 +252,25 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
 
                 ///// add show and edit link
-                // using role
-                $link .= (new Linker)
-                    ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
-                    //->linkattributes(['style' => "margin:0 3px;"])
-                    ->icon('fa-eye')
-                    ->tooltip(trans('admin.show'))
-                    ->render();
-                if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                if ($this->view_kind_type != ViewKindType::AGGREGATE) {
+                    // using role
                     $link .= (new Linker)
-                        ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
-                        ->icon('fa-edit')
-                        ->tooltip(trans('admin.edit'))
+                        ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id')))
+                        //->linkattributes(['style' => "margin:0 3px;"])
+                        ->icon('fa-eye')
+                        ->tooltip(trans('admin.show'))
                         ->render();
+                    if ($custom_table->hasPermissionEditData(array_get($data, 'id'))) {
+                        $link .= (new Linker)
+                            ->url(admin_urls('data', array_get($custom_table, 'table_name'), array_get($data, 'id'), 'edit'))
+                            ->icon('fa-edit')
+                            ->tooltip(trans('admin.edit'))
+                            ->render();
+                    }
+                    // add hidden item about data id
+                    $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
+                    $body_items[] = $link;
                 }
-                // add hidden item about data id
-                $link .= '<input type="hidden" data-id="'.array_get($data, 'id').'" />';
-                $body_items[] = $link;
 
                 // add items to body
                 $bodies[] = $body_items;
@@ -408,6 +426,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $db_table_name = getDBTableName($table_name);
 
         $group_columns = [];
+        $sort_columns = [];
         $custom_tables = [];
 
         // set grouping columns
@@ -416,6 +435,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $item = array_get($view_column_item, 'item');
             $index = array_get($view_column_item, 'index');
             $column_item = $item->column_item;
+            // set order column
+            if (!empty(array_get($item, 'sort_order'))) {
+                $sort_order = array_get($item, 'sort_order');
+                $sort_type = array_get($item, 'sort_type');
+                $sort_columns[] = ['key' => $sort_order, 'sort_type' => $sort_type, 'column_name' => "column_$index"];
+            }
 
             if ($item instanceof CustomViewColumn) {
                 // first, set group_column. this column's name uses index.
@@ -516,6 +541,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $query = $query->mergeBindings($sub_query);
         }
 
+        if (count($sort_columns) > 0) {
+            $orders = collect($sort_columns)->sortBy('key')->all();
+            foreach ($orders as $order) {
+                $sort = ViewColumnSort::getEnum(array_get($order, 'sort_type'), ViewColumnSort::ASC)->lowerKey();
+                $query = $query->orderBy(array_get($order, 'column_name'), $sort);
+            }
+        }
         // set sql grouping columns
         $query = $query->groupBy($group_columns);
 

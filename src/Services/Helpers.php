@@ -630,10 +630,8 @@ if (!function_exists('getModelName')) {
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
             // cannot use CustomTable::allRecords function
-            $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
-                // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
-                return DB::table(SystemTableName::CUSTOM_TABLE)->get(['id', 'suuid', 'table_name']);
-            }) ?? [];
+            $tables = getAllCustomTables();
+
             $table = collect($tables)->first(function ($table) use ($obj) {
                 if (is_numeric($obj)) {
                     return array_get((array)$table, 'id') == $obj;
@@ -737,6 +735,27 @@ if (!function_exists('getDBTableName')) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
         return 'exm__'.array_get($obj, 'suuid');
+    }
+}
+
+if (!function_exists('getAllCustomTables')) {
+    /**
+     * Get all custom table. * Use the function we cannot Eloquent Custom table.
+     * @return mixed
+     */
+    function getAllCustomTables()
+    {
+        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+            return [];
+        }
+
+        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
+            // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
+            $tables = DB::table(SystemTableName::CUSTOM_TABLE)->get();
+            return empty($tables) ? null : $tables;
+        }) ?? [];
+
+        return $tables;
     }
 }
 
@@ -1092,6 +1111,7 @@ if (!function_exists('shouldPassThrough')) {
         if ($initialize) {
             $excepts = [
                 admin_base_path('initialize'),
+                admin_base_path('install'),
                 admin_base_path('template/search'),
             ];
         } else {
@@ -1239,7 +1259,12 @@ if (!function_exists('getExmentVersion')) {
                 $current = array_get($exment, 'version');
                 
                 // if outside api is not permitted, return only current
-                if (config('exment.disabled_outside_api', false) || !$getFromComposer) {
+                if (!System::outside_api() || !$getFromComposer) {
+                    return [null, $current];
+                }
+
+                // if already executed
+                if (session()->has(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE)) {
                     return [null, $current];
                 }
 
@@ -1248,6 +1273,9 @@ if (!function_exists('getExmentVersion')) {
                 $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
                     'http_errors' => false,
                 ]);
+
+                session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
+
                 $contents = $response->getBody()->getContents();
                 if ($response->getStatusCode() != 200) {
                     return [null, null];
@@ -1274,13 +1302,14 @@ if (!function_exists('getExmentVersion')) {
                 }
                 
                 try {
-                    app('request')->session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
+                    session()->put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
                         'latest' => $latest, 'current' => $current
                     ]));
                 } catch (\Exception $e) {
                 }
             }
         } catch (\Exception $e) {
+            session([Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE => true]);
         }
         
         return [$latest ?? null, $current ?? null];
@@ -1331,7 +1360,7 @@ if (!function_exists('getPagerOptions')) {
     /**
      * get pager select options
      */
-    function getPagerOptions($addEmpty = false, $counts = [10, 20, 30, 50, 100])
+    function getPagerOptions($addEmpty = false, $counts = Define::PAGER_GRID_COUNTS)
     {
         $options = [];
 

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Enums;
 
 class SystemTableName extends EnumBase
 {
+    const SYSTEM = 'systems';
     const LOGIN_USER = 'login_user';
     const PLUGIN = 'plugins';
     const USER = 'user';

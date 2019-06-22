@@ -74,6 +74,10 @@ class SummaryProvider extends DefaultTableProvider
      */
     protected function getBodies($records, $columnDefines)
     {
+        if (!isset($records)) {
+            return [];
+        }
+        
         $bodies = [];
 
         foreach ($records as $record) {

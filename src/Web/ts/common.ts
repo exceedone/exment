@@ -51,7 +51,14 @@ namespace Exment {
                 var help = helps[i];
 
                 // if match first current uri and pathname, set help url
-                if(trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0){
+                let uri = trimAny(admin_base_path(help.uri), '/');
+                let isMatch = false;
+                if(!hasValue(uri)){
+                    isMatch = trimAny(pathname, '/') == uri;
+                }else{
+                    isMatch  = trimAny(pathname, '/').indexOf(uri) === 0;
+                }
+                if(isMatch){
                     // set new url
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
@@ -207,8 +214,6 @@ namespace Exment {
                     return;
                 }
                 
-                //その要素の先祖要素で一番近いtrの
-                //data-href属性の値に書かれているURLに遷移する
                 var linkElem = $(ev.target).closest('tr').find('.fa-eye');
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');
@@ -224,7 +229,7 @@ namespace Exment {
         }
 
         /**
-        * 日付の計算
+        * Calc Date
         */
         private static calcDate = () => {
             var $type = $('.subscription_claim_type');

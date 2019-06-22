@@ -43,6 +43,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | exment debug mode add function in sql
+    |--------------------------------------------------------------------------
+    |
+    | if true, function details when calling sql in laravel.log
+    |
+    */
+    'debugmode_sqlfunction' => env('EXMENT_DEBUG_MODE_SQLFUNCTION', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | password rule
     |--------------------------------------------------------------------------
     |
@@ -173,15 +183,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Disabled Outside Api
+    | Search List Link Filter
     |--------------------------------------------------------------------------
     |
-    | If set true, not call outside data.
-    | Ex. version check, template search
+    | Keyword Search or relation search, if click list button, show filtered list. 
+    | If true, filtered
     |
     */
-    'disabled_outside_api' => env('EXMENT_DISABLED_OUTSIDE_API', false),
-
+    'search_list_link_filter' => env('EXMENT_SEARCH_LIST_LINK_FILTER', true),
+  
     /*
     |--------------------------------------------------------------------------
     | Filter Search Full

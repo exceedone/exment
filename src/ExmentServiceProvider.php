@@ -89,8 +89,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middlewareGroups = [
         'admin' => [
-            'admin.auth',
             'admin.initialize',
+            'admin.auth',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',
@@ -107,6 +107,10 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.log',
             'admin.bootstrap',
             'admin.permission',
+            'admin.session',
+        ],
+        'admin_install' => [
+            'admin.initialize',
             'admin.session',
         ],
         'adminapi' => [
@@ -181,9 +185,10 @@ class ExmentServiceProvider extends ServiceProvider
         );
         
         $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
+        $this->publishes([__DIR__.'/../../laravel-admin/resources/assets' => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
+        $this->publishes([__DIR__.'/../../laravel-admin/resources/lang' => resource_path('lang')], 'laravel-admin-lang-exment');
     }
 
     protected function load()
@@ -200,6 +205,10 @@ class ExmentServiceProvider extends ServiceProvider
         }
         
         $this->commands($this->commands);
+
+        if (!$this->app->runningInConsole()) {
+            $this->commands(\Laravel\Passport\Console\KeysCommand::class);
+        }
     }
 
     protected function bootSchedule()

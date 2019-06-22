@@ -6,14 +6,18 @@ use Exceedone\Exment\Enums\ViewColumnType;
 
 class CustomViewSummary extends ModelBase
 {
-    protected $guarded = ['id'];
-    protected $appends = ['view_column_target'];
     use Traits\CustomViewColumnTrait;
+    use Traits\CustomViewColumnOptionTrait;
+    use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
 
+    protected $guarded = ['id'];
+    protected $appends = ['view_column_target', 'sort_order', 'sort_type'];
+    protected $casts = ['options' => 'json'];
+
     public static $templateItems = [
-        'excepts' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
+        'excepts' => ['custom_table', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column'],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
         'uniqueKeyReplaces' => [

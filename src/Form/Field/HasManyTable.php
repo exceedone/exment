@@ -16,6 +16,13 @@ class HasManyTable extends HasMany
     protected $tablecolumnwidths = [];
 
     /**
+     * Show row up down button
+     *
+     * @var stringcolumn name
+     */
+    protected $rowUpDown = null;
+
+    /**
      * Width for table and set offset.
      *
      * @var array
@@ -55,6 +62,14 @@ class HasManyTable extends HasMany
         $this->description = $description;
         return $this;
     }
+
+    public function rowUpDown($rowUpDown)
+    {
+        $this->rowUpDown = $rowUpDown;
+        return $this;
+    }
+
+    
     
     /**
      * Available views for HasMany field.
@@ -74,26 +89,27 @@ class HasManyTable extends HasMany
         $tableitems = [];
         $hiddens = [];
         $requires = [];
+        $helps = [];
         
         foreach ($form->fields() as &$field) {
             // when embeds item,
             if ($field instanceof NestedEmbeds) {
                 $embedfields = $field->fields();
                 foreach ($embedfields as &$embedfield) {
-                    $this->setTableFieldItem($embedfield, $tableitems, $hiddens, $requires);
+                    $this->setTableFieldItem($embedfield, $tableitems, $hiddens, $requires, $helps);
                 }
             } else {
-                $this->setTableFieldItem($field, $tableitems, $hiddens, $requires);
+                $this->setTableFieldItem($field, $tableitems, $hiddens, $requires, $helps);
             }
         }
 
-        return [$tableitems, $hiddens, $requires];
+        return [$tableitems, $hiddens, $requires, $helps];
     }
 
     /**
      * set table field item to header, body, hidden
      */
-    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires)
+    protected function setTableFieldItem(&$field, &$tableitems, &$hiddens, &$requires, &$helps)
     {
         // if hidden, set $hiddens
         if ($field instanceof Hidden) {
@@ -108,6 +124,14 @@ class HasManyTable extends HasMany
         // set label viewclass hidden
         $field->setLabelClass(['hidden']);
         $field->setWidth(12, 0);
+
+        // get help text
+        if (!empty($help = $field->getHelpText())) {
+            $helps[] = $help;
+            $field->forgetHelp();
+        } else {
+            $helps[] = null;
+        }
     }
     
     /**
@@ -126,6 +150,8 @@ class HasManyTable extends HasMany
         $count = !isset($this->value) ? 0 : count($this->value);
         $indexName = "index_{$this->column}";
 
+        $rowUpDownClassName = $this->rowUpDown;
+
         /**
          * When add a new sub form, replace all element key in new sub form.
          *
@@ -135,22 +161,38 @@ class HasManyTable extends HasMany
          */
         $script = <<<EOT
 var $indexName = {$count};
-$('#has-many-table-{$this->column}').on('click', '.add', function () {
-
+$('#has-many-table-{$this->column}').off('click', '.add').on('click', '.add', function () {
     var tpl = $('template.{$this->column}-tpl');
 
     $indexName++;
 
     var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
     $('.has-many-table-{$this->column}-table tbody').append(template);
+
     {$templateScript}
 });
 
-$('#has-many-table-{$this->column}').on('click', '.remove', function () {
+$('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remove', function () {
     var row = $(this).closest('.has-many-table-{$this->column}-row');
     row.find('input,textarea,select').removeAttr('required max min maxlength pattern');
     row.hide();
     row.find('.$removeClass').val(1);
+});
+
+$('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row-move', function(ev){
+    var row = $(ev.target).closest('tr');
+    var isup = $(ev.target).closest('.row-move').hasClass('row-move-up');
+    
+    var targetRow = getPrevNextRow(row, isup);
+    if(!hasValue(targetRow)){
+        return;
+    }
+
+    if(isup){
+        targetRow.insertAfter(row);
+    }else{
+        row.insertAfter(targetRow);
+    }
 });
 
 $("button[type='submit']").click(function(){
@@ -163,6 +205,21 @@ $("button[type='submit']").click(function(){
     }
     return true;
 })
+
+function getPrevNextRow(row, isup){
+    while(true){
+        var targetRow = isup ? row.prev() : row.next();
+        if(!hasValue(targetRow)){
+            return;
+        }
+        if(targetRow.is(':visible')){
+            return targetRow;
+        }
+        row = targetRow;
+    }
+
+    return null;
+}
 
 EOT;
 
@@ -227,6 +284,32 @@ EOT;
     }
 
     /**
+     * Prepare for a field value before update or insert.
+     *
+     * @param $value
+     *
+     * @return mixed
+     */
+    public function prepare($value)
+    {
+        if (!isset($this->rowUpDown)) {
+            return $value;
+        }
+        if (is_null($value) || !is_array($value)) {
+            return $value;
+        }
+
+        $order = 1;
+        foreach ($value as &$v) {
+            if ($v[Form::REMOVE_FLAG_NAME] == 1) {
+                continue;
+            }
+            array_set($v, $this->rowUpDown, $order++);
+        }
+        return $value;
+    }
+
+    /**
      * Render the `HasMany` field.
      *
      * @throws \Exception
@@ -240,19 +323,21 @@ EOT;
 
         // set header and body info
         $form = $this->buildNestedForm($this->column, $this->builder);
+                
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
-        list($tableitems, $hiddens, $requires) = $this->getTableItem($form);
+        list($tableitems, $hiddens, $requires, $helps) = $this->getTableItem($form);
 
         // set related forms
         $relatedforms = [];
         // set labelclass hidden
         foreach ($this->buildRelatedForms() as $k => &$relatedform) {
-            list($relatedtableitems, $relatedhiddens, $relatedrequires) = $this->getTableItem($relatedform);
+            list($relatedtableitems, $relatedhiddens, $relatedrequires, $relatedhelps) = $this->getTableItem($relatedform);
 
             $relatedforms[$k] = [
                 'tableitems' => $relatedtableitems,
                 'hiddens' => $relatedhiddens,
                 'requires' => $relatedrequires,
+                'helps' => $relatedhelps,
             ];
         }
 
@@ -264,8 +349,10 @@ EOT;
             'forms'        => $relatedforms,
             'template'     => $template,
             'relationName' => $this->relationName,
+            'hasRowUpDown' => isset($this->rowUpDown),
             'tableitems' => $tableitems,
             'hiddens' => $hiddens,
+            'helps' => $helps,
             'requires' => $requires,
             'tablewidth' => $this->tablewidth,
             'tablecolumnwidths' => $this->tablecolumnwidths,

@@ -581,6 +581,9 @@ class TemplateImporter
                 }
             }
         }
+
+        // patch use_label_flg
+        \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
     }
 
     protected static function getTemplateBasePaths()

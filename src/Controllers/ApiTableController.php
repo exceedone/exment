@@ -185,10 +185,11 @@ class ApiTableController extends AdminControllerTableBase
         $q = $request->get('q');
 
         // get children items
-        $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, [
+        $options = [
             'paginate' => false,
             'maxCount' => null,
-        ]);
+        ];
+        $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, $options);
         return collect($datalist)->map(function ($data) {
             return ['id' => $data->id, 'text' => $data->label];
         });
