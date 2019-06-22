@@ -16,7 +16,7 @@ class HasManyTable extends HasMany
     protected $tablecolumnwidths = [];
 
     /**
-     * Show row up down button 
+     * Show row up down button
      *
      * @var stringcolumn name
      */
@@ -126,10 +126,10 @@ class HasManyTable extends HasMany
         $field->setWidth(12, 0);
 
         // get help text
-        if(!empty($help = $field->getHelpText())){
+        if (!empty($help = $field->getHelpText())) {
             $helps[] = $help;
             $field->forgetHelp();
-        }else{
+        } else {
             $helps[] = null;
         }
     }
@@ -292,16 +292,16 @@ EOT;
      */
     public function prepare($value)
     {
-        if(!isset($this->rowUpDown)){
+        if (!isset($this->rowUpDown)) {
             return $value;
         }
-        if(is_null($value) || !is_array($value)){
+        if (is_null($value) || !is_array($value)) {
             return $value;
         }
 
         $order = 1;
-        foreach($value as &$v){
-            if($v[Form::REMOVE_FLAG_NAME] == 1){
+        foreach ($value as &$v) {
+            if ($v[Form::REMOVE_FLAG_NAME] == 1) {
                 continue;
             }
             array_set($v, $this->rowUpDown, $order++);

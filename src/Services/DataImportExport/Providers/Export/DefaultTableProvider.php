@@ -115,7 +115,7 @@ class DefaultTableProvider extends ProviderBase
      */
     protected function getBodies($records, $columnDefines)
     {
-        if(!isset($records)){
+        if (!isset($records)) {
             return [];
         }
         

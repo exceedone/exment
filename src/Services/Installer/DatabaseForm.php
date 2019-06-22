@@ -46,7 +46,7 @@ class DatabaseForm
 
         $rules = [];
         foreach (static::settings as $s) {
-            if($s == 'password'){
+            if ($s == 'password') {
                 continue;
             }
             

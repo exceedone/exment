@@ -615,7 +615,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     });
 
                 // set query info
-                if(isset($searchColumns)){
+                if (isset($searchColumns)) {
                     $options['listQuery'] = [
                         $searchColumns->first() => $parent_value_id,
                     ];

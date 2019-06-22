@@ -3,8 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomColumnMulti;
 
 class SupportForV13 extends Migration
 {

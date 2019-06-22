@@ -46,12 +46,12 @@ class PatchDataCommand extends Command
     {
         $name = $this->argument("action");
 
-        switch($name){
+        switch ($name) {
             case 'rmcomma':
-                $this->removeDecimalComma();       
+                $this->removeDecimalComma();
                 return;
             case 'use_label_flg':
-                $this->modifyUseLabelFlg();       
+                $this->modifyUseLabelFlg();
                 return;
         }
 
@@ -97,7 +97,7 @@ class PatchDataCommand extends Command
     {
         // move use_label_flg to custom_column_multi
         $use_label_flg_columns = CustomColumn::whereNotIn('options->use_label_flg', [0, "0"])->orderby('options->use_label_flg')->get();
-        foreach($use_label_flg_columns as $use_label_flg_column){
+        foreach ($use_label_flg_columns as $use_label_flg_column) {
             $custom_table = $use_label_flg_column->custom_table;
 
             $custom_table->table_labels()->save(
@@ -114,8 +114,8 @@ class PatchDataCommand extends Command
 
         // remove use_label_flg property
         $columns = CustomColumn::all();
-        foreach($columns as $column){
-            if(!array_has($column, 'options.use_label_flg')){
+        foreach ($columns as $column) {
+            if (!array_has($column, 'options.use_label_flg')) {
                 continue;
             }
             $column->setOption('use_label_flg', null);

@@ -190,7 +190,7 @@ class ListItem implements ItemInterface
         
         // pager count
         $pager_count = $this->dashboard_box->getOption('pager_count');
-        if(!isset($pager_count) || $pager_count == 0){
+        if (!isset($pager_count) || $pager_count == 0) {
             $pager_count = System::datalist_pager_count() ?? 5;
         }
 
