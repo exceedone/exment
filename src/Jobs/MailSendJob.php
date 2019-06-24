@@ -39,6 +39,10 @@ class MailSendJob extends JobBase
         $this->user = array_get($options, 'user');
         $this->history_body = array_get($options, 'history_body', true);
         $this->attachments = array_get($options, 'attachments', []);
+
+        if(!isset($this->from)){
+            $this->from = config('mail.from.address');
+        }
     }
 
     public function handle()

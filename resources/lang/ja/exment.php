@@ -970,7 +970,6 @@ return [
             ],
             'message' => [
                 'send_succeeded' => 'メールを送信しました。',
-                'send_error' => 'メール送信に失敗しました。',
                 'empty_error' => 'タイトルと本文は必須項目です。',
             ],
         ],

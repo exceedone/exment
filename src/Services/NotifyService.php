@@ -109,7 +109,7 @@ class NotifyService
         $replace = count($notifyTargets) == 1;
         $mail_subject = array_get($mail_template->value, 'mail_subject');
         $mail_body = $mail_template->getJoinedBody();
-        
+
         $notifyTarget = implode(exmtrans("common.separate_word"), collect($notifyTargets)->map(function($notifyTarget){
             return $notifyTarget->getLabel();
         })->toArray());
@@ -192,11 +192,19 @@ class NotifyService
         if (isset($title) && isset($message)) {
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
+            } catch(\Swift_RfcComplianceException $ex) {
+                return getAjaxResponse([
+                    'result'  => false,
+                    'errors' => ['send_error_message' => ['type' => 'input', 
+                        'message' => exmtrans('error.mailsend_failed')
+                    ]],
+                ]);
             } catch(Exception $ex) {
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input', 
-                        'message' => exmtrans('custom_value.sendmail.message.send_error')]],
+                        'message' => exmtrans('error.mailsend_failed')
+                    ]],
                 ]);
             }
             return getAjaxResponse([
