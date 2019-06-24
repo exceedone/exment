@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Carbon\Carbon;
@@ -121,20 +122,23 @@ class Notify extends ModelBase
     /**
      * notify_create_update_user
      */
-    public function notifyButtonClick($data, $subject, $body, $attachments = [])
+    public function notifyButtonClick($custom_value, $target_user_keys, $subject, $body, $attachments = [])
     {
-        $custom_table = $data->custom_table;
+        $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
         $attach_files = collect($attachments)->map(function($uuid) {
             return File::where('uuid', $uuid)->first();
         })->filter();
 
-        // loop data
-        $users = $this->getNotifyTargetUsers($data);
-        
-        foreach ($users as $user) {
-            if (!$this->approvalSendUser($mail_template, $custom_table, $data, $user)) {
+        // loop target users
+        foreach ($target_user_keys as $target_user_key) {
+            $user = NotifyTarget::getSelectedNotifyTarget($target_user_key, $this, $custom_value);
+            if(!isset($user)){
+                continue;
+            }
+
+            if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                 continue;
             }
 
@@ -149,7 +153,7 @@ class Notify extends ModelBase
                 MailSender::make($mail_template, $user)
                 ->prms($prms)
                 ->user($user)
-                ->custom_value($data)
+                ->custom_value($custom_value)
                 ->subject($subject)
                 ->body($body)
                 ->attachments($attach_files)
@@ -220,9 +224,9 @@ class Notify extends ModelBase
     /**
      * whether $user is target send user
      */
-    protected function approvalSendUser($mail_template, $custom_table, $data, $user)
+    protected function approvalSendUser($mail_template, $custom_table, $data, NotifyTarget $user)
     {
-        $userid = $user->id?? $user;
+        $userid = $user->id() ?? $user->email();
         // if $user is myself, return false
         if (\Exment::user()->base_user_id == $userid) {
             return false;
@@ -240,6 +244,7 @@ class Notify extends ModelBase
             ->where('parent_type', $custom_table->table_name)
             ->get()
         ;
+
         foreach ($mail_send_histories as $mail_send_log) {
             // If user were sending within 5 minutes, false
             $skip_mitutes = config('exment.notify_saved_skip_minutes', 5);
@@ -253,4 +258,5 @@ class Notify extends ModelBase
 
         return true;
     }
+    
 }

@@ -304,6 +304,12 @@ class Define
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
+    public const CUSTOM_VALUE_TRAITS = [
+        'user' => "\Exceedone\Exment\Model\Traits\UserTrait",
+        'organization' => "\Exceedone\Exment\Model\Traits\OrganizationTrait",
+        'mail_template' => "\Exceedone\Exment\Model\Traits\MailTemplateTrait",
+    ];
+
     public const GRID_MAX_LENGTH = 50;
 
     public const PAGER_GRID_COUNTS = [10, 20, 30, 50, 100];

@@ -350,17 +350,7 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
     {
-        $targetid = $request->get('mail_template_id');
-        if (!isset($targetid)) {
-            abort(404);
-        }
-
-        $notify = Notify::where('suuid', $targetid)->first();
-        if (!isset($notify)) {
-            abort(404);
-        }
-
-        $service = new NotifyService($notify, $targetid, $tableKey, $id);
+        $service = $this->getNotifyService($tableKey, $id);
         
         // get target users
         $target_users = request()->get('target_users');
@@ -378,7 +368,24 @@ class CustomValueController extends AdminControllerTableBase
      */
     public function sendMail(Request $request, $tableKey, $id = null)
     {
-        return NotifyService::sendNotifyMail($this->custom_table);
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        return $service->sendNotifyMail($this->custom_table);
+    }
+
+    protected function getNotifyService($tableKey, $id){
+        $targetid = request()->get('mail_template_id');
+        if (!isset($targetid)) {
+            abort(404);
+        }
+
+        $notify = Notify::where('suuid', $targetid)->first();
+        if (!isset($notify)) {
+            abort(404);
+        }
+
+        $service = new NotifyService($notify, $targetid, $tableKey, $id);
+        return $service;
     }
 
     /**

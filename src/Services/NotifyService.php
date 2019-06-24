@@ -108,9 +108,13 @@ class NotifyService
 
         $replace = count($notifyTargets) == 1;
         $mail_subject = array_get($mail_template->value, 'mail_subject');
-        $mail_body = array_get($mail_template->value, 'mail_body');
+        $mail_body = $mail_template->getJoinedBody();
+        
         $notifyTarget = implode(exmtrans("common.separate_word"), collect($notifyTargets)->map(function($notifyTarget){
             return $notifyTarget->getLabel();
+        })->toArray());
+        $notifyTargetJson = json_encode(collect($notifyTargets)->map(function($notifyTarget){
+            return $notifyTarget->notifyKey();
         })->toArray());
 
         if($replace){
@@ -132,6 +136,7 @@ class NotifyService
         }
 
         $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
+        $form->hidden('target_users')->default($notifyTargetJson);
 
         $form->text('mail_title', exmtrans('custom_value.sendmail.mail_title'))
             ->default($mail_subject)
@@ -175,6 +180,9 @@ class NotifyService
         $mail_key_name = $request->get('mail_key_name');
         $mail_template_id = $request->get('mail_template_id');
 
+        // get target users
+        $target_user_keys = json_decode($request->get('target_users'), true);
+        
         if (!isset($mail_key_name) || !isset($mail_template_id)) {
             abort(404);
         }
@@ -183,9 +191,7 @@ class NotifyService
 
         if (isset($title) && isset($message)) {
             try {
-                $notify = Notify::where('suuid', $mail_template_id)->first();
-                $custom_value = $custom_table->getValueModel($id);
-                $notify->notifyButtonClick($custom_value, $title, $message, $attachments);
+                $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
             } catch(Exception $ex) {
                 return getAjaxResponse([
                     'result'  => false,

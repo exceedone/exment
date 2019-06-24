@@ -41,9 +41,24 @@ class NotifyTarget
      * @var string
      */
     protected $joinUserName;
+    
+    /**
+     * user id if email, this value is null.
+     *
+     * @var string
+     */
+    protected $id;
 
     public function notifyKey(){
         return $this->notifyKey;
+    }
+    
+    public function id(){
+        return $this->id;
+    }
+    
+    public function email(){
+        return $this->email;
     }
     
     public function getLabel(){
@@ -131,6 +146,7 @@ class NotifyTarget
 
         $notifyTarget = new self;
         $notifyTarget->email = $email;
+        $notifyTarget->id = $target_value->id;
         $notifyTarget->userName = $label;
         $notifyTarget->notifyKey = $target_value->custom_table->id . '_' . $target_value->id;
         $notifyTarget->joinUserName = true;

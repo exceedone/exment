@@ -52,7 +52,7 @@ class MailSender
             throw new Exception("No MailTemplate. Please set mail template. mail_template:$mail_key_name");
         }
         $this->subject = $this->mail_template->getValue('mail_subject');
-        $this->body = $this->mail_template->getValue('mail_body');
+        $this->body = $this->mail_template->getJoinedBody();
     }
 
     public static function make($mail_key_name, $to)
@@ -145,31 +145,14 @@ class MailSender
     {
         // get subject
         $subject = $this->replaceWord($this->subject);
-
-        ///// get body using header and footer
-        $header = $this->getHeaderFooter(MailTemplateType::HEADER);
         $body = $this->replaceWord($this->body);
-        $footer = $this->getHeaderFooter(MailTemplateType::FOOTER);
-
-        // total body
-        $mail_bodies = [];
-        if (isset($header)) {
-            $mail_bodies[]  = $header;
-        }
-        $mail_bodies[]  = $body;
-        if (isset($footer)) {
-            $mail_bodies[]  = $footer;
-        }
-        if (!isset($this->from)) {
-            $this->from = [System::system_mail_from()];
-        }
 
         // dispatch jobs
         MailSendJob::dispatch(
             $this->from,
             $this->to,
             $subject,
-            implode("\n\n", $mail_bodies),
+            $body,
             $this->mail_template,
             [
                 'cc' => $this->cc,
@@ -181,19 +164,6 @@ class MailSender
             ]
         );
         return true;
-    }
-
-    /**
-     * get mail template type
-     */
-    protected function getHeaderFooter($mailTemplateType)
-    {
-        $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
-            ::where('value->mail_template_type', $mailTemplateType)->first();
-        if (!isset($mail_template)) {
-            return null;
-        }
-        return $this->replaceWord($mail_template->getValue('mail_body'));
     }
 
     /**
