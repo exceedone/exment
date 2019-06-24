@@ -33,24 +33,8 @@ class Modal
                 }).done(function( res ) {
                     $('button.modal-submit').removeClass('d-none');
                     // change html
-                    if (res.body) {
-                        $('#$id .modal-body').html(res.body);
-                        if (res.script) {
-                            for(var script of res.script) {
-                                eval(script);
-                            }
-                        }
-                        if (res.title) {
-                            $('#$id .modal-title').html(res.title);
-                        }
-                        if (res.actionurl) {
-                            $('#$id .modal-action-url').val(res.actionurl);
-                        }
-                    } else {
-                        $('#$id .modal-body').html(res);
-                        $('#$id .modal-title').html(original_title);
-                        $('button.modal-submit').addClass('d-none');
-                    }
+                    setBodyHtml(res, null, original_title);
+
                     if(!$('#$id').hasClass('in')){
                         $('#$id').modal('show');
                     }
@@ -96,9 +80,14 @@ class Modal
                     // contentType is false
                     contentType: false
                 }).done(function( res ) {
-                    // reomve class and prop
-                    button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
-                    Exment.CommonEvent.CallbackExmentAjax(res);
+                    if(hasValue(res.body)){
+                        setBodyHtml(res, button, null);
+                    }
+                    else{
+                        // reomve class and prop
+                        button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+                        Exment.CommonEvent.CallbackExmentAjax(res);    
+                    }
                 }).fail(function( res, textStatus, errorThrown ) {
                     // reomve class and prop
                     button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
@@ -140,6 +129,34 @@ class Modal
 
                 return false;
             });
+
+            function setBodyHtml(res, button, original_title){
+                // change html
+                if (res.body) {
+                    $('#$id .modal-body').html(res.body);
+                    if (res.script) {
+                        for(var script of res.script) {
+                            eval(script);
+                        }
+                    }
+                    if (res.title) {
+                        $('#$id .modal-title').html(res.title);
+                    }
+                    if (res.actionurl) {
+                        $('#$id .modal-action-url').val(res.actionurl);
+                    }
+                } else {
+                    $('#$id .modal-body').html(res);
+                    if(hasValue(original_title)){
+                        $('#$id .modal-title').html(original_title);
+                    }
+                    $('button.modal-submit').addClass('d-none');
+                }
+                // reomve class and prop
+                if(hasValue(button)){
+                    button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+                }
+            }
 EOT;
         Admin::script($script);
     }

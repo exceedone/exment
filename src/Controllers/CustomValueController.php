@@ -335,7 +335,8 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        $form = NotifyService::getNotifyDialogForm($notify, $targetid, $tableKey, $id);
+        $service = new NotifyService($notify, $targetid, $tableKey, $id);
+        $form = $service->getNotifyDialogForm();
         
         return getAjaxResponse([
             'body'  => $form->render(),
@@ -344,6 +345,30 @@ class CustomValueController extends AdminControllerTableBase
         ]);
     }
 
+    /**
+     * set notify target users and  get form
+     */
+    public function sendTargetUsers(Request $request, $tableKey, $id = null)
+    {
+        $targetid = $request->get('mail_template_id');
+        if (!isset($targetid)) {
+            abort(404);
+        }
+
+        $notify = Notify::where('suuid', $targetid)->first();
+        if (!isset($notify)) {
+            abort(404);
+        }
+
+        $service = new NotifyService($notify, $targetid, $tableKey, $id);
+        $form = $service->getNotifyDialogFormMultiple();
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_value.sendmail.title')
+        ]);
+    }
     /**
      * send mail
      */

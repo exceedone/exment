@@ -187,11 +187,14 @@ class Notify extends ModelBase
 
         return [$datalist, $table, $column];
     }
-        
+       
     /**
      * get notify target users
+     *
+     * @param CustomValue $custom_value target custom value
+     * @return void
      */
-    protected function getNotifyTargetUsers($data)
+    public function getNotifyTargetUsers($custom_value)
     {
         $notify_action_target = $this->getActionSetting('notify_action_target');
         if (!isset($notify_action_target)) {
@@ -204,28 +207,9 @@ class Notify extends ModelBase
 
         // loop
         $users = collect([]);
-        $ids = [];
         foreach ($notify_action_target as $notify_act) {
-
-            // if has_roles, return has permission users
-            if ($notify_act == NotifyActionTarget::HAS_ROLES) {
-                $users_inner = AuthUserOrgHelper::getAllRoleUserQuery($data)->get();
-            } else {
-                $users_inner = $data->getValue($notify_act);
-                if (is_null($users_inner)) {
-                    continue;
-                }
-                if (is_string($users_inner)) {
-                    $users_inner = collect([$users_inner]);
-                }
-            }
-
+            $users_inner = NotifyTarget::getModels($this, $custom_value, $notify_act);
             foreach ($users_inner as $u) {
-                $uid = is_string($u)? $u: $u->id;
-                if (in_array($uid, $ids)) {
-                    continue;
-                }
-                $ids[] = $uid;
                 $users->push($u);
             }
         }

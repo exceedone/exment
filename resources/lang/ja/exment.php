@@ -952,6 +952,7 @@ return [
         ],
         'sendmail' => [
             'title' => 'メール送信',
+            'mail_to' => '送信先',
             'mail_title' => 'タイトル',
             'mail_message' => '本文',
             'attachment' => '添付ファイル',
