@@ -44,7 +44,11 @@ class Modal
                 });
             });
             $(document).off('click', '#$id .modal-body a').on('click', '#$id .modal-body a', {}, function(ev){
-                if($(ev.target).closest('a[data-widgetmodal_url]').length > 0){
+                let a = $(ev.target).closest('a');
+                if(hasValue(a.data('widgetmodal_url'))){
+                    return;
+                }
+                if(a.data('modalclose') === false){
                     return;
                 }
                 $('#$id .modal-body').html('');
@@ -55,6 +59,10 @@ class Modal
                 if (!formurl) return;
                 e.preventDefault();
                 var form = $('#$id form').get()[0];
+
+                if(!form.reportValidity()){
+                    return;
+                }
 
                 // get button element
                 var button = $(e.target).closest('button');

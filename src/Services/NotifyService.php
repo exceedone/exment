@@ -54,6 +54,9 @@ class NotifyService
         $form->modalHeader(exmtrans('custom_value.sendmail.title'));
         $form->action(admin_urls('data', $tableKey, $id, 'sendTargetUsers'));
 
+        // progress tracker
+        $form->progressTracker()->options($this->getProgressInfo(true));
+
         $options = [];
         foreach($users as $user){
             $options[$user->notifyKey()] = $user->getLabel();
@@ -61,8 +64,8 @@ class NotifyService
 
         // select target users
         $form->listbox('target_users', exmtrans('custom_value.sendmail.mail_to'))
-            ->required()
             ->options($options)
+            ->required()
             ->setWidth(9, 2);
 
         $form->hidden('mail_template_id')->default($this->targetid);
@@ -76,9 +79,7 @@ class NotifyService
      * @param Notify $notify
      * @return void
      */
-    public function getNotifyDialogFormMultiple(){
-        // get target users
-        $target_users = request()->get('target_users');
+    public function getNotifyDialogFormMultiple($target_users){
 
         $users = [];
         foreach($target_users as $target_user){
@@ -88,7 +89,7 @@ class NotifyService
             }
         }
 
-        return $this->getSendForm($users);
+        return $this->getSendForm($users, true);
     }
 
     /**
@@ -96,7 +97,7 @@ class NotifyService
      *
      * @return void
      */
-    protected function getSendForm($notifyTargets){
+    protected function getSendForm($notifyTargets, $isFlow = false){
         $tableKey = $this->custom_table->table_name;
         $id = $this->custom_value->id;
 
@@ -116,7 +117,7 @@ class NotifyService
             $mail_subject = replaceTextFromFormat($mail_subject, $this->custom_value);
             $mail_body = replaceTextFromFormat($mail_body, $this->custom_value);
         }
-
+        
         // create form fields
         $form = new ModalInnerForm();
         $form->disableReset();
@@ -124,6 +125,11 @@ class NotifyService
         $form->modalAttribute('id', 'data_notify_modal');
         $form->modalHeader(exmtrans('custom_value.sendmail.title'));
         $form->action(admin_urls('data', $tableKey, $this->custom_value->id, 'sendMail'));
+
+        if($isFlow){
+            // progress tracker
+            $form->progressTracker()->options($this->getProgressInfo(false));
+        }
 
         $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
 
@@ -199,4 +205,28 @@ class NotifyService
             ]);
         }
     }
+
+    /**
+     * get Progress Info
+     *
+     * @param [type] $id
+     * @param [type] $is_action
+     * @return void
+     */
+    protected function getProgressInfo($isSelectTarget) {
+        $steps[] = [
+            'active' => $isSelectTarget,
+            'complete' => false,
+            'url' => null,
+            'description' => '送信先選択'
+        ];
+        $steps[] = [
+            'active' => !$isSelectTarget,
+            'complete' => false,
+            'url' => null,
+            'description' => 'メッセージ入力'
+        ];
+        return $steps;
+    }
+
 }

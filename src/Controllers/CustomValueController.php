@@ -361,7 +361,11 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $service = new NotifyService($notify, $targetid, $tableKey, $id);
-        $form = $service->getNotifyDialogFormMultiple();
+        
+        // get target users
+        $target_users = request()->get('target_users');
+
+        $form = $service->getNotifyDialogFormMultiple($target_users);
         
         return getAjaxResponse([
             'body'  => $form->render(),
