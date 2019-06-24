@@ -240,6 +240,10 @@ return [
             'current_dashboard_edit' => '現在のダッシュボード設定変更',
             'create' => 'ダッシュボード新規作成',
         ],
+
+        'message' => [
+            'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
+        ],
     ],
 
     'plugin' => [
