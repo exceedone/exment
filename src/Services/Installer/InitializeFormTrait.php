@@ -96,14 +96,32 @@ trait InitializeFormTrait
             ->help(exmtrans("system.help.permission_available"));
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));
-        $form->email('system_mail_from', exmtrans("system.system_mail_from"))
-            ->required()
-            ->help(exmtrans("system.help.system_mail_from"));
-            
+        
         if ($system_page) {
             $form->display('max_file_size', exmtrans("common.max_file_size"))
             ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
             ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
+            
+            // system setting 
+            if(!boolval(config('exment.mail_setting_env_force', false))){
+                $form->exmheader(exmtrans('system.system_mail'))->hr();
+
+                $form->description(exmtrans("system.help.system_mail"));
+    
+                $form->text('system_mail_host', exmtrans("system.system_mail_host"));
+    
+                $form->text('system_mail_port', exmtrans("system.system_mail_port"));
+    
+                $form->text('system_mail_encryption', exmtrans("system.system_mail_encryption"))
+                    ->help(exmtrans("system.help.system_mail_encryption"));
+                    
+                $form->text('system_mail_username', exmtrans("system.system_mail_username"));
+    
+                $form->password('system_mail_password', exmtrans("system.system_mail_password"));
+    
+                $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+                    ->help(exmtrans("system.help.system_mail_from"));
+            }
         }
 
         // template list
