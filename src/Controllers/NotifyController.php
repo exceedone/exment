@@ -196,6 +196,29 @@ class NotifyController extends AdminControllerBase
             ->get(
                 ['id', DB::raw('column_view_name as text')]
             )->toArray());
+
+
+            // get select table's
+            $select_table_columns = $custom_table->custom_columns()
+                ->where('column_type', ColumnType::SELECT_TABLE)
+                ->get();
+
+            foreach($select_table_columns as $select_table_column){
+                if(is_null($select_target_table = $select_table_column->select_target_table)){
+                    continue;
+                }
+
+                // if has $emailColumn, add $select_table_column
+                $emailColumn = CustomColumn
+                    ::where('custom_table_id', $select_target_table->id)
+                    ->where('column_type', ColumnType::EMAIL)
+                    ->first();
+                if(!isset($emailColumn)){
+                    continue;
+                }
+
+                $options[] = ['id' => $select_table_column->id, 'text' => $select_table_column->column_view_name];  
+            }
         }
         if ($isApi) {
             return $options;
