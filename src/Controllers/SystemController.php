@@ -108,7 +108,7 @@ class SystemController extends AdminControllerBase
     {
         DB::beginTransaction();
         try {
-            $result = $this->postInitializeForm($request);
+            $result = $this->postInitializeForm($request, ['initialize', 'system']);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
