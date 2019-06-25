@@ -73,14 +73,7 @@ class Bootstrap
             'id': 'admin_uri',
             'value': '$admin_url'
         }));
-$("input[type='file']").on("filepredelete", function(jqXHR) {
-    var abort = true;
-    if (confirm("$delete_confirm")) {
-        abort = false;
-    }
-    return abort; // you can also send any data/object that you can receive on `filecustomerror` event
-});
-
+        
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
         // get url

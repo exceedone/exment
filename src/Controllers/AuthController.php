@@ -249,6 +249,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 ->move('avatar')
                 ->attribute(['accept' => "image/*"])
                 ->options($fileOption)
+                ->removable()
                 ->help(array_get($fileOption, 'maxFileSizeHelp'))
                 ->name(function ($file) {
                     $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());

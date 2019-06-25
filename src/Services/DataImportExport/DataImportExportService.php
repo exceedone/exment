@@ -201,6 +201,7 @@ class DataImportExportService extends AbstractExporter
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->options($fileOption)
+            ->removable()
             ->help(exmtrans('custom_value.import.help.custom_table_file') . array_get($fileOption, 'maxFileSizeHelp'));
         
         // get import primary key list
