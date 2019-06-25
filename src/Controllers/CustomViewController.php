@@ -234,7 +234,7 @@ class CustomViewController extends AdminControllerTableBase
                 // group columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true))
+                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true, true))
                         ->attribute([
                             'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),
                             'data-change_field_target' => 'view_column_target',

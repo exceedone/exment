@@ -41,7 +41,7 @@ trait SummaryItemTrait
         if (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, true);
         } else {
-            $raw = "$value_column";
+            $raw = $this->sqlAsName(); // "$value_column";
         }
 
         return \DB::raw($raw);
