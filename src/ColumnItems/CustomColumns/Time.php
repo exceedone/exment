@@ -29,4 +29,13 @@ class Time extends Date
     {
         return \Carbon\Carbon::now()->format('H:i:s');
     }
+    
+    /**
+     * whether column is date
+     *
+     */
+    public function isDate()
+    {
+        return false;
+    }
 }
