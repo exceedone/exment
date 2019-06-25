@@ -44,9 +44,7 @@ abstract class PluginDocumentBase
         $service->makeExcel();
 
         // set path and file info
-        $path = $service->getFilePath();
-        $uniquefile = $service->getUniqueFileName();
-        $file = ExmentFile::saveFileInfo($path, null, $uniquefile, true)
+        $file = ExmentFile::saveFileInfo($service->getDirPath(), $service->getFileName(), $service->getUniqueFileName())
             ->saveCustomValue($this->custom_value);
 
         // save Document Model
