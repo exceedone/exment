@@ -180,27 +180,6 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         // set changedata_custom_table_id
         static::replaceChangedata($json, 'options.changedata_column_table_name', 'options.changedata_column_name', 'options.changedata_column_id');
         static::replaceChangedata($json, 'options.changedata_target_table_name', 'options.changedata_target_column_name', 'options.changedata_target_column_id');
-        // if (array_key_value_exists('options.changedata_target_column_name', $json)) {
-        //     $changedata_target_column_name = array_get($json, 'options.changedata_target_column_name');
-        //     // get changedata target table name and column
-        //     // if changedata_target_column_name value has dotted, get parent table name
-        //     if (str_contains($changedata_target_column_name, ".")) {
-        //         list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
-        //         $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
-        //     }elseif (array_key_value_exists('options.changedata_target_table_name', $json)) {
-        //         $changedata_target_table_name = array_get($json, 'options.changedata_target_table_name');
-        //         $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
-        //     } else {
-        //         $changedata_target_table = $options['parent']->target_table;
-        //     }
-
-        //     if(isset($changedata_target_column_name) && isset($changedata_target_table)){
-        //         $changedata_target_column = CustomColumn::getEloquent($changedata_target_column_name, $changedata_target_table);
-        //         array_set($json, 'options.changedata_target_column_id', $changedata_target_column->id ?? null);
-        //     }
-        //     array_forget($json, 'options.changedata_target_table_name');
-        //     array_forget($json, 'options.changedata_target_column_name');
-        // }
     }
 
     /**
