@@ -11,13 +11,14 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
     
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
     protected $with = ['custom_column'];
 
     public static $templateItems = [
-        'excepts' => ['custom_column', 'form_column_target'],
+        'excepts' => ['custom_column', 'form_column_target', 'options.changedata_target_column_id', 'options.changedata_column_id'],
         'langs' => [
             'keys' => ['form_column_target_name'],
             'values' => ['options.html', 'options.text'],
@@ -40,25 +41,31 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                         ],
                     ]
                 ],
-                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunction' => 'getUniqueKeyValuesFormColumn',
             ],
             [
                 'replaceNames' => [
                     [
-                        'replacingName' => 'options.changedata_column_id',
                         'replacedName' => [
-                            'import' => [
-                                'custom_table_id' => 'options.changedata_custom_table_id',
-                                'column_name' => 'options.changedata_column_name',
-                            ],
-                            'export' => [
-                                'table_name' => 'options.changedata_column_table_name',
-                                'column_name' => 'options.changedata_column_name',
-                            ],
-                        ],
+                            'table_name' => 'options.changedata_column_table_name',
+                            'column_name' => 'options.changedata_column_name',
+                        ]
                     ]
                 ],
-                'uniqueKeyClassName' => CustomColumn::class,
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.changedata_column_id'],
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.changedata_target_table_name',
+                            'column_name' => 'options.changedata_target_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.changedata_target_column_id'],
             ],
         ]
     ];
@@ -121,7 +128,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     /**
      * get Table And Column Name
      */
-    protected function getUniqueKeyValues()
+    protected function getUniqueKeyValuesFormColumn()
     {
         switch ($this->form_column_type) {
             case FormColumnType::COLUMN:
@@ -176,6 +183,9 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
             // if changedata_target_column_name value has dotted, get parent table name
             if (str_contains($changedata_target_column_name, ".")) {
                 list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
+                $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
+            }elseif (array_key_value_exists('options.changedata_target_table_name', $json)) {
+                $changedata_target_table_name = array_get($json, 'options.changedata_target_table_name');
                 $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
             } else {
                 $changedata_target_table = $options['parent']->target_table;
