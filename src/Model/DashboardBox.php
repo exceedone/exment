@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Model\CustomViewSummary;
 
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -60,6 +62,32 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                 ],
                 'uniqueKeySystemEnum' => DashboardBoxSystemPage::class,
             ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.chart_axisx_table_name',
+                            'column_name' => 'options.chart_axisx_column_name',
+                            'view_kind_type' => 'options.chart_axisx_type',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.chart_axisx'],
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.chart_axisy_table_name',
+                            'column_name' => 'options.chart_axisy_column_name',
+                            'view_kind_type' => 'options.chart_axisy_type',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.chart_axisy'],
+            ],
         ],
     ];
 
@@ -100,6 +128,30 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return static::getEloquentDefault($id, $withs);
     }
 
+    protected function getUniqueKeyValues($key)
+    {
+        if (is_array($key) && count($key) > 0) {
+            $key = $key[0];
+        }
+
+        // get dashboard value
+        $view_column = CustomViewSummary::getSummaryViewColumn(array_get($this, $key));
+        if(!isset($view_column)){
+            return [
+                'table_name' => null,
+                'column_name' => null,
+                'view_kind_type' => null,
+            ];
+        }
+
+        $items = $view_column->getUniqueKeyValues();
+        return [
+            'table_name' => array_get($items, 'table_name'),
+            'column_name' => array_get($items, 'column_name'),
+            'view_kind_type' => $view_column instanceof CustomViewSummary ? ViewKindType::AGGREGATE : ViewKindType::DEFAULT,
+        ];
+    }
+
     protected static function importReplaceJson(&$json, $options = [])
     {
         // switch dashboard_box_type
@@ -115,11 +167,31 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             
             // list
             case DashboardBoxType::LIST:
+            case DashboardBoxType::CALENDAR:
+            case DashboardBoxType::CHART:
                 // get target table
                 array_set($json, 'options.target_table_id', CustomTable::getEloquent(array_get($json, 'options.target_table_name'))->id ?? null);
                 // get target view using suuid
                 array_set($json, 'options.target_view_id', CustomView::findBySuuid(array_get($json, 'options.target_view_suuid'))->id ?? null);
                 break;
         }
+        
+        // replace chartx and y
+        static::importReplaceJsonTableColumn($json, 'chartx');
+        static::importReplaceJsonTableColumn($json, 'charty');
+    }
+
+    protected static function importReplaceJsonCustomColumn(&$json, $replace_custom_column_key)
+    {
+        $custom_column = CustomColumn::getEloquent(array_get($json, "options.{$replace_custom_column_key}_column_name"), array_get($json, "options.{$replace_custom_column_key}_table_name"));
+
+        // if exists, set as params
+        if (isset($custom_column)) {
+            $key = 
+            array_set($json, $replace_custom_column_key, $custom_column->id);
+        }
+
+        array_forget($json, $custom_column_key);
+        array_forget($json, $custom_table_key);
     }
 }

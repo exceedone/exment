@@ -7,9 +7,12 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ColumnItems;
 
 trait CustomViewColumnTrait
@@ -199,7 +202,7 @@ trait CustomViewColumnTrait
     /**
      * get Table And Column Name
      */
-    protected function getUniqueKeyValues()
+    public function getUniqueKeyValues()
     {
         if (isset($this->custom_table)) {
             $table_name = $this->custom_table->table_name;
@@ -227,6 +230,29 @@ trait CustomViewColumnTrait
         }
         return [];
     }
+    
+    /**
+     * get custom view column or summary record.
+     *
+     * @param string $column_keys "view_kind_type" _ "view_column_id or view_summary_id"
+     * @return CustomViewColumn|CustomViewSummary
+     */
+    public static function getSummaryViewColumn($column_keys)
+    {
+        if (preg_match('/\d+_\d+$/i', $column_keys) === 1) {
+            $keys = explode('_', $column_keys);
+            if (count($keys) === 2) {
+                if ($keys[0] == ViewKindType::AGGREGATE) {
+                    $view_column = CustomViewSummary::getEloquent($keys[1]);
+                } else {
+                    $view_column = CustomViewColumn::getEloquent($keys[1]);
+                }
+                return $view_column;
+            }
+        }
+        return null;
+    }
+
     
     public static function importReplaceJson(&$json, $options = [])
     {
