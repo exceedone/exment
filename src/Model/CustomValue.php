@@ -504,7 +504,7 @@ class CustomValue extends ModelBase
         }
         return $item->value();
     }
-        
+
     /**
      * Get vustom_value's label
      * @param CustomValue $custom_value
@@ -515,15 +515,32 @@ class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
 
         $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
-        $lebel_columns = System::requestSession($key, function () use ($custom_table) {
+        $label_columns = System::requestSession($key, function () use ($custom_table) {
+            $table_label_format = $custom_table->getOption('table_label_format');
+            if (isset($table_label_format)) {
+                return $table_label_format;
+            }
             return $custom_table->table_labels;
         });
 
-        if (!isset($lebel_columns) || count($lebel_columns) == 0) {
+        if (isset($label_columns) && is_string($label_columns)) {
+            return $this->getExpansionLabel($label_columns);
+        } else {
+            return $this->getBasicLabel($label_columns);
+        }
+    }
+
+    /**
+     * get label string (general setting case)
+     */
+    protected function getBasicLabel($label_columns){
+        $custom_table = $this->custom_table;
+
+        if (!isset($label_columns) || count($label_columns) == 0) {
             $columns = [$custom_table->custom_columns->first()];
         } else {
-            $columns = $lebel_columns->map(function ($lebel_column) {
-                return CustomColumn::getEloquent($lebel_column->table_label_id);
+            $columns = $label_columns->map(function ($label_column) {
+                return CustomColumn::getEloquent($label_column->table_label_id);
             });
         }
 
@@ -550,6 +567,34 @@ class CustomValue extends ModelBase
         }
 
         return implode(' ', $labels);
+    }
+
+    /**
+     * get custom format label
+     */
+    protected function getExpansionLabel($label_format){
+        $options['afterCallback'] = function ($text, $custom_value, $options) {
+            return $this->replaceText($text, $options);
+        };
+        return replaceTextFromFormat($label_format, $this, $options);
+    }
+
+    /**
+     * replace text. ex.comma, &yen, etc...
+     */
+    protected function replaceText($text, $documentItem = [])
+    {
+        // add comma if number_format
+        if (array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)) {
+            $text = number_format($text);
+        }
+
+        // replace <br/> or \r\n, \n, \r to new line
+        $text = preg_replace("/\\\\r\\\\n|\\\\r|\\\\n/", "\n", $text);
+        // &yen; to
+        $text = str_replace("&yen;", "¥", $text);
+
+        return $text;
     }
 
     /**

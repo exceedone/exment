@@ -303,6 +303,14 @@ HTML;
         ->rowUpDown('priority')
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
 
+        if (boolval(config('exment.expart_mode', false))) {
+            $form->embeds('options', exmtrans("custom_table.custom_column_multi.table_label_format"), function ($form) {
+                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format_string"))
+                    ->rules("max:200")
+                    ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
+            });
+        }
+
         $form->tools(function (Form\Tools $tools) use ($id) {
             // if edit mode
             if ($id != null) {
