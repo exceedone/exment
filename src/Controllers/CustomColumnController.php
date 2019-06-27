@@ -179,6 +179,7 @@ class CustomColumnController extends AdminControllerTableBase
             'data-linkage' => json_encode([
                 'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
             ]),
+            'data-linkage-expand' => json_encode(['custom_type' => true]),
             'data-linkage-text' => 'column_view_name'
         ])
         ->required();
