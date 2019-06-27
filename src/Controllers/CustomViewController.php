@@ -128,11 +128,14 @@ class CustomViewController extends AdminControllerTableBase
 
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
-            $table_name = $this->custom_table->table_name;
+            $custom_table = $this->custom_table;
         }
 
         $grid->disableExport();
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
+            if (isset($custom_table)) {
+                $table_name = $custom_table->table_name;
+            }
             if (boolval($actions->row->system_flg)) {
                 $actions->disableDelete();
             }
@@ -149,7 +152,7 @@ class CustomViewController extends AdminControllerTableBase
             $actions->disableView();
 
             $linker = (new Linker)
-                ->url(admin_urls('data', "{$table_name}?view={$actions->row->suuid}"))
+                ->url($custom_table->getGridUrl(true, ['view' => $actions->row->suuid]))
                 ->icon('fa-database')
                 ->tooltip(exmtrans('custom_view.view_datalist'));
             $actions->prepend($linker);
@@ -427,7 +430,7 @@ class CustomViewController extends AdminControllerTableBase
 
             if (isset($suuid)) {
                 $tools->append(view('exment::tools.button', [
-                    'href' => admin_urls('data', "{$custom_table->table_name}?view={$suuid}"),
+                    'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
                     'label' => exmtrans('custom_view.view_datalist'),
                     'icon' => 'fa-database',
                     'btn_class' => 'btn-purple',
