@@ -59,19 +59,11 @@ class MySqlGrammar extends BaseGrammar
     public function compileAlterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name)
     {
         // ALTER TABLE
-        $as_value = "json_unquote(json_extract({$this->wrap('value')},'$.{$json_column_name}'))";
+        $as_value = "json_unquote(json_extract({$this->wrap('value')},'$.\"{$json_column_name}\"'))";
 
         return [
             "alter table {$db_table_name} add {$db_column_name} nvarchar(768) generated always as ({$as_value}) virtual",
             "alter table {$db_table_name} add index {$index_name}({$db_column_name})",
-        ];
-    }
-    
-    public function compileDropIndexColumn($db_table_name, $db_column_name, $index_name)
-    {
-        return [
-            "alter table {$db_table_name} drop index {$index_name}",
-            "alter table {$db_table_name} drop column {$db_column_name}",
         ];
     }
     
