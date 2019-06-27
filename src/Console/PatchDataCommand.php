@@ -53,6 +53,9 @@ class PatchDataCommand extends Command
             case 'use_label_flg':
                 $this->modifyUseLabelFlg();
                 return;
+            case 'alter_index_hyphen':
+                $this->reAlterIndexContainsHyphen();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -121,6 +124,27 @@ class PatchDataCommand extends Command
             $column->setOption('use_label_flg', null);
 
             $column->save();
+        }
+    }
+    
+    /**
+     * re-alter Index Contains Hyphen
+     *
+     * @return void
+     */
+    protected function reAlterIndexContainsHyphen()
+    {
+        // get index contains hyphen
+        $index_custom_columns = CustomColumn::indexEnabled()->where('column_name', 'LIKE', '%-%')->get();
+        
+        foreach($index_custom_columns as  $index_custom_column){
+            $db_table_name = getDBTableName($index_custom_column->custom_table);
+            $db_column_name = $index_custom_column->getIndexColumnName(false);
+            $index_name = "index_$db_column_name";
+            $column_name = $index_custom_column->column_name;
+
+            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
     }
 }
