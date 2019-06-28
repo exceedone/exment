@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Grid\Tools\RefreshButton;
 use Exceedone\Exment\Form\Tools;
 
 trait CustomValueCalendar
@@ -16,7 +15,6 @@ trait CustomValueCalendar
         $tools = [];
         $tools[] = new Tools\GridChangePageMenu('data', $this->custom_table, false);
         $tools[] = new Tools\GridChangeView($this->custom_table, $this->custom_view);
-        $tools[] = new RefreshButton();
 
         return view('exment::widgets.calendar', [
             'view_id' => $this->custom_view->suuid,
