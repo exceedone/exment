@@ -429,6 +429,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $sort_columns = [];
         $custom_tables = [];
 
+        // get relation parent tables
+        $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
+        // get relation child tables
+        $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
+        // join select table refered from this table.
+        $select_table_columns = $this->custom_table->getSelectTables();
+        // join table refer to this table as select.
+        $selected_table_columns = $this->custom_table->getSelectedTables();
+        
         // set grouping columns
         $view_column_items = $this->getSummaryIndexAndViewColumns();
         foreach ($view_column_items as $view_column_item) {
@@ -444,8 +453,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
             if ($item instanceof CustomViewColumn) {
                 // first, set group_column. this column's name uses index.
-                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition')]);
-                $group_columns[] = $column_item->sqlname();
+                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index]);
+                $groupSqlName = $column_item->sqlname();
+                $groupSqlAsName = $column_item->sqlAsName();
+                $group_columns[] = $groupSqlName;
                 $column_item->options(['groupby' => false, 'group_condition' => null]);
 
                 // parent_id need parent_type
@@ -457,6 +468,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     'column_label' => array_get($item, 'view_column_name')?? $column_item->label(),
                     'custom_view_column' => $item,
                 ]);
+                
+                // if this is child table, set as sub group by
+                if ($child_relations->contains(function ($value, $key) use ($item) {
+                    return isset($item->custom_table) && $value->child_custom_table->id == $item->custom_table->id;
+                })) {
+                    $custom_tables[$item->custom_table->id]['subGroupby'][] = $groupSqlAsName;
+                    $custom_tables[$item->custom_table->id]['select_group'][] = $groupSqlName;
+                }
             }
             // set summary columns
             else {
@@ -482,14 +501,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         $sub_queries = [];
-        // get relation parent tables
-        $parent_relations = CustomRelation::getRelationsByChild($this->custom_table);
-        // get relation child tables
-        $child_relations = CustomRelation::getRelationsByParent($this->custom_table);
-        // join select table refered from this table.
-        $select_table_columns = $this->custom_table->getSelectTables();
-        // join table refer to this table as select.
-        $selected_table_columns = $this->custom_table->getSelectedTables();
 
         $custom_table_id = $this->custom_table->id;
 
@@ -633,11 +644,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     protected function getSubQuery($table_main, $key_main, $key_sub, $custom_table)
     {
         $table_name = array_get($custom_table, 'table_name');
+        // get subquery groupbys
+        $groupBy = array_get($custom_table, 'subGroupby', []);
+        $groupBy[] = "$table_name.$key_sub";
+
         $sub_query = \DB::table($table_main)
             ->select("$table_name.$key_sub as id")
             ->join($table_name, "$table_main.$key_main", "$table_name.$key_sub")
             ->whereNull("$table_name.deleted_at")
-            ->groupBy("$table_name.$key_sub");
+            ->groupBy($groupBy);
         if (array_key_exists('select', $custom_table)) {
             $sub_query->addSelect($custom_table['select']);
         }

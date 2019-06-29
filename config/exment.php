@@ -1,6 +1,11 @@
 <?php
 
 return [
+
+    'locale' => env('APP_LOCALE', config('app.locale')),
+
+    'timezone' => env('APP_TIMEZONE', config('app.timezone')),
+
     /*
     |--------------------------------------------------------------------------
     | Use API
