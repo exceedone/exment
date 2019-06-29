@@ -86,6 +86,7 @@ class CustomValueController extends AdminControllerTableBase
                     break;
                 default:
                     $content->body($this->grid());
+                    $this->custom_table->saveGridParameter($request->path());
             }
         }
         return $content;
