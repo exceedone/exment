@@ -1510,4 +1510,28 @@ if (!function_exists('useLoginProvider')) {
             return true;
         }
     }
+
+    if (!function_exists('admin_exclusion_path')) {
+        /**
+         * Get admin exclusion url.
+         *
+         * @param string $path
+         *
+         * @return string
+         */
+        function admin_exclusion_path($path = '')
+        {
+            $path = trim($path, '/');
+
+            $prefix = trim(config('admin.route.prefix'), '/');
+
+            if (starts_with($path, $prefix)) {
+                $path = substr($path , strlen($prefix));
+            }
+
+            $path = trim($path, '/');
+    
+            return $path?? '/';
+        }
+    }
 }

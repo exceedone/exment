@@ -137,6 +137,7 @@ trait CustomValueShow
                     $tools->disableList();
                     $tools->disableDelete();
                 } else {
+                    $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
                     $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
