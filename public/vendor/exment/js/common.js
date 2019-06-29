@@ -750,7 +750,7 @@ var Exment;
                 return;
             }
             var column_type = $target.data('column_type');
-            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']);
+            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
             // if number, remove comma
             if (isNumber) {
                 value = rmcomma(value);
@@ -761,13 +761,17 @@ var Exment;
                 value = bn.integerValue().toPrecision();
             }
             // if 'decimal' or 'currency', floor 
-            if ($.inArray(column_type, ['decimal', 'currency']) && hasValue($target.attr('decimal_digit'))) {
+            if ($.inArray(column_type, ['decimal', 'currency']) != -1 && hasValue($target.attr('decimal_digit'))) {
                 var bn = new BigNumber(value);
                 value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
             }
             // if number format, add comma
             if (isNumber && $target.attr('number_format')) {
                 value = comma(value);
+            }
+            // if 'select' and readonly, set as select2
+            if ($.inArray(column_type, ['select', 'select_valtext', 'select_table', 'user', 'organization']) != -1 && hasValue($target.attr('readonly'))) {
+                $target.select2('val', value);
             }
             // set value
             $target.val(value);
