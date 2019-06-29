@@ -227,11 +227,7 @@ abstract class CustomItem implements ItemInterface
 
         // // readonly
         if (boolval(array_get($form_column_options, 'view_only'))) {
-            if (method_exists($field, 'readonly')) {
-                $field->readonly();
-            } else {
-                $field->attribute(['readonly' => true]);
-            }
+            $field->readonly();
         }
 
         // required
