@@ -438,7 +438,7 @@ abstract class CustomItem implements ItemInterface
         if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
             $regex_validate = array_get($options, 'regex_validate');
             $validates[] = 'regex:/'.$regex_validate.'/';
-        } else if (array_key_value_exists('available_characters', $options)) {
+        } elseif (array_key_value_exists('available_characters', $options)) {
             $available_characters = array_get($options, 'available_characters') ?? [];
             if (is_string($available_characters)) {
                 $available_characters = explode(",", $available_characters);

@@ -533,7 +533,8 @@ class CustomValue extends ModelBase
     /**
      * get label string (general setting case)
      */
-    protected function getBasicLabel($label_columns){
+    protected function getBasicLabel($label_columns)
+    {
         $custom_table = $this->custom_table;
 
         if (!isset($label_columns) || count($label_columns) == 0) {
@@ -572,7 +573,8 @@ class CustomValue extends ModelBase
     /**
      * get custom format label
      */
-    protected function getExpansionLabel($label_format){
+    protected function getExpansionLabel($label_format)
+    {
         $options['afterCallback'] = function ($text, $custom_value, $options) {
             return $this->replaceText($text, $options);
         };

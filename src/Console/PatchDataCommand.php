@@ -137,7 +137,7 @@ class PatchDataCommand extends Command
         // get index contains hyphen
         $index_custom_columns = CustomColumn::indexEnabled()->where('column_name', 'LIKE', '%-%')->get();
         
-        foreach($index_custom_columns as  $index_custom_column){
+        foreach ($index_custom_columns as  $index_custom_column) {
             $db_table_name = getDBTableName($index_custom_column->custom_table);
             $db_column_name = $index_custom_column->getIndexColumnName(false);
             $index_name = "index_$db_column_name";

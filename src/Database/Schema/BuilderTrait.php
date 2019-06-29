@@ -30,14 +30,15 @@ trait BuilderTrait
         return $this->connection->getPostProcessor()->processIsMariaDB($results);
     }
 
-    public function hasIndex($tableName, $columnName, $indexName){
+    public function hasIndex($tableName, $columnName, $indexName)
+    {
         $indexes = $this->getIndexDefinitions($tableName, $columnName);
 
-        if(is_null($indexes)){
+        if (is_null($indexes)) {
             return false;
         }
 
-        return collect($indexes)->first(function($index) use($indexName){
+        return collect($indexes)->first(function ($index) use ($indexName) {
             return array_get($index, 'key_name') == $indexName;
         }) != null;
     }
@@ -185,15 +186,15 @@ trait BuilderTrait
         $db_table_name = $this->connection->getTablePrefix().$db_table_name;
 
         // check index name
-        if(\Schema::hasIndex($db_table_name, $db_column_name, $index_name)){
-            \Schema::table($db_table_name, function (Blueprint $table) use($index_name) {
+        if (\Schema::hasIndex($db_table_name, $db_column_name, $index_name)) {
+            \Schema::table($db_table_name, function (Blueprint $table) use ($index_name) {
                 $table->dropIndex($index_name);
             });
         }
 
         // check column name
-        if(\Schema::hasColumn($db_table_name, $db_column_name)){
-            \Schema::table($db_table_name, function (Blueprint $table) use($db_column_name) {
+        if (\Schema::hasColumn($db_table_name, $db_column_name)) {
+            \Schema::table($db_table_name, function (Blueprint $table) use ($db_column_name) {
                 $table->dropColumn($db_column_name);
             });
         }

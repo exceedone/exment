@@ -69,9 +69,9 @@ class ApiController extends AdminControllerBase
         }
 
         // if execute as selecting column_type
-        if($request->has('custom_type')){
+        if ($request->has('custom_type')) {
             // check user or organization
-            if(!ColumnType::isUserOrganization($request->get('q'))){
+            if (!ColumnType::isUserOrganization($request->get('q'))) {
                 return [];
             }
         }

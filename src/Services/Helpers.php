@@ -1526,7 +1526,7 @@ if (!function_exists('useLoginProvider')) {
             $prefix = trim(config('admin.route.prefix'), '/');
 
             if (starts_with($path, $prefix)) {
-                $path = substr($path , strlen($prefix));
+                $path = substr($path, strlen($prefix));
             }
 
             $path = trim($path, '/');

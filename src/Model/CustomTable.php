@@ -353,7 +353,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $path = 'data/' . $this->table_name;
 
-        if ($addFilter){
+        if ($addFilter) {
             $view = array_get($options, 'view');
 
             if (is_null($view)) {
@@ -390,7 +390,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $custom_view = CustomView::getDefault($this);
 
-        if (is_null($custom_view)) return;
+        if (is_null($custom_view)) {
+            return;
+        }
 
         $path = admin_exclusion_path($path);
 

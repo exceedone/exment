@@ -233,10 +233,10 @@ trait CustomViewColumnTrait
         $custom_view = array_get($options, 'parent');
 
         // get custom table
-        if(array_key_value_exists('view_column_table_name', $json)){
+        if (array_key_value_exists('view_column_table_name', $json)) {
             $custom_table = CustomTable::getEloquent($json['view_column_table_name']);
         }
-        if(!isset($custom_table)){
+        if (!isset($custom_table)) {
             $custom_table = $custom_view->custom_table;
         }
 

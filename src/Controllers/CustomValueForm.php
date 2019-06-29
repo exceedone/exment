@@ -340,7 +340,7 @@ EOT;
             if ($one_record_flg) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect(admin_urls('data', $this->custom_table->table_name));
-            } else if (empty(request('after-save'))) {
+            } elseif (empty(request('after-save'))) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect($this->custom_table->getGridUrl(true));
             }

@@ -327,13 +327,12 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         );
         try {
             preg_match("/$value/", '');
-        } catch(\RuntimeException $e) {
-             return false;
+        } catch (\RuntimeException $e) {
+            return false;
         } finally {
             restore_error_handler();
         }
     
         return true;
     }
-
 }
