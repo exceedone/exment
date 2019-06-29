@@ -309,4 +309,31 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
         }
         return $message;
     }
+
+    /**
+    * Validation regular expression
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validateRegularExpression($attribute, $value, $parameters)
+    {
+        set_error_handler(
+            function ($severity, $message) {
+                throw new \RuntimeException($message);
+            }
+        );
+        try {
+            preg_match("/$value/", '');
+        } catch(\RuntimeException $e) {
+             return false;
+        } finally {
+            restore_error_handler();
+        }
+    
+        return true;
+    }
+
 }
