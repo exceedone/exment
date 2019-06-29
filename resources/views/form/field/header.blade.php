@@ -1,9 +1,8 @@
 
 <div class="row">
-    <div class="{{$viewClass['label']}}">
-        <h{{$no}} class="pull-right">{{ $label }}</h{{$no}}>
+    <div class="col-sm-12">
+        <h4 class="field-header">{{ $label }}</h4>
     </div>
-    <div class="{{$viewClass['field']}}"></div>
 </div>
 
 @if($hr)
