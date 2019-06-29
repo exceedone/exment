@@ -435,7 +435,7 @@ var Exment;
                             i = 0;
                             _a.label = 1;
                         case 1:
-                            if (!(i < options.length)) return [3 /*break*/, 6];
+                            if (!(i < options.length)) return [3 /*break*/, 7];
                             option = options[i];
                             // if has changedata_to_block, get $elem using changedata_to_block
                             if (hasValue(option.to_block)) {
@@ -446,50 +446,52 @@ var Exment;
                                 }
                             }
                             $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
-                            if (!!hasValue(modeldata)) return [3 /*break*/, 2];
-                            $elem.val('');
-                            return [3 /*break*/, 4];
+                            if (!!hasValue(modeldata)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, CommonEvent.setValue($elem, null)];
                         case 2:
+                            _a.sent();
+                            return [3 /*break*/, 5];
+                        case 3:
                             from = modeldata['value'][option.from];
                             return [4 /*yield*/, CommonEvent.setValue($elem, from)];
-                        case 3:
-                            _a.sent();
-                            _a.label = 4;
                         case 4:
+                            _a.sent();
+                            _a.label = 5;
+                        case 5:
                             // view filter execute
                             CommonEvent.setFormFilter($elem);
                             // add $elem to option
                             option['elem'] = $elem;
-                            _a.label = 5;
-                        case 5:
+                            _a.label = 6;
+                        case 6:
                             i++;
                             return [3 /*break*/, 1];
-                        case 6:
-                            i = 0;
-                            _a.label = 7;
                         case 7:
-                            if (!(i < options.length)) return [3 /*break*/, 12];
+                            i = 0;
+                            _a.label = 8;
+                        case 8:
+                            if (!(i < options.length)) return [3 /*break*/, 13];
                             option = options[i];
                             $elem = option['elem'];
                             j = 0;
-                            _a.label = 8;
-                        case 8:
-                            if (!(j < CommonEvent.calcDataList.length)) return [3 /*break*/, 11];
-                            calcData = CommonEvent.calcDataList[j];
-                            if (!(calcData.key == option.to)) return [3 /*break*/, 10];
-                            $filterTo = $elem.filter(calcData.classKey);
-                            if (!hasValue($filterTo)) return [3 /*break*/, 10];
-                            return [4 /*yield*/, CommonEvent.setCalc($filterTo, calcData.data)];
+                            _a.label = 9;
                         case 9:
-                            _a.sent();
-                            _a.label = 10;
+                            if (!(j < CommonEvent.calcDataList.length)) return [3 /*break*/, 12];
+                            calcData = CommonEvent.calcDataList[j];
+                            if (!(calcData.key == option.to)) return [3 /*break*/, 11];
+                            $filterTo = $elem.filter(calcData.classKey);
+                            if (!hasValue($filterTo)) return [3 /*break*/, 11];
+                            return [4 /*yield*/, CommonEvent.setCalc($filterTo, calcData.data)];
                         case 10:
-                            j++;
-                            return [3 /*break*/, 8];
+                            _a.sent();
+                            _a.label = 11;
                         case 11:
+                            j++;
+                            return [3 /*break*/, 9];
+                        case 12:
                             i++;
-                            return [3 /*break*/, 7];
-                        case 12: return [2 /*return*/];
+                            return [3 /*break*/, 8];
+                        case 13: return [2 /*return*/];
                     }
                 });
             });
@@ -750,6 +752,10 @@ var Exment;
                 return;
             }
             var column_type = $target.data('column_type');
+            // if 'image' or 'file', cannot setValue, continue
+            if ($.inArray(column_type, ['file', 'image']) != -1) {
+                return;
+            }
             var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
             // if number, remove comma
             if (isNumber) {
@@ -757,24 +763,35 @@ var Exment;
             }
             // if integer, floor value
             if (column_type == 'integer') {
-                var bn = new BigNumber(value);
-                value = bn.integerValue().toPrecision();
+                if (hasValue(value)) {
+                    var bn = new BigNumber(value);
+                    value = bn.integerValue().toPrecision();
+                }
             }
             // if 'decimal' or 'currency', floor 
             if ($.inArray(column_type, ['decimal', 'currency']) != -1 && hasValue($target.attr('decimal_digit'))) {
-                var bn = new BigNumber(value);
-                value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
+                if (hasValue(value)) {
+                    var bn = new BigNumber(value);
+                    value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
+                }
             }
             // if number format, add comma
             if (isNumber && $target.attr('number_format')) {
                 value = comma(value);
             }
-            // if 'select' and readonly, set as select2
-            if ($.inArray(column_type, ['select', 'select_valtext', 'select_table', 'user', 'organization']) != -1 && hasValue($target.attr('readonly'))) {
-                $target.select2('val', value);
+            // switch bootstrapSwitch
+            if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
+                var $bootstrapSwitch = $target.filter('[type="checkbox"]');
+                $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
             }
+            // if 'select', set as select2
+            // if ($.inArray(column_type, ['select', 'select_valtext', 'select_table', 'user', 'organization']) != -1) {
+            //     //$target.select2('val', value);
+            //     $target.val(value).trigger('change');
+            //     return;
+            // }
             // set value
-            $target.val(value);
+            $target.val(value).trigger('change');
         };
         /**
          * add select2
@@ -1109,6 +1126,9 @@ var hasValue = function (obj) {
 //        , '$1$2,$3');
 //}
 var comma = function (x) {
+    if (x === null || x === undefined) {
+        return x;
+    }
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 };
 var rmcomma = function (x) {

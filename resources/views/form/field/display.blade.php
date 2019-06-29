@@ -4,7 +4,9 @@
         <div class="no-margin">
             <!-- /.box-header -->
             <div class="box-body" style="padding-bottom:0;">
-                {{ $value }}&nbsp;
+                <span class="{{$class}}">
+                {{ $value }}
+                </span>&nbsp;
             </div><!-- /.box-body -->
         </div>
 

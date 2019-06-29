@@ -34,6 +34,8 @@ $('{$this->getElementClassSelector()}.la_checkbox').bootstrapSwitch({
 
 EOT;
 
+        $this->attribute(['data-onvalue' => $this->states['on']['value'], 'data-offvalue' => $this->states['off']['value']]);
+
         $grandParent = $this->getParentClassname();
         return $grandParent::render()->with([
             'onValue'  => $this->states['on']['value'],
