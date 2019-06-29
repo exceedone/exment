@@ -252,7 +252,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 ->help(array_get($fileOption, 'maxFileSizeHelp'))
                 ->name(function ($file) {
                     $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
-                    return $exmentfile->filename;
+                    return $exmentfile->local_filename;
                 });
 
             if (!useLoginProvider()) {
