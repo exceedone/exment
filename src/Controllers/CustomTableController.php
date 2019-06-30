@@ -79,7 +79,7 @@ class CustomTableController extends AdminControllerBase
                 ->url($actions->row->getGridUrl())
                 ->icon('fa-database')
                 ->tooltip(exmtrans('change_page_menu.custom_value'));
-                $actions->append($linker);                
+                $actions->append($linker);
             }
         });
 

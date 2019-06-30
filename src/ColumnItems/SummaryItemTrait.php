@@ -39,9 +39,9 @@ trait SummaryItemTrait
         extract($this->getSummaryParams());
         
         // get column_name. toggle whether is child or not
-        if($is_child){
+        if ($is_child) {
             $column_name = $this->sqlAsName();
-        }else{
+        } else {
             $column_name = $value_column;
         }
 

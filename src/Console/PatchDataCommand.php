@@ -109,7 +109,7 @@ class PatchDataCommand extends Command
                 ->where('options->table_label_id', $use_label_flg_column->id)
                 ->first();
 
-            if(!isset($exists)){
+            if (!isset($exists)) {
                 $custom_table->table_labels()->save(
                     new CustomColumnMulti([
                         'multisetting_type' => 2,
@@ -133,7 +133,6 @@ class PatchDataCommand extends Command
 
             $column->save();
         }
-
     }
     
     /**

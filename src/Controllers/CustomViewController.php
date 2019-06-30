@@ -203,7 +203,7 @@ class CustomViewController extends AdminControllerTableBase
         $from_data = false;
         if ($request->has('from_data')) {
             $from_data = boolval($request->get('from_data'));
-        }        
+        }
 
         $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
@@ -436,8 +436,8 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
-        $form->saved(function (Form $form) use($from_data, $custom_table) {
-            if(boolval($from_data)){
+        $form->saved(function (Form $form) use ($from_data, $custom_table) {
+            if (boolval($from_data)) {
                 // get view suuid
                 $suuid = $form->model()->suuid;
                 return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
