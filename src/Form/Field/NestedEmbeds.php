@@ -23,7 +23,6 @@ class NestedEmbeds extends Embeds
     protected function buildEmbeddedForm()
     {
         $form = new NestedEmbeddedForm($this->elementName);
-        //$form = new NestedEmbeddedForm($this->getElementClass()[0]);
         return $this->setFormField($form);
     }
 
