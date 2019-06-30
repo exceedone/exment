@@ -201,10 +201,8 @@ class CustomViewController extends AdminControllerTableBase
         
         // get from_data
         $from_data = false;
-        if (!is_null($request->input('from_data'))) {
-            $from_data = true;
-        } elseif (!is_null($request->query('from_data'))) {
-            $from_data = true;
+        if ($request->has('from_data')) {
+            $from_data = boolval($request->get('from_data'));
         }        
 
         $form = new Form(new CustomView);
