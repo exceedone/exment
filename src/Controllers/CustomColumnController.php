@@ -179,6 +179,7 @@ class CustomColumnController extends AdminControllerTableBase
             'data-linkage' => json_encode([
                 'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
             ]),
+            'data-linkage-expand' => json_encode(['custom_type' => true]),
             'data-linkage-text' => 'column_view_name'
         ])
         ->required();
@@ -219,7 +220,14 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
-                    
+            if (boolval(config('exment.expart_mode', false))) {
+                $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
+                $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
+                    ->rules('regularExpression')
+                    ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));
+            }
+
             // number
             //if(in_array($column_type, [ColumnType::INTEGER,ColumnType::DECIMAL])){
             $form->number('number_min', exmtrans("custom_column.options.number_min"))

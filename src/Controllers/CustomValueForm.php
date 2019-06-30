@@ -340,6 +340,9 @@ EOT;
             if ($one_record_flg) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect(admin_urls('data', $this->custom_table->table_name));
+            } elseif (empty(request('after-save'))) {
+                admin_toastr(trans('admin.save_succeeded'));
+                return redirect($this->custom_table->getGridUrl(true));
             }
         });
     }
@@ -352,6 +355,7 @@ EOT;
         
         $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
             $tools->disableView(false);
+            $tools->setListPath($custom_table->getGridUrl(true));
 
             // if one_record_flg, disable list
             if (array_get($custom_table->options, 'one_record_flg')) {

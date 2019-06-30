@@ -12,7 +12,9 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
-use \Illuminate\Support\Collection;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Input;
 
 getCustomTableTrait();
 
@@ -340,6 +342,70 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $custom_table;
+    }
+
+    /**
+     * get filter and sort order from request.
+     * @param $options(query string).
+     * @param $addFilter.
+     */
+    public function getGridUrl($addFilter = false, $options = [])
+    {
+        $path = 'data/' . $this->table_name;
+
+        if ($addFilter) {
+            $view = array_get($options, 'view');
+
+            if (is_null($view)) {
+                $custom_view = CustomView::getDefault($this);
+                $view = $custom_view->suuid;
+            }
+
+            // get page settings
+            $settings = \Exment::user()->getSettingValue($path)?? '[]';
+            $settings = json_decode($settings, true);
+
+            // get view settings
+            $parameters = [];
+            if (isset($view) && array_key_exists($view, $settings)) {
+                $parameters = array_get($settings, $view);
+            }
+
+            // merge old and current settings
+            $parameters = array_merge($options, $parameters);
+        }
+
+        if (isset($parameters) && count($parameters) > 0) {
+            return admin_url($path).'?'.http_build_query($parameters);
+        } else {
+            return admin_url($path);
+        }
+    }
+
+    /**
+     * save filter and sort order.
+     * @param $path.
+     */
+    public function saveGridParameter($path)
+    {
+        $custom_view = CustomView::getDefault($this);
+
+        if (is_null($custom_view)) {
+            return;
+        }
+
+        $path = admin_exclusion_path($path);
+
+        $view = $custom_view->suuid;
+
+        $inputs = Arr::except(Input::all(), ['view', '_pjax', '_token', '_method', '_previous_']);
+
+        $parameters = \Exment::user()->getSettingValue($path)?? '[]';
+        $parameters = json_decode($parameters, true);
+
+        $parameters[$view] = $inputs;
+
+        Admin::user()->setSettingValue($path, json_encode($parameters));
     }
 
     /**

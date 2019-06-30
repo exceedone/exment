@@ -1,6 +1,11 @@
 <?php
 
 return [
+
+    'locale' => env('APP_LOCALE', config('app.locale')),
+
+    'timezone' => env('APP_TIMEZONE', config('app.timezone')),
+
     /*
     |--------------------------------------------------------------------------
     | Use API
@@ -222,4 +227,14 @@ return [
     |
     */
     'keyword_search_relation_count' => env('EXMENT_KEYWORD_SEARCH_RELATION_COUNT', 5000),
+  
+    /*
+    |--------------------------------------------------------------------------
+    | Expart mode
+    |--------------------------------------------------------------------------
+    |
+    | To use expart function.
+    |
+    */
+    'expart_mode' => env('EXMENT_EXPART_MODE', false),
 ];

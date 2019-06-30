@@ -103,16 +103,24 @@ class PatchDataCommand extends Command
         foreach ($use_label_flg_columns as $use_label_flg_column) {
             $custom_table = $use_label_flg_column->custom_table;
 
-            $custom_table->table_labels()->save(
-                new CustomColumnMulti([
-                    'multisetting_type' => 2,
-                    'table_label_id' => $use_label_flg_column->id,
-                    'priority' => $use_label_flg_column->getOption('use_label_flg'),
-                ])
-            );
+            // check exists
+            $exists = $custom_table->table_labels()
+                ->where('multisetting_type', 2)
+                ->where('options->table_label_id', $use_label_flg_column->id)
+                ->first();
 
-            $use_label_flg_column->setOption('use_label_flg', null);
-            $use_label_flg_column->save();
+            if (!isset($exists)) {
+                $custom_table->table_labels()->save(
+                    new CustomColumnMulti([
+                        'multisetting_type' => 2,
+                        'table_label_id' => $use_label_flg_column->id,
+                        'priority' => $use_label_flg_column->getOption('use_label_flg'),
+                    ])
+                );
+    
+                $use_label_flg_column->setOption('use_label_flg', null);
+                $use_label_flg_column->save();
+            }
         }
 
         // remove use_label_flg property
@@ -137,7 +145,7 @@ class PatchDataCommand extends Command
         // get index contains hyphen
         $index_custom_columns = CustomColumn::indexEnabled()->where('column_name', 'LIKE', '%-%')->get();
         
-        foreach($index_custom_columns as  $index_custom_column){
+        foreach ($index_custom_columns as  $index_custom_column) {
             $db_table_name = getDBTableName($index_custom_column->custom_table);
             $db_column_name = $index_custom_column->getIndexColumnName(false);
             $index_name = "index_$db_column_name";

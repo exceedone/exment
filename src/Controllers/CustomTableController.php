@@ -54,13 +54,33 @@ class CustomTableController extends AdminControllerBase
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
             $actions->disableDelete();
-    
+
             // add new multiple columns
             $linker = (new Linker)
                 ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
                 ->icon('fa-exchange')
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
+                
+            $custom_table = $actions->row;
+
+            // add custom column
+            if ($custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
+                $linker = (new Linker)
+                ->url(admin_urls('column', $custom_table->table_name))
+                ->icon('fa-list')
+                ->tooltip(exmtrans('change_page_menu.custom_column'));
+                $actions->append($linker);
+            }
+
+            // add data
+            if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                $linker = (new Linker)
+                ->url($actions->row->getGridUrl())
+                ->icon('fa-database')
+                ->tooltip(exmtrans('change_page_menu.custom_value'));
+                $actions->append($linker);
+            }
         });
 
         // filter table --------------------------------------------------
@@ -302,6 +322,14 @@ HTML;
         })->setTableColumnWidth(10, 2)
         ->rowUpDown('priority')
         ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
+
+        if (boolval(config('exment.expart_mode', false))) {
+            $form->embeds('options', exmtrans("custom_table.custom_column_multi.table_label_format"), function ($form) {
+                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format_string"))
+                    ->rules("max:200")
+                    ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
+            });
+        }
 
         $form->tools(function (Form\Tools $tools) use ($id) {
             // if edit mode
