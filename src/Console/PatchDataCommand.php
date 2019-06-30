@@ -103,16 +103,24 @@ class PatchDataCommand extends Command
         foreach ($use_label_flg_columns as $use_label_flg_column) {
             $custom_table = $use_label_flg_column->custom_table;
 
-            $custom_table->table_labels()->save(
-                new CustomColumnMulti([
-                    'multisetting_type' => 2,
-                    'table_label_id' => $use_label_flg_column->id,
-                    'priority' => $use_label_flg_column->getOption('use_label_flg'),
-                ])
-            );
+            // check exists
+            $exists = $custom_table->table_labels()
+                ->where('multisetting_type', 2)
+                ->where('options->table_label_id', $use_label_flg_column->id)
+                ->first();
 
-            $use_label_flg_column->setOption('use_label_flg', null);
-            $use_label_flg_column->save();
+            if(!isset($exists)){
+                $custom_table->table_labels()->save(
+                    new CustomColumnMulti([
+                        'multisetting_type' => 2,
+                        'table_label_id' => $use_label_flg_column->id,
+                        'priority' => $use_label_flg_column->getOption('use_label_flg'),
+                    ])
+                );
+    
+                $use_label_flg_column->setOption('use_label_flg', null);
+                $use_label_flg_column->save();
+            }
         }
 
         // remove use_label_flg property
@@ -125,6 +133,7 @@ class PatchDataCommand extends Command
 
             $column->save();
         }
+
     }
     
     /**
