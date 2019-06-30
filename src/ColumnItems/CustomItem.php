@@ -437,7 +437,7 @@ abstract class CustomItem implements ItemInterface
         $help_regexes = [];
         if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
             $regex_validate = array_get($options, 'regex_validate');
-            $validates[] = 'regex:/'.$regex_validate.'/';
+            $validates[] = 'regex:/'.$regex_validate.'/u';
         } elseif (array_key_value_exists('available_characters', $options)) {
             $available_characters = array_get($options, 'available_characters') ?? [];
             if (is_string($available_characters)) {
@@ -470,7 +470,7 @@ abstract class CustomItem implements ItemInterface
                 }
             }
             if (count($regexes) > 0) {
-                $validates[] = 'regex:/^['.implode("", $regexes).']*$/';
+                $validates[] = 'regex:/^['.implode("", $regexes).']*$/u';
             }
         }
         
