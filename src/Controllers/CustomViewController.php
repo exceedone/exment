@@ -187,6 +187,8 @@ class CustomViewController extends AdminControllerTableBase
         // get request
         $request = Request::capture();
         $copy_custom_view = CustomView::getEloquent($copy_id);
+        
+        // get view_kind_type
         if (!is_null($request->input('view_kind_type'))) {
             $view_kind_type = $request->input('view_kind_type');
         } elseif (!is_null($request->query('view_kind_type'))) {
@@ -196,11 +198,20 @@ class CustomViewController extends AdminControllerTableBase
         } else {
             $view_kind_type = ViewKindType::DEFAULT;
         }
+        
+        // get from_data
+        $from_data = false;
+        if (!is_null($request->input('from_data'))) {
+            $from_data = true;
+        } elseif (!is_null($request->query('from_data'))) {
+            $from_data = true;
+        }        
 
         $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         $form->hidden('view_kind_type')->default($view_kind_type);
+        $form->hidden('from_data')->default($from_data);
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
@@ -403,6 +414,8 @@ class CustomViewController extends AdminControllerTableBase
         
         $custom_table = $this->custom_table;
 
+        $form->ignore('from_data');
+
         // check filters and sorts count before save
         $form->saving(function (Form $form) {
             if (!is_null($form->custom_view_filters)) {
@@ -422,6 +435,14 @@ class CustomViewController extends AdminControllerTableBase
                     admin_toastr(exmtrans('custom_view.message.over_sorts_max'), 'error');
                     return back()->withInput();
                 }
+            }
+        });
+
+        $form->saved(function (Form $form) use($from_data, $custom_table) {
+            if(boolval($from_data)){
+                // get view suuid
+                $suuid = $form->model()->suuid;
+                return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
             }
         });
 

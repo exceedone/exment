@@ -54,13 +54,33 @@ class CustomTableController extends AdminControllerBase
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
             $actions->disableDelete();
-    
+
             // add new multiple columns
             $linker = (new Linker)
                 ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
                 ->icon('fa-exchange')
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
+                
+            $custom_table = $actions->row;
+
+            // add custom column
+            if ($custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
+                $linker = (new Linker)
+                ->url(admin_urls('column', $custom_table->table_name))
+                ->icon('fa-list')
+                ->tooltip(exmtrans('change_page_menu.custom_column'));
+                $actions->append($linker);
+            }
+
+            // add data
+            if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                $linker = (new Linker)
+                ->url($actions->row->getGridUrl())
+                ->icon('fa-database')
+                ->tooltip(exmtrans('change_page_menu.custom_value'));
+                $actions->append($linker);                
+            }
         });
 
         // filter table --------------------------------------------------
