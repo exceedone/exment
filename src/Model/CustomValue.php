@@ -517,7 +517,7 @@ class CustomValue extends ModelBase
         $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
         $label_columns = System::requestSession($key, function () use ($custom_table) {
             $table_label_format = $custom_table->getOption('table_label_format');
-            if (isset($table_label_format)) {
+            if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
                 return $table_label_format;
             }
             return $custom_table->table_labels;
