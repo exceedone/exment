@@ -134,6 +134,31 @@ trait InitializeFormTrait
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }
+
+        // check role user-or-org at least 1 data
+        if(System::permission_available()){
+            $roles = collect($request->all())->filter(function($value, $key){
+                if(strpos($key, "role_") !== 0){
+                    return false;
+                }
+
+                if(!collect($value)->filter(function($v){
+                    return isset($v);
+                })->first()){
+                    return false;
+                }
+
+                return true;
+            });
+
+            // if empty, return error
+            if(count($roles) == 0){
+                admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
+                return back()->withInput();
+            }
+        }
+
+
         $inputs = $request->all(System::get_system_keys('initialize'));
         array_forget($inputs, 'initialized');
         
