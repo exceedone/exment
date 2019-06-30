@@ -221,7 +221,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
             if (boolval(config('exment.expart_mode', false))) {
-                $manual_url = getManualUrl('column#'.exmtrans('custom_column.regex_validate'));
+                $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
                 $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
                     ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                     ->rules('regularExpression')

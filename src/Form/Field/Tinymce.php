@@ -12,6 +12,8 @@ class Tinymce extends Textarea
         '/vendor/exment/tinymce/tinymce.min.js',
     ];
 
+    protected $config = [];
+
     /**
      * Set config for tinymce.
      *
