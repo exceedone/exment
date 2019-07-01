@@ -116,13 +116,13 @@ trait InitializeFormTrait
         return $form;
     }
     
-    protected function postInitializeForm(Request $request, $validateUser = false)
+    protected function postInitializeForm(Request $request, $initialize = false)
     {
         $rules = [
             'site_name' => 'max:30',
             'site_name_short' => 'max:10',
         ];
-        if ($validateUser) {
+        if ($initialize) {
             $rules = array_merge($rules, [
                 'user_code' => 'required|max:32|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
                 'user_name' => 'required|max:32',
@@ -136,7 +136,7 @@ trait InitializeFormTrait
         }
 
         // check role user-or-org at least 1 data
-        if(System::permission_available()){
+        if(!$initialize && System::permission_available()){
             $roles = collect($request->all())->filter(function($value, $key){
                 if(strpos($key, "role_") !== 0){
                     return false;
