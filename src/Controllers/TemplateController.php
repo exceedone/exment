@@ -154,6 +154,7 @@ class TemplateController extends AdminControllerBase
 
         $fileOption = Define::FILE_OPTION();
         $form->image('thumbnail', exmtrans('template.thumbnail'))
+            ->removable()
             ->help(exmtrans('template.help.thumbnail'). exmtrans('common.separate_word') . array_get($fileOption, 'maxFileSizeHelp'))
             ->options($fileOption);
 

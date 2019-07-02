@@ -62,6 +62,14 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_USER_ORGANIZATION()
+    {
+        return [
+            ColumnType::USER,
+            ColumnType::ORGANIZATION,
+        ];
+    }
+
     public static function COLUMN_TYPE_SELECT_TABLE()
     {
         return [
@@ -123,6 +131,10 @@ class ColumnType extends EnumBase
         return in_array($column_type, static::COLUMN_TYPE_URL());
     }
     
+    public static function isUserOrganization($column_type)
+    {
+        return in_array($column_type, static::COLUMN_TYPE_USER_ORGANIZATION());
+    }
     public static function isSelectTable($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_SELECT_TABLE());

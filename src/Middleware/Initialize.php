@@ -55,10 +55,10 @@ class Initialize
     public static function initializeConfig($setDatabase = true)
     {
         //// set from env
-        if (!is_null($env = env('APP_LOCALE'))) {
+        if (!is_null($env = config('exment.locale', env('APP_LOCALE')))) {
             \App::setLocale($env);
         }
-        if (!is_null($env = env('APP_TIMEZONE'))) {
+        if (!is_null($env = config('exment.timezone', env('APP_TIMEZONE')))) {
             Config::set('app.timezone', $env);
             date_default_timezone_set($env);
         }

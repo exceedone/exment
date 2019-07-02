@@ -3369,6 +3369,10 @@
   }
 }
 
+.col-xs-0, .col-sm-0, .col-md-0, .col-lg-0 {
+  display: none;
+}
+
 .row::before, .row::after {
   width: 0;
 }

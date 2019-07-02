@@ -270,12 +270,8 @@ class DocumentExcelService
     public function getUniqueFileName()
     {
         if (!isset($this->uniqueFileName)) {
-            $this->uniqueFileName = $this->getFileName();
-            $filepath = path_join($this->getDirPath(), $this->uniqueFileName);
-            if (\File::exists(getFullpath($filepath, config('admin.upload.disk')))) {
-                $ext = DocumentType::getExtension($this->document_type);
-                $this->uniqueFileName = make_uuid().$ext;
-            }
+            $ext = DocumentType::getExtension($this->document_type);
+            $this->uniqueFileName = make_uuid().$ext;
         }
         return $this->uniqueFileName;
     }

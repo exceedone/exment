@@ -30,13 +30,14 @@ class Bootstrap
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }
-        Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
+
         Ad::css(asset('vendor/exment/fullcalendar/core/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/daygrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/list/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/timegrid/main.min.css?ver='.$ver));
-        Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
+        Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         //Ad::js(asset('vendor/exment/js/common.js'));
+        
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/main.min.js?ver='.$ver));
@@ -45,7 +46,8 @@ class Bootstrap
         Ad::js(asset('vendor/exment/fullcalendar/daygrid/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/list/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/timegrid/main.min.js?ver='.$ver));
-        
+        Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
+
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
         $prefix = config('admin.route.prefix') ?? '';
@@ -73,14 +75,7 @@ class Bootstrap
             'id': 'admin_uri',
             'value': '$admin_url'
         }));
-$("input[type='file']").on("filepredelete", function(jqXHR) {
-    var abort = true;
-    if (confirm("$delete_confirm")) {
-        abort = false;
-    }
-    return abort; // you can also send any data/object that you can receive on `filecustomerror` event
-});
-
+        
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
         // get url

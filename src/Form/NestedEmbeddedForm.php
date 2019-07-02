@@ -17,7 +17,26 @@ class NestedEmbeddedForm extends EmbeddedForm
      */
     protected function formatField(Field $field)
     {
-        $field = parent::formatField($field);
+        // copied from parent formatField
+
+        $jsonKey = $field->column();
+
+        $elementName = $errorKey = [];
+
+        if (is_array($jsonKey)) {
+            foreach ($jsonKey as $index => $name) {
+                $elementName[$index] = "{$this->column}[$name]";
+                $errorKey[$index] = "{$this->column}.$name";
+            }
+        } else {
+            $elementName = "{$this->column}[$jsonKey]";
+            $errorKey = "{$this->column}.$jsonKey";
+        }
+
+        $field->setElementName($elementName)
+            ->setErrorKey($errorKey);
+
+        // set class
         $column = $field->column();
 
         $elementClass = [];
@@ -34,8 +53,6 @@ class NestedEmbeddedForm extends EmbeddedForm
         }
 
         return $field
-            //->setErrorKey($errorKey)
-            //->setElementName($elementName)
             ->setElementClass($elementClass);
     }
 

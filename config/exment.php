@@ -1,6 +1,11 @@
 <?php
 
 return [
+
+    'locale' => env('APP_LOCALE', config('app.locale')),
+
+    'timezone' => env('APP_TIMEZONE', config('app.timezone')),
+
     /*
     |--------------------------------------------------------------------------
     | Use API
@@ -232,4 +237,14 @@ return [
     |
     */
     'mail_setting_env_force' => env('EXMENT_MAIL_SETTING_ENV_FORCE', false),
+  
+    /*
+    |--------------------------------------------------------------------------
+    | Expart mode
+    |--------------------------------------------------------------------------
+    |
+    | To use expart function.
+    |
+    */
+    'expart_mode' => env('EXMENT_EXPART_MODE', false),
 ];

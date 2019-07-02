@@ -92,6 +92,7 @@ class CustomValueController extends AdminControllerTableBase
                     break;
                 default:
                     $content->body($this->grid());
+                    $this->custom_table->saveGridParameter($request->path());
             }
         }
         return $content;
@@ -250,10 +251,10 @@ class CustomValueController extends AdminControllerTableBase
         $httpfile = $request->file('file_data');
         // file put(store)
         $filename = $httpfile->getClientOriginalName();
-        $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
+        // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
         // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
         $custom_value = $this->getModelNameDV()::find($id);
-        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename, $uniqueFileName, false)
+        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
             ->saveCustomValue($custom_value);
 
         // save document model

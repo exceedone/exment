@@ -53,6 +53,9 @@ class PatchDataCommand extends Command
             case 'use_label_flg':
                 $this->modifyUseLabelFlg();
                 return;
+            case 'alter_index_hyphen':
+                $this->reAlterIndexContainsHyphen();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -100,11 +103,13 @@ class PatchDataCommand extends Command
         foreach ($use_label_flg_columns as $use_label_flg_column) {
             $custom_table = $use_label_flg_column->custom_table;
 
-            $has = $custom_table->table_labels()
+            // check exists
+            $exists = $custom_table->table_labels()
                 ->where('multisetting_type', 2)
                 ->where('options->table_label_id', $use_label_flg_column->id)
                 ->first();
-            if(!isset($has)){
+
+            if (!isset($exists)) {
                 $custom_table->table_labels()->save(
                     new CustomColumnMulti([
                         'multisetting_type' => 2,
@@ -127,6 +132,27 @@ class PatchDataCommand extends Command
             $column->setOption('use_label_flg', null);
 
             $column->save();
+        }
+    }
+    
+    /**
+     * re-alter Index Contains Hyphen
+     *
+     * @return void
+     */
+    protected function reAlterIndexContainsHyphen()
+    {
+        // get index contains hyphen
+        $index_custom_columns = CustomColumn::indexEnabled()->where('column_name', 'LIKE', '%-%')->get();
+        
+        foreach ($index_custom_columns as  $index_custom_column) {
+            $db_table_name = getDBTableName($index_custom_column->custom_table);
+            $db_column_name = $index_custom_column->getIndexColumnName(false);
+            $index_name = "index_$db_column_name";
+            $column_name = $index_custom_column->column_name;
+
+            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
     }
 }

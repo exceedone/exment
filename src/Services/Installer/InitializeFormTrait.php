@@ -49,6 +49,7 @@ trait InitializeFormTrait
         $form->image('site_logo', exmtrans("system.site_logo"))
             ->help(exmtrans("system.help.site_logo"))
             ->options($fileOption)
+            ->removable()
             ->attribute(['accept' => "image/*"])
             ;
             
@@ -56,12 +57,14 @@ trait InitializeFormTrait
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
             ->help(exmtrans("system.help.site_logo_mini"))
             ->options($fileOption)
+            ->removable()
             ->attribute(['accept' => "image/*"])
             ;
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
         $form->image('site_favicon', exmtrans("system.site_favicon"))
             ->help(exmtrans("system.help.site_favicon"))
             ->options($fileOption)
+            ->removable()
             ->attribute(['accept' => ".ico"])
             ;
     
@@ -130,13 +133,13 @@ trait InitializeFormTrait
         return $form;
     }
     
-    protected function postInitializeForm(Request $request, $group = null, $validateUser = false)
+    protected function postInitializeForm(Request $request, $group = null, $initialize = false)
     {
         $rules = [
             'site_name' => 'max:30',
             'site_name_short' => 'max:10',
         ];
-        if ($validateUser) {
+        if ($initialize) {
             $rules = array_merge($rules, [
                 'user_code' => 'required|max:32|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
                 'user_name' => 'required|max:32',
@@ -148,6 +151,30 @@ trait InitializeFormTrait
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }
+        
+        // check role user-or-org at least 1 data
+        if(!$initialize && System::permission_available()){
+            $roles = collect($request->all())->filter(function($value, $key){
+                if(strpos($key, "role_") !== 0){
+                    return false;
+                }
+
+                if(!collect($value)->filter(function($v){
+                    return isset($v);
+                })->first()){
+                    return false;
+                }
+
+                return true;
+            });
+
+            // if empty, return error
+            if(count($roles) == 0){
+                admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
+                return back()->withInput();
+            }
+        }
+
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
         
@@ -194,11 +221,12 @@ trait InitializeFormTrait
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
             ->help(exmtrans('template.help.upload_template'))
+            ->removable()
             ->options(Define::FILE_OPTION());
-        $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
-            ->rules('mimes:xlsx|nullable')
-            ->help(exmtrans('template.help.upload_template_excel'))
-            ->options(Define::FILE_OPTION());
+        // $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
+        //     ->rules('mimes:xlsx|nullable')
+        //     ->help(exmtrans('template.help.upload_template_excel'))
+        //     ->options(Define::FILE_OPTION());
 
             
         // template search url
@@ -254,6 +282,20 @@ EOT;
             $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);
             TemplateImportExport\TemplateImporter::import($json);
         }
+    }
+    
+    /**
+     * file delete system.
+     */
+    public function filedelete(Request $request)
+    {
+        // get file delete flg column name
+        $del_column_name = $request->input('delete_flg');
+        System::deleteValue($del_column_name);
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
     }
     
     protected function guard()

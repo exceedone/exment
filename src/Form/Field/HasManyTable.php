@@ -123,6 +123,7 @@ class HasManyTable extends HasMany
 
         // set label viewclass hidden
         $field->setLabelClass(['hidden']);
+        $field->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
         $field->setWidth(12, 0);
 
         // get help text

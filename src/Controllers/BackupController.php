@@ -241,6 +241,7 @@ class BackupController extends AdminControllerBase
             ->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
             ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
             ->attribute(['accept' => ".zip"])
+            ->removable()
             ->options($fileOption)
             ->help(exmtrans('backup.help.file_name') . array_get($fileOption, 'maxFileSizeHelp'));
 

@@ -38,10 +38,17 @@ trait SummaryItemTrait
     {
         extract($this->getSummaryParams());
         
-        if (isset($group_condition)) {
-            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_column, true);
+        // get column_name. toggle whether is child or not
+        if ($is_child) {
+            $column_name = $this->sqlAsName();
         } else {
-            $raw = "$value_column";
+            $column_name = $value_column;
+        }
+
+        if (isset($group_condition)) {
+            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
+        } else {
+            $raw = $column_name;
         }
 
         return \DB::raw($raw);
@@ -54,6 +61,8 @@ trait SummaryItemTrait
 
         $group_condition = array_get($this->options, 'group_condition');
         $group_condition = isset($group_condition) ? GroupCondition::getEnum($group_condition) : null;
+        
+        $is_child = array_get($this->options, 'is_child');
 
         // get value_column
         $json_column = \DB::getQueryGrammar()->wrapJsonUnquote("$db_table_name.value->$column_name");
@@ -65,6 +74,7 @@ trait SummaryItemTrait
             'group_condition' => $group_condition,
             'json_column' => $json_column,
             'value_column' => $value_column,
+            'is_child' => $is_child,
         ];
     }
     

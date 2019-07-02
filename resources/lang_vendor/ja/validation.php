@@ -111,6 +111,9 @@ return [
         'old_password' => [
             'old_password' => '現在のパスワードが正しくありません。',
         ],
+        'options.regex_validate' => [
+            'regular_expression' => '正しい正規表現ではありません。',
+        ],
         'child_custom_table_id' => [
             'loop_relation' => 'すでに関連付けられているテーブルです。',
         ],

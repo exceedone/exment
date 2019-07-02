@@ -68,6 +68,14 @@ class ApiController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'));
         }
 
+        // if execute as selecting column_type
+        if ($request->has('custom_type')) {
+            // check user or organization
+            if (!ColumnType::isUserOrganization($request->get('q'))) {
+                return [];
+            }
+        }
+
         $table = $request->get('q');
         if (!isset($table)) {
             return [];

@@ -90,6 +90,11 @@ class ChartItem implements ItemInterface
         }
         $view_column_x = $this->getViewColumn($this->axis_x);
         $view_column_y = $this->getViewColumn($this->axis_y);
+
+        if (!isset($view_column_x) || !isset($view_column_y)) {
+            return exmtrans('dashboard.message.need_setting');
+        }
+
         $item_x = $view_column_x->column_item;
         $item_y = $view_column_y->column_item;
 
@@ -211,32 +216,34 @@ class ChartItem implements ItemInterface
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
-            ->options(function ($value) {
-                if (!isset($value)) {
+            ->options(function ($value, $model) {
+                $target_view_id = array_get($model->data(), 'target_view_id');
+                if (!isset($target_view_id)) {
                     return [];
                 }
-                $keys = explode("_", $value);
-                if ($keys[0] == ViewKindType::DEFAULT) {
-                    $view_column = CustomViewColumn::getEloquent($keys[1]);
-                } else {
-                    $view_column = CustomViewSummary::getEloquent($keys[1]);
+
+                $custom_view = CustomView::getEloquent($target_view_id);
+                if (!isset($custom_view)) {
+                    return [];
                 }
-                $options = $view_column->custom_view->getColumnsSelectOptions(false);
+
+                $options = $custom_view->getColumnsSelectOptions(false);
                 return array_column($options, 'text', 'id');
             });
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
             ->required()
-            ->options(function ($value) {
-                if (!isset($value)) {
+            ->options(function ($value, $model) {
+                $target_view_id = array_get($model->data(), 'target_view_id');
+                if (!isset($target_view_id)) {
                     return [];
                 }
-                $keys = explode("_", $value);
-                if ($keys[0] == ViewKindType::DEFAULT) {
-                    $view_column = CustomViewColumn::find($keys[1]);
-                } else {
-                    $view_column = CustomViewSummary::find($keys[1]);
+
+                $custom_view = CustomView::getEloquent($target_view_id);
+                if (!isset($custom_view)) {
+                    return [];
                 }
-                $options = $view_column->custom_view->getColumnsSelectOptions(true);
+
+                $options = $custom_view->getColumnsSelectOptions(true);
                 return array_column($options, 'text', 'id');
             });
         $form->checkbox('chart_axis_label', exmtrans("dashboard.dashboard_box_options.chart_axis_label"))

@@ -94,7 +94,7 @@ class SystemItem implements ItemInterface
         return getDBTableName($this->custom_table) .'.'. $sqlname;
     }
 
-    protected function sqlAsName()
+    public function sqlAsName()
     {
         return "column_".array_get($this->options, 'summary_index');
     }
