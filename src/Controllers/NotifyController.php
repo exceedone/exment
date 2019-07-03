@@ -4,9 +4,11 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Grid\Linker;
 //use Encore\Admin\Controllers\HasResourceActions;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
+use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
@@ -26,6 +28,21 @@ class NotifyController extends AdminControllerBase
     public function __construct(Request $request)
     {
         $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
+    }
+
+    
+    /**
+     * Create interface.
+     *
+     * @return Content
+     */
+    public function create(Request $request, Content $content)
+    {
+        if (!is_null($copy_id = $request->get('copy_id'))) {
+            return $this->AdminContent($content)->body($this->form(null, $copy_id)->replicate($copy_id, ['notify_view_name']));
+        }
+
+        return parent::create($request, $content);
     }
 
     /**
@@ -51,6 +68,12 @@ class NotifyController extends AdminControllerBase
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
+            
+            $linker = (new Linker)
+                ->url(admin_urls("notify/create?copy_id={$actions->row->id}"))
+                ->icon('fa-copy')
+                ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
+            $actions->prepend($linker);
         });
         return $grid;
     }

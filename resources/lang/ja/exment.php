@@ -43,6 +43,7 @@ return [
         'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
+        'copy_item' => 'この%sの複製',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
@@ -660,7 +661,6 @@ return [
         'view_column_target' => '対象列',
         'view_column_start_date' => '開始日',
         'view_column_end_date' => '終了日',
-        'copy_view' => 'このビューの複製',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
@@ -1015,6 +1015,7 @@ return [
     ],
 
     'notify' => [
+        'notify' => '通知',
         'header' => '通知設定',
         'header_trigger' => '通知条件設定',
         'header_action' => '通知アクション設定',
