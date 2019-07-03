@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
+use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
@@ -19,7 +20,49 @@ use Illuminate\Support\Facades\Request as Req;
  */
 class AuthController extends \Encore\Admin\Controllers\AuthController
 {
-    use AuthTrait;
+    use AuthTrait, ThrottlesLogins;
+
+    public function __construct(){
+        $this->maxAttempts = config("exment.max_attempts", 5);
+        $this->decayMinutes = config("exment.decay_minutes", 10);
+    }
+
+    /**
+     * Handle a login request.
+     *
+     * @param Request $request
+     *
+     * @return mixed
+     */
+    public function postLogin(Request $request)
+    {
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if ($this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
+        $this->loginValidator($request->all())->validate();
+
+        $credentials = $request->only([$this->username(), 'password']);
+        $remember = boolval($request->get('remember', false));
+
+        if ($this->guard()->attempt($credentials, $remember)) {
+            return $this->sendLoginResponse($request);
+        }
+
+        // If the login attempt was unsuccessful we will increment the number of attempts
+        // to login and redirect the user back to the login form. Of course, when this
+        // user surpasses their maximum number of attempts they will get locked out.
+        $this->incrementLoginAttempts($request);
+
+        return back()->withInput()->withErrors([
+            $this->username() => $this->getFailedLoginMessage(),
+        ]);
+    }
 
     /**
      * Login page.
