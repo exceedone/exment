@@ -84,14 +84,17 @@ trait CustomValueShow
                     }
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table) {
+                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table, $id) {
                         $custom_view = CustomView::getDefault($target_table);
                         $custom_view->setGrid($grid);
+                        $table_name = $target_table->table_name;
                         
                         $grid->disableFilter();
                         $grid->disableCreateButton();
                         $grid->disableExport();
-                        $grid->tools(function ($tools) {
+                        $grid->tools(function ($tools) use($table_name, $id) {
+                            $tools->append(view('exment::custom-value.new-button', 
+                                ['table_name' => $table_name, 'params' => ['select_parent' => $id]]));
                             $tools->batch(function ($batch) {
                                 $batch->disableDelete();
                             });
