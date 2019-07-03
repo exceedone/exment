@@ -22,7 +22,12 @@
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale : "{{ $locale }}",
-            plugins: [ 'dayGrid', 'interaction' ],
+            plugins: [ 'dayGrid', 'interaction', 'timeGrid' ],
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
             height: 'parent',
             fixedWeekCount: false,
             eventRender: function(info) {

@@ -17,7 +17,10 @@ abstract class PluginDocumentBase
     {
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
-        $this->custom_value = getModelName($custom_table)::find($custom_value_id);
+
+        if (isset($custom_table)) {
+            $this->custom_value = $custom_table->getValueModel($custom_value_id);
+        }
     }
 
     /**
@@ -41,9 +44,7 @@ abstract class PluginDocumentBase
         $service->makeExcel();
 
         // set path and file info
-        $path = $service->getFilePath();
-        $uniquefile = $service->getUniqueFileName();
-        $file = ExmentFile::saveFileInfo($path, null, $uniquefile, true)
+        $file = ExmentFile::saveFileInfo($service->getDirPath(), $service->getFileName(), $service->getUniqueFileName())
             ->saveCustomValue($this->custom_value);
 
         // save Document Model

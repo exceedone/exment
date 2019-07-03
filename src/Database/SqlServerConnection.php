@@ -10,6 +10,8 @@ use Illuminate\Database\SqlServerConnection as BaseConnection;
 
 class SqlServerConnection extends BaseConnection
 {
+    use ConnectionTrait;
+    
     /**
      * Get a schema builder instance for the connection.
      *

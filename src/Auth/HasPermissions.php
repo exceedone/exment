@@ -136,6 +136,12 @@ trait HasPermissions
             return false;
         }
 
+        if (is_string($item)) {
+            $item = [
+                'uri' => $item
+            ];
+        }
+
         // if organization and not use org setting, return false
         if (array_get($item, 'menu_type') == MenuType::TABLE
             && array_get($item, 'table_name') == SystemTableName::ORGANIZATION

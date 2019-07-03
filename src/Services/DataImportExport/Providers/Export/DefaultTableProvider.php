@@ -100,7 +100,7 @@ class DefaultTableProvider extends ProviderBase
      */
     protected function getRecords()
     {
-        $this->grid->model()->chunk(function ($data) use (&$records) {
+        $this->grid->getFilter()->chunk(function ($data) use (&$records) {
             if (!isset($records)) {
                 $records = new Collection;
             }
@@ -115,6 +115,10 @@ class DefaultTableProvider extends ProviderBase
      */
     protected function getBodies($records, $columnDefines)
     {
+        if (!isset($records)) {
+            return [];
+        }
+        
         $bodies = [];
 
         list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;

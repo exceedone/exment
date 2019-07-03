@@ -263,7 +263,8 @@
                 "color": null,
                 "one_record_flg": "0",
                 "attachment_flg": "0",
-                "comment_flg": "0"
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
@@ -312,7 +313,8 @@
                 "color": null,
                 "one_record_flg": "0",
                 "attachment_flg": "0",
-                "comment_flg": "0"
+                "comment_flg": "0",
+                "all_user_accessable_flg": "1"
             },
             "custom_columns": [
                 {
@@ -1126,6 +1128,15 @@
 					"dashboard_box_type": "system",
 					"options": {
 						"target_system_name": "guideline"
+					}
+				},
+				{
+					"row_no": "2",
+					"column_no": "2",
+					"dashboard_box_view_name": "Exment Newslist",
+					"dashboard_box_type": "system",
+					"options": {
+						"target_system_name": "news"
 					}
 				}
 			]

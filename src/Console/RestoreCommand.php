@@ -3,19 +3,18 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use \File;
 
 class RestoreCommand extends Command
 {
-    use CommandTrait;
+    use CommandTrait, BackupRestoreTrait;
 
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'exment:restore {file}';
+    protected $signature = 'exment:restore {file} {--tmp=}';
 
     /**
      * The console command description.
@@ -46,27 +45,23 @@ class RestoreCommand extends Command
         $file = $this->argument("file");
 
         // unzip backup file
-        $path = $this->unzipFile($file);
-
-        if (empty($path)) {
-            return -1;
-        }
+        $this->unzipFile($file);
 
         $result = 0;
 
         // restore table definition
-        $this->restoreDatabase($path);
+        $this->restoreDatabase();
 
         // import tsv file to table
-        $this->importTsv($path);
+        $this->importTsv();
 
         // copy directory to temporary folder
-        if (!$this->copyFiles($path)) {
+        if (!$this->copyFiles()) {
             $result = -1;
         }
 
         // delete temporary folder
-        $success = \File::deleteDirectory($path);
+        $success = \File::deleteDirectory($this->tmpDirFullPath());
 
         return $result;
     }
@@ -75,10 +70,10 @@ class RestoreCommand extends Command
      *
      * @param string unzip restore file path
      */
-    private function importTsv($path)
+    protected function importTsv()
     {
         // get tsv files in target folder
-        $files = array_filter(\File::files($path), function ($file) {
+        $files = array_filter(\File::files($this->tmpDirFullPath()), function ($file) {
             return preg_match('/.+\.tsv$/i', $file);
         });
 
@@ -108,15 +103,36 @@ __EOT__;
     }
 
     /**
+     * Drop unused "exm__" table
+     *
+     * @param [type] $files
+     * @return void
+     */
+    protected function dropUnusedTable($files)
+    {
+        return;
+        // $fileTables = collect($files)->map(function ($file) {
+        //     return $file->getBasename('.' . $file->getExtension());
+        // })->toArray();
+        // $exmTables = collect(\Schema::getTableListing())->filter(function ($table) use ($fileTables) {
+        //     return stripos($table, 'exm__') === 0 && !in_array($table, $fileTables);
+        // })->flatten()->all();
+
+        // foreach ($exmTables as $table) {
+        //     \Schema::dropIfExists($table);
+        // }
+    }
+
+    /**
      * copy folder from temp directory
      *
      * @return bool true:success/false:fail
      */
-    private function copyFiles($path)
+    protected function copyFiles()
     {
         $result = true;
 
-        $directories = \File::directories($path);
+        $directories = \File::directories($this->tmpDirFullPath());
 
         foreach ($directories as $directory) {
             $topath = base_path(mb_basename($directory));
@@ -130,50 +146,47 @@ __EOT__;
     }
     /**
      * unzip backup file to temporary folder path.
-     *
-     * @param string restore filename(no extension)
      */
-    private function unzipFile($file)
+    protected function unzipFile($file)
     {
-        // get backup folder full path
-        $backup = Storage::disk('backup')->getAdapter()->getPathPrefix();
-
         // get file
-        $targetfile = $file;
-        $pathinfo = pathinfo($file);
-        if (!array_has($pathinfo, 'extension') || $pathinfo['extension'] != 'zip') {
-            $targetfile .= '.zip';
-        }
-        if (empty($pathinfo['dirname']) || $pathinfo['dirname'] == '.') {
-            // get restore file path
-            $targetfile = path_join($backup, 'list', $targetfile);
-        }
+        $targetfile = array_get(pathinfo($file), 'filename');
         
-        // get temporary folder path
-        $tempdir = path_join($backup, 'tmp', pathinfo($targetfile, PATHINFO_FILENAME));
+        $this->initBackupRestore($targetfile);
+
+        // set to tmp zip file
+        static::tmpDisk()->put($this->zipName(), $this->getRestoreZip());
 
         // create temporary folder if not exists
-        if (!File::exists($tempdir)) {
-            File::makeDirectory($tempdir, 0755, true);
+        if (!static::tmpDisk()->exists($this->tmpDirName())) {
+            static::tmpDisk()->makeDirectory($this->tmpDirName(), 0755, true);
         }
 
         // open new zip file
         $zip = new \ZipArchive();
-        if ($zip->open($targetfile) === true) {
-            $zip->extractTo($tempdir);
+        if ($zip->open($this->zipFullPath()) === true) {
+            $zip->extractTo($this->tmpDirFullPath());
             $zip->close();
-            return $tempdir;
         }
 
-        return null;
+        static::tmpDisk()->delete($this->zipName());
+
+        return true;
     }
     /**
      * restore backup table definition and table data.
      *
      * @param string unzip folder path
      */
-    private function restoreDatabase($path)
+    protected function restoreDatabase()
     {
+        // get all table list about "pivot_"
+        collect(\Schema::getTableListing())->filter(function ($table) {
+            return stripos($table, 'pivot_') === 0;
+        })->each(function ($table) {
+            \Schema::dropIfExists($table);
+        });
+
         // get table connect info
         $host = config('database.connections.mysql.host', '');
         $username = config('database.connections.mysql.username', '');
@@ -193,7 +206,7 @@ __EOT__;
         );
 
         // restore table definition
-        $def = path_join($path, config('exment.backup_info.def_file'));
+        $def = path_join($this->tmpDirFullPath(), config('exment.backup_info.def_file'));
         if (\File::exists($def)) {
             $command = sprintf('%s < %s', $mysqlcmd, $def);
             exec($command);
@@ -201,7 +214,7 @@ __EOT__;
         }
 
         // get insert sql file for each tables
-        $files = array_filter(\File::files($path), function ($file) {
+        $files = array_filter(\File::files($this->tmpDirFullPath()), function ($file) {
             return preg_match('/.+\.sql$/i', $file);
         });
 
@@ -209,5 +222,21 @@ __EOT__;
             $command = sprintf('%s < %s', $mysqlcmd, $file->getRealPath());
             exec($command);
         }
+    }
+
+    /**
+     * get restore zip info.
+     * Change whether upload or not.
+     *
+     * @return mixed
+     */
+    protected function getRestoreZip()
+    {
+        // if get from tmp(upload file),
+        if (boolval($this->option("tmp"))) {
+            return static::tmpDisk()->get($this->zipName());
+        }
+
+        return static::disk()->get($this->listZipName());
     }
 }

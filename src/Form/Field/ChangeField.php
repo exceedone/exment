@@ -68,7 +68,7 @@ class ChangeField extends Field
         $field = $column_item->getFilterField($value_type);
 
         if (isset($field)) {
-            $field->setWidth(12, 0)->setLabelClass(['hidden']);
+            $field->setWidth(12, 0)->setLabelClass(['hidden'])->setElementClass(['w-100'])->attribute(['style' => 'max-width:999999px']);
             $field->value($this->value);
             $field->setElementName($this->elementName)
                 ->setErrorKey($this->getErrorKey())

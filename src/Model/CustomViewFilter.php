@@ -9,11 +9,40 @@ use Carbon\Carbon;
 
 class CustomViewFilter extends ModelBase
 {
-    protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_filter_condition_value'];
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
     use Traits\UseRequestSessionTrait;
+
+    protected $guarded = ['id'];
+    protected $appends = ['view_column_target', 'view_filter_condition_value'];
+
+    public static $templateItems = [
+        'excepts' => [
+            'import' => ['custom_table', 'view_column_table_id', 'view_column_target', 'custom_column'],
+            'export' => ['custom_table', 'view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'view_filter_condition_value_table_id', 'view_filter_condition_value_id'],
+        ],
+        'uniqueKeys' => [
+            'custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id', 'view_filter_condition'
+        ],
+        'parent' => 'custom_view_id',
+        'uniqueKeyReplaces' => [
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'view_column_table_name',
+                            'column_name' => 'view_column_target_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+            ],
+        ],
+        'enums' => [
+            'view_column_type' => ViewColumnType::class,
+            'view_filter_condition' => ViewColumnFilterOption::class,
+        ],
+    ];
 
     /**
      * get edited view_filter_condition_value_text.
@@ -46,34 +75,6 @@ class CustomViewFilter extends ModelBase
             $this->view_filter_condition_value_text = $view_filter_condition_value;
         }
     }
-
-    public static $templateItems = [
-        'excepts' => [
-            'import' => ['view_column_table_id', 'view_column_target', 'custom_column'],
-            'export' => ['view_column_table_id', 'view_column_target_id', 'custom_view_id', 'view_column_target', 'custom_column', 'view_filter_condition_value_table_id', 'view_filter_condition_value_id'],
-        ],
-        'uniqueKeys' => [
-            'custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id', 'view_filter_condition'
-        ],
-        'parent' => 'custom_view_id',
-        'uniqueKeyReplaces' => [
-            [
-                'replaceNames' => [
-                    [
-                        'replacedName' => [
-                            'table_name' => 'view_column_table_name',
-                            'column_name' => 'view_column_target_name',
-                        ]
-                    ]
-                ],
-                'uniqueKeyFunction' => 'getUniqueKeyValues',
-            ],
-        ],
-        'enums' => [
-            'view_column_type' => ViewColumnType::class,
-            'view_filter_condition' => ViewColumnFilterOption::class,
-        ],
-    ];
 
     /**
      * get eloquent using request settion.

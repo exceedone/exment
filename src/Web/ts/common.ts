@@ -51,7 +51,14 @@ namespace Exment {
                 var help = helps[i];
 
                 // if match first current uri and pathname, set help url
-                if(trimAny(pathname, '/').indexOf(trimAny(admin_base_path(help.uri), '/')) === 0){
+                let uri = trimAny(admin_base_path(help.uri), '/');
+                let isMatch = false;
+                if(!hasValue(uri)){
+                    isMatch = trimAny(pathname, '/') == uri;
+                }else{
+                    isMatch  = trimAny(pathname, '/').indexOf(uri) === 0;
+                }
+                if(isMatch){
                     // set new url
                     var help_url = URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
@@ -70,7 +77,7 @@ namespace Exment {
          * 
          */
         public static CallbackExmentAjax(res) {
-            if (res.result === true) {
+            if (res.result === true || res.status === true) {
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
                         // put your default event here
@@ -112,10 +119,15 @@ namespace Exment {
             options = $.extend(
                 {
                     title: 'Swal',
+                    text: null,
+                    type: "warning",
+                    input: null,
                     confirm: 'OK',
                     cancel: 'Cancel',
                     method: 'POST',
                     data: [],
+                    redirect: null,
+                    preConfirmValidate: null
                 },
                 options
             );
@@ -127,16 +139,30 @@ namespace Exment {
                 }, options.data
             );
 
-            swal({
+            if(options.method.toLowerCase == 'delete'){
+                data._method = 'delete';
+                options.method = 'POST';
+            }
+
+            var swalOptions = {
                 title: options.title,
-                type: "warning",
+                type: options.type,
                 showCancelButton: true,
                 confirmButtonColor: "#DD6B55",
                 confirmButtonText: options.confirm,
                 showLoaderOnConfirm: true,
                 allowOutsideClick: false,
                 cancelButtonText: options.cancel,
-                preConfirm: function () {
+                preConfirm: function (input) {
+                    $('.swal2-cancel').hide();
+                    
+                    if(hasValue(options.preConfirmValidate)){
+                        var result = options.preConfirmValidate(input);
+                        if(result !== true){
+                            return result;
+                        }
+                    }
+
                     return new Promise(function (resolve) {
                         $.ajax({
                             type: options.method,
@@ -144,18 +170,35 @@ namespace Exment {
                             //container: "#pjax-container",
                             data: data,
                             success: function (repsonse) {
+                                if(hasValue(options.redirect)){
+                                    repsonse.redirect = options.redirect;
+                                }
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
                                 resolve(repsonse);
                             },
                             error: function (repsonse) {
                                 Exment.CommonEvent.CallbackExmentAjax(repsonse);
-                                //toastr.error(repsonse.message);
-                                //reject(repsonse);
                             }
                         });
                     });
                 }
-            });
+            };
+            if(hasValue(options.input)){ swalOptions.input = options.input; }
+            if(hasValue(options.text)){ swalOptions.text = options.text; }
+
+            swal(swalOptions)
+                .then(function(result) {
+                    var data = result.value;
+                    if (typeof data === 'object' && hasValue(data.message)) {
+                        if (data.status === true || data.result === true) {
+                            swal(data.message, '', 'success');
+                        } else {
+                            swal(data.message, '', 'error');
+                        }
+                    } else if (typeof data === 'string') {
+                        swal(data, '', 'error');
+                    }
+                });
         }
 
         /**
@@ -171,11 +214,12 @@ namespace Exment {
                     return;
                 }
                 
-                //その要素の先祖要素で一番近いtrの
-                //data-href属性の値に書かれているURLに遷移する
                 var linkElem = $(ev.target).closest('tr').find('.fa-eye');
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                }
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-external-link');
                 }
                 if (!hasValue(linkElem)) {
                     return;
@@ -185,7 +229,7 @@ namespace Exment {
         }
 
         /**
-        * 日付の計算
+        * Calc Date
         */
         private static calcDate = () => {
             var $type = $('.subscription_claim_type');
@@ -369,7 +413,8 @@ namespace Exment {
                 // get element
                 var $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
                 if (!hasValue(modeldata)) {
-                    $elem.val('');
+                    await CommonEvent.setValue($elem, null);
+                    //$elem.val('');
                 } else {
                     // get element value from model
                     var from = modeldata['value'][option.from];
@@ -495,29 +540,36 @@ namespace Exment {
 
             // get expand data
             var expand = $base.data('linkage-expand');
+            
+            var linkage_text = $base.data('linkage-text');
             // execute linkage event
             for (var key in linkages) {
                 var link = linkages[key];
                 var $target = $parent.find(CommonEvent.getClassKey(key));
-                CommonEvent.linkage($target, link, $base.val(), expand);
+                CommonEvent.linkage($target, link, $base.val(), expand, linkage_text);
             }
         }
 
-        private static linkage($target: JQuery<Element>, url: string, val: any, expand?: any) {
+        private static linkage($target: JQuery<Element>, url: string, val: any, expand?: any, linkage_text?: string) {
             var $d = $.Deferred();
 
             // create querystring
             if (!hasValue(expand)) { expand = {}; }
+            if (!hasValue(linkage_text)) { linkage_text = 'text'; }
+
             expand['q'] = val;
             var query = $.param(expand);
             $.get(url + '?' + query, function (json) {
                 $target.find("option").remove();
+                var options = [];
+                options.push({id: '', text: ''});
+
+                $.each(json, function(index, d){
+                    options.push({id: hasValue(d.id) ? d.id : '', text: d[linkage_text]});
+                })
+
                 $target.select2({
-                    data: $.map(json, function (d) {
-                        d.id = hasValue(d.id) ? d.id : '';
-                        d.text = d.text;
-                        return d;
-                    }),
+                    data: options,
                     "allowClear": true,
                     "placeholder": $target.next().find('.select2-selection__placeholder').text(),
                 }).trigger('change');
@@ -809,7 +861,13 @@ namespace Exment {
         private static setValue($target, value) {
             if (!hasValue($target)) { return; }
             var column_type = $target.data('column_type');
-            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']);
+            
+            // if 'image' or 'file', cannot setValue, continue
+            if ($.inArray(column_type, ['file', 'image']) != -1) {
+                return;
+            }
+
+            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
             // if number, remove comma
             if (isNumber) {
                 value = rmcomma(value);
@@ -817,14 +875,18 @@ namespace Exment {
 
             // if integer, floor value
             if (column_type == 'integer') {
-                var bn = new BigNumber(value);
-                value = bn.integerValue().toPrecision();
+                if(hasValue(value)){
+                    var bn = new BigNumber(value);
+                    value = bn.integerValue().toPrecision();
+                }
             }
 
             // if 'decimal' or 'currency', floor 
-            if ($.inArray(column_type, ['decimal', 'currency']) && hasValue($target.attr('decimal_digit'))) {
-                var bn = new BigNumber(value);
-                value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
+            if ($.inArray(column_type, ['decimal', 'currency']) != -1 && hasValue($target.attr('decimal_digit'))) {
+                if(hasValue(value)){
+                    var bn = new BigNumber(value);
+                    value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
+                }
             }
 
             // if number format, add comma
@@ -832,8 +894,14 @@ namespace Exment {
                 value = comma(value);
             }
 
+            // switch bootstrapSwitch
+            if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
+                var $bootstrapSwitch = $target.filter('[type="checkbox"]');
+                $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
+            }
+            
             // set value
-            $target.val(value);
+            $target.val(value).trigger('change');
         }
 
         /**
@@ -956,6 +1024,9 @@ const hasValue = (obj): boolean => {
 //}
 
 const comma = (x) => {
+    if (x === null || x === undefined) {
+        return x;
+    }
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 const rmcomma = (x) => {
@@ -991,9 +1062,13 @@ const admin_base_path = function (path) {
     if (admin_base_uri.length > 0) {
         urls.push(admin_base_uri);
     }
-    urls.push(trimAny($('#admin_prefix').val(), '/'));
 
-    var prefix = '/' + urls.join('/');
+    var prefix = trimAny($('#admin_prefix').val(), '/');
+    if(hasValue(prefix)){
+        urls.push(prefix);
+    }
+
+    prefix = '/' + urls.join('/');
     prefix = (prefix == '/') ? '' : prefix;
     return prefix + '/' + trimAny(path, '/');
 }

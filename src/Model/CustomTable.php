@@ -12,6 +12,9 @@ use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Encore\Admin\Facades\Admin;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Input;
 
 getCustomTableTrait();
 
@@ -35,20 +38,23 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ],
         'children' =>[
             'custom_columns' => CustomColumn::class,
+            'custom_column_multisettings' => CustomColumnMulti::class,
         ],
-        'ignoreImportChildren' => ['custom_columns'],
+        'ignoreImportChildren' => ['custom_columns', 'custom_column_multisettings'],
     ];
 
     public function custom_columns()
     {
         return $this->hasMany(CustomColumn::class, 'custom_table_id');
     }
+
     public function custom_views()
     {
         return $this->hasMany(CustomView::class, 'custom_table_id')
             ->orderBy('view_type')
             ->orderBy('id');
     }
+ 
     public function custom_forms()
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
@@ -73,6 +79,28 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $this->hasMany(CustomFormBlock::class, 'form_block_target_table_id');
     }
 
+    public function custom_column_multisettings()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id');
+    }
+
+    public function multi_uniques()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', 1);
+    }
+
+    public function table_labels()
+    {
+        return $this->hasMany(CustomColumnMulti::class, 'custom_table_id')
+            ->where('multisetting_type', 2);
+    }
+
+    /**
+     * Get Columns where select_target_table's id is this table.
+     *
+     * @return void
+     */
     public function getSelectedItems()
     {
         return CustomColumn::where('options->select_target_table', $this->id)
@@ -95,6 +123,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $list;
     }
 
+    /**
+     * Get this table's select table's key-value collection.
+     * Key is column index name.
+     * Value is custom column.
+     * Filter is select_target_table
+     *
+     * @return Collection
+     */
     public function getSelectTableColumns()
     {
         return $this->custom_columns->filter(function ($item) {
@@ -105,6 +141,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
+    /**
+     * Get key-value items.
+     * Key is column index name.
+     * Value is select_target_table's table id.
+     *
+     * @return array
+     */
     public function getSelectedTables()
     {
         return CustomColumn::where('options->select_target_table', $this->id)
@@ -115,6 +158,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             })->filter()->toArray();
     }
 
+    /**
+     * Get key-value items.
+     * Key is column index name.
+     * Value is custom column.
+     *
+     * @return Collection
+     */
     public function getSelectedTableColumns()
     {
         return CustomColumn::where('options->select_target_table', $this->id)
@@ -123,6 +173,76 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $key = $item->getIndexColumnName();
                 return [$key => $item];
             })->filter();
+    }
+
+    /**
+     * get Select table's relation columns.
+     * If there are two or more select_tables in the same table and they are in a parent-child relationship, parent-child relationship information is acquired.
+     *
+     * @return array contains parent_column, child_column, searchType
+     */
+    public function getSelectTableRelationColumns()
+    {
+        $result = [];
+
+        $columns = $this->getSelectTableColumns();
+        
+        // re-loop for relation
+        foreach ($columns as $column) {
+            // get custom table
+            $custom_table = $column->select_target_table;
+            if (!isset($custom_table)) {
+                continue;
+            }
+
+            // if same table, continue
+            if ($this->id == $custom_table->id) {
+                continue;
+            }
+
+            // get children tables
+            $relations = $custom_table->getRelationTables();
+            // if not exists, continue
+            if (!$relations) {
+                continue;
+            }
+            foreach ($relations as $relation) {
+                $child_custom_table = array_get($relation, 'table');
+                collect($columns)->filter(function ($child_column) use ($child_custom_table) {
+                    return $child_column->select_target_table && $child_column->select_target_table->id == $child_custom_table->id;
+                })
+                ->each(function ($child_column) use ($column, $relation, &$result) {
+                    $result[] = [
+                        'parent_column' => $column,
+                        'child_column' => $child_column,
+                        'searchType' => array_get($relation, 'searchType'),
+                    ];
+                });
+            }
+        }
+
+        return $result;
+    }
+
+    public function getMultipleUniques($custom_column = null)
+    {
+        return CustomColumnMulti::allRecords(function ($val) use ($custom_column) {
+            if (array_get($val, 'custom_table_id') != $this->id) {
+                return false;
+            }
+
+            if (!isset($custom_column)) {
+                return true;
+            }
+
+            $targetid = CustomColumn::getEloquent($custom_column, $this)->id;
+            foreach ([1,2,3] as $key) {
+                if ($val->{'unique' . $key} == $targetid) {
+                    return true;
+                }
+            }
+            return false;
+        }, false);
     }
 
     public function getOption($key, $default = null)
@@ -225,6 +345,70 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * get filter and sort order from request.
+     * @param $options(query string).
+     * @param $addFilter.
+     */
+    public function getGridUrl($addFilter = false, $options = [])
+    {
+        $path = 'data/' . $this->table_name;
+
+        if ($addFilter) {
+            $view = array_get($options, 'view');
+
+            if (is_null($view)) {
+                $custom_view = CustomView::getDefault($this);
+                $view = $custom_view->suuid;
+            }
+
+            // get page settings
+            $settings = \Exment::user()->getSettingValue($path)?? '[]';
+            $settings = json_decode($settings, true);
+
+            // get view settings
+            $parameters = [];
+            if (isset($view) && array_key_exists($view, $settings)) {
+                $parameters = array_get($settings, $view);
+            }
+
+            // merge old and current settings
+            $parameters = array_merge($options, $parameters);
+        }
+
+        if (isset($parameters) && count($parameters) > 0) {
+            return admin_url($path).'?'.http_build_query($parameters);
+        } else {
+            return admin_url($path);
+        }
+    }
+
+    /**
+     * save filter and sort order.
+     * @param $path.
+     */
+    public function saveGridParameter($path)
+    {
+        $custom_view = CustomView::getDefault($this);
+
+        if (is_null($custom_view)) {
+            return;
+        }
+
+        $path = admin_exclusion_path($path);
+
+        $view = $custom_view->suuid;
+
+        $inputs = Arr::except(Input::all(), ['view', '_pjax', '_token', '_method', '_previous_']);
+
+        $parameters = \Exment::user()->getSettingValue($path)?? '[]';
+        $parameters = json_decode($parameters, true);
+
+        $parameters[$view] = $inputs;
+
+        Admin::user()->setSettingValue($path, json_encode($parameters));
+    }
+
+    /**
      * get custom table eloquent.
      * @param mixed $obj id, table_name, CustomTable object, CustomValue object.
      */
@@ -282,7 +466,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         $options = array_merge(
             [
-                'getModel' => true
+                'getModel' => true,
+                'permissions' => Permission::CUSTOM_TABLE,
+                'with' => null,
             ],
             $options
         );
@@ -294,12 +480,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if not exists, filter model using permission
         if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = \Exment::user()->allHasPermissionTables(Permission::CUSTOM_TABLE);
+            $permission_tables = \Exment::user()->allHasPermissionTables($options['permissions']);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });
             // filter id;
             $model = $model->whereIn('id', $permission_table_ids);
+        }
+
+        if (isset($options['with'])) {
+            $with = is_array($options['with']) ? $options['with'] : [$options['with']];
+            $model->with($with);
         }
 
         if ($options['getModel']) {
@@ -378,60 +569,50 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         );
         extract($options);
 
-        // if selected target column,
-        $searchColumns = $options['searchColumns'];
-        if (is_null($searchColumns)) {
-            $searchColumns = $this->getSearchEnabledColumns()->map(function ($c) {
-                return $c->getIndexColumnName();
-            });
-        }
-
-        if (!isset($searchColumns) || count($searchColumns) == 0) {
-            return collect([]);
-        }
-        
         $data = [];
 
-        if (boolval(config('exment.filter_search_full', false))) {
-            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        } else {
-            $value = $q . ($isLike ? '%' : '');
-        }
-        $mark = ($isLike ? 'LIKE' : '=');
+        $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
-        $takeCount = config('exment.keyword_search_count', 1000);
-        $relationTakeCount = config('exment.keyword_search_relation_count', 5000);
+        // if (boolval(config('exment.filter_search_full', false))) {
+        //     $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        // } else {
+        //     $value = $q . ($isLike ? '%' : '');
+        // }
+        // $mark = ($isLike ? 'LIKE' : '=');
 
-        // crate union query
-        $queries = [];
-        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-            $searchColumn = $searchColumns[$i];
-            $query = getModelName($this)::query();
-            $query->where($searchColumn, $mark, $value)->select('id');
-            if (!boolval($options['relation'])) {
-                $query->take($takeCount);
-            } else {
-                $query->take($relationTakeCount);
-            }
+        // if ($relation) {
+        //     $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
+        // } else {
+        //     $takeCount = intval(config('exment.keyword_search_count', 1000));
+        // }
 
-            $queries[] = $query;
-        }
+        // // if not paginate, only take maxCount
+        // if (!$paginate) {
+        //     $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        // }
 
-        $searchColumn = $searchColumns->last();
-        $subquery = getModelName($this)::query();
-        $subquery->where($searchColumn, $mark, $value)->select('id');
-        if (!boolval($options['relation'])) {
-            $subquery->take($takeCount);
-        } else {
-            $subquery->take($relationTakeCount);
-        }
+        // // crate union query
+        // $queries = [];
+        // for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+        //     $searchColumn = $searchColumns[$i];
+        //     $query = getModelName($this)::query();
+        //     $query->where($searchColumn, $mark, $value)->select('id');
+        //     $query->take($takeCount);
 
-        foreach ($queries as $inq) {
-            $subquery->union($inq);
-        }
+        //     $queries[] = $query;
+        // }
 
-        // create main query
-        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        // $searchColumn = $searchColumns->last();
+        // $subquery = getModelName($this)::query();
+        // $subquery->where($searchColumn, $mark, $value)->select('id');
+        // $subquery->take($takeCount);
+
+        // foreach ($queries as $inq) {
+        //     $subquery->union($inq);
+        // }
+
+        // // create main query
+        // $mainQuery =  \DB::query()->fromSub($subquery, 'sub');
 
         // return as paginate
         if ($paginate) {
@@ -460,6 +641,85 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             ::whereIn('id', $ids)
             ->take($maxCount)
             ->get();
+    }
+
+    /**
+     * search relation value
+     */
+    public function searchRelationValue($search_type, $parent_value_id, $child_table, &$options = [])
+    {
+        $options = array_merge(
+            [
+                'paginate' => false,
+                'maxCount' => 5,
+            ],
+            $options
+        );
+        extract($options);
+        
+        $child_table = static::getEloquent($child_table);
+
+        switch ($search_type) {
+            // self table
+            case SearchType::SELF:
+                // set query info
+                $options['listQuery'] = [
+                    'id' => $parent_value_id,
+                ];
+                
+                return [$this->getValueModel($parent_value_id)];
+            // select_table(select box)
+            case SearchType::SELECT_TABLE:
+                // get columns for relation child to parent
+                $searchColumns = $child_table->custom_columns()
+                    ->where('column_type', ColumnType::SELECT_TABLE)
+                    ->whereIn('options->select_target_table', [strval($this->id), intval($this->id)])
+                    ->indexEnabled()
+                    ->get()
+                    ->map(function ($c) {
+                        return $c->getIndexColumnName();
+                    });
+
+                // set query info
+                if (isset($searchColumns)) {
+                    $options['listQuery'] = [
+                        $searchColumns->first() => $parent_value_id,
+                    ];
+                }
+
+                return $child_table->searchValue($parent_value_id, [
+                    'isLike' => false,
+                    'paginate' => $paginate,
+                    'relation' => true,
+                    'searchColumns' => $searchColumns,
+                    'maxCount' => $maxCount,
+                ]);
+            
+            // one_to_many
+            case SearchType::ONE_TO_MANY:
+                $query = $child_table->getValueModel()
+                    ->where('parent_id', $parent_value_id)
+                    ->where('parent_type', $this->table_name);
+
+                // set query info
+                $options['listQuery'] = [
+                    'parent_id' => $parent_value_id,
+                ];
+
+                return $paginate ? $query->paginate($maxCount) : $query->get();
+            // many_to_many
+            case SearchType::MANY_TO_MANY:
+                $relation_name = CustomRelation::getRelationNameByTables($this, $child_table);
+                // get search_table value
+                // where: parent_id is value_id
+                $query = $child_table->getValueModel()
+                    ::join($relation_name, "$relation_name.child_id", getDBTableName($child_table).".id")
+                    ->where("$relation_name.parent_id", $parent_value_id);
+                    
+                return $paginate ? $query->paginate($maxCount) : $query->get();
+        }
+
+        return null;
     }
 
     /**
@@ -548,13 +808,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false)
+    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false, $filterCallback = null)
     {
         if (is_null($display_table)) {
             $display_table = $this;
         }
         $table_name = $this->table_name;
         $display_table = CustomTable::getEloquent($display_table);
+
         // check table permission. if not exists, show admin_warning
         if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
             if ($showMessage_ifDeny) {
@@ -575,6 +836,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
             $query = $this->getOptionsQuery();
+        }
+
+        if (isset($filterCallback)) {
+            $query = $filterCallback($query);
         }
 
         // when count > 100, create option only value.
@@ -642,8 +907,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param boolean $include_child
      * @param boolean $include_workflow
      */
-    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, 
-        $include_parent = false, $include_child = false, $include_workflow = false)
+    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true, $include_workflow = false)
     {
         $options = [];
         
@@ -657,7 +921,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options,
             $this->custom_columns,
             $index_enabled_only,
-            true,
+            $include_system,
             true,
             $append_table,
             $this->id
@@ -674,7 +938,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $options,
                     $parent->custom_columns,
                     $index_enabled_only,
-                    true,
+                    $include_system,
                     true,
                     $append_table,
                     $parent_id,
@@ -690,7 +954,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                     $options,
                     $custom_table->custom_columns,
                     $index_enabled_only,
-                    true,
+                    $include_system,
                     true,
                     $append_table,
                     $custom_table->id,
@@ -771,7 +1035,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         foreach ($custom_columns as $custom_column) {
             // if $index_enabled_only = true and options.index_enabled_only is false, continue
-            if ($index_enabled_only && !$custom_column->indexEnabled()) {
+            if ($index_enabled_only && !$custom_column->index_enabled) {
                 continue;
             }
             $key = $this->getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id);
@@ -878,7 +1142,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ///// get table columns
         $custom_columns = $this->custom_columns;
         foreach ($custom_columns as $option) {
-            if (!$option->indexEnabled()) {
+            if (!$option->index_enabled) {
                 continue;
             }
             $column_type = array_get($option, 'column_type');

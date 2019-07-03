@@ -62,8 +62,18 @@ class CustomTableAction implements ActionInterface
             }
         }
         
+        $providers[] = new Export\DefaultTableSettingProvider(
+            [
+                'custom_table' => $this->custom_table,
+            ]
+        );
+
         $datalist = [];
         foreach ($providers as $provider) {
+            if (!$provider->isOutput()) {
+                continue;
+            }
+
             $datalist[] = ['name' => $provider->name(), 'outputs' => $provider->data()];
         }
 

@@ -108,14 +108,15 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
 
         // get custom_table_id
         $custom_table_id = $parameters[0];
+        $relation_id = count($parameters) >= 2 ? $parameters[1] : null;
 
         // check lower relation;
-        if (!$this->HasRelation('parent_custom_table_id', 'child_custom_table_id', $custom_table_id, $value)) {
+        if (!$this->HasRelation('parent_custom_table_id', 'child_custom_table_id', $custom_table_id, $value, $relation_id)) {
             return false;
         }
 
         // check upper relation;
-        if (!$this->HasRelation('child_custom_table_id', 'parent_custom_table_id', $custom_table_id, $value)) {
+        if (!$this->HasRelation('child_custom_table_id', 'parent_custom_table_id', $custom_table_id, $value, $relation_id)) {
             return false;
         }
 
@@ -125,11 +126,14 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     /**
      * check if exists custom relation.
      */
-    protected function HasRelation($attr1, $attr2, $custom_table_id, $value)
+    protected function HasRelation($attr1, $attr2, $custom_table_id, $value, $relation_id = null)
     {
         // get count reverse relation in table;
-        $rows = CustomRelation::where($attr1, $custom_table_id)
-            ->get();
+        $query = CustomRelation::where($attr1, $custom_table_id);
+        if (isset($relation_id)) {
+            $query = $query->where('id', '<>', $relation_id);
+        }
+        $rows = $query->get();
 
         foreach ($rows as $row) {
             $id = array_get($row, $attr2);
@@ -304,5 +308,31 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
             }
         }
         return $message;
+    }
+
+    /**
+    * Validation regular expression
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validateRegularExpression($attribute, $value, $parameters)
+    {
+        set_error_handler(
+            function ($severity, $message) {
+                throw new \RuntimeException($message);
+            }
+        );
+        try {
+            preg_match("/$value/", '');
+        } catch (\RuntimeException $e) {
+            return false;
+        } finally {
+            restore_error_handler();
+        }
+    
+        return true;
     }
 }

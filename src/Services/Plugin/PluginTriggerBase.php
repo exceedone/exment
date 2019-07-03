@@ -21,7 +21,10 @@ class PluginTriggerBase
     {
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
-        $this->custom_value = getModelName($custom_table)::find($custom_value_id);
+        
+        if (isset($custom_table)) {
+            $this->custom_value = $custom_table->getValueModel($custom_value_id);
+        }
     }
 
     public function execute()

@@ -376,6 +376,11 @@
 					"row_no": "2",
 					"column_no": "1",
 					"dashboard_box_view_name": "ガイドライン"
+				},
+				{
+					"row_no": "2",
+					"column_no": "2",
+					"dashboard_box_view_name": "Exment新着情報一覧"
 				}
 			]
 		}

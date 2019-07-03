@@ -26,6 +26,13 @@ class Permission
      * @var array
      */
     protected $permission_details;
+
+    /**
+     * $shouldPass custom
+     * @var \Closure[]
+     */
+    protected static $bootingShouldPasses = [];
+
     /**
      * Create a new Eloquent model instance.
      *
@@ -54,6 +61,28 @@ class Permission
     }
 
     /**
+     * @param callable $callback
+     */
+    public static function bootingShouldPass(callable $callback)
+    {
+        static::$bootingShouldPasses[] = $callback;
+    }
+
+    /**
+     * Call the booting ShouldPasses for the exment application.
+     */
+    protected function fireShouldPasses($endpoint)
+    {
+        foreach (static::$bootingShouldPasses as $callable) {
+            $result = call_user_func($callable, $endpoint);
+
+            if ($result === true || $result === false) {
+                return $result;
+            }
+        }
+    }
+
+    /**
      * If request should pass through the current permission.
      *
      * @param Request $request
@@ -77,6 +106,12 @@ class Permission
      */
     public function shouldPass($endpoint) : bool
     {
+        // checking booting function
+        $result = $this->fireShouldPasses($endpoint);
+        if ($result === true || $result === false) {
+            return $result;
+        }
+
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -147,33 +182,19 @@ class Permission
                 return array_key_exists('custom_form', $this->permission_details);
             case "view":
                 if ($systemRole) {
-                    return array_keys_exists([PermissionEnum::CUSTOM_VIEW], $this->permission_details);
+                    return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
                 }
                 // check endpoint name and checking table_name.
                 if (!$this->matchEndPointTable(null)) {
                     return false;
                 }
-                return array_keys_exists([PermissionEnum::CUSTOM_VIEW], $this->permission_details);
-            case "data":
-                if ($systemRole) {
-                    return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
-                }
-                // check endpoint name and checking table_name.
-                if (!$this->matchEndPointTable($endpoint)) {
-                    return false;
-                }
                 return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
+            case "data":
+                return $this->validateCustomValuePermission($systemRole, $endpoint);
         }
         // if find endpoint "data/", check as data
         if (strpos($endpoint, 'data/') !== false) {
-            if ($systemRole) {
-                return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
-            }
-            // check endpoint name and checking table_name.
-            if (!$this->matchEndPointTable(preg_replace('/^data\//', '', $endpoint))) {
-                return false;
-            }
-            return array_keys_exists(PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE, $this->permission_details);
+            return $this->validateCustomValuePermission($systemRole, preg_replace('/^data\//', '', $endpoint));
         }
 
         return false;
@@ -225,5 +246,29 @@ class Permission
         }
         // check endpoint name and checking table_name.
         return $this->table_name == $table->table_name;
+    }
+
+    /**
+     * Check custom value's permission
+     *
+     * @return void
+     */
+    protected function validateCustomValuePermission($systemRole, $endpoint)
+    {
+        // if request has id, permission contains CUSTOM_VALUE_ACCESS
+        if (!is_null($id = request()->id)) {
+            $permissions = PermissionEnum::AVAILABLE_ACCESS_CUSTOM_VALUE;
+        } else {
+            $permissions = PermissionEnum::AVAILABLE_VIEW_CUSTOM_VALUE;
+        }
+
+        if ($systemRole) {
+            return array_keys_exists($permissions, $this->permission_details);
+        }
+        // check endpoint name and checking table_name.
+        if (!$this->matchEndPointTable($endpoint)) {
+            return false;
+        }
+        return array_keys_exists($permissions, $this->permission_details);
     }
 }

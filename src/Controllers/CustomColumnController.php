@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -98,6 +99,15 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('column_type', exmtrans("custom_column.column_type"))->sortable()->display(function ($val) {
             return esc_html(array_get(ColumnType::transArray("custom_column.column_type_options"), $val));
         });
+        $grid->column('required', exmtrans("common.reqired"))->sortable()->display(function ($val) {
+            return getTrueMark($val);
+        });
+        $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->sortable()->display(function ($val) {
+            return getTrueMark($val);
+        });
+        $grid->column('unique', exmtrans("custom_column.options.unique"))->sortable()->display(function ($val) {
+            return getTrueMark($val);
+        });
         $grid->column('order', exmtrans("custom_column.order"))->editable('number')->sortable();
 
         if (isset($this->custom_table)) {
@@ -140,9 +150,11 @@ class CustomColumnController extends AdminControllerTableBase
     {
         $form = new Form(new CustomColumn);
         // set script
-        //TODO: call using pjax
-        $date = \Carbon\Carbon::now()->format('YmdHis');
-        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$date).'"></script>');
+        $ver = getExmentCurrentVersion();
+        if (!isset($ver)) {
+            $ver = date('YmdHis');
+        }
+        $form->html('<script src="'.asset('vendor/exment/js/customcolumn.js?ver='.$ver).'"></script>');
 
         $form->hidden('custom_table_id')->default($this->custom_table->id);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table"))->default($this->custom_table->table_view_name);
@@ -163,7 +175,13 @@ class CustomColumnController extends AdminControllerTableBase
             ->help(exmtrans('common.help.view_name'));
         $form->select('column_type', exmtrans("custom_column.column_type"))
         ->options(ColumnType::transArray("custom_column.column_type_options"))
-        ->attribute(['data-filtertrigger' =>true])
+        ->attribute(['data-filtertrigger' =>true,
+            'data-linkage' => json_encode([
+                'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
+            ]),
+            'data-linkage-expand' => json_encode(['custom_type' => true]),
+            'data-linkage-text' => 'column_view_name'
+        ])
         ->required();
 
         if (!isset($id)) {
@@ -181,14 +199,7 @@ class CustomColumnController extends AdminControllerTableBase
             $form->text('default', exmtrans("custom_column.options.default"));
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
-            $form->number('use_label_flg', exmtrans("custom_column.options.use_label_flg"))
-                ->help(exmtrans("custom_column.help.use_label_flg"))
-                ->min(0)
-                ->max(5)
-                ->default(0)
-                ->help(sprintf(exmtrans("custom_column.help.use_label_flg"), getManualUrl('column?id='.exmtrans('custom_column.options.use_label_flg'))))
-                ;
-
+            
             // setting for each settings of column_type. --------------------------------------------------
 
             // text
@@ -209,7 +220,14 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
-                    
+            if (boolval(config('exment.expart_mode', false))) {
+                $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
+                $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
+                    ->rules('regularExpression')
+                    ->help(sprintf(exmtrans("custom_column.help.regex_validate"), $manual_url));
+            }
+
             // number
             //if(in_array($column_type, [ColumnType::INTEGER,ColumnType::DECIMAL])){
             $form->number('number_min', exmtrans("custom_column.options.number_min"))
@@ -252,6 +270,16 @@ class CustomColumnController extends AdminControllerTableBase
                 });
             //}
 
+            // date, time, datetime
+            $form->switchbool('datetime_now_saving', exmtrans("custom_column.options.datetime_now_saving"))
+                ->help(exmtrans("custom_column.help.datetime_now_saving"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
+            $form->switchbool('datetime_now_creating', exmtrans("custom_column.options.datetime_now_creating"))
+                ->help(exmtrans("custom_column.help.datetime_now_creating"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_DATETIME()])]);
+
             // select
             // define select-item
             $form->textarea('select_item', exmtrans("custom_column.options.select_item"))
@@ -269,10 +297,43 @@ class CustomColumnController extends AdminControllerTableBase
                     ->help(exmtrans("custom_column.help.select_target_table"))
                     ->required()
                     ->options(function ($select_table) {
-                        $options = CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
+                        $options = CustomTable::filterList()->whereNotIn('table_name', [SystemTableName::USER, SystemTableName::ORGANIZATION])->pluck('table_view_name', 'id')->toArray();
                         return $options;
                     })
-                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE])]);
+                    ->attribute([
+                        'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
+                        'data-linkage' => json_encode([
+                            'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
+                        ]),
+                        'data-linkage-text' => 'column_view_name'
+                    ]);
+                
+            $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
+            $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
+                ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
+                ->options(function ($select_table, $form) use ($id) {
+                    $data = $form->data();
+                    if (!isset($data)) {
+                        return [];
+                    }
+
+                    // whether column_type is user or org
+                    if (!is_null(old('column_type'))) {
+                        $model = CustomColumn::getEloquent(old('column_type'), $this->custom_table);
+                    } elseif (isset($id) || old('column_type')) {
+                        $model = CustomColumn::getEloquent($id);
+                    }
+                    if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
+                        return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
+                    }
+
+                    // select_table
+                    if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
+                        return [];
+                    }
+                    return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
+                })
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION]])]);
 
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
@@ -413,7 +474,8 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_MULTIPLE_ENABLED()])]);
         })->disableHeader();
 
-        $form->number('order', exmtrans("custom_column.order"))->rules("integer");
+        $form->number('order', exmtrans("custom_column.order"))->rules("integer")
+        ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_column')));
 
         // if create column, add custom form and view
         if (!isset($id)) {
@@ -479,9 +541,9 @@ class CustomColumnController extends AdminControllerTableBase
             $view = CustomView::getDefault($this->custom_table, false);
             
             // get order
-            if($view->custom_view_columns()->count() == 0){
-                $order = 1;    
-            }else{
+            if ($view->custom_view_columns()->count() == 0) {
+                $order = 1;
+            } else {
                 $order = $view->custom_view_columns()
                     ->where('view_column_type', ViewColumnType::COLUMN)
                     ->max('order') ?? 1;

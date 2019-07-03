@@ -196,11 +196,13 @@ class DataImportExportService extends AbstractExporter
         $form->modalAttribute('id', 'data_import_modal');
         $form->modalHeader(exmtrans('common.import') . ' - ' . $this->importAction->getImportHeaderViewName());
 
+        $fileOption = Define::FILE_OPTION();
         $form->action(admin_urls($this->importAction->getImportEndpoint(), 'import'))
             ->file('custom_table_file', exmtrans('custom_value.import.import_file'))
             ->rules('mimes:csv,xlsx')->setWidth(8, 3)->addElementClass('custom_table_file')
-            ->options(Define::FILE_OPTION())
-            ->help(exmtrans('custom_value.import.help.custom_table_file'));
+            ->options($fileOption)
+            ->removable()
+            ->help(exmtrans('custom_value.import.help.custom_table_file') . array_get($fileOption, 'maxFileSizeHelp'));
         
         // get import primary key list
         $form->select('select_primary_key', exmtrans('custom_value.import.primary_key'))

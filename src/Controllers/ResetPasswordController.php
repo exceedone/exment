@@ -104,7 +104,9 @@ class ResetPasswordController extends Controller
      */
     protected function resetPassword(LoginUser $user, $password)
     {
-        $user->password = Hash::make($password);
+        // password sets at LoginUser Model
+        $user->password = $password;
+        //$user->password = Hash::make($password);
 
         //$user->setRememberToken(Str::random(60));
 

@@ -23,7 +23,7 @@ class Exment
 
     public static function error($request, $exception, $callback)
     {
-        if(isApiEndpoint()){
+        if (isApiEndpoint()) {
             return $callback($request, $exception);
         }
         

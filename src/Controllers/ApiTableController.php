@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
@@ -184,12 +185,13 @@ class ApiTableController extends AdminControllerTableBase
         $q = $request->get('q');
 
         // get children items
-        $datalist = getModelName($child_table)
-            ::where('parent_id', $q)
-            ->where('parent_type', $this->custom_table->table_name)
-            ->get()->pluck('label', 'id');
-        return collect($datalist)->map(function ($value, $key) {
-            return ['id' => $key, 'text' => $value];
+        $options = [
+            'paginate' => false,
+            'maxCount' => null,
+        ];
+        $datalist = $this->custom_table->searchRelationValue($request->get('search_type'), $q, $child_table, $options);
+        return collect($datalist)->map(function ($data) {
+            return ['id' => $data->id, 'text' => $data->label];
         });
     }
 
@@ -245,7 +247,7 @@ class ApiTableController extends AdminControllerTableBase
                     continue;
                 }
 
-                if (!$findCustomColumn->indexEnabled()) {
+                if (!$findCustomColumn->index_enabled) {
                     //TODO:show error
                     continue;
                 }
@@ -331,7 +333,8 @@ class ApiTableController extends AdminControllerTableBase
      * @param [type] $validator
      * @return array error messages
      */
-    protected function getErrorMessages($validator){
+    protected function getErrorMessages($validator)
+    {
         $errors = [];
         foreach ($validator->errors()->messages() as $key => $message) {
             if (is_array($message)) {
@@ -374,6 +377,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // filtered query
+        $custom_view = CustomView::getDefault($this->custom_table);
         $start = $request->get('start');
         $end = $request->get('end');
         if (!isset($start) || !isset($end)) {
@@ -387,10 +391,10 @@ class ApiTableController extends AdminControllerTableBase
         // get paginate
         $model = $this->custom_table->getValueModel();
         // filter model
-        $model = \Exment::user()->filterModel($model, $table_name, $this->custom_view);
+        $model = \Exment::user()->filterModel($model, $table_name, $custom_view);
 
         $tasks = [];
-        foreach ($this->custom_view->custom_view_columns as $custom_view_column) {
+        foreach ($custom_view->custom_view_columns as $custom_view_column) {
             if ($custom_view_column->view_column_type == ViewColumnType::COLUMN) {
                 $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
             } else {
@@ -405,7 +409,7 @@ class ApiTableController extends AdminControllerTableBase
                 } else {
                     $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
                 }
-            }else{
+            } else {
                 $target_end_column = null;
             }
 

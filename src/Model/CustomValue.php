@@ -35,6 +35,12 @@ class CustomValue extends ModelBase
      */
     protected $saved_notify = true;
     
+    /**
+     * already_updated.
+     * if true, not call saved event again.
+     */
+    protected $already_updated = false;
+    
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -178,6 +184,9 @@ class CustomValue extends ModelBase
         });
         
         static::deleting(function ($model) {
+            static::setUser($model, ['deleted_user_id']);
+            $model->save();
+            
             $model->deleteRelationValues();
         });
 
@@ -189,6 +198,63 @@ class CustomValue extends ModelBase
         static::addGlobalScope(new CustomValueModelScope);
     }
 
+    /**
+     * Validator before saving.
+     * Almost multiple columns validation
+     *
+     * @param array $input laravel-admin input
+     * @return mixed
+     */
+    public function validatorSaving($input)
+    {
+        $errors = [];
+        // getting custom_table's custom_column_multi_uniques
+        $multi_uniques = $this->custom_table->getMultipleUniques();
+        if (!isset($multi_uniques) || count($multi_uniques) == 0) {
+            return true;
+        }
+        foreach ($multi_uniques as $multi_unique) {
+            $query = static::query();
+            $column_keys = [];
+            foreach ([1,2,3] as $key) {
+                if (is_null($column_id = $multi_unique->{'unique' . $key})) {
+                    continue;
+                }
+                $column = CustomColumn::getEloquent($column_id);
+                $column_name = $column->column_name;
+                $query->where('value->' . $column_name, array_get($input, 'value.' . $column_name));
+
+                $column_keys[] = $column;
+            }
+
+            if (empty($column_keys)) {
+                continue;
+            }
+            
+            // if all column's value is empty, continue.
+            if (collect($column_keys)->filter(function ($column) use ($input) {
+                return !is_nullorempty(array_get($input, 'value.' . $column->column_name));
+            })->count() == 0) {
+                continue;
+            }
+
+            if (isset($this->id)) {
+                $query->where('id', '<>', $this->id);
+            }
+
+            if ($query->count() > 0) {
+                $errorTexts = collect($column_keys)->map(function ($column_key) {
+                    return $column_key->column_view_name;
+                });
+                $errorText = implode(exmtrans('common.separate_word'), $errorTexts->toArray());
+                foreach ($column_keys as $column_key) {
+                    $errors["value.{$column_key->column_name}"] = [exmtrans('custom_value.help.multiple_uniques', $errorText)];
+                }
+            }
+        }
+
+        return count($errors) > 0 ? $errors : true;
+    }
 
     // re-set field data --------------------------------------------------
     // if user update form and save, but other field remove if not conatins form field, so re-set field before update
@@ -206,19 +272,16 @@ class CustomValue extends ModelBase
         $update_flg = false;
         foreach ($custom_columns as $custom_column) {
             $column_name = $custom_column->column_name;
-            $v = array_get($value, $column_name);
-
-            if ($this->setAgainOriginalValue($value, $original, $custom_column)) {
+            // get saving value
+            $v = $custom_column->column_item->setCustomValue($this)->saving();
+            // if has value, update
+            if (isset($v)) {
+                array_set($value, $column_name, $v);
                 $update_flg = true;
             }
 
-            // remove comma
-            if (ColumnType::isCalc($custom_column->column_type)) {
-                $rmv = rmcomma($v);
-                if ($v != $rmv) {
-                    $value[$column_name] = $rmv;
-                    $update_flg = true;
-                }
+            if ($this->setAgainOriginalValue($value, $original, $custom_column)) {
+                $update_flg = true;
             }
         }
 
@@ -271,6 +334,11 @@ class CustomValue extends ModelBase
     {
         $this->syncOriginal();
 
+        // if already updated, not save again
+        if ($this->already_updated) {
+            return;
+        }
+
         $columns = $this->custom_table
             ->custom_columns
             ->all();
@@ -278,21 +346,19 @@ class CustomValue extends ModelBase
         $update_flg = false;
         // loop columns
         foreach ($columns as $custom_column) {
-            // custom column
             $column_name = array_get($custom_column, 'column_name');
-            switch (array_get($custom_column, 'column_type')) {
-                // if column type is auto_number, set auto number.
-                case ColumnType::AUTO_NUMBER:
-                    $auto_number = $custom_column->column_item->setCustomValue($this)->getAutoNumber();
-                    if (isset($auto_number)) {
-                        $this->setValue($column_name, $auto_number);
-                        $update_flg = true;
-                    }
-                    break;
+            // get saved value
+            $v = $custom_column->column_item->setCustomValue($this)->saved();
+
+            // if has value, update
+            if (isset($v)) {
+                $this->setValue($column_name, $v);
+                $update_flg = true;
             }
         }
         // if update
         if ($update_flg) {
+            $this->already_updated = true;
             $this->save();
         }
     }
@@ -336,7 +402,7 @@ class CustomValue extends ModelBase
     
     
     // notify user --------------------------------------------------
-    protected function notify($create = true)
+    public function notify($create = true)
     {
         // if $saved_notify is false, return
         if ($this->saved_notify === false) {
@@ -496,7 +562,7 @@ class CustomValue extends ModelBase
         }
         return $item->value();
     }
-        
+
     /**
      * Get vustom_value's label
      * @param CustomValue $custom_value
@@ -507,15 +573,34 @@ class CustomValue extends ModelBase
         $custom_table = $this->custom_table;
 
         $key = 'custom_table_use_label_flg_' . $this->custom_table_name;
-        $columns = System::requestSession($key, function () use ($custom_table) {
-            return $custom_table
-            ->custom_columns()
-            ->useLabelFlg()
-            ->get();
+        $label_columns = System::requestSession($key, function () use ($custom_table) {
+            $table_label_format = $custom_table->getOption('table_label_format');
+            if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
+                return $table_label_format;
+            }
+            return $custom_table->table_labels;
         });
 
-        if (!isset($columns) || count($columns) == 0) {
+        if (isset($label_columns) && is_string($label_columns)) {
+            return $this->getExpansionLabel($label_columns);
+        } else {
+            return $this->getBasicLabel($label_columns);
+        }
+    }
+
+    /**
+     * get label string (general setting case)
+     */
+    protected function getBasicLabel($label_columns)
+    {
+        $custom_table = $this->custom_table;
+
+        if (!isset($label_columns) || count($label_columns) == 0) {
             $columns = [$custom_table->custom_columns->first()];
+        } else {
+            $columns = $label_columns->map(function ($label_column) {
+                return CustomColumn::getEloquent($label_column->table_label_id);
+            });
         }
 
         // loop for columns and get value
@@ -544,6 +629,35 @@ class CustomValue extends ModelBase
     }
 
     /**
+     * get custom format label
+     */
+    protected function getExpansionLabel($label_format)
+    {
+        $options['afterCallback'] = function ($text, $custom_value, $options) {
+            return $this->replaceText($text, $options);
+        };
+        return replaceTextFromFormat($label_format, $this, $options);
+    }
+
+    /**
+     * replace text. ex.comma, &yen, etc...
+     */
+    protected function replaceText($text, $documentItem = [])
+    {
+        // add comma if number_format
+        if (array_key_exists('number_format', $documentItem) && !str_contains($text, ',') && is_numeric($text)) {
+            $text = number_format($text);
+        }
+
+        // replace <br/> or \r\n, \n, \r to new line
+        $text = preg_replace("/\\\\r\\\\n|\\\\r|\\\\n/", "\n", $text);
+        // &yen; to
+        $text = str_replace("&yen;", "¥", $text);
+
+        return $text;
+    }
+
+    /**
      * get target custom_value's self link url
      */
     public function getUrl($options = [])
@@ -557,8 +671,9 @@ class CustomValue extends ModelBase
                 'tag' => false,
                 'uri' => null,
                 'list' => false,
-                'external-link' => false,
+                'icon' => null,
                 'modal' => true,
+                'add_id' => false,
             ],
             $options
         );
@@ -584,8 +699,8 @@ class CustomValue extends ModelBase
         if (!$tag) {
             return $url;
         }
-        if (boolval($options['external-link'])) {
-            $label = '<i class="fa fa-external-link" aria-hidden="true"></i>';
+        if (isset($options['icon'])) {
+            $label = '<i class="fa ' . $options['icon'] . '" aria-hidden="true"></i>';
         } else {
             $label = esc_html($this->getLabel());
         }
@@ -597,6 +712,10 @@ class CustomValue extends ModelBase
         } else {
             $href = $url;
             $widgetmodal_url = null;
+        }
+
+        if (boolval($options['add_id'])) {
+            $widgetmodal_url .= " data-id='{$this->id}'";
         }
 
         return "<a href='$href'$widgetmodal_url>$label</a>";
@@ -635,7 +754,7 @@ class CustomValue extends ModelBase
      */
     public function getSum($custom_column)
     {
-        $name = $custom_column->indexEnabled() ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
+        $name = $custom_column->index_enabled ? $custom_column->getIndexColumnName() : 'value->'.array_get($custom_column, 'column_name');
 
         if (!isset($name)) {
             return 0;
@@ -686,7 +805,7 @@ class CustomValue extends ModelBase
         $this->value = $revision_value;
         return $this;
     }
-
+    
     /**
      * set workflow status condition
      */
@@ -709,7 +828,7 @@ class CustomValue extends ModelBase
                         ->where('workflow_values.morph_type', $this->custom_table_name)
                         ->where('workflow_values.enabled_flg', 1)
                         ->where('workflow_values.workflow_status_id', $status);
-                    });
+                });
             case ViewColumnFilterOption::NULL:
                 return $query->whereNotExists(function ($subqry) use ($status) {
                     $subqry->select(\DB::raw(1))
@@ -718,7 +837,7 @@ class CustomValue extends ModelBase
                         ->where('workflow_values.morph_type', $this->custom_table_name)
                         ->where('workflow_values.enabled_flg', 1)
                         ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
-                    });
+                });
             case ViewColumnFilterOption::NOT_NULL:
                 return $query->whereExists(function ($subqry) use ($status) {
                     $subqry->select(\DB::raw(1))
@@ -727,7 +846,122 @@ class CustomValue extends ModelBase
                         ->where('workflow_values.morph_type', $this->custom_table_name)
                         ->where('workflow_values.enabled_flg', 1)
                         ->where(\DB::raw('ifnull(workflow_values.workflow_status_id, 0)'), '<>', 0);
-                    });
+                });
         }
+    }
+        
+    /**
+     * Get Query for text search
+     *
+     * @return void
+     */
+    public function getSearchQuery($q, $options = [])
+    {
+        $options = $this->getQueryOptions($q, $options);
+        extract($options);
+
+        // crate union query
+        $queries = [];
+        for ($i = 0; $i < count($searchColumns) - 1; $i++) {
+            $searchColumn = $searchColumns[$i];
+            $query = static::query();
+            $query->where($searchColumn, $mark, $value)->select('id');
+            $query->take($takeCount);
+
+            $queries[] = $query;
+        }
+
+        $searchColumn = $searchColumns->last();
+        $subquery = static::query();
+        $subquery->where($searchColumn, $mark, $value)->select('id');
+        $subquery->take($takeCount);
+
+        foreach ($queries as $inq) {
+            $subquery->union($inq);
+        }
+
+        // create main query
+        $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+
+        return $mainQuery;
+    }
+
+    /**
+     * Set Query for text search. use orwhere
+     *
+     * @return void
+     */
+    public function setSearchQueryOrWhere(&$query, $q, $options = [])
+    {
+        $options = $this->getQueryOptions($q, $options);
+
+        $query->where(function ($query) use ($options) {
+            extract($options);
+
+            for ($i = 0; $i < count($searchColumns); $i++) {
+                $searchColumn = $searchColumns[$i];
+                $query->orWhere($searchColumn, $mark, $value);
+            }
+        });
+    }
+
+    /**
+     * Get Query Options for search
+     *
+     * @param string $q search text
+     * @param array $options
+     * @return void
+     */
+    protected function getQueryOptions($q, $options = [])
+    {
+        $options = array_merge(
+            [
+                'isLike' => true,
+                'maxCount' => 5,
+                'paginate' => false,
+                'makeHidden' => false,
+                'searchColumns' => null,
+                'relation' => false,
+                
+            ],
+            $options
+        );
+        extract($options);
+
+        // if selected target column,
+        if (is_null($searchColumns)) {
+            $searchColumns = $this->custom_table->getSearchEnabledColumns()->map(function ($c) {
+                return $c->getIndexColumnName();
+            });
+        }
+
+        if (!isset($searchColumns) || count($searchColumns) == 0) {
+            return collect([]);
+        }
+        
+        if (boolval(config('exment.filter_search_full', false))) {
+            $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
+        } else {
+            $value = $q . ($isLike ? '%' : '');
+        }
+        $mark = ($isLike ? 'LIKE' : '=');
+
+        if ($relation) {
+            $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
+        } else {
+            $takeCount = intval(config('exment.keyword_search_count', 1000));
+        }
+
+        // if not paginate, only take maxCount
+        if (!$paginate) {
+            $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
+        }
+
+        $options['searchColumns'] = $searchColumns;
+        $options['takeCount'] = $takeCount;
+        $options['mark'] = $mark;
+        $options['value'] = $value;
+
+        return $options;
     }
 }

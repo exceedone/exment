@@ -184,7 +184,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 ]);
             $login_user->base_user_id = $exment_user->id;
             $login_user->login_provider = $login_provider;
-            $login_user->password = bcrypt($provider_user->id);
+            $login_user->password = $provider_user->id;
         }
 
         if (isset($avatar)) {
@@ -249,9 +249,11 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 ->move('avatar')
                 ->attribute(['accept' => "image/*"])
                 ->options($fileOption)
+                ->removable()
+                ->help(array_get($fileOption, 'maxFileSizeHelp'))
                 ->name(function ($file) {
                     $exmentfile = ExmentFile::saveFileInfo($this->getDirectory(), $file->getClientOriginalName());
-                    return $exmentfile->filename;
+                    return $exmentfile->local_filename;
                 });
 
             if (!useLoginProvider()) {
@@ -272,7 +274,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 if (!isset($form_password)) {
                     $form->password = $form->model()->password;
                 } elseif ($form_password && $form->model()->password != $form_password) {
-                    $form->password = bcrypt($form_password);
+                    $form->password = $form_password;
                 }
             });
             

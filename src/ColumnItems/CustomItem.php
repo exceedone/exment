@@ -6,6 +6,7 @@ use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -17,6 +18,8 @@ abstract class CustomItem implements ItemInterface
     use SummaryItemTrait;
     
     protected $custom_column;
+    
+    protected $custom_table;
 
     /**
      * laravel-admin set required. if false, always not-set required
@@ -34,6 +37,7 @@ abstract class CustomItem implements ItemInterface
     public function __construct($custom_column, $custom_value)
     {
         $this->custom_column = $custom_column;
+        $this->custom_table = $custom_column->custom_table;
         $this->label = $this->custom_column->column_view_name;
         $this->setCustomValue($custom_value);
         $this->options = [];
@@ -68,7 +72,10 @@ abstract class CustomItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
-        if (!$this->custom_column->indexEnabled()) {
+        if (boolval(array_get($this->options, 'groupby'))) {
+            return $this->getGroupBySqlName();
+        }
+        if (!$this->custom_column->index_enabled) {
             return 'value->'.$this->custom_column->column_name;
         }
         return $this->index();
@@ -113,14 +120,14 @@ abstract class CustomItem implements ItemInterface
      */
     public function indexEnabled()
     {
-        return $this->custom_column->indexEnabled();
+        return $this->custom_column->index_enabled;
     }
 
     public function setCustomValue($custom_value)
     {
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
-            $this->id = $custom_value->id;
+            $this->id = array_get($custom_value, 'id');
         }
 
         $this->prepare();
@@ -130,7 +137,7 @@ abstract class CustomItem implements ItemInterface
 
     public function getCustomTable()
     {
-        return $this->custom_column->custom_table;
+        return $this->custom_table;
     }
 
     protected function getTargetValue($custom_value)
@@ -178,6 +185,7 @@ abstract class CustomItem implements ItemInterface
     {
         return $this->getAdminFieldClass();
     }
+
     public function getAdminField($form_column = null, $column_name_prefix = null)
     {
         $form_column_options = $form_column->options ?? null;
@@ -219,7 +227,7 @@ abstract class CustomItem implements ItemInterface
 
         // // readonly
         if (boolval(array_get($form_column_options, 'view_only'))) {
-            $field->attribute(['readonly' => true]);
+            $field->readonly();
         }
 
         // required
@@ -309,6 +317,36 @@ abstract class CustomItem implements ItemInterface
         }
     }
 
+    /**
+     * get value before saving
+     *
+     * @return void
+     */
+    public function saving()
+    {
+    }
+
+    /**
+     * get value after saving
+     *
+     * @return void
+     */
+    public function saved()
+    {
+    }
+
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $options
+     * @return void
+     */
+    public function getImportValue($value, $options = [])
+    {
+        return $value;
+    }
+
     abstract protected function getAdminFieldClass();
 
     protected function getAdminFilterClass()
@@ -373,17 +411,15 @@ abstract class CustomItem implements ItemInterface
      */
     public function getColumnValidates(&$result_options)
     {
-        $custom_table = $this->custom_column->custom_table;
-        $custom_column = $this->custom_column;
-        $options = array_get($custom_column, 'options');
+        $options = array_get($this->custom_column, 'options');
 
         $validates = [];
         // setting options --------------------------------------------------
         // unique
         if (boolval(array_get($options, 'unique')) && !boolval(array_get($options, 'multiple_enabled'))) {
             // add unique field
-            $unique_table_name = getDBTableName($custom_table); // database table name
-            $unique_column_name = "value->".array_get($custom_column, 'column_name'); // column name
+            $unique_table_name = getDBTableName($this->custom_table); // database table name
+            $unique_column_name = "value->".array_get($this->custom_column, 'column_name'); // column name
             
             $uniqueRules = [$unique_table_name, $unique_column_name];
             // create rules.if isset id, add
@@ -399,7 +435,10 @@ abstract class CustomItem implements ItemInterface
 
         // // regex rules
         $help_regexes = [];
-        if (array_key_value_exists('available_characters', $options)) {
+        if (boolval(config('exment.expart_mode', false)) && array_key_value_exists('regex_validate', $options)) {
+            $regex_validate = array_get($options, 'regex_validate');
+            $validates[] = 'regex:/'.$regex_validate.'/u';
+        } elseif (array_key_value_exists('available_characters', $options)) {
             $available_characters = array_get($options, 'available_characters') ?? [];
             if (is_string($available_characters)) {
                 $available_characters = explode(",", $available_characters);
@@ -431,7 +470,7 @@ abstract class CustomItem implements ItemInterface
                 }
             }
             if (count($regexes) > 0) {
-                $validates[] = 'regex:/^['.implode("", $regexes).']*$/';
+                $validates[] = 'regex:/^['.implode("", $regexes).']*$/u';
             }
         }
         

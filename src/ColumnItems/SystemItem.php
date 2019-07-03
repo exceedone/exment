@@ -57,7 +57,7 @@ class SystemItem implements ItemInterface
     public function getGroupName()
     {
         if (boolval(array_get($this->options, 'summary'))) {
-            $summary_condition = SummaryCondition::getGroupCondition(array_get($this->options, 'summary_condition'));
+            $summary_condition = SummaryCondition::getSummaryCondition(array_get($this->options, 'summary_condition'));
             $alter_name = $this->sqlAsName();
             $raw = "$summary_condition($alter_name) AS $alter_name";
             return \DB::raw($raw);
@@ -94,7 +94,7 @@ class SystemItem implements ItemInterface
         return getDBTableName($this->custom_table) .'.'. $sqlname;
     }
 
-    protected function sqlAsName()
+    public function sqlAsName()
     {
         return "column_".array_get($this->options, 'summary_index');
     }
@@ -137,7 +137,7 @@ class SystemItem implements ItemInterface
     {
         $this->custom_value = $custom_value;
         if (isset($custom_value)) {
-            $this->id = $custom_value->id;
+            $this->id = array_get($custom_value, 'id');
         }
 
         $this->prepare();
@@ -156,8 +156,15 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return array_get($this->custom_value, $this->sqlAsName());
         }
-        $val = array_get($this->custom_value, $this->column_name);
 
+        if ($html) {
+            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            if (!is_null($keyname = array_get($option, 'tagname'))) {
+                return array_get($this->custom_value, $keyname);
+            }
+        }
+
+        $val = array_get($this->custom_value, $this->column_name);
         return $html ? esc_html($val) : $val;
     }
     
@@ -198,6 +205,18 @@ class SystemItem implements ItemInterface
         }
 
         return $field;
+    }
+
+    /**
+     * whether column is date
+     *
+     */
+    public function isDate()
+    {
+        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $value_type = array_get($option, 'type');
+
+        return in_array($value_type, ['day', 'datetime']);
     }
 
     /**

@@ -56,6 +56,16 @@ return [
             'task_schedule_id' => 'Task Schedule',
             'task_schedule' => '<br /><b>*You have to do scheduling setting.</b> Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
         ],
+
+        'weekday' => [
+            'mon' => 'Mon',
+            'tue' => 'Tue',
+            'wed' => 'Wed',
+            'thu' => 'Thu',
+            'fri' => 'Fri',
+            'sat' => 'Sat',
+            'sun' => 'Sun',
+        ]
     ],
 
     'error' => [
@@ -433,7 +443,6 @@ return [
             'auto_number_type_random32' => 'Random(UUID)',
             'auto_number_format' => 'Auto Number Format',
             'multiple_enabled' => 'Approval Multiple Select',
-            'use_label_flg' => 'Use Label',
             'calc_formula' => 'Calc Formula',
             'currency_symbol' => 'Currency Format',
         ],
@@ -466,7 +475,6 @@ return [
             'unique' => 'If you do not want to register the same value with other data in duplicate, please set it to YES. * For data with a large number of cases, we recommend setting "Search index" to YES.',
             'default' => 'The initial value of the item at the time of new registration.',
             'help' => 'Help string displayed below the field.',
-            'use_label_flg' => 'When this data is selected, it is a column of wording displayed on the screen. When multiple columns are registered, only one column is reflected.',
             'number_format' => 'By turning YES, the text field will be displayed as a comma value.',
             'rows' => 'Set input form height.',
             'updown_button' => 'By turning YES, Add "+" and "-" buttons.',
@@ -566,6 +574,15 @@ return [
         'description_custom_view_summaries' => 'Sets the summary columns of data displayed in the view.<br/>*The aggregation target is the column that becomes "ID" "Integer" "Decimal" "Currency" "Date".',
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
+
+        'group_condition_options' => [
+            'y' => 'Year',
+            'ym' => 'Year-Month',
+            'ymd' => 'Year-Month-Day',
+            'm' => 'Month',
+            'd' => 'Day',
+            'w' => 'Weekday',
+        ],
 
         'summary_condition_options' => [
             'sum' => 'Summary',

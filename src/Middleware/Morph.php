@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Exceedone\Exment\Model;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\SystemTableName;
 
+/**
+ * Middleware as Morph.
+ * Set Morph info for Eloquent Morph.
+ */
 class Morph
 {
     public function handle(Request $request, \Closure $next)
@@ -24,24 +27,22 @@ class Morph
     {
         // morphMap
         try {
-            if (hasTable(SystemTableName::CUSTOM_TABLE)) {
-                $table_names = \DB::table(SystemTableName::CUSTOM_TABLE)
-                    ->get(['table_name'])
-                    ->pluck('table_name');
-                    
-                $morphMaps = [
-                    "roles" => Model\Role::class,
-                    "table" => Model\CustomTable::class
-                ];
-                foreach ($table_names as $table_name) {
-                    // morphmap
-                    $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
+            $tables = getAllCustomTables();
+                
+            $morphMaps = [
+                "roles" => Model\Role::class,
+                "table" => Model\CustomTable::class
+            ];
+            foreach ($tables as $table) {
+                // morphmap
+                $table_name = $table->table_name;
 
-                    // Define Modelname
-                    getModelName($table_name);
-                }
-                Relation::morphMap($morphMaps);
+                $morphMaps[$table_name] = ltrim(getModelName($table_name, true), "\\");
+
+                // Define Modelname
+                getModelName($table_name);
             }
+            Relation::morphMap($morphMaps);
         } catch (\Exception $ex) {
             logger($ex);
         }

@@ -41,9 +41,10 @@ class File extends CustomItem
     protected function setAdminOptions(&$field, $form_column_options)
     {
         // set file options
-        $field->options(
-            File::getFileOptions($this->custom_column, $this->id)
-        )->removable();
+        $fileOption = File::getFileOptions($this->custom_column, $this->id);
+        $field->options($fileOption)->removable();
+        $field->help(array_get($fileOption, 'maxFileSizeHelp'));
+        
         // set filename rule
         $field->move($this->getCustomTable()->table_name);
         $field->name(function ($file) {
@@ -75,9 +76,8 @@ class File extends CustomItem
         // get local filename
         $dirname = $field->getDirectory();
         $filename = $file->getClientOriginalName();
-        $local_filename = ExmentFile::getUniqueFileName($dirname, $filename);
         // save file info
-        $exmentfile = ExmentFile::saveFileInfo($dirname, $filename, $local_filename);
+        $exmentfile = ExmentFile::saveFileInfo($dirname, $filename);
 
         // set request session to save this custom_value's id and type into files table.
         $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];

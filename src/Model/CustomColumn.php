@@ -15,12 +15,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
 
+    protected $appends = ['required', 'index_enabled', 'unique'];
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid'];
+    protected $with = ['custom_table'];
+
 
     public static $templateItems = [
-        'excepts' => ['suuid'],
+        'excepts' => ['suuid', 'required', 'index_enabled', 'unique', 'custom_table'],
         'uniqueKeys' => [
             'export' => [
                 'custom_table.table_name', 'column_name'
@@ -45,6 +49,18 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                     ]
                 ],
                 'uniqueKeyClassName' => CustomTable::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.select_import_table_name',
+                            'column_name' => 'options.select_import_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.select_import_column_id'],
             ],
         ]
     ];
@@ -71,13 +87,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->index_enabled', [1, "1", true]);
     }
 
-    public function scopeUseLabelFlg($query)
-    {
-        return $query
-            ->whereNotIn('options->use_label_flg', [0, "0"])
-            ->orderBy('options->use_label_flg');
-    }
-
     public function getColumnItemAttribute()
     {
         return ColumnItems\CustomItem::getItem($this);
@@ -86,6 +95,41 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function getSelectTargetTableAttribute()
     {
         return CustomTable::getEloquent($this->getOption('select_target_table'));
+    }
+
+    public function getRequiredAttribute()
+    {
+        return $this->getOption('required', false);
+    }
+
+    public function getIndexEnabledAttribute()
+    {
+        return $this->getOption('index_enabled', false);
+    }
+
+    public function getUniqueAttribute()
+    {
+        return $this->getOption('unique', false);
+    }
+
+    public function setRequiredAttribute($value)
+    {
+        return $this->setOption('required', $value);
+    }
+
+    public function setIndexEnabledAttribute($value)
+    {
+        return $this->setOption('index_enabled', $value);
+    }
+
+    public function setUniqueAttribute($value)
+    {
+        return $this->setOption('unique', $value);
+    }
+
+    public function getSelectImportColumnAttribute()
+    {
+        return CustomColumn::getEloquent($this->getOption('select_import_column_id'));
     }
 
     public function getOption($key, $default = null)
@@ -199,7 +243,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $table->createTable();
 
         // get whether index_enabled column
-        $index_enabled = $this->indexEnabled();
+        $index_enabled = $this->index_enabled;
         
         // check table column field exists.
         $exists = hasColumn($db_table_name, $db_column_name);
@@ -232,15 +276,6 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             $this->alterColumn();
         }
         return $name;
-    }
-
-    /**
-     * Whether this column has index
-     * @return boolean
-     */
-    public function indexEnabled()
-    {
-        return boolval(array_get($this, 'options.index_enabled'));
     }
 
     /**
@@ -317,7 +352,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     
     public function importSaved($options = [])
     {
-        if (!$this->indexEnabled()) {
+        if (!$this->index_enabled) {
             return $this;
         }
         $this->alterColumn();
@@ -420,5 +455,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         array_set($array, 'options.calc_formula', $calc_formula);
         
         return $array;
+    }
+    
+    public static function importReplaceJson(&$json, $options = [])
+    {
+        static::importReplaceJsonCustomColumn($json, 'options.select_import_column_id', 'options.select_import_column_name', 'options.select_import_table_name', $options);
     }
 }

@@ -4,8 +4,10 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Facades\Admin;
 // use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
@@ -51,10 +53,35 @@ class CustomTableController extends AdminControllerBase
         }
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
-            if (boolval($actions->row->system_flg)) {
-                $actions->disableDelete();
-            }
             $actions->disableView();
+            $actions->disableDelete();
+
+            // add new multiple columns
+            $linker = (new Linker)
+                ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
+                ->icon('fa-exchange')
+                ->tooltip(exmtrans('custom_table.expand_setting'));
+            $actions->append($linker);
+                
+            $custom_table = $actions->row;
+
+            // add custom column
+            if ($custom_table->hasPermission(Permission::CUSTOM_TABLE)) {
+                $linker = (new Linker)
+                ->url(admin_urls('column', $custom_table->table_name))
+                ->icon('fa-list')
+                ->tooltip(exmtrans('change_page_menu.custom_column'));
+                $actions->append($linker);
+            }
+
+            // add data
+            if ($custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+                $linker = (new Linker)
+                ->url($actions->row->getGridUrl())
+                ->icon('fa-database')
+                ->tooltip(exmtrans('change_page_menu.custom_value'));
+                $actions->append($linker);
+            }
         });
 
         // filter table --------------------------------------------------
@@ -84,13 +111,17 @@ class CustomTableController extends AdminControllerBase
             ->rules("max:40")
             ->help(exmtrans('common.help.view_name'));
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
-        $form->number('order', exmtrans("custom_table.order"))->rules("integer");
-        $form->select('workflow_id', exmtrans("custom_table.workflow_id"))
-            ->options(function() {
-                return Workflow::get()->pluck('workflow_name', 'id');
-            });
+        
+        $form->number('order', exmtrans("custom_table.order"))->rules("integer")
+            ->help(sprintf(exmtrans("common.help.order"), exmtrans('common.custom_table')));
 
-        $form->header(exmtrans('common.detail_setting'))->hr();
+        // $form->select('workflow_id', exmtrans("custom_table.workflow_id"))
+        //     ->options(function() {
+        //         return Workflow::get()->pluck('workflow_name', 'id');
+        //     });
+
+        $form->exmheader(exmtrans('common.detail_setting'))->hr();
+
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
@@ -154,12 +185,27 @@ class CustomTableController extends AdminControllerBase
 
         // Role setting --------------------------------------------------
         $this->addRoleForm($form, RoleType::TABLE);
-        
-        $form->tools(function (Form\Tools $tools) use ($id, $form) {
+        $deleteButton = $this->confirmDeleteButton($id);
+
+        $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {
+            $custom_table = CustomTable::getEloquent($id);
+            if (isset($custom_table) && boolval($custom_table->system_flg)) {
+                $tools->disableDelete();
+            } elseif (isset($deleteButton)) {
+                $tools->disableDelete();
+                $tools->prepend($deleteButton);
+            }
             // if edit mode
             if ($id != null) {
-                $model = CustomTable::findOrFail($id);
-                $tools->add((new Tools\GridChangePageMenu('table', $model, false))->render());
+                $model = CustomTable::getEloquent($id);
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
+                    'label' => exmtrans('custom_table.expand_setting'),
+                    'icon' => 'fa-exchange',
+                ]));
+
+                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
             }
         });
         
@@ -175,7 +221,6 @@ class CustomTableController extends AdminControllerBase
             // if has value 'add_parent_menu', add menu
             $this->addMenuAfterSaved($model);
 
-
             // redirect custom column page
             if (!$this->exists) {
                 $table_name = CustomTable::getEloquent($model->id)->table_name;
@@ -185,6 +230,128 @@ class CustomTableController extends AdminControllerBase
                 return redirect($custom_column_url);
             }
         });
+
+        return $form;
+    }
+
+    /**
+     * Render `delete` button.
+     *
+     * @return string
+     */
+    protected function confirmDeleteButton($id = null)
+    {
+        if (is_null($id)) {
+            return null;
+        }
+
+        $url = url(admin_urls('table', $id));
+        $listUrl = url(admin_urls('table'));
+        $keyword = Define::DELETE_CONFIRM_KEYWORD;
+        $trans = [
+            'delete_confirm' => trans('admin.delete_confirm'),
+            'confirm'        => trans('admin.confirm'),
+            'cancel'         => trans('admin.cancel'),
+            'delete'         => trans('admin.delete'),
+            'delete_guide'   => sprintf(exmtrans('custom_table.help.delete_confirm_message'), $keyword),
+            'delete_keyword' => exmtrans('custom_table.help.delete_confirm_error'),
+        ];
+
+        $class = uniqid();
+
+        $script = <<<SCRIPT
+
+$('.{$class}-delete').unbind('click').click(function() {
+    Exment.CommonEvent.ShowSwal("$url", {
+        title: "{$trans['delete_confirm']}",
+        text: "{$trans['delete_guide']}",
+        input: 'text',
+        method: 'delete',
+        confirm:"{$trans['confirm']}",
+        cancel:"{$trans['cancel']}",
+        redirect: "$listUrl",
+        preConfirmValidate: function(input){
+            if (input != "$keyword") {
+                return "{$trans['delete_keyword']}";
+            } 
+
+            return true;
+        }
+    });
+});
+
+SCRIPT;
+
+        Admin::script($script);
+
+        return <<<HTML
+<div class="btn-group pull-right" style="margin-right: 5px">
+    <a href="javascript:void(0);" class="btn btn-sm btn-danger {$class}-delete" title="{$trans['delete']}">
+        <i class="fa fa-trash"></i><span class="hidden-xs">  {$trans['delete']}</span>
+    </a>
+</div>
+HTML;
+    }
+    
+    /**
+     * Make a formMultiColumn.
+     *
+     * @return Form
+     */
+    protected function formMultiColumn($id = null)
+    {
+        $form = new Form(new CustomTable);
+        $form->display('table_name', exmtrans("custom_table.table_name"));
+        $form->display('table_view_name', exmtrans("custom_table.table_view_name"));
+        
+        $form->hidden('columnmulti')->default(1);
+        $form->ignore('columnmulti');
+
+        $custom_table = CustomTable::getEloquent($id);
+        $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
+            $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            $form->hidden('multisetting_type')->default(1);
+        })->setTableColumnWidth(4, 4, 3, 1)
+        ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
+        
+        $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
+            $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
+                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+            
+            $form->hidden('priority')->default(1);
+            $form->hidden('multisetting_type')->default(2);
+        })->setTableColumnWidth(10, 2)
+        ->rowUpDown('priority')
+        ->description(sprintf(exmtrans("custom_table.custom_column_multi.help.table_labels"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_labels'))));
+
+        if (boolval(config('exment.expart_mode', false))) {
+            $form->embeds('options', exmtrans("custom_table.custom_column_multi.table_label_format"), function ($form) {
+                $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format_string"))
+                    ->rules("max:200")
+                    ->help(sprintf(exmtrans("custom_table.custom_column_multi.help.table_label_format"), getManualUrl('table?id='.exmtrans('custom_table.custom_column_multi.table_label_format'))));
+            });
+        }
+
+        $form->tools(function (Form\Tools $tools) use ($id) {
+            // if edit mode
+            if ($id != null) {
+                $model = CustomTable::getEloquent($id);
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('table', $id, 'edit'),
+                    'label' => exmtrans('custom_table.default_setting'),
+                    'icon' => 'fa-table',
+                ]));
+
+                $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
+            }
+        });
+        
 
         return $form;
     }
@@ -201,7 +368,28 @@ class CustomTableController extends AdminControllerBase
         if (!$this->validateTable($id, Permission::CUSTOM_TABLE)) {
             return;
         }
+
+        if ($request->has('columnmulti')) {
+            return $this->AdminContent($content)->body($this->formMultiColumn($id)->edit($id));
+        }
+
         return parent::edit($request, $content, $id);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update($id)
+    {
+        if (request()->has('columnmulti')) {
+            return $this->formMultiColumn($id)->update($id);
+        }
+
+        return $this->form($id)->update($id);
     }
 
     /**

@@ -17,12 +17,9 @@ use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowValue;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
@@ -43,7 +40,7 @@ class CustomValueController extends AdminControllerTableBase
 
         if (!is_null($this->custom_table)) {
             //Get all plugin satisfied
-            $this->plugins = PluginInstaller::getPluginByTable($this->custom_table->table_name);
+            $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
         }
     }
 
@@ -91,6 +88,7 @@ class CustomValueController extends AdminControllerTableBase
                     break;
                 default:
                     $content->body($this->grid());
+                    $this->custom_table->saveGridParameter($request->path());
             }
         }
         return $content;
@@ -107,9 +105,9 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
         $this->AdminContent($content);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form(null));
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
 
@@ -131,9 +129,9 @@ class CustomValueController extends AdminControllerTableBase
             return $redirect;
         }
         $this->AdminContent($content);
-        PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        Plugin::pluginPreparing($this->plugins, 'loading');
         $content->body($this->form($id)->edit($id));
-        PluginInstaller::pluginPreparing($this->plugins, 'loaded');
+        Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
     
@@ -224,6 +222,12 @@ class CustomValueController extends AdminControllerTableBase
                 'comment_detail' => $comment,
             ]);
             $model->save();
+                
+            // execute notify
+            $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+            if (isset($custom_value)) {
+                $custom_value->notify(false);
+            }
         }
 
         $url = admin_urls('data', $this->custom_table->table_name, $id);
@@ -243,10 +247,10 @@ class CustomValueController extends AdminControllerTableBase
         $httpfile = $request->file('file_data');
         // file put(store)
         $filename = $httpfile->getClientOriginalName();
-        $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
+        // $uniqueFileName = ExmentFile::getUniqueFileName($this->custom_table->table_name, $filename);
         // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
         $custom_value = $this->getModelNameDV()::find($id);
-        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename, $uniqueFileName, false)
+        $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
             ->saveCustomValue($custom_value);
 
         // save document model
@@ -269,28 +273,16 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
         // get plugin
-        $plugin = Plugin::where('uuid', $request->input('uuid'))->first();
+        $plugin = Plugin::getPluginByUUID($request->input('uuid'));
         if (!isset($plugin)) {
             abort(404);
         }
         
         set_time_limit(240);
-        
-        $classname = $plugin->getNameSpace('Plugin');
-        $fuleFullPath = $plugin->getFullPath('Plugin.php');
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
-            switch (array_get($plugin, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                    $class = new $classname($plugin, $this->custom_table, $id);
-                    break;
-                case PluginType::TRIGGER:
-                    $class = new $classname($plugin, $this->custom_table, $id);
-                    break;
-            }
-        } else {
-            // set default class
-            $class = new PluginDocumentDefault($plugin, $this->custom_table, $id);
-        }
+        $class = $plugin->getClass([
+            'custom_table' => $this->custom_table,
+            'id' => $id
+        ]);
         $response = $class->execute();
         if (isset($response)) {
             return getAjaxResponse($response);

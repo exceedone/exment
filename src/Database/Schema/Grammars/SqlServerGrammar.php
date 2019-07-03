@@ -73,14 +73,6 @@ class SqlServerGrammar extends BaseGrammar
         ];
     }
     
-    public function compileDropIndexColumn($db_table_name, $db_column_name, $index_name)
-    {
-        return [
-            "alter table {$db_table_name} drop index {$index_name}",
-            "alter table {$db_table_name} drop column {$db_column_name}",
-        ];
-    }
-    
     public function compileGetIndex($tableName)
     {
         return $this->_compileGetIndex($tableName, false);

@@ -10,12 +10,17 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
+use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
 
 class ChartItem implements ItemInterface
 {
+    use TableItemTrait;
+    
     protected $dashboard_box;
 
     protected $custom_table;
@@ -59,7 +64,7 @@ class ChartItem implements ItemInterface
      */
     public function header()
     {
-        return null;
+        return $this->tableheader();
     }
     
     /**
@@ -76,11 +81,20 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
+        if (!$this->hasPermission()) {
+            return trans('admin.deny');
+        }
+        
         if (is_null($this->custom_view)) {
             return null;
         }
         $view_column_x = $this->getViewColumn($this->axis_x);
         $view_column_y = $this->getViewColumn($this->axis_y);
+
+        if (!isset($view_column_x) || !isset($view_column_y)) {
+            return exmtrans('dashboard.message.need_setting');
+        }
+
         $item_x = $view_column_x->column_item;
         $item_y = $view_column_y->column_item;
 
@@ -93,7 +107,7 @@ class ChartItem implements ItemInterface
                 'summary_index' => $this->axis_x
             ]);
             // get data
-            $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
+            $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name)->get();
             $chart_label = $datalist->map(function ($val) use ($item_x) {
                 $item = $item_x->setCustomValue($val);
                 $option = SystemColumn::getOption(['name' => $item->name()]);
@@ -156,7 +170,7 @@ class ChartItem implements ItemInterface
     /**
      * set laravel admin embeds option
      */
-    public static function setAdminOptions(&$form)
+    public static function setAdminOptions(&$form, $dashboard)
     {
         $form->description(exmtrans('dashboard.description_chart'));
 
@@ -168,22 +182,31 @@ class ChartItem implements ItemInterface
         $model = CustomTable::whereHas('custom_views', function ($query) {
             $query->where('view_kind_type', ViewKindType::AGGREGATE);
         });
-        $tables = CustomTable::filterList($model)
+        $tables = CustomTable::filterList($model, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])
             ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
             ->required()
             ->options($tables)
-            ->load('options_target_view_id', admin_url('dashboardbox/table_views', [DashboardBoxType::CHART]));
+            ->attribute([
+                'data-linkage' => json_encode(['options_target_view_id' => admin_urls('dashboardbox', 'table_views', DashboardBoxType::CHART)]),
+                'data-linkage-expand' => json_encode(['dashboard_suuid' => $dashboard->suuid])
+            ]);
 
         $form->select('target_view_id', exmtrans("dashboard.dashboard_box_options.target_view_id"))
             ->required()
-            ->options(function ($value) {
+            ->options(function ($value) use ($dashboard) {
                 if (!isset($value)) {
                     return [];
                 }
                 return CustomView::getEloquent($value)->custom_table->custom_views
                     ->filter(function ($value) {
                         return array_get($value, 'view_kind_type') != ViewKindType::CALENDAR;
+                    })
+                    ->filter(function ($value) use ($dashboard) {
+                        if (array_get($dashboard, 'dashboard_type') != DashBoardType::SYSTEM) {
+                            return true;
+                        }
+                        return array_get($value, 'view_type') == ViewType::SYSTEM;
                     })->pluck('view_view_name', 'id');
             })
             ->loads(
@@ -193,32 +216,34 @@ class ChartItem implements ItemInterface
 
         $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
-            ->options(function ($value) {
-                if (!isset($value)) {
+            ->options(function ($value, $model) {
+                $target_view_id = array_get($model->data(), 'target_view_id');
+                if (!isset($target_view_id)) {
                     return [];
                 }
-                $keys = explode("_", $value);
-                if ($keys[0] == ViewKindType::DEFAULT) {
-                    $view_column = CustomViewColumn::getEloquent($keys[1]);
-                } else {
-                    $view_column = CustomViewSummary::getEloquent($keys[1]);
+
+                $custom_view = CustomView::getEloquent($target_view_id);
+                if (!isset($custom_view)) {
+                    return [];
                 }
-                $options = $view_column->custom_view->getColumnsSelectOptions(false);
+
+                $options = $custom_view->getColumnsSelectOptions(false);
                 return array_column($options, 'text', 'id');
             });
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
             ->required()
-            ->options(function ($value) {
-                if (!isset($value)) {
+            ->options(function ($value, $model) {
+                $target_view_id = array_get($model->data(), 'target_view_id');
+                if (!isset($target_view_id)) {
                     return [];
                 }
-                $keys = explode("_", $value);
-                if ($keys[0] == ViewKindType::DEFAULT) {
-                    $view_column = CustomViewColumn::find($keys[1]);
-                } else {
-                    $view_column = CustomViewSummary::find($keys[1]);
+
+                $custom_view = CustomView::getEloquent($target_view_id);
+                if (!isset($custom_view)) {
+                    return [];
                 }
-                $options = $view_column->custom_view->getColumnsSelectOptions(true);
+
+                $options = $custom_view->getColumnsSelectOptions(true);
                 return array_column($options, 'text', 'id');
             });
         $form->checkbox('chart_axis_label', exmtrans("dashboard.dashboard_box_options.chart_axis_label"))

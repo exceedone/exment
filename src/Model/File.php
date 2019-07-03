@@ -42,6 +42,10 @@ class File extends ModelBase
             'document_name' => $document_name,
         ]);
         $document_model->save();
+
+        // execute notify
+        $custom_value->notify(false);
+
         return $document_model;
     }
 
@@ -78,7 +82,7 @@ class File extends ModelBase
      * @param string $fileName
      * @return File saved file path
      */
-    public static function saveFileInfo(string $dirname, string $filename = null, $local_filename = null, $override = false)
+    public static function saveFileInfo(string $dirname, string $filename = null, string $unique_filename = null, $override = false)
     {
         $uuid = make_uuid();
 
@@ -86,21 +90,19 @@ class File extends ModelBase
             list($dirname, $filename) = static::getDirAndFileName($dirname);
         }
 
-        if (!isset($local_filename)) {
-            //$local_filename = static::getUniqueFileName($dirname, $filename);
-            $local_filename = $filename;
+        if (!isset($unique_filename)) {
+            // get unique name. if different and not override, change name
+            $unique_filename = static::getUniqueFileName($dirname, $filename, $override);
         }
         
-        // get unique name. if different and not override, change name
-        $unique_filename = static::getUniqueFileName($dirname, $filename);
-        if (!$override && $local_filename != $unique_filename) {
-            $local_filename = $unique_filename;
-        }
+        // if (!$override && $local_filename != $unique_filename) {
+        //     $local_filename = $unique_filename;
+        // }
 
         $file = new self;
         $file->uuid = $uuid;
         $file->local_dirname = $dirname;
-        $file->local_filename = $local_filename;
+        $file->local_filename = $unique_filename;
         $file->filename = $filename;
 
         $file->save();
@@ -270,9 +272,9 @@ class File extends ModelBase
      * @param  bool  $override if file already exists, override
      * @return string|false
      */
-    public static function storeAs($content, $dirname, $name, $local_filename = null, $override = false)
+    public static function storeAs($content, $dirname, $name, $override = false)
     {
-        $file = static::saveFileInfo($dirname, $name, $local_filename, $override);
+        $file = static::saveFileInfo($dirname, $name, null, $override);
         $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
         return $file;
     }
@@ -300,23 +302,35 @@ class File extends ModelBase
     /**
      * get unique file name
      */
-    public static function getUniqueFileName($dirname, $filename = null)
+    public static function getUniqueFileName($dirname, $filename = null, $override = false)
     {
-        if (!isset($filename)) {
-            list($dirname, $filename) = static::getDirAndFileName($dirname);
+        if ($override) {
+            if (!isset($filename)) {
+                list($dirname, $filename) = static::getDirAndFileName($dirname);
+            }
+    
+            // get by dir and filename
+            $file = static::where('local_dirname', $dirname)->where('filename', $filename)->first();
+    
+            if (!is_null($file)) {
+                return $file->local_filename;
+            }
         }
 
-        // create file name.
-        // get ymdhis string
-        $path = url_join($dirname, $filename);
+        $ext = file_ext($filename);
+        return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
 
-        // check file exists
-        // if exists, use uuid
-        if (\File::exists(getFullpath($path, config('admin.upload.disk')))) {
-            $ext = file_ext($filename);
-            return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
-        }
-        return $filename;
+        // // create file name.
+        // // get ymdhis string
+        // $path = url_join($dirname, $filename);
+
+        // // check file exists
+        // // if exists, use uuid
+        // if (\File::exists(getFullpath($path, config('admin.upload.disk')))) {
+        //     $ext = file_ext($filename);
+        //     return make_uuid() . (!is_nullorempty($ext) ? '.'.$ext : '');
+        // }
+        // return $filename;
     }
 
     /**

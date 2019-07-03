@@ -46,10 +46,9 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-sm-2 ">
-                            <h4 class="pull-right">{{exmtrans('revision.compare_revision')}}</h4>
+                        <div class="col-sm-12">
+                            <h4 class="field-header">{{exmtrans('revision.compare_revision')}}</h4>
                         </div>
-                        <div class="col-sm-8"></div>
                     </div>
                     <hr style="margin-top: 0px;" />
                     

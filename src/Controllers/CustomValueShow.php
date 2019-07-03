@@ -12,6 +12,7 @@ use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\ColumnItems;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\WorkflowValue;
@@ -19,7 +20,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 
 /**
  * CustomValueShow
@@ -31,14 +31,14 @@ trait CustomValueShow
      */
     protected function createShowForm($id = null, $modal = false)
     {
-        //PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        //Plugin::pluginPreparing($this->plugins, 'loading');
         return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
-                $item = ColumnItems\ParentItem::getItem($relation->parent_custom_table);
+                $item = ColumnItems\ParentItem::getItem($relation->child_custom_table);
 
                 $show->field($item->name(), $item->label())->as(function ($v) use ($item) {
                     if (is_null($this)) {
@@ -98,7 +98,20 @@ trait CustomValueShow
                             });
                         });
                         $grid->disableRowSelector();
-                        $grid->disableActions();
+
+                        $grid->actions(function ($actions) {
+                            $actions->disableView();
+                            $actions->disableEdit();
+                            $actions->disableDelete();
+                        
+                            // add show link
+                            $actions->append($actions->row->getUrl([
+                                'tag' => true,
+                                'modal' => true,
+                                'icon' => 'fa-external-link',
+                                'add_id' => true,
+                            ]));
+                        });
                     });
                 }
             }
@@ -125,9 +138,10 @@ trait CustomValueShow
                     $tools->disableList();
                     $tools->disableDelete();
                 } else {
+                    $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
-                    $listButtons = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_show');
+                    $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
                     $copyButtons = $this->custom_table->from_custom_copies;
 
                     foreach ($listButtons as $plugin) {
@@ -389,7 +403,7 @@ EOT;
      */
     protected function useFileUpload($modal = false)
     {
-        // if no permission, return 
+        // if no permission, return
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return [];
         }
@@ -458,7 +472,7 @@ EOT;
             return [];
         }
 
-        // if no permission, return 
+        // if no permission, return
         if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return [];
         }

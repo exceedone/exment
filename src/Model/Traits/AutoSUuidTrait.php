@@ -14,6 +14,9 @@ trait AutoSUuidTrait
      */
     public static function findBySuuid($suuid)
     {
+        if (!isset($suuid)) {
+            return null;
+        }
         // if exists "allRecords" class, call this
         if (method_exists(get_called_class(), "allRecords")) {
             return static::allRecords(function ($record) use ($suuid) {

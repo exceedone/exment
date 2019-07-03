@@ -23,6 +23,15 @@ class Integer extends CustomItem
         return $this->value();
     }
 
+    public function saving()
+    {
+        $rmv = rmcomma($this->value);
+        if (!isset($rmv)) {
+            return null;
+        }
+        return $rmv;
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\Number::class;
@@ -67,5 +76,14 @@ class Integer extends CustomItem
     {
         $grammar = \DB::getQueryGrammar();
         return $grammar->getCastString(DatabaseDataType::TYPE_INTEGER, true);
+    }
+
+    /**
+     * whether column is Numeric
+     *
+     */
+    public function isNumeric()
+    {
+        return true;
     }
 }

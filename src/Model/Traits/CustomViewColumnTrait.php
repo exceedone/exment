@@ -235,10 +235,18 @@ trait CustomViewColumnTrait
     {
         $custom_view = array_get($options, 'parent');
 
+        // get custom table
+        if (array_key_value_exists('view_column_table_name', $json)) {
+            $custom_table = CustomTable::getEloquent($json['view_column_table_name']);
+        }
+        if (!isset($custom_table)) {
+            $custom_table = $custom_view->custom_table;
+        }
+
         list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
             array_get($json, "view_column_type"),
             array_get($json, "view_column_target_name"),
-            $custom_view->custom_table
+            $custom_table
         );
 
         $json['view_column_target_id'] = $view_column_target_id;

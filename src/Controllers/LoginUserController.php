@@ -107,14 +107,14 @@ class LoginUserController extends AdminControllerBase
         $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
 
         if (!$showLoginInfo) {
-            $form->header(exmtrans('user.login'))->hr();
-            $form->checkboxone('use_loginuser', exmtrans('user.use_loginuser'))->option(['1' => exmtrans('common.yes') ])
+            $form->exmheader(exmtrans('user.login'))->hr();
+            $form->switchbool('use_loginuser', exmtrans('user.use_loginuser'))
                     ->help(exmtrans('user.help.use_loginuser'))
-                    ->default($has_loginuser)
+                    ->default($has_loginuser ? '1' : '0')
                     ->attribute(['data-filtertrigger' => true]);
 
             if ($has_loginuser) {
-                $form->checkboxone('reset_password', exmtrans('user.reset_password'))->option(['1' => exmtrans('common.yes')])
+                $form->switchbool('reset_password', exmtrans('user.reset_password'))
                             ->default(!$has_loginuser)
                             ->help(exmtrans('user.help.reset_password'))
                             ->attribute(['data-filter' => json_encode(['key' => 'use_loginuser', 'value' => '1'])]);
@@ -122,8 +122,8 @@ class LoginUserController extends AdminControllerBase
                 $form->hidden('reset_password')->default("1");
             }
 
-            $form->checkboxone('create_password_auto', exmtrans('user.create_password_auto'))->option(['1' => exmtrans('common.yes')])
-                ->default(!$has_loginuser)
+            $form->switchbool('create_password_auto', exmtrans('user.create_password_auto'))
+                ->default('1')
                 ->help(exmtrans('user.help.create_password_auto'))
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
@@ -135,24 +135,25 @@ class LoginUserController extends AdminControllerBase
                     ->attribute(['data-filter' => json_encode([
                         ['key' => 'use_loginuser', 'value' => '1']
                         , ['key' => 'reset_password', 'value' => "1"]
-                        , ['key' => 'create_password_auto', 'nullValue' => true]
+                        , ['key' => 'create_password_auto', 'value' => '0']
                         ])]);
 
             $form->password('password_confirmation', exmtrans('user.password_confirmation'))->default('')
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
-                    , ['key' => 'create_password_auto', 'nullValue' => true]
+                    , ['key' => 'create_password_auto', 'value' => '0']
                     ])]);
 
             // "send_password"'s data-filter is whether $id is null or hasvalue
             $send_password_filter = [
-                ['key' => 'create_password_auto', 'nullValue' => true]
+                ['key' => 'use_loginuser', 'value' => '1'],
+                ['key' => 'create_password_auto', 'value' => '0'],
             ];
             if (isset($id)) {
                 $send_password_filter[] = ['key' => 'reset_password', 'value' => "1"];
             }
-            $form->checkboxone('send_password', exmtrans('user.send_password'))->option(['1' => exmtrans('common.yes')])
+            $form->switchbool('send_password', exmtrans('user.send_password'))
                 ->default(1)
                 ->help(exmtrans('user.help.send_password'))
                 ->attribute(['data-filter' => json_encode($send_password_filter)]);
@@ -185,7 +186,7 @@ class LoginUserController extends AdminControllerBase
             $user = getModelName(SystemTableName::USER)::findOrFail($id);
             $login_user = $this->getLoginUser($user);
             // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
-            if (!is_null($login_user) && !array_key_exists('use_loginuser', $data)) {
+            if (!is_null($login_user) && !boolval(array_get($data, 'use_loginuser'))) {
                 $login_user->delete();
                 DB::commit();
                 return $this->response();
@@ -195,7 +196,7 @@ class LoginUserController extends AdminControllerBase
             $has_change = false;
             $is_newuser = false;
             $password = null;
-            if (is_null($login_user) && array_get($data, 'use_loginuser')) {
+            if (is_null($login_user) && boolval(array_get($data, 'use_loginuser'))) {
                 $login_user = new LoginUser;
                 $is_newuser = true;
                 $login_user->base_user_id = $user->id;
@@ -203,13 +204,13 @@ class LoginUserController extends AdminControllerBase
             }
 
             // if user select "reset_password" (or new create)
-            if (array_key_exists('reset_password', $data)) {
+            if (boolval(array_get($data, 'reset_password'))) {
                 // user select "create_password_auto"
-                if (isset($data['create_password_auto'])) {
+                if (boolval(array_get($data, 'create_password_auto'))) {
                     $password = make_password();
-                    $login_user->password = bcrypt($password);
+                    $login_user->password = $password;
                     $has_change = true;
-                } elseif (isset($data['password'])) {
+                } elseif (boolval(array_get($data, 'password'))) {
                     $rules = [
                     'password' => get_password_rule(true),
                     ];
@@ -218,7 +219,7 @@ class LoginUserController extends AdminControllerBase
                         return back()->withInput()->withErrors($validation);
                     }
                     $password = array_get($data, 'password');
-                    $login_user->password = bcrypt($password);
+                    $login_user->password = $password;
                     $has_change = true;
                 } else {
                     return back()->withInput()->withErrors([
@@ -228,7 +229,7 @@ class LoginUserController extends AdminControllerBase
 
             if ($has_change) {
                 // mailsend
-                if (array_key_exists('send_password', $data) || isset($data['create_password_auto'])) {
+                if (boolval(array_get($data, 'send_password')) || boolval(array_get($data, 'create_password_auto'))) {
                     try {
                         $login_user->sendPassword($password);
                     }

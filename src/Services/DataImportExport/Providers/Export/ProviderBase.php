@@ -29,4 +29,14 @@ abstract class ProviderBase
      * get data
      */
     abstract public function data();
+
+    /**
+     * is output this sheet
+     *
+     * @return boolean
+     */
+    public function isOutput()
+    {
+        return true;
+    }
 }

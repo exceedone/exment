@@ -3,23 +3,19 @@
 namespace Exceedone\Exment;
 
 use Storage;
-use Request;
 use Encore\Admin\Admin;
 use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\ApiScope;
-use Exceedone\Exment\Enums\EnumBase;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
-use Illuminate\Support\Facades\File;
 use Illuminate\Console\Scheduling\Schedule;
 use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;
@@ -38,16 +34,31 @@ class ExmentServiceProvider extends ServiceProvider
     ];
 
     /**
+     * ServiceProviders
+     *
+     * @var array
+     */
+    protected $serviceProviders = [
+        ExmentProviders\RouteServiceProvider::class,
+        ExmentProviders\RouteOAuthServiceProvider::class,
+        ExmentProviders\PasswordResetServiceProvider::class,
+        ExmentProviders\PluginServiceProvider::class,
+    ];
+
+    /**
      * @var array commands
      */
     protected $commands = [
         'Exceedone\Exment\Console\InstallCommand',
         'Exceedone\Exment\Console\UpdateCommand',
+        'Exceedone\Exment\Console\PublishCommand',
         'Exceedone\Exment\Console\ScheduleCommand',
+        'Exceedone\Exment\Console\BatchCommand',
         'Exceedone\Exment\Console\BackupCommand',
         'Exceedone\Exment\Console\RestoreCommand',
         'Exceedone\Exment\Console\ClientListCommand',
         'Exceedone\Exment\Console\BulkInsertCommand',
+        'Exceedone\Exment\Console\PatchDataCommand',
     ];
 
     /**
@@ -78,24 +89,28 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $middlewareGroups = [
         'admin' => [
+            'admin.initialize',
             'admin.auth',
+            'admin.morph',
+            'admin.bootstrap2',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
             'admin.permission',
-            'admin.bootstrap2',
-            'admin.initialize',
-            'admin.morph',
             'admin.session',
         ],
         'admin_anonymous' => [
+            'admin.initialize',
+            'admin.morph',
+            'admin.bootstrap2',
             'admin.pjax',
             'admin.log',
             'admin.bootstrap',
             'admin.permission',
-            'admin.bootstrap2',
+            'admin.session',
+        ],
+        'admin_install' => [
             'admin.initialize',
-            'admin.morph',
             'admin.session',
         ],
         'adminapi' => [
@@ -122,6 +137,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSetting();
         $this->bootDatabase();
         $this->bootDebug();
+        $this->bootSchedule();
 
         $this->publish();
         $this->load();
@@ -129,7 +145,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootPassport();
-        $this->bootPlugin();
     }
 
     /**
@@ -152,6 +167,13 @@ class ExmentServiceProvider extends ServiceProvider
             app('router')->middlewareGroup($key, $middleware);
         }
 
+        // register database
+        $this->app->resolving('db', function ($db, $app) {
+            $db->extend('mariadb', function ($config, $name) use ($app) {
+                return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
+            });
+        });
+        
         Passport::ignoreMigrations();
     }
 
@@ -163,9 +185,10 @@ class ExmentServiceProvider extends ServiceProvider
         );
         
         $this->publishes([__DIR__.'/../config' => config_path()]);
-        $this->publishes([__DIR__.'/../resources/lang_vendor' => resource_path('lang')], 'lang');
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
+        $this->publishes([__DIR__.'/../../laravel-admin/resources/assets' => public_path('vendor/laravel-admin')], 'laravel-admin-assets-exment');
+        $this->publishes([__DIR__.'/../../laravel-admin/resources/lang' => resource_path('lang')], 'laravel-admin-lang-exment');
     }
 
     protected function load()
@@ -177,15 +200,35 @@ class ExmentServiceProvider extends ServiceProvider
 
     protected function bootApp()
     {
-        $this->app->register(ExmentProviders\RouteServiceProvider::class);
-        $this->app->register(ExmentProviders\RouteOAuthServiceProvider::class);
-        $this->app->register(ExmentProviders\PasswordResetServiceProvider::class);
+        foreach ($this->serviceProviders as $serviceProvider) {
+            $this->app->register($serviceProvider);
+        }
         
         $this->commands($this->commands);
 
+        if (!$this->app->runningInConsole()) {
+            $this->commands(\Laravel\Passport\Console\KeysCommand::class);
+        }
+    }
+
+    protected function bootSchedule()
+    {
+        // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
+                
+            // set cron event
+            try {
+                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
+                    $plugins = Plugin::getCronBatches();
+                    foreach ($plugins as $plugin) {
+                        $cronSchedule = $this->app->make(Schedule::class);
+                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));
+                    }
+                }
+            } catch (\Exception $ex) {
+            }
         });
     }
 
@@ -202,35 +245,6 @@ class ExmentServiceProvider extends ServiceProvider
         Passport::tokensCan(ApiScope::transArray('api.scopes'));
     }
 
-    // plugin --------------------------------------------------
-    
-    /**
-     * Check URI after '/admin/' then get plugin satisfying conditions and execute this plugin
-     */
-    protected function bootPlugin()
-    {
-        $pattern = '@plugins/([^/\?]+)@';
-        preg_match($pattern, Request::url(), $matches);
-
-        if (!isset($matches) || count($matches) <= 1) {
-            return;
-        }
-        $pluginName = $matches[1];
-        
-        $plugin = $this->getPluginActivate($pluginName);
-        if (!isset($plugin)) {
-            return;
-        }
-        $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
-        if (! $this->app->routesAreCached()) {
-            $config_path = path_join($base_path, 'config.json');
-            if (file_exists($config_path)) {
-                $json = json_decode(File::get($config_path), true);
-                PluginInstaller::route($plugin, $json);
-            }
-        }
-        $this->loadViewsFrom(path_join($base_path, 'views'), $plugin->plugin_name);
-    }
 
     protected function bootSetting()
     {
@@ -282,6 +296,9 @@ class ExmentServiceProvider extends ServiceProvider
         Connection::resolverFor('mysql', function (...$parameters) {
             return new ExmentDatabase\MySqlConnection(...$parameters);
         });
+        Connection::resolverFor('mariadb', function (...$parameters) {
+            return new ExmentDatabase\MariaDBConnection(...$parameters);
+        });
         Connection::resolverFor('sqlsrv', function (...$parameters) {
             return new ExmentDatabase\SqlServerConnection(...$parameters);
         });
@@ -294,24 +311,11 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected function bootDebug()
     {
-        if(!boolval(config('exment.debugmode', false))){
+        if (!boolval(config('exment.debugmode', false))) {
             return;
         }
 
-        \DB::listen(function ($query) {
-            $sql = $query->sql;
-            for ($i = 0; $i < count($query->bindings); $i++) {
-                $binding = $query->bindings[$i];
-                if($binding instanceof \DateTime){
-                    $binding = $binding->format('Y-m-d H:i:s');
-                }elseif($binding instanceof EnumBase){
-                    $binding = $binding->toString();
-                }
-                $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
-            }
-            $now = \Carbon\Carbon::now();
-            \Log::debug('SQL: ' . $now->format("YmdHisv")." ".$sql);
-        });
+        Initialize::logDatabase();
     }
 
     /**
@@ -334,23 +338,5 @@ class ExmentServiceProvider extends ServiceProvider
     public function policies()
     {
         return $this->policies;
-    }
-    
-    /**
-     * Check plugin satisfying conditions
-     */
-    protected function getPluginActivate($pluginName)
-    {
-        $plugin = Plugin
-            ::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->where('options->uri', $pluginName)
-            ->first();
-
-        if ($plugin !== null) {
-            return $plugin;
-        }
-
-        return false;
     }
 }

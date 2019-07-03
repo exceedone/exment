@@ -14,7 +14,6 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
@@ -36,16 +35,16 @@ trait CustomValueForm
         $classname = $this->getModelNameDV();
         $form = new Form(new $classname);
 
-        //PluginInstaller::pluginPreparing($this->plugins, 'loading');
+        //Plugin::pluginPreparing($this->plugins, 'loading');
         // create
         if (!isset($id)) {
             $isButtonCreate = true;
-            $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
         }
         // edit
         else {
             $isButtonCreate = false;
-            $listButton = PluginInstaller::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
         }
 
         //TODO: escape laravel-admin bug.
@@ -241,6 +240,10 @@ EOT;
                 continue;
             }
             
+            if (is_null($form_column->column_item)) {
+                continue;
+            }
+
             $field = $form_column->column_item->setCustomValue($custom_value)->getAdminField($form_column);
 
             // set $closures using $form_column->column_no
@@ -284,6 +287,9 @@ EOT;
                 if ($form_column->form_column_type != FormColumnType::COLUMN) {
                     continue;
                 }
+                if (!isset($form_column->custom_column)) {
+                    continue;
+                }
                 $column = $form_column->custom_column;
                 $form_column_options = $form_column->options;
                 $options = $column->options;
@@ -310,7 +316,7 @@ EOT;
     {
         // before saving
         $form->saving(function ($form) {
-            PluginInstaller::pluginPreparing($this->plugins, 'saving');
+            Plugin::pluginPreparing($this->plugins, 'saving');
         });
     }
 
@@ -319,7 +325,7 @@ EOT;
         // after saving
         $form->saved(function ($form) {
             $form->model()->setValueAuthoritable();
-            PluginInstaller::pluginPreparing($this->plugins, 'saved');
+            Plugin::pluginPreparing($this->plugins, 'saved');
 
             // if requestsession "file upload uuid"(for set data this value's id and type into files)
             $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
@@ -334,6 +340,9 @@ EOT;
             if ($one_record_flg) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect(admin_urls('data', $this->custom_table->table_name));
+            } elseif (empty(request('after-save'))) {
+                admin_toastr(trans('admin.save_succeeded'));
+                return redirect($this->custom_table->getGridUrl(true));
             }
         });
     }
@@ -346,6 +355,7 @@ EOT;
         
         $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
             $tools->disableView(false);
+            $tools->setListPath($custom_table->getGridUrl(true));
 
             // if one_record_flg, disable list
             if (array_get($custom_table->options, 'one_record_flg')) {
@@ -477,50 +487,36 @@ EOT;
      */
     protected function setRelatedLinkageArray($custom_form_block, &$relatedlinkage_array)
     {
-        // set target_table columns
-        $columns = [];
         // if available is false, continue
-        if (!$custom_form_block->available) {
+        if (!$custom_form_block->available || !isset($custom_form_block->target_table)) {
             return;
         }
-        foreach ($custom_form_block->custom_form_columns as $form_column) {
-            $column = $form_column->custom_column;
 
-            // if column_type is not select_table, continue
-            if (array_get($column, 'column_type') != 'select_table') {
-                continue;
-            }
-            // set columns
-            $columns[] = $column;
-        }
+        // get relation columns
+        $relationColumns = $custom_form_block->target_table->getSelectTableRelationColumns();
 
-        // re-loop for relation
-        foreach ($columns as $column) {
-            // get relation
-            $relations = CustomRelation::getRelationsByParent(array_get($column, 'options.select_target_table'));
-            // if not exists, continue
-            if (!$relations) {
-                continue;
+        foreach ($relationColumns as $relationColumn) {
+            $parent_column = $relationColumn['parent_column'];
+            $parent_column_name = array_get($parent_column, 'column_name');
+            $parent_table = $parent_column->select_target_table;
+
+            $child_column = $relationColumn['child_column'];
+            $child_table = $child_column->select_target_table;
+                    
+            // if not exists $column_name in $relatedlinkage_array
+            if (!array_has($relatedlinkage_array, $parent_column_name)) {
+                $relatedlinkage_array[$parent_column_name] = [];
             }
-            foreach ($relations as $relation) {
-                // add $relatedlinkage_array if contains
-                $child_custom_table_id = array_get($relation, 'child_custom_table_id');
-                collect($columns)->filter(function ($c) use ($child_custom_table_id) {
-                    return array_get($c, 'options.select_target_table') == $child_custom_table_id;
-                })->each(function ($c) use ($column, $relation, &$relatedlinkage_array) {
-                    $column_name = array_get($column, 'column_name');
-                    // if not exists $column_name in $relatedlinkage_array
-                    if (!array_has($relatedlinkage_array, $column_name)) {
-                        $relatedlinkage_array[$column_name] = [];
-                    }
-                    // add array. key is column name.
-                    $relatedlinkage_array[$column_name][] = [
-                        'url' => admin_urls('webapi', 'data', $relation->parent_custom_table->table_name, 'relatedLinkage'),
-                        'expand' => ['child_table_id' => $relation->child_custom_table_id],
-                        'to' => array_get($c, 'column_name'),
-                    ];
-                });
-            }
+
+            // add array. key is column name.
+            $relatedlinkage_array[$parent_column_name][] = [
+                'url' => admin_urls('webapi', 'data', $parent_table->table_name ?? null, 'relatedLinkage'),
+                'expand' => [
+                    'child_table_id' => $child_table->id ?? null,
+                    'search_type' => array_get($relationColumn, 'searchType'),
+                ],
+                'to' => array_get($child_column, 'column_name'),
+            ];
         }
     }
 }

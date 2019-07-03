@@ -11,13 +11,14 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\TemplateTrait;
+    use Traits\UniqueKeyCustomColumnTrait;
     
     protected $casts = ['options' => 'json'];
     protected $appends = ['form_column_target'];
     protected $with = ['custom_column'];
 
     public static $templateItems = [
-        'excepts' => ['custom_column', 'form_column_target'],
+        'excepts' => ['custom_column', 'form_column_target', 'options.changedata_target_column_id', 'options.changedata_column_id'],
         'langs' => [
             'keys' => ['form_column_target_name'],
             'values' => ['options.html', 'options.text'],
@@ -40,25 +41,31 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
                         ],
                     ]
                 ],
-                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunction' => 'getUniqueKeyValuesFormColumn',
             ],
             [
                 'replaceNames' => [
                     [
-                        'replacingName' => 'options.changedata_column_id',
                         'replacedName' => [
-                            'import' => [
-                                'custom_table_id' => 'options.changedata_custom_table_id',
-                                'column_name' => 'options.changedata_column_name',
-                            ],
-                            'export' => [
-                                'table_name' => 'options.changedata_column_table_name',
-                                'column_name' => 'options.changedata_column_name',
-                            ],
-                        ],
+                            'table_name' => 'options.changedata_column_table_name',
+                            'column_name' => 'options.changedata_column_name',
+                        ]
                     ]
                 ],
-                'uniqueKeyClassName' => CustomColumn::class,
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.changedata_column_id'],
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'options.changedata_target_table_name',
+                            'column_name' => 'options.changedata_target_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getUniqueKeyValues',
+                'uniqueKeyFunctionArgs' => ['options.changedata_target_column_id'],
             ],
         ]
     ];
@@ -106,7 +113,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     {
         // if tagret is number, column type is column.
         if ($this->form_column_type == FormColumnType::COLUMN) {
-            return $this->custom_column->column_item;
+            return $this->custom_column->column_item ?? null;
         }
         // system
         elseif ($this->form_column_type == FormColumnType::SYSTEM) {
@@ -121,7 +128,7 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
     /**
      * get Table And Column Name
      */
-    protected function getUniqueKeyValues()
+    protected function getUniqueKeyValuesFormColumn()
     {
         switch ($this->form_column_type) {
             case FormColumnType::COLUMN:
@@ -169,20 +176,47 @@ class CustomFormColumn extends ModelBase implements Interfaces\TemplateImporterI
         array_set($json, 'form_column_target_id', $form_column_target_id);
         array_forget($json, 'form_column_target_name');
 
+
         // set changedata_custom_table_id
-        if (array_key_value_exists('options.changedata_target_column_name', $json)) {
-            $changedata_target_column_name = array_get($json, 'options.changedata_target_column_name');
+        static::replaceChangedata($json, 'options.changedata_column_table_name', 'options.changedata_column_name', 'options.changedata_column_id');
+        static::replaceChangedata($json, 'options.changedata_target_table_name', 'options.changedata_target_column_name', 'options.changedata_target_column_id');
+    }
+
+    /**
+     * replace options change data
+     *
+     * @param [type] $json
+     * @param string $table_key_name
+     * @param string $column_key_name
+     * @param string $column_key_id
+     * @return void
+     */
+    protected static function replaceChangedata(&$json, $table_key_name, $column_key_name, $column_key_id)
+    {
+        // set changedata_custom_table_id
+        if (array_key_value_exists($column_key_name, $json)) {
+            $changedata_target_column_name = array_get($json, $column_key_name);
+
             // get changedata target table name and column
             // if changedata_target_column_name value has dotted, get parent table name
             if (str_contains($changedata_target_column_name, ".")) {
                 list($changedata_target_table_name, $changedata_target_column_name) = explode(".", $changedata_target_column_name);
                 $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
+            } elseif (array_key_value_exists($table_key_name, $json)) {
+                $changedata_target_table_name = array_get($json, $table_key_name);
+                $changedata_target_table = CustomTable::getEloquent($changedata_target_table_name);
             } else {
                 $changedata_target_table = $options['parent']->target_table;
             }
-            array_set($json, 'options.changedata_custom_table_id', $changedata_target_table->id);
-            array_set($json, 'options.changedata_target_column_name', $changedata_target_column_name);
+
+            if (isset($changedata_target_column_name) && isset($changedata_target_table)) {
+                $changedata_target_column = CustomColumn::getEloquent($changedata_target_column_name, $changedata_target_table);
+                array_set($json, $column_key_id, $changedata_target_column->id ?? null);
+            }
         }
+
+        array_forget($json, $table_key_name);
+        array_forget($json, $column_key_name);
     }
 
     protected function importSetValue(&$json, $options = [])

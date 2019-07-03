@@ -1,27 +1,37 @@
 <?php
+namespace Exceedone\Exment\Services\Installer;
 
-namespace Exceedone\Exment\Controllers;
-
-use Validator;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\TemplateImportExport;
 use Encore\Admin\Widgets\Form as WidgetForm;
+use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Validator;
 
-trait InitializeForm
+/**
+ *
+ */
+trait InitializeFormTrait
 {
-    protected function getInitializeForm($routeName, $add_template = false)
+    /**
+     *
+     * @param [type] $routeName
+     * @param boolean $add_template
+     * @return void
+     */
+    protected function getInitializeForm($routeName, $add_template = false, $system_page = false)
     {
         $form = new WidgetForm(System::get_system_values());
         $form->disableReset();
         
-        $form->header(exmtrans('system.header'))->hr();
+        $form->exmheader(exmtrans('system.header'))->hr();
         $form->text('site_name', exmtrans("system.site_name"))
+            ->required()
             ->help(exmtrans("system.help.site_name"));
-
         $form->text('site_name_short', exmtrans("system.site_name_short"))
+            ->required()
             ->help(exmtrans("system.help.site_name_short"));
             
         $fileOption = array_merge(
@@ -35,11 +45,11 @@ trait InitializeForm
                 ]
             ]
         );
-
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_logo');
         $form->image('site_logo', exmtrans("system.site_logo"))
             ->help(exmtrans("system.help.site_logo"))
             ->options($fileOption)
+            ->removable()
             ->attribute(['accept' => "image/*"])
             ;
             
@@ -47,65 +57,72 @@ trait InitializeForm
         $form->image('site_logo_mini', exmtrans("system.site_logo_mini"))
             ->help(exmtrans("system.help.site_logo_mini"))
             ->options($fileOption)
+            ->removable()
             ->attribute(['accept' => "image/*"])
             ;
-
         array_set($fileOption, 'deleteExtraData.delete_flg', 'site_favicon');
         $form->image('site_favicon', exmtrans("system.site_favicon"))
             ->help(exmtrans("system.help.site_favicon"))
             ->options($fileOption)
+            ->removable()
             ->attribute(['accept' => ".ico"])
             ;
     
         $form->select('site_skin', exmtrans("system.site_skin"))
             ->options(getTransArray(Define::SYSTEM_SKIN, "system.site_skin_options"))
+            ->config('allowClear', false)
             ->help(exmtrans("system.help.site_skin"));
-
         $form->select('site_layout', exmtrans("system.site_layout"))
             ->options(getTransArray(array_keys(Define::SYSTEM_LAYOUT), "system.site_layout_options"))
+            ->config('allowClear', false)
             ->help(exmtrans("system.help.site_layout"));
-
+        
+        if ($system_page) {
+            $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
+            ->options(getPagerOptions())
+            ->config('allowClear', false)
+            ->default(20)
+            ->help(exmtrans("system.help.grid_pager_count"));
+            
+            $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
+            ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
+            ->config('allowClear', false)
+            ->default(5)
+            ->help(exmtrans("system.help.datalist_pager_count"));
+        }
+        
+        $form->switchbool('outside_api', exmtrans("system.outside_api"))
+            ->default(!config('exment.outside_api') ? 1 : 0)
+            ->help(exmtrans("system.help.outside_api"));
+    
         $form->switchbool('permission_available', exmtrans("system.permission_available"))
             ->help(exmtrans("system.help.permission_available"));
-
         $form->switchbool('organization_available', exmtrans("system.organization_available"))
             ->help(exmtrans("system.help.organization_available"));
-
         $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+            ->required()
             ->help(exmtrans("system.help.system_mail_from"));
+            
+        if ($system_page) {
+            $form->display('max_file_size', exmtrans("common.max_file_size"))
+            ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
+            ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
+        }
 
         // template list
         if ($add_template) {
             $this->addTemplateTile($form);
         }
-
         return $form;
     }
-
-    /**
-     * file delete system.
-     */
-    public function filedelete(Request $request)
-    {
-        // get file delete flg column name
-        $del_column_name = $request->input('delete_flg');
-
-        System::deleteValue($del_column_name);
-
-        return getAjaxResponse([
-            'result'  => true,
-            'message' => trans('admin.delete_succeeded'),
-        ]);
-    }
- 
-    protected function postInitializeForm(Request $request, $validateUser = false)
+    
+    protected function postInitializeForm(Request $request, $initialize = false)
     {
         $rules = [
             'site_name' => 'max:30',
             'site_name_short' => 'max:10',
         ];
-
-        if ($validateUser) {
+        if ($initialize) {
             $rules = array_merge($rules, [
                 'user_code' => 'required|max:32|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
                 'user_name' => 'required|max:32',
@@ -113,11 +130,34 @@ trait InitializeForm
                 'password' => get_password_rule(true),
             ]);
         }
-
         $validation = Validator::make($request->all(), $rules);
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }
+
+        // check role user-or-org at least 1 data
+        if(!$initialize && System::permission_available()){
+            $roles = collect($request->all())->filter(function($value, $key){
+                if(strpos($key, "role_") !== 0){
+                    return false;
+                }
+
+                if(!collect($value)->filter(function($v){
+                    return isset($v);
+                })->first()){
+                    return false;
+                }
+
+                return true;
+            });
+
+            // if empty, return error
+            if(count($roles) == 0){
+                admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
+                return back()->withInput();
+            }
+        }
+
 
         $inputs = $request->all(System::get_system_keys('initialize'));
         array_forget($inputs, 'initialized');
@@ -126,15 +166,12 @@ trait InitializeForm
         foreach ($inputs as $k => $input) {
             System::{$k}($input);
         }
-
         // upload zip file
         $this->uploadTemplate($request);
-
         // import template
         if ($request->has('template')) {
             TemplateImportExport\TemplateImporter::importTemplate($request->input('template'));
         }
-
         return true;
     }
     
@@ -145,7 +182,6 @@ trait InitializeForm
     {
         $templates_path = app_path("Templates");
         $paths = File::glob("$templates_path/*/config.json");
-
         $templates = [];
         foreach ($paths as $path) {
             try {
@@ -155,30 +191,27 @@ trait InitializeForm
                 //TODO:error handling
             }
         }
-
         return collect($templates);
     }
     
     protected function addTemplateTile($form)
     {
-        $form->header(exmtrans('template.header'))->hr();
-
+        $form->exmheader(exmtrans('template.header'))->hr();
         // template list
         $form->tile('template', exmtrans("system.template"))
             ->help(exmtrans("system.help.template"))
             ;
-
         $form->file('upload_template', exmtrans('template.upload_template'))
             ->rules('mimes:zip|nullable')
             ->help(exmtrans('template.help.upload_template'))
+            ->removable()
             ->options(Define::FILE_OPTION());
-
-        $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
-            ->rules('mimes:xlsx|nullable')
-            ->help(exmtrans('template.help.upload_template_excel'))
-            ->options(Define::FILE_OPTION());
+        // $form->file('upload_template_excel', exmtrans('template.upload_template_excel'))
+        //     ->rules('mimes:xlsx|nullable')
+        //     ->help(exmtrans('template.help.upload_template_excel'))
+        //     ->removable()
+        //     ->options(Define::FILE_OPTION());
     }
-
     /**
      * Upload Template
      */
@@ -200,5 +233,24 @@ trait InitializeForm
             $json = TemplateImportExport\TemplateImporter::uploadTemplateExcel($file);
             TemplateImportExport\TemplateImporter::import($json);
         }
+    }
+    
+    /**
+     * file delete system.
+     */
+    public function filedelete(Request $request)
+    {
+        // get file delete flg column name
+        $del_column_name = $request->input('delete_flg');
+        System::deleteValue($del_column_name);
+        return getAjaxResponse([
+            'result'  => true,
+            'message' => trans('admin.delete_succeeded'),
+        ]);
+    }
+    
+    protected function guard()
+    {
+        return Auth::guard('admin');
     }
 }

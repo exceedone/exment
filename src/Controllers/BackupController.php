@@ -6,16 +6,16 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Encore\Admin\Widgets\Box;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums;
+use Exceedone\Exment\Console\BackupRestoreTrait;
 use Validator;
 use DB;
 
 class BackupController extends AdminControllerBase
 {
-    use InitializeForm;
+    use BackupRestoreTrait;
 
     public function __construct(Request $request)
     {
@@ -129,70 +129,6 @@ class BackupController extends AdminControllerBase
     }
 
     /**
-     * Render import modal form.
-     *
-     * @return Content
-     */
-    protected function importModal()
-    {
-        $import_path = admin_url(url_join('backup', 'import'));
-        // create form fields
-        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
-        $form->disableReset();
-        $form->modalAttribute('id', 'data_import_modal');
-        $form->modalHeader(exmtrans('backup.restore'));
-
-        $form->action($import_path)
-            ->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
-            ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
-            ->options(Define::FILE_OPTION())
-            ->help(exmtrans('backup.help.file_name'));
-
-        return $form->render()->render();
-    }
-
-    /**
-     * Upload zip file
-     */
-    protected function import(Request $request)
-    {
-        set_time_limit(240);
-
-        if ($request->has('upload_zipfile')) {
-            // get upload file
-            $file = $request->file('upload_zipfile');
-            // store uploaded file
-            $filename = $file->store('upload_tmp', 'admin_tmp');
-            $fullpath = getFullpath($filename, 'admin_tmp');
-            try {
-                \Artisan::call('down');
-                $result = \Artisan::call('exment:restore', ['file' => $fullpath]);
-            } finally {
-                \Artisan::call('up');
-            }
-        }
-        
-        if (isset($result) && $result === 0) {
-            admin_toastr(exmtrans('backup.message.restore_file_success'));
-            \Auth::guard('admin')->logout();
-            $request->session()->invalidate();
-            
-            return response()->json([
-                'result'  => true,
-                'toastr' => exmtrans('backup.message.restore_file_success'),
-                'redirect' => admin_url(''),
-            ]);
-        } else {
-            $response = [
-                'result' => false,
-                'toastr' => exmtrans('backup.message.restore_file_error'),
-                'errors' => [],
-            ];
-        }
-        return getAjaxResponse($response);
-    }
-
-    /**
      * Delete interface.
      *
      * @return Content
@@ -252,6 +188,107 @@ class BackupController extends AdminControllerBase
     }
 
     /**
+     * Download file
+     */
+    public function download($arg)
+    {
+        $ymdhms = urldecode($arg);
+
+        $validator = Validator::make(['ymdhms' => $ymdhms], [
+            'ymdhms' => 'required|numeric'
+        ]);
+
+        if (!$validator->passes()) {
+            abort(404);
+        }
+
+        $this->initBackupRestore($ymdhms);
+
+        $path = $this->listZipName();
+        $exists = static::disk()->exists($path);
+        if (!$exists) {
+            abort(404);
+        }
+
+        $file = static::disk()->get($path);
+        $type = static::disk()->mimeType($path);
+        // get page name
+        $name = rawurlencode(mb_basename($path));
+        // create response
+        $response = \Response::make($file, 200);
+        $response->header("Content-Type", $type);
+        $response->header('Content-Disposition', "attachment; filename*=UTF-8''$name");
+
+        return $response;
+    }
+
+    /**
+     * Render import modal form.
+     *
+     * @return Content
+     */
+    protected function importModal()
+    {
+        $import_path = admin_url(url_join('backup', 'import'));
+        // create form fields
+        $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
+        $form->disableReset();
+        $form->modalAttribute('id', 'data_import_modal');
+        $form->modalHeader(exmtrans('backup.restore'));
+
+        $fileOption = Define::FILE_OPTION();
+        $form->action($import_path)
+            ->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
+            ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
+            ->attribute(['accept' => ".zip"])
+            ->removable()
+            ->options($fileOption)
+            ->help(exmtrans('backup.help.file_name') . array_get($fileOption, 'maxFileSizeHelp'));
+
+        return $form->render()->render();
+    }
+
+    /**
+     * Upload zip file
+     */
+    protected function import(Request $request)
+    {
+        set_time_limit(240);
+
+        if ($request->has('upload_zipfile')) {
+            // get upload file
+            $file = $request->file('upload_zipfile');
+            // store uploaded file
+            $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
+            try {
+                \Artisan::call('down');
+                $result = \Artisan::call('exment:restore', ['file' => $filename, '--tmp' => 1]);
+            } finally {
+                \Artisan::call('up');
+            }
+        }
+        
+        if (isset($result) && $result === 0) {
+            admin_toastr(exmtrans('backup.message.restore_file_success'));
+            \Auth::guard('admin')->logout();
+            $request->session()->invalidate();
+            
+            return response()->json([
+                'result'  => true,
+                'toastr' => exmtrans('backup.message.restore_file_success'),
+                'redirect' => admin_url(''),
+            ]);
+        } else {
+            $response = [
+                'result' => false,
+                'toastr' => exmtrans('backup.message.restore_file_error'),
+                'errors' => [],
+            ];
+        }
+        return getAjaxResponse($response);
+    }
+
+    /**
      * restore from backup file.
      *
      * @return Content
@@ -265,9 +302,6 @@ class BackupController extends AdminControllerBase
         ]);
 
         if ($validator->passes()) {
-            // get backup folder full path
-            $backup = static::disk()->getAdapter()->getPathPrefix();
-
             try {
                 \Artisan::call('down');
                 $result = \Artisan::call('exment:restore', ['file' => $data['file']]);
@@ -292,42 +326,5 @@ class BackupController extends AdminControllerBase
                 'toastr' => exmtrans("backup.message.restore_error"),
             ]);
         }
-    }
-    /**
-     * Download file
-     */
-    public static function download($arg)
-    {
-        $ymdhms = urldecode($arg);
-
-        $validator = Validator::make(['ymdhms' => $ymdhms], [
-            'ymdhms' => 'required|numeric'
-        ]);
-
-        if (!$validator->passes()) {
-            abort(404);
-        }
-
-        $path = path_join("list", $ymdhms . '.zip');
-        $exists = static::disk()->exists($path);
-        if (!$exists) {
-            abort(404);
-        }
-
-        $file = static::disk()->get($path);
-        $type = static::disk()->mimeType($path);
-        // get page name
-        $name = rawurlencode(mb_basename($path));
-        // create response
-        $response = \Response::make($file, 200);
-        $response->header("Content-Type", $type);
-        $response->header('Content-Disposition', "attachment; filename*=UTF-8''$name");
-
-        return $response;
-    }
-
-    protected static function disk()
-    {
-        return Storage::disk('backup');
     }
 }

@@ -59,6 +59,32 @@ class ApiController extends AdminControllerBase
     }
 
     /**
+     * get column list
+     * @return mixed
+     */
+    public function indexcolumns(Request $request)
+    {
+        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        // if execute as selecting column_type
+        if ($request->has('custom_type')) {
+            // check user or organization
+            if (!ColumnType::isUserOrganization($request->get('q'))) {
+                return [];
+            }
+        }
+
+        $table = $request->get('q');
+        if (!isset($table)) {
+            return [];
+        }
+
+        return CustomTable::getEloquent($table)->custom_columns()->indexEnabled()->get();
+    }
+
+    /**
      * get table data by id or table_name
      * @param mixed $tableKey id or table_name
      * @return mixed

@@ -3,8 +3,10 @@
     <div class="{{$viewClass['field']}}">
         <div class="no-margin">
             <!-- /.box-header -->
-            <div class="box-body">
-                {{ $value }}&nbsp;
+            <div class="box-body" style="padding-bottom:0;">
+                <span class="{{$class}}">
+                {{ $value }}
+                </span>&nbsp;
             </div><!-- /.box-body -->
         </div>
 
