@@ -310,18 +310,18 @@ HTML;
         $custom_table = CustomTable::getEloquent($id);
         $form->hasManyTable('multi_uniques', exmtrans("custom_table.custom_column_multi.uniques"), function ($form) use ($custom_table) {
             $form->select('unique1', exmtrans("custom_table.custom_column_multi.unique1"))->required()
-                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+                ->options($custom_table->getColumnsSelectOptions());
             $form->select('unique2', exmtrans("custom_table.custom_column_multi.unique2"))->required()
-                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+                ->options($custom_table->getColumnsSelectOptions());
             $form->select('unique3', exmtrans("custom_table.custom_column_multi.unique3"))
-                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+                ->options($custom_table->getColumnsSelectOptions());
             $form->hidden('multisetting_type')->default(1);
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(exmtrans("custom_table.custom_column_multi.help.uniques"));
         
         $form->hasManyTable('table_labels', exmtrans("custom_table.custom_column_multi.table_labels"), function ($form) use ($custom_table) {
             $form->select('table_label_id', exmtrans("custom_table.custom_column_multi.column_target"))->required()
-                ->options($custom_table->getColumnsSelectOptions(false, false, false, false, false));
+                ->options($custom_table->getColumnsSelectOptions());
             
             $form->hidden('priority')->default(1);
             $form->hidden('multisetting_type')->default(2);

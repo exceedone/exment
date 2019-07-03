@@ -246,7 +246,12 @@ class CustomViewController extends AdminControllerTableBase
                 // group columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true, true))
+                        ->options($this->custom_table->getColumnsSelectOptions([
+                            'append_table' => true,
+                            'index_enabled_only' => true,
+                            'include_parent' => true,
+                            'include_child' => true,
+                        ]))
                         ->attribute([
                             'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),
                             'data-change_field_target' => 'view_column_target',
@@ -324,7 +329,13 @@ class CustomViewController extends AdminControllerTableBase
                 // columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true, false, false, false, true));
+                        ->options($this->custom_table->getColumnsSelectOptions(
+                            [
+                                'append_table' => true,
+                                'include_system' => true,
+                                'include_workflow' => true,
+                            ])
+                        );
                     $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                     $form->hidden('order')->default(0);
                 })->required()->setTableColumnWidth(7, 3, 2)
@@ -336,7 +347,15 @@ class CustomViewController extends AdminControllerTableBase
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate, true))
+                ->options($this->custom_table->getColumnsSelectOptions(
+                    [
+                        'append_table' => true,
+                        'index_enabled_only' => true,
+                        'include_parent' => $is_aggregate,
+                        'include_child' => $is_aggregate,
+                        'include_system' => true,
+                    ])
+                )
                 ->attribute([
                     'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
                     'data-change_field_target' => 'view_column_target',
@@ -390,7 +409,10 @@ class CustomViewController extends AdminControllerTableBase
         if (intval($view_kind_type) == Enums\ViewKindType::DEFAULT) {
             $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                 $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, true));
+                ->options($this->custom_table->getColumnsSelectOptions([
+                    'append_table' => true,
+                    'index_enabled_only' => true,
+                ]));
                 $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                     ->required()
                     ->default(1)

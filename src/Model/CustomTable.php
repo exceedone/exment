@@ -906,14 +906,30 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param boolean $append_table
-     * @param boolean $index_enabled_only
-     * @param boolean $include_parent
-     * @param boolean $include_child
-     * @param boolean $include_workflow
+     * @param array $argOptions Set options parameter.
+     *     'append_table' : Whether appending table_id in key
+     *     'index_enabled_only' : Whether only get index enabled column
+     *     'include_parent' : Include parent columns
+     *     'include_child' : Include children columns
+     *     'include_system' : Include system columns
+     *     'include_workflow' : Include workflow columns
+     * 
+     * @return array default: return select items this table's columns and system columns.
      */
-    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true, $include_workflow = false)
+    //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true, $include_workflow = false)
+    public function getColumnsSelectOptions($argOptions = [])
     {
+        extract(array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => false,
+                'include_parent' => false,
+                'include_child' => false,
+                'include_system' => true,
+                'include_workflow' => false,
+            ] , $argOptions
+        ));
+
         $options = [];
         
         if ($include_workflow && isset($this->workflow_id)) {
