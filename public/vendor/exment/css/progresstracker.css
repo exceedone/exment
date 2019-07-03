@@ -28,7 +28,7 @@ ol.track-progress {
 .track-progress li > a {
   display: block;
 
-  background-color: lightgray;
+  background-color: #969494;
   color: #eee;
   font-weight: bold;
   text-transform: uppercase;
@@ -39,8 +39,8 @@ ol.track-progress {
   color: #eee;
 }
 .track-progress li.active > a {
-  background-color: lemonchiffon;
-  color: #555;
+  background-color: #3c8dbc;
+  color: #fff;
 }
 
 .track-progress li > a:after,
@@ -55,7 +55,7 @@ ol.track-progress {
   left: 0;
 
   border: solid transparent;
-  border-left-color: #f0f0f0;
+  border-left-color: white;
   border-width: 15px;
 }
 

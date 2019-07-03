@@ -8,11 +8,13 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowValue;
@@ -20,6 +22,10 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
+use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
@@ -349,6 +355,74 @@ class CustomValueController extends AdminControllerTableBase
         }
         //TODO:error
         return getAjaxResponse(false);
+    }
+
+    /**
+     * create notify mail send form
+     */
+    public function notifyClick(Request $request, $tableKey, $id = null)
+    {
+        $targetid = $request->get('targetid');
+        if (!isset($targetid)) {
+            abort(404);
+        }
+
+        $notify = Notify::where('suuid', $targetid)->first();
+        if (!isset($notify)) {
+            abort(404);
+        }
+
+        $service = new NotifyService($notify, $targetid, $tableKey, $id);
+        $form = $service->getNotifyDialogForm();
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_value.sendmail.title')
+        ]);
+    }
+
+    /**
+     * set notify target users and  get form
+     */
+    public function sendTargetUsers(Request $request, $tableKey, $id = null)
+    {
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        // get target users
+        $target_users = request()->get('target_users');
+
+        $form = $service->getNotifyDialogFormMultiple($target_users);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('custom_value.sendmail.title')
+        ]);
+    }
+    /**
+     * send mail
+     */
+    public function sendMail(Request $request, $tableKey, $id = null)
+    {
+        $service = $this->getNotifyService($tableKey, $id);
+        
+        return $service->sendNotifyMail($this->custom_table);
+    }
+
+    protected function getNotifyService($tableKey, $id){
+        $targetid = request()->get('mail_template_id');
+        if (!isset($targetid)) {
+            abort(404);
+        }
+
+        $notify = Notify::where('suuid', $targetid)->first();
+        if (!isset($notify)) {
+            abort(404);
+        }
+
+        $service = new NotifyService($notify, $targetid, $tableKey, $id);
+        return $service;
     }
 
     /**

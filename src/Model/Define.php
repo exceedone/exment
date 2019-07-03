@@ -155,7 +155,11 @@ class Define
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
-        ///'system_role' => ['type' => 'json'],
+        'system_mail_host' => ['config' => 'mail.host', 'group' => 'system'],
+        'system_mail_port' => ['config' => 'mail.port', 'group' => 'system'],
+        'system_mail_username' => ['config' => 'mail.username', 'group' => 'system'],
+        'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'system'],
+        'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'system'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
@@ -302,6 +306,12 @@ class Define
         ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view'],
         ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+    ];
+
+    public const CUSTOM_VALUE_TRAITS = [
+        'user' => "\Exceedone\Exment\Model\Traits\UserTrait",
+        'organization' => "\Exceedone\Exment\Model\Traits\OrganizationTrait",
+        'mail_template' => "\Exceedone\Exment\Model\Traits\MailTemplateTrait",
     ];
 
     public const GRID_MAX_LENGTH = 50;

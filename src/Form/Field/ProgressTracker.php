@@ -11,6 +11,10 @@ class ProgressTracker extends Field\Display
 {
     protected $view = 'exment::form.field.progresstracker';
 
+    protected static $css = [
+        '/vendor/exment/css/progresstracker.css',
+    ];
+
     protected $steps = null;
 
     public function __construct($label)

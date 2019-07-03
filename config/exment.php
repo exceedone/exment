@@ -227,6 +227,16 @@ return [
     |
     */
     'keyword_search_relation_count' => env('EXMENT_KEYWORD_SEARCH_RELATION_COUNT', 5000),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mail Setting From env file
+    |--------------------------------------------------------------------------
+    |
+    | if false, not use mail setting on system contoller
+    |
+    */
+    'mail_setting_env_force' => env('EXMENT_MAIL_SETTING_ENV_FORCE', false),
   
     /*
     |--------------------------------------------------------------------------
