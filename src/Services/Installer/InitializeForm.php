@@ -43,7 +43,7 @@ class InitializeForm
         \DB::beginTransaction();
         
         try {
-            $result = $this->postInitializeForm($request, true);
+            $result = $this->postInitializeForm($request, 'initialize', true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }

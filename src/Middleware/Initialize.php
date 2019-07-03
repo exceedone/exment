@@ -230,6 +230,31 @@ class Initialize
             if (isset($val)) {
                 \Admin::setFavicon($val);
             }
+
+            // mail setting
+            if (!boolval(config('exment.mail_setting_env_force', false))) {
+                $keys = [
+                    'system_mail_host' => 'host',
+                    'system_mail_port' => 'port',
+                    'system_mail_username' => 'username',
+                    'system_mail_password' => 'password',
+                    'system_mail_encryption' => 'encryption',
+                    'system_mail_from' => ['from.address', 'from.name'],
+                ];
+
+                foreach($keys as $keyname => $configname){
+                    if (!is_null($val = System::{$keyname}())) {
+                        if(!is_array($configname)){
+                            $configname = [$configname];
+                        }
+
+                        foreach($configname as $c){
+                            Config::set("mail.{$c}", $val);
+                        }
+                    }
+                }
+            }
+
         }
     }
 
@@ -288,6 +313,7 @@ class Initialize
             'nestedEmbeds'          => Field\NestedEmbeds::class,
             'valueModal'          => Field\ValueModal::class,
             'changeField'          => Field\ChangeField::class,
+            'progressTracker'          => Field\ProgressTracker::class,
         ];
         foreach ($map as $abstract => $class) {
             Form::extend($abstract, $class);

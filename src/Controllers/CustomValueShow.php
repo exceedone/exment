@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 
@@ -142,6 +143,7 @@ trait CustomValueShow
 
                     $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
                     $copyButtons = $this->custom_table->from_custom_copies;
+                    $notifies = $this->custom_table->notifies;
 
                     foreach ($listButtons as $plugin) {
                         $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
@@ -150,6 +152,11 @@ trait CustomValueShow
                         $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
                     
                         $tools->append($b->toHtml());
+                    }
+                    foreach ($notifies as $notify) {
+                        if (array_get($notify, 'notify_trigger') == NotifyTrigger::BUTTON) {
+                            $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                        }
                     }
                 }
             });

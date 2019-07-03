@@ -122,7 +122,7 @@ class TemplateController extends AdminControllerBase
             // return body and footer
             return view('exment::form.field.tile-items', [
                 'paginator' => $paginator,
-                'datalist' => $datalist,
+                'options' => $datalist,
                 'name' => $name,
                 'column' => $column,
             ])->render();
@@ -130,7 +130,7 @@ class TemplateController extends AdminControllerBase
             // return body and footer
             return view('exment::form.field.tile-items', [
                 'paginator' => null,
-                'datalist' => [],
+                'options' => [],
                 'name' => $name,
                 'column' => $column,
             ])->render();
@@ -189,6 +189,7 @@ class TemplateController extends AdminControllerBase
         $form->hidden('_token')->default(csrf_token());
 
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
+        
     }
 
     /**

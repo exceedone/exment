@@ -134,7 +134,13 @@ return [
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
-        'system_mail_from' => 'システムメール送信元',
+        'system_mail' => 'システムメール設定',
+        'system_mail_host' => 'ホスト名',
+        'system_mail_port' => 'ポート',
+        'system_mail_username' => 'ユーザー名',
+        'system_mail_password' => 'パスワード',
+        'system_mail_encryption' => '暗号化形式',
+        'system_mail_from' => '送信元アドレス',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'template' => 'インストールテンプレート',
@@ -180,7 +186,9 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
-            'system_mail_from' => 'システムからメールを送付する際の送信元です。このメールアドレスをFromとして、メールが送付されます。',
+            'system_mail' => 'システムからメールを送付する時の設定を行います。',
+            'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
+            'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
         ]
@@ -888,7 +896,7 @@ return [
             'template' => 'テンプレート',
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
-            'notify' => '通知',
+            'notify' => '通知・メール送信',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
         ],
@@ -960,6 +968,21 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
         ],
+        'sendmail' => [
+            'title' => 'メール送信',
+            'mail_to' => '送信先',
+            'mail_title' => 'タイトル',
+            'mail_message' => '本文',
+            'attachment' => '添付ファイル',
+            'send_error_message' => 'エラーメッセージ',
+            'help' => [
+                'send_error_message' => 'メール送信に失敗した場合、この項目に、エラーメッセージを表示します。',
+            ],
+            'message' => [
+                'send_succeeded' => 'メールを送信しました。',
+                'empty_error' => 'タイトルと本文は必須項目です。',
+            ],
+        ],
         'data_detail' => 'データ確認',
 
         'bootstrap_duallistbox_container' => [
@@ -1008,6 +1031,7 @@ return [
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '対象',
         'mail_template_id' => 'メールテンプレート',
+        'notify_button_name' => 'ボタン表示名',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1024,6 +1048,7 @@ return [
         'notify_trigger_options' => [
             'time' => '時間の経過',
             'create_update_data' => 'データ新規作成・更新',
+            'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 

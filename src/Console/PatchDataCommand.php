@@ -117,10 +117,10 @@ class PatchDataCommand extends Command
                         'priority' => $use_label_flg_column->getOption('use_label_flg'),
                     ])
                 );
-    
-                $use_label_flg_column->setOption('use_label_flg', null);
-                $use_label_flg_column->save();
             }
+
+            $use_label_flg_column->setOption('use_label_flg', null);
+            $use_label_flg_column->save();
         }
 
         // remove use_label_flg property

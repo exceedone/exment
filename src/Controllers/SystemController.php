@@ -111,7 +111,7 @@ class SystemController extends AdminControllerBase
             // get permission_available before save
             $permission_available = System::permission_available();
 
-            $result = $this->postInitializeForm($request);
+            $result = $this->postInitializeForm($request, ['initialize', 'system']);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }

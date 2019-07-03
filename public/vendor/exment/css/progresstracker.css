@@ -1,0 +1,71 @@
+ol.track-progress {
+  margin-bottom: 20;
+  padding: 0;
+  overflow: hidden;
+  text-align: center
+}
+
+.track-progress li {
+  list-style-type: none;
+  display: inline-block;
+
+  position: relative;
+  margin: 0;
+  padding: 0;
+
+  text-align: center;
+  line-height: 30px;
+  height: 30px;
+
+  background-color: #f0f0f0;
+}
+.track-progress[data-steps="2"] li { width: 40%; }
+.track-progress[data-steps="3"] li { width: 30%; }
+.track-progress[data-steps="4"] li { width: 22%; }
+.track-progress[data-steps="5"] li { width: 18%; }
+.track-progress[data-steps="6"] li { width: 15%; }
+
+.track-progress li > a {
+  display: block;
+
+  background-color: #969494;
+  color: #eee;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.track-progress li.complete > a {
+  background-color: steelblue;
+  color: #eee;
+}
+.track-progress li.active > a {
+  background-color: #3c8dbc;
+  color: #fff;
+}
+
+.track-progress li > a:after,
+.track-progress li > a:before {
+  content: "";
+  display: block;
+  width: 0px;
+  height: 0px;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  border: solid transparent;
+  border-left-color: white;
+  border-width: 15px;
+}
+
+.track-progress li > a:after {
+  top: -5px;
+  z-index: 1;
+  border-left-color: white;
+  border-width: 20px;
+}
+
+.track-progress li > span:before {
+  z-index: 2;
+}
