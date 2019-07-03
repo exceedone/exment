@@ -919,7 +919,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true, $include_workflow = false)
     public function getColumnsSelectOptions($argOptions = [])
     {
-        extract(array_merge(
+        $argOptions = array_merge(
             [
                 'append_table' => false,
                 'index_enabled_only' => false,
@@ -928,7 +928,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_system' => true,
                 'include_workflow' => false,
             ] , $argOptions
-        ));
+        );
+        extract($argOptions);
 
         $options = [];
         
