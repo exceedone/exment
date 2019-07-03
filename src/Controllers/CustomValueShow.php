@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 
@@ -153,7 +154,9 @@ trait CustomValueShow
                         $tools->append($b->toHtml());
                     }
                     foreach ($notifies as $notify) {
-                        $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                        if (array_get($notify, 'notify_trigger') == NotifyTrigger::BUTTON) {
+                            $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                        }
                     }
                 }
             });

@@ -65,7 +65,7 @@ class Notify extends ModelBase
 
                 // send mail
                 try {
-                    MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user->getValue('email'))
+                    MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user)
                     ->prms($prms)
                     ->user($user)
                     ->custom_value($data)
@@ -238,7 +238,7 @@ class Notify extends ModelBase
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
-                ::where($index_user, $userid)
+                ::where($index_user, $user->id())
                 ->where($index_mail_template, $mail_template->id)
                 ->where('parent_id', $data->id)
                 ->where('parent_type', $custom_table->table_name)

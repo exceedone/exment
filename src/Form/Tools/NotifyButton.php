@@ -67,7 +67,7 @@ EOT;
         return view('exment::tools.notify-button', [
             'suuid' => $suuid,
             'label' => $label ?? null,
-            'button_class' => 'btn-success',
+            'button_class' => 'btn-info',
             'icon' => 'fa-envelope-o',
             'url' => $url
         ]);

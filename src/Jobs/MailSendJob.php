@@ -79,7 +79,7 @@ class MailSendJob extends JobBase
         $model->setValue('mail_subject', $this->subject);
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));
-        $model->setValue('attachments', $this->attachments->implode('filename', ','));
+        $model->setValue('attachments', collect($this->attachments)->implode('filename', ','));
         
         if (isset($this->user)) {
             $userid =  $this->getUserId($this->user);
