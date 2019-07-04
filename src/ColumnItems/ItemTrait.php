@@ -34,7 +34,7 @@ trait ItemTrait
 
         $this->options = array_merge(
             $this->options ?? [],
-            $options,
+            $options
         );
 
         return $this;
