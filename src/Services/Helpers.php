@@ -686,6 +686,20 @@ if (!function_exists('getCustomTableTrait')) {
     }
 }
 
+if (!function_exists('canConnection')) {
+    /**
+     * whether database canConnection
+     * @return bool
+     */
+    function canConnection()
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
+            // get all table names
+            return DB::canConnection();
+        });
+    }
+}
+
 if (!function_exists('hasTable')) {
     /**
      * whether database has table
