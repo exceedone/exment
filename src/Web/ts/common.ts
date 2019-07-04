@@ -413,7 +413,8 @@ namespace Exment {
                 // get element
                 var $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
                 if (!hasValue(modeldata)) {
-                    $elem.val('');
+                    await CommonEvent.setValue($elem, null);
+                    //$elem.val('');
                 } else {
                     // get element value from model
                     var from = modeldata['value'][option.from];
@@ -860,7 +861,13 @@ namespace Exment {
         private static setValue($target, value) {
             if (!hasValue($target)) { return; }
             var column_type = $target.data('column_type');
-            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']);
+            
+            // if 'image' or 'file', cannot setValue, continue
+            if ($.inArray(column_type, ['file', 'image']) != -1) {
+                return;
+            }
+
+            var isNumber = $.inArray(column_type, ['integer', 'decimal', 'currency']) != -1;
             // if number, remove comma
             if (isNumber) {
                 value = rmcomma(value);
@@ -868,14 +875,18 @@ namespace Exment {
 
             // if integer, floor value
             if (column_type == 'integer') {
-                var bn = new BigNumber(value);
-                value = bn.integerValue().toPrecision();
+                if(hasValue(value)){
+                    var bn = new BigNumber(value);
+                    value = bn.integerValue().toPrecision();
+                }
             }
 
             // if 'decimal' or 'currency', floor 
-            if ($.inArray(column_type, ['decimal', 'currency']) && hasValue($target.attr('decimal_digit'))) {
-                var bn = new BigNumber(value);
-                value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
+            if ($.inArray(column_type, ['decimal', 'currency']) != -1 && hasValue($target.attr('decimal_digit'))) {
+                if(hasValue(value)){
+                    var bn = new BigNumber(value);
+                    value = bn.decimalPlaces(pInt($target.attr('decimal_digit'))).toPrecision();
+                }
             }
 
             // if number format, add comma
@@ -883,8 +894,14 @@ namespace Exment {
                 value = comma(value);
             }
 
+            // switch bootstrapSwitch
+            if ($.inArray(column_type, ['boolean', 'yesno']) != -1) {
+                var $bootstrapSwitch = $target.filter('[type="checkbox"]');
+                $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
+            }
+            
             // set value
-            $target.val(value);
+            $target.val(value).trigger('change');
         }
 
         /**
@@ -1007,6 +1024,9 @@ const hasValue = (obj): boolean => {
 //}
 
 const comma = (x) => {
+    if (x === null || x === undefined) {
+        return x;
+    }
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 const rmcomma = (x) => {

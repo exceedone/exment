@@ -452,8 +452,13 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             }
 
             if ($item instanceof CustomViewColumn) {
+                // check child item
+                $is_child = $child_relations->contains(function ($value, $key) use ($item) {
+                    return isset($item->custom_table) && $value->child_custom_table->id == $item->custom_table->id;
+                });
+
                 // first, set group_column. this column's name uses index.
-                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index]);
+                $column_item->options(['groupby' => true, 'group_condition' => array_get($item, 'view_group_condition'), 'summary_index' => $index, 'is_child' => $is_child]);
                 $groupSqlName = $column_item->sqlname();
                 $groupSqlAsName = $column_item->sqlAsName();
                 $group_columns[] = $groupSqlName;
@@ -470,9 +475,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 ]);
                 
                 // if this is child table, set as sub group by
-                if ($child_relations->contains(function ($value, $key) use ($item) {
-                    return isset($item->custom_table) && $value->child_custom_table->id == $item->custom_table->id;
-                })) {
+                if ($is_child) {
                     $custom_tables[$item->custom_table->id]['subGroupby'][] = $groupSqlAsName;
                     $custom_tables[$item->custom_table->id]['select_group'][] = $groupSqlName;
                 }

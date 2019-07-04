@@ -108,62 +108,67 @@ class SystemController extends AdminControllerBase
     {
         DB::beginTransaction();
         try {
-            $result = $this->postInitializeForm($request);
+            // get permission_available before save
+            $permission_available = System::permission_available();
+
+            $result = $this->postInitializeForm($request, ['initialize', 'system']);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
 
             // Set Role
-            Role::roleLoop(RoleType::SYSTEM, function ($role, $related_type) use ($request) {
-                $values = $request->input($role->getRoleName($related_type));
-                // array_filter
-                $values = array_filter($values, function ($k) {
-                    return isset($k);
-                });
-                if (!isset($values)) {
-                    $values = [];
-                }
-
-                // get DB system_authoritable values
-                $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
-                    ->where('related_type', $related_type)
-                    ->where('morph_type', RoleType::SYSTEM()->lowerKey())
-                    ->where('role_id', $role->id)
-                    ->get(['related_id']);
-                foreach ($values as $value) {
-                    if (!isset($value)) {
-                        continue;
+            if($permission_available){
+                Role::roleLoop(RoleType::SYSTEM, function ($role, $related_type) use ($request) {
+                    $values = $request->input($role->getRoleName($related_type)) ?? [];
+                    // array_filter
+                    $values = array_filter($values, function ($k) {
+                        return isset($k);
+                    });
+                    if (!isset($values)) {
+                        $values = [];
                     }
-                    /// not exists db value, insert
-                    if (!$dbValues->first(function ($dbValue, $k) use ($value) {
-                        return $dbValue->related_id == $value;
-                    })) {
-                        DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
-                            [
-                            'related_id' => $value,
-                            'related_type' => $related_type,
-                            'morph_id' => null,
-                            'morph_type' => RoleType::SYSTEM()->lowerKey(),
-                            'role_id' => $role->id,
-                        ]
-                    );
-                    }
-                }
-
-                ///// Delete if not exists value
-                foreach ($dbValues as $dbValue) {
-                    if (!collect($values)->first(function ($value, $k) use ($dbValue) {
-                        return $dbValue->related_id == $value;
-                    })) {
-                        DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
-                        ->where('related_id', $dbValue->related_id)
+    
+                    // get DB system_authoritable values
+                    $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
                         ->where('related_type', $related_type)
                         ->where('morph_type', RoleType::SYSTEM()->lowerKey())
                         ->where('role_id', $role->id)
-                        ->delete();
+                        ->get(['related_id']);
+                    foreach ($values as $value) {
+                        if (!isset($value)) {
+                            continue;
+                        }
+                        /// not exists db value, insert
+                        if (!$dbValues->first(function ($dbValue, $k) use ($value) {
+                            return $dbValue->related_id == $value;
+                        })) {
+                            DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
+                                [
+                                'related_id' => $value,
+                                'related_type' => $related_type,
+                                'morph_id' => null,
+                                'morph_type' => RoleType::SYSTEM()->lowerKey(),
+                                'role_id' => $role->id,
+                            ]
+                        );
+                        }
                     }
-                }
-            });
+    
+                    ///// Delete if not exists value
+                    foreach ($dbValues as $dbValue) {
+                        if (!collect($values)->first(function ($value, $k) use ($dbValue) {
+                            return $dbValue->related_id == $value;
+                        })) {
+                            DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
+                            ->where('related_id', $dbValue->related_id)
+                            ->where('related_type', $related_type)
+                            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
+                            ->where('role_id', $role->id)
+                            ->delete();
+                        }
+                    }
+                });
+            }
 
             DB::commit();
 

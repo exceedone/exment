@@ -144,7 +144,7 @@ EOT;
         return view('exment::widgets.modal', [
             'header' => $this->modalHeader,
             'body' => $form_render,
-            'submit' => $submit,
+            'modalSubmitAttributes' => '',
             'modalAttributes' => $this->convert_attribute($this->modalAttributes),
             'modalInnerAttributes' => $this->convert_attribute($this->modalInnerAttributes),
         ]);

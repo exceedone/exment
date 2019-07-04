@@ -91,7 +91,7 @@ class ChartItem implements ItemInterface
         $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
         $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
 
-        if(!isset($view_column_x) || !isset($view_column_y)){
+        if (!isset($view_column_x) || !isset($view_column_y)) {
             return exmtrans('dashboard.message.need_setting');
         }
 
@@ -199,12 +199,12 @@ class ChartItem implements ItemInterface
             ->required()
             ->options(function ($value, $model) {
                 $target_view_id = array_get($model->data(), 'target_view_id');
-                if(!isset($target_view_id)){
+                if (!isset($target_view_id)) {
                     return [];
                 }
 
                 $custom_view = CustomView::getEloquent($target_view_id);
-                if(!isset($custom_view)){
+                if (!isset($custom_view)) {
                     return [];
                 }
 
@@ -215,12 +215,12 @@ class ChartItem implements ItemInterface
             ->required()
             ->options(function ($value, $model) {
                 $target_view_id = array_get($model->data(), 'target_view_id');
-                if(!isset($target_view_id)){
+                if (!isset($target_view_id)) {
                     return [];
                 }
 
                 $custom_view = CustomView::getEloquent($target_view_id);
-                if(!isset($custom_view)){
+                if (!isset($custom_view)) {
                     return [];
                 }
 

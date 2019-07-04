@@ -43,6 +43,7 @@ return [
         'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
+        'copy_item' => 'この%sの複製',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
@@ -134,7 +135,13 @@ return [
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
-        'system_mail_from' => 'システムメール送信元',
+        'system_mail' => 'システムメール設定',
+        'system_mail_host' => 'ホスト名',
+        'system_mail_port' => 'ポート',
+        'system_mail_username' => 'ユーザー名',
+        'system_mail_password' => 'パスワード',
+        'system_mail_encryption' => '暗号化形式',
+        'system_mail_from' => '送信元アドレス',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'template' => 'インストールテンプレート',
@@ -180,8 +187,11 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
-            'system_mail_from' => 'システムからメールを送付する際の送信元です。このメールアドレスをFromとして、メールが送付されます。',
+            'system_mail' => 'システムからメールを送付する時の設定を行います。',
+            'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
+            'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
+            'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
         ]
     ],
 
@@ -467,10 +477,13 @@ return [
             'table_labels' => '見出し表示列設定',
             'column_target' => '対象列',
             'priority' => '優先順位',
+            'table_label_format' => '見出しフォーマット設定',
+            'table_label_format_string' => 'フォーマット文字列',
 
             'help' => [
                 'table_labels' => 'データを選択時、画面に表示する文言の列を設定します。上から順に、見出しの項目として表示します。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'uniques' => '複合ユニークキーを設定します。これらの列のすべての値が、登録済の値と合致していた場合、データの保存時にエラーが発生します。',
+                'table_label_format' => '（上級者向け）見出しに表示するフォーマットを柔軟に設定できます。値を表示するためのパラメータは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。※この項目に値を設定した場合、上記の「見出し表示列設定」は無効になります。',
             ],
         ],
     ],
@@ -495,6 +508,7 @@ return [
             'string_length' => '最大文字数',
             'rows' => '高さ',
             'available_characters' => '使用可能文字',
+            'regex_validate' => '正規表現',
             'number_min' => '最小値',
             'number_max' => '最大値',
             'number_format' => '数値 カンマ文字列',
@@ -566,6 +580,7 @@ return [
             'false_value' => '2つ目の選択肢を保存した場合に登録する値を入力してください。',
             'false_label' => '2つ目の選択肢を保存した場合に表示する文字列を入力してください。',
             'available_characters' => '入力可能な文字を選択してください。すべてのチェックを外すと、すべての文字を入力できます。',
+            'regex_validate' => '（上級者向け）入力できる内容を正規表現で設定します。この項目に値を設定した場合、上記の「使用可能文字」の設定は無効になります。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'auto_number_format' => '登録する採番のルールを設定します。詳細のルールは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'calc_formula' => '他のフィールドを使用した、計算式を入力します。※現在β版です。',
             'currency_symbol' => '画面に表示する通貨の形式を選択してください。',
@@ -646,7 +661,6 @@ return [
         'view_column_target' => '対象列',
         'view_column_start_date' => '開始日',
         'view_column_end_date' => '終了日',
-        'copy_view' => 'このビューの複製',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
@@ -882,7 +896,7 @@ return [
             'template' => 'テンプレート',
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
-            'notify' => '通知',
+            'notify' => '通知・メール送信',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
         ],
@@ -954,6 +968,21 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
         ],
+        'sendmail' => [
+            'title' => 'メール送信',
+            'mail_to' => '送信先',
+            'mail_title' => 'タイトル',
+            'mail_message' => '本文',
+            'attachment' => '添付ファイル',
+            'send_error_message' => 'エラーメッセージ',
+            'help' => [
+                'send_error_message' => 'メール送信に失敗した場合、この項目に、エラーメッセージを表示します。',
+            ],
+            'message' => [
+                'send_succeeded' => 'メールを送信しました。',
+                'empty_error' => 'タイトルと本文は必須項目です。',
+            ],
+        ],
         'data_detail' => 'データ確認',
 
         'bootstrap_duallistbox_container' => [
@@ -986,6 +1015,7 @@ return [
     ],
 
     'notify' => [
+        'notify' => '通知',
         'header' => '通知設定',
         'header_trigger' => '通知条件設定',
         'header_action' => '通知アクション設定',
@@ -1002,6 +1032,7 @@ return [
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '対象',
         'mail_template_id' => 'メールテンプレート',
+        'notify_button_name' => 'ボタン表示名',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1018,6 +1049,7 @@ return [
         'notify_trigger_options' => [
             'time' => '時間の経過',
             'create_update_data' => 'データ新規作成・更新',
+            'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 

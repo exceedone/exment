@@ -128,11 +128,14 @@ class CustomViewController extends AdminControllerTableBase
 
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
-            $table_name = $this->custom_table->table_name;
+            $custom_table = $this->custom_table;
         }
 
         $grid->disableExport();
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($custom_table) {
+            if (isset($custom_table)) {
+                $table_name = $custom_table->table_name;
+            }
             if (boolval($actions->row->system_flg)) {
                 $actions->disableDelete();
             }
@@ -149,7 +152,7 @@ class CustomViewController extends AdminControllerTableBase
             $actions->disableView();
 
             $linker = (new Linker)
-                ->url(admin_urls('data', "{$table_name}?view={$actions->row->suuid}"))
+                ->url($custom_table->getGridUrl(true, ['view' => $actions->row->suuid]))
                 ->icon('fa-database')
                 ->tooltip(exmtrans('custom_view.view_datalist'));
             $actions->prepend($linker);
@@ -157,7 +160,7 @@ class CustomViewController extends AdminControllerTableBase
             $linker = (new Linker)
                 ->url(admin_urls('view', $table_name, "create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
-                ->tooltip(exmtrans('custom_view.copy_view'));
+                ->tooltip(exmtrans('common.copy_item', exmtrans('custom_view.custom_view_button_label')));
             $actions->prepend($linker);
         });
 
@@ -184,6 +187,8 @@ class CustomViewController extends AdminControllerTableBase
         // get request
         $request = Request::capture();
         $copy_custom_view = CustomView::getEloquent($copy_id);
+        
+        // get view_kind_type
         if (!is_null($request->input('view_kind_type'))) {
             $view_kind_type = $request->input('view_kind_type');
         } elseif (!is_null($request->query('view_kind_type'))) {
@@ -193,11 +198,18 @@ class CustomViewController extends AdminControllerTableBase
         } else {
             $view_kind_type = ViewKindType::DEFAULT;
         }
+        
+        // get from_data
+        $from_data = false;
+        if ($request->has('from_data')) {
+            $from_data = boolval($request->get('from_data'));
+        }
 
         $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         $form->hidden('view_kind_type')->default($view_kind_type);
+        $form->hidden('from_data')->default($from_data);
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
@@ -400,6 +412,8 @@ class CustomViewController extends AdminControllerTableBase
         
         $custom_table = $this->custom_table;
 
+        $form->ignore('from_data');
+
         // check filters and sorts count before save
         $form->saving(function (Form $form) {
             if (!is_null($form->custom_view_filters)) {
@@ -422,12 +436,20 @@ class CustomViewController extends AdminControllerTableBase
             }
         });
 
+        $form->saved(function (Form $form) use ($from_data, $custom_table) {
+            if (boolval($from_data)) {
+                // get view suuid
+                $suuid = $form->model()->suuid;
+                return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
+            }
+        });
+
         $form->tools(function (Form\Tools $tools) use ($id, $suuid, $form, $custom_table) {
             $tools->add((new Tools\GridChangePageMenu('view', $custom_table, false))->render());
 
             if (isset($suuid)) {
                 $tools->append(view('exment::tools.button', [
-                    'href' => admin_urls('data', "{$custom_table->table_name}?view={$suuid}"),
+                    'href' => $custom_table->getGridUrl(true, ['view' => $suuid]),
                     'label' => exmtrans('custom_view.view_datalist'),
                     'icon' => 'fa-database',
                     'btn_class' => 'btn-purple',
