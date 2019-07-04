@@ -215,17 +215,20 @@ trait CustomViewColumnTrait
                 return [
                     'table_name' => $table_name,
                     'column_name' => $this->custom_column->column_name,
+                    'column_type' => $this->view_column_type,
                 ];
             case ViewColumnType::SYSTEM:
                 return [
                     'table_name' => $table_name,
                     'column_name' => SystemColumn::getOption(['id' => $this->view_column_target_id])['name'],
+                    'column_type' => $this->view_column_type,
                 ];
             
             case ViewColumnType::PARENT_ID:
                 return [
                     'table_name' => $table_name,
                     'column_name' => Define::CUSTOM_COLUMN_TYPE_PARENT_ID,
+                    'column_type' => $this->view_column_type,
                 ];
         }
         return [];

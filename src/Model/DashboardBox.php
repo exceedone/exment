@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\DashboardBoxType;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Model\CustomViewSummary;
 
@@ -68,6 +70,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                         'replacedName' => [
                             'table_name' => 'options.chart_axisx_table_name',
                             'column_name' => 'options.chart_axisx_column_name',
+                            'view_column_type' => 'options.chart_axisx_view_column_type',
                             'view_kind_type' => 'options.chart_axisx_type',
                         ]
                     ]
@@ -81,6 +84,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
                         'replacedName' => [
                             'table_name' => 'options.chart_axisy_table_name',
                             'column_name' => 'options.chart_axisy_column_name',
+                            'view_column_type' => 'options.chart_axisy_view_column_type',
                             'view_kind_type' => 'options.chart_axisy_type',
                         ]
                     ]
@@ -140,6 +144,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
             return [
                 'table_name' => null,
                 'column_name' => null,
+                'view_column_type' => null,
                 'view_kind_type' => null,
             ];
         }
@@ -148,6 +153,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         return [
             'table_name' => array_get($items, 'table_name'),
             'column_name' => array_get($items, 'column_name'),
+            'view_column_type' => array_get($items, 'column_type'),
             'view_kind_type' => $view_column instanceof CustomViewSummary ? ViewKindType::AGGREGATE : ViewKindType::DEFAULT,
         ];
     }
@@ -177,21 +183,54 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
         }
         
         // replace chartx and y
-        static::importReplaceJsonTableColumn($json, 'chartx');
-        static::importReplaceJsonTableColumn($json, 'charty');
+        static::importReplaceJsonCustomColumn('chart_axisx', $json);
+        static::importReplaceJsonCustomColumn('chart_axisy', $json);
     }
 
-    protected static function importReplaceJsonCustomColumn(&$json, $replace_custom_column_key)
+    protected static function importReplaceJsonCustomColumn($key, &$json)
     {
-        $custom_column = CustomColumn::getEloquent(array_get($json, "options.{$replace_custom_column_key}_column_name"), array_get($json, "options.{$replace_custom_column_key}_table_name"));
+        $custom_column_key = "options.{$key}_column_name";
+        $custom_table_key = "options.{$key}_table_name";
+        $view_column_type_key = "options.{$key}_view_column_type";
+        $table_type_key = "options.{$key}_type";
 
-        // if exists, set as params
-        if (isset($custom_column)) {
-            $key = 
-            array_set($json, $replace_custom_column_key, $custom_column->id);
+        $table_name = array_get($json, $custom_table_key);
+        $column_name = array_get($json, $custom_column_key);
+        $view_column_type = array_get($json, $view_column_type_key);
+
+        switch ($view_column_type) {
+            case ViewColumnType::COLUMN:
+                $custom_column = CustomColumn::getEloquent($column_name, $table_name);
+                $id = array_get($custom_column, 'id');
+                break;
+            case ViewColumnType::SYSTEM:
+                $custom_column = SystemColumn::getOption(['name' => $column_name]);
+                $id = array_get($custom_column, 'id');
+                break;
+            case ViewColumnType::PARENT_ID:
+                $id = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
+                break;
+        }
+
+        if (isset($id)) {
+            $table_type = array_get($json, $table_type_key);
+            if ($table_type == ViewKindType::AGGREGATE) {
+                $view_column = CustomViewSummary::where('custom_view_id', array_get($json, 'options.target_view_id'))
+                    ->where('view_column_type', $view_column_type)
+                    ->where('view_column_target_id', $id)->first();
+            } else {
+                $view_column = CustomViewColumn::where('custom_view_id', array_get($json, 'options.target_view_id'))
+                    ->where('view_column_type', $view_column_type)
+                    ->where('view_column_target_id', $id)->first();
+            }
+            if (isset($view_column)) {
+                array_set($json, "options.{$key}", $table_type.'_'.$view_column->id);
+            }
         }
 
         array_forget($json, $custom_column_key);
         array_forget($json, $custom_table_key);
+        array_forget($json, $view_column_type_key);
+        array_forget($json, $table_type_key);
     }
 }

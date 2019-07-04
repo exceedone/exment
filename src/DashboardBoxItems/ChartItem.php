@@ -64,7 +64,7 @@ class ChartItem implements ItemInterface
      */
     public function header()
     {
-        return $this->tableheader();
+        return null;
     }
     
     /**
