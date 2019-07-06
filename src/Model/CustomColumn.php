@@ -94,6 +94,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     public function getSelectTargetTableAttribute()
     {
+        if(ColumnType::isUserOrganization($this->column_type)){
+            return CustomTable::getEloquent($this->column_type);
+        }
         return CustomTable::getEloquent($this->getOption('select_target_table'));
     }
 
