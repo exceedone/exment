@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
  */
 class InitializeForm
 {
-    use InstallFormTrait, InitializeFormTrait;
+    use EnvTrait, InitializeFormTrait;
 
     public function index()
     {
