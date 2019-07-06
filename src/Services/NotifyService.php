@@ -20,7 +20,8 @@ class NotifyService
     
     protected $custom_value;
 
-    public function __construct(Notify $notify, $targetid, $tableKey, $id){
+    public function __construct(Notify $notify, $targetid, $tableKey, $id)
+    {
         $this->notify = $notify;
         $this->targetid = $targetid;
 
@@ -34,12 +35,13 @@ class NotifyService
      * @param Notify $notify
      * @return void
      */
-    public function getNotifyDialogForm(){
+    public function getNotifyDialogForm()
+    {
         // get target users
         $users = $this->notify->getNotifyTargetUsers($this->custom_value);
 
         // if only one data, get form for detail
-        if(count($users) == 1){
+        if (count($users) == 1) {
             return $this->getSendForm($users);
         }
         
@@ -58,7 +60,7 @@ class NotifyService
         $form->progressTracker()->options($this->getProgressInfo(true));
 
         $options = [];
-        foreach($users as $user){
+        foreach ($users as $user) {
             $options[$user->notifyKey()] = $user->getLabel();
         }
 
@@ -74,17 +76,17 @@ class NotifyService
     }
 
     /**
-     * 
+     *
      *
      * @param Notify $notify
      * @return void
      */
-    public function getNotifyDialogFormMultiple($target_users){
-
+    public function getNotifyDialogFormMultiple($target_users)
+    {
         $users = [];
-        foreach($target_users as $target_user){
+        foreach ($target_users as $target_user) {
             // get definition target users
-            if(!is_null($user = NotifyTarget::getSelectedNotifyTarget($target_user, $this->notify, $this->custom_value))){
+            if (!is_null($user = NotifyTarget::getSelectedNotifyTarget($target_user, $this->notify, $this->custom_value))) {
                 $users[] = $user;
             }
         }
@@ -97,7 +99,8 @@ class NotifyService
      *
      * @return void
      */
-    protected function getSendForm($notifyTargets, $isFlow = false){
+    protected function getSendForm($notifyTargets, $isFlow = false)
+    {
         $tableKey = $this->custom_table->table_name;
         $id = $this->custom_value->id;
 
@@ -110,14 +113,14 @@ class NotifyService
         $mail_subject = array_get($mail_template->value, 'mail_subject');
         $mail_body = $mail_template->getJoinedBody();
 
-        $notifyTarget = implode(exmtrans("common.separate_word"), collect($notifyTargets)->map(function($notifyTarget){
+        $notifyTarget = implode(exmtrans("common.separate_word"), collect($notifyTargets)->map(function ($notifyTarget) {
             return $notifyTarget->getLabel();
         })->toArray());
-        $notifyTargetJson = json_encode(collect($notifyTargets)->map(function($notifyTarget){
+        $notifyTargetJson = json_encode(collect($notifyTargets)->map(function ($notifyTarget) {
             return $notifyTarget->notifyKey();
         })->toArray());
 
-        if($replace){
+        if ($replace) {
             $mail_subject = replaceTextFromFormat($mail_subject, $this->custom_value);
             $mail_body = replaceTextFromFormat($mail_body, $this->custom_value);
         }
@@ -130,7 +133,7 @@ class NotifyService
         $form->modalHeader(exmtrans('custom_value.sendmail.title'));
         $form->action(admin_urls('data', $tableKey, $this->custom_value->id, 'sendMail'));
 
-        if($isFlow){
+        if ($isFlow) {
             // progress tracker
             $form->progressTracker()->options($this->getProgressInfo(false));
         }
@@ -171,7 +174,8 @@ class NotifyService
      *
      * @return void
      */
-    public function sendNotifyMail($custom_table){
+    public function sendNotifyMail($custom_table)
+    {
         $request = request();
 
         $title = $request->get('mail_title');
@@ -192,17 +196,17 @@ class NotifyService
         if (isset($title) && isset($message)) {
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
-            } catch(\Swift_RfcComplianceException $ex) {
+            } catch (\Swift_RfcComplianceException $ex) {
                 return getAjaxResponse([
                     'result'  => false,
-                    'errors' => ['send_error_message' => ['type' => 'input', 
+                    'errors' => ['send_error_message' => ['type' => 'input',
                         'message' => exmtrans('error.mailsend_failed')
                     ]],
                 ]);
-            } catch(Exception $ex) {
+            } catch (Exception $ex) {
                 return getAjaxResponse([
                     'result'  => false,
-                    'errors' => ['send_error_message' => ['type' => 'input', 
+                    'errors' => ['send_error_message' => ['type' => 'input',
                         'message' => exmtrans('error.mailsend_failed')
                     ]],
                 ]);
@@ -214,7 +218,7 @@ class NotifyService
         } else {
             return getAjaxResponse([
                 'result'  => false,
-                'errors' => ['send_error_message' => ['type' => 'input', 
+                'errors' => ['send_error_message' => ['type' => 'input',
                     'message' => exmtrans('custom_value.sendmail.message.empty_error')]],
             ]);
         }
@@ -227,7 +231,8 @@ class NotifyService
      * @param [type] $is_action
      * @return void
      */
-    protected function getProgressInfo($isSelectTarget) {
+    protected function getProgressInfo($isSelectTarget)
+    {
         $steps[] = [
             'active' => $isSelectTarget,
             'complete' => false,
@@ -242,5 +247,4 @@ class NotifyService
         ];
         return $steps;
     }
-
 }

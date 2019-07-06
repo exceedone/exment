@@ -54,7 +54,7 @@ trait EnvTrait
         
         // Loop through given data
         foreach ((array)$data as $key => $value) {
-            if(array_has($newEnvs, $key)){
+            if (array_has($newEnvs, $key)) {
                 continue;
             }
             $newEnvs[] = $key . "=" . $value;
@@ -85,7 +85,7 @@ trait EnvTrait
             $path = path_join(base_path(), '.env');
         }
 
-        if(!\File::exists($path)){
+        if (!\File::exists($path)) {
             return null;
         }
 
@@ -108,13 +108,12 @@ trait EnvTrait
                 continue;
             }
 
-            if($matchPrefix){
-                if(strpos($entry[0], $key) === false){
+            if ($matchPrefix) {
+                if (strpos($entry[0], $key) === false) {
                     continue;
                 }
-            }
-            else{
-                if($key != $entry[0]){
+            } else {
+                if ($key != $entry[0]) {
                     continue;
                 }
             }
@@ -124,5 +123,4 @@ trait EnvTrait
 
         return $lists;
     }
-    
 }

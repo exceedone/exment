@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomValue;

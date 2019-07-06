@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Admin;
 use Encore\Admin\Form\Field;
 use Illuminate\Contracts\Support\Arrayable;
 
@@ -53,7 +52,8 @@ class Tile extends Field
         return $this;
     }
 
-    public function overlay($overlay = true){
+    public function overlay($overlay = true)
+    {
         $this->overlay = $overlay;
 
         return $this;

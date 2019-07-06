@@ -136,7 +136,7 @@ __EOT__;
     {
         // get env file
         $file = path_join($this->tmpDirFullPath(), '.env');
-        if(!\File::exists($file)){
+        if (!\File::exists($file)) {
             return;
         }
 
@@ -151,13 +151,13 @@ __EOT__;
             ],
         ];
 
-        foreach($matchKeys as $item){
-            foreach($item['keys'] as $key){
-                if(is_null($lines = $this->getEnv($key, $file, $item['prefix']))){
+        foreach ($matchKeys as $item) {
+            foreach ($item['keys'] as $key) {
+                if (is_null($lines = $this->getEnv($key, $file, $item['prefix']))) {
                     continue;
                 }
 
-                foreach($lines as $line){
+                foreach ($lines as $line) {
                     $this->setEnv([$line[0] => $line[1]]);
                 }
             }

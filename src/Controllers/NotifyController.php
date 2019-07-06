@@ -226,8 +226,8 @@ class NotifyController extends AdminControllerBase
                 ->where('column_type', ColumnType::SELECT_TABLE)
                 ->get();
 
-            foreach($select_table_columns as $select_table_column){
-                if(is_null($select_target_table = $select_table_column->select_target_table)){
+            foreach ($select_table_columns as $select_table_column) {
+                if (is_null($select_target_table = $select_table_column->select_target_table)) {
                     continue;
                 }
 
@@ -236,11 +236,11 @@ class NotifyController extends AdminControllerBase
                     ::where('custom_table_id', $select_target_table->id)
                     ->where('column_type', ColumnType::EMAIL)
                     ->first();
-                if(!isset($emailColumn)){
+                if (!isset($emailColumn)) {
                     continue;
                 }
 
-                $options[] = ['id' => $select_table_column->id, 'text' => $select_table_column->column_view_name];  
+                $options[] = ['id' => $select_table_column->id, 'text' => $select_table_column->column_view_name];
             }
         }
         if ($isApi) {

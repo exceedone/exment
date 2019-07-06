@@ -2,13 +2,9 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Database\Eloquent\Collection;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MailKeyName;
-use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Services\MailSender;
-use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Carbon\Carbon;
 
 class Notify extends ModelBase
@@ -127,14 +123,14 @@ class Notify extends ModelBase
         $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
-        $attach_files = collect($attachments)->map(function($uuid) {
+        $attach_files = collect($attachments)->map(function ($uuid) {
             return File::where('uuid', $uuid)->first();
         })->filter();
 
         // loop target users
         foreach ($target_user_keys as $target_user_key) {
             $user = NotifyTarget::getSelectedNotifyTarget($target_user_key, $this, $custom_value);
-            if(!isset($user)){
+            if (!isset($user)) {
                 continue;
             }
 
@@ -234,7 +230,7 @@ class Notify extends ModelBase
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
 
         // if already send notify in 1 minutes, continue.
-        if($checkHistory){
+        if ($checkHistory) {
             $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
             $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
@@ -259,5 +255,4 @@ class Notify extends ModelBase
 
         return true;
     }
-    
 }

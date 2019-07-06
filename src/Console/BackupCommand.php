@@ -113,11 +113,11 @@ class BackupCommand extends Command
             }
                 
             // if contains 'config' in $settings, copy env file
-            if(in_array('config', $settings)){
+            if (in_array('config', $settings)) {
                 $from_env = path_join(base_path(), '.env');
                 $to_env = static::tmpDisk()->path(path_join($this->tmpDirName(), '.env'));
 
-                if(\File::exists($from_env)){
+                if (\File::exists($from_env)) {
                     \File::copy($from_env, $to_env);
                 }
             }

@@ -242,19 +242,18 @@ class Initialize
                     'system_mail_from' => ['from.address', 'from.name'],
                 ];
 
-                foreach($keys as $keyname => $configname){
+                foreach ($keys as $keyname => $configname) {
                     if (!is_null($val = System::{$keyname}())) {
-                        if(!is_array($configname)){
+                        if (!is_array($configname)) {
                             $configname = [$configname];
                         }
 
-                        foreach($configname as $c){
+                        foreach ($configname as $c) {
                             Config::set("mail.{$c}", $val);
                         }
                     }
                 }
             }
-
         }
     }
 

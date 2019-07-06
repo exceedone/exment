@@ -105,8 +105,8 @@ trait InitializeFormTrait
             ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
             ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
             
-            // system setting 
-            if(!boolval(config('exment.mail_setting_env_force', false))){
+            // system setting
+            if (!boolval(config('exment.mail_setting_env_force', false))) {
                 $form->exmheader(exmtrans('system.system_mail'))->hr();
 
                 $form->description(exmtrans("system.help.system_mail"));
@@ -153,15 +153,15 @@ trait InitializeFormTrait
         }
         
         // check role user-or-org at least 1 data
-        if(!$initialize && System::permission_available()){
-            $roles = collect($request->all())->filter(function($value, $key){
-                if(strpos($key, "role_") !== 0){
+        if (!$initialize && System::permission_available()) {
+            $roles = collect($request->all())->filter(function ($value, $key) {
+                if (strpos($key, "role_") !== 0) {
                     return false;
                 }
 
-                if(!collect($value)->filter(function($v){
+                if (!collect($value)->filter(function ($v) {
                     return isset($v);
-                })->first()){
+                })->first()) {
                     return false;
                 }
 
@@ -169,7 +169,7 @@ trait InitializeFormTrait
             });
 
             // if empty, return error
-            if(count($roles) == 0){
+            if (count($roles) == 0) {
                 admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
                 return back()->withInput();
             }
@@ -259,7 +259,6 @@ trait InitializeFormTrait
     }
 EOT;
         \Admin::script($script);
-
     }
     /**
      * Upload Template

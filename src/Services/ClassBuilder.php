@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 
 class ClassBuilder
@@ -257,7 +256,7 @@ class ClassBuilder
         });
 
         // especially flow if table is user --------------------------------------------------
-        if(array_has(Define::CUSTOM_VALUE_TRAITS, $table->table_name)){
+        if (array_has(Define::CUSTOM_VALUE_TRAITS, $table->table_name)) {
             $builder->addInUse(Define::CUSTOM_VALUE_TRAITS[$table->table_name]);
         }
         

@@ -93,12 +93,13 @@ class File extends CustomItem
      *
      * @return void
      */
-    protected function fileValue(){
-        if(is_null($this->value)){
+    protected function fileValue()
+    {
+        if (is_null($this->value)) {
             return null;
         }
 
-        if(is_array($this->value)){
+        if (is_array($this->value)) {
             return count($this->value) == 0 ? null : $this->value[0];
         }
 

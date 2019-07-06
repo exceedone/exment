@@ -68,7 +68,7 @@ trait CustomValueForm
             $select = $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
                     return $parent_custom_table->getOptions($value, null, false, true);
-            });
+                });
             $select->required();
             if (isset($select_parent)) {
                 // set select default value
@@ -332,7 +332,7 @@ EOT;
     protected function manageFormSaved($form, $select_parent = null)
     {
         // after saving
-        $form->saved(function ($form) use($select_parent){
+        $form->saved(function ($form) use ($select_parent) {
             $form->model()->setValueAuthoritable();
             Plugin::pluginPreparing($this->plugins, 'saved');
 

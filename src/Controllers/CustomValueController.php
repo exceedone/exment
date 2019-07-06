@@ -8,7 +8,6 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
-use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
@@ -21,9 +20,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\NotifyService;
-use Exceedone\Exment\Services\MailSender;
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginInstaller;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
@@ -374,7 +370,8 @@ class CustomValueController extends AdminControllerTableBase
         return $service->sendNotifyMail($this->custom_table);
     }
 
-    protected function getNotifyService($tableKey, $id){
+    protected function getNotifyService($tableKey, $id)
+    {
         $targetid = request()->get('mail_template_id');
         if (!isset($targetid)) {
             abort(404);

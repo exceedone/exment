@@ -7,7 +7,6 @@ use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\ViewKindType;
-use Exceedone\Exment\Model\CustomViewSummary;
 
 class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -140,7 +139,7 @@ class DashboardBox extends ModelBase implements Interfaces\TemplateImporterInter
 
         // get dashboard value
         $view_column = CustomViewSummary::getSummaryViewColumn(array_get($this, $key));
-        if(!isset($view_column)){
+        if (!isset($view_column)) {
             return [
                 'table_name' => null,
                 'column_name' => null,

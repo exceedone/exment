@@ -117,7 +117,7 @@ class SystemController extends AdminControllerBase
             }
 
             // Set Role
-            if($permission_available){
+            if ($permission_available) {
                 Role::roleLoop(RoleType::SYSTEM, function ($role, $related_type) use ($request) {
                     $values = $request->input($role->getRoleName($related_type)) ?? [];
                     // array_filter

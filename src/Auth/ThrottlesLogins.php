@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Cache\RateLimiter;
 use Illuminate\Auth\Events\Lockout;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -25,7 +24,8 @@ trait ThrottlesLogins
     protected function hasTooManyLoginAttempts(Request $request)
     {
         return $this->limiter()->tooManyAttempts(
-            $this->throttleKey($request), $this->maxAttempts()
+            $this->throttleKey($request),
+            $this->maxAttempts()
         );
     }
 
@@ -38,7 +38,8 @@ trait ThrottlesLogins
     protected function incrementLoginAttempts(Request $request)
     {
         $this->limiter()->hit(
-            $this->throttleKey($request), $this->decayMinutes()
+            $this->throttleKey($request),
+            $this->decayMinutes()
         );
     }
 

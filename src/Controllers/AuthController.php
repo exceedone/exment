@@ -22,7 +22,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 {
     use AuthTrait, ThrottlesLogins;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->maxAttempts = config("exment.max_attempts", 5);
         $this->decayMinutes = config("exment.decay_minutes", 60);
 
