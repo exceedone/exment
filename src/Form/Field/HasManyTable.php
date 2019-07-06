@@ -293,21 +293,19 @@ EOT;
      */
     public function prepare($value)
     {
-        if (!isset($this->rowUpDown)) {
-            return $value;
-        }
-        if (is_null($value) || !is_array($value)) {
-            return $value;
+        // if enable rowUpDown, remove row
+        if (isset($this->rowUpDown) && (!is_null($value) && is_array($value))) {
+            $order = 1;
+            foreach ($value as &$v) {
+                if ($v[Form::REMOVE_FLAG_NAME] == 1) {
+                    continue;
+                }
+                array_set($v, $this->rowUpDown, $order++);
+            }
         }
 
-        $order = 1;
-        foreach ($value as &$v) {
-            if ($v[Form::REMOVE_FLAG_NAME] == 1) {
-                continue;
-            }
-            array_set($v, $this->rowUpDown, $order++);
-        }
-        return $value;
+        // call parent prepare
+        return parent::prepare($value);
     }
 
     /**
