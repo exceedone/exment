@@ -15,7 +15,7 @@ class File extends CustomItem
      */
     public function file()
     {
-        return ExmentFile::getFile($this->value);
+        return ExmentFile::getFile($this->fileValue());
     }
 
     /**
@@ -24,8 +24,8 @@ class File extends CustomItem
     public function html()
     {
         // get image url
-        $url = ExmentFile::getUrl($this->value);
-        $file = ExmentFile::getData($this->value);
+        $url = ExmentFile::getUrl($this->fileValue());
+        $file = ExmentFile::getData($this->fileValue());
         if (!isset($url)) {
             return $url;
         }
@@ -86,5 +86,22 @@ class File extends CustomItem
         
         // return filename
         return $exmentfile->local_filename;
+    }
+
+    /**
+     * Get File Value. checking array
+     *
+     * @return void
+     */
+    protected function fileValue(){
+        if(is_null($this->value)){
+            return null;
+        }
+
+        if(is_array($this->value)){
+            return count($this->value) == 0 ? null : $this->value[0];
+        }
+
+        return $this->value;
     }
 }
