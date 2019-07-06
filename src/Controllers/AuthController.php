@@ -7,9 +7,9 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
+use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
-use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
@@ -24,7 +24,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
     public function __construct(){
         $this->maxAttempts = config("exment.max_attempts", 5);
-        $this->decayMinutes = config("exment.decay_minutes", 10);
+        $this->decayMinutes = config("exment.decay_minutes", 60);
+
+        $this->throttle = config("exment.throttle", true);
     }
 
     /**
@@ -39,7 +41,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         // If the class is using the ThrottlesLogins trait, we can automatically throttle
         // the login attempts for this application. We'll key this by the username and
         // the IP address of the client making these requests into this application.
-        if ($this->hasTooManyLoginAttempts($request)) {
+        if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
             $this->fireLockoutEvent($request);
 
             return $this->sendLockoutResponse($request);
@@ -123,9 +125,20 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             );
         }
 
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
         // check exment user
         $exment_user = $this->getExmentUser($provider_user);
         if ($exment_user === false) {
+            $this->incrementLoginAttempts($request);
+
             return redirect($error_url)->withInput()->withErrors(
                 [$this->username() => exmtrans('login.noexists_user')]
             );
@@ -142,6 +155,8 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         )) {
             return $this->sendLoginResponse($request);
         }
+
+        $this->incrementLoginAttempts($request);
 
         return redirect($error_url)->withInput()->withErrors([$this->username() => $this->getFailedLoginMessage()]);
     }

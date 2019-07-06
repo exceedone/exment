@@ -237,7 +237,37 @@ return [
     |
     */
     'mail_setting_env_force' => env('EXMENT_MAIL_SETTING_ENV_FORCE', false),
-  
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login throttle
+    |--------------------------------------------------------------------------
+    |
+    | Whether check login throttle. If true, and too many login attempts, cannot login.
+    |
+    */
+    'throttle' => env('EXMENT_THROTTLE', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Max Attempts
+    |--------------------------------------------------------------------------
+    |
+    | If you fail to login after this number of times, will not be able to login for a certain period of time.
+    |
+    */
+    'max_attempts' => env('EXMENT_MAX_ATTEMPTS', 5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Decay Minutes
+    |--------------------------------------------------------------------------
+    |
+    | It is time (minutes) that can not log in.
+    |
+    */
+    'decay_minutes' => env('EXMENT_DECAY_MINUTES', 60),
+
     /*
     |--------------------------------------------------------------------------
     | Expart mode
