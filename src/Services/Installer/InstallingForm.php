@@ -8,7 +8,7 @@ use Exceedone\Exment\Enums\InitializeStatus;
  */
 class InstallingForm
 {
-    use InstallFormTrait;
+    use EnvTrait;
 
     public function index()
     {

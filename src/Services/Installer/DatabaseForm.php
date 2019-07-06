@@ -10,7 +10,7 @@ use Exceedone\Exment\Enums\InitializeStatus;
  */
 class DatabaseForm
 {
-    use InstallFormTrait;
+    use EnvTrait;
 
     protected $database_default = null;
 
