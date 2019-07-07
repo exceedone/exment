@@ -759,11 +759,11 @@ if (!function_exists('getAllCustomTables')) {
      */
     function getAllCustomTables()
     {
-        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-            return [];
-        }
-
         $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
+            if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+                return [];
+            }
+    
             // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
             $tables = DB::table(SystemTableName::CUSTOM_TABLE)->get();
             return empty($tables) ? null : $tables;
