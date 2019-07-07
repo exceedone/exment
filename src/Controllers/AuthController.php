@@ -288,8 +288,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $user = LoginUser::class;
         return $user::form(function (Form $form) {
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
+            $form->display('base_user.value.email', exmtrans('user.email'));
+            
             $form->text('base_user.value.user_name', exmtrans('user.user_name'));
-            $form->email('base_user.value.email', exmtrans('user.email'));
 
             $fileOption = array_merge(
                 Define::FILE_OPTION(),
