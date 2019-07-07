@@ -90,6 +90,15 @@ class NotifyController extends AdminControllerBase
         // TODO: only role tables
 
         $form->exmheader(exmtrans('notify.header_trigger'))->hr();
+        
+        $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
+            ->options(NotifyTrigger::transKeyArray("notify.notify_trigger_options"))
+            ->default(NotifyTrigger::TIME)
+            ->required()
+            ->config('allowClear', false)
+            ->attribute(['data-filtertrigger' =>true])
+            ->help(exmtrans("notify.help.notify_trigger"));
+
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
         ->required()
         ->options(function ($custom_table_id) {
@@ -102,13 +111,6 @@ class NotifyController extends AdminControllerBase
         )
         ])
         ->help(exmtrans("notify.help.custom_table_id"));
-
-        $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
-            ->options(NotifyTrigger::transKeyArray("notify.notify_trigger_options"))
-            ->default(NotifyTrigger::TIME)
-            ->required()
-            ->attribute(['data-filtertrigger' =>true])
-            ->help(exmtrans("notify.help.notify_trigger"));
 
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) {
             // Notify Time --------------------------------------------------
@@ -126,6 +128,7 @@ class NotifyController extends AdminControllerBase
 
             $form->number('notify_day', exmtrans("notify.notify_day"))
                 ->help(exmtrans("notify.help.notify_day"))
+                ->min(0)
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ;
             $form->select('notify_beforeafter', exmtrans("notify.notify_beforeafter"))
@@ -152,6 +155,7 @@ class NotifyController extends AdminControllerBase
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
             ->default(NotifyAction::EMAIL)
             ->required()
+            ->config('allowClear', false)
             ->help(exmtrans("notify.notify_action"))
             ;
 
