@@ -65,18 +65,30 @@ trait CustomValueForm
             $parent_custom_table = $relation->parent_custom_table;
             $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
-            $select = $form->select('parent_id', $parent_custom_table->table_view_name)
+            // if create data and not has $select_parent, select item
+            if(!isset($id) && !isset($select_parent)){
+                $select = $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
                     return $parent_custom_table->getOptions($value, null, false, true);
                 });
-            $select->required();
-            if (isset($select_parent)) {
-                // set select default value
-                $select->default($select_parent);
+                $select->required();
+
+                // set select options
+                if (!$parent_custom_table->isGetOptions()) {
+                    $select->ajax($parent_custom_table->getOptionAjaxUrl());
+                }
             }
-            // set select options
-            if (!$parent_custom_table->isGetOptions()) {
-                $select->ajax($parent_custom_table->getOptionAjaxUrl());
+            // if edit data or has $select_parent, only display
+            else{
+                if($request->has('parent_id')){
+                    $parent_id = $request->get('parent_id');
+                }else{
+                    $parent_id = isset($select_parent) ? $select_parent : $classname::find($id)->parent_id;
+                }
+                $parent_value = $parent_custom_table->getValueModel($parent_id);
+
+                $form->hidden('parent_id')->default($parent_id);
+                $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label); 
             }
         }
 

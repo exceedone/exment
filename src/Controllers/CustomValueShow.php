@@ -131,18 +131,28 @@ trait CustomValueShow
 
             // if modal, disable list and delete
             $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
-                if (count($this->custom_table->getRelationTables()) > 0) {
-                    $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
-                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-purple" title="'. exmtrans('search.header_relation') . '">
-                            <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
-                        </a>
-                    </div>');
-                }
-
                 if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
-                } else {
+
+                    $tools->append(view('exment::tools.button', [
+                        'href' => $custom_value->getUrl(),
+                        'label' => trans('admin.show'),
+                        'icon' => 'fa-eye',
+                        'btn_class' => 'btn-default',
+                    ]));
+                }
+
+                if (count($this->custom_table->getRelationTables()) > 0) {
+                    $tools->append(view('exment::tools.button', [
+                        'href' => $custom_value->getRelationSearchUrl(true),
+                        'label' => exmtrans('search.header_relation'),
+                        'icon' => 'fa-compress',
+                        'btn_class' => 'btn-purple',
+                    ]));
+                }
+
+                if (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
