@@ -213,6 +213,7 @@ class Define
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
+    public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
