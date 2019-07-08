@@ -4,6 +4,10 @@
 
         <form action="{{ admin_url('auth-2factor/verify') }}" method="post">
             <div class="form-group has-feedback {!! !$errors->has('verify_code') ?: 'has-error' !!}">
+                <p>
+                    {{ exmtrans('2factor.message.google.verify') }}
+                </p>
+
                 @if($errors->has('verify_code')) @foreach($errors->get('verify_code') as $message)
                 <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                 @endforeach @endif
@@ -20,6 +24,7 @@
         </form>
 
         <div style="margin:10px 0; text-align:center;">
+            <p><a href="{{admin_url('auth-2factor/google/sendmail')}}">{{ exmtrans('2factor.message.google.resend') }}</a></p>
             <p><a href="{{admin_url('auth-2factor/logout')}}">{{ trans('admin.back') }}</a></p>
         </div>
         

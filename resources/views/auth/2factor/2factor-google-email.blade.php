@@ -2,7 +2,7 @@
 @section('content')
         <p class="login-box-msg">{{ exmtrans('2factor.2factor') }}</p>
 
-        <form action="{{ admin_url('auth-2factor/google/sendmail') }}" method="post">
+        <form action="{{ admin_url('auth-2factor/google/sendmail') }}" method="get">
             <div class="form-group has-feedback {!! !$errors->has('verify_code') ?: 'has-error' !!}">
                 <p>
                     {!! $message_available !!}
@@ -11,7 +11,6 @@
             
             <div class="row">
                 <div class="col-xs-12 col-sm-8 col-sm-offset-2">
-                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-primary btn-block btn-flat">{{ trans('admin.submit') }}</button>
                 </div>
             </div>

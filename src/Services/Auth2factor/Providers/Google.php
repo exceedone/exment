@@ -32,7 +32,7 @@ class Google
         // if not available, send email
         if (!boolval($loginUser->auth2fa_available)) {
             return view('exment::auth.2factor.2factor-google-email', $this->getLoginPageData([
-                'message_available' => exmtrans('2factor.message.google_message_available')
+                'message_available' => exmtrans('2factor.message.google.message_available')
             ]));
         }
 
@@ -103,8 +103,19 @@ class Google
         );
         $qrSrc = base64_encode(\QrCode::format('png')->size(200)->generate($qrUrl));
 
+        // android and iphone url
+        $urlAndroid = 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2';
+        $urlIphone = 'https://apps.apple.com/jp/app/google-authenticator/id388497605';
+
+        $qrSrcAndroid = base64_encode(\QrCode::format('png')->size(100)->generate($urlAndroid));
+        $qrSrcIphone = base64_encode(\QrCode::format('png')->size(100)->generate($urlIphone));
+
         return view('exment::auth.2factor.2factor-google-register', $this->getLoginPageData([
             'qrSrc' => $qrSrc,
+            'qrSrcAndroid' => $qrSrcAndroid,
+            'qrSrcIphone' => $qrSrcIphone,
+            'urlAndroid' => $urlAndroid,
+            'urlIphone' => $urlIphone,
             'code' => $verify_code,
             'key' => $key,
         ]));

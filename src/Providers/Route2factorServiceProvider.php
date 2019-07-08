@@ -34,7 +34,7 @@ class Route2factorServiceProvider extends ServiceProvider
             $router->post('auth-2factor/verify', 'Auth2factorController@verify');
             $router->get('auth-2factor/logout', 'Auth2factorController@logout');
 
-            $router->post('auth-2factor/google/sendmail', 'Auth2factorController@sendmail');
+            $router->get('auth-2factor/google/sendmail', 'Auth2factorController@sendmail');
             $router->get('auth-2factor/google/register', 'Auth2factorController@register');
         });
     }
