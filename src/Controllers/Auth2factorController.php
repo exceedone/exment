@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Providers\CustomUserProvider;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class Auth2factorController extends \Encore\Admin\Controllers\AuthController
      */
     public function index(Request $request)
     {
-        return $this->get2factorProvider()->index();
+        return Auth2factorService::getProvider()->index();
     }
     
     /** 
@@ -43,7 +44,7 @@ class Auth2factorController extends \Encore\Admin\Controllers\AuthController
      */
     public function verify(Request $request)
     {
-        return $this->get2factorProvider()->verify();
+        return Auth2factorService::getProvider()->verify();
     }
 
     /**
@@ -58,7 +59,4 @@ class Auth2factorController extends \Encore\Admin\Controllers\AuthController
         return redirect(config('admin.route.prefix'));
     }
 
-    protected function get2factorProvider(){
-        return new \Exceedone\Exment\Services\Auth2factor\Email;
-    }
 }

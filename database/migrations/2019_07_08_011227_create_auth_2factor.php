@@ -19,6 +19,7 @@ class CreateAuth2factor extends Migration
             Schema::create(SystemTableName::LOGIN_2FACTOR_VERIFY, function (Blueprint $table) {
                 $table->increments('id');
                 $table->integer('login_user_id')->unsigned();
+                $table->string('verify_type');
                 $table->string('email');
                 $table->string('verify_code');
                 $table->datetime('valid_period_datetime');

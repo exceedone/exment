@@ -19,7 +19,7 @@ class Authenticate2factor extends \Encore\Admin\Middleware\Authenticate
     public function handle($request, Closure $next)
     {
         // not use 2 factor, go next
-        if(!boolval(config('exment.use_2factor', false)) || count(config('exment.login_providers', [])) > 0){
+        if(!boolval(config('exment.use_login_2factor', false))){
             return $next($request);
         }
 

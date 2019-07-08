@@ -2,21 +2,19 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
-use Carbon\Carbon;
 
 /**
  * For login controller
@@ -72,41 +70,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     }
 
     protected function postVerifyEmail(){
-        if(!boolval(config('exment.use_2factor', false))){
+        if(!boolval(config('exment.use_login_2factor', false))){
             return;
         }
 
-        $loginuser = $this->guard()->user();
-
-        // set 2factor params
-        $verify_code = random_int(100000, 999999);
-        $valid_period_datetime = Carbon::now()->addMinute(config('exment.2factor_valid_period', 10));
-
-        // set database
-        \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
-            ->insert(
-                [
-                    'login_user_id' => $loginuser->id,
-                    'email' => $loginuser->email,
-                    'verify_code' => $verify_code,
-                    'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
-                ]
-            );
-
-        // send mail
-        try {
-            MailSender::make(MailKeyName::VERIFY_2FACTOR, $loginuser->email)
-                ->prms([
-                    'verify_code' => $verify_code,
-                    'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
-                ])
-                ->send();
-        }
-        // throw mailsend Exception
-        catch (\Swift_TransportException $ex) {
-            // show warning message
-            admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
-        }
+        $auth2factor = Auth2factorService::getProvider();
+        $auth2factor->insertVerify();
     }
 
     /**
@@ -196,6 +165,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 'password' => $provider_user->id,
             ]
         )) {
+            // set session for 2factor
+            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+
             return $this->sendLoginResponse($request);
         }
 

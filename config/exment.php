@@ -132,7 +132,7 @@ return [
     | if true, use 2 factor login.
     |
     */
-    'use_2factor' =>  env('EXMENT_USE_2FACTOR', false),
+    'use_login_2factor' =>  env('EXMENT_USE_LOGIN_2FACTOR', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -140,7 +140,7 @@ return [
     |--------------------------------------------------------------------------
     |
     */
-    '2factor_valid_period' =>  env('EXMENT_2FACTOR_VALID_PERIOD', 10),
+    'login_2factor_valid_period' =>  env('EXMENT_LOGIN_2FACTOR_VALID_PERIOD', 10),
 
     /*
     |--------------------------------------------------------------------------
@@ -148,7 +148,7 @@ return [
     |--------------------------------------------------------------------------
     |
     */
-    '2factor_provider' =>  env('EXMENT_2FACTOR_PROVIDER', 'email'),
+    'login_2factor_provider' =>  env('EXMENT_LOGIN_2FACTOR_PROVIDER', 'email'),
 
     /*
     |--------------------------------------------------------------------------
