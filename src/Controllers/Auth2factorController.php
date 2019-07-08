@@ -24,30 +24,6 @@ class Auth2factorController extends \Encore\Admin\Controllers\AuthController
     use AuthTrait;
 
     /**
-     * Handle index
-     *
-     * @param Request $request
-     *
-     * @return mixed
-     */
-    public function index(Request $request)
-    {
-        return Auth2factorService::getProvider()->index();
-    }
-    
-    /** 
-     * Handle verify posting
-     *
-     * @param Request $request
-     *
-     * @return mixed
-     */
-    public function verify(Request $request)
-    {
-        return Auth2factorService::getProvider()->verify();
-    }
-
-    /**
      * User logout.
      */
     public function logout(Request $request)
@@ -59,4 +35,22 @@ class Auth2factorController extends \Encore\Admin\Controllers\AuthController
         return redirect(config('admin.route.prefix'));
     }
 
+    /**
+     * Handle calls to missing methods on the controller.
+     *
+     * @param  string  $method
+     * @param  array   $parameters
+     * @return mixed
+     *
+     * @throws \BadMethodCallException
+     */
+    public function __call($method, $parameters)
+    {
+        $provider = Auth2factorService::getProvider();
+        if(method_exists($provider, $method)){
+            return $provider->$method();
+        }
+
+        parent::__call($method, $parameters);
+    }
 }

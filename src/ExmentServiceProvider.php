@@ -40,6 +40,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $serviceProviders = [
         ExmentProviders\RouteServiceProvider::class,
+        ExmentProviders\Route2factorServiceProvider::class,
         ExmentProviders\RouteOAuthServiceProvider::class,
         ExmentProviders\PasswordResetServiceProvider::class,
         ExmentProviders\PluginServiceProvider::class,

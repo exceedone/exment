@@ -12,6 +12,7 @@ use Exceedone\Exment\ColumnItems\FormOtherItem;
 use Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use \Html;
@@ -292,6 +293,9 @@ class Initialize
         Grid\Tools::$defaultPosition = 'right';
         Grid\Concerns\HasQuickSearch::$searchKey = 'query';
         Grid::$searchKey = 'query';
+
+        Auth2factorService::providers('email', \Exceedone\Exment\Services\Auth2factor\Providers\Email::class);
+        Auth2factorService::providers('google', \Exceedone\Exment\Services\Auth2factor\Providers\Google::class);
 
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,

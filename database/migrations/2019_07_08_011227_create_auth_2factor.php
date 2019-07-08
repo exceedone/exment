@@ -26,6 +26,13 @@ class CreateAuth2factor extends Migration
                 $table->timestamps();
             });
         }
+
+        if(\Schema::hasTable('login_users') && !\Schema::hasColumn('login_users', 'auth2fa_key')){
+            Schema::table('login_users', function (Blueprint $table) {
+                $table->text('auth2fa_key')->nullable()->after('avatar');
+                $table->boolean('auth2fa_available')->default(false)->after('auth2fa_key');
+            });
+        }
     }
 
     /**
