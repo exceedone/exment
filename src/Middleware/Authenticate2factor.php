@@ -28,6 +28,8 @@ class Authenticate2factor extends \Encore\Admin\Middleware\Authenticate
             admin_base_path('auth-2factor'),
             admin_base_path('auth-2factor/verify'),
             admin_base_path('auth-2factor/logout'),
+            admin_base_path('auth-2factor/google/sendmail'),
+            admin_base_path('auth-2factor/google/register'),
         ];
         foreach ($excepts as $except) {
             if ($except !== '/') {
