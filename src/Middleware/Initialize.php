@@ -294,6 +294,7 @@ class Initialize
         Grid::$searchKey = 'query';
 
         $map = [
+            'ajaxButton'        => Field\AjaxButton::class,
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,

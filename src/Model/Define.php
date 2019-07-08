@@ -171,6 +171,8 @@ class Define
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
         'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
+        'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
+        'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
     ];
 
     public const SYSTEM_SKIN = [

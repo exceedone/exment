@@ -66,6 +66,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/update', 'SystemController@updatePackage');
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->get('system/version', 'SystemController@version');
+            $router->post('system/2factor-verify', 'SystemController@auth_2factor_verify');
+            $router->post('system/2factor', 'SystemController@post2factor');
             
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

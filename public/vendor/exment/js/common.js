@@ -141,6 +141,9 @@ var Exment;
             }
         };
         CommonEvent.redirectCallback = function (res) {
+            if (hasValue(res.reload) && res.reload === false) {
+                return;
+            }
             if (hasValue(res.redirect)) {
                 $.pjax({ container: '#pjax-container', url: res.redirect });
             }
@@ -784,12 +787,6 @@ var Exment;
                 var $bootstrapSwitch = $target.filter('[type="checkbox"]');
                 $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
             }
-            // if 'select', set as select2
-            // if ($.inArray(column_type, ['select', 'select_valtext', 'select_table', 'user', 'organization']) != -1) {
-            //     //$target.select2('val', value);
-            //     $target.val(value).trigger('change');
-            //     return;
-            // }
             // set value
             $target.val(value).trigger('change');
         };

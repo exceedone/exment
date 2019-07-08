@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -70,7 +71,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     }
 
     protected function postVerifyEmail(){
-        if(!boolval(config('exment.use_login_2factor', false))){
+        if(!boolval(System::login_use_2factor())){
             return;
         }
 

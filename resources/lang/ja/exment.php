@@ -55,6 +55,7 @@ return [
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
             'exists_row' => '%sは必ず1行以上入力してください。',
+            'sendmail_succeeded' => 'メールを送信しました。',
         ],
 
         'help' =>[
@@ -414,10 +415,21 @@ return [
     '2factor' => [
         '2factor' => '2段階認証',
         'login' => '認証',
+        'submit_verify_code' => '認証コード送信',
+        'login_use_2factor' => '2段階認証を使用する',
+        'login_2factor_provider' => '認証方式',
+        'login_2factor_verify_code' => '認証コード',
+
         'message' => [
+            'description' => '2段階認証を使用する場合、この画面で設定を行います。 ※2段階認証では、メール送信機能が必須となるため、はじめにメールの疎通確認が必要です。',
             'email_send_verify' => 'ご利用のEメールアドレスに、認証コードを送信しました。メールをご確認いただき、認証コードを入力してください。<br />※認証コードの有効期間は%s分間です。',
             'input_number' => '6桁の認証コードを入力',
             'verify_failed' => '認証に失敗しました。認証コードが間違っているか、有効期限が終了しています。',
+        ],
+        'help' => [
+            'login_use_2factor' => 'Exmentで2段階認証を使用してログインする場合に、YESに設定してください。',
+            'submit_verify_code' => 'メールを正常に送信できるかどうかを検証するために、現在ログインしているユーザーのメールアドレスに、認証コードを送信します。',
+            'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
         ],
     ],
 

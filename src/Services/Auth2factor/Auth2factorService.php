@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Services\Auth2factor;
 
+use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -38,12 +40,95 @@ class Auth2factorService
     }
 
     public static function getProvider(){
-        $provider = config('exment.login_2factor_provider', 'email');
+        $provider = System::login_2factor_provider();
 
         if(!array_has(static::$providers, $provider)){
             throw new \Exception("Login 2factor provider [$provider] does not exist.");
         }
 
         return new static::$providers[$provider];        
+    }
+
+    /**
+     * Verify code
+     *
+     * @param string $verify_type
+     * @param string $verify_code
+     * @param bool $matchDelete if true, remove match records
+     * @return bool
+     */
+    public static function verifyCode($verify_type, $verify_code, $matchDelete = false){
+        $loginuser = \Admin::user();
+
+        // remove old datetime value
+        \DB::table('login_2factor_verifies')
+            ->where('valid_period_datetime', '<', \Carbon\Carbon::now())
+            ->delete();
+
+        // get from database
+        $query = \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
+            ->where('verify_code', $verify_code)
+            ->where('verify_type', $verify_type)
+            ->where('email', $loginuser->email)
+            ->where('login_user_id', $loginuser->id);
+
+        if($query->count() == 0){
+            return false;
+        }
+
+        $verify = $query->first();
+
+        if($matchDelete){
+            static::deleteCode($verify_type, $verify_code);
+        }
+
+        return $verify;
+    }
+
+    /**
+     * Add database and Send verify
+     *
+     * @param string $verify_type
+     * @param string $verify_code
+     * @param bool $matchDelete if true, remove match records
+     * @return bool
+     */
+    public static function addAndSendVerify($verify_type, $verify_code, $valid_period_datetime, $mail_template, $mail_prms = []){
+        $loginuser = \Admin::user();
+
+        // set database
+        \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
+            ->insert(
+                [
+                    'login_user_id' => $loginuser->id,
+                    'email' => $loginuser->email,
+                    'verify_code' => $verify_code,
+                    'verify_type' => $verify_type,
+                    'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
+                ]
+            );
+
+        // send mail
+        try {
+            MailSender::make($mail_template, $loginuser->email)
+                ->prms($mail_prms)
+                ->send();
+
+                return true;
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
+            return false;
+        }
+    }
+
+    public static function deleteCode($verify_type, $verify_code){
+        $loginuser = \Admin::user();
+        \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
+            ->where('verify_code', $verify_code)
+            ->where('verify_type', $verify_type)
+            ->where('email', $loginuser->email)
+            ->where('login_user_id', $loginuser->id)
+            ->delete();
     }
 }
