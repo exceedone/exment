@@ -88,11 +88,15 @@ class NotifyTarget
             $custom_column = CustomColumn::getEloquent($column, $custom_table);
             
             if (!isset($custom_column)) {
-                return null;
+                return [];
             }
     
             // get target's value
             $target_value = $custom_value->getValue($custom_column);
+    
+            if (!isset($target_value)) {
+                return [];
+            }
     
             if (!is_array($target_value)) {
                 $target_value = [$target_value];
@@ -115,7 +119,7 @@ class NotifyTarget
                         if(!isset($user)){
                             continue;
                         }
-                        
+
                         $result[] = static::getModelAsSelectTable($user);
                     }
                 }
