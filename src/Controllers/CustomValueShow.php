@@ -93,11 +93,15 @@ trait CustomValueShow
                         $grid->disableFilter();
                         $grid->disableCreateButton();
                         $grid->disableExport();
-                        $grid->tools(function ($tools) use ($table_name, $id) {
-                            $tools->append(view(
-                                'exment::custom-value.new-button',
-                                ['table_name' => $table_name, 'params' => ['select_parent' => $id]]
-                            ));
+                        $grid->tools(function ($tools) use ($table_name, $id, $custom_form_block) {
+                            // Add new button if one_to_many
+                            if($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY){
+                                $tools->append(view(
+                                    'exment::custom-value.new-button',
+                                    ['table_name' => $table_name, 'params' => ['select_parent' => $id]]
+                                ));    
+                            }
+
                             $tools->batch(function ($batch) {
                                 $batch->disableDelete();
                             });
