@@ -112,6 +112,10 @@ class NotifyTarget
                     // get organization user
                     foreach ($v->users as $user) {
                         // get email address
+                        if(!isset($user)){
+                            continue;
+                        }
+                        
                         $result[] = static::getModelAsSelectTable($user);
                     }
                 }
@@ -190,6 +194,10 @@ class NotifyTarget
 
         $list = [];
         foreach ($users as $user) {
+            if(!isset($user)){
+                continue;
+            }
+
             $list[] = static::getModelAsSelectTable($user, $email_column, null);
         }
 
