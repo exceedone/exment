@@ -58,7 +58,7 @@ class CustomTableController extends AdminControllerBase
             // add new multiple columns
             $linker = (new Linker)
                 ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
-                ->icon('fa-exchange')
+                ->icon('fa-cogs')
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
                 
@@ -196,7 +196,7 @@ class CustomTableController extends AdminControllerBase
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
                     'label' => exmtrans('custom_table.expand_setting'),
-                    'icon' => 'fa-exchange',
+                    'icon' => 'fa-cogs',
                 ]));
 
                 $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
@@ -332,6 +332,8 @@ HTML;
         }
 
         $form->tools(function (Form\Tools $tools) use ($id) {
+            $tools->disableDelete();
+            
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
