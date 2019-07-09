@@ -99,6 +99,10 @@ class NotifyTarget
             }
     
             foreach ($target_value as $v) {
+                if (!isset($v)) {
+                    continue;
+                }
+
                 // if email, return as only email
                 if ($custom_column->column_type == ColumnType::EMAIL) {
                     $result[] =  static::getModelAsEmail($v);
