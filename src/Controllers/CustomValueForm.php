@@ -239,6 +239,10 @@ EOT;
             if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                 continue;
             }
+            // exclusion header and html
+            if ($form_column->form_column_type == FormColumnType::OTHER) {
+                continue;
+            }
 
             $item = $form_column->column_item;
             if (isset($id)) {
