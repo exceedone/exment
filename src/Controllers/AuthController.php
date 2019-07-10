@@ -71,7 +71,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     }
 
     protected function postVerifyEmail(){
-        if(!boolval(System::login_use_2factor())){
+        if(!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())){
             return;
         }
 

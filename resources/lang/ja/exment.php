@@ -417,7 +417,7 @@ return [
         'login' => '認証',
         'submit_verify_code' => '認証コード送信',
         'login_use_2factor' => '2段階認証を使用する',
-        'login_2factor_provider' => '認証方式',
+        'login_2factor_provider' => '既定の認証方式',
         'login_2factor_verify_code' => '認証コード',
 
         'google' => [
@@ -442,14 +442,18 @@ return [
                 'add_acount' => 'スマートフォンのGoogle認証システムに、アカウントを追加します。下記のQRコードを、アプリで読み込んでください。',
                 'input_verify_code' => 'スマートフォンのGoogle認証システムに表示されている認証コードを、下記の入力欄に記入してください。',
             ],
-    
-            
         ],
 
         'help' => [
-            'login_use_2factor' => 'Exmentで2段階認証を使用してログインする場合に、YESに設定してください。',
+            'login_use_2factor' => 'Exmentで2段階認証を使用してログインする場合に、YESに設定してください。システム全体で、2段階認証によるログインが有効になります。',
             'submit_verify_code' => 'メールを正常に送信できるかどうかを検証するために、現在ログインしているユーザーのメールアドレスに、認証コードを送信します。',
+            'login_2factor_provider' => '既定で使用する、2段階認証の方式を選択してください。この設定は、ユーザーが個別に変更できます。',
             'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
+        ],
+
+        '2factor_provider_options' => [
+            'email' => 'Eメール認証',
+            'google' => 'Google認証システム',
         ],
     ],
 

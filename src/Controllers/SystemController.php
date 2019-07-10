@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\MailSender;
@@ -78,9 +79,10 @@ class SystemController extends AdminControllerBase
             ->attribute(['data-filtertrigger' =>true]);
 
         $form->select('login_2factor_provider', exmtrans("2factor.login_2factor_provider"))
-            ->options(['email' => 'メールアドレス', 'google' => 'Google認証'])
+            ->options(Login2FactorProviderType::transKeyArray('2factor.2factor_provider_options'))
             ->config('allowClear', false)
             ->default('email')
+            ->help(exmtrans("2factor.help.login_2factor_provider"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 
         $form->ajaxButton('login_2factor_verify_button', exmtrans("2factor.submit_verify_code"))
