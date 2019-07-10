@@ -7,6 +7,8 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
@@ -337,8 +339,22 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
+            // show 2factor setting if use
+            if(boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())){
+                $login_2factor_provider = \Exment::user()->getSettingValue(
+                    implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
+                    System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
+                );
+
+                $form->select('login_2factor_provider', exmtrans("2factor.login_2factor_provider_user"))
+                    ->options(Login2FactorProviderType::transKeyArray('2factor.2factor_provider_options'))
+                    ->config('allowClear', false)
+                    ->default($login_2factor_provider)
+                    ->help(exmtrans("2factor.help.login_2factor_provider_user"));
+            }
+
             $form->setAction(admin_url('auth/setting'));
-            $form->ignore(['password_confirmation', 'old_password']);
+            $form->ignore(['password_confirmation', 'old_password', 'login_2factor_provider']);
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
             });
@@ -351,6 +367,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 } elseif ($form_password && $form->model()->password != $form_password) {
                     $form->password = $form_password;
                 }
+
+                \Exment::user()->setSettingValue(
+                    implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
+                    request()->get('login_2factor_provider')
+                );
+
             });
             
             $form->saved(function ($form) {

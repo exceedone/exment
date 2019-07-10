@@ -8,6 +8,8 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Providers\CustomUserProvider;
@@ -40,7 +42,10 @@ class Auth2factorService
     }
 
     public static function getProvider(){
-        $provider = System::login_2factor_provider();
+        $provider = \Exment::user()->getSettingValue(
+            implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
+            System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
+        );
 
         if(!array_has(static::$providers, $provider)){
             throw new \Exception("Login 2factor provider [$provider] does not exist.");

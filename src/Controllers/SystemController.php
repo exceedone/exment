@@ -81,7 +81,7 @@ class SystemController extends AdminControllerBase
         $form->select('login_2factor_provider', exmtrans("2factor.login_2factor_provider"))
             ->options(Login2FactorProviderType::transKeyArray('2factor.2factor_provider_options'))
             ->config('allowClear', false)
-            ->default('email')
+            ->default(Login2FactorProviderType::EMAIL)
             ->help(exmtrans("2factor.help.login_2factor_provider"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 
@@ -301,6 +301,9 @@ class SystemController extends AdminControllerBase
                 'reload' => false,
             ]);
         }
+
+        // set session for 2factor
+        session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
 
         return getAjaxResponse([
             'result'  => true,

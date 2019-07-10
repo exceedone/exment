@@ -418,6 +418,7 @@ return [
         'submit_verify_code' => '認証コード送信',
         'login_use_2factor' => '2段階認証を使用する',
         'login_2factor_provider' => '既定の認証方式',
+        'login_2factor_provider_user' => '2段階認証の認証方式',
         'login_2factor_verify_code' => '認証コード',
 
         'google' => [
@@ -448,6 +449,7 @@ return [
             'login_use_2factor' => 'Exmentで2段階認証を使用してログインする場合に、YESに設定してください。システム全体で、2段階認証によるログインが有効になります。',
             'submit_verify_code' => 'メールを正常に送信できるかどうかを検証するために、現在ログインしているユーザーのメールアドレスに、認証コードを送信します。',
             'login_2factor_provider' => '既定で使用する、2段階認証の方式を選択してください。この設定は、ユーザーが個別に変更できます。',
+            'login_2factor_provider_user' => '2段階認証の方式を選択してください。',
             'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
         ],
 
