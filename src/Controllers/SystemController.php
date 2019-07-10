@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Role;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;

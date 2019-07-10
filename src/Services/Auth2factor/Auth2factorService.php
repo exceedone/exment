@@ -25,6 +25,8 @@ use Exceedone\Exment\Controllers\AuthTrait;
  */
 class Auth2factorService
 {
+    protected const VERIFY_TYPE_2FACTOR = '2factor_';
+
     protected static $providers = [
     ];
 
@@ -66,14 +68,14 @@ class Auth2factorService
         $loginuser = \Admin::user();
 
         // remove old datetime value
-        \DB::table('login_2factor_verifies')
+        \DB::table('email_code_verifies')
             ->where('valid_period_datetime', '<', \Carbon\Carbon::now())
             ->delete();
 
         // get from database
-        $query = \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
+        $query = \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_code', $verify_code)
-            ->where('verify_type', $verify_type)
+            ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
             ->where('email', $loginuser->email)
             ->where('login_user_id', $loginuser->id);
 
@@ -102,13 +104,13 @@ class Auth2factorService
         $loginuser = \Admin::user();
 
         // set database
-        \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
+        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->insert(
                 [
                     'login_user_id' => $loginuser->id,
                     'email' => $loginuser->email,
                     'verify_code' => $verify_code,
-                    'verify_type' => $verify_type,
+                    'verify_type' => static::VERIFY_TYPE_2FACTOR . $verify_type,
                     'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
                 ]
             );
@@ -129,9 +131,9 @@ class Auth2factorService
 
     public static function deleteCode($verify_type, $verify_code){
         $loginuser = \Admin::user();
-        \DB::table(SystemTableName::LOGIN_2FACTOR_VERIFY)
+        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_code', $verify_code)
-            ->where('verify_type', $verify_type)
+            ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
             ->where('email', $loginuser->email)
             ->where('login_user_id', $loginuser->id)
             ->delete();

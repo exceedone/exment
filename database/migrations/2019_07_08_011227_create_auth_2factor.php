@@ -15,10 +15,10 @@ class CreateAuth2factor extends Migration
     public function up()
     {
 
-        if(!\Schema::hasTable(SystemTableName::LOGIN_2FACTOR_VERIFY)){
-            Schema::create(SystemTableName::LOGIN_2FACTOR_VERIFY, function (Blueprint $table) {
+        if(!\Schema::hasTable(SystemTableName::EMAIL_CODE_VERIFY)){
+            Schema::create(SystemTableName::EMAIL_CODE_VERIFY, function (Blueprint $table) {
                 $table->increments('id');
-                $table->integer('login_user_id')->unsigned();
+                $table->integer('login_user_id')->unsigned()->nullable();
                 $table->string('verify_type');
                 $table->string('email');
                 $table->string('verify_code');
@@ -43,6 +43,6 @@ class CreateAuth2factor extends Migration
     public function down()
     {
         //
-        Schema::dropIfExists(SystemTableName::LOGIN_2FACTOR_VERIFY);
+        Schema::dropIfExists(SystemTableName::EMAIL_CODE_VERIFY);
     }
 }
