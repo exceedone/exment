@@ -13,12 +13,15 @@ use Exceedone\Exment\ColumnItems\ParentItem;
 class DefaultTableProvider extends ProviderBase
 {
     protected $primary_key;
+    protected $filter;
 
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
 
         $this->primary_key = array_get($args, 'primary_key', 'id');
+
+        $this->filter = array_get($args, 'filter');
     }
 
     /**
@@ -45,6 +48,11 @@ class DefaultTableProvider extends ProviderBase
 
             // combine value
             $value_custom = array_combine($headers, $value);
+
+            // filter data
+            if ($this->filterData($value_custom)){
+                continue;
+            }
 
             ///// convert data first.
             $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom, $options);
@@ -289,5 +297,23 @@ class DefaultTableProvider extends ProviderBase
         $model->save();
 
         return $model;
+    }
+
+    /**
+     * check filter data
+     */
+    protected function filterData($value_custom)
+    {
+        $is_filter = false;
+        if (is_array($this->filter) && count($this->filter) > 0) {
+            foreach($this->filter as $key => $list) {
+                $value = array_get($value_custom, $key);
+                if (!isset($value) || !in_array($value, $list)) {
+                    $is_filter = true;
+                    break;
+                }
+            }
+        }
+        return $is_filter;
     }
 }
