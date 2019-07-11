@@ -796,8 +796,9 @@ var Exment;
         CommonEvent.addSelect2 = function () {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem) {
                 var $elem = $(elem);
+                var allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;
                 var options = {
-                    "allowClear": true, "placeholder": $elem.data('add-select2'), width: '100%'
+                    "allowClear": allowClear, "placeholder": $elem.data('add-select2'), width: '100%'
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
                     options['ajax'] = {
