@@ -175,6 +175,7 @@ class NotifyController extends AdminControllerBase
             $form->select('mail_template_id', exmtrans("notify.mail_template_id"))->options(function ($val) {
                 return getModelName(SystemTableName::MAIL_TEMPLATE)::all()->pluck('label', 'id');
             })->help(exmtrans("notify.help.mail_template_id"))
+            ->config('allowClear', false)
             ->default($notify_mail_id)->required();
         })->disableHeader();
         
