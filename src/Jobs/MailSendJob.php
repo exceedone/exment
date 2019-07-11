@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
 use Illuminate\Database\Eloquent\Collection;
@@ -135,6 +136,8 @@ class MailSendJob extends JobBase
     {
         if ($user instanceof CustomValue) {
             return $user->id;
+        } elseif ($user instanceof LoginUser) {
+            return $user->base_user_id;
         } elseif ($user instanceof NotifyTarget) {
             return $user->id();
         }

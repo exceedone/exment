@@ -110,6 +110,7 @@ class Auth2factorService
         try {
             MailSender::make($mail_template, $loginuser->email)
                 ->prms($mail_prms)
+                ->user($loginuser)
                 ->disableHistoryBody()
                 ->send();
 
