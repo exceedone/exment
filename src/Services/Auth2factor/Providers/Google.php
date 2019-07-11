@@ -199,4 +199,15 @@ class Google
         $g2fa = new Google2FA();
         return $g2fa;
     }
+    
+    /**
+     * Get the login username to be used by the controller.
+     *
+     * @return string
+     */
+    protected function username()
+    {
+        return 'username';
+    }
+
 }

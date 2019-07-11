@@ -93,4 +93,15 @@ class Email
             admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
         }
     }
+    
+    /**
+     * Get the login username to be used by the controller.
+     *
+     * @return string
+     */
+    protected function username()
+    {
+        return 'username';
+    }
+
 }
