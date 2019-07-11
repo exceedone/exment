@@ -18,7 +18,7 @@
             <div class="row">
                 <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block btn-flat">{{ exmtrans('2factor.login') }}</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-flat submit_disabled">{{ exmtrans('2factor.login') }}</button>
                 </div>
             </div>
         </form>

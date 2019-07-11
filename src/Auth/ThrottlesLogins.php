@@ -50,14 +50,18 @@ trait ThrottlesLogins
      * @return void
      * @throws \Illuminate\Validation\ValidationException
      */
-    protected function sendLockoutResponse(Request $request)
+    protected function sendLockoutResponse(Request $request, $errorKey = null)
     {
+        if(!isset($errorKey)){
+            $errorKey = $this->username();
+        }
+
         $seconds = $this->limiter()->availableIn(
             $this->throttleKey($request)
         );
 
         throw ValidationException::withMessages([
-            $this->username() => exmtrans('login.throttle', ceil($seconds / 60)),
+            $errorKey => exmtrans('login.throttle', ceil($seconds / 60)),
         ])->status(429);
     }
 

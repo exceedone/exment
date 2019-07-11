@@ -46,6 +46,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/fullcalendar/daygrid/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/list/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/timegrid/main.min.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/js/common_all.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
 
         // add admin_url and file delete confirm
