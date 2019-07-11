@@ -61,6 +61,9 @@ class PatchDataCommand extends Command
             case '2factor':
                 $this->import2factorTemplate();
                 return;
+            case 'system_flg_column':
+                $this->patchSystemFlgColumn();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -188,5 +191,38 @@ class PatchDataCommand extends Command
             ]))
             ->format($format);
         $service->import($path);
+    }
+    
+    /**
+     * system flg patch
+     *
+     * @return void
+     */
+    protected function patchSystemFlgColumn()
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template';
+        $configPath = "$templates_data_path/config.json";
+
+        $json = json_decode(\File::get($configPath), true);
+
+        // re-loop columns. because we have to get other column id --------------------------------------------------
+        foreach (array_get($json, "custom_tables", []) as $table) {
+            // find tables. --------------------------------------------------
+            $obj_table = CustomTable::getEloquent(array_get($table, 'table_name'));
+            // get columns. --------------------------------------------------
+            if (array_key_exists('custom_columns', $table)) {
+                foreach (array_get($table, 'custom_columns') as $column) {
+                    if(boolval(array_get($column, 'system_flg'))){
+                        $obj_column = CustomColumn::getEloquent(array_get($column, 'column_name'), $obj_table);
+                        if(!isset($obj_column)){
+                            continue;
+                        }
+                        $obj_column->system_flg = true;
+                        $obj_column->save();
+                    }
+                }
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ use Exceedone\Exment\Enums\TemplateImportResult;
 
 trait TemplateTrait
 {
-    protected static $defaultExcepts = ['id', 'created_at', 'updated_at', 'created_user_id', 'updated_user_id'];
+    protected static $defaultExcepts = ['id', 'created_at', 'updated_at', 'created_user_id', 'updated_user_id', 'disabled_delete'];
 
     // Description for $templateItems.
     // This is template setting for template import and export.

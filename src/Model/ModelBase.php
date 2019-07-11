@@ -27,6 +27,16 @@ class ModelBase extends Model
         return $this->getUser('updated_user_id', true);
     }
 
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return false;
+    }
+
     public static function getTableName()
     {
         return with(new static)->getTable();
