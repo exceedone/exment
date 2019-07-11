@@ -21,7 +21,7 @@ trait CustomValueGrid
      *
      * @return Grid
      */
-    protected function grid()
+    protected function grid($filter_func = null)
     {
         $classname = $this->getModelNameDV();
         $grid = new Grid(new $classname);
@@ -37,7 +37,7 @@ trait CustomValueGrid
         $this->manageRowAction($grid);
 
         // filter
-        Admin::user()->filterModel($grid->model(), $this->custom_table->table_name, $this->custom_view);
+        Admin::user()->filterModel($grid->model(), $this->custom_table->table_name, $this->custom_view, $filter_func);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
