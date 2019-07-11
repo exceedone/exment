@@ -5,8 +5,8 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 
 class ClassBuilder
@@ -256,12 +256,9 @@ class ClassBuilder
         });
 
         // especially flow if table is user --------------------------------------------------
-        if ($table->table_name == SystemTableName::USER) {
-            $builder->addInUse('\Exceedone\Exment\Model\Traits\UserTrait');
-        } elseif ($table->table_name == SystemTableName::ORGANIZATION) {
-            $builder->addInUse('\Exceedone\Exment\Model\Traits\OrganizationTrait');
+        if (array_has(Define::CUSTOM_VALUE_TRAITS, $table->table_name)) {
+            $builder->addInUse(Define::CUSTOM_VALUE_TRAITS[$table->table_name]);
         }
-
         
         $builder->build();
     }

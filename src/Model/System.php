@@ -133,6 +133,7 @@ class System extends ModelBase
                 return $record->system_name == $name;
             }, false)->first();
 
+            $type = array_get($setting, 'type');
             $value = null;
             
             // if has data, return setting value or default value
@@ -142,13 +143,17 @@ class System extends ModelBase
             // if don't has data, but has config value in Define, return value from config
             elseif (!is_null(array_get($setting, 'config'))) {
                 $value = Config::get(array_get($setting, 'config'));
+
+                // if password, return
+                if ($type == 'password') {
+                    return $value;
+                }
             }
             // if don't has data, but has default value in Define, return default value
             elseif (!is_null(array_get($setting, 'default'))) {
                 $value = array_get($setting, 'default');
             }
     
-            $type = array_get($setting, 'type');
             if ($type == 'boolean') {
                 $value = boolval($value);
             } elseif ($type == 'int') {
@@ -161,6 +166,11 @@ class System extends ModelBase
                 $value = is_null($value) ? [] : explode(',', $value);
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
+            } elseif ($type == 'password') {
+                try {
+                    $value = is_null($value) ? null : decrypt($value);
+                } catch (\Exception $ex) {
+                }
             }
             return $value;
         });
@@ -203,6 +213,8 @@ class System extends ModelBase
             if (!is_null($value) && !is_null($old_value)) {
                 Storage::disk(config('admin.upload.disk'))->delete($old_value);
             }
+        } elseif ($type == 'password') {
+            $system->system_value = is_null($value) ? null : encrypt($value);
         } else {
             $system->system_value = $value;
         }

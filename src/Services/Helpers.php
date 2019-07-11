@@ -686,6 +686,20 @@ if (!function_exists('getCustomTableTrait')) {
     }
 }
 
+if (!function_exists('canConnection')) {
+    /**
+     * whether database canConnection
+     * @return bool
+     */
+    function canConnection()
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
+            // get all table names
+            return DB::canConnection();
+        });
+    }
+}
+
 if (!function_exists('hasTable')) {
     /**
      * whether database has table
@@ -745,15 +759,22 @@ if (!function_exists('getAllCustomTables')) {
      */
     function getAllCustomTables()
     {
-        if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-            return [];
-        }
-
-        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, function () {
+        $callback = function () {
+            if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
+                return [];
+            }
+    
             // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
             $tables = DB::table(SystemTableName::CUSTOM_TABLE)->get();
-            return empty($tables) ? null : $tables;
-        }) ?? [];
+            return $tables;
+        };
+
+        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, $callback) ?? [];
+
+        // if empty, re-get again item(for support first install)
+        if (empty($tables)) {
+            $tables = $callback();
+        }
 
         return $tables;
     }
@@ -1211,7 +1232,7 @@ if (!function_exists('getAjaxResponse')) {
             'errors' => [],
         ], $results);
 
-        return response($results, $results['result'] === true ? 200 : 400);
+        return response()->json($results, $results['result'] === true ? 200 : 400);
     }
 }
 

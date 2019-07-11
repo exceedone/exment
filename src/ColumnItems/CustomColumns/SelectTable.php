@@ -54,7 +54,7 @@ class SelectTable extends CustomItem
         }
 
         $value = is_array($this->value) ? $this->value : [$this->value];
-        $texts = [];
+        $result = [];
 
         foreach ($value as $v) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->target_table->table_name, $v);
@@ -63,9 +63,6 @@ class SelectTable extends CustomItem
             });
             if (is_null($model)) {
                 return null;
-            }
-            if ($text === false) {
-                return $model;
             }
             
             // if $model is array multiple, set as array
@@ -78,16 +75,22 @@ class SelectTable extends CustomItem
                     continue;
                 }
                 
+                if ($text === false) {
+                    $result[] = $m;
                 // get text column
-                if ($html) {
-                    $texts[] = $m->getUrl(true);
+                } elseif ($html) {
+                    $result[] = $m->getUrl(true);
                 } else {
-                    $texts[] = $m->getLabel();
+                    $result[] = $m->getLabel();
                 }
             }
         }
         
-        return implode(exmtrans('common.separate_word'), $texts);
+        if ($text === false) {
+            return $result;
+        } else {
+            return implode(exmtrans('common.separate_word'), $result);
+        }
     }
     
     protected function getAdminFieldClass()

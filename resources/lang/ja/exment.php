@@ -43,6 +43,7 @@ return [
         'pager_count' => '表示件数',
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
+        'copy_item' => 'この%sの複製',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
@@ -54,6 +55,7 @@ return [
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
             'exists_row' => '%sは必ず1行以上入力してください。',
+            'sendmail_succeeded' => 'メールを送信しました。',
         ],
 
         'help' =>[
@@ -88,7 +90,9 @@ return [
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
-        'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。'
+        'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。',
+        'disable_delete_row' => '削除できない行が含まれています。',
+        'no_mail_template' => 'メールテンプレートがありません。メールテンプレート設定を確認してください。',
     ],
 
     'install' => [
@@ -134,7 +138,13 @@ return [
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
-        'system_mail_from' => 'システムメール送信元',
+        'system_mail' => 'システムメール設定',
+        'system_mail_host' => 'ホスト名',
+        'system_mail_port' => 'ポート',
+        'system_mail_username' => 'ユーザー名',
+        'system_mail_password' => 'パスワード',
+        'system_mail_encryption' => '暗号化形式',
+        'system_mail_from' => '送信元アドレス',
         'grid_pager_count' => 'データ一覧の表示件数',
         'datalist_pager_count' => '検索・ダッシュボードの表示件数',
         'template' => 'インストールテンプレート',
@@ -180,7 +190,9 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
-            'system_mail_from' => 'システムからメールを送付する際の送信元です。このメールアドレスをFromとして、メールが送付されます。',
+            'system_mail' => 'システムからメールを送付する時の設定を行います。',
+            'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
+            'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
         ]
@@ -399,6 +411,54 @@ return [
         'back_login_page' => 'ログインページに戻る',
         'sso_provider_error' => 'プロバイダからのログイン情報取得に失敗しました。何度も失敗する場合、管理者にお問い合わせください。',
         'noexists_user' => 'Exmentにユーザーが存在しませんでした。先にユーザーを追加するよう、管理者にお問い合わせください。',
+        'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
+    ],
+
+    '2factor' => [
+        '2factor' => '2段階認証',
+        'login' => '認証',
+        'submit_verify_code' => '認証コード送信',
+        'login_use_2factor' => '2段階認証を使用する',
+        'login_2factor_provider' => '既定の認証方式',
+        'login_2factor_provider_user' => '2段階認証の認証方式',
+        'login_2factor_verify_code' => '認証コード',
+
+        'google' => [
+            'register_download' => 'Google認証システムインストール',
+            'add_acount' => 'アカウント追加',
+            'input_verify_code' => '認証コード入力',
+        ],
+
+        'message' => [
+            'description' => '2段階認証を使用する場合、この画面で設定を行います。詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。 ※2段階認証では、メール送信機能が必須となるため、はじめにメールの疎通確認が必要です。',
+            'email_send_verify' => 'ご利用のEメールアドレスに、認証コードを送信しました。メールをご確認いただき、認証コードを入力してください。<br />※認証コードの有効期間は%s分間です。',
+            'google_email_sended' => 'メールを送信しました。この画面を閉じ、受信したメールのリンクより、Google2段階認証の設定を行ってください。',
+            'input_number' => '6桁の認証コードを入力',
+            'verify_failed' => '認証に失敗しました。認証コードが間違っているか、有効期限が終了しています。',
+
+            'google' => [
+                'resend' => 'Google2段階認証システム登録メールを再送する',
+                'message_available' => 'Google2段階認証システムの設定を登録する必要があります。登録しているメールアドレスに、Google2段階認証用のリンクを送信しますので、登録を行ってください。',
+                'verify' => 'Google2段階認証システムの認証コードを入力してください。',
+                'register_first' => '以下の手順で、Google2段階認証システムの設定を完了させてください。',
+                'register_download' => 'Google認証システムを、スマートフォンにインストールします。',
+                'add_acount' => 'スマートフォンのGoogle認証システムに、アカウントを追加します。下記のQRコードを、アプリで読み込んでください。',
+                'input_verify_code' => 'スマートフォンのGoogle認証システムに表示されている認証コードを、下記の入力欄に記入してください。',
+            ],
+        ],
+
+        'help' => [
+            'login_use_2factor' => 'Exmentで2段階認証を使用してログインする場合に、YESに設定してください。システム全体で、2段階認証によるログインが有効になります。',
+            'submit_verify_code' => 'メールを正常に送信できるかどうかを検証するために、現在ログインしているユーザーのメールアドレスに、認証コードを送信します。',
+            'login_2factor_provider' => '既定で使用する、2段階認証の方式を選択してください。この設定は、ユーザーが個別に変更できます。',
+            'login_2factor_provider_user' => '2段階認証の方式を選択してください。',
+            'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
+        ],
+
+        '2factor_provider_options' => [
+            'email' => 'Eメール認証',
+            'google' => 'Google認証システム',
+        ],
     ],
 
     'change_page_menu' =>[
@@ -446,7 +506,7 @@ return [
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
             'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
             'comment_flg' => 'YESにした場合、各データにコメントを追加することができます。',
-            'use_label_id_flg' => 'YESにした場合、データのidの値を見出しの項目として表示します。詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'use_label_id_flg' => 'YESにした場合、データのidの値を見出しの項目として表示します。詳細は詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'revision_flg' => 'YESにした場合、各データの保存時、データの変更履歴を保存します。また、各データ画面で、以前の保存情報を復元することができます。',
             'revision_count' => 'データの変更履歴を保存する最大件数です。それ以上の履歴を保存する場合、過去の履歴は削除されます。',
             'notify_flg' => 'YESにした場合、データの追加・更新時、権限のあるユーザーに通知を送信します。',
@@ -652,7 +712,6 @@ return [
         'view_column_target' => '対象列',
         'view_column_start_date' => '開始日',
         'view_column_end_date' => '終了日',
-        'copy_view' => 'このビューの複製',
         'color' => '表示色',
         'font_color' => '文字色',
         'order' => '表示順',
@@ -888,7 +947,7 @@ return [
             'template' => 'テンプレート',
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
-            'notify' => '通知',
+            'notify' => '通知・メール送信',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
         ],
@@ -960,6 +1019,21 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
         ],
+        'sendmail' => [
+            'title' => 'メール送信',
+            'mail_to' => '送信先',
+            'mail_title' => 'タイトル',
+            'mail_message' => '本文',
+            'attachment' => '添付ファイル',
+            'send_error_message' => 'エラーメッセージ',
+            'help' => [
+                'send_error_message' => 'メール送信に失敗した場合、この項目に、エラーメッセージを表示します。',
+            ],
+            'message' => [
+                'send_succeeded' => 'メールを送信しました。',
+                'empty_error' => 'タイトルと本文は必須項目です。',
+            ],
+        ],
         'data_detail' => 'データ確認',
 
         'bootstrap_duallistbox_container' => [
@@ -992,6 +1066,7 @@ return [
     ],
 
     'notify' => [
+        'notify' => '通知',
         'header' => '通知設定',
         'header_trigger' => '通知条件設定',
         'header_action' => '通知アクション設定',
@@ -1006,8 +1081,9 @@ return [
         'notify_hour' => '通知時間',
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
-        'notify_action_target' => '対象',
+        'notify_action_target' => '通知対象',
         'mail_template_id' => 'メールテンプレート',
+        'notify_button_name' => 'ボタン表示名',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1017,13 +1093,14 @@ return [
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
-            'notify_action_target' => '通知先の対象を選択します。',
-            'mail_template_id' => '送付するメールのテンプレートを選択します。新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」と、「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
+            'mail_template_id' => '送付するメールのテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
         ],
 
         'notify_trigger_options' => [
             'time' => '時間の経過',
             'create_update_data' => 'データ新規作成・更新',
+            'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
             'before' => '前', 

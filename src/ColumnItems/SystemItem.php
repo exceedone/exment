@@ -48,6 +48,9 @@ class SystemItem implements ItemInterface
         if (boolval(array_get($this->options, 'summary'))) {
             return $this->getSummarySqlName();
         }
+        if (boolval(array_get($this->options, 'groupby'))) {
+            return $this->getGroupBySqlName();
+        }
         return $this->getSqlColumnName();
     }
 
@@ -73,8 +76,34 @@ class SystemItem implements ItemInterface
         $column_name = $this->getSqlColumnName();
 
         $summary_option = array_get($this->options, 'summary_condition');
-        $summary_condition = is_null($summary_option)? '': SummaryCondition::getEnum($summary_option)->lowerKey();
-        $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
+        $summary_condition = is_null($summary_option)? null: SummaryCondition::getEnum($summary_option)->lowerKey();
+        $group_condition = array_get($this->options, 'group_condition');
+
+        if (isset($summary_condition)) {
+            $raw = "$summary_condition($column_name) AS ".$this->sqlAsName();
+        } elseif (isset($group_condition)) {
+            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, false) . " AS ".$this->sqlAsName();
+        } else {
+            $raw = "$column_name AS ".$this->sqlAsName();
+        }
+
+        return \DB::raw($raw);
+    }
+
+    /**
+     * get sqlname for grouping
+     */
+    protected function getGroupBySqlName()
+    {
+        $column_name = $this->getSqlColumnName();
+
+        $group_condition = array_get($this->options, 'group_condition');
+
+        if (isset($group_condition)) {
+            $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
+        } else {
+            $raw = $column_name;
+        }
 
         return \DB::raw($raw);
     }

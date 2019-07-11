@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  */
 class InitializeForm
 {
-    use InstallFormTrait, InitializeFormTrait;
+    use EnvTrait, InitializeFormTrait;
 
     public function index()
     {
@@ -43,7 +44,7 @@ class InitializeForm
         \DB::beginTransaction();
         
         try {
-            $result = $this->postInitializeForm($request, true);
+            $result = $this->postInitializeForm($request, 'initialize', true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
@@ -76,6 +77,10 @@ class InitializeForm
             \DB::commit();
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);
+
+            // set session for 2factor
+            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+
             return redirect(admin_url('/'));
         } catch (Exception $exception) {
             //TODO:error handling

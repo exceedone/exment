@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
 
@@ -84,14 +85,23 @@ trait CustomValueShow
                     }
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table) {
+                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table, $id) {
                         $custom_view = CustomView::getDefault($target_table);
                         $custom_view->setGrid($grid);
+                        $table_name = $target_table->table_name;
                         
                         $grid->disableFilter();
                         $grid->disableCreateButton();
                         $grid->disableExport();
-                        $grid->tools(function ($tools) {
+                        $grid->tools(function ($tools) use ($table_name, $id, $custom_form_block) {
+                            // Add new button if one_to_many
+                            if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
+                                $tools->append(view(
+                                    'exment::custom-value.new-button',
+                                    ['table_name' => $table_name, 'params' => ['select_parent' => $id]]
+                                ));
+                            }
+
                             $tools->batch(function ($batch) {
                                 $batch->disableDelete();
                             });
@@ -125,23 +135,34 @@ trait CustomValueShow
 
             // if modal, disable list and delete
             $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
-                if (count($this->custom_table->getRelationTables()) > 0) {
-                    $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
-                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-purple" title="'. exmtrans('search.header_relation') . '">
-                            <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
-                        </a>
-                    </div>');
-                }
-
                 if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
-                } else {
+
+                    $tools->append(view('exment::tools.button', [
+                        'href' => $custom_value->getUrl(),
+                        'label' => trans('admin.show'),
+                        'icon' => 'fa-eye',
+                        'btn_class' => 'btn-default',
+                    ]));
+                }
+
+                if (count($this->custom_table->getRelationTables()) > 0) {
+                    $tools->append(view('exment::tools.button', [
+                        'href' => $custom_value->getRelationSearchUrl(true),
+                        'label' => exmtrans('search.header_relation'),
+                        'icon' => 'fa-compress',
+                        'btn_class' => 'btn-purple',
+                    ]));
+                }
+
+                if (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
                     $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_show');
                     $copyButtons = $this->custom_table->from_custom_copies;
+                    $notifies = $this->custom_table->notifies;
 
                     foreach ($listButtons as $plugin) {
                         $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table, $id));
@@ -150,6 +171,11 @@ trait CustomValueShow
                         $b = new Tools\CopyMenuButton($copyButton, $this->custom_table, $id);
                     
                         $tools->append($b->toHtml());
+                    }
+                    foreach ($notifies as $notify) {
+                        if (array_get($notify, 'notify_trigger') == NotifyTrigger::BUTTON) {
+                            $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
+                        }
                     }
                 }
             });

@@ -16,7 +16,7 @@
                     <!-- /.col -->
                     <div class="col-xs-8 col-md-offset-2">
                         <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-primary btn-block btn-flat">{{ exmtrans('login.password_reset') }}</button>
+                        <button type="submit" class="btn btn-primary btn-block btn-flat submit_disabled">{{ exmtrans('login.password_reset') }}</button>
                     </div>
                     <!-- /.col -->
                 </div>

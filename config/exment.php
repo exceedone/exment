@@ -126,6 +126,24 @@ return [
     
     /*
     |--------------------------------------------------------------------------
+    | exment use 2 factor
+    |--------------------------------------------------------------------------
+    |
+    | if true, use 2 factor login.
+    |
+    */
+    'login_use_2factor' =>  env('EXMENT_LOGIN_USE_2FACTOR', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | 2factor Valid Period
+    |--------------------------------------------------------------------------
+    |
+    */
+    'login_2factor_valid_period' =>  env('EXMENT_LOGIN_2FACTOR_VALID_PERIOD', 10),
+
+    /*
+    |--------------------------------------------------------------------------
     | Login Provider
     |--------------------------------------------------------------------------
     |
@@ -227,7 +245,47 @@ return [
     |
     */
     'keyword_search_relation_count' => env('EXMENT_KEYWORD_SEARCH_RELATION_COUNT', 5000),
-  
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mail Setting From env file
+    |--------------------------------------------------------------------------
+    |
+    | if false, not use mail setting on system contoller
+    |
+    */
+    'mail_setting_env_force' => env('EXMENT_MAIL_SETTING_ENV_FORCE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login throttle
+    |--------------------------------------------------------------------------
+    |
+    | Whether check login throttle. If true, and too many login attempts, cannot login.
+    |
+    */
+    'throttle' => env('EXMENT_THROTTLE', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Max Attempts
+    |--------------------------------------------------------------------------
+    |
+    | If you fail to login after this number of times, will not be able to login for a certain period of time.
+    |
+    */
+    'max_attempts' => env('EXMENT_MAX_ATTEMPTS', 5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Login Decay Minutes
+    |--------------------------------------------------------------------------
+    |
+    | It is time (minutes) that can not log in.
+    |
+    */
+    'decay_minutes' => env('EXMENT_DECAY_MINUTES', 60),
+
     /*
     |--------------------------------------------------------------------------
     | Expart mode

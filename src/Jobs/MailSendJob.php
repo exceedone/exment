@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\NotifyTarget;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
@@ -17,6 +19,8 @@ class MailSendJob extends JobBase
 
     protected $subject;
     protected $body;
+
+    protected $attachments;
 
     protected $mail_template;
     protected $custom_value;
@@ -35,6 +39,11 @@ class MailSendJob extends JobBase
         $this->custom_value = array_get($options, 'custom_value');
         $this->user = array_get($options, 'user');
         $this->history_body = array_get($options, 'history_body', true);
+        $this->attachments = array_get($options, 'attachments', []);
+
+        if (!isset($this->from)) {
+            $this->from = config('mail.from.address');
+        }
     }
 
     public function handle()
@@ -50,28 +59,15 @@ class MailSendJob extends JobBase
             }
             // replace \r\n
             $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $this->body), 'text/html');
+            // attach files
+            foreach ($this->attachments as $attachment) {
+                $url = storage_paths('app', config('admin.upload.disk'), $attachment->path);
+                $message->attach($url, ['as' => $attachment->filename]);
+            }
         });
 
         $this->saveMailSendHistory();
     }
-    
-    protected function getAddress($users)
-    {
-        if (!($users instanceof Collection) && !is_array($users)) {
-            $users = [$users];
-        }
-        $addresses = [];
-        foreach ($users as $user) {
-            if ($user instanceof CustomValue) {
-                $addresses[] = $user->getValue('email');
-            } else {
-                $addresses[] = $user;
-            }
-        }
-        // return count($addresses) == 1 ? $addresses[0] : $addresses;
-        return $addresses;
-    }
-
     protected function saveMailSendHistory()
     {
         $modelname = getModelName(SystemTableName::MAIL_SEND_LOG);
@@ -84,9 +80,11 @@ class MailSendJob extends JobBase
         $model->setValue('mail_subject', $this->subject);
         $model->setValue('mail_template', $this->mail_template->id);
         $model->setValue('send_datetime', Carbon::now()->format('Y-m-d H:i:s'));
+        $model->setValue('attachments', collect($this->attachments)->implode('filename', ','));
         
         if (isset($this->user)) {
-            $model->setValue('user', $this->user->id);
+            $userid =  $this->getUserId($this->user);
+            $model->setValue('user', $userid);
         }
 
         if (isset($this->custom_value)) {
@@ -101,5 +99,51 @@ class MailSendJob extends JobBase
         }
         
         $model->save();
+    }
+    
+    /**
+     * Get User Mail Address
+     *
+     * @param [type] $users
+     * @return void
+     */
+    protected function getAddress($users)
+    {
+        if (!($users instanceof Collection) && !is_array($users)) {
+            $users = [$users];
+        }
+        $addresses = [];
+        foreach ($users as $user) {
+            if ($user instanceof CustomValue) {
+                $addresses[] = $user->getValue('email');
+            } elseif ($user instanceof NotifyTarget) {
+                $addresses[] = $user->email();
+            } else {
+                $addresses[] = $user;
+            }
+        }
+        // return count($addresses) == 1 ? $addresses[0] : $addresses;
+        return $addresses;
+    }
+    
+    /**
+     * Get User id
+     *
+     * @param [type] $users
+     * @return void
+     */
+    protected function getUserId($user)
+    {
+        if ($user instanceof CustomValue) {
+            return $user->id;
+        } elseif ($user instanceof LoginUser) {
+            return $user->base_user_id;
+        } elseif ($user instanceof NotifyTarget) {
+            return $user->id();
+        }
+        // pure email
+        else {
+            return $user;
+        }
     }
 }

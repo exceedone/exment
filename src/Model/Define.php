@@ -155,7 +155,11 @@ class Define
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
-        ///'system_role' => ['type' => 'json'],
+        'system_mail_host' => ['config' => 'mail.host', 'group' => 'system'],
+        'system_mail_port' => ['config' => 'mail.port', 'group' => 'system'],
+        'system_mail_username' => ['config' => 'mail.username', 'group' => 'system'],
+        'system_mail_password' => ['type' => 'password', 'config' => 'mail.password', 'group' => 'system'],
+        'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'system'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
@@ -167,6 +171,8 @@ class Define
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
         'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
+        'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
+        'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
     ];
 
     public const SYSTEM_SKIN = [
@@ -200,6 +206,7 @@ class Define
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS = "table_accessible_users_%s";
     public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
+    public const SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE = "can_connection_database";
     public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
     public const SYSTEM_KEY_SESSION_ALL_RECORDS = "all_records_%s";
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
@@ -208,6 +215,7 @@ class Define
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
+    public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
@@ -298,6 +306,12 @@ class Define
         ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view'],
         ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
+    ];
+
+    public const CUSTOM_VALUE_TRAITS = [
+        'user' => "\Exceedone\Exment\Model\Traits\UserTrait",
+        'organization' => "\Exceedone\Exment\Model\Traits\OrganizationTrait",
+        'mail_template' => "\Exceedone\Exment\Model\Traits\MailTemplateTrait",
     ];
 
     public const GRID_MAX_LENGTH = 50;

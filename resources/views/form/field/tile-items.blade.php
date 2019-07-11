@@ -1,4 +1,4 @@
-@foreach($datalist as $option)
+@foreach($options as $option)
 <div class="col-xs-12 col-sm-6 tile-group-item">
     <div id="tile-{{$column}}-{{$loop->index}}" class="tile" data-id="{{array_get($option, 'id')}}">
         @if(!is_null(array_get($option, 'thumbnail')))
@@ -28,7 +28,7 @@
 </div>
 @endforeach
 
-@if($paginator)
+@if(isset($paginator))
 <div class="col-xs-12 col-sm-12 text-center">
 {{ $paginator->links('exment::search.links') }}
 </div>

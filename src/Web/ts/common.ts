@@ -77,6 +77,10 @@ namespace Exment {
          * 
          */
         public static CallbackExmentAjax(res) {
+            if(hasValue(res.responseJSON)){
+                res = res.responseJSON;
+            }
+            
             if (res.result === true || res.status === true) {
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
@@ -106,6 +110,9 @@ namespace Exment {
         }
 
         private static redirectCallback(res) {
+            if(hasValue(res.reload) && res.reload === false){
+                return;
+            }
 
             if (hasValue(res.redirect)) {
                 $.pjax({ container: '#pjax-container', url: res.redirect });
@@ -909,9 +916,10 @@ namespace Exment {
          */
         private static addSelect2() {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem: Element) {
-                var $elem = $(elem);
-                var options = {
-                    "allowClear": true, "placeholder": $elem.data('add-select2'), width: '100%'
+                let $elem = $(elem);
+                let allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;
+                let options = {
+                    "allowClear": allowClear, "placeholder": $elem.data('add-select2'), width: '100%'
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
                     options['ajax'] = {

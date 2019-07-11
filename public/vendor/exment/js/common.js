@@ -113,6 +113,9 @@ var Exment;
          *
          */
         CommonEvent.CallbackExmentAjax = function (res) {
+            if (hasValue(res.responseJSON)) {
+                res = res.responseJSON;
+            }
             if (res.result === true || res.status === true) {
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
@@ -141,6 +144,9 @@ var Exment;
             }
         };
         CommonEvent.redirectCallback = function (res) {
+            if (hasValue(res.reload) && res.reload === false) {
+                return;
+            }
             if (hasValue(res.redirect)) {
                 $.pjax({ container: '#pjax-container', url: res.redirect });
             }
@@ -784,12 +790,6 @@ var Exment;
                 var $bootstrapSwitch = $target.filter('[type="checkbox"]');
                 $bootstrapSwitch.bootstrapSwitch('toggleReadonly').bootstrapSwitch('state', $bootstrapSwitch.data('onvalue') == value).bootstrapSwitch('toggleReadonly');
             }
-            // if 'select', set as select2
-            // if ($.inArray(column_type, ['select', 'select_valtext', 'select_table', 'user', 'organization']) != -1) {
-            //     //$target.select2('val', value);
-            //     $target.val(value).trigger('change');
-            //     return;
-            // }
             // set value
             $target.val(value).trigger('change');
         };
@@ -799,8 +799,9 @@ var Exment;
         CommonEvent.addSelect2 = function () {
             $('[data-add-select2]').not('.added-select2').each(function (index, elem) {
                 var $elem = $(elem);
+                var allowClear = hasValue($elem.data('add-select2-allow-clear')) ? $elem.data('add-select2-allow-clear') : true;
                 var options = {
-                    "allowClear": true, "placeholder": $elem.data('add-select2'), width: '100%'
+                    "allowClear": allowClear, "placeholder": $elem.data('add-select2'), width: '100%'
                 };
                 if (hasValue($elem.data('add-select2-ajax'))) {
                     options['ajax'] = {

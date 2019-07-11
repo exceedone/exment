@@ -162,9 +162,24 @@ class CustomValue extends ModelBase
                 if (is_null($column_id = $multi_unique->{'unique' . $key})) {
                     continue;
                 }
+
                 $column = CustomColumn::getEloquent($column_id);
                 $column_name = $column->column_name;
-                $query->where('value->' . $column_name, array_get($input, 'value.' . $column_name));
+
+                // get query key
+                if ($column->index_enabled) {
+                    $query_key = $column->getIndexColumnName();
+                } else {
+                    $query_key = 'value->' . $column_name;
+                }
+
+                // get value
+                $value = array_get($input, 'value.' . $column_name);
+                if (is_array($value)) {
+                    $value = json_encode(array_filter($value));
+                }
+
+                $query->where($query_key, $value);
 
                 $column_keys[] = $column;
             }

@@ -129,6 +129,7 @@ class Permission
             case "index":
             case "api":
             case "search":
+            case "auth-2factor":
             case "auth/login":
             case "auth/logout":
             case "auth/setting":

@@ -1,13 +1,12 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
-use Exception;
+use Exceedone\Exment\Exceptions\NoMailTemplateException;
 
 /**
  * Send Mail System
@@ -18,6 +17,9 @@ class MailSender
     protected $to;
     protected $cc;
     protected $bcc;
+    protected $subject;
+    protected $body;
+    protected $attachments;
 
     protected $mail_template;
     protected $prms;
@@ -31,6 +33,7 @@ class MailSender
         $this->to = $to;
         $this->cc = [];
         $this->bcc = [];
+        $this->attachments = [];
         $this->prms = [];
         $this->history_body = true;
 
@@ -45,8 +48,10 @@ class MailSender
         }
         // if not found, return exception
         if (is_null($this->mail_template)) {
-            throw new Exception("No MailTemplate. Please set mail template. mail_template:$mail_key_name");
+            throw new NoMailTemplateException($mail_key_name);
         }
+        $this->subject = $this->mail_template->getValue('mail_subject');
+        $this->body = $this->mail_template->getJoinedBody();
     }
 
     public static function make($mail_key_name, $to)
@@ -89,6 +94,18 @@ class MailSender
         return $this;
     }
 
+    public function subject($subject)
+    {
+        $this->subject = $subject;
+        return $this;
+    }
+
+    public function body($body)
+    {
+        $this->body = $body;
+        return $this;
+    }
+
     public function custom_value($custom_value)
     {
         $this->custom_value = $custom_value;
@@ -98,6 +115,12 @@ class MailSender
     public function user($user)
     {
         $this->user = $user;
+        return $this;
+    }
+
+    public function attachments($attachments)
+    {
+        $this->attachments = $attachments;
         return $this;
     }
     
@@ -120,32 +143,15 @@ class MailSender
     public function send()
     {
         // get subject
-        $subject = $this->replaceWord($this->mail_template->getValue('mail_subject'));
-
-        ///// get body using header and footer
-        $header = $this->getHeaderFooter(MailTemplateType::HEADER);
-        $body = $this->replaceWord($this->mail_template->getValue('mail_body'));
-        $footer = $this->getHeaderFooter(MailTemplateType::FOOTER);
-
-        // total body
-        $mail_bodies = [];
-        if (isset($header)) {
-            $mail_bodies[]  = $header;
-        }
-        $mail_bodies[]  = $body;
-        if (isset($footer)) {
-            $mail_bodies[]  = $footer;
-        }
-        if (!isset($this->from)) {
-            $this->from = [System::system_mail_from()];
-        }
+        $subject = $this->replaceWord($this->subject);
+        $body = $this->replaceWord($this->body);
 
         // dispatch jobs
         MailSendJob::dispatch(
             $this->from,
             $this->to,
             $subject,
-            implode("\n\n", $mail_bodies),
+            $body,
             $this->mail_template,
             [
                 'cc' => $this->cc,
@@ -153,22 +159,10 @@ class MailSender
                 'custom_value' => $this->custom_value,
                 'user' => $this->user,
                 'history_body' => $this->history_body,
+                'attachments' => $this->attachments
             ]
         );
         return true;
-    }
-
-    /**
-     * get mail template type
-     */
-    protected function getHeaderFooter($mailTemplateType)
-    {
-        $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)
-            ::where('value->mail_template_type', $mailTemplateType)->first();
-        if (!isset($mail_template)) {
-            return null;
-        }
-        return $this->replaceWord($mail_template->getValue('mail_body'));
     }
 
     /**

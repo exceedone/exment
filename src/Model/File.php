@@ -56,7 +56,8 @@ class File extends ModelBase
             $this->parent_type = $custom_value->custom_table->table_name;
         }
         if (isset($custom_column)) {
-            $custom_column = CustomColumn::getEloquent($custom_column, $custom_value->custom_table);
+            $table_name = $this->local_dirname?? $custom_value->custom_table;
+            $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
             $this->custom_column_id = $custom_column->id;
         }
         $this->save();

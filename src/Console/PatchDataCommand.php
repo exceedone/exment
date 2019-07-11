@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Services\DataImportExport;
 
 class PatchDataCommand extends Command
 {
@@ -55,6 +57,12 @@ class PatchDataCommand extends Command
                 return;
             case 'alter_index_hyphen':
                 $this->reAlterIndexContainsHyphen();
+                return;
+            case '2factor':
+                $this->import2factorTemplate();
+                return;
+            case 'system_flg_column':
+                $this->patchSystemFlgColumn();
                 return;
         }
 
@@ -117,10 +125,10 @@ class PatchDataCommand extends Command
                         'priority' => $use_label_flg_column->getOption('use_label_flg'),
                     ])
                 );
-    
-                $use_label_flg_column->setOption('use_label_flg', null);
-                $use_label_flg_column->save();
             }
+
+            $use_label_flg_column->setOption('use_label_flg', null);
+            $use_label_flg_column->save();
         }
 
         // remove use_label_flg property
@@ -153,6 +161,69 @@ class PatchDataCommand extends Command
 
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
+        }
+    }
+    
+    /**
+     * import mail template for 2factor
+     *
+     * @return void
+     */
+    protected function import2factorTemplate()
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $path = "$templates_data_path/mail_template.xlsx";
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => [
+                    'verify_2factor',
+                    'verify_2factor_google',
+                    'verify_2factor_system',
+                ]],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
+    }
+    
+    /**
+     * system flg patch
+     *
+     * @return void
+     */
+    protected function patchSystemFlgColumn()
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template';
+        $configPath = "$templates_data_path/config.json";
+
+        $json = json_decode(\File::get($configPath), true);
+
+        // re-loop columns. because we have to get other column id --------------------------------------------------
+        foreach (array_get($json, "custom_tables", []) as $table) {
+            // find tables. --------------------------------------------------
+            $obj_table = CustomTable::getEloquent(array_get($table, 'table_name'));
+            // get columns. --------------------------------------------------
+            if (array_key_exists('custom_columns', $table)) {
+                foreach (array_get($table, 'custom_columns') as $column) {
+                    if (boolval(array_get($column, 'system_flg'))) {
+                        $obj_column = CustomColumn::getEloquent(array_get($column, 'column_name'), $obj_table);
+                        if (!isset($obj_column)) {
+                            continue;
+                        }
+                        $obj_column->system_flg = true;
+                        $obj_column->save();
+                    }
+                }
+            }
         }
     }
 }

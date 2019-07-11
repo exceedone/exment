@@ -160,7 +160,7 @@ class CustomViewController extends AdminControllerTableBase
             $linker = (new Linker)
                 ->url(admin_urls('view', $table_name, "create?copy_id={$actions->row->id}"))
                 ->icon('fa-copy')
-                ->tooltip(exmtrans('custom_view.copy_view'));
+                ->tooltip(exmtrans('common.copy_item', exmtrans('custom_view.custom_view_button_label')));
             $actions->prepend($linker);
         });
 
