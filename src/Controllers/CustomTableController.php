@@ -43,6 +43,7 @@ class CustomTableController extends AdminControllerBase
         $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
         
         $grid->tools(function (Grid\Tools $tools) {
+            $tools->disableBatchActions();
             $tools->append(new Tools\GridChangePageMenu('table', null, true));
         });
 
