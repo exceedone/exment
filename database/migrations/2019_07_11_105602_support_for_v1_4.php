@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Enums\SystemTableName;
 
-class CreateAuth2factor extends Migration
+class SupportForV14 extends Migration
 {
     /**
      * Run the migrations.
@@ -14,7 +14,6 @@ class CreateAuth2factor extends Migration
      */
     public function up()
     {
-
         if(!\Schema::hasTable(SystemTableName::EMAIL_CODE_VERIFY)){
             Schema::create(SystemTableName::EMAIL_CODE_VERIFY, function (Blueprint $table) {
                 $table->increments('id');
@@ -33,6 +32,9 @@ class CreateAuth2factor extends Migration
                 $table->boolean('auth2fa_available')->default(false)->after('auth2fa_key');
             });
         }
+
+        // modify system_flg
+        \Artisan::call('exment:patchdata', ['action' => 'system_flg_column']);
     }
 
     /**
@@ -42,7 +44,6 @@ class CreateAuth2factor extends Migration
      */
     public function down()
     {
-        //
         Schema::dropIfExists(SystemTableName::EMAIL_CODE_VERIFY);
     }
 }

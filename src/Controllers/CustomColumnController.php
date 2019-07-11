@@ -503,6 +503,9 @@ class CustomColumnController extends AdminControllerTableBase
         $form->disableEditingCheck(false);
         $custom_table = $this->custom_table;
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
+            if(isset($id) && boolval(CustomColumn::getEloquent($id)->system_flg)){
+                $tools->disableDelete();
+            }
             $tools->add((new Tools\GridChangePageMenu('column', $custom_table, false))->render());
         });
         return $form;
