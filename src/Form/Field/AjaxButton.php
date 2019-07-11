@@ -14,19 +14,22 @@ class AjaxButton extends Field
     
     protected $button_class;
 
-    public function url($url){
+    public function url($url)
+    {
         $this->url = $url;
 
         return $this;
     }
 
-    public function button_label($button_label){
+    public function button_label($button_label)
+    {
         $this->button_label = $button_label;
 
         return $this;
     }
 
-    public function button_class($button_class){
+    public function button_class($button_class)
+    {
         $this->button_class = $button_class;
 
         return $this;

@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
-use Exceedone\Exment\Model\Define;
 
 class Login2factorServiceProvider extends BaseServiceProvider
 {
@@ -36,7 +35,7 @@ class Login2factorServiceProvider extends BaseServiceProvider
         
         // register middleware group.
         foreach ($this->middlewareGroups as $key => $middleware) {
-            foreach($middleware as $m){
+            foreach ($middleware as $m) {
                 app('router')->pushMiddlewareToGroup($key, $m);
             }
         }

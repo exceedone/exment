@@ -144,7 +144,7 @@ class System extends ModelBase
             elseif (!is_null(array_get($setting, 'config'))) {
                 $value = Config::get(array_get($setting, 'config'));
 
-                // if password, return 
+                // if password, return
                 if ($type == 'password') {
                     return $value;
                 }
@@ -167,9 +167,9 @@ class System extends ModelBase
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
             } elseif ($type == 'password') {
-                try{
+                try {
                     $value = is_null($value) ? null : decrypt($value);
-                }catch(\Exception $ex){
+                } catch (\Exception $ex) {
                 }
             }
             return $value;

@@ -78,7 +78,7 @@ class SelectTable extends CustomItem
                 if ($text === false) {
                     $result[] = $m;
                 // get text column
-                } else if ($html) {
+                } elseif ($html) {
                     $result[] = $m->getUrl(true);
                 } else {
                     $result[] = $m->getLabel();

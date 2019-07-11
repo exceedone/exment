@@ -46,17 +46,17 @@ trait HasResourceTableActions
                 
         // check row's disabled_delete
         $disabled_delete = false;
-        $rows->each(function ($id) use(&$disabled_delete) {
-            if(!$disabled_delete){
+        $rows->each(function ($id) use (&$disabled_delete) {
+            if (!$disabled_delete) {
                 $model = $this->form()->model()->find($id);
 
-                if(boolval(array_get($model, 'disabled_delete'))){
+                if (boolval(array_get($model, 'disabled_delete'))) {
                     $disabled_delete = true;
                 }
             }
         });
 
-        if($disabled_delete){
+        if ($disabled_delete) {
             return response()->json([
                 'status'  => false,
                 'message' => exmtrans('error.disable_delete_row'),

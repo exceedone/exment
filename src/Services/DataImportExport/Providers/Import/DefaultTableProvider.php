@@ -50,7 +50,7 @@ class DefaultTableProvider extends ProviderBase
             $value_custom = array_combine($headers, $value);
 
             // filter data
-            if ($this->filterData($value_custom)){
+            if ($this->filterData($value_custom)) {
                 continue;
             }
 
@@ -306,7 +306,7 @@ class DefaultTableProvider extends ProviderBase
     {
         $is_filter = false;
         if (is_array($this->filter) && count($this->filter) > 0) {
-            foreach($this->filter as $key => $list) {
+            foreach ($this->filter as $key => $list) {
                 $value = array_get($value_custom, $key);
                 if (!isset($value) || !in_array($value, $list)) {
                     $is_filter = true;

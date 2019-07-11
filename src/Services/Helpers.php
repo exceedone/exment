@@ -759,7 +759,7 @@ if (!function_exists('getAllCustomTables')) {
      */
     function getAllCustomTables()
     {
-        $callback = function(){
+        $callback = function () {
             if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
                 return [];
             }
@@ -772,7 +772,7 @@ if (!function_exists('getAllCustomTables')) {
         $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, $callback) ?? [];
 
         // if empty, re-get again item(for support first install)
-        if(empty($tables)){
+        if (empty($tables)) {
             $tables = $callback();
         }
 

@@ -15,7 +15,6 @@ use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
-use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Illuminate\Support\Facades\DB;
 use Encore\Admin\Widgets\Box;
@@ -94,7 +93,7 @@ class SystemController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 
         $form->text('login_2factor_verify_code', exmtrans("2factor.login_2factor_verify_code"))
-            ->required()    
+            ->required()
             ->help(exmtrans("2factor.help.login_2factor_verify_code"))
             ->attribute(['data-filter' => json_encode(['key' => 'login_use_2factor', 'value' => '1'])]);
 
@@ -242,9 +241,9 @@ class SystemController extends AdminControllerBase
     public function post2factor(Request $request)
     {
         $login_2factor_verify_code = $request->get('login_2factor_verify_code');
-        if(boolval($request->get('login_use_2factor'))){
+        if (boolval($request->get('login_use_2factor'))) {
             // check verifyCode
-            if(!Auth2factorService::verifyCode('system', $login_2factor_verify_code)){
+            if (!Auth2factorService::verifyCode('system', $login_2factor_verify_code)) {
                 // error
                 return back()->withInput()->withErrors([
                     'login_2factor_verify_code' => exmtrans('2factor.message.verify_failed')
@@ -254,7 +253,6 @@ class SystemController extends AdminControllerBase
 
         DB::beginTransaction();
         try {
-
             $inputs = $request->all(System::get_system_keys(['2factor']));
             
             // set system_key and value
@@ -264,7 +262,7 @@ class SystemController extends AdminControllerBase
 
             DB::commit();
 
-            if(isset($login_2factor_verify_code)){
+            if (isset($login_2factor_verify_code)) {
                 Auth2factorService::deleteCode('system', $login_2factor_verify_code);
             }
 
@@ -283,7 +281,8 @@ class SystemController extends AdminControllerBase
      *
      * @return void
      */
-    public function auth_2factor_verify(){
+    public function auth_2factor_verify()
+    {
         $loginuser = \Admin::user();
 
         // set 2factor params
@@ -291,10 +290,10 @@ class SystemController extends AdminControllerBase
         $valid_period_datetime = Carbon::now()->addMinute(60);
         
         // send verify
-        if(!Auth2factorService::addAndSendVerify('system', $verify_code, $valid_period_datetime, MailKeyName::VERIFY_2FACTOR_SYSTEM, [
+        if (!Auth2factorService::addAndSendVerify('system', $verify_code, $valid_period_datetime, MailKeyName::VERIFY_2FACTOR_SYSTEM, [
             'verify_code' => $verify_code,
             'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
-        ])){
+        ])) {
             // show warning message
             return getAjaxResponse([
                 'result'  => false,

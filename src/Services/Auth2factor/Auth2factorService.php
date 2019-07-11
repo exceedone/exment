@@ -3,22 +3,10 @@
 namespace Exceedone\Exment\Services\Auth2factor;
 
 use Exceedone\Exment\Services\MailSender;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
-use Exceedone\Exment\Auth\ProviderAvatar;
-use Exceedone\Exment\Auth\ThrottlesLogins;
-use Exceedone\Exment\Providers\CustomUserProvider;
-use Encore\Admin\Form;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Lang;
-use Illuminate\Support\Facades\Request as Req;
-use Exceedone\Exment\Controllers\AuthTrait;
 
 /**
  * For login 2 factor
@@ -43,17 +31,18 @@ class Auth2factorService
         static::$providers[$abstract] = $class;
     }
 
-    public static function getProvider(){
+    public static function getProvider()
+    {
         $provider = \Exment::user()->getSettingValue(
             implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
             System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
         );
 
-        if(!array_has(static::$providers, $provider)){
+        if (!array_has(static::$providers, $provider)) {
             throw new \Exception("Login 2factor provider [$provider] does not exist.");
         }
 
-        return new static::$providers[$provider];        
+        return new static::$providers[$provider];
     }
 
     /**
@@ -64,7 +53,8 @@ class Auth2factorService
      * @param bool $matchDelete if true, remove match records
      * @return bool
      */
-    public static function verifyCode($verify_type, $verify_code, $matchDelete = false){
+    public static function verifyCode($verify_type, $verify_code, $matchDelete = false)
+    {
         $loginuser = \Admin::user();
 
         // remove old datetime value
@@ -79,13 +69,13 @@ class Auth2factorService
             ->where('email', $loginuser->email)
             ->where('login_user_id', $loginuser->id);
 
-        if($query->count() == 0){
+        if ($query->count() == 0) {
             return false;
         }
 
         $verify = $query->first();
 
-        if($matchDelete){
+        if ($matchDelete) {
             static::deleteCode($verify_type, $verify_code);
         }
 
@@ -100,7 +90,8 @@ class Auth2factorService
      * @param bool $matchDelete if true, remove match records
      * @return bool
      */
-    public static function addAndSendVerify($verify_type, $verify_code, $valid_period_datetime, $mail_template, $mail_prms = []){
+    public static function addAndSendVerify($verify_type, $verify_code, $valid_period_datetime, $mail_template, $mail_prms = [])
+    {
         $loginuser = \Admin::user();
 
         // set database
@@ -121,7 +112,7 @@ class Auth2factorService
                 ->prms($mail_prms)
                 ->send();
 
-                return true;
+            return true;
         }
         // throw mailsend Exception
         catch (\Swift_TransportException $ex) {
@@ -129,7 +120,8 @@ class Auth2factorService
         }
     }
 
-    public static function deleteCode($verify_type, $verify_code){
+    public static function deleteCode($verify_type, $verify_code)
+    {
         $loginuser = \Admin::user();
         \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_code', $verify_code)

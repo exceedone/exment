@@ -213,9 +213,9 @@ class PatchDataCommand extends Command
             // get columns. --------------------------------------------------
             if (array_key_exists('custom_columns', $table)) {
                 foreach (array_get($table, 'custom_columns') as $column) {
-                    if(boolval(array_get($column, 'system_flg'))){
+                    if (boolval(array_get($column, 'system_flg'))) {
                         $obj_column = CustomColumn::getEloquent(array_get($column, 'column_name'), $obj_table);
-                        if(!isset($obj_column)){
+                        if (!isset($obj_column)) {
                             continue;
                         }
                         $obj_column->system_flg = true;

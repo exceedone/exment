@@ -117,7 +117,7 @@ class NotifyTarget
                     foreach ($v->users as $user) {
                         // get email address
                         $item = static::getModelAsSelectTable($user);
-                        if(isset($item)){
+                        if (isset($item)) {
                             $result[] = $item;
                         }
                     }
@@ -126,7 +126,7 @@ class NotifyTarget
                 elseif (ColumnType::COLUMN_TYPE_SELECT_TABLE($custom_column->column_type)) {
                     // get email address
                     $item = static::getModelAsSelectTable($v, null, $custom_column);
-                    if(isset($item)){
+                    if (isset($item)) {
                         $result[] = $item;
                     }
                 }
@@ -162,7 +162,7 @@ class NotifyTarget
      */
     protected static function getModelAsSelectTable($target_value, $email_column = null, $custom_column = null)
     {
-        if(!isset($target_value)){
+        if (!isset($target_value)) {
             return null;
         }
 
@@ -177,7 +177,7 @@ class NotifyTarget
         }
         
         $email = $target_value->getValue($email_column);
-        if(empty($email)){
+        if (empty($email)) {
             return null;
         }
         
@@ -209,7 +209,7 @@ class NotifyTarget
         $list = [];
         foreach ($users as $user) {
             $item = static::getModelAsSelectTable($user, $email_column, null);
-            if(isset($item)){
+            if (isset($item)) {
                 $list[] = $item;
             }
         }

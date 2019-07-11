@@ -4,10 +4,7 @@ namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
-use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Controllers\AuthTrait;
 use PragmaRX\Google2FA\Google2FA;
@@ -54,10 +51,10 @@ class Google
         $register_url = admin_urls('auth-2factor', 'google', 'register?code=' . $verify_code);
 
         // send verify
-        if(!Auth2factorService::addAndSendVerify('google', $verify_code, $valid_period_datetime, 'verify_2factor_google', [
+        if (!Auth2factorService::addAndSendVerify('google', $verify_code, $valid_period_datetime, 'verify_2factor_google', [
             '2factor_google_register_url' => $register_url,
             'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
-        ])){
+        ])) {
             // show warning message
             admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
         }
@@ -65,7 +62,7 @@ class Google
         return view('exment::auth.2factor.2factor-google-email-sended', $this->getLoginPageData());
     }
     
-    /** 
+    /**
      * Handle verify posting
      *
      * @param Request $request
@@ -78,7 +75,7 @@ class Google
         $verify_code = $request->get('code');
         $loginuser = \Admin::user();
 
-        if(!Auth2factorService::verifyCode('google', $verify_code)){
+        if (!Auth2factorService::verifyCode('google', $verify_code)) {
             // error
             return redirect()->back()
                 ->withErrors(['code' => '']); //TODO
@@ -86,13 +83,13 @@ class Google
 
         $g2fa = $this->getG2fa();
 
-        if(!isset($loginuser->auth2fa_key)){
+        if (!isset($loginuser->auth2fa_key)) {
             // Create SecretKey
             $key = $g2fa->generateSecretKey();
 
             $loginuser->auth2fa_key = encrypt($key);
             $loginuser->save();
-        }else{
+        } else {
             $key = decrypt($loginuser->auth2fa_key);
         }
         
@@ -125,7 +122,7 @@ class Google
         return redirect(admin_url(''));
     }
     
-    /** 
+    /**
      * Handle verify posting
      *
      * @param Request $request
@@ -147,13 +144,13 @@ class Google
             ]);
         }
 
-        if(!boolval($loginuser->auth2fa_available)){
+        if (!boolval($loginuser->auth2fa_available)) {
             $loginuser->auth2fa_available = true;
             $loginuser->save();
         }
 
         // get from database
-        if($request->has('code')){
+        if ($request->has('code')) {
             Auth2factorService::verifyCode('google', $request->get('code'), true);
         }
 
@@ -164,10 +161,12 @@ class Google
         return redirect(admin_url(''));
     }
     
-    public function insertVerify(){
+    public function insertVerify()
+    {
     }
 
-    protected function getG2fa(){
+    protected function getG2fa()
+    {
         $g2fa = new Google2FA();
         // if(\Request::secure() !== true){
         //     $g2fa->setAllowInsecureCallToGoogleApis(true);

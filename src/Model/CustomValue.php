@@ -167,15 +167,15 @@ class CustomValue extends ModelBase
                 $column_name = $column->column_name;
 
                 // get query key
-                if($column->index_enabled){
+                if ($column->index_enabled) {
                     $query_key = $column->getIndexColumnName();
-                }else{
+                } else {
                     $query_key = 'value->' . $column_name;
                 }
 
                 // get value
                 $value = array_get($input, 'value.' . $column_name);
-                if(is_array($value)){
+                if (is_array($value)) {
                     $value = json_encode(array_filter($value));
                 }
 

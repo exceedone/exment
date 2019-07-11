@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Services\MailSender;
 use Carbon\Carbon;
 

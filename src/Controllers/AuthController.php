@@ -72,8 +72,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         ]);
     }
 
-    protected function postVerifyEmail(){
-        if(!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())){
+    protected function postVerifyEmail()
+    {
+        if (!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())) {
             return;
         }
 
@@ -340,7 +341,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             }
 
             // show 2factor setting if use
-            if(boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())){
+            if (boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())) {
                 $login_2factor_provider = \Exment::user()->getSettingValue(
                     implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
                     System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
@@ -372,7 +373,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
                     request()->get('login_2factor_provider')
                 );
-
             });
             
             $form->saved(function ($form) {
