@@ -77,6 +77,10 @@ namespace Exment {
          * 
          */
         public static CallbackExmentAjax(res) {
+            if(hasValue(res.responseJSON)){
+                res = res.responseJSON;
+            }
+            
             if (res.result === true || res.status === true) {
                 if ($(".modal:visible").length > 0) {
                     $(".modal").off("hidden.bs.modal").on("hidden.bs.modal", function () {

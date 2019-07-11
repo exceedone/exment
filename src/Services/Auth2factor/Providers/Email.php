@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Controllers\AuthTrait;
@@ -14,7 +15,15 @@ use Carbon\Carbon;
  */
 class Email
 {
-    use AuthTrait;
+    use AuthTrait, ThrottlesLogins;
+
+    public function __construct()
+    {
+        $this->maxAttempts = config("exment.max_attempts", 5);
+        $this->decayMinutes = config("exment.decay_minutes", 60);
+
+        $this->throttle = config("exment.throttle", true);
+    }
 
     /**
      * Handle index
@@ -38,10 +47,22 @@ class Email
     public function verify()
     {
         $request = request();
+
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
         $verify_code = $request->get('verify_code');
         $loginuser = \Admin::user();
         
         if (!Auth2factorService::verifyCode('email', $verify_code, true)) {
+            $this->incrementLoginAttempts($request);
+            
             // error
             return back()->withInput()->withErrors([
                 'verify_code' => exmtrans('2factor.message.verify_failed')

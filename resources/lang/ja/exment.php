@@ -92,6 +92,7 @@ return [
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。',
         'disable_delete_row' => '削除できない行が含まれています。',
+        'no_mail_template' => 'メールテンプレートがありません。メールテンプレート設定を確認してください。',
     ],
 
     'install' => [

@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
-use Exception;
+use Exceedone\Exment\Exceptions\NoMailTemplateException;
 
 /**
  * Send Mail System
@@ -48,7 +48,7 @@ class MailSender
         }
         // if not found, return exception
         if (is_null($this->mail_template)) {
-            throw new Exception("No MailTemplate. Please set mail template. mail_template:$mail_key_name");
+            throw new NoMailTemplateException($mail_key_name);
         }
         $this->subject = $this->mail_template->getValue('mail_subject');
         $this->body = $this->mail_template->getJoinedBody();

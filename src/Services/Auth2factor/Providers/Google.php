@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Auth2factor\Providers;
 
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Auth\ThrottlesLogins;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Controllers\AuthTrait;
@@ -15,7 +16,15 @@ use Carbon\Carbon;
  */
 class Google
 {
-    use AuthTrait;
+    use AuthTrait, ThrottlesLogins;
+
+    public function __construct()
+    {
+        $this->maxAttempts = config("exment.max_attempts", 5);
+        $this->decayMinutes = config("exment.decay_minutes", 60);
+
+        $this->throttle = config("exment.throttle", true);
+    }
 
     /**
      * Handle index
@@ -72,13 +81,25 @@ class Google
     public function register()
     {
         $request = request();
+        
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
         $verify_code = $request->get('code');
         $loginuser = \Admin::user();
 
         if (!Auth2factorService::verifyCode('google', $verify_code)) {
+            $this->incrementLoginAttempts($request);
+
             // error
             return redirect()->back()
-                ->withErrors(['code' => '']); //TODO
+                ->withErrors(['code' => '']);
         }
 
         $g2fa = $this->getG2fa();
@@ -116,10 +137,6 @@ class Google
             'code' => $verify_code,
             'key' => $key,
         ]));
-
-        // set session for 2factor
-
-        return redirect(admin_url(''));
     }
     
     /**
@@ -132,6 +149,16 @@ class Google
     public function verify()
     {
         $request = request();
+
+        // If the class is using the ThrottlesLogins trait, we can automatically throttle
+        // the login attempts for this application. We'll key this by the username and
+        // the IP address of the client making these requests into this application.
+        if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
         $verify_code = $request->get('verify_code');
         $g2fa = $this->getG2fa();
         $loginuser = \Admin::user();
@@ -139,6 +166,8 @@ class Google
 
         // validation google 2fa
         if (!$g2fa->verifyKey($key, $verify_code, 5)) {
+            $this->incrementLoginAttempts($request);
+
             return back()->withInput()->withErrors([
                 'verify_code' => exmtrans('2factor.message.verify_failed')
             ]);
@@ -168,10 +197,6 @@ class Google
     protected function getG2fa()
     {
         $g2fa = new Google2FA();
-        // if(\Request::secure() !== true){
-        //     $g2fa->setAllowInsecureCallToGoogleApis(true);
-        // }
-
         return $g2fa;
     }
 }

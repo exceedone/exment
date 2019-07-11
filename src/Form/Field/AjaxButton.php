@@ -58,7 +58,7 @@ class AjaxButton extends Field
                 error: function(repsonse){
                     button.text(button.data('default-label'));
                     button.prop('disabled', false);
-                    toastr.error(repsonse.message);
+                    Exment.CommonEvent.CallbackExmentAjax(repsonse);
                 }
             });
         });

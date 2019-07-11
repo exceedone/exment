@@ -81,8 +81,7 @@ class Notify extends ModelBase
     {
         $custom_table = $data->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
-        $mail_template_id = array_get($this, 'action_settings.mail_template_id');
-        $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)->getValueModel($mail_template_id);
+        $mail_template = $this->getMailTemplate();
 
         // loop data
         $users = $this->getNotifyTargetUsers($data);

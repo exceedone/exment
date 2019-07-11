@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
+use Exceedone\Exment\Exceptions\NoMailTemplateException;
 use Exceedone\Exment\Form\Widgets\InfoBox;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
@@ -290,11 +291,28 @@ class SystemController extends AdminControllerBase
         $valid_period_datetime = Carbon::now()->addMinute(60);
         
         // send verify
-        if (!Auth2factorService::addAndSendVerify('system', $verify_code, $valid_period_datetime, MailKeyName::VERIFY_2FACTOR_SYSTEM, [
-            'verify_code' => $verify_code,
-            'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
-        ])) {
+        try{
+            if (!Auth2factorService::addAndSendVerify('system', $verify_code, $valid_period_datetime, MailKeyName::VERIFY_2FACTOR_SYSTEM, [
+                'verify_code' => $verify_code,
+                'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
+            ])) {
+                // show warning message
+                return getAjaxResponse([
+                    'result'  => false,
+                    'toastr' => exmtrans('error.mailsend_failed'),
+                    'reload' => false,
+                ]);
+            }    
+        }catch(NoMailTemplateException $ex){
             // show warning message
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('error.no_mail_template'),
+                'reload' => false,
+            ]);
+        }
+        // throw mailsend Exception
+        catch (\Swift_TransportException $ex) {
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('error.mailsend_failed'),

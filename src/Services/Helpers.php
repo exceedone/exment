@@ -1232,7 +1232,7 @@ if (!function_exists('getAjaxResponse')) {
             'errors' => [],
         ], $results);
 
-        return response($results, $results['result'] === true ? 200 : 400);
+        return response()->json($results, $results['result'] === true ? 200 : 400);
     }
 }
 
