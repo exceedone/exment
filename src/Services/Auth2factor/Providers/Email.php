@@ -103,5 +103,4 @@ class Email
     {
         return 'username';
     }
-
 }

@@ -209,5 +209,4 @@ class Google
     {
         return 'username';
     }
-
 }

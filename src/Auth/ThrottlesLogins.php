@@ -52,7 +52,7 @@ trait ThrottlesLogins
      */
     protected function sendLockoutResponse(Request $request, $errorKey = null)
     {
-        if(!isset($errorKey)){
+        if (!isset($errorKey)) {
             $errorKey = $this->username();
         }
 

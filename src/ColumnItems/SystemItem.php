@@ -101,8 +101,7 @@ class SystemItem implements ItemInterface
 
         if (isset($group_condition)) {
             $raw = \DB::getQueryGrammar()->getDateFormatString($group_condition, $column_name, true);
-        }
-        else{
+        } else {
             $raw = $column_name;
         }
 
