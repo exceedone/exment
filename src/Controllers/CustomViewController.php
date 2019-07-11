@@ -149,7 +149,7 @@ class CustomViewController extends AdminControllerTableBase
                     ->tooltip(trans('admin.edit'));
                 $actions->prepend($linker);
             } 
-            if(intval($actions->row->view_kind_type) === Enums\ViewKindType::ALLDATA) {
+            if ($actions->row->disabled_delete) {
                 $actions->disableDelete();
             }
             $actions->disableView();

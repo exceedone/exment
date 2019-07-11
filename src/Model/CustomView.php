@@ -823,4 +823,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         return $this;
     }
+
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return boolval($this->view_kind_type == ViewKindType::ALLDATA);
+    }
 }
