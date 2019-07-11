@@ -182,16 +182,12 @@ trait HasPermissions
     /**
      * filter target model
      */
-    public function filterModel($model, $table_name, $custom_view = null, $callback = null)
+    public function filterModel($model, $table_name, $custom_view = null)
     {
         // view filter setting --------------------------------------------------
         // has $custom_view, filter
         if (isset($custom_view)) {
-            if ($callback instanceof \Closure) {
-                $model = call_user_func($callback, $model);
-            } else {
-                $model = $custom_view->setValueFilters($model);
-            }
+            $model = $custom_view->setValueFilters($model);
             $model = $custom_view->setValueSort($model);
         }
 
