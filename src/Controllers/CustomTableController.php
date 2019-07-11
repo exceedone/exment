@@ -47,7 +47,6 @@ class CustomTableController extends AdminControllerBase
         });
 
         $grid->disableExport();
-        $grid->disableRowSelector();
         if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
             $grid->disableCreateButton();
         }
