@@ -167,7 +167,10 @@ class System extends ModelBase
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
             } elseif ($type == 'password') {
-                $value = is_null($value) ? null : decrypt($value);
+                try{
+                    $value = is_null($value) ? null : decrypt($value);
+                }catch(\Exception $ex){
+                }
             }
             return $value;
         });

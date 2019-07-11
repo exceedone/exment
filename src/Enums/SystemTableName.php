@@ -19,6 +19,7 @@ class SystemTableName extends EnumBase
     const CUSTOM_TABLE = 'custom_tables';
     const SYSTEM_AUTHORITABLE = 'system_authoritable';
     const VALUE_AUTHORITABLE = 'value_authoritable';
+    const EMAIL_CODE_VERIFY = 'email_code_verifies';
 
     public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()
     {

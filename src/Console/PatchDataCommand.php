@@ -5,7 +5,9 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Services\DataImportExport;
 
 class PatchDataCommand extends Command
 {
@@ -55,6 +57,9 @@ class PatchDataCommand extends Command
                 return;
             case 'alter_index_hyphen':
                 $this->reAlterIndexContainsHyphen();
+                return;
+            case '2factor':
+                $this->import2factorTemplate();
                 return;
         }
 
@@ -154,5 +159,34 @@ class PatchDataCommand extends Command
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
+    }
+    
+    /**
+     * import mail template for 2factor
+     *
+     * @return void
+     */
+    protected function import2factorTemplate()
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $path = "$templates_data_path/mail_template.xlsx";
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => [
+                    'verify_2factor',
+                    'verify_2factor_google',
+                    'verify_2factor_system',
+                ]]
+            ]))
+            ->format($format);
+        $service->import($path);
     }
 }

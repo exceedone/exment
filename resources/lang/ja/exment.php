@@ -55,6 +55,7 @@ return [
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
             'exists_row' => '%sは必ず1行以上入力してください。',
+            'sendmail_succeeded' => 'メールを送信しました。',
         ],
 
         'help' =>[
@@ -409,6 +410,53 @@ return [
         'sso_provider_error' => 'プロバイダからのログイン情報取得に失敗しました。何度も失敗する場合、管理者にお問い合わせください。',
         'noexists_user' => 'Exmentにユーザーが存在しませんでした。先にユーザーを追加するよう、管理者にお問い合わせください。',
         'throttle' => 'ログイン試行回数が多すぎます。%s分経過後、再度お試しください。',
+    ],
+
+    '2factor' => [
+        '2factor' => '2段階認証',
+        'login' => '認証',
+        'submit_verify_code' => '認証コード送信',
+        'login_use_2factor' => '2段階認証を使用する',
+        'login_2factor_provider' => '既定の認証方式',
+        'login_2factor_provider_user' => '2段階認証の認証方式',
+        'login_2factor_verify_code' => '認証コード',
+
+        'google' => [
+            'register_download' => 'Google認証システムインストール',
+            'add_acount' => 'アカウント追加',
+            'input_verify_code' => '認証コード入力',
+        ],
+
+        'message' => [
+            'description' => '2段階認証を使用する場合、この画面で設定を行います。 ※2段階認証では、メール送信機能が必須となるため、はじめにメールの疎通確認が必要です。',
+            'email_send_verify' => 'ご利用のEメールアドレスに、認証コードを送信しました。メールをご確認いただき、認証コードを入力してください。<br />※認証コードの有効期間は%s分間です。',
+            'google_email_sended' => 'メールを送信しました。この画面を閉じ、受信したメールのリンクより、Google2段階認証の設定を行ってください。',
+            'input_number' => '6桁の認証コードを入力',
+            'verify_failed' => '認証に失敗しました。認証コードが間違っているか、有効期限が終了しています。',
+
+            'google' => [
+                'resend' => 'Google2段階認証システム登録メールを再送する',
+                'message_available' => 'Google2段階認証システムの設定を登録する必要があります。登録しているメールアドレスに、Google2段階認証用のリンクを送信しますので、登録を行ってください。',
+                'verify' => 'Google2段階認証システムの認証コードを入力してください。',
+                'register_first' => '以下の手順で、Google2段階認証システムの設定を完了させてください。',
+                'register_download' => 'Google認証システムを、スマートフォンにインストールします。',
+                'add_acount' => 'スマートフォンのGoogle認証システムに、アカウントを追加します。下記のQRコードを、アプリで読み込んでください。',
+                'input_verify_code' => 'スマートフォンのGoogle認証システムに表示されている認証コードを、下記の入力欄に記入してください。',
+            ],
+        ],
+
+        'help' => [
+            'login_use_2factor' => 'Exmentで2段階認証を使用してログインする場合に、YESに設定してください。システム全体で、2段階認証によるログインが有効になります。',
+            'submit_verify_code' => 'メールを正常に送信できるかどうかを検証するために、現在ログインしているユーザーのメールアドレスに、認証コードを送信します。',
+            'login_2factor_provider' => '既定で使用する、2段階認証の方式を選択してください。この設定は、ユーザーが個別に変更できます。',
+            'login_2factor_provider_user' => '2段階認証の方式を選択してください。',
+            'login_2factor_verify_code' => '受信した認証コードを、このフォームに入力してください。',
+        ],
+
+        '2factor_provider_options' => [
+            'email' => 'Eメール認証',
+            'google' => 'Google認証システム',
+        ],
     ],
 
     'change_page_menu' =>[

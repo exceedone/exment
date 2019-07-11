@@ -106,6 +106,9 @@ namespace Exment {
         }
 
         private static redirectCallback(res) {
+            if(hasValue(res.reload) && res.reload === false){
+                return;
+            }
 
             if (hasValue(res.redirect)) {
                 $.pjax({ container: '#pjax-container', url: res.redirect });

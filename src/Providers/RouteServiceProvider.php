@@ -51,7 +51,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("dashboardbox/table_views/{dashboard_type}", 'DashboardBoxController@tableViews');
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
             $router->resource('dashboardbox', 'DashboardBoxController');
-
+        
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
@@ -62,6 +62,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('system/update', 'SystemController@updatePackage');
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->get('system/version', 'SystemController@version');
+            $router->post('system/2factor-verify', 'SystemController@auth_2factor_verify');
+            $router->post('system/2factor', 'SystemController@post2factor');
             
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');

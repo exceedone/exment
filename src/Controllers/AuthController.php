@@ -2,9 +2,13 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Enums\UserSetting;
+use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
@@ -54,6 +58,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $remember = boolval($request->get('remember', false));
 
         if ($this->guard()->attempt($credentials, $remember)) {
+            $this->postVerifyEmail();
             return $this->sendLoginResponse($request);
         }
 
@@ -65,6 +70,15 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return back()->withInput()->withErrors([
             $this->username() => $this->getFailedLoginMessage(),
         ]);
+    }
+
+    protected function postVerifyEmail(){
+        if(!boolval(config('exment.login_use_2factor', false)) || !boolval(System::login_use_2factor())){
+            return;
+        }
+
+        $auth2factor = Auth2factorService::getProvider();
+        $auth2factor->insertVerify();
     }
 
     /**
@@ -154,6 +168,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 'password' => $provider_user->id,
             ]
         )) {
+            // set session for 2factor
+            session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+
             return $this->sendLoginResponse($request);
         }
 
@@ -288,8 +305,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $user = LoginUser::class;
         return $user::form(function (Form $form) {
             $form->display('base_user.value.user_code', exmtrans('user.user_code'));
+            $form->display('base_user.value.email', exmtrans('user.email'));
+            
             $form->text('base_user.value.user_name', exmtrans('user.user_name'));
-            $form->email('base_user.value.email', exmtrans('user.email'));
 
             $fileOption = array_merge(
                 Define::FILE_OPTION(),
@@ -321,8 +339,22 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
+            // show 2factor setting if use
+            if(boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())){
+                $login_2factor_provider = \Exment::user()->getSettingValue(
+                    implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
+                    System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
+                );
+
+                $form->select('login_2factor_provider', exmtrans("2factor.login_2factor_provider_user"))
+                    ->options(Login2FactorProviderType::transKeyArray('2factor.2factor_provider_options'))
+                    ->config('allowClear', false)
+                    ->default($login_2factor_provider)
+                    ->help(exmtrans("2factor.help.login_2factor_provider_user"));
+            }
+
             $form->setAction(admin_url('auth/setting'));
-            $form->ignore(['password_confirmation', 'old_password']);
+            $form->ignore(['password_confirmation', 'old_password', 'login_2factor_provider']);
             $form->tools(function (Form\Tools $tools) {
                 $tools->disableDelete();
             });
@@ -335,6 +367,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 } elseif ($form_password && $form->model()->password != $form_password) {
                     $form->password = $form_password;
                 }
+
+                \Exment::user()->setSettingValue(
+                    implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
+                    request()->get('login_2factor_provider')
+                );
+
             });
             
             $form->saved(function ($form) {
@@ -348,7 +386,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     $user = getModelName(SystemTableName::USER)::find($user_id);
                     $user->setValue([
                         'user_name' => array_get($req, 'base_user.value.user_name'),
-                        'email' => array_get($req, 'base_user.value.email'),
                     ]);
                     $user->save();
                 });
