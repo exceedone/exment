@@ -135,6 +135,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return CustomColumn::getEloquent($this->getOption('select_import_column_id'));
     }
 
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return boolval($this->system_flg);
+    }
+
     public function getOption($key, $default = null)
     {
         return $this->getJson('options', $key, $default);

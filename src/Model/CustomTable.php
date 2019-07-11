@@ -102,6 +102,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return boolval($this->system_flg);
+    }
+
+    /**
      * Get Columns where select_target_table's id is this table.
      *
      * @return void

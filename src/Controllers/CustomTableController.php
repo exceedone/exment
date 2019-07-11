@@ -184,7 +184,7 @@ class CustomTableController extends AdminControllerBase
 
         $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {
             $custom_table = CustomTable::getEloquent($id);
-            if (isset($custom_table) && boolval($custom_table->system_flg)) {
+            if (isset($custom_table) && $custom_table->disabled_delete) {
                 $tools->disableDelete();
             } elseif (isset($deleteButton)) {
                 $tools->disableDelete();
