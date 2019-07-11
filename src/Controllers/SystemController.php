@@ -73,7 +73,7 @@ class SystemController extends AdminControllerBase
         $form->action(admin_urls('system/2factor'));
         $form->disableReset();
 
-        $form->description(exmtrans("2factor.message.description"));
+        $form->description(exmtrans("2factor.message.description", getManualUrl('login_2factor_setting')));
 
         $form->switchbool('login_use_2factor', exmtrans("2factor.login_use_2factor"))
             ->help(exmtrans("2factor.help.login_use_2factor"))
