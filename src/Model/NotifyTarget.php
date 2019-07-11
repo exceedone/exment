@@ -116,17 +116,19 @@ class NotifyTarget
                     // get organization user
                     foreach ($v->users as $user) {
                         // get email address
-                        if(!isset($user)){
-                            continue;
+                        $item = static::getModelAsSelectTable($user);
+                        if(isset($item)){
+                            $result[] = $item;
                         }
-
-                        $result[] = static::getModelAsSelectTable($user);
                     }
                 }
                 // if select table(cotains user)
                 elseif (ColumnType::COLUMN_TYPE_SELECT_TABLE($custom_column->column_type)) {
                     // get email address
-                    $result[] = static::getModelAsSelectTable($v, null, $custom_column);
+                    $item = static::getModelAsSelectTable($v, null, $custom_column);
+                    if(isset($item)){
+                        $result[] = $item;
+                    }
                 }
             }
         }
@@ -160,6 +162,10 @@ class NotifyTarget
      */
     protected static function getModelAsSelectTable($target_value, $email_column = null, $custom_column = null)
     {
+        if(!isset($target_value)){
+            return null;
+        }
+
         if (!isset($email_column)) {
             if (isset($custom_column)) {
                 $select_target_table = $custom_column->select_target_table;
@@ -171,6 +177,10 @@ class NotifyTarget
         }
         
         $email = $target_value->getValue($email_column);
+        if(empty($email)){
+            return null;
+        }
+        
         $label = $target_value->getLabel();
 
         $notifyTarget = new self;
@@ -198,11 +208,10 @@ class NotifyTarget
 
         $list = [];
         foreach ($users as $user) {
-            if(!isset($user)){
-                continue;
+            $item = static::getModelAsSelectTable($user, $email_column, null);
+            if(isset($item)){
+                $list[] = $item;
             }
-
-            $list[] = static::getModelAsSelectTable($user, $email_column, null);
         }
 
         return collect($list);
