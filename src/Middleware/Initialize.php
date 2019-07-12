@@ -309,6 +309,8 @@ class Initialize
             'switchbool'          => Field\SwitchBoolField::class,
             'pivotMultiSelect'          => Field\PivotMultiSelect::class,
             'checkboxone'          => Field\Checkboxone::class,
+            'checkboxTable'          => Field\CheckboxTable::class,
+            'checkboxTableHeader'          => Field\CheckboxTableHeader::class,
             'tile'          => Field\Tile::class,
             'hasMany'           => Field\HasMany::class,
             'hasManyTable'           => Field\HasManyTable::class,

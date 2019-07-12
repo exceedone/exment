@@ -127,53 +127,54 @@ class RoleGroupController extends AdminControllerBase
         
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
-        $permissions = Permission::getSystemRolePermissions();
-        $permissionLabels = collect($permissions)->mapWithKeys(function($permission){
-            return [$permission => exmtrans("role_group.role_type_option_system.$permission.label")];
-        });
         $form->exmheader('システム権限')->hr();
-        $form->multipleSelect('system_permission[system][permissions]', 'システム権限')
-            ->options($permissionLabels)
+        $form->checkboxTableHeader(RoleType::SYSTEM()->getRoleGroupOptions())
+            ->help(RoleType::SYSTEM()->getRoleGroupHelps())
+            ->setWidth(10, 2);
+
+        $form->checkboxTable('system_permission[system][permissions]', 'システム権限')
+            ->options(RoleType::SYSTEM()->getRoleGroupOptions())
             ->default($model->role_group_permissions->first(function($role_group_permission){
                 return $role_group_permission->role_group_permission_type == RoleType::SYSTEM;
             })->permissions ?? null)
+            ->setWidth(10, 2)
             ->config('allowClear', false);
         ;
 
-        // get permission options for master
-        $permissions = Permission::getMasterRolePermissions();
-        $permissionLabels = collect($permissions)->mapWithKeys(function($permission){
-            return [$permission => exmtrans("role_group.role_type_option_table.$permission.label")];
-        });
         $form->exmheader('マスター権限')->hr();
+        $form->checkboxTableHeader(RoleType::MASTER()->getRoleGroupOptions())
+            ->help(RoleType::MASTER()->getRoleGroupHelps())
+            ->setWidth(10, 2);
+
         foreach(CustomTable::filterList(null, ['filter' => function($model){
             $model->whereIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
             return $model;
         }]) as $table){
             $form->hidden("master_permission[$table->table_name][id]")
                 ->default($table->id);
-            $form->multipleSelect("master_permission[$table->table_name][permissions]", $table->table_view_name)
-                ->options($permissionLabels)
+            $form->checkboxTable("master_permission[$table->table_name][permissions]", $table->table_view_name)
+                ->options(RoleType::MASTER()->getRoleGroupOptions())
+                ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
                     return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
                 })->permissions ?? null)
                 ->config('allowClear', false);
         }
 
-        // get permission options for table
-        $permissions = Permission::getTableRolePermissions();
-        $permissionLabels = collect($permissions)->mapWithKeys(function($permission){
-            return [$permission => exmtrans("role_group.role_type_option_table.$permission.label")];
-        });
         $form->exmheader('テーブル権限')->hr();
+        $form->checkboxTableHeader(RoleType::TABLE()->getRoleGroupOptions())
+            ->help(RoleType::TABLE()->getRoleGroupHelps())
+            ->setWidth(10, 2);
+
         foreach(CustomTable::filterList(null, ['filter' => function($model){
             $model->whereNotIn('table_name', SystemTableName::SYSTEM_TABLE_NAME_MASTER());
             return $model;
         }]) as $table){
             $form->hidden("table_permission[$table->table_name][id]")
                 ->default($table->id);
-            $form->multipleSelect("table_permission[$table->table_name][permissions]", $table->table_view_name)
-                ->options($permissionLabels)
+            $form->checkboxTable("table_permission[$table->table_name][permissions]", $table->table_view_name)
+                ->options(RoleType::TABLE()->getRoleGroupOptions())
+                ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
                     return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
                 })->permissions ?? null)

@@ -23,31 +23,24 @@ class Permission extends EnumBase
     public const AVAILABLE_EDIT_CUSTOM_VALUE = [self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_EDIT];
     public const AVAILABLE_ALL_CUSTOM_VALUE = [self::CUSTOM_VALUE_EDIT_ALL, self::CUSTOM_VALUE_VIEW_ALL, self::CUSTOM_VALUE_ACCESS_ALL];
 
-
-    public static function getSystemRolePermissions(){
-        return [
-            self::SYSTEM,
-            self::CUSTOM_VALUE_EDIT_ALL,
-        ];
-    }
-
-    public static function getMasterRolePermissions(){
-        return [
-            self::CUSTOM_TABLE,
-            self::CUSTOM_VIEW,
-            self::CUSTOM_VALUE_EDIT_ALL,
-            self::CUSTOM_VALUE_VIEW_ALL,
-        ];
-    }
-    public static function getTableRolePermissions(){
-        return [
-            self::CUSTOM_TABLE,
-            self::CUSTOM_VIEW,
-            self::CUSTOM_VALUE_EDIT_ALL,
-            self::CUSTOM_VALUE_VIEW_ALL,
-            self::CUSTOM_VALUE_ACCESS_ALL,
-            self::CUSTOM_VALUE_EDIT,
-            self::CUSTOM_VALUE_VIEW,
-        ];
-    }
+    public const SYSTEM_ROLE_PERMISSIONS = [
+        self::SYSTEM,
+        self::CUSTOM_VALUE_EDIT_ALL,
+    ];
+    public const MASTER_ROLE_PERMISSION = [
+        self::CUSTOM_TABLE,
+        self::CUSTOM_VIEW,
+        self::CUSTOM_VALUE_EDIT_ALL,
+        self::CUSTOM_VALUE_VIEW_ALL,
+    ];
+    
+    public const TABLE_ROLE_PERMISSION = [
+        self::CUSTOM_TABLE,
+        self::CUSTOM_VIEW,
+        self::CUSTOM_VALUE_EDIT_ALL,
+        self::CUSTOM_VALUE_VIEW_ALL,
+        self::CUSTOM_VALUE_ACCESS_ALL,
+        self::CUSTOM_VALUE_EDIT,
+        self::CUSTOM_VALUE_VIEW,
+    ];
 }
