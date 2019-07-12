@@ -50,11 +50,11 @@ class CustomValue extends ModelBase
      */
     public function __construct(array $attributes = [])
     {
-        // treeview
-        $this->titleColumn = 'label';
-        $this->orderColumn = 'id';
         // set parent_id for org
         if($this->custom_table->table_name == SystemTableName::ORGANIZATION){
+            // treeview
+            $this->titleColumn = 'label';
+            $this->orderColumn = 'id';
             $this->parentColumn = CustomColumn::getEloquent('parent_organization', $this->custom_table)->getIndexColumnName();
         }
 

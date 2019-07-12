@@ -1193,6 +1193,20 @@
             ]
         },
         {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "Information manage Group",
+            "description": "Role group that manage information.",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "role_group_target_name": "information",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                }
+            ]
+        },
+        {
             "role_group_name": "user_group",
             "role_group_view_name": "User Group",
             "description": "Role group that default user group.",
