@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
 use Exceedone\Exment\Auth\Permission as AuthPermission;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;

@@ -5,7 +5,6 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Http\Request;

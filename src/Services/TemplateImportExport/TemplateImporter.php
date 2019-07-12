@@ -11,7 +11,6 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
@@ -543,10 +542,10 @@ class TemplateImporter
                 CustomCopy::importTemplate($copy, $is_update);
             }
 
-            // Loop for roles.
-            foreach (array_get($json, "roles", []) as $role) {
+            // Loop for role groups.
+            foreach (array_get($json, "role_groups", []) as $role) {
                 // Create role. --------------------------------------------------
-                Role::importTemplate($role, $is_update);
+                RoleGroup::importTemplate($role, $is_update);
             }
 
             // loop for dashboard

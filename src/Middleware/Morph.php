@@ -30,7 +30,6 @@ class Morph
             $tables = getAllCustomTables();
                 
             $morphMaps = [
-                "roles" => Model\Role::class,
                 "table" => Model\CustomTable::class
             ];
             foreach ($tables as $table) {

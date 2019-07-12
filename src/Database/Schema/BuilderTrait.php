@@ -22,7 +22,7 @@ trait BuilderTrait
         );
         extract($settings);
         
-        // get DB system_authoritable values
+        // get DB values
         $dbValueQuery = \DB::table($table);
 
         if($dbValueFilter){

@@ -13,7 +13,6 @@ use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\Role as RoleEnum;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Widgets\Box;

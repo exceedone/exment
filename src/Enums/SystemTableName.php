@@ -20,7 +20,6 @@ class SystemTableName extends EnumBase
     const NOTIFY_HISTORY = 'notify_history';
     const NOTIFY_HISTORY_USER = 'notify_history_user';
     const CUSTOM_TABLE = 'custom_tables';
-    const SYSTEM_AUTHORITABLE = 'system_authoritable';
     const VALUE_AUTHORITABLE = 'value_authoritable';
     const EMAIL_CODE_VERIFY = 'email_code_verifies';
 

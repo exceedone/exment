@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
@@ -242,19 +241,6 @@ class ClassBuilder
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }
 
-        // add role --------------------------------------------------
-        Role::roleLoop(RoleType::VALUE(), function ($role, $related_type) use ($builder, $obj) {
-            $target_model = getModelName($related_type, true);
-            $builder->addMethod(
-                "public",
-                $role->getRoleName($related_type)."()",
-                "return \$this->morphToMany('$target_model', 'morph', 'value_authoritable', 'morph_id', 'related_id')
-                        ->withPivot('related_id', 'related_type', 'role_id')
-                        ->wherePivot('related_type', '".$related_type."')
-                        ->wherePivot('role_id', {$role->id});"
-                    );
-        });
-
         // especially flow if table is user --------------------------------------------------
         if (array_has(Define::CUSTOM_VALUE_TRAITS, $table->table_name)) {
             $builder->addInUse(Define::CUSTOM_VALUE_TRAITS[$table->table_name]);
@@ -272,18 +258,6 @@ class ClassBuilder
                 ->addNamespace($namespace)
                 ->addTrait()
                 ;
-        // Ad Role. for system, table --------------------------------------------------
-        Role::roleLoop(RoleType::TABLE(), function ($role, $related_type) use ($builder) {
-            $target_model = getModelName($related_type, true);
-            $builder->addMethod(
-                "public",
-                $role->getRoleName($related_type)."()",
-                "return \$this->morphToMany('$target_model', 'morph', 'system_authoritable', 'morph_id', 'related_id')
-                        ->withPivot('related_id', 'related_type', 'role_id')
-                        ->wherePivot('related_type', '".$related_type."')
-                        ->wherePivot('role_id', {$role->id});"
-                    );
-        });
         $builder->build();
     }
 }

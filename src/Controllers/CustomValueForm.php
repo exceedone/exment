@@ -6,7 +6,6 @@ use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
@@ -201,30 +200,6 @@ EOT;
         $this->manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton);
         return $form;
     }
-
-    // /**
-    //  * setRoleForm.
-    //  * if table is user, org, etc...., not set role
-    //  */
-    // protected function setRoleForm($form)
-    // {
-    //     // if ignore user and org, return
-    //     if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-    //         return;
-    //     }
-    //     // if table setting is "one_record_flg" (can save only one record), return
-    //     if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
-    //         return;
-    //     }
-        
-    //     // not contains edit all form
-    //     if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
-    //         return;
-    //     }
-
-    //     // set addRoleForm(dufinition by trait)
-    //     $this->addRoleForm($form, RoleType::VALUE);
-    // }
 
     /**
      * set custom form columns
