@@ -10,6 +10,7 @@ class SystemTableName extends EnumBase
     const USER = 'user';
     const ROLE_GROUP = 'role_groups';
     const ROLE_GROUP_PERMISSION = 'role_group_permissions';
+    const ROLE_GROUP_USER_ORGANIZATION = 'role_group_user_organizations';
     const ORGANIZATION = 'organization';
     const COMMENT = 'comment';
     const MAIL_TEMPLATE = 'mail_template';

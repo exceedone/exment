@@ -247,7 +247,10 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                var linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                var linkElem = $(ev.target).closest('tr').find('.rowclick');
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                }
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }

@@ -35,8 +35,22 @@ class SupportForV20 extends Migration
             $schema->create(SystemTableName::ROLE_GROUP_PERMISSION, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->integer('role_group_id')->unsigned();
-                $table->string('role_group_name', 256)->index()->unique();
-                $table->string('role_group_view_name', 256);
+                $table->string('role_group_permission_type')->index();
+                $table->integer('role_group_target_id')->nullable()->index();
+                $table->json('permissions')->nullable();
+                $table->timestamps();
+                $table->timeusers();
+
+                $table->foreign('role_group_id')->references('id')->on(SystemTableName::ROLE_GROUP);
+            });
+        }
+
+        if(!\Schema::hasTable(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)){
+            $schema->create(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->integer('role_group_id')->unsigned();
+                $table->string('role_group_user_org_type')->index();
+                $table->integer('role_group_target_id')->nullable()->index();
                 $table->timestamps();
                 $table->timeusers();
 

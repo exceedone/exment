@@ -814,18 +814,14 @@ return [
         ],
     ],
 
-    'role' => [
-        'header' => '役割設定',
-        'description' => '役割の設定を行います。役割は複数の権限を持ち、ユーザーのアクセス制御を行います。',
-        'role_name' => '役割名(英数字)',
-        'role_view_name' => '役割表示名',
-        'role_type' => '役割の種類',
-        'default_flg' => '既定の役割',
-        'default_flg_true' => '既定',
-        'default_flg_false' => '',
-        'description_field' => '説明文',
+    'role_group' => [
+        'header' => '役割グループ設定',
+        'description' => '役割グループの設定を行います。役割グループは、複数の権限を持ち、ユーザー・組織のアクセス制御を行います。',
+        'role_group_name' => '役割グループ名(英数字)',
+        'role_group_view_name' => '役割グループ表示名',
         'permissions' => '権限詳細',
-        'permission_header' => '権限設定',
+        'permission_setting' => '権限設定',
+        'user_organization_setting' => 'ユーザー・組織設定',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -847,14 +843,14 @@ return [
         ],
 
         'role_type_option_system' => [
-            'system' => ['label' => 'システム情報', 'help' => 'システム情報を変更できます。'],
+            'system' => ['label' => 'システム管理', 'help' => 'システム情報を変更できます。'],
             'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'すべてのデータを追加・変更・削除できます。'],
         ],
         'role_type_option_table' => [
-            'custom_table' => ['label' => 'テーブルマスター', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'ビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
