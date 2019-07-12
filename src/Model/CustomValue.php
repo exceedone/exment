@@ -56,18 +56,18 @@ class CustomValue extends ModelBase
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
     {
-        return $this->morphToMany(getModelName(SystemTableName::USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
-            ->withPivot('related_id', 'related_type', 'role_id')
-            ->wherePivot('related_type', SystemTableName::USER)
+        return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
+            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
+            ->wherePivot('authoritable_user_org_type', SystemTableName::USER)
             ;
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_organizations()
     {
-        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
-            ->withPivot('related_id', 'related_type', 'role_id')
-            ->wherePivot('related_type', SystemTableName::ORGANIZATION)
+        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
+            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
+            ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
             ;
     }
 
@@ -393,11 +393,11 @@ class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('related_id', \Exment::user()->base_user_id);
+            ->where('authoritable_target_id', \Exment::user()->base_user_id);
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $query = $this
             ->value_authoritable_organizations()
-            ->whereIn('related_id', \Exment::user()->getOrganizationIds());
+            ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds());
         }
 
         return $query->get();

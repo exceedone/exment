@@ -61,15 +61,12 @@ class SupportForV20 extends Migration
         if(!\Schema::hasTable(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)){
             $schema->create(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, function (ExtendedBlueprint $table) {
                 $table->increments('id');
-                $table->integer('custom_table_id')->unsigned()->index();
                 $table->nullableMorphs('parent');
                 $table->string('authoritable_type')->index();
                 $table->string('authoritable_user_org_type')->index();
                 $table->integer('authoritable_target_id')->nullable()->index();
                 $table->timestamps();
                 $table->timeusers();
-
-                $table->foreign('custom_table_id')->references('id')->on(SystemTableName::CUSTOM_TABLE);
             });
         }
     }

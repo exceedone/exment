@@ -239,7 +239,7 @@ trait HasPermissions
     protected function getCustomTablePermissions()
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems(RoleType::TABLE);
+        $roles = $this->getPermissionItems();
 
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
@@ -247,13 +247,22 @@ trait HasPermissions
        
         foreach ($roles as $role) {
             foreach ($role->role_group_permissions as $role_group_permission) {
-                if (is_null($role_group_permission->permissions)) {
+                if (!isset($role_group_permission->permissions)) {
                     continue;
                 }
+                if($role_group_permission->role_group_permission_type != RoleType::TABLE){
+                    continue;
+                }
+
+                $custom_table = CustomTable::getEloquent($role_group_permission->role_group_target_id);
+                if(!isset($custom_table)){
+                    continue;
+                }
+
                 $role_details = $role_group_permission->permissions;
                 foreach ($role_details as $value) {
                     if (!array_key_exists($value, $permissions)) {
-                        $permissions[$value] = 1;
+                        $permissions[$custom_table->table_name][$value] = 1;
                     }
                 }
             }
@@ -283,7 +292,7 @@ trait HasPermissions
     protected function getSystemPermissions()
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems(RoleType::SYSTEM);
+        $roles = $this->getPermissionItems();
         
         // get roles records
         $permissions = [];
@@ -292,10 +301,14 @@ trait HasPermissions
                 if (is_null($role_group_permission->permissions)) {
                     continue;
                 }
+                if($role_group_permission->role_group_permission_type != RoleType::SYSTEM){
+                    continue;
+                }
+
                 $role_details = $role_group_permission->permissions;
                 foreach ($role_details as $value) {
                     if (!array_key_exists($value, $permissions)) {
-                        $permissions[$value] = 1;
+                        $permissions[$value] = "1";
                     }
                 }
             }
@@ -305,13 +318,13 @@ trait HasPermissions
         if(!array_has($permissions, 'system') && collect(System::system_admin_users())->first(function($system_admin_user){
             return $system_admin_user == $this->base_user_id;
         })){
-            $permissions['system'] = 1;
+            $permissions['system'] = "1";
         }
         
         return $permissions;
     }
 
-    protected function getPermissionItems($roleType){
+    protected function getPermissionItems(){
         $organization_ids = $this->getOrganizationIds();
 
         // get all permissons for system. --------------------------------------------------

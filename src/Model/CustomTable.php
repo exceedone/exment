@@ -1370,24 +1370,23 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     protected function checkPermissionWithPivot($rows, $role_key)
     {
-        //TODO:check!! Role modify
-        return true;
-        // if (!isset($rows) || count($rows) == 0) {
-        //     return false;
-        // }
+        if (!isset($rows) || count($rows) == 0) {
+            return false;
+        }
 
-        // foreach ($rows as $row) {
-        //     // get role
-        //     $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+        if(is_string($role_key)){
+            $role_key = [$role_key];
+        }
 
-        //     // if role type is system, and has key
-        //     $permissions = $role->permissions;
-        //     if (array_keys_exists($role_key, $permissions)) {
-        //         return true;
-        //     }
-        // }
+        foreach ($rows as $row) {
+            // check role permissions
+            $authoritable_type = array_get($row, 'pivot.authoritable_type');
+            if (in_array($authoritable_type, $role_key)) {
+                return true;
+            }
+        }
 
-        //return false;
+        return false;
     }
 
     /**

@@ -21,7 +21,7 @@ class SystemTableName extends EnumBase
     const NOTIFY_HISTORY_USER = 'notify_history_user';
     const CUSTOM_TABLE = 'custom_tables';
     const VALUE_AUTHORITABLE = 'value_authoritable';
-    const CUSTOM_VALUE_AUTHORITABLE = 'custom_value_authoritable';
+    const CUSTOM_VALUE_AUTHORITABLE = 'custom_value_authoritables';
     const EMAIL_CODE_VERIFY = 'email_code_verifies';
 
     public static function SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY()

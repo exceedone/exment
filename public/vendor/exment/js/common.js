@@ -249,7 +249,7 @@ var Exment;
                 }
                 var linkElem = $(ev.target).closest('tr').find('.rowclick');
                 if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
                 }
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');

@@ -25,9 +25,8 @@ class CustomValueAuthoritable extends ModelBase
         }
 
         $model = new self;
-        $model->custom_table_id = $custom_table->id;
         $model->parent_id = $custom_value->id;
-        $model->parent_name = $table_name;
+        $model->parent_type = $table_name;
         $model->authoritable_type = Permission::CUSTOM_VALUE_EDIT;
         $model->authoritable_user_org_type = SystemTableName::USER;
         $model->authoritable_target_id = $user->base_user_id;
