@@ -22,6 +22,7 @@ class CustomValue extends ModelBase
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
+    
     /**
      * remove_file_columns.
      * default flow, if file column is empty, set original value.
@@ -40,6 +41,26 @@ class CustomValue extends ModelBase
      */
     protected $already_updated = false;
     
+    
+    /**
+     * Create a new Eloquent model instance.
+     *
+     * @param  array  $attributes
+     * @return void
+     */
+    public function __construct(array $attributes = [])
+    {
+        // treeview
+        $this->titleColumn = 'label';
+        $this->orderColumn = 'id';
+        // set parent_id for org
+        if($this->custom_table->table_name == SystemTableName::ORGANIZATION){
+            $this->parentColumn = CustomColumn::getEloquent('parent_organization', $this->custom_table)->getIndexColumnName();
+        }
+
+        parent::__construct($attributes);
+    }
+
     public function getLabelAttribute()
     {
         return $this->getLabel();

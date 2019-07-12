@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\PartialCrudService;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
@@ -90,6 +91,8 @@ class CustomValueController extends AdminControllerTableBase
                     $content->body($this->grid());
                     $this->custom_table->saveGridParameter($request->path());
             }
+
+            PartialCrudService::setGridContent($this->custom_table, $content);
         }
         return $content;
     }

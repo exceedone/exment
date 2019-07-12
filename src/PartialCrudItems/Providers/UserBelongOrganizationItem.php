@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\PartialCrudItems\Providers;
 
+use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
@@ -10,14 +11,14 @@ use Exceedone\Exment\Model\CustomRelation;
 /**
  * Organization item for User
  */
-class UserBelongOrganizationItem
+class UserBelongOrganizationItem extends ProviderBase
 {
     protected $custom_table;
     protected $options;
     
     public function __construct($custom_table)
     {
-        $this->custom_table = $custom_table;
+        parent::__construct($custom_table);
         $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions();
     }
 
@@ -43,13 +44,6 @@ class UserBelongOrganizationItem
         $form->ignore('belong_organizations');
     }
 
-    /**
-     * saving event
-     */
-    public function saving($form, $id = null)
-    {
-    }
-    
     /**
      * saved event
      */
@@ -86,11 +80,5 @@ class UserBelongOrganizationItem
                 return array_get((array)$dbValue, 'parent_id') == array_get($value, 'parent_id');
             },
         ]);
-    }
-    
-    public static function getItem(...$args)
-    {
-        list($custom_table) = $args + [null];
-        return new self($custom_table);
     }
 }

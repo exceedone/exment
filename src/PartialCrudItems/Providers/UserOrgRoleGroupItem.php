@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\PartialCrudItems\Providers;
 
+use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -9,15 +10,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 /**
  * Role group item for User and organizaiton 
  */
-class UserOrgRoleGroupItem
+class UserOrgRoleGroupItem extends ProviderBase
 {
-    protected $custom_table;
-    
-    public function __construct($custom_table)
-    {
-        $this->custom_table = $custom_table;
-    }
-
     /**
      * set laravel admin form's option
      */
@@ -42,13 +36,6 @@ class UserOrgRoleGroupItem
         $form->ignore('role_groups');
     }
 
-    /**
-     * saving event
-     */
-    public function saving($form, $id = null)
-    {
-    }
-    
     /**
      * saved event
      */
@@ -85,11 +72,5 @@ class UserOrgRoleGroupItem
                 return array_get((array)$dbValue, 'role_group_id') == array_get($value, 'role_group_id');
             },
         ]);
-    }
-    
-    public static function getItem(...$args)
-    {
-        list($custom_table) = $args + [null];
-        return new self($custom_table);
     }
 }

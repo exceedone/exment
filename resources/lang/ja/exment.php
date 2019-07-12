@@ -411,6 +411,7 @@ return [
 
     'organization' => [
         'default_table_name' => '組織',
+        'organization_tree' => '組織階層',
     ],
 
     'login' => [

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\PartialCrudItems\Providers;
 
+use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\LoginUser;
@@ -11,15 +12,8 @@ use \DB;
 /**
  * Login User item
  */
-class LoginUserItem
+class LoginUserItem extends ProviderBase
 {
-    protected $custom_table;
-    
-    public function __construct($custom_table)
-    {
-        $this->custom_table = $custom_table;
-    }
-
     /**
      * set laravel admin form's option
      */
@@ -88,13 +82,6 @@ class LoginUserItem
         $form->ignore(['use_loginuser', 'reset_password', 'create_password_auto', 'password', 'password_confirmation', 'send_password']);
     }
 
-    /**
-     * saving event
-     */
-    public function saving($form, $id = null)
-    {
-    }
-    
     /**
      * saved event
      */
@@ -167,12 +154,6 @@ class LoginUserItem
         } catch (Exception $ex) {
             throw $ex;
         }
-    }
-    
-    public static function getItem(...$args)
-    {
-        list($custom_table) = $args + [null];
-        return new self($custom_table);
     }
     
     protected function getLoginUser($user)

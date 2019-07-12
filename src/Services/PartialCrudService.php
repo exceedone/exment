@@ -32,6 +32,12 @@ class PartialCrudService
         });
     }
 
+    public static function setGridContent($custom_table, &$form, $id = null){
+        static::getItem($custom_table, function($item) use(&$form, $id){
+            $item->setGridContent($form, $id);
+        });
+    }
+
     public static function saving($custom_table, &$form, $id = null){
         static::getItem($custom_table, function($item) use(&$form, $id){
             $result = $item->saving($form, $id);
