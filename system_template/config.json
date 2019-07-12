@@ -1230,18 +1230,18 @@
         {
             "order": "2",
             "menu_type": "table",
-            "menu_name": "user",
-            "title": "User",
-            "parent_name": "master",
-            "menu_target_name": "user"
-        },
-        {
-            "order": "3",
-            "menu_type": "table",
             "menu_name": "organization",
             "title": "Organization",
             "parent_name": "master",
             "menu_target_name": "organization"
+        },
+        {
+            "order": "3",
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "User",
+            "parent_name": "master",
+            "menu_target_name": "user"
         },
         {
             "order": "4",

@@ -45,7 +45,7 @@ trait BuilderTrait
 
         ///// Delete if not exists value
         foreach ($dbValues as $dbValue) {
-            if (!collect($values)->first(function ($value, $k) use ($dbValue) {
+            if (!collect($values)->first(function ($value, $k) use ($dbValue, $matchFilter) {
                 return $matchFilter($dbValue, $value);
             })) {
                 $dbDeleteQuery = \DB::table($table);

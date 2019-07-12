@@ -13,6 +13,7 @@ use Exceedone\Exment\ColumnItems\FormOthers;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
+use Exceedone\Exment\Services\PartialCrudService;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use \Html;
@@ -296,6 +297,15 @@ class Initialize
 
         Auth2factorService::providers('email', \Exceedone\Exment\Services\Auth2factor\Providers\Email::class);
         Auth2factorService::providers('google', \Exceedone\Exment\Services\Auth2factor\Providers\Google::class);
+
+        PartialCrudService::providers('user_belong_organization', [
+            'target_tables' => [SystemTableName::USER],
+            'classname' => \Exceedone\Exment\PartialCrudItems\Providers\UserBelongOrganizationItem::class,
+        ]);
+        PartialCrudService::providers('user_org_role_group', [
+            'target_tables' => [SystemTableName::USER, SystemTableName::ORGANIZATION],
+            'classname' => \Exceedone\Exment\PartialCrudItems\Providers\UserOrgRoleGroupItem::class,
+        ]);
 
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,

@@ -235,7 +235,7 @@ class ClassBuilder
                 // Create pivot table
                 \Schema::createRelationValueTable($pivot_table_name);
 
-                $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "parent_id", "child_id")->withPivot("id");';
+                $function_string = 'return $this->belongsToMany("'.getModelName($relation->parent_custom_table, true).'", "'.$pivot_table_name.'", "child_id", "parent_id")->withPivot("id");';
             }
             $builder = $builder->addMethod("public", "{$pivot_table_name}()", $function_string);
         }

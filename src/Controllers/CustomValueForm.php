@@ -19,6 +19,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 
 trait CustomValueForm
 {
@@ -154,6 +155,8 @@ trait CustomValueForm
             }
         }
 
+        PartialCrudService::setAdminFormOptions($this->custom_table, $form, $id);
+
         $calc_formula_array = [];
         $changedata_array = [];
         $relatedlinkage_array = [];
@@ -189,7 +192,7 @@ EOT;
         $form->ignore('select_parent');
 
         // add form saving and saved event
-        $this->manageFormSaving($form);
+        $this->manageFormSaving($form, $id);
         $this->manageFormSaved($form, $select_parent);
 
         $form->disableReset();
@@ -309,11 +312,13 @@ EOT;
     }
 
 
-    protected function manageFormSaving($form)
+    protected function manageFormSaving($form, $id = null)
     {
         // before saving
-        $form->saving(function ($form) {
+        $form->saving(function ($form) use($id) {
             Plugin::pluginPreparing($this->plugins, 'saving');
+
+            PartialCrudService::saving($this->custom_table, $form, $id);
         });
     }
 
@@ -321,8 +326,6 @@ EOT;
     {
         // after saving
         $form->saved(function ($form) use ($select_parent) {
-            Plugin::pluginPreparing($this->plugins, 'saved');
-
             // if requestsession "file upload uuid"(for set data this value's id and type into files)
             $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
             if (isset($uuids)) {
@@ -331,6 +334,9 @@ EOT;
                 }
             }
 
+            Plugin::pluginPreparing($this->plugins, 'saved');
+            PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
+            
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
             if ($one_record_flg) {
