@@ -137,8 +137,7 @@ class RoleGroupController extends AdminControllerBase
             ->default($model->role_group_permissions->first(function($role_group_permission){
                 return $role_group_permission->role_group_permission_type == RoleType::SYSTEM;
             })->permissions ?? null)
-            ->setWidth(10, 2)
-            ->config('allowClear', false);
+            ->setWidth(10, 2);
         ;
 
         $form->exmheader('マスター権限')->hr();
@@ -157,8 +156,7 @@ class RoleGroupController extends AdminControllerBase
                 ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
                     return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
-                })->permissions ?? null)
-                ->config('allowClear', false);
+                })->permissions ?? null);
         }
 
         $form->exmheader('テーブル権限')->hr();
@@ -177,8 +175,7 @@ class RoleGroupController extends AdminControllerBase
                 ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
                     return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
-                })->permissions ?? null)
-                ->config('allowClear', false);
+                })->permissions ?? null);
         }
 
         return $form;
