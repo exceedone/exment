@@ -1270,6 +1270,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $permissions = $user->allPermissions();
         foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
+
             // if role type is system, and has key
             if (RoleType::SYSTEM == $permission->getRoleType()
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {

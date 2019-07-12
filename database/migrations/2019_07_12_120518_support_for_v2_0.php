@@ -67,6 +67,7 @@ class SupportForV20 extends Migration
     public function down()
     {
         //
+        Schema::dropIfExists(SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP_PERMISSION);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP);
     }

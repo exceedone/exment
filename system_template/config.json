@@ -1402,10 +1402,10 @@
         {
             "order": "7",
             "menu_type": "system",
-            "menu_name": "role",
-            "title": "Role",
+            "menu_name": "role_group",
+            "title": "Role Group",
             "parent_name": "admin",
-            "menu_target_name": "role"
+            "menu_target_name": "role_group"
         },
         {
             "order": "8",

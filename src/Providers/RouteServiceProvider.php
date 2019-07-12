@@ -80,12 +80,15 @@ class RouteServiceProvider extends ServiceProvider
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('role', 'RoleController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
-        
+            
+            $router->get('role', function(){
+                return redirect(admin_urls('role_group'));
+            });
+            
             $router->get('search', 'SearchController@index');
             $router->get('search/list', 'SearchController@getList');
             $router->get('search/header', 'SearchController@header');

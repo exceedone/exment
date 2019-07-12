@@ -37,7 +37,13 @@ class RoleGroupController extends AdminControllerBase
         $grid = new Grid(new RoleGroup);
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
-        
+        $grid->column('role_group_users')->display(function ($counts) {
+            return count($counts);
+        });
+        $grid->column('role_group_organizations')->display(function ($counts) {
+            return count($counts);
+        });
+
         $grid->disableExport();
         $grid->actions(function ($actions) {
             $actions->disableView();
@@ -68,8 +74,10 @@ class RoleGroupController extends AdminControllerBase
      */
     public function create(Request $request, Content $content)
     {
-        $form = $request->get('form_type') == 2 ? $this->formUserOrganization() : $this->form();
+        $isRolePermissionPage = $request->get('form_type') != 2;
+        $form = $isRolePermissionPage ? $this->form() : $this->formUserOrganization();
         $box = new Box(trans('admin.create'), $form);
+        $this->appendTools($box, null, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);
     }
 
@@ -82,8 +90,10 @@ class RoleGroupController extends AdminControllerBase
      */
     public function edit(Request $request, Content $content, $id)
     {
-        $form = $request->get('form_type') == 2 ? $this->formUserOrganization($id) : $this->form($id);
+        $isRolePermissionPage = $request->get('form_type') != 2;
+        $form = $isRolePermissionPage ? $this->form($id) : $this->formUserOrganization($id);
         $box = new Box(trans('admin.edit'), $form->edit($id));
+        $this->appendTools($box, $id, $isRolePermissionPage);
         return $this->AdminContent($content)->body($box);
     }
 
@@ -225,7 +235,7 @@ class RoleGroupController extends AdminControllerBase
      */
     public function store()
     {
-        return $this->saveUserOrganization();
+        return $this->saveRolePermission();
     }
 
     protected function saveRolePermission($id = null)
@@ -299,8 +309,8 @@ class RoleGroupController extends AdminControllerBase
                 
             // get user and org
             $items = [
-                ['name' => 'role_group_users', 'role_group_user_org_type' => SystemTableName::USER],
-                ['name' => 'role_group_organizations', 'role_group_user_org_type' => SystemTableName::ORGANIZATION],
+                ['name' => 'role_group_users_item', 'role_group_user_org_type' => SystemTableName::USER],
+                ['name' => 'role_group_organizations_item', 'role_group_user_org_type' => SystemTableName::ORGANIZATION],
             ];
 
             foreach($items as $item){
@@ -362,5 +372,33 @@ class RoleGroupController extends AdminControllerBase
             'description' => exmtrans('role_group.user_organization_setting')
         ];
         return $steps;
+    }
+
+    protected function appendTools($box, $id = null, $isRolePermissionPage = true){
+        $box->tools(view('exment::tools.button', [
+            'href' => admin_urls('role_group'),
+            'label' => trans('admin.list'),
+            'icon' => 'fa-list',
+            'btn_class' => 'btn-default',
+        ]));
+        
+        if(isset($id)){
+            if($isRolePermissionPage){
+                $box->tools(view('exment::tools.button', [
+                    'href' => admin_urls('role_group', $id, 'edit?form_type=2'),
+                    'label' => exmtrans('role_group.user_organization_setting'),
+                    'icon' => 'fa-users',
+                    'btn_class' => 'btn-default',
+                ]));
+            }else{
+                $box->tools(view('exment::tools.button', [
+                    'href' => admin_urls('role_group', $id, 'edit'),
+                    'label' => exmtrans('role_group.permission_setting'),
+                    'icon' => 'fa-user-secret',
+                    'btn_class' => 'btn-default',
+                ]));
+            }
+        }
+
     }
 }

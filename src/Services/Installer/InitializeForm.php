@@ -63,15 +63,8 @@ class InitializeForm
             $loginuser->password = $request->get('password');
             $loginuser->saveOrFail();
             // add system role
-            \DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
-                [
-                    'related_id' => $user->id,
-                    'related_type' => SystemTableName::USER,
-                    'morph_id' => null,
-                    'morph_type' =>  RoleType::SYSTEM()->lowerKey(),
-                    'role_id' => Role::where('role_type', RoleType::SYSTEM)->first()->id,
-                ]
-            );
+            System::system_admin_users([$user->id]);
+
             // add system initialized flg.
             System::initialized(1);
             \DB::commit();

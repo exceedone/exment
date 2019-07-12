@@ -21,7 +21,7 @@ use Exceedone\Exment\Enums\Permission;
 
 class CustomTableController extends AdminControllerBase
 {
-    use HasResourceActions, RoleForm;
+    use HasResourceActions;
 
     protected $exists = false;
 
@@ -179,7 +179,6 @@ class CustomTableController extends AdminControllerBase
         }
 
         // Role setting --------------------------------------------------
-        $this->addRoleForm($form, RoleType::TABLE);
         $deleteButton = $this->confirmDeleteButton($id);
 
         $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {

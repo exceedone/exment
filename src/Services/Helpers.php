@@ -398,6 +398,9 @@ if (!function_exists('array_keys_exists')) {
      */
     function array_keys_exists($keys, $array)
     {
+        if(is_string($array)){
+            $array = [$array];
+        }
         if (is_null($keys)) {
             return false;
         }

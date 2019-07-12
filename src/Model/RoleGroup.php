@@ -12,6 +12,11 @@ class RoleGroup extends ModelBase
         return $this->hasMany(RoleGroupPermission::class, 'role_group_id');
     }
 
+    public function role_group_user_organizations()
+    {
+        return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id');
+    }
+    
     public function role_group_users()
     {
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')

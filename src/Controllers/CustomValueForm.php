@@ -186,9 +186,6 @@ EOT;
             Admin::script($script);
         }
 
-        // add role form
-        $this->setRoleForm($form);
-
         // ignore select_parent
         $form->ignore('select_parent');
 
@@ -205,29 +202,29 @@ EOT;
         return $form;
     }
 
-    /**
-     * setRoleForm.
-     * if table is user, org, etc...., not set role
-     */
-    protected function setRoleForm($form)
-    {
-        // if ignore user and org, return
-        if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-            return;
-        }
-        // if table setting is "one_record_flg" (can save only one record), return
-        if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
-            return;
-        }
+    // /**
+    //  * setRoleForm.
+    //  * if table is user, org, etc...., not set role
+    //  */
+    // protected function setRoleForm($form)
+    // {
+    //     // if ignore user and org, return
+    //     if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
+    //         return;
+    //     }
+    //     // if table setting is "one_record_flg" (can save only one record), return
+    //     if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+    //         return;
+    //     }
         
-        // not contains edit all form
-        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
-            return;
-        }
+    //     // not contains edit all form
+    //     if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
+    //         return;
+    //     }
 
-        // set addRoleForm(dufinition by trait)
-        $this->addRoleForm($form, RoleType::VALUE);
-    }
+    //     // set addRoleForm(dufinition by trait)
+    //     $this->addRoleForm($form, RoleType::VALUE);
+    // }
 
     /**
      * set custom form columns

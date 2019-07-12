@@ -510,8 +510,8 @@
         },
         {
             "menu_type": "system",
-            "menu_name": "role",
-            "title": "役割"
+            "menu_name": "role_group",
+            "title": "役割グループ"
         },
         {
             "menu_type": "system",
