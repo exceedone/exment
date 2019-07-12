@@ -27,10 +27,10 @@ class Morph
     {
         // morphMap
         try {
-            $tables = getAllCustomTables();
+            $tables = Model\CustomTable::allRecords();
                 
             $morphMaps = [
-                "table" => Model\CustomTable::class
+                "table" => Model\CustomTable::class,
             ];
             foreach ($tables as $table) {
                 // morphmap

@@ -200,7 +200,6 @@ class ClassBuilder
             $builder->addProperty("protected", 'revisionCreationsEnabled', "true");
         }
 
-
         // Create Relationship --------------------------------------------------
         $relations = CustomRelation::getRelationsByParent($table);
             
@@ -246,18 +245,6 @@ class ClassBuilder
             $builder->addInUse(Define::CUSTOM_VALUE_TRAITS[$table->table_name]);
         }
         
-        $builder->build();
-    }
-    
-    /**
-     * Create Custom Table Exts Definition
-     */
-    public static function createCustomTableTrait($namespace, $className, $fillpath)
-    {
-        $builder = ClassBuilder::startBuild($className)
-                ->addNamespace($namespace)
-                ->addTrait()
-                ;
         $builder->build();
     }
 }
