@@ -57,6 +57,21 @@ class SupportForV20 extends Migration
                 $table->foreign('role_group_id')->references('id')->on(SystemTableName::ROLE_GROUP);
             });
         }
+
+        if(!\Schema::hasTable(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)){
+            $schema->create(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->integer('custom_table_id')->unsigned()->index();
+                $table->nullableMorphs('parent');
+                $table->string('authoritable_type')->index();
+                $table->string('authoritable_user_org_type')->index();
+                $table->integer('authoritable_target_id')->nullable()->index();
+                $table->timestamps();
+                $table->timeusers();
+
+                $table->foreign('custom_table_id')->references('id')->on(SystemTableName::CUSTOM_TABLE);
+            });
+        }
     }
 
     /**
@@ -67,6 +82,7 @@ class SupportForV20 extends Migration
     public function down()
     {
         //
+        Schema::dropIfExists(SystemTableName::CUSTOM_VALUE_AUTHORITABLE);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP_PERMISSION);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP);

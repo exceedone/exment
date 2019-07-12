@@ -109,7 +109,7 @@ class CustomValue extends ModelBase
         });
         static::saved(function ($model) {
             $model->savedValue();
-            $model->setValueAuthoritable();
+            CustomValueAuthoritable::setValueAuthoritable($model);
         });
         static::created(function ($model) {
             // send notify
@@ -320,43 +320,6 @@ class CustomValue extends ModelBase
         }
     }
 
-    /**
-     * set value_authoritable
-     */
-    public function setValueAuthoritable()
-    {
-        $table_name = $this->custom_table->table_name;
-        if (in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())) {
-            return;
-        }
-        if ($this->value_authoritable_users()->count() > 0 || $this->value_authoritable_organizations()->count() > 0) {
-            return;
-        }
-        $user = \Exment::user();
-        if (!isset($user)) {
-            return;
-        }
-
-        // get role editable value
-        $role = Role::where('role_type', RoleType::VALUE)->whereIn('permissions->'.Permission::CUSTOM_VALUE_EDIT, [1, "1"])
-            ->first();
-        // set user
-        if (!isset($role)) {
-            return;
-        }
-
-        \DB::table(SystemTableName::VALUE_AUTHORITABLE)->insert(
-            [
-                'related_id' => $user->base_user_id,
-                'related_type' => SystemTableName::USER,
-                'morph_id' => $this->id,
-                'morph_type' => $table_name,
-                'role_id' => $role->id,
-            ]
-        );
-    }
-
-    
     
     // notify user --------------------------------------------------
     public function notify($create = true)
