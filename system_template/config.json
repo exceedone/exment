@@ -1165,129 +1165,38 @@
 			]
 		}
 	],
-    "roles": [
+    "role_groups": [
         {
-            "role_type": 0,
-            "role_name": "system_admin",
-            "role_view_name": "System Administrator",
-            "description": "Role that allows all operations.",
-            "permissions": [
-                "system",
-                "custom_table",
-                "custom_form",
-                "custom_view",
-                "custom_value_edit_all"
+            "role_group_name": "system_admin_group",
+            "role_group_view_name": "System Administrator Group",
+            "description": "Role group that allows all operations.",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "0",
+                    "permissions": [
+                        "system"
+                    ]
+                }
             ]
         },
         {
-            "role_type": 0,
-            "role_name": "data_admin",
-            "role_view_name": "Data manager",
-            "description": "Role that allows to edit and view all data.",
-            "permissions": [
-                "custom_value_edit_all"
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "Data manager Group",
+            "description": "Role group that allows to edit and view all data.",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "0",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                }
             ]
         },
         {
-            "role_type": 1,
-            "role_name": "table_admin",
-            "role_view_name": "Manager",
-            "description": "Role that allows to edit and delete table and form view setting.",
-            "permissions": [
-                "custom_table",
-                "custom_form",
-                "custom_view",
-                "custom_value_edit_all",
-                "custom_value_edit",
-                "custom_value_view_all",
-                "custom_value_view",
-                "custom_value_access_all",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_all_editor",
-            "role_view_name": "All data editor",
-            "description": "Role that allows to edit all data in the table.",
-            "permissions": [
-                "custom_value_edit_all",
-                "custom_value_edit",
-                "custom_value_view_all",
-                "custom_value_view",
-                "custom_value_access_all",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_all_viewer",
-            "role_view_name": "All data viewer",
-            "description": "Role that allows to browse all data in the table.",
-            "permissions": [
-                "custom_value_view_all",
-                "custom_value_view",
-                "custom_value_access_all",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_editor",
-            "role_view_name": "Table editor",
-            "description": "Role that allows to edit owner data.",
-            "permissions": [
-                "custom_value_edit",
-                "custom_value_view",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_viewer",
-            "role_view_name": "Table viewer",
-            "description": "Role that allows to browse owner data.",
-            "permissions": [
-                "custom_value_view",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 2,
-            "role_name": "value_editor",
-            "role_view_name": "Editor",
-            "description": "Role that allows to edit target data.",
-            "permissions": [
-                "custom_value_edit",
-                "custom_value_view"
-            ]
-        },
-        {
-            "role_type": 2,
-            "role_name": "value_viewer",
-            "role_view_name": "Viewer",
-            "description": "Role that allows to browse target data.",
-            "permissions": [
-                "custom_value_view"
-            ]
-        },
-        {
-            "role_type": 3,
-            "role_name": "plugin_manager",
-            "role_view_name": "Plugin manager",
-            "description": "Role that allows to change plugin settings.",
-            "permissions": [
-                "plugin_setting",
-                "plugin_access"
-            ]
-        },
-        {
-            "role_type": 3,
-            "role_name": "plugin_access",
-            "role_view_name": "Plugin user",
-            "description": "Role that allows to use plugins.",
-            "permissions": [
-                "plugin_access"
+            "role_group_name": "user_group",
+            "role_group_view_name": "User Group",
+            "description": "Role group that default user group.",
+            "role_group_permissions": [
             ]
         }
     ],

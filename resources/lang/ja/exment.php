@@ -983,8 +983,7 @@ return [
             'table' => 'テーブル',
             'dashboard' => 'ダッシュボード',
             'menu' => 'メニュー',
-            'role' => '権限',
-            'mail_template' => 'メールテンプレート',
+            'role_group' => '役割グループ',
         ]
     ],
 

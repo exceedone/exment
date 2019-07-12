@@ -48,7 +48,6 @@ class Permission extends EnumBase
             self::CUSTOM_VALUE_ACCESS_ALL,
             self::CUSTOM_VALUE_EDIT,
             self::CUSTOM_VALUE_VIEW,
-            self::CUSTOM_VALUE_ACCESS,
         ];
     }
 }

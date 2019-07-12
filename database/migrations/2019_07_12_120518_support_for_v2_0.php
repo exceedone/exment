@@ -26,6 +26,7 @@ class SupportForV20 extends Migration
                 $table->increments('id');
                 $table->string('role_group_name', 256)->index()->unique();
                 $table->string('role_group_view_name', 256);
+                $table->string('description', 1000)->nullable();
                 $table->timestamps();
                 $table->timeusers();
             });

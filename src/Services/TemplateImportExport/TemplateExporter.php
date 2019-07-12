@@ -109,7 +109,7 @@ class TemplateExporter
         if (in_array(TemplateExportTarget::DASHBOARD, $options['export_target'])) {
             static::setTemplateDashboard($config, $is_lang);
         }
-        if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::ROLE_GROUP, $options['export_target'])) {
             static::setTemplateRole($config, $is_lang);
         }
 

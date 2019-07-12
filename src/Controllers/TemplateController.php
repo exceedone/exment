@@ -162,7 +162,7 @@ class TemplateController extends AdminControllerBase
         $form->checkbox('export_target', exmtrans('template.export_target'))
             ->options(TemplateExportTarget::transArray('template.export_target_options'))
             ->help(exmtrans('template.help.export_target'))
-            ->default([TemplateExportTarget::TABLE, TemplateExportTarget::DASHBOARD])
+            ->default([TemplateExportTarget::TABLE, TemplateExportTarget::MENU])
             ;
         
         $form->listbox('target_tables', exmtrans('template.target_tables'))

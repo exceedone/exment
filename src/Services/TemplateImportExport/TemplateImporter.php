@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
+use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;

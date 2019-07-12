@@ -124,7 +124,9 @@ class RoleGroupController extends AdminControllerBase
         $form->text('role_group_view_name', exmtrans('role_group.role_group_view_name'))
             ->required()
             ->rules("max:40");
-
+        
+        $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
+        
         $permissions = Permission::getSystemRolePermissions();
         $permissionLabels = collect($permissions)->mapWithKeys(function($permission){
             return [$permission => exmtrans("role_group.role_type_option_system.$permission.label")];
