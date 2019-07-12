@@ -78,7 +78,13 @@ return [
             'fri' => '金',
             'sat' => '土',
             'sun' => '日',
-        ]
+        ],
+        
+        'bootstrap_duallistbox_container' => [
+            'nonSelectedListLabel' => '候補データ一覧',
+            'selectedListLabel' => '選択済データ一覧',
+            'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
+        ],
     ],
 
     'error' => [
@@ -386,6 +392,7 @@ return [
         'create_password_auto' => 'パスワードを自動生成する',
         'avatar' => 'アバター',
         'default_table_name' => 'ユーザー',
+        'belong_organizations' => '所属組織設定',
         'help' =>[
             'user_name' => '画面に表示する名前です。',
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
@@ -1040,11 +1047,6 @@ return [
         ],
         'data_detail' => 'データ確認',
 
-        'bootstrap_duallistbox_container' => [
-            'nonSelectedListLabel' => '候補データ一覧',
-            'selectedListLabel' => '選択済データ一覧',
-            'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
-        ],
         'auto_number_create' => '(※保存後、値が自動的に登録されます)',
 
         'help' => [

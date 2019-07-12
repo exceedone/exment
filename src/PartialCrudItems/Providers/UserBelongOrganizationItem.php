@@ -35,8 +35,10 @@ class UserBelongOrganizationItem
             $defaults = $this->custom_table->getValueModel($id)->belong_organizations->pluck('id')->toArray();
         }
 
-        $form->listbox('belong_organizations', exmtrans("organization.default_table_name"))
+        $form->listbox('belong_organizations', exmtrans("user.belong_organizations"))
             ->default($defaults)
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')])
+            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
             ->options($this->options);
         $form->ignore('belong_organizations');
     }
@@ -44,14 +46,14 @@ class UserBelongOrganizationItem
     /**
      * saving event
      */
-    public function saving(&$form, $id = null)
+    public function saving($form, $id = null)
     {
     }
     
     /**
      * saved event
      */
-    public function saved(&$form, $id)
+    public function saved($form, $id)
     {
         if(!System::organization_available() || count($this->options) == 0){
             return;

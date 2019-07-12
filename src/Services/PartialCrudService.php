@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\InitializeStatus;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Partial CRUD Service
@@ -33,13 +34,21 @@ class PartialCrudService
 
     public static function saving($custom_table, &$form, $id = null){
         static::getItem($custom_table, function($item) use(&$form, $id){
-            $item->saving($form, $id);
+            $result = $item->saving($form, $id);
+
+            if($result instanceof Response){
+                return $result;
+            }
         });
     }
 
     public static function saved($custom_table, &$form, $id = null){
         static::getItem($custom_table, function($item) use(&$form, $id){
-            $item->saved($form, $id);
+            $result = $item->saved($form, $id);
+            
+            if($result instanceof Response){
+                return $result;
+            }
         });
     }
 

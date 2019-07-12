@@ -168,7 +168,7 @@ class TemplateController extends AdminControllerBase
         $form->listbox('target_tables', exmtrans('template.target_tables'))
             ->options(CustomTable::filterList()->pluck('table_view_name', 'table_name'))
             ->help(exmtrans('template.help.target_tables'))
-            ->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
 
         $form->hidden('_token')->default(csrf_token());

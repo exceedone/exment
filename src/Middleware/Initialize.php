@@ -306,6 +306,10 @@ class Initialize
             'target_tables' => [SystemTableName::USER, SystemTableName::ORGANIZATION],
             'classname' => \Exceedone\Exment\PartialCrudItems\Providers\UserOrgRoleGroupItem::class,
         ]);
+        PartialCrudService::providers('login_user', [
+            'target_tables' => [SystemTableName::USER],
+            'classname' => \Exceedone\Exment\PartialCrudItems\Providers\LoginUserItem::class,
+        ]);
 
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,

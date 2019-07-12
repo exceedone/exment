@@ -201,7 +201,8 @@ class RoleGroupController extends AdminControllerBase
                 return CustomTable::getEloquent(SystemTableName::USER)->getOptions($option);
             })
             ->default($model->role_group_users->pluck('id')->toArray())
-            ->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
+            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
 
         $form->listbox('role_group_organizations_item', '組織')
@@ -209,7 +210,8 @@ class RoleGroupController extends AdminControllerBase
                 return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions($option);
             })
             ->default($model->role_group_organizations->pluck('id')->toArray())
-            ->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
+            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
 
         return $form;

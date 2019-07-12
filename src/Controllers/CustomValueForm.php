@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
@@ -148,8 +149,8 @@ trait CustomValueForm
                     if (!$target_table->isGetOptions()) {
                         $field->ajax($target_table->getOptionAjaxUrl());
                     }
-                    $field->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
-                    $field->help(exmtrans('custom_value.bootstrap_duallistbox_container.help'));
+                    $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+                    $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
                     $form->pushField($field);
                 }
             }
@@ -318,7 +319,10 @@ EOT;
         $form->saving(function ($form) use($id) {
             Plugin::pluginPreparing($this->plugins, 'saving');
 
-            PartialCrudService::saving($this->custom_table, $form, $id);
+            $result = PartialCrudService::saving($this->custom_table, $form, $id);
+            if($result instanceof Response){
+                return $result; 
+            }
         });
     }
 

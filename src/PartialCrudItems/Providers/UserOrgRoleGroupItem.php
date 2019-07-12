@@ -34,6 +34,8 @@ class UserOrgRoleGroupItem
 
         $form->listbox('role_groups', exmtrans("role_group.header"))
             ->default($defaults)
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')])
+            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
             ->options(function($option){
                 return RoleGroup::all()->pluck('role_group_view_name', 'id');
             });
@@ -43,14 +45,14 @@ class UserOrgRoleGroupItem
     /**
      * saving event
      */
-    public function saving(&$form, $id = null)
+    public function saving($form, $id = null)
     {
     }
     
     /**
      * saved event
      */
-    public function saved(&$form, $id)
+    public function saved($form, $id)
     {
         if(!System::permission_available()){
             return;
