@@ -8,6 +8,8 @@ class SystemTableName extends EnumBase
     const LOGIN_USER = 'login_user';
     const PLUGIN = 'plugins';
     const USER = 'user';
+    const ROLE_GROUP = 'role_groups';
+    const ROLE_GROUP_PERMISSION = 'role_group_permissions';
     const ORGANIZATION = 'organization';
     const COMMENT = 'comment';
     const MAIL_TEMPLATE = 'mail_template';
@@ -28,6 +30,17 @@ class SystemTableName extends EnumBase
             SystemTableName::ORGANIZATION,
             SystemTableName::COMMENT,
             SystemTableName::DOCUMENT,
+        ];
+    }
+
+    public static function SYSTEM_TABLE_NAME_MASTER()
+    {
+        return [
+            SystemTableName::USER,
+            SystemTableName::ORGANIZATION,
+            SystemTableName::MAIL_TEMPLATE,
+            SystemTableName::MAIL_SEND_LOG,
+            SystemTableName::BASEINFO,
         ];
     }
 }

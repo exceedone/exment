@@ -1,0 +1,59 @@
+<?php
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Exceedone\Exment\Database\ExtendedBlueprint;
+use Illuminate\Database\Migrations\Migration;
+use Exceedone\Exment\Enums\SystemTableName;
+
+class SupportForV20 extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        $schema = DB::connection()->getSchemaBuilder();
+
+        $schema->blueprintResolver(function($table, $callback) {
+            return new ExtendedBlueprint($table, $callback);
+        });
+
+        if(!\Schema::hasTable(SystemTableName::ROLE_GROUP)){
+            $schema->create(SystemTableName::ROLE_GROUP, function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->string('role_group_name', 256)->index()->unique();
+                $table->string('role_group_view_name', 256);
+                $table->timestamps();
+                $table->timeusers();
+            });
+        }
+        
+        if(!\Schema::hasTable(SystemTableName::ROLE_GROUP_PERMISSION)){
+            $schema->create(SystemTableName::ROLE_GROUP_PERMISSION, function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->integer('role_group_id')->unsigned();
+                $table->string('role_group_name', 256)->index()->unique();
+                $table->string('role_group_view_name', 256);
+                $table->timestamps();
+                $table->timeusers();
+
+                $table->foreign('role_group_id')->references('id')->on(SystemTableName::ROLE_GROUP);
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        //
+        Schema::dropIfExists(SystemTableName::ROLE_GROUP_PERMISSION);
+        Schema::dropIfExists(SystemTableName::ROLE_GROUP);
+    }
+}

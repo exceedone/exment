@@ -140,6 +140,7 @@ class Permission
                 return true;
             case "system":
             case "role":
+            case "role-group":
             case "plugin":
             case "database":
             case "loginuser":
