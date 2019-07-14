@@ -5,6 +5,7 @@ namespace Exceedone\Exment\PartialCrudItems\Providers;
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 
@@ -28,6 +29,10 @@ class UserBelongOrganizationItem extends ProviderBase
     public function setAdminFormOptions(&$form, $id = null)
     {
         if(!System::organization_available() || count($this->options) == 0){
+            return;
+        }
+        
+        if(!CustomTable::getEloquent(SystemTableName::ORGANIZATION)->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
             return;
         }
 
@@ -73,8 +78,9 @@ class UserBelongOrganizationItem extends ProviderBase
             'dbValueFilter' => function(&$model) use($id){
                 $model->where('child_id', $id);
             },
-            'dbDeleteFilter' => function(&$model) use($id){
-                $model->where('child_id', $id);
+            'dbDeleteFilter' => function(&$model, $dbValue) use($id){
+                $model->where('child_id', $id)
+                    ->where('parent_id', array_get((array)$dbValue, 'parent_id'));
             },
             'matchFilter' => function($dbValue, $value){
                 return array_get((array)$dbValue, 'parent_id') == array_get($value, 'parent_id');

@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\Permission;
 use \DB;
 
 /**
@@ -19,6 +20,10 @@ class LoginUserItem extends ProviderBase
      */
     public function setAdminFormOptions(&$form, $id = null)
     {
+        if(!\Exment::user()->hasPermission(Permission::LOGIN_USER)){
+            return;
+        }
+
         $classname = getModelName(SystemTableName::USER);
         $login_user = $this->getLoginUser($classname::find($id));
         $has_loginuser = !is_null($login_user);
@@ -87,6 +92,10 @@ class LoginUserItem extends ProviderBase
      */
     public function saved($form, $id)
     {
+        if(!\Exment::user()->hasPermission(Permission::LOGIN_USER)){
+            return;
+        }
+        
         $data = request()->all();
         $user = getModelName(SystemTableName::USER)::findOrFail($id);
 

@@ -482,6 +482,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'permissions' => Permission::CUSTOM_TABLE,
                 'with' => null,
                 'filter' => null,
+                'checkPermission' => true,
             ],
             $options
         );
@@ -491,7 +492,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if ($options['checkPermission'] && !\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
             $permission_tables = \Exment::user()->allHasPermissionTables($options['permissions']);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {

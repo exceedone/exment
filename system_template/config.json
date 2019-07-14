@@ -1224,7 +1224,7 @@
                     "role_group_permission_type": "0",
                     "role_group_target_name": "1",
                     "permissions": [
-                        "role_group_all"
+                        "role_group_user_organization"
                     ]
                 }
             ]

@@ -50,7 +50,7 @@ trait BuilderTrait
             })) {
                 $dbDeleteQuery = \DB::table($table);
                 if($dbDeleteFilter){
-                    $dbDeleteFilter($dbDeleteQuery);
+                    $dbDeleteFilter($dbDeleteQuery, $dbValue);
                 }
                 $dbDeleteQuery->delete();
             }

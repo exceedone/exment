@@ -6,6 +6,7 @@ use Exceedone\Exment\PartialCrudItems\ProviderBase;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * Role group item for User and organizaiton 
@@ -18,6 +19,10 @@ class UserOrgRoleGroupItem extends ProviderBase
     public function setAdminFormOptions(&$form, $id = null)
     {
         if(!System::permission_available()){
+            return;
+        }
+
+        if(!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])){
             return;
         }
 
@@ -45,6 +50,10 @@ class UserOrgRoleGroupItem extends ProviderBase
             return;
         }
 
+        if(!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])){
+            return;
+        }
+
         // get request value
         $request = request();
         if(!$request->has('role_groups')){
@@ -64,9 +73,10 @@ class UserOrgRoleGroupItem extends ProviderBase
                 $model->where('role_group_target_id', $id)
                     ->where('role_group_user_org_type', $this->custom_table->table_name);
             },
-            'dbDeleteFilter' => function(&$model) use($id){
+            'dbDeleteFilter' => function(&$model, $dbValue) use($id){
                 $model->where('role_group_target_id', $id)
-                    ->where('role_group_user_org_type', $this->custom_table->table_name);
+                    ->where('role_group_user_org_type', $this->custom_table->table_name)
+                    ->where('role_group_id', array_get((array)$dbValue, 'role_group_id'));
             },
             'matchFilter' => function($dbValue, $value){
                 return array_get((array)$dbValue, 'role_group_id') == array_get($value, 'role_group_id');
