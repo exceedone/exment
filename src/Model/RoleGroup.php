@@ -42,4 +42,15 @@ class RoleGroup extends ModelBase
         return $this->hasMany(RoleGroupUserOrganization::class, 'role_group_id')
             ->where('role_group_user_org_type', 'organization');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+        
+        // delete event
+        static::deleting(function ($model) {
+            $model->role_group_permissions()->delete();
+            $model->role_group_user_organizations()->delete();
+        });
+    }
 }

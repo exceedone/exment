@@ -12,6 +12,8 @@ use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\SystemRoleType;
+use Exceedone\Exment\Enums\RoleGroupType;
 use Exceedone\Exment\Enums\Permission;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Grid\Linker;
@@ -129,32 +131,33 @@ class RoleGroupController extends AdminControllerBase
         
         $form->exmheader('システム権限')->hr();
         
-        $form->checkboxTableHeader(RoleType::SYSTEM()->getRoleGroupOptions())
-            ->help(RoleType::SYSTEM()->getRoleGroupHelps())
+        $form->checkboxTableHeader(RoleGroupType::SYSTEM()->getRoleGroupOptions())
+            ->help(RoleGroupType::SYSTEM()->getRoleGroupHelps())
             ->setWidth(10, 2);
         $form->checkboxTable('system_permission[system][permissions]', 'システム権限')
-            ->options(RoleType::SYSTEM()->getRoleGroupOptions())
+            ->options(RoleGroupType::SYSTEM()->getRoleGroupOptions())
             ->default($model->role_group_permissions->first(function($role_group_permission){
-                return $role_group_permission->role_group_permission_type == RoleType::SYSTEM;
+                return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::SYSTEM;
             })->permissions ?? null)
             ->setWidth(10, 2);
-        ;
-
+        $form->hidden("system_permission[system][id]")
+            ->default(SystemRoleType::SYSTEM);
     
-        $form->checkboxTableHeader(RoleType::ROLE_GROUP()->getRoleGroupOptions())
-            ->help(RoleType::ROLE_GROUP()->getRoleGroupHelps())
+        $form->checkboxTableHeader(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
+            ->help(RoleGroupType::ROLE_GROUP()->getRoleGroupHelps())
             ->setWidth(10, 2);
-        $form->checkboxTable('system_permission[role_group][permissions]', '役割グループ')
-            ->options(RoleType::ROLE_GROUP()->getRoleGroupOptions())
+        $form->checkboxTable('system_permission[role_groups][permissions]', '役割グループ')
+            ->options(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
             ->default($model->role_group_permissions->first(function($role_group_permission){
-                return $role_group_permission->role_group_permission_type == RoleType::ROLE_GROUP;
+                return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::ROLE_GROUP;
             })->permissions ?? null)
             ->setWidth(10, 2);
-        ;
+        $form->hidden("system_permission[role_groups][id]")
+            ->default(SystemRoleType::ROLE_GROUP);
 
         $form->exmheader('マスター権限')->hr();
-        $form->checkboxTableHeader(RoleType::MASTER()->getRoleGroupOptions())
-            ->help(RoleType::MASTER()->getRoleGroupHelps())
+        $form->checkboxTableHeader(RoleGroupType::MASTER()->getRoleGroupOptions())
+            ->help(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->setWidth(10, 2);
 
         foreach(CustomTable::filterList(null, ['filter' => function($model){
@@ -164,16 +167,16 @@ class RoleGroupController extends AdminControllerBase
             $form->hidden("master_permission[$table->table_name][id]")
                 ->default($table->id);
             $form->checkboxTable("master_permission[$table->table_name][permissions]", $table->table_view_name)
-                ->options(RoleType::MASTER()->getRoleGroupOptions())
+                ->options(RoleGroupType::MASTER()->getRoleGroupOptions())
                 ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
-                    return $role_group_permission->role_group_permission_type == RoleType::MASTER && $role_group_permission->role_group_target_id == $table->id;
+                    return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
                 })->permissions ?? null);
         }
 
         $form->exmheader('テーブル権限')->hr();
-        $form->checkboxTableHeader(RoleType::TABLE()->getRoleGroupOptions())
-            ->help(RoleType::TABLE()->getRoleGroupHelps())
+        $form->checkboxTableHeader(RoleGroupType::TABLE()->getRoleGroupOptions())
+            ->help(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->setWidth(10, 2);
 
         foreach(CustomTable::filterList(null, ['filter' => function($model){
@@ -183,7 +186,7 @@ class RoleGroupController extends AdminControllerBase
             $form->hidden("table_permission[$table->table_name][id]")
                 ->default($table->id);
             $form->checkboxTable("table_permission[$table->table_name][permissions]", $table->table_view_name)
-                ->options(RoleType::TABLE()->getRoleGroupOptions())
+                ->options(RoleGroupType::TABLE()->getRoleGroupOptions())
                 ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
                     return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
@@ -415,6 +418,19 @@ class RoleGroupController extends AdminControllerBase
                 ]));
             }
         }
+    }
 
+    protected function widgetDestroy($id){
+        try {
+            collect(explode(',', $id))->filter()->each(function ($id) {
+                
+                $model = RoleGroup::findOrFail($id);
+                $model->delete();
+            });
+
+            return true;
+        } catch (\Exception $exception) {
+            return false;
+        }
     }
 }

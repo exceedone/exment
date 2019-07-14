@@ -1173,6 +1173,7 @@
             "role_group_permissions": [
                 {
                     "role_group_permission_type": "0",
+                    "role_group_target_name": "0",
                     "permissions": [
                         "system"
                     ]
@@ -1181,11 +1182,12 @@
         },
         {
             "role_group_name": "data_admin_group",
-            "role_group_view_name": "Data manager Group",
+            "role_group_view_name": "All data manager Group",
             "description": "Role group that allows to edit and view all data.",
             "role_group_permissions": [
                 {
                     "role_group_permission_type": "0",
+                    "role_group_target_name": "0",
                     "permissions": [
                         "custom_value_edit_all"
                     ]
@@ -1199,26 +1201,28 @@
             "role_group_permissions": [
                 {
                     "role_group_permission_type": "0",
+                    "role_group_target_name": "0",
                     "permissions": [
                         "login_user"
                     ]
                 },
                 {
-                    "role_group_permission_type": "4",
+                    "role_group_permission_type": "1",
                     "role_group_target_name": "user",
                     "permissions": [
                         "custom_value_edit_all"
                     ]
                 },
                 {
-                    "role_group_permission_type": "4",
+                    "role_group_permission_type": "1",
                     "role_group_target_name": "organization",
                     "permissions": [
                         "custom_value_edit_all"
                     ]
                 },
                 {
-                    "role_group_permission_type": "5",
+                    "role_group_permission_type": "0",
+                    "role_group_target_name": "1",
                     "permissions": [
                         "role_group_all"
                     ]

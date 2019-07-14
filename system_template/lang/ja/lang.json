@@ -393,7 +393,7 @@
         },
         {
             "role_group_name": "data_admin_group",
-            "role_group_view_name": "データ管理者グループ",
+            "role_group_view_name": "全データ管理者グループ",
             "description": "すべてのテーブルのデータを編集・閲覧可能な役割グループです。"
         },
         {
