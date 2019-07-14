@@ -832,6 +832,8 @@ return [
         'permissions' => '権限詳細',
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
+        'users_count' => 'ユーザー数',
+        'organizations_count' => '組織数',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -850,6 +852,12 @@ return [
             'table' => 'テーブル',
             'value' => 'データ',
             'plugin' => 'プラグイン',
+            'master' => 'マスター',
+        ],
+
+        'role_group_system' => [
+            'system' => 'システム権限',
+            'role_group' => '役割グループ',
         ],
 
         'role_type_option_system' => [

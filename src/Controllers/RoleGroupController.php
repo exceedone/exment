@@ -38,10 +38,10 @@ class RoleGroupController extends AdminControllerBase
         $grid = new Grid(new RoleGroup);
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
-        $grid->column('role_group_users')->display(function ($counts) {
+        $grid->column('role_group_users', exmtrans('role_group.users_count'))->display(function ($counts) {
             return count($counts);
         });
-        $grid->column('role_group_organizations')->display(function ($counts) {
+        $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
             return count($counts);
         });
 
@@ -129,12 +129,12 @@ class RoleGroupController extends AdminControllerBase
         
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
-        $form->exmheader('システム権限')->hr();
-        
+        $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::SYSTEM()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
+
         $form->checkboxTableHeader(RoleGroupType::SYSTEM()->getRoleGroupOptions())
             ->help(RoleGroupType::SYSTEM()->getRoleGroupHelps())
             ->setWidth(10, 2);
-        $form->checkboxTable('system_permission[system][permissions]', 'システム権限')
+        $form->checkboxTable('system_permission[system][permissions]', exmtrans('role_group.role_group_system.system'))
             ->options(RoleGroupType::SYSTEM()->getRoleGroupOptions())
             ->default($model->role_group_permissions->first(function($role_group_permission){
                 return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::SYSTEM;
@@ -146,7 +146,7 @@ class RoleGroupController extends AdminControllerBase
         $form->checkboxTableHeader(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
             ->help(RoleGroupType::ROLE_GROUP()->getRoleGroupHelps())
             ->setWidth(10, 2);
-        $form->checkboxTable('system_permission[role_groups][permissions]', '役割グループ')
+        $form->checkboxTable('system_permission[role_groups][permissions]', exmtrans('role_group.role_group_system.role_group'))
             ->options(RoleGroupType::ROLE_GROUP()->getRoleGroupOptions())
             ->default($model->role_group_permissions->first(function($role_group_permission){
                 return $role_group_permission->role_group_permission_type == RoleType::SYSTEM && $role_group_permission->role_group_target_id == SystemRoleType::ROLE_GROUP;
@@ -155,7 +155,7 @@ class RoleGroupController extends AdminControllerBase
         $form->hidden("system_permission[role_groups][id]")
             ->default(SystemRoleType::ROLE_GROUP);
 
-        $form->exmheader('マスター権限')->hr();
+        $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::MASTER()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
         $form->checkboxTableHeader(RoleGroupType::MASTER()->getRoleGroupOptions())
             ->help(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->setWidth(10, 2);
@@ -174,7 +174,8 @@ class RoleGroupController extends AdminControllerBase
                 })->permissions ?? null);
         }
 
-        $form->exmheader('テーブル権限')->hr();
+        $form->exmheader(exmtrans('role_group.role_type_options.' . RoleGroupType::TABLE()->lowerKey()) . exmtrans('role_group.permission_setting'))->hr();
+
         $form->checkboxTableHeader(RoleGroupType::TABLE()->getRoleGroupOptions())
             ->help(RoleGroupType::TABLE()->getRoleGroupHelps())
             ->setWidth(10, 2);
