@@ -329,7 +329,7 @@ trait HasPermissions
 
         // get all permissons for system. --------------------------------------------------
         return RoleGroup::whereHas(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, function ($query) use ($organization_ids) {
-            $query->orWhere(function ($query) {
+            $query->where(function ($query) {
                 $query->where('role_group_user_org_type', SystemTableName::USER)
                 ->where('role_group_target_id', $this->base_user_id);
             });

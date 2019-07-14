@@ -121,7 +121,7 @@ class LoginUserItem extends ProviderBase
                     $rules = [
                     'password' => get_password_rule(true),
                     ];
-                    $validation = Validator::make($data, $rules);
+                    $validation = \Validator::make($data, $rules);
                     if ($validation->fails()) {
                         return back()->withInput()->withErrors($validation);
                     }

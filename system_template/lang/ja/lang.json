@@ -392,18 +392,23 @@
             "description": "すべての操作が可能なシステム管理者グループです。"
         },
         {
-            "role_group_name": "information_manage_group",
-            "role_group_view_name": "お知らせ情報管理グループ",
-            "description": "お知らせ情報テーブルの管理を行う役割グループです。"
-        },
-        {
             "role_group_name": "data_admin_group",
             "role_group_view_name": "データ管理者グループ",
             "description": "すべてのテーブルのデータを編集・閲覧可能な役割グループです。"
         },
         {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "ユーザー・組織管理グループ",
+            "description": "ユーザー・組織情報を管理する役割グループです。"
+        },
+        {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "お知らせ情報管理グループ",
+            "description": "お知らせ情報テーブルの管理を行う役割グループです。"
+        },
+        {
             "role_group_name": "user_group",
-            "role_group_view_name": "一般ユーザーグループ",
+            "role_group_view_name": "一般グループ",
             "description": "一般ユーザーの役割グループです。"
         }
     ],

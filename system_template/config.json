@@ -1193,6 +1193,39 @@
             ]
         },
         {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "User and Organization manage Group",
+            "description": "Role group that managements users and organizations",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "0",
+                    "permissions": [
+                        "login_user"
+                    ]
+                },
+                {
+                    "role_group_permission_type": "4",
+                    "role_group_target_name": "user",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                },
+                {
+                    "role_group_permission_type": "4",
+                    "role_group_target_name": "organization",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                },
+                {
+                    "role_group_permission_type": "5",
+                    "permissions": [
+                        "role_group_all"
+                    ]
+                }
+            ]
+        },
+        {
             "role_group_name": "information_manage_group",
             "role_group_view_name": "Information manage Group",
             "description": "Role group that manage information.",

@@ -128,14 +128,26 @@ class RoleGroupController extends AdminControllerBase
         $form->textarea('description', exmtrans("custom_table.field_description"))->rows(3);
         
         $form->exmheader('システム権限')->hr();
+        
         $form->checkboxTableHeader(RoleType::SYSTEM()->getRoleGroupOptions())
             ->help(RoleType::SYSTEM()->getRoleGroupHelps())
             ->setWidth(10, 2);
-
         $form->checkboxTable('system_permission[system][permissions]', 'システム権限')
             ->options(RoleType::SYSTEM()->getRoleGroupOptions())
             ->default($model->role_group_permissions->first(function($role_group_permission){
                 return $role_group_permission->role_group_permission_type == RoleType::SYSTEM;
+            })->permissions ?? null)
+            ->setWidth(10, 2);
+        ;
+
+    
+        $form->checkboxTableHeader(RoleType::ROLE_GROUP()->getRoleGroupOptions())
+            ->help(RoleType::ROLE_GROUP()->getRoleGroupHelps())
+            ->setWidth(10, 2);
+        $form->checkboxTable('system_permission[role_group][permissions]', '役割グループ')
+            ->options(RoleType::ROLE_GROUP()->getRoleGroupOptions())
+            ->default($model->role_group_permissions->first(function($role_group_permission){
+                return $role_group_permission->role_group_permission_type == RoleType::ROLE_GROUP;
             })->permissions ?? null)
             ->setWidth(10, 2);
         ;
@@ -155,7 +167,7 @@ class RoleGroupController extends AdminControllerBase
                 ->options(RoleType::MASTER()->getRoleGroupOptions())
                 ->setWidth(10, 2)
                 ->default($model->role_group_permissions->first(function($role_group_permission) use($table){
-                    return $role_group_permission->role_group_permission_type == RoleType::TABLE && $role_group_permission->role_group_target_id == $table->id;
+                    return $role_group_permission->role_group_permission_type == RoleType::MASTER && $role_group_permission->role_group_target_id == $table->id;
                 })->permissions ?? null);
         }
 
@@ -195,6 +207,9 @@ class RoleGroupController extends AdminControllerBase
         $form->method('put');
 
         $form->progressTracker()->options($this->getProgressInfo(false, $id));
+
+        $form->display('role_group_name', exmtrans('role_group.role_group_name'));
+        $form->display('role_group_view_name', exmtrans('role_group.role_group_view_name'));
 
         $form->listbox('role_group_users_item', 'ユーザー')
             ->options(function($option){

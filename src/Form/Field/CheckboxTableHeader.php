@@ -11,7 +11,7 @@ class CheckboxTableHeader extends Field
     
     protected $options = [];
     
-    protected $checkWidth = 100;
+    protected $checkWidth = 110;
 
     public function __construct($options)
     {

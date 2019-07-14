@@ -9,6 +9,7 @@ class RoleType extends EnumBase
     const VALUE = 2;
     const PLUGIN = 3;
     const MASTER = 4;
+    const ROLE_GROUP = 5;
 
     public function getRoleGroupOptions(){
         $permissions = $this->getRoleGroupPermissions();
@@ -32,6 +33,8 @@ class RoleType extends EnumBase
                 return Permission::TABLE_ROLE_PERMISSION;
             case self::MASTER()->lowerKey():
                 return Permission::MASTER_ROLE_PERMISSION;
+            case self::ROLE_GROUP()->lowerKey():
+                return Permission::ROLE_GROUP_ROLE_PERMISSION;
         }
 
     }

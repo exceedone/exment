@@ -22,6 +22,9 @@ class RoleGroupPermission extends ModelBase
             ],
         ],
         'parent' => 'role_group_id',
+        'enums' => [
+            'role_group_permission_type' => RoleType::class,
+        ],
         'uniqueKeyReplaces' => [
             [
                 'replaceNames' => [

@@ -9,7 +9,7 @@ class CheckboxTable extends Checkbox
 {
     protected $view = 'exment::form.field.checkboxtable';
     
-    protected $checkWidth = 100;
+    protected $checkWidth = 110;
 
     public function checkWidth($checkWidth){
         $this->checkWidth = $checkWidth;
