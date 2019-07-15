@@ -863,7 +863,7 @@ return [
         'role_type_option_system' => [
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
             'login_user' => ['label' => 'ログインユーザーの管理', 'help' => 'Exmentにログインするユーザーを管理できます。'],
-            'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。'],
+            'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
@@ -874,14 +874,14 @@ return [
             'role_group_user_organization' => ['label' => 'ユーザー・組織管理', 'help' => '役割グループに登録する、ユーザー・組織の設定を変更できます。'],
         ],
         'role_type_option_master' => [
-            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、マスターデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
             'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
         ], 
         'role_type_option_table' => [
-            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],

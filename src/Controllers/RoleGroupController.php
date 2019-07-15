@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Widgets\Form;
 use Encore\Admin\Grid;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\RoleGroup;
@@ -303,7 +304,12 @@ class RoleGroupController extends AdminControllerBase
 
         // validation
         $rules = [
-            'role_group_name' => isset($id) ? 'nullable' : 'required' . '|max:64|regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/',
+            'role_group_name' => [
+                isset($id) ? 'nullable' : 'required',
+                Rule::unique('role_groups')->ignore($id),
+                'max:64',
+                'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/'
+            ],
             'role_group_view_name' => 'required|max:64',
         ];
 
