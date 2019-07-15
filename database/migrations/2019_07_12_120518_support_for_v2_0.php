@@ -70,6 +70,14 @@ class SupportForV20 extends Migration
                 $table->timeusers();
             });
         }
+
+        // patch role group
+        \Artisan::call('exment:patchdata', ['action' => 'role_group']);
+
+        // remove unused role
+        Schema::dropIfExists('roles');
+        Schema::dropIfExists('system_authoritable');
+        Schema::dropIfExists('value_authoritable');
     }
 
     /**
