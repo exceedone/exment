@@ -80,8 +80,8 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
-        if (!$this->hasPermission()) {
-            return trans('admin.deny');
+        if (($result = $this->hasPermission()) !== true) {
+            return $result;
         }
         
         if (is_null($this->custom_view)) {
