@@ -108,6 +108,7 @@ class CustomValue extends ModelBase
             $model->preSave();
         });
         static::saved(function ($model) {
+            $model->setFileValue();
             $model->savedValue();
             $model->setValueAuthoritable();
         });
@@ -282,6 +283,27 @@ class CustomValue extends ModelBase
 
         $value[$column_name] = array_get($original, $column_name);
         return true;
+    }
+
+    /**
+     * saved file id.
+     */
+    protected function setFileValue()
+    {
+        // if requestsession "file upload uuid"(for set data this value's id and type into files)
+        $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
+        if (isset($uuids)) {
+            foreach ($uuids as $uuid) {
+                // get id matching path
+                $file = File::getData(array_get($uuid, 'uuid'));
+                $value = $file->getCustomValueFromForm($this, $uuid);
+                if(is_null($value)){
+                    continue;
+                }
+
+                File::getData(array_get($uuid, 'uuid'))->saveCustomValue(array_get($value, 'id'), array_get($uuid, 'column_name'), array_get($uuid, 'custom_table'));
+            }
+        }
     }
 
     /**

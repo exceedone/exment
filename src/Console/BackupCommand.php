@@ -151,7 +151,8 @@ class BackupCommand extends Command
         }
 
         // upload file
-        static::disk()->put($this->listZipName(), static::tmpDisk()->get($this->zipName()));
+        $stream = static::tmpDisk()->readStream($this->zipName());
+        static::disk()->writeStream($this->listZipName(), $stream);
     }
     
     protected function removeOldBackups()
