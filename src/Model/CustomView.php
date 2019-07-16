@@ -282,6 +282,34 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
     /**
+     * get alldata view using table
+     *
+     * @param mixed $tableObj table_name, object or id eic
+     * @return void
+     */
+    public static function getAllData($tableObj)
+    {
+        // get all data view
+        $view = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
+
+        // if all data view is not exists, create view
+        if (!isset($view)) {
+            $view = static::createDefaultView($tableObj);
+        }
+
+        // if target form doesn't have columns, add columns for has_index_columns columns.
+        if (is_null($view->custom_view_columns) || count($view->custom_view_columns) == 0) {
+            // get view id for after
+            $view->createDefaultViewColumns();
+
+            // re-get view (reload view_columns)
+            $view = static::find($view->id);
+        }
+
+        return $view;
+    }
+
+    /**
      * get default view using table
      *
      * @param mixed $tableObj table_name, object or id eic
@@ -317,12 +345,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!isset($view)) {
             $view = $tableObj->custom_views()->where('default_flg', true)->first();
         }
-        if (!isset($view)) {
-            $view = $tableObj->custom_views()->first();
+        // get all data view
+        $alldata = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
+        // if all data view is not exists, create view
+        if (!isset($alldata)) {
+            $alldata = static::createDefaultView($tableObj);
         }
-        // if form doesn't contain for target table, create view.
+        // if default view is not setting, show all data view
         if (!isset($view)) {
-            $view = static::createDefaultView($tableObj);
+            $view = $alldata;
         }
 
         // if target form doesn't have columns, add columns for has_index_columns columns.
@@ -354,13 +385,14 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $view = new CustomView;
         $view->custom_table_id = $tableObj->id;
         $view->view_type = ViewType::SYSTEM;
-        $view->view_view_name = exmtrans('custom_view.default_view_name');
+        $view->view_kind_type = ViewKindType::ALLDATA;
+        $view->view_view_name = exmtrans('custom_view.alldata_view_name');
         $view->saveOrFail();
         
         return $view;
     }
 
-    protected function createDefaultViewColumns()
+    public function createDefaultViewColumns()
     {
         $view_columns = [];
         // set default view_column

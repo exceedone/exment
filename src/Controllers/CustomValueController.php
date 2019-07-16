@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
@@ -79,6 +80,14 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
         } else {
+            $callback = null;
+            if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
+                $this->custom_view = CustomView::getAllData($this->custom_table);
+            }
+            if ($request->has('group_key')) {
+                $group_keys = json_decode($request->query('group_key'));
+                $callback = $this->getSummaryDetailFilter($group_keys);
+            }
             switch ($this->custom_view->view_kind_type) {
                 case ViewKindType::AGGREGATE:
                     $content->body($this->gridSummary());
@@ -87,7 +96,7 @@ class CustomValueController extends AdminControllerTableBase
                     $content->body($this->gridCalendar());
                     break;
                 default:
-                    $content->body($this->grid());
+                    $content->body($this->grid($callback));
                     $this->custom_table->saveGridParameter($request->path());
             }
         }
