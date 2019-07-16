@@ -46,9 +46,10 @@ class File extends CustomItem
         $field->help(array_get($fileOption, 'maxFileSizeHelp'));
         
         // set filename rule
-        $field->move($this->getCustomTable()->table_name);
-        $field->name(function ($file) {
-            return File::setFileInfo($this, $file);
+        $custom_table = $this->getCustomTable();
+        $field->move($custom_table->table_name);
+        $field->callableName(function ($file) use($custom_table) {
+            return File::setFileInfo($this, $file, $custom_table);
         });
     }
     
@@ -71,7 +72,7 @@ class File extends CustomItem
     /**
      * save file info to database
      */
-    public static function setFileInfo($field, $file)
+    public static function setFileInfo($field, $file, $custom_table)
     {
         // get local filename
         $dirname = $field->getDirectory();
@@ -81,7 +82,12 @@ class File extends CustomItem
 
         // set request session to save this custom_value's id and type into files table.
         $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
-        $file_uuids[] = ['uuid' => $exmentfile->uuid, 'column_name' => $field->column()];
+        $file_uuids[] = [
+            'uuid' => $exmentfile->uuid, 
+            'column_name' => $field->column(), 
+            'custom_table' => $custom_table, 
+            'path' => $exmentfile->path
+        ];
         System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);
         
         // return filename

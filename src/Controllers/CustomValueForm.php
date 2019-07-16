@@ -352,14 +352,6 @@ EOT;
             $form->model()->setValueAuthoritable();
             Plugin::pluginPreparing($this->plugins, 'saved');
 
-            // if requestsession "file upload uuid"(for set data this value's id and type into files)
-            $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
-            if (isset($uuids)) {
-                foreach ($uuids as $uuid) {
-                    File::getData(array_get($uuid, 'uuid'))->saveCustomValue($form->model(), array_get($uuid, 'column_name'));
-                }
-            }
-
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
             if ($one_record_flg) {
