@@ -249,20 +249,6 @@ class File extends ModelBase
             return $value;
         }
 
-        // // second, foreach value only 'pivot'
-        // $pivots = collect($value)->filter(function($v, $key){
-        //     return strpos($key, 'pivot') === 0;
-        // });
-        // foreach($pivots as $pivot){
-        //     if(is_array($pivot)){
-        //         foreach($pivot as $p){
-        //             if(array_get($p, 'value.' . array_get($uuidObj, 'column_name')) == $path){
-        //                 return $p;
-        //             }
-        //         }
-        //     }
-        // }
-
         return null;
     }
 
