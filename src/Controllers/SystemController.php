@@ -291,7 +291,7 @@ class SystemController extends AdminControllerBase
         $valid_period_datetime = Carbon::now()->addMinute(60);
         
         // send verify
-        try{
+        try {
             if (!Auth2factorService::addAndSendVerify('system', $verify_code, $valid_period_datetime, MailKeyName::VERIFY_2FACTOR_SYSTEM, [
                 'verify_code' => $verify_code,
                 'valid_period_datetime' => $valid_period_datetime->format('Y/m/d H:i'),
@@ -302,8 +302,8 @@ class SystemController extends AdminControllerBase
                     'toastr' => exmtrans('error.mailsend_failed'),
                     'reload' => false,
                 ]);
-            }    
-        }catch(NoMailTemplateException $ex){
+            }
+        } catch (NoMailTemplateException $ex) {
             // show warning message
             return getAjaxResponse([
                 'result'  => false,

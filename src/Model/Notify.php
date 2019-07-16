@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Services\MailSender;
 use Carbon\Carbon;
 
@@ -179,9 +180,12 @@ class Notify extends ModelBase
         $table = $this->custom_table;
         $column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
 
+        //ymd row
+        $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
+
         // find data. where equal target_date
         $datalist = getModelName($table)
-            ::where('value->'.$column->column_name, $target_date_str)
+            ::whereRaw("$raw = ?", [$target_date_str])
             ->get();
 
         return [$datalist, $table, $column];

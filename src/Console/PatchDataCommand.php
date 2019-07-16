@@ -187,7 +187,8 @@ class PatchDataCommand extends Command
                     'verify_2factor',
                     'verify_2factor_google',
                     'verify_2factor_system',
-                ]]
+                ]],
+                'primary_key' => 'value.mail_key_name',
             ]))
             ->format($format);
         $service->import($path);
