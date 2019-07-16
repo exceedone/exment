@@ -244,8 +244,8 @@ class DashboardBoxController extends AdminControllerBase
         }
 
         // create default view
-        $view = createDefaultView($custom_table);
-        createDefaultViewColumns($view);
+        $view = CustomView::createDefaultView($custom_table);
+        $view->createDefaultViewColumns();
         return [['id' => $view->id, 'text' => $view->view_view_name]];
     }
     
