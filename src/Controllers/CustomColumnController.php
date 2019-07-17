@@ -177,10 +177,12 @@ class CustomColumnController extends AdminControllerTableBase
         ->options(ColumnType::transArray("custom_column.column_type_options"))
         ->attribute(['data-filtertrigger' =>true,
             'data-linkage' => json_encode([
-                'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
+                'options_select_import_column_id' => [
+                    'url' => admin_url('webapi/table/indexcolumns'),
+                    'text' => 'column_view_name',
+                ]
             ]),
             'data-linkage-expand' => json_encode(['custom_type' => true]),
-            'data-linkage-text' => 'column_view_name'
         ])
         ->required();
 
