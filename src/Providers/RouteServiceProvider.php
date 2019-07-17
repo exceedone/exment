@@ -78,6 +78,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
+            $router->resource('notify_page', 'NotifyPageController', ['except' => ['edit']]);
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role', 'RoleController', ['except' => ['show']]);

@@ -163,20 +163,19 @@ class ApiController extends AdminControllerBase
         return [
             'count' => $count,
             'items' => $list->map(function($l){
-                $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, array_get($l, 'parent_type'), array_get($l, 'parent_id'));
-                $custom_value = System::requestSession($key, function () use ($l) {
-                    return CustomTable::getEloquent(array_get($l, 'parent_type'))->getValueModel(array_get($l, 'parent_id'));
-                });
-                if(isset($custom_value)){
-                    $icon = $custom_value->custom_table->getOption('icon');
-                    $color = $custom_value->custom_table->getOption('color');
+                $custom_table = CustomTable::getEloquent(array_get($l, 'parent_type'));
+                if(isset($custom_table)){
+                    $icon = $custom_table->getOption('icon');
+                    $color = $custom_table->getOption('color');
+                    $table_view_name = $custom_table->table_view_name;
                 }
 
                 return [
                     'icon' => $icon ?? 'fa-bell',
                     'color' => $color ?? null,
-                    'table_view_name' => CustomTable::getEloquent(array_get($l, 'parent_type'))->table_view_name,
+                    'table_view_name' => $table_view_name ?? null,
                     'label' => array_get($l, 'notify_subject'),
+                    'href' => admin_urls('notify_page', $l->id)
                 ];
             })
         ];

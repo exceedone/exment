@@ -137,6 +137,7 @@ class Permission
             case "dashboardbox":
             case "oauth":
             case "files":
+            case "notify_page":
                 return true;
             case "system":
             case "role":
