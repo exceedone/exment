@@ -555,8 +555,14 @@ namespace Exment {
             // execute linkage event
             for (var key in linkages) {
                 var link = linkages[key];
+                var url = link;
+                // if link is object and has 'text', set linkage_text
+                if(link instanceof Object){
+                    url = link.url;
+                    linkage_text = link.text;
+                }
                 var $target = $parent.find(CommonEvent.getClassKey(key));
-                CommonEvent.linkage($target, link, $base.val(), expand, linkage_text);
+                CommonEvent.linkage($target, url, $base.val(), expand, linkage_text);
             }
         }
 
