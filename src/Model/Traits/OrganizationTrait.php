@@ -136,7 +136,7 @@ trait OrganizationTrait
     public function belong_role_groups()
     {
         return RoleGroup::whereHas('role_group_organizations', function($query){
-            $query->whereIn('role_group_target_id', \Exment::user()->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN));
+            $query->where('role_group_target_id', $this->id);
         })->get();
     }
 }

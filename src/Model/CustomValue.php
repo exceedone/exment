@@ -425,6 +425,11 @@ class CustomValue extends ModelBase
                 ->where('child_id', $this->id)
                 ->delete();
         }
+
+        // delete value_authoritables
+        CustomValueAuthoritable::deleteValueAuthoritable($this);
+        // delete role group
+        RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
     }
     
     /**

@@ -32,4 +32,18 @@ class CustomValueAuthoritable extends ModelBase
         $model->authoritable_target_id = $user->base_user_id;
         $model->save();
     }
+
+    /**
+     * Delete Custom Value Authoritable after custom value save
+     *
+     * @return void
+     */
+    public static function deleteValueAuthoritable($custom_value){
+        $custom_table = $custom_value->custom_table;
+        $table_name = $custom_table->table_name;
+        static::query()
+        ->where('parent_id', $custom_value->id)
+        ->where('parent_type', $table_name)
+        ->delete();
+    }
 }
