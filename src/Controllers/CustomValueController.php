@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
@@ -342,6 +343,22 @@ class CustomValueController extends AdminControllerTableBase
             'body'  => $form->render(),
             'script' => $form->getScript(),
             'title' => exmtrans('custom_value.sendmail.title')
+        ]);
+    }
+
+    /**
+     * create share form
+     */
+    public function shareClick(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.share')
         ]);
     }
 

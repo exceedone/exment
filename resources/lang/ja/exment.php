@@ -7,6 +7,7 @@ return [
         'import' => 'インポート',
         'plugin' => 'プラグイン',
         'copy' => 'コピー',
+        'share' => '共有',
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
@@ -892,8 +893,8 @@ return [
             'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
         ], 
         'role_type_option_value' => [
-            'custom_value_edit' => ['label' => '編集者', 'help' => '対象のデータを編集できます。'],
-            'custom_value_view' => ['label' => '閲覧者', 'help' => '対象のデータを閲覧できます。'],
+            'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
+            'custom_value_view' => ['label' => '閲覧可能', 'help' => 'このデータを閲覧できるようになります。'],
         ], 
         'role_type_option_plugin' => [
             'plugin_access' => ['label' => '利用', 'help' => 'このプラグインを利用できます。'],

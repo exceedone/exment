@@ -177,6 +177,7 @@ trait CustomValueShow
                             $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
                         }
                     }
+                    $tools->append(new Tools\ShareButton($this->custom_table, $id));
                 }
             });
         });

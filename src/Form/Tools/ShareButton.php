@@ -5,17 +5,15 @@ namespace Exceedone\Exment\Form\Tools;
 use Encore\Admin\Facades\Admin;
 
 /**
- * notify email button.
+ * Open Share button.
  */
-class NotifyButton
+class ShareButton
 {
-    protected $notify;
     protected $custom_table;
     protected $id;
     
-    public function __construct($notify, $custom_table, $id = null)
+    public function __construct($custom_table, $id)
     {
-        $this->notify = $notify;
         $this->custom_table = $custom_table;
         $this->id = $id;
     }
@@ -24,11 +22,7 @@ class NotifyButton
     {
         $table_name = array_get($this->custom_table, 'table_name');
         // create url
-        if (isset($this->id)) {
-            $url = admin_urls("data", $table_name, $this->id, "notifyClick");
-        } else {
-            $url = admin_urls("data", $table_name, "notifyClick");
-        }
+        $url = admin_urls("data", $table_name, $this->id, "shareClick");
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
 
@@ -52,23 +46,18 @@ EOT;
     public function render()
     {
         // get label
-        if (!is_null(array_get($this->notify, 'trigger_settings.notify_button_name'))) {
-            $label = array_get($this->notify, 'trigger_settings.notify_button_name');
-        } elseif (isset($this->notify->notify_view_name)) {
-            $label = $this->notify->notify_view_name;
-        }
-
+        $label = exmtrans('common.share');
         // get uuid
-        $suuid = array_get($this->notify, 'suuid');
+        $suuid = short_uuid();
         $table_name = array_get($this->custom_table, 'table_name');
-        $url = admin_urls("data", $table_name, $this->id, "notifyClick");
+        $url = admin_urls("data", $table_name, $this->id, "shareClick");
         //Admin::script($this->script($suuid, $label));
 
         return view('exment::tools.modal-button', [
             'suuid' => $suuid,
             'label' => $label ?? null,
-            'button_class' => 'btn-info',
-            'icon' => 'fa-envelope-o',
+            'button_class' => 'btn-warning',
+            'icon' => 'fa-share',
             'url' => $url
         ]);
     }

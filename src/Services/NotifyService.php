@@ -68,6 +68,8 @@ class NotifyService
         $form->listbox('target_users', exmtrans('custom_value.sendmail.mail_to'))
             ->options($options)
             ->required()
+            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')])
             ->setWidth(9, 2);
 
         $form->hidden('mail_template_id')->default($this->targetid);
