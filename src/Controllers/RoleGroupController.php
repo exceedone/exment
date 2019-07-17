@@ -262,17 +262,6 @@ class RoleGroupController extends AdminControllerBase
             ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
 
-        // $form->listbox('role_group_organizations_item', CustomTable::getEloquent(SystemTableName::ORGANIZATION)->table_view_name)
-        //     ->options(function($option){
-        //         return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions($option);
-        //     })
-        //     ->default($model->role_group_user_organizations->map(function($role_group_user_organization){
-        //         return array_get($item, 'role_group_user_org_type') . '_' . array_get($item, 'role_group_target_id');
-        //     })->toArray())
-        //     ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
-        //     ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
-        // ;
-
         return $form;
     }
 
