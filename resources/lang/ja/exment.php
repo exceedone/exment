@@ -1085,7 +1085,7 @@ return [
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '通知対象',
-        'mail_template_id' => 'メールテンプレート',
+        'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
 
         'help' => [
@@ -1097,7 +1097,7 @@ return [
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」と、「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
-            'mail_template_id' => '送付するメールのテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
         ],
 
         'notify_trigger_options' => [
@@ -1111,6 +1111,7 @@ return [
         ],
         'notify_action_options' => [
             'email' => 'Eメール', 
+            'show_page' => 'システム内通知', 
         ],
 
         'notify_action_target_options' => [

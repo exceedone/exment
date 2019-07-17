@@ -5,6 +5,9 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\NotifyPage;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -146,5 +149,36 @@ class ApiController extends AdminControllerBase
             return [];
         }
         return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
+    }
+    
+    public function notifyPage(Request $request){
+        // get notify NotifyPage list
+        $query = NotifyPage::where('target_user_id', \Exment::user()->base_user_id)
+            ->where('read_flg', false)
+            ->orderBy('created_at', 'desc');
+        
+        $count = $query->count();
+        $list = $query->take(5)->get();    
+
+        return [
+            'count' => $count,
+            'items' => $list->map(function($l){
+                $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, array_get($l, 'parent_type'), array_get($l, 'parent_id'));
+                $custom_value = System::requestSession($key, function () use ($l) {
+                    return CustomTable::getEloquent(array_get($l, 'parent_type'))->getValueModel(array_get($l, 'parent_id'));
+                });
+                if(isset($custom_value)){
+                    $icon = $custom_value->custom_table->getOption('icon');
+                    $color = $custom_value->custom_table->getOption('color');
+                }
+
+                return [
+                    'icon' => $icon ?? 'fa-bell',
+                    'color' => $color ?? null,
+                    'table_view_name' => CustomTable::getEloquent(array_get($l, 'parent_type'))->table_view_name,
+                    'label' => array_get($l, 'notify_subject'),
+                ];
+            })
+        ];
     }
 }

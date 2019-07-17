@@ -61,8 +61,10 @@ class NotifyController extends AdminControllerBase
             return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');
         });
 
-        $grid->column('notify_action', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
-            return NotifyAction::getEnum($val)->transKey('notify.notify_action_options');
+        $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
+            return implode(exmtrans('common.separate_word'), collect($val)->map(function($v){
+                return NotifyAction::getEnum($v)->transKey('notify.notify_action_options');
+            })->toArray());
         });
 
         $grid->disableExport();
@@ -151,12 +153,12 @@ class NotifyController extends AdminControllerBase
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
-        $form->select('notify_action', exmtrans("notify.notify_action"))
+        $form->multipleSelect('notify_actions', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
-            ->default(NotifyAction::EMAIL)
+            ->default([NotifyAction::EMAIL, NotifyAction::SHOW_PAGE])
             ->required()
             ->config('allowClear', false)
-            ->help(exmtrans("notify.notify_action"))
+            ->help(exmtrans("notify.help.notify_action"))
             ;
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {

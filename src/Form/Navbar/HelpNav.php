@@ -1,6 +1,6 @@
 <?php
 
-namespace Exceedone\Exment\Form\Tools;
+namespace Exceedone\Exment\Form\Navbar;
 
 use Exceedone\Exment\Model\Define;
 

@@ -18,7 +18,8 @@ class Bootstrap
     {
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
-            $navbar->right(new \Exceedone\Exment\Form\Tools\HelpNav);
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav);
         });
         Ad::js(asset('lib/js/jquery-ui.min.js'));
         Ad::css(asset('lib/css/jquery-ui.min.css'));
