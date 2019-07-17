@@ -837,6 +837,7 @@ return [
         'user_organization_setting' => 'ユーザー・組織設定',
         'users_count' => 'ユーザー数',
         'organizations_count' => '組織数',
+        'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',

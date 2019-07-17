@@ -32,13 +32,11 @@ class Tinymce extends Textarea
     /**
      * {@inheritdoc}
      */
-    public function readonly($readonly = true)
+    public function readonly()
     {
-        if($readonly){
-            $this->config('readonly', '1');
-        }
+        $this->config('readonly', '1');
 
-        return parent::readonly($readonly);
+        return parent::readonly();
     }
 
     public function render()

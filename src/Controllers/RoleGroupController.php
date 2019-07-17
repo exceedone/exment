@@ -6,6 +6,7 @@ use Encore\Admin\Widgets\Form;
 use Encore\Admin\Grid;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\RoleGroup;
@@ -250,23 +251,27 @@ class RoleGroupController extends AdminControllerBase
         $form->display('role_group_name', exmtrans('role_group.role_group_name'));
         $form->display('role_group_view_name', exmtrans('role_group.role_group_view_name'));
 
-        $form->listbox('role_group_users_item', CustomTable::getEloquent(SystemTableName::USER)->table_view_name)
-            ->options(function($option){
-                return CustomTable::getEloquent(SystemTableName::USER)->getOptions($option);
-            })
-            ->default($model->role_group_users->pluck('role_group_target_id')->toArray())
+        // get options 
+        $options = CustomValueAuthoritable::getUserOrgSelectOptions(null);
+        $form->listbox('role_group_item', exmtrans('role_group.user_organization_setting'))
+            ->options($options)
+            ->default($model->role_group_user_organizations->map(function($item){
+                return array_get($item, 'role_group_user_org_type') . '_' . array_get($item, 'role_group_target_id');
+            })->toArray())
             ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
             ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
 
-        $form->listbox('role_group_organizations_item', CustomTable::getEloquent(SystemTableName::ORGANIZATION)->table_view_name)
-            ->options(function($option){
-                return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions($option);
-            })
-            ->default($model->role_group_organizations->pluck('role_group_target_id')->toArray())
-            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
-            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
-        ;
+        // $form->listbox('role_group_organizations_item', CustomTable::getEloquent(SystemTableName::ORGANIZATION)->table_view_name)
+        //     ->options(function($option){
+        //         return CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions($option);
+        //     })
+        //     ->default($model->role_group_user_organizations->map(function($role_group_user_organization){
+        //         return array_get($item, 'role_group_user_org_type') . '_' . array_get($item, 'role_group_target_id');
+        //     })->toArray())
+        //     ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+        //     ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+        // ;
 
         return $form;
     }
@@ -378,38 +383,36 @@ class RoleGroupController extends AdminControllerBase
         try {
                 
             // get user and org
-            $items = [
-                ['name' => 'role_group_users_item', 'role_group_user_org_type' => SystemTableName::USER],
-                ['name' => 'role_group_organizations_item', 'role_group_user_org_type' => SystemTableName::ORGANIZATION],
-            ];
+            $item = ['name' => 'role_group_item', 'role_group_user_org_type' => SystemTableName::ORGANIZATION];
 
-            foreach($items as $item){
-                $role_group = $request->get($item['name'], []);
-                $role_group = collect($role_group)->filter()->map(function($role_group_target) use($id, $item){
-                    return [
-                        'role_group_id' => $id,
-                        'role_group_user_org_type' => $item['role_group_user_org_type'],
-                        'role_group_target_id' => $role_group_target,
-                    ];
-                });
-                    
-                \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_group, [
-                    'dbValueFilter' => function(&$model) use($id, $item){
-                        $model->where('role_group_id', $id)
-                            ->where('role_group_user_org_type', $item['role_group_user_org_type']);
-                    },
-                    'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item){
-                        $model->where('role_group_id', $id)
-                            ->where('role_group_user_org_type', $item['role_group_user_org_type'])
-                            ->where('role_group_target_id', array_get((array)$dbValue, 'role_group_target_id'));
-                    },
-                    'matchFilter' => function($dbValue, $value) use($id, $item){
-                        return array_get((array)$dbValue, 'role_group_target_id') == array_get($value, 'role_group_target_id')
-                            && array_get((array)$dbValue, 'role_group_user_org_type') == array_get($value, 'role_group_user_org_type');
-                    },
-                ]);
+            $role_group = $request->get($item['name'], []);
+            $role_group = collect($role_group)->filter()->map(function($role_group_target) use($id, &$item){
+                list($role_group_user_org_type, $role_group_target_id) = explode('_', $role_group_target);
+                $item['role_group_user_org_type'] = $role_group_user_org_type;
+                $item['role_group_target_id'] = $role_group_target_id;
+                
+                return [
+                    'role_group_id' => $id,
+                    'role_group_user_org_type' => $role_group_user_org_type,
+                    'role_group_target_id' => $role_group_target_id,
+                ];
+            });
+                
+            \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_group, [
+                'dbValueFilter' => function(&$model) use($id, $item){
+                    $model->where('role_group_id', $id);
+                },
+                'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item){
+                    $model->where('role_group_id', $id)
+                        ->where('role_group_target_id', array_get((array)$dbValue, 'role_group_target_id'))
+                        ->where('role_group_user_org_type', array_get((array)$dbValue, 'role_group_user_org_type'));
+                },
+                'matchFilter' => function($dbValue, $value) use($id, $item){
+                    return array_get((array)$dbValue, 'role_group_target_id') == array_get($value, 'role_group_target_id')
+                        && array_get((array)$dbValue, 'role_group_user_org_type') == array_get($value, 'role_group_user_org_type');
+                },
+            ]);
 
-            }
             \DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));

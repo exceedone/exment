@@ -399,6 +399,16 @@ class CustomValueController extends AdminControllerTableBase
         return $service->sendNotifyMail($this->custom_table);
     }
 
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
+    }
+
     protected function getNotifyService($tableKey, $id)
     {
         $targetid = request()->get('mail_template_id');
