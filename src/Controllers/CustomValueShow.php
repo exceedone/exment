@@ -173,7 +173,7 @@ trait CustomValueShow
                         $tools->append($b->toHtml());
                     }
                     foreach ($notifies as $notify) {
-                        if (array_get($notify, 'notify_trigger') == NotifyTrigger::BUTTON) {
+                        if ($custom_value->isNotifyTarget($notify, NotifyTrigger::BUTTON)) {
                             $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
                         }
                     }

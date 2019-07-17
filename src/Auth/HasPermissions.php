@@ -182,7 +182,7 @@ trait HasPermissions
     /**
      * filter target model
      */
-    public function filterModel($model, $table_name, $custom_view = null, $callback = null)
+    public function filterModel($model, $custom_view = null, $callback = null)
     {
         // view filter setting --------------------------------------------------
         // has $custom_view, filter

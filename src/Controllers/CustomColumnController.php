@@ -304,14 +304,20 @@ class CustomColumnController extends AdminControllerTableBase
                     ->attribute([
                         'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
                         'data-linkage' => json_encode([
-                            'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
-                            'options_select_target_view' =>  admin_urls('webapi/table/filterviews'),
+                            'options_select_import_column_id' => [
+                                'url' => admin_url('webapi/table/indexcolumns'),
+                                'text' => 'column_view_name',
+                            ],
+                            'options_select_target_view' => [
+                                'url' => admin_url('webapi/table/filterviews'),
+                                'text' => 'view_view_name',
+                            ]
                         ]),
-                        'data-linkage-text' => 'view_view_name'
                     ]);
 
             // define select-target table view
             $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
+                ->help(exmtrans("custom_column.help.select_target_view"))
                 ->options(function ($select_view, $form) {
                     $data = $form->data();
                     if (!isset($data)) {

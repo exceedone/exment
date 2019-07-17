@@ -805,8 +805,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function isGetOptions($custom_view = null)
     {
-        // get count table.
-        $count = $this->getOptionsQuery($custom_view)::count();
+        // get count table..
+        $count = $this->getOptionsQuery($custom_view)->count();
         // when count > 0, create option only value.
         return $count <= 100;
     }
@@ -890,7 +890,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function getOptionAjaxUrl($custom_view = null)
     {
         // get count table.
-        $count = $this->getOptionsQuery($custom_view)::count();
+        $count = $this->getOptionsQuery($custom_view)->count();
         // when count > 0, create option only value.
         if ($count <= 100) {
             return null;
@@ -909,7 +909,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // filter model
         $user = Admin::user();
         if (isset($user)) {
-            $model = $user->filterModel($model, $this, $custom_view);
+            $model = $user->filterModel($model, $custom_view);
         }
         return $model;
     }
