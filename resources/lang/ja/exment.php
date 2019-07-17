@@ -625,6 +625,7 @@ return [
             'datetime_now_creating' => 'データの新規作成時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
+            'select_target_view' => 'データを絞り込む場合は事前に条件ビューを作成した上で選択してください。',
             'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
             'true_value' => '1つ目の選択肢を保存した場合に登録する値を入力してください。',
@@ -726,6 +727,7 @@ return [
         'view_group_condition' => '列タイプ',
         'view_summary_condition' => '集計タイプ',
         'default_view_name' => '既定のビュー',
+        'alldata_view_name' => '全件ビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
@@ -814,6 +816,7 @@ return [
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
             'filter' => '条件ビュー',
+            'alldata' => '全件ビュー',
         ],
     ],
 
@@ -997,6 +1000,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
+        'view_summary_detail' => '集計データの明細を表示する',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
@@ -1076,6 +1080,7 @@ return [
         'description' => '特定の条件で、通知を行うための設定を行います。',
         'notify_view_name' => '通知表示名',
         'custom_table_id' => '対象テーブル',
+        'custom_view_id' => '対象ビュー',
         'notify_trigger' => '実施トリガー',
         'trigger_settings' => '通知実施設定',
         'notify_target_column' => '日付対象列',
@@ -1091,6 +1096,7 @@ return [
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
             'custom_table_id' => '通知を行う条件として使用する、テーブルを選択します。',
+            'custom_view_id' => '対象テーブルのデータを絞り込む場合は、あらかじめ条件ビューを作成してください。',
             'notify_trigger' => '通知を行う条件となる内容を選択してください。',
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
