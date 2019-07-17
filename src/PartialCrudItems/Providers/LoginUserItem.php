@@ -103,11 +103,13 @@ class LoginUserItem extends ProviderBase
             // get login user
             $login_user = $this->getLoginUser($user);
             // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
-            if (!is_null($login_user) && !boolval(array_get($data, 'use_loginuser'))) {
-                $login_user->delete();
+            if (!boolval(array_get($data, 'use_loginuser'))) {
+                if(!is_null($login_user)){
+                    $login_user->delete();
+                }
                 return;
             }
-
+            
             // if "$user" doesn't have "login_user" obj and checked "use_loginuser", create login user object.
             $has_change = false;
             $is_newuser = false;

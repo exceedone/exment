@@ -10,6 +10,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
@@ -329,11 +330,13 @@ EOT;
     protected function manageFormSaved($form, $select_parent = null)
     {
         // after saving
-        $form->saved(function ($form) use ($select_parent) {
-            $form->model()->setValueAuthoritable();
+        $form->savedInTransaction(function ($form) use ($select_parent) {
+            CustomValueAuthoritable::setValueAuthoritable($form->model());
             Plugin::pluginPreparing($this->plugins, 'saved');
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
-            
+        });
+        
+        $form->saved(function ($form) use ($select_parent) {
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
             if ($one_record_flg) {
