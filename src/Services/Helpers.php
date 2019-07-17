@@ -1191,6 +1191,35 @@ if (!function_exists('getAjaxResponse')) {
     }
 }
 
+if (!function_exists('downloadFile')) {
+    /**
+     * download file.
+     * Support large file
+     */
+    function downloadFile($path, $disk)
+    {
+        $driver = $disk->getDriver();
+        $metaData = $driver->getMetadata($path);
+        $stream = $driver->readStream($path);
+
+        // get page name
+        $name = rawurlencode(mb_basename($path));
+        
+        if (ob_get_level()) ob_end_clean();
+        return response()->stream(
+            function () use ($stream) {
+                fpassthru($stream);
+            },
+            200,
+            [
+                'Content-Type' => $metaData['type'],
+                'Content-disposition' => "attachment; filename*=UTF-8''$name",
+            ]
+        );
+    }
+}
+
+
 if (!function_exists('getExmentVersion')) {
     /**
      * getExmentVersion using session and composer

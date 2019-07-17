@@ -175,7 +175,7 @@ __EOT__;
         $this->initBackupRestore($targetfile);
 
         // set to tmp zip file
-        static::tmpDisk()->put($this->zipName(), $this->getRestoreZip());
+        static::tmpDisk()->writeStream($this->zipName(), $this->getRestoreZip());
 
         // create temporary folder if not exists
         if (!static::tmpDisk()->exists($this->tmpDirName())) {
@@ -257,6 +257,6 @@ __EOT__;
             return static::tmpDisk()->get($this->zipName());
         }
 
-        return static::disk()->get($this->listZipName());
+        return static::disk()->readStream($this->listZipName());
     }
 }
