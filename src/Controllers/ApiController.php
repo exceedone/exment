@@ -4,10 +4,12 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewKindType;
 
 /**
  * Api about target table
@@ -82,6 +84,27 @@ class ApiController extends AdminControllerBase
         }
 
         return CustomTable::getEloquent($table)->custom_columns()->indexEnabled()->get();
+    }
+
+    /**
+     * get filter view list
+     * @return mixed
+     */
+    public function filterviews(Request $request)
+    {
+        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        $table = $request->get('q');
+        if (!isset($table)) {
+            return [];
+        }
+
+        return CustomView
+            ::where('custom_table_id', $table)
+            ->where('view_kind_type', ViewKindType::FILTER)
+            ->get();
     }
 
     /**

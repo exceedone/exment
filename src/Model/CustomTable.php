@@ -801,13 +801,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
      *
-     * @param array|CustomTable $table
-     * @param $selected_value
+     * @param $custom_view
      */
-    public function isGetOptions()
+    public function isGetOptions($custom_view = null)
     {
         // get count table.
-        $count = $this->getOptionsQuery()::count();
+        $count = $this->getOptionsQuery($custom_view)::count();
         // when count > 0, create option only value.
         return $count <= 100;
     }
@@ -823,7 +822,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false, $filterCallback = null)
+    public function getOptions($selected_value = null, $display_table = null, $all = false, 
+        $showMessage_ifDeny = false, $filterCallback = null, $target_view = null)
     {
         if (is_null($display_table)) {
             $display_table = $this;
@@ -850,7 +850,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
         } else {
-            $query = $this->getOptionsQuery();
+            $query = $this->getOptionsQuery($target_view);
         }
 
         if (isset($filterCallback)) {
@@ -887,10 +887,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param array|CustomTable $table
      * @param $value
      */
-    public function getOptionAjaxUrl()
+    public function getOptionAjaxUrl($custom_view = null)
     {
         // get count table.
-        $count = $this->getOptionsQuery()::count();
+        $count = $this->getOptionsQuery($custom_view)::count();
         // when count > 0, create option only value.
         if ($count <= 100) {
             return null;
@@ -901,7 +901,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * getOptionsQuery. this function uses for count, get, ...
      */
-    protected function getOptionsQuery()
+    protected function getOptionsQuery($custom_view = null)
     {
         // get model
         $model = $this->getValueModel();
@@ -909,7 +909,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // filter model
         $user = Admin::user();
         if (isset($user)) {
-            $model = $user->filterModel($model, $this);
+            $model = $user->filterModel($model, $this, $custom_view);
         }
         return $model;
     }

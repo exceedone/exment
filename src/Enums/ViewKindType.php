@@ -10,4 +10,6 @@ class ViewKindType extends EnumBase
     const DEFAULT = 0;
     const AGGREGATE = 1;
     const CALENDAR = 2;
+    const FILTER = 3;
+    const ALLDATA = 9;
 }

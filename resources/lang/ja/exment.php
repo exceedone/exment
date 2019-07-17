@@ -570,6 +570,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
+            'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
@@ -796,6 +797,7 @@ return [
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',
+            'create_filter' => '条件ビュー新規作成',
         ],
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
@@ -811,6 +813,7 @@ return [
             'default' => '通常ビュー',
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
+            'filter' => '条件ビュー',
         ],
     ],
 

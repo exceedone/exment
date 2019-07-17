@@ -318,7 +318,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view = $tableObj->custom_views()->where('default_flg', true)->first();
         }
         if (!isset($view)) {
-            $view = $tableObj->custom_views()->first();
+            $view = $tableObj->custom_views()
+                ->whereNot('view_kind_type', ViewKindType::FILTER)->first();
         }
         // if form doesn't contain for target table, create view.
         if (!isset($view)) {

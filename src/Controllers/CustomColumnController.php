@@ -19,6 +19,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CurrencySymbol;
@@ -304,10 +305,32 @@ class CustomColumnController extends AdminControllerTableBase
                         'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
                         'data-linkage' => json_encode([
                             'options_select_import_column_id' =>  admin_url('webapi/table/indexcolumns'),
+                            'options_select_target_view' =>  admin_urls('webapi/table/filterviews'),
                         ]),
-                        'data-linkage-text' => 'column_view_name'
+                        'data-linkage-text' => 'view_view_name'
                     ]);
-                
+
+            // define select-target table view
+            $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
+                ->options(function ($select_view, $form) {
+                    $data = $form->data();
+                    if (!isset($data)) {
+                        return [];
+                    }
+
+                    // select_table
+                    if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
+                        return [];
+                    }
+                    return CustomTable::getEloquent($select_target_table)->custom_views
+                        ->filter(function ($value) {
+                            return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
+                        })->pluck('view_view_name', 'id');
+                })
+                ->attribute([
+                    'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
+                ]);
+                            
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
