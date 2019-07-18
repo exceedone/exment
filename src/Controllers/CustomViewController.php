@@ -149,16 +149,18 @@ class CustomViewController extends AdminControllerTableBase
                     ->tooltip(trans('admin.edit'));
                 $actions->prepend($linker);
             } 
-            if ($actions->row->disabled_delete) {
-                $actions->disableDelete();
-            }
+            // if ($actions->row->disabled_delete) {
+            //     $actions->disableDelete();
+            // }
             $actions->disableView();
 
-            $linker = (new Linker)
+            if (intval($actions->row->view_kind_type) != Enums\ViewKindType::FILTER) {
+                $linker = (new Linker)
                 ->url($custom_table->getGridUrl(true, ['view' => $actions->row->suuid]))
                 ->icon('fa-database')
                 ->tooltip(exmtrans('custom_view.view_datalist'));
-            $actions->prepend($linker);
+                $actions->prepend($linker);
+            }
             
             $linker = (new Linker)
                 ->url(admin_urls('view', $table_name, "create?copy_id={$actions->row->id}"))
@@ -191,6 +193,22 @@ class CustomViewController extends AdminControllerTableBase
         $request = Request::capture();
         $copy_custom_view = CustomView::getEloquent($copy_id);
         
+        $form = new Form(new CustomView);
+
+        if (!isset($id)) {
+            $id = $form->model()->id;
+        }
+        if (isset($id)) {
+            $model = CustomView::getEloquent($id);
+        }
+        if (isset($model)) {
+            $suuid = $model->suuid;
+            $view_kind_type = $model->view_kind_type;
+        } else {
+            $suuid = null;
+            $view_kind_type = null;
+        }
+        
         // get view_kind_type
         if (!is_null($request->input('view_kind_type'))) {
             $view_kind_type = $request->input('view_kind_type');
@@ -198,10 +216,7 @@ class CustomViewController extends AdminControllerTableBase
             $view_kind_type =  $request->query('view_kind_type');
         } elseif (isset($copy_custom_view)) {
             $view_kind_type =  array_get($copy_custom_view, 'view_kind_type');
-            if (intval($view_kind_type) == ViewKindType::ALLDATA) {
-                $view_kind_type = ViewKindType::DEFAULT;
-            }
-        } else {
+        } elseif (is_null($view_kind_type)) {
             $view_kind_type = ViewKindType::DEFAULT;
         }
         
@@ -211,7 +226,6 @@ class CustomViewController extends AdminControllerTableBase
             $from_data = boolval($request->get('from_data'));
         }
 
-        $form = new Form(new CustomView);
         $form->hidden('custom_table_id')->default($this->custom_table->id);
 
         $form->hidden('view_kind_type')->default($view_kind_type);
@@ -219,18 +233,25 @@ class CustomViewController extends AdminControllerTableBase
         
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
-        //$form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))->default(ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options"));
+        $form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))
+            ->with(function($value) use($view_kind_type) {
+                return ViewKindType::getEnum($value?? $view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
+            });
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
 
-        // select view type
-        if (!isset($id) && $this->hasSystemPermission()) {
-            $form->select('view_type', exmtrans('custom_view.view_type'))
-                ->default(Enums\ViewType::SYSTEM)
-                ->config('allowClear', false)
-                ->options(Enums\ViewType::transKeyArray('custom_view.custom_view_type_options'));
+        if (intval($view_kind_type) == Enums\ViewKindType::FILTER) {
+            $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
-            $form->hidden('view_type')->default(Enums\ViewType::USER);
+            // select view type
+            if (!isset($id) && $this->hasSystemPermission()) {
+                $form->select('view_type', exmtrans('custom_view.view_type'))
+                    ->default(Enums\ViewType::SYSTEM)
+                    ->config('allowClear', false)
+                    ->options(Enums\ViewType::transKeyArray('custom_view.custom_view_type_options'));
+            } else {
+                $form->hidden('view_type')->default(Enums\ViewType::USER);
+            }
         }
         
         if ($view_kind_type == Enums\ViewKindType::DEFAULT) {
@@ -241,7 +262,9 @@ class CustomViewController extends AdminControllerTableBase
             ->default(0);
         }
         
-        $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
+        if (intval($view_kind_type) != Enums\ViewKindType::FILTER) {
+            $form->switchbool('default_flg', exmtrans("common.default"))->default(false);
+        }
         
         $custom_table = $this->custom_table;
         $is_aggregate = false;
@@ -332,18 +355,20 @@ class CustomViewController extends AdminControllerTableBase
                 $this->setFilterFields($form, $custom_table);
                 break;
             default:
-                // columns setting
-                $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
-                    $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true));
-                    $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
-                    $form->hidden('order')->default(0);
-                })->required()->setTableColumnWidth(7, 3, 2)
-                ->rowUpDown('order')
-                ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+                if ($view_kind_type != Enums\ViewKindType::FILTER) {
+                    // columns setting
+                    $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
+                        $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
+                            ->options($this->custom_table->getColumnsSelectOptions(true));
+                        $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
+                        $form->hidden('order')->default(0);
+                    })->required()->setTableColumnWidth(7, 3, 2)
+                    ->rowUpDown('order')
+                    ->description(sprintf(exmtrans("custom_view.description_custom_view_columns"), $manualUrl));
+                }
 
                 // filter setting
-                if ($view_kind_type == Enums\ViewKindType::DEFAULT) {
+                if ($view_kind_type != Enums\ViewKindType::ALLDATA) {
                     $this->setFilterFields($form, $custom_table);
                 }
 
@@ -359,25 +384,14 @@ class CustomViewController extends AdminControllerTableBase
                 })->setTableColumnWidth(7, 3, 2)
                 ->rowUpDown('priority')
                 ->description(sprintf(exmtrans("custom_view.description_custom_view_sorts"), $manualUrl));
-
-                break;
         }
 
-        if (!isset($id)) {
-            $id = $form->model()->id;
-        }
-        if (isset($id)) {
-            $suuid = CustomView::getEloquent($id)->suuid;
-        } else {
-            $suuid = null;
-        }
-        
         $custom_table = $this->custom_table;
 
         $form->ignore('from_data');
 
         // check filters and sorts count before save
-        $form->saving(function (Form $form) use($copy_id) {
+        $form->saving(function (Form $form) {
             if (!is_null($form->custom_view_filters)) {
                 $cnt = collect($form->custom_view_filters)->filter(function ($value) {
                     return $value[Form::REMOVE_FLAG_NAME] != 1;
@@ -399,7 +413,7 @@ class CustomViewController extends AdminControllerTableBase
         });
 
         $form->saved(function (Form $form) use ($from_data, $custom_table) {
-            if (boolval($from_data)) {
+            if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
                 $suuid = $form->model()->suuid;
                 return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
@@ -654,6 +668,7 @@ EOT;
             ['name' => 'create', 'uri' => 'create'],
             ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],
             ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
+            ['name' => 'create_filter', 'uri' => 'create?view_kind_type=3'],
         ];
 
         // loop for role types

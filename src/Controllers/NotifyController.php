@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\NotifyBeforeAfter;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\ViewKindType;
 use DB;
 
 class NotifyController extends AdminControllerBase
@@ -106,14 +107,35 @@ class NotifyController extends AdminControllerBase
         ->required()
         ->options(function ($custom_table_id) {
             return CustomTable::filterList()->pluck('table_view_name', 'id');
-        })->attribute(['data-linkage' => json_encode(
-            [
+        })->attribute([
+            'data-linkage' => json_encode([
                 'trigger_settings_notify_target_column' =>  admin_url('notify/targetcolumn'),
                 'action_settings_notify_action_target' => admin_url('notify/notify_action_target'),
-            ]
-        )
+                'custom_view_id' => [
+                  'url' => admin_url('webapi/table/filterviews'),
+                  'text' => 'view_view_name',
+                ]
+            ])
         ])
         ->help(exmtrans("notify.help.custom_table_id"));
+
+        $form->select('custom_view_id', exmtrans("notify.custom_view_id"))
+            ->help(exmtrans("notify.help.custom_view_id"))
+            ->options(function ($select_view, $form) {
+                $data = $form->data();
+                if (!isset($data)) {
+                    return [];
+                }
+
+                // select_table
+                if (is_null($select_target_table = array_get($data, 'custom_table_id'))) {
+                    return [];
+                }
+                return CustomTable::getEloquent($select_target_table)->custom_views
+                    ->filter(function ($value) {
+                        return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
+                    })->pluck('view_view_name', 'id');
+            });
 
         $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) {
             // Notify Time --------------------------------------------------

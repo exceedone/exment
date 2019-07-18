@@ -23,7 +23,15 @@ class Notify extends ModelBase
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
     }
- 
+    
+    public function custom_view()
+    {
+        if (isset($this->custom_view_id)) {
+            return $this->belongsTo(CustomView::class, 'custom_view_id');
+        }
+        return null;
+    }
+    
     public function setNotifyActionsAttribute($notifyActions)
     {
         if(is_null($notifyActions)){
@@ -212,9 +220,8 @@ class Notify extends ModelBase
         $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
 
         // find data. where equal target_date
-        $datalist = getModelName($table)
-            ::whereRaw("$raw = ?", [$target_date_str])
-            ->get();
+        $datalist = $this->custom_view->setValueFilters($table->getValueModel())
+            ->whereRaw("$raw = ?", [$target_date_str])->get();
 
         return [$datalist, $table, $column];
     }
