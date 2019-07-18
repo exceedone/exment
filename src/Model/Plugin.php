@@ -243,6 +243,11 @@ class Plugin extends ModelBase
         return static::getEloquentDefault($id, $withs);
     }
     
+    public function getCustomOption($key, $default = null)
+    {
+        return $this->getJson('custom_options', $key, $default);
+    }
+
     protected static function boot()
     {
         parent::boot();

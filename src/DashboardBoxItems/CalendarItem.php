@@ -69,20 +69,14 @@ class CalendarItem implements ItemInterface
      */
     public function body()
     {
-        // if table not found, break
-        if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
-        }
-
-        // if not access permission
-        if (!$this->custom_table->hasPermission()) {
-            return trans('admin.deny');
+        if (($result = $this->hasPermission()) !== true) {
+            return $result;
         }
 
         // create model for getting data --------------------------------------------------
         $model = $this->custom_table->getValueModel();
         // filter model
-        $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+        $model = \Exment::user()->filterModel($model, $this->custom_view);
 
         $options = $this->dashboard_box->options;
 

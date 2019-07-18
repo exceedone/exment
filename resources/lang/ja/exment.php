@@ -22,6 +22,7 @@ return [
         'parent_type' => '親データのテーブル名',
         'created' => '新規作成',
         'updated' => '更新', 
+        'shared' => '共有', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
@@ -265,6 +266,7 @@ return [
 
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
+            'not_exists_table' => 'テーブルまたはビューが削除されました。',
         ],
     ],
 
@@ -507,6 +509,7 @@ return [
         'all_user_viewable_flg' => 'すべてのユーザーが閲覧可能',
         'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'add_parent_menu_flg' => 'メニューに追加する',
+        'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
         'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
@@ -526,6 +529,7 @@ return [
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
+            'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
@@ -581,6 +585,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
+            'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
@@ -635,6 +640,7 @@ return [
             'datetime_now_creating' => 'データの新規作成時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
+            'select_target_view' => 'データを絞り込む場合は事前に条件ビューを作成した上で選択してください。',
             'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
             'true_value' => '1つ目の選択肢を保存した場合に登録する値を入力してください。',
@@ -808,6 +814,7 @@ return [
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',
+            'create_filter' => '条件ビュー新規作成',
         ],
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
@@ -823,6 +830,7 @@ return [
             'default' => '通常ビュー',
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
+            'filter' => '条件ビュー',
             'alldata' => '全件ビュー',
         ],
     ],
@@ -1091,6 +1099,27 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
+    'notify_navbar' => [
+        'header' => '通知一覧',
+        'description' => 'ユーザーへの通知一覧です。',
+        'read_flg' => '状態',
+        'parent_type' => '対象テーブル',
+        'notify_subject' => '通知件名',
+        'notify_body' => '通知本文',
+        'target_custom_value' => '対象データ',
+        'data_refer' => 'この通知に紐づくデータを表示します。',
+        'all_check' => '一括既読',
+        'read_flg_options' => [
+            '0' => '未読',
+            '1' => '既読',
+        ],
+        'message' => [
+            'check_succeeded' => '選択データを既読に変更しました。',
+            'check_notfound' => '更新対象のデータが存在しません。',
+            'no_newitem' => '新着通知はありません。',
+        ],
+    ],
+
     'notify' => [
         'notify' => '通知',
         'header' => '通知設定',
@@ -1099,6 +1128,7 @@ return [
         'description' => '特定の条件で、通知を行うための設定を行います。',
         'notify_view_name' => '通知表示名',
         'custom_table_id' => '対象テーブル',
+        'custom_view_id' => '対象ビュー',
         'notify_trigger' => '実施トリガー',
         'trigger_settings' => '通知実施設定',
         'notify_target_column' => '日付対象列',
@@ -1108,24 +1138,25 @@ return [
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '通知対象',
-        'mail_template_id' => 'メールテンプレート',
+        'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
             'custom_table_id' => '通知を行う条件として使用する、テーブルを選択します。',
+            'custom_view_id' => '対象テーブルのデータを絞り込む場合は、あらかじめ条件ビューを作成してください。',
             'notify_trigger' => '通知を行う条件となる内容を選択してください。',
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」と、「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
-            'mail_template_id' => '送付するメールのテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
         ],
 
         'notify_trigger_options' => [
             'time' => '時間の経過',
-            'create_update_data' => 'データ新規作成・更新',
+            'create_update_data' => 'データ新規作成・更新・共有・コメント',
             'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
@@ -1134,6 +1165,7 @@ return [
         ],
         'notify_action_options' => [
             'email' => 'Eメール', 
+            'show_page' => 'システム内アラート', 
         ],
 
         'notify_action_target_options' => [

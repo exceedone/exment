@@ -1485,7 +1485,10 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $user = getModelName(SystemTableName::USER)::withTrashed()->find($id);
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, SystemTableName::USER, $id);
+        $user = System::requestSession($key, function () use ($id) {
+            return getModelName(SystemTableName::USER)::withTrashed()->find($id);
+        });
         if (!isset($user)) {
             return null;
         }
