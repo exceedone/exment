@@ -15,12 +15,12 @@ trait TableItemTrait
     {
         // if table not found, break
         if (!isset($this->custom_table) || !isset($this->custom_view)) {
-            return null;
+            return exmtrans('dashboard.message.not_exists_table');
         }
 
         // if not access permission
         if (!$this->custom_table->hasPermission()) {
-            return null;
+            return trans('admin.deny');
         }
 
         return true;
@@ -28,7 +28,7 @@ trait TableItemTrait
 
     protected function tableheader()
     {
-        if (!$this->hasPermission()) {
+        if (($result = $this->hasPermission()) !== true) {
             return null;
         }
 
