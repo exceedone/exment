@@ -26,6 +26,7 @@ class NotiftTodomerge extends Migration
         if(!\Schema::hasTable(SystemTableName::NOTIFY_NAVBAR)){
             $schema->create(SystemTableName::NOTIFY_NAVBAR, function (ExtendedBlueprint $table) {
                 $table->increments('id');
+                $table->integer('notify_id')->unsigned()->index();
                 $table->nullableMorphs('parent');
                 $table->integer('target_user_id')->unsigned()->index();
                 $table->integer('trigger_user_id')->unsigned()->nullable();

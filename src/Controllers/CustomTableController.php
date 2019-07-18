@@ -11,10 +11,16 @@ use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
@@ -176,6 +182,11 @@ class CustomTableController extends AdminControllerBase
             ;
             $form->ignore('add_parent_menu');
             $form->ignore('add_parent_menu_flg');
+
+            $form->switchbool('add_notify', exmtrans("custom_table.add_notify"))->help(exmtrans("custom_table.help.add_notify"))
+                ->default("0")
+            ;
+            $form->ignore('add_notify');
         }
 
         // Role setting --------------------------------------------------
@@ -208,13 +219,20 @@ class CustomTableController extends AdminControllerBase
             $this->exists = $form->model()->exists;
         });
 
+        $form->savedInTransaction(function (Form $form) use ($id) {
+            // create or drop index --------------------------------------------------
+            $model = $form->model();
+            // if has value 'add_parent_menu', add menu
+            $this->addMenuAfterSaved($model);
+
+            // if has value 'add_notify', add notify
+            $this->addNotifyAfterSaved($model);
+        });
+
         $form->saved(function (Form $form) use ($id) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->createTable();
-
-            // if has value 'add_parent_menu', add menu
-            $this->addMenuAfterSaved($model);
 
             // redirect custom column page
             if (!$this->exists) {
@@ -427,6 +445,40 @@ HTML;
             'menu_name' => $model->table_name,
             'menu_target' => $model->id,
         ]);
+    }
+
+    /**
+     * add notofy after saved
+     */
+    protected function addNotifyAfterSaved($model)
+    {
+        // if has value 'add_parent_menu', add menu
+        if (!app('request')->has('add_notify')) {
+            return;
+        }
+        
+        $add_notify = app('request')->input('add_notify');
+        if (!boolval($add_notify)) {
+            return;
+        }
+
+        // get mail template
+        $mail_template_id = getModelName(SystemTableName::MAIL_TEMPLATE)
+            ::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)
+            ->first()
+            ->id;
+
+        // insert
+        $notify = new Notify;
+        $notify->notify_view_name = 'データ新規追加・更新';
+        $notify->notify_trigger = NotifyTrigger::CREATE_UPDATE_DATA;
+        $notify->custom_table_id = $model->id;
+        $notify->notify_actions = NotifyAction::SHOW_PAGE;
+        $notify->action_settings = [
+            'mail_template_id' => $mail_template_id,
+            'notify_action_target' =>  [NotifyActionTarget::HAS_ROLES]
+        ];
+        $notify->save();
     }
 
     /**

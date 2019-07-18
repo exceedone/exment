@@ -1123,7 +1123,7 @@ return [
 
         'notify_trigger_options' => [
             'time' => '時間の経過',
-            'create_update_data' => 'データ新規作成・更新',
+            'create_update_data' => 'データ新規作成・更新・共有',
             'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [

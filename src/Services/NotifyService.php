@@ -302,6 +302,7 @@ class NotifyService
                     $mail_body = static::replaceWord($mail_body, $custom_value, $prms);
 
                     $notify_navbar = new NotifyNavbar;
+                    $notify_navbar->notify_id = array_get($notify, 'id');
                     $notify_navbar->parent_id = array_get($custom_value, 'id');
                     $notify_navbar->parent_type = $custom_value->custom_table->table_name;
                     $notify_navbar->notify_subject = $mail_subject;
