@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyBeforeAfter;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use DB;
 
@@ -145,6 +146,14 @@ class NotifyController extends AdminControllerBase
                 ->max(23)
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_hour"));
+
+            // get checkbox
+            $form->checkbox('notify_saved_trigger', exmtrans("notify.header_trigger"))
+                ->help(exmtrans("notify.help.notify_trigger"))
+                ->options(NotifySavedType::transArray('common'))
+                ->default(NotifySavedType::arrays())
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::CREATE_UPDATE_DATA]])])
+                ;
 
             $form->text('notify_button_name', exmtrans("notify.notify_button_name"))
                 ->required()

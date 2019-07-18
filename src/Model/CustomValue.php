@@ -7,6 +7,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
@@ -113,13 +114,13 @@ class CustomValue extends ModelBase
         });
         static::created(function ($model) {
             // send notify
-            $model->notify(true);
+            $model->notify(NotifySavedType::CREATE);
 
             $model->postCreate();
         });
         static::updated(function ($model) {
             // send notify
-            $model->notify(false);
+            $model->notify(NotifySavedType::UPDATE);
 
             // set revision
             $model->postSave();
@@ -359,7 +360,7 @@ class CustomValue extends ModelBase
     
     
     // notify user --------------------------------------------------
-    public function notify($create = true)
+    public function notify(NotifySavedType $notifySavedType)
     {
         // if $saved_notify is false, return
         if ($this->saved_notify === false) {
@@ -372,7 +373,7 @@ class CustomValue extends ModelBase
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            $notify->notifyCreateUpdateUser($this, $create);
+            $notify->notifyCreateUpdateUser($this, $notifySavedType);
         }
     }
 

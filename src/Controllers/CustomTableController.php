@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
@@ -183,10 +184,10 @@ class CustomTableController extends AdminControllerBase
             $form->ignore('add_parent_menu');
             $form->ignore('add_parent_menu_flg');
 
-            $form->switchbool('add_notify', exmtrans("custom_table.add_notify"))->help(exmtrans("custom_table.help.add_notify"))
+            $form->switchbool('add_notify_flg', exmtrans("custom_table.add_notify_flg"))->help(exmtrans("custom_table.help.add_notify_flg"))
                 ->default("0")
             ;
-            $form->ignore('add_notify');
+            $form->ignore('add_notify_flg');
         }
 
         // Role setting --------------------------------------------------
@@ -225,7 +226,7 @@ class CustomTableController extends AdminControllerBase
             // if has value 'add_parent_menu', add menu
             $this->addMenuAfterSaved($model);
 
-            // if has value 'add_notify', add notify
+            // if has value 'add_notify_flg', add notify
             $this->addNotifyAfterSaved($model);
         });
 
@@ -453,12 +454,12 @@ HTML;
     protected function addNotifyAfterSaved($model)
     {
         // if has value 'add_parent_menu', add menu
-        if (!app('request')->has('add_notify')) {
+        if (!app('request')->has('add_notify_flg')) {
             return;
         }
         
-        $add_notify = app('request')->input('add_notify');
-        if (!boolval($add_notify)) {
+        $add_notify_flg = app('request')->input('add_notify_flg');
+        if (!boolval($add_notify_flg)) {
             return;
         }
 
@@ -470,10 +471,13 @@ HTML;
 
         // insert
         $notify = new Notify;
-        $notify->notify_view_name = 'データ新規追加・更新';
+        $notify->notify_view_name = exmtrans('notify.notify_trigger_options.create_update_data');
         $notify->notify_trigger = NotifyTrigger::CREATE_UPDATE_DATA;
         $notify->custom_table_id = $model->id;
         $notify->notify_actions = NotifyAction::SHOW_PAGE;
+        $notify->trigger_settings = [
+            'notify_saved_trigger' =>  NotifySavedType::arrays()
+        ];
         $notify->action_settings = [
             'mail_template_id' => $mail_template_id,
             'notify_action_target' =>  [NotifyActionTarget::HAS_ROLES]

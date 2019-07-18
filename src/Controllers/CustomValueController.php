@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\NotifyService;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -235,7 +236,7 @@ class CustomValueController extends AdminControllerTableBase
             // execute notify
             $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
             if (isset($custom_value)) {
-                $custom_value->notify(false);
+                $custom_value->notify(NotifySavedType::UPDATE);
             }
         }
 

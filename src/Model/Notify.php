@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\NotifyService;
 use Carbon\Carbon;
@@ -95,9 +96,16 @@ class Notify extends ModelBase
     
     /**
      * notify_create_update_user
+     * *Contains Comment, share
      */
-    public function notifyCreateUpdateUser($data, $create = true)
+    public function notifyCreateUpdateUser($data, NotifySavedType $notifySavedType)
     {
+        // check trigger
+        $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
+        if(!isset($notify_saved_triggers) || !in_array($notifySavedType, $notify_saved_triggers)){
+            return;
+        }
+
         $custom_table = $data->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
@@ -114,7 +122,7 @@ class Notify extends ModelBase
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => $create ? exmtrans('common.created') : exmtrans('common.updated')
+                'create_or_update' => $notifySavedType->getLabel(),
             ];
 
             // send mail
