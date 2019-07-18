@@ -31,6 +31,7 @@ trait BuilderTrait
 
         $dbValues = $dbValueQuery->get();
 
+        $inserts = [];
         foreach ($values as $value) {
             if (!isset($value)) {
                 continue;
@@ -39,6 +40,7 @@ trait BuilderTrait
             if (!$dbValues->first(function ($dbValue, $k) use ($value, $matchFilter) {
                 return $matchFilter($dbValue, $value);
             })) {
+                $inserts[] = $value;
                 \DB::table($table)->insert($value);
             }
         }
@@ -55,6 +57,8 @@ trait BuilderTrait
                 $dbDeleteQuery->delete();
             }
         }
+
+        return $inserts;
     }
 
     /**

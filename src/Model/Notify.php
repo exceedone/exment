@@ -152,6 +152,57 @@ class Notify extends ModelBase
     
     /**
      * notify_create_update_user
+     * *Contains Comment, share
+     */
+    public function notifyShared($data, $targetUserOrgs)
+    {
+        // check trigger
+        $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
+        if(!isset($notify_saved_triggers) || !in_array(NotifySavedType::SHARE, $notify_saved_triggers)){
+            return;
+        }
+
+        $custom_table = $data->custom_table;
+        $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
+        $mail_template = $this->getMailTemplate();
+
+        // loop data
+        $users = [];
+        foreach($targetUserOrgs as $targetUserOrg){
+            if($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION){
+                $users = array_merge($users, $targetUserOrg->users);
+            }else{
+                $users[] = $targetUserOrg;
+            }
+        }
+        
+        foreach ($users as $user) {
+            $prms = [
+                'user' => $user,
+                'notify' => $this,
+                'target_table' => $custom_table->table_view_name ?? null,
+                'create_or_update' => NotifySavedType::getEnum($notifySavedType)->getLabel(),
+            ];
+
+            // send mail
+            try {
+                NotifyService::executeNotifyAction($this, [
+                    'mail_template' => $mail_template,
+                    'prms' => $prms,
+                    'user' => $user,
+                    'custom_value' => $data,
+                ]);
+            }
+            // throw mailsend Exception
+            catch (\Swift_TransportException $ex) {
+                // show warning message
+                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
+            }
+        }
+    }
+
+    /**
+     * notify_create_update_user
      */
     public function notifyButtonClick($custom_value, $target_user_keys, $subject, $body, $attachments = [])
     {

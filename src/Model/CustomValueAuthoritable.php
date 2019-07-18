@@ -107,6 +107,7 @@ class CustomValueAuthoritable extends ModelBase
                 ['name' => 'custom_value_view'],
             ];
 
+            $shares = [];
             foreach($items as $item){
                 $user_organizations = $request->get($item['name'], []);
                 $user_organizations = collect($user_organizations)->filter()->map(function($user_organization) use($custom_value, $item){
@@ -122,7 +123,7 @@ class CustomValueAuthoritable extends ModelBase
                     ];
                 });
                     
-                \Schema::insertDelete(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, $user_organizations, [
+                $shares = array_merge($shares, \Schema::insertDelete(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, $user_organizations, [
                     'dbValueFilter' => function(&$model) use($custom_value, $item){
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                         ->where('parent_id', $custom_value->id)
@@ -139,10 +140,16 @@ class CustomValueAuthoritable extends ModelBase
                         return array_get((array)$dbValue, 'authoritable_user_org_type') == array_get($value, 'authoritable_user_org_type')
                             && array_get((array)$dbValue, 'authoritable_target_id') == array_get($value, 'authoritable_target_id');
                     },
-                ]);
-
+                ]));
             }
             \DB::commit();
+
+            // send notify
+            $shares = collect($shares)->map(function($share){
+                return CustomTable::getEloquent($share['parent_type'])->getValueModel($share['parent_id']);
+            });
+            //TODO:changed
+            $custom_value->notifyShared($custom_value, $shares);
 
             return getAjaxResponse([
                 'result'  => true,
