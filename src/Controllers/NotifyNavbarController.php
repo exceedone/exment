@@ -11,16 +11,16 @@ use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\NotifyPage;
+use Exceedone\Exment\Model\NotifyNavbar;
 use DB;
 
-class NotifyPageController extends AdminControllerBase
+class NotifyNavbarController extends AdminControllerBase
 {
     use HasResourceActions;
 
     public function __construct(Request $request)
     {
-        $this->setPageInfo(exmtrans('notify_page.header'), exmtrans('notify_page.header'), exmtrans('notify_page.description'), 'fa-bell');
+        $this->setPageInfo(exmtrans('notify_navbar.header'), exmtrans('notify_navbar.header'), exmtrans('notify_navbar.description'), 'fa-bell');
     }
 
     /**
@@ -30,14 +30,14 @@ class NotifyPageController extends AdminControllerBase
      */
     protected function grid()
     {
-        $grid = new Grid(new NotifyPage);
-        $grid->column('read_flg', exmtrans('notify_page.read_flg'))->sortable()->display(function ($read_flg) {
-            return exmtrans("notify_page.read_flg_options.$read_flg");
+        $grid = new Grid(new NotifyNavbar);
+        $grid->column('read_flg', exmtrans('notify_navbar.read_flg'))->sortable()->display(function ($read_flg) {
+            return exmtrans("notify_navbar.read_flg_options.$read_flg");
         });
-        $grid->column('parent_type', exmtrans('notify_page.parent_type'))->sortable()->display(function ($parent_type) {
+        $grid->column('parent_type', exmtrans('notify_navbar.parent_type'))->sortable()->display(function ($parent_type) {
             return CustomTable::getEloquent($parent_type)->table_view_name;
         });
-        $grid->column('notify_subject', exmtrans('notify_page.notify_subject'))->sortable();
+        $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
         $grid->column('created_at', exmtrans('common.created_at'))->sortable();
        
         $grid->disableCreation();
@@ -45,7 +45,7 @@ class NotifyPageController extends AdminControllerBase
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->batch(function (Grid\Tools\BatchActions $batch) {
-                $batch->add(exmtrans('notify_page.all_check'), new BatchCheck());
+                $batch->add(exmtrans('notify_navbar.all_check'), new BatchCheck());
             });
         });
 
@@ -54,9 +54,9 @@ class NotifyPageController extends AdminControllerBase
             
             // reference target data
             $linker = (new Linker)
-                ->url(admin_url("notify_page/rowdetail/{$actions->row->id}"))
+                ->url(admin_url("notify_navbar/rowdetail/{$actions->row->id}"))
                 ->icon('fa-list')
-                ->tooltip(exmtrans('notify_page.data_refer'));
+                ->tooltip(exmtrans('notify_navbar.data_refer'));
             $actions->prepend($linker);
         });
         return $grid;
@@ -70,7 +70,7 @@ class NotifyPageController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        return new Form(new NotifyPage);
+        return new Form(new NotifyNavbar);
     }
 
     /**
@@ -81,7 +81,7 @@ class NotifyPageController extends AdminControllerBase
      */
     protected function detail($id)
     {
-        $model = NotifyPage::findOrFail($id);
+        $model = NotifyNavbar::findOrFail($id);
 
         if (!isset($model)) {
             abort(404);
@@ -93,13 +93,13 @@ class NotifyPageController extends AdminControllerBase
 
         return new Show($model, function (Show $show) use($model) {
             $show->field('id', exmtrans('common.id'));
-            $show->field('target_custom_value', exmtrans('notify_page.target_custom_value'))->as(function($v) use($model){
+            $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function($v) use($model){
                 return CustomTable::getEloquent(array_get($model, 'parent_type'))
                     ->getValueModel(array_get($model, 'parent_id'))
                     ->getValue(true);
             })->setEscape(false);
-            $show->field('notify_subject', exmtrans('notify_page.notify_subject'));
-            $show->field('notify_body', exmtrans('notify_page.notify_body'))
+            $show->field('notify_subject', exmtrans('notify_navbar.notify_subject'));
+            $show->field('notify_body', exmtrans('notify_navbar.notify_body'))
                 ->as(function ($v) {
                     return  replaceBreak($v);
                 })->setEscape(false);
@@ -117,7 +117,7 @@ class NotifyPageController extends AdminControllerBase
      */
     public function redirectTargetData(Request $request, $id = null)
     {
-        $model = NotifyPage::findOrFail($id);
+        $model = NotifyNavbar::findOrFail($id);
 
         if (!isset($model)) {
             abort(404);
@@ -145,11 +145,11 @@ class NotifyPageController extends AdminControllerBase
             abort(404);
         }
 
-        $models = NotifyPage::whereIn('id', explode(',', $id))->where('read_flg', false)->get();
+        $models = NotifyNavbar::whereIn('id', explode(',', $id))->where('read_flg', false)->get();
         if (!isset($models) || $models->count() == 0) {
             return getAjaxResponse([
                 'result'  => false,
-                'toastr' => exmtrans('notify_page.message.check_notfound'),
+                'toastr' => exmtrans('notify_navbar.message.check_notfound'),
             ]);
         }
 
@@ -159,7 +159,7 @@ class NotifyPageController extends AdminControllerBase
         
         return getAjaxResponse([
             'result'  => true,
-            'toastr' => exmtrans('notify_page.message.check_succeeded'),
+            'toastr' => exmtrans('notify_navbar.message.check_succeeded'),
         ]);
     }
 

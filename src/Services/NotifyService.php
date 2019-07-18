@@ -4,7 +4,7 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
-use Exceedone\Exment\Model\NotifyPage;
+use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -301,14 +301,14 @@ class NotifyService
                     $mail_subject = static::replaceWord($mail_subject, $custom_value, $prms);
                     $mail_body = static::replaceWord($mail_body, $custom_value, $prms);
 
-                    $notify_page = new NotifyPage;
-                    $notify_page->parent_id = array_get($custom_value, 'id');
-                    $notify_page->parent_type = $custom_value->custom_table->table_name;
-                    $notify_page->notify_subject = $mail_subject;
-                    $notify_page->notify_body = $mail_body;
-                    $notify_page->target_user_id = $id;
-                    $notify_page->trigger_user_id = $login_user->base_user_id ?? null;
-                    $notify_page->save();
+                    $notify_navbar = new NotifyNavbar;
+                    $notify_navbar->parent_id = array_get($custom_value, 'id');
+                    $notify_navbar->parent_type = $custom_value->custom_table->table_name;
+                    $notify_navbar->notify_subject = $mail_subject;
+                    $notify_navbar->notify_body = $mail_body;
+                    $notify_navbar->target_user_id = $id;
+                    $notify_navbar->trigger_user_id = $login_user->base_user_id ?? null;
+                    $notify_navbar->save();
 
                     break;
             }

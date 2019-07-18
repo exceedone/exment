@@ -3461,6 +3461,10 @@
   font-size: 12px;
 }
 
+.navbar-notify .slimScrollDiv, .navbar-notify .slimScrollDiv .menu {
+  height: auto !important;
+}
+
 body .main-header .navbar .nav > li > a > .label {
   font-size: 11px;
 }

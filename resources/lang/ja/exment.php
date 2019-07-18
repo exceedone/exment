@@ -1068,7 +1068,7 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
-    'notify_page' => [
+    'notify_navbar' => [
         'header' => '通知一覧',
         'description' => 'ユーザーへの通知一覧です。',
         'read_flg' => '状態',
@@ -1085,6 +1085,7 @@ return [
         'message' => [
             'check_succeeded' => '選択データを既読に変更しました。',
             'check_notfound' => '更新対象のデータが存在しません。',
+            'no_newitem' => '新着通知が存在しません。',
         ],
     ],
 
@@ -1131,7 +1132,7 @@ return [
         ],
         'notify_action_options' => [
             'email' => 'Eメール', 
-            'show_page' => 'システム内通知', 
+            'show_page' => 'システム内アラート', 
         ],
 
         'notify_action_target_options' => [

@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\NotifyPage;
+use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\Permission;
@@ -152,8 +152,8 @@ class ApiController extends AdminControllerBase
     }
     
     public function notifyPage(Request $request){
-        // get notify NotifyPage list
-        $query = NotifyPage::where('target_user_id', \Exment::user()->base_user_id)
+        // get notify NotifyNavbar list
+        $query = NotifyNavbar::where('target_user_id', \Exment::user()->base_user_id)
             ->where('read_flg', false)
             ->orderBy('created_at', 'desc');
         
@@ -175,9 +175,10 @@ class ApiController extends AdminControllerBase
                     'color' => $color ?? null,
                     'table_view_name' => $table_view_name ?? null,
                     'label' => array_get($l, 'notify_subject'),
-                    'href' => admin_urls('notify_page', $l->id)
+                    'href' => admin_urls('notify_navbar', $l->id)
                 ];
-            })
+            }),
+            'noItemMessage' => exmtrans('notify_navbar.message.no_newitem')
         ];
     }
 }

@@ -155,7 +155,7 @@ class NotifyController extends AdminControllerBase
         $form->exmheader(exmtrans("notify.header_action"))->hr();
         $form->multipleSelect('notify_actions', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
-            ->default([NotifyAction::EMAIL, NotifyAction::SHOW_PAGE])
+            ->default([NotifyAction::SHOW_PAGE])
             ->required()
             ->config('allowClear', false)
             ->help(exmtrans("notify.help.notify_action"))

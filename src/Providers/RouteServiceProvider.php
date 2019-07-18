@@ -78,9 +78,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
-            $router->resource('notify_page', 'NotifyPageController', ['except' => ['edit']]);
-            $router->get("notify_page/rowdetail/{id}", 'NotifyPageController@redirectTargetData');
-            $router->post("notify_page/rowcheck/{id}", 'NotifyPageController@rowCheck');
+            $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
+            $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
+            $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role', 'RoleController', ['except' => ['show']]);

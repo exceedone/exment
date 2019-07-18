@@ -182,6 +182,10 @@
             font-size:12px;
         }
     }
+    
+    .slimScrollDiv, .slimScrollDiv .menu{
+        height:auto !important;
+    }
 }
 
 body .main-header .navbar .nav>li>a>.label{

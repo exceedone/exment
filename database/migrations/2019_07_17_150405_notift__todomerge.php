@@ -23,8 +23,8 @@ class NotiftTodomerge extends Migration
         });
 
         //
-        if(!\Schema::hasTable(SystemTableName::NOTIFY_PAGE)){
-            $schema->create(SystemTableName::NOTIFY_PAGE, function (ExtendedBlueprint $table) {
+        if(!\Schema::hasTable(SystemTableName::NOTIFY_NAVBAR)){
+            $schema->create(SystemTableName::NOTIFY_NAVBAR, function (ExtendedBlueprint $table) {
                 $table->increments('id');
                 $table->nullableMorphs('parent');
                 $table->integer('target_user_id')->unsigned()->index();
@@ -62,6 +62,6 @@ class NotiftTodomerge extends Migration
     public function down()
     {
         //
-        Schema::dropIfExists(SystemTableName::NOTIFY_PAGE);
+        Schema::dropIfExists(SystemTableName::NOTIFY_NAVBAR);
     }
 }
