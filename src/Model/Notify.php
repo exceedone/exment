@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Services\NotifyService;
 use Carbon\Carbon;
 
 class Notify extends ModelBase
@@ -14,6 +16,7 @@ class Notify extends ModelBase
     use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
+    protected $appends = ['notify_actions'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
     
     public function custom_table()
@@ -27,6 +30,22 @@ class Notify extends ModelBase
             return $this->belongsTo(CustomView::class, 'custom_view_id');
         }
         return null;
+    }
+    
+    public function setNotifyActionsAttribute($notifyActions)
+    {
+        if(is_null($notifyActions)){
+            $this->attributes['notify_actions'] = null;    
+        }elseif(is_string($notifyActions)){
+            $this->attributes['notify_actions'] = $notifyActions;
+        }else{
+            $this->attributes['notify_actions'] = implode(',', array_filter($notifyActions));
+        }
+    }
+ 
+    public function getNotifyActionsAttribute()
+    {
+        return explode(",", array_get($this->attributes, 'notify_actions'));
     }
 
     public function getMailTemplate()
@@ -69,11 +88,11 @@ class Notify extends ModelBase
 
                 // send mail
                 try {
-                    MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user)
-                    ->prms($prms)
-                    ->user($user)
-                    ->custom_value($data)
-                    ->send();
+                    NotifyService::executeNotifyAction($this, [
+                        'prms' => $prms,
+                        'user' => $user,
+                        'custom_value' => $data,
+                    ]);
                 }
                 // throw mailsend Exception
                 catch (\Swift_TransportException $ex) {
@@ -85,9 +104,16 @@ class Notify extends ModelBase
     
     /**
      * notify_create_update_user
+     * *Contains Comment, share
      */
-    public function notifyCreateUpdateUser($data, $create = true)
+    public function notifyCreateUpdateUser($data, $notifySavedType)
     {
+        // check trigger
+        $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
+        if(!isset($notify_saved_triggers) || !in_array($notifySavedType, $notify_saved_triggers)){
+            return;
+        }
+
         $custom_table = $data->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
@@ -104,16 +130,17 @@ class Notify extends ModelBase
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => $create ? exmtrans('common.created') : exmtrans('common.updated')
+                'create_or_update' => NotifySavedType::getEnum($notifySavedType)->getLabel(),
             ];
 
             // send mail
             try {
-                MailSender::make($mail_template, $user)
-                ->prms($prms)
-                ->user($user)
-                ->custom_value($data)
-                ->send();
+                NotifyService::executeNotifyAction($this, [
+                    'mail_template' => $mail_template,
+                    'prms' => $prms,
+                    'user' => $user,
+                    'custom_value' => $data,
+                ]);
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
@@ -154,14 +181,15 @@ class Notify extends ModelBase
 
             // send mail
             try {
-                MailSender::make($mail_template, $user)
-                ->prms($prms)
-                ->user($user)
-                ->custom_value($custom_value)
-                ->subject($subject)
-                ->body($body)
-                ->attachments($attach_files)
-                ->send();
+                NotifyService::executeNotifyAction($this, [
+                    'mail_template' => $mail_template,
+                    'prms' => $prms,
+                    'user' => $user,
+                    'custom_value' => $custom_value,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'attachments' => $attachments,
+                ]);
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
