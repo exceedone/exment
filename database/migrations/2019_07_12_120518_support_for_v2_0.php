@@ -71,6 +71,43 @@ class SupportForV20 extends Migration
             });
         }
 
+        if(!Schema::hasColumn('notifies', 'custom_view_id')){
+            Schema::table('notifies', function (Blueprint $table) {
+                $table->integer('custom_view_id')->after('custom_table_id')->unsigned()->nullable();
+            });
+        }
+
+        if(!\Schema::hasTable(SystemTableName::NOTIFY_NAVBAR)){
+            $schema->create(SystemTableName::NOTIFY_NAVBAR, function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->integer('notify_id')->unsigned()->index();
+                $table->nullableMorphs('parent');
+                $table->integer('target_user_id')->unsigned()->index();
+                $table->integer('trigger_user_id')->unsigned()->nullable();
+                $table->string('notify_subject', 200)->nullable();
+                $table->string('notify_body', 2000)->nullable();
+                $table->boolean('read_flg')->default(false)->index();
+                $table->timestamps();
+                $table->timeusers();
+            });
+        }
+
+        if (!Schema::hasColumn('notifies', 'notify_actions') && Schema::hasColumn('notifies', 'notify_action')) {
+            Schema::table('notifies', function (Blueprint $table) {
+                $table->string('notify_actions', 50)->after('notify_action')->nullable();
+            });
+                
+            // update notify notify_action to notify_actions
+            foreach(Notify::all() as $notify){
+                $notify->notify_actions = $notify_action;
+                $notify->save();
+            }
+            
+            Schema::table('notifies', function (Blueprint $table) {
+                $table->dropColumn('notify_action');
+            });
+        }
+
         // patch role group
         \Artisan::call('exment:patchdata', ['action' => 'role_group']);
 
@@ -87,7 +124,14 @@ class SupportForV20 extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists(SystemTableName::NOTIFY_NAVBAR);
+        
+        if (!\Schema::hasTable('notifies')) {
+            Schema::table('notifies', function ($table) {
+                $table->dropColumn('custom_view_id');
+            });
+        }
+
         Schema::dropIfExists(SystemTableName::CUSTOM_VALUE_AUTHORITABLE);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
         Schema::dropIfExists(SystemTableName::ROLE_GROUP_PERMISSION);
