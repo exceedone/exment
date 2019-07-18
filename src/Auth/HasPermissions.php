@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
 use Exceedone\Exment\Auth\Permission as AuthPermission;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Role;
+use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\MenuType;
@@ -40,6 +40,12 @@ trait HasPermissions
 
         $permissions = $this->allPermissions();
         foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
+
             // if role type is system, and has key
             if (RoleType::SYSTEM == $permission->getRoleType()
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {
@@ -236,56 +242,32 @@ trait HasPermissions
      */
     protected function getCustomTablePermissions()
     {
-        $organization_ids = $this->getOrganizationIds();
+        // get all permissons for system. --------------------------------------------------
+        $roles = $this->getPermissionItems();
 
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
-        for ($i = 0; $i < 2; $i++) {
-            $query = DB::table('roles as a')
-                ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
-                ->join('custom_tables AS c', 'c.id', 'sa.morph_id')
-                ->where('morph_type', RoleType::TABLE()->lowerKey())
-                ;
-            // if $i == 0, then search as user
-            if ($i == 0) {
-                $query = $query->where('related_type', SystemTableName::USER)
-                    ->where('related_id', $this->base_user_id);
-            }
-            // else then search as org.
-            else {
-                if (!System::organization_available()) {
+        $permissions = [];
+       
+        foreach ($roles as $role) {
+            foreach ($role->role_group_permissions as $role_group_permission) {
+                if (!isset($role_group_permission->permissions)) {
                     continue;
                 }
-                $query = $query->where('related_type', 'organization')
-                ->whereIn('related_id', $organization_ids);
-            }
+                if($role_group_permission->role_group_permission_type != RoleType::TABLE){
+                    continue;
+                }
 
-            $roles = array_merge(($roles ?? []), $query->orderBy('table_name')
-                ->orderBy('id')
-                ->get(['a.id', 'c.table_name', 'permissions'])->toArray());
-        }
-        // if (count($roles) == 0) {
-        //     return [];
-        // }
+                $custom_table = CustomTable::getEloquent($role_group_permission->role_group_target_id);
+                if(!isset($custom_table)){
+                    continue;
+                }
 
-        $permissions = [];
-        $before_table_name = null;
-        foreach ($roles as $role) {
-            $role = (array)$role;
-            // if different table name, change target array.
-            $table_name = array_get($role, 'table_name');
-            if ($before_table_name != $table_name) {
-                $permissions[$table_name] = array_has($permissions, $table_name) ? $permissions[$table_name] : [];
-                $before_table_name = $table_name;
-            }
-            $permission_details = array_get($role, 'permissions');
-            if (is_string($permission_details)) {
-                $permission_details = json_decode($permission_details, true);
-            }
-            foreach ($permission_details as $key => $value) {
-                // if permission value is 1, add permission.
-                if (boolval($value) && !array_key_exists($key, $permissions[$table_name])) {
-                    $permissions[$table_name][$key] = $value;
+                $role_details = $role_group_permission->permissions;
+                foreach ($role_details as $value) {
+                    if (!array_key_exists($value, $permissions)) {
+                        $permissions[$custom_table->table_name][$value] = 1;
+                    }
                 }
             }
         }
@@ -313,45 +295,52 @@ trait HasPermissions
      */
     protected function getSystemPermissions()
     {
-        $organization_ids = $this->getOrganizationIds();
-
         // get all permissons for system. --------------------------------------------------
-        $roles = DB::table('roles as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
-            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
-            ->where(function ($query) use ($organization_ids) {
-                $query->orWhere(function ($query) {
-                    $query->where('related_type', SystemTableName::USER)
-                    ->where('related_id', $this->base_user_id);
-                });
-                $query->orWhere(function ($query) use ($organization_ids) {
-                    $query->where('related_type', SystemTableName::ORGANIZATION)
-                    ->whereIn('related_id', $organization_ids);
-                });
-            })->get(['id', 'permissions'])->toArray();
-
-        // if (count($roles) == 0) {
-        //     return [];
-        // }
-
+        $roles = $this->getPermissionItems();
+        
         // get roles records
         $permissions = [];
         foreach ($roles as $role) {
-            if (is_null($role->permissions)) {
-                continue;
-            }
-            $role_details = json_decode($role->permissions, true);
-            if (is_string($role_details)) {
-                $role_details = json_decode($role_details, true);
-            }
-            foreach ($role_details as $key => $value) {
-                // if permission value is 1, add permission.
-                if (boolval($value) && !array_key_exists($key, $permissions)) {
-                    $permissions[$key] = $value;
+            foreach($role->role_group_permissions as $role_group_permission){
+                if (is_null($role_group_permission->permissions)) {
+                    continue;
+                }
+                if($role_group_permission->role_group_permission_type != RoleType::SYSTEM){
+                    continue;
+                }
+
+                $role_details = $role_group_permission->permissions;
+                foreach ($role_details as $value) {
+                    if (!array_key_exists($value, $permissions)) {
+                        $permissions[$value] = "1";
+                    }
                 }
             }
         }
+
+        // set system setting
+        if(!array_has($permissions, 'system') && collect(System::system_admin_users())->first(function($system_admin_user){
+            return $system_admin_user == $this->base_user_id;
+        })){
+            $permissions['system'] = "1";
+        }
         
         return $permissions;
+    }
+
+    protected function getPermissionItems(){
+        $organization_ids = $this->getOrganizationIds();
+
+        // get all permissons for system. --------------------------------------------------
+        return RoleGroup::whereHas(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, function ($query) use ($organization_ids) {
+            $query->where(function ($query) {
+                $query->where('role_group_user_org_type', SystemTableName::USER)
+                ->where('role_group_target_id', $this->base_user_id);
+            });
+            $query->orWhere(function ($query) use ($organization_ids) {
+                $query->where('role_group_user_org_type', SystemTableName::ORGANIZATION)
+                ->whereIn('role_group_target_id', $organization_ids);
+            });
+        })->with(['role_group_permissions'])->get();
     }
 }

@@ -18,7 +18,7 @@ use File;
 
 class PluginController extends AdminControllerBase
 {
-    use HasResourceActions, RoleForm;
+    use HasResourceActions;
 
     public function __construct(Request $request)
     {
@@ -189,9 +189,6 @@ class PluginController extends AdminControllerBase
         })->disableHeader();
 
         $this->setCustomOptionForm($plugin, $form);
-
-        // Role setting --------------------------------------------------
-        // $this->addRoleForm($form, RoleType::PLUGIN);
 
         $form->disableReset();
         return $form;

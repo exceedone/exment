@@ -7,6 +7,7 @@ return [
         'import' => 'インポート',
         'plugin' => 'プラグイン',
         'copy' => 'コピー',
+        'share' => '共有',
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
@@ -79,7 +80,13 @@ return [
             'fri' => '金',
             'sat' => '土',
             'sun' => '日',
-        ]
+        ],
+        
+        'bootstrap_duallistbox_container' => [
+            'nonSelectedListLabel' => '候補データ一覧',
+            'selectedListLabel' => '選択済データ一覧',
+            'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
+        ],
     ],
 
     'error' => [
@@ -139,6 +146,7 @@ return [
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
+        'system_admin_users' => 'システム管理者',
         'system_mail' => 'システムメール設定',
         'system_mail_host' => 'ホスト名',
         'system_mail_port' => 'ポート',
@@ -191,6 +199,7 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
+            'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
@@ -386,6 +395,7 @@ return [
         'create_password_auto' => 'パスワードを自動生成する',
         'avatar' => 'アバター',
         'default_table_name' => 'ユーザー',
+        'belong_organizations' => '所属組織設定',
         'help' =>[
             'user_name' => '画面に表示する名前です。',
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
@@ -404,6 +414,7 @@ return [
 
     'organization' => [
         'default_table_name' => '組織',
+        'organization_tree' => '組織階層',
     ],
 
     'login' => [
@@ -824,18 +835,17 @@ return [
         ],
     ],
 
-    'role' => [
-        'header' => '役割設定',
-        'description' => '役割の設定を行います。役割は複数の権限を持ち、ユーザーのアクセス制御を行います。',
-        'role_name' => '役割名(英数字)',
-        'role_view_name' => '役割表示名',
-        'role_type' => '役割の種類',
-        'default_flg' => '既定の役割',
-        'default_flg_true' => '既定',
-        'default_flg_false' => '',
-        'description_field' => '説明文',
+    'role_group' => [
+        'header' => '役割グループ設定',
+        'description' => '役割グループの設定を行います。役割グループは、複数の権限を持ち、ユーザー・組織のアクセス制御を行います。',
+        'role_group_name' => '役割グループ名(英数字)',
+        'role_group_view_name' => '役割グループ表示名',
         'permissions' => '権限詳細',
-        'permission_header' => '権限設定',
+        'permission_setting' => '権限設定',
+        'user_organization_setting' => 'ユーザー・組織設定',
+        'users_count' => 'ユーザー数',
+        'organizations_count' => '組織数',
+        'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -854,29 +864,48 @@ return [
             'table' => 'テーブル',
             'value' => 'データ',
             'plugin' => 'プラグイン',
+            'master' => 'マスター',
+        ],
+
+        'role_group_system' => [
+            'system' => 'システム権限',
+            'role_group' => '役割グループ',
         ],
 
         'role_type_option_system' => [
-            'system' => ['label' => 'システム情報', 'help' => 'システム情報を変更できます。'],
-            'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。'],
+            'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
+            'login_user' => ['label' => 'ログインユーザーの管理', 'help' => 'Exmentにログインするユーザーを管理できます。'],
+            'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
-            'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'すべてのデータを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
         ],
-        'role_type_option_table' => [
-            'custom_table' => ['label' => 'テーブル', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
+        'role_type_option_role_group' => [
+            'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。'],
+            'role_group_permission' => ['label' => '権限設定変更', 'help' => '役割グループの権限の設定を変更できます。'],
+            'role_group_user_organization' => ['label' => 'ユーザー・組織管理', 'help' => '役割グループに登録する、ユーザー・組織の設定を変更できます。'],
+        ],
+        'role_type_option_master' => [
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、マスターデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
-            'custom_view' => ['label' => 'ビュー', 'help' => 'ビューを追加・変更・削除できます。'],
-            'custom_value_edit_all' => ['label' => 'すべてのデータの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
-            'custom_value_view_all' => ['label' => 'すべてのデータの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
-            'custom_value_access_all' => ['label' => 'すべてのデータの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
-            'custom_value_edit' => ['label' => '担当者データの編集', 'help' => '自分に権限のあるデータを追加・編集・削除できます。'],
-            'custom_value_view' => ['label' => '担当者データの閲覧', 'help' => '自分に権限のあるデータを閲覧できます。'],
-            'custom_value_access' => ['label' => '担当者データの参照', 'help' => '自分に権限のあるデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
+            'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
+        ], 
+        'role_type_option_table' => [
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除できます。'],
+            'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
+            'custom_value_view_all' => ['label' => '全データの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
+            'custom_value_access_all' => ['label' => '全データの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_value_edit' => ['label' => '担当データの編集', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを追加・編集・削除できます。'],
+            'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
+            'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
         ], 
         'role_type_option_value' => [
-            'custom_value_edit' => ['label' => '編集者', 'help' => '対象のデータを編集できます。'],
-            'custom_value_view' => ['label' => '閲覧者', 'help' => '対象のデータを閲覧できます。'],
+            'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
+            'custom_value_view' => ['label' => '閲覧可能', 'help' => 'このデータを閲覧できるようになります。'],
         ], 
         'role_type_option_plugin' => [
             'plugin_access' => ['label' => '利用', 'help' => 'このプラグインを利用できます。'],
@@ -995,8 +1024,7 @@ return [
             'table' => 'テーブル',
             'dashboard' => 'ダッシュボード',
             'menu' => 'メニュー',
-            'role' => '権限',
-            'mail_template' => 'メールテンプレート',
+            'role_group' => '役割グループ',
         ]
     ],
 
@@ -1047,11 +1075,6 @@ return [
         ],
         'data_detail' => 'データ確認',
 
-        'bootstrap_duallistbox_container' => [
-            'nonSelectedListLabel' => '候補データ一覧',
-            'selectedListLabel' => '選択済データ一覧',
-            'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
-        ],
         'auto_number_create' => '(※保存後、値が自動的に登録されます)',
 
         'help' => [

@@ -83,11 +83,15 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('role', 'RoleController', ['except' => ['show']]);
+            $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
-        
+            
+            $router->get('role', function(){
+                return redirect(admin_urls('role_group'));
+            });
+            
             $router->get('search', 'SearchController@index');
             $router->get('search/list', 'SearchController@getList');
             $router->get('search/header', 'SearchController@header');
@@ -108,8 +112,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
+            $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
+            $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');

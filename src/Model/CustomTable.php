@@ -16,13 +16,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Input;
 
-getCustomTableTrait();
-
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
-    use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
 
@@ -484,6 +481,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'getModel' => true,
                 'permissions' => Permission::CUSTOM_TABLE,
                 'with' => null,
+                'filter' => null,
+                'checkPermission' => true,
             ],
             $options
         );
@@ -493,7 +492,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if ($options['checkPermission'] && !\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
             $permission_tables = \Exment::user()->allHasPermissionTables($options['permissions']);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
@@ -506,6 +505,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($options['with'])) {
             $with = is_array($options['with']) ? $options['with'] : [$options['with']];
             $model->with($with);
+        }
+
+        if(isset($options['filter'])) {
+            $model = $options['filter']($model);
         }
 
         if ($options['getModel']) {
@@ -587,47 +590,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $data = [];
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
-
-        // if (boolval(config('exment.filter_search_full', false))) {
-        //     $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        // } else {
-        //     $value = $q . ($isLike ? '%' : '');
-        // }
-        // $mark = ($isLike ? 'LIKE' : '=');
-
-        // if ($relation) {
-        //     $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
-        // } else {
-        //     $takeCount = intval(config('exment.keyword_search_count', 1000));
-        // }
-
-        // // if not paginate, only take maxCount
-        // if (!$paginate) {
-        //     $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
-        // }
-
-        // // crate union query
-        // $queries = [];
-        // for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-        //     $searchColumn = $searchColumns[$i];
-        //     $query = getModelName($this)::query();
-        //     $query->where($searchColumn, $mark, $value)->select('id');
-        //     $query->take($takeCount);
-
-        //     $queries[] = $query;
-        // }
-
-        // $searchColumn = $searchColumns->last();
-        // $subquery = getModelName($this)::query();
-        // $subquery->where($searchColumn, $mark, $value)->select('id');
-        // $subquery->take($takeCount);
-
-        // foreach ($queries as $inq) {
-        //     $subquery->union($inq);
-        // }
-
-        // // create main query
-        // $mainQuery =  \DB::query()->fromSub($subquery, 'sub');
 
         // return as paginate
         if ($paginate) {
@@ -1265,6 +1227,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $permissions = $user->allPermissions();
         foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
+
             // if role type is system, and has key
             if (RoleType::SYSTEM == $permission->getRoleType()
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {
@@ -1363,13 +1331,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return false;
         }
 
-        foreach ($rows as $row) {
-            // get role
-            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+        if(is_string($role_key)){
+            $role_key = [$role_key];
+        }
 
-            // if role type is system, and has key
-            $permissions = $role->permissions;
-            if (array_keys_exists($role_key, $permissions)) {
+        foreach ($rows as $row) {
+            // check role permissions
+            $authoritable_type = array_get($row, 'pivot.authoritable_type');
+            if (in_array($authoritable_type, $role_key)) {
                 return true;
             }
         }

@@ -146,6 +146,7 @@ class Define
 
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
+        'system_admin_users' => ['type' => 'array'],
         'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
@@ -243,8 +244,8 @@ class Define
             'uri' => 'table',
             'icon' => 'fa-table',
         ],
-        'role' => [
-            'uri' => 'role',
+        'role_group' => [
+            'uri' => 'role_group',
             'icon' => 'fa-user-secret',
         ],
         'user' => [
@@ -378,7 +379,7 @@ class Define
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
-        ['uri'=> 'role', 'help_uri'=> 'permission'],
+        ['uri'=> 'role_group', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],

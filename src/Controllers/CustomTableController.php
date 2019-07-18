@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Form\Tools;
@@ -28,7 +27,7 @@ use Exceedone\Exment\Enums\Permission;
 
 class CustomTableController extends AdminControllerBase
 {
-    use HasResourceActions, RoleForm;
+    use HasResourceActions;
 
     protected $exists = false;
 
@@ -191,7 +190,6 @@ class CustomTableController extends AdminControllerBase
         }
 
         // Role setting --------------------------------------------------
-        $this->addRoleForm($form, RoleType::TABLE);
         $deleteButton = $this->confirmDeleteButton($id);
 
         $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {

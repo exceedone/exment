@@ -13,6 +13,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
@@ -22,11 +23,12 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\PartialCrudService;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm;
+    use HasResourceTableActions, CustomValueGrid, CustomValueForm;
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
@@ -100,6 +102,8 @@ class CustomValueController extends AdminControllerTableBase
                     $content->body($this->grid($callback));
                     $this->custom_table->saveGridParameter($request->path());
             }
+
+            PartialCrudService::setGridContent($this->custom_table, $content);
         }
         return $content;
     }
@@ -353,6 +357,22 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * create share form
+     */
+    public function shareClick(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.share')
+        ]);
+    }
+
+    /**
      * set notify target users and  get form
      */
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
@@ -378,6 +398,16 @@ class CustomValueController extends AdminControllerTableBase
         $service = $this->getNotifyService($tableKey, $id);
         
         return $service->sendNotifyMail($this->custom_table);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
     }
 
     protected function getNotifyService($tableKey, $id)

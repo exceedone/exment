@@ -89,29 +89,7 @@ class System extends ModelBase
         foreach (static::get_system_keys($group) as $k) {
             $array[$k] = static::{$k}();
         }
-
-        // add system role --------------------------------------------------
-        // get system role value
-        $system_role = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
-            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
-            ->get();
-        // get Role list for system.
-        $roles = Role::where('role_type', RoleType::SYSTEM)->get(['id', 'suuid', 'role_name']);
-        foreach ($roles as $role) {
-            foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $related_type) {
-                // filter related_type and role_id. convert to string
-                $filter = $system_role->filter(function ($value, $key) use ($role, $related_type) {
-                    return $value->related_type  == $related_type && $value->role_id  == $role->id;
-                });
-                if (!isset($filter)) {
-                    continue;
-                }
-
-                $array[$role->getRoleName($related_type)] = $filter->pluck('related_id')->map(function ($value) {
-                    return strval($value);
-                })->toArray();
-            }
-        }
+        
         return $array;
     }
 

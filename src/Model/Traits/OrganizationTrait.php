@@ -5,9 +5,17 @@ namespace Exceedone\Exment\Model\Traits;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Encore\Admin\Traits\ModelTree;
+use Encore\Admin\Traits\AdminBuilder;
 
 trait OrganizationTrait
 {
+    use AdminBuilder, ModelTree {
+        ModelTree::boot as treeBoot;
+    }
+
     /**
      * get parent organization.
      * (*)Only one deeply parent. not all deeply parents.
@@ -118,5 +126,17 @@ trait OrganizationTrait
                 static::setChildrenOrganizations(++$deep, $children_organization, $organizations);
             }
         }
+    }
+    
+    /**
+     * get role_group user or org joined.
+     *
+     * @return void
+     */
+    public function belong_role_groups()
+    {
+        return RoleGroup::whereHas('role_group_organizations', function($query){
+            $query->where('role_group_target_id', $this->id);
+        })->get();
     }
 }

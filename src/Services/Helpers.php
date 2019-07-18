@@ -398,6 +398,9 @@ if (!function_exists('array_keys_exists')) {
      */
     function array_keys_exists($keys, $array)
     {
+        if(is_string($array)){
+            $array = [$array];
+        }
         if (is_null($keys)) {
             return false;
         }
@@ -629,16 +632,15 @@ if (!function_exists('getModelName')) {
             $suuid = $obj->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            // cannot use CustomTable::allRecords function
-            $tables = getAllCustomTables();
+            $tables = CustomTable::allRecords();
 
             $table = collect($tables)->first(function ($table) use ($obj) {
                 if (is_numeric($obj)) {
-                    return array_get((array)$table, 'id') == $obj;
+                    return array_get($table, 'id') == $obj;
                 }
-                return array_get((array)$table, 'table_name') == $obj;
+                return array_get($table, 'table_name') == $obj;
             });
-            $suuid = array_get((array)$table, 'suuid');
+            $suuid = array_get($table, 'suuid');
         }
 
         if (!isset($suuid)) {
@@ -661,25 +663,6 @@ if (!function_exists('getModelName')) {
                 $table->createTable();
                 ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
             }
-        }
-
-        return "\\".$fillpath;
-    }
-}
-if (!function_exists('getCustomTableTrait')) {
-    /**
-     * For use function in "CustomTable"、create CustomTableTrait class
-     * @param string|CustomTable $obj
-     * @return string
-     */
-    function getCustomTableTrait()
-    {
-        $namespace = "Exceedone\\Exment\\Model\\Traits";
-        $className = "CustomTableDynamicTrait";
-        $fillpath = "{$namespace}\\{$className}";
-        // if the model doesn't defined
-        if (!class_exists($fillpath)) {
-            ClassBuilder::createCustomTableTrait($namespace, $className, $fillpath);
         }
 
         return "\\".$fillpath;
@@ -749,34 +732,6 @@ if (!function_exists('getDBTableName')) {
             throw new Exception('table name is not found. please tell system administrator.');
         }
         return 'exm__'.array_get($obj, 'suuid');
-    }
-}
-
-if (!function_exists('getAllCustomTables')) {
-    /**
-     * Get all custom table. * Use the function we cannot Eloquent Custom table.
-     * @return mixed
-     */
-    function getAllCustomTables()
-    {
-        $callback = function () {
-            if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-                return [];
-            }
-    
-            // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
-            $tables = DB::table(SystemTableName::CUSTOM_TABLE)->get();
-            return $tables;
-        };
-
-        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, $callback) ?? [];
-
-        // if empty, re-get again item(for support first install)
-        if (empty($tables)) {
-            $tables = $callback();
-        }
-
-        return $tables;
     }
 }
 
@@ -1235,6 +1190,35 @@ if (!function_exists('getAjaxResponse')) {
         return response()->json($results, $results['result'] === true ? 200 : 400);
     }
 }
+
+if (!function_exists('downloadFile')) {
+    /**
+     * download file.
+     * Support large file
+     */
+    function downloadFile($path, $disk)
+    {
+        $driver = $disk->getDriver();
+        $metaData = $driver->getMetadata($path);
+        $stream = $driver->readStream($path);
+
+        // get page name
+        $name = rawurlencode(mb_basename($path));
+        
+        if (ob_get_level()) ob_end_clean();
+        return response()->stream(
+            function () use ($stream) {
+                fpassthru($stream);
+            },
+            200,
+            [
+                'Content-Type' => $metaData['type'],
+                'Content-disposition' => "attachment; filename*=UTF-8''$name",
+            ]
+        );
+    }
+}
+
 
 if (!function_exists('getExmentVersion')) {
     /**

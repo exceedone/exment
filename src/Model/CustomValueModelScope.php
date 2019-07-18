@@ -52,9 +52,9 @@ class CustomValueModelScope implements Scope
             // get only has role
             $builder
                 ->whereHas('value_authoritable_users', function ($q) use ($user) {
-                    $q->where('related_id', $user->base_user_id);
+                    $q->where('authoritable_target_id', $user->base_user_id);
                 })->orWhereHas('value_authoritable_organizations', function ($q) use ($user) {
-                    $q->whereIn('related_id', $user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN));
+                    $q->whereIn('authoritable_target_id', $user->getOrganizationIds(JoinedOrgFilterType::ONLY_JOIN));
                 });
         }
         // if not role, set always false result.

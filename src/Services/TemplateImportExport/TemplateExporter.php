@@ -7,8 +7,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomCopy;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\TemplateExportTarget;
@@ -109,7 +109,7 @@ class TemplateExporter
         if (in_array(TemplateExportTarget::DASHBOARD, $options['export_target'])) {
             static::setTemplateDashboard($config, $is_lang);
         }
-        if (in_array(TemplateExportTarget::AUTHORITY, $options['export_target'])) {
+        if (in_array(TemplateExportTarget::ROLE_GROUP, $options['export_target'])) {
             static::setTemplateRole($config, $is_lang);
         }
 
@@ -242,7 +242,7 @@ class TemplateExporter
     protected static function setTemplateRole(&$config, $is_lang = false)
     {
         // Get Roles --------------------------------------------------
-        $roles = Role::all();
+        $roles = RoleGroup::all();
         $configRoles = [];
 
         foreach ($roles as $role) {
