@@ -72,7 +72,7 @@ namespace Exment {
             $manual.prop('href', manual_base_uri);
             $manual.children('i').removeClass('help_personal');
         }
-
+        
         /**
          * 
          */

@@ -78,6 +78,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
+            $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
+            $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
+            $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role', 'RoleController', ['except' => ['show']]);
@@ -221,6 +224,8 @@ class RouteServiceProvider extends ServiceProvider
                 
                 // System --------------------------------------------------
                 $router->get("version", 'ApiController@version');
+
+                $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ));
 
                 // User, LoginUser --------------------------------------------------
                 $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));

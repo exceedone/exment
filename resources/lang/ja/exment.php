@@ -21,6 +21,7 @@ return [
         'parent_type' => '親データのテーブル名',
         'created' => '新規作成',
         'updated' => '更新', 
+        'shared' => '共有', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
@@ -496,6 +497,7 @@ return [
         'all_user_viewable_flg' => 'すべてのユーザーが閲覧可能',
         'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
         'add_parent_menu_flg' => 'メニューに追加する',
+        'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
         'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
@@ -515,6 +517,7 @@ return [
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
+            'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
@@ -1068,6 +1071,27 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
+    'notify_navbar' => [
+        'header' => '通知一覧',
+        'description' => 'ユーザーへの通知一覧です。',
+        'read_flg' => '状態',
+        'parent_type' => '対象テーブル',
+        'notify_subject' => '通知件名',
+        'notify_body' => '通知本文',
+        'target_custom_value' => '対象データ',
+        'data_refer' => 'この通知に紐づくデータを表示します。',
+        'all_check' => '一括既読',
+        'read_flg_options' => [
+            '0' => '未読',
+            '1' => '既読',
+        ],
+        'message' => [
+            'check_succeeded' => '選択データを既読に変更しました。',
+            'check_notfound' => '更新対象のデータが存在しません。',
+            'no_newitem' => '新着通知はありません。',
+        ],
+    ],
+
     'notify' => [
         'notify' => '通知',
         'header' => '通知設定',
@@ -1085,7 +1109,7 @@ return [
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '通知対象',
-        'mail_template_id' => 'メールテンプレート',
+        'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
 
         'help' => [
@@ -1097,12 +1121,12 @@ return [
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」と、「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
-            'mail_template_id' => '送付するメールのテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
         ],
 
         'notify_trigger_options' => [
             'time' => '時間の経過',
-            'create_update_data' => 'データ新規作成・更新',
+            'create_update_data' => 'データ新規作成・更新・共有・コメント',
             'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
@@ -1111,6 +1135,7 @@ return [
         ],
         'notify_action_options' => [
             'email' => 'Eメール', 
+            'show_page' => 'システム内アラート', 
         ],
 
         'notify_action_target_options' => [

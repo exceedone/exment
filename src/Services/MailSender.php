@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
+use Exceedone\Exment\Services\NotifyService;
 
 /**
  * Send Mail System
@@ -96,13 +97,19 @@ class MailSender
 
     public function subject($subject)
     {
-        $this->subject = $subject;
+        if(isset($subject)){
+            $this->subject = $subject;
+        }
+
         return $this;
     }
 
     public function body($body)
     {
-        $this->body = $body;
+        if(isset($body)){
+            $this->body = $body;
+        }
+        
         return $this;
     }
 
@@ -120,7 +127,10 @@ class MailSender
 
     public function attachments($attachments)
     {
-        $this->attachments = $attachments;
+        if(isset($attachments)){
+            $this->attachments = $attachments;
+        }
+
         return $this;
     }
     
@@ -143,8 +153,8 @@ class MailSender
     public function send()
     {
         // get subject
-        $subject = $this->replaceWord($this->subject);
-        $body = $this->replaceWord($this->body);
+        $subject = NotifyService::replaceWord($this->subject, $this->custom_value, $this->prms);
+        $body = NotifyService::replaceWord($this->body, $this->custom_value, $this->prms);
 
         // dispatch jobs
         MailSendJob::dispatch(
@@ -163,24 +173,5 @@ class MailSender
             ]
         );
         return true;
-    }
-
-    /**
-     * replace subject or body words.
-     */
-    protected function replaceWord(string $target)
-    {
-        $target = replaceTextFromFormat($target, $this->custom_value, [
-            'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) {
-                // if has prms using $match, return value
-                $matchKey = str_replace(":", ".", $matchKey);
-                if (array_has($this->prms, $matchKey)) {
-                    return array_get($this->prms, $matchKey);
-                }
-                return null;
-            }
-        ]);
-
-        return $target;
     }
 }

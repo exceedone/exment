@@ -18,7 +18,8 @@ class Bootstrap
     {
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
-            $navbar->right(new \Exceedone\Exment\Form\Tools\HelpNav);
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
+            $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav);
         });
         Ad::js(asset('lib/js/jquery-ui.min.js'));
         Ad::css(asset('lib/css/jquery-ui.min.css'));
@@ -36,7 +37,6 @@ class Bootstrap
         Ad::css(asset('vendor/exment/fullcalendar/list/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/timegrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
-        //Ad::js(asset('vendor/exment/js/common.js'));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));
@@ -48,6 +48,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/fullcalendar/timegrid/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common_all.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
 
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');

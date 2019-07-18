@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyBeforeAfter;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use DB;
 
@@ -61,8 +62,10 @@ class NotifyController extends AdminControllerBase
             return NotifyTrigger::getEnum($val)->transKey('notify.notify_trigger_options');
         });
 
-        $grid->column('notify_action', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
-            return NotifyAction::getEnum($val)->transKey('notify.notify_action_options');
+        $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
+            return implode(exmtrans('common.separate_word'), collect($val)->map(function($v){
+                return NotifyAction::getEnum($v)->transKey('notify.notify_action_options');
+            })->toArray());
         });
 
         $grid->disableExport();
@@ -144,6 +147,14 @@ class NotifyController extends AdminControllerBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::TIME]])])
                 ->help(exmtrans("notify.help.notify_hour"));
 
+            // get checkbox
+            $form->checkbox('notify_saved_trigger', exmtrans("notify.header_trigger"))
+                ->help(exmtrans("notify.help.notify_trigger"))
+                ->options(NotifySavedType::transArray('common'))
+                ->default(NotifySavedType::arrays())
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::CREATE_UPDATE_DATA]])])
+                ;
+
             $form->text('notify_button_name', exmtrans("notify.notify_button_name"))
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::BUTTON]])])
@@ -151,12 +162,12 @@ class NotifyController extends AdminControllerBase
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
-        $form->select('notify_action', exmtrans("notify.notify_action"))
+        $form->multipleSelect('notify_actions', exmtrans("notify.notify_action"))
             ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
-            ->default(NotifyAction::EMAIL)
+            ->default([NotifyAction::SHOW_PAGE])
             ->required()
             ->config('allowClear', false)
-            ->help(exmtrans("notify.notify_action"))
+            ->help(exmtrans("notify.help.notify_action"))
             ;
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
