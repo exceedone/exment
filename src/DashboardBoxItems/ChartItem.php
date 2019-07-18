@@ -119,7 +119,7 @@ class ChartItem implements ItemInterface
             $chart_data = $datalist->pluck("column_$this->axis_y");
         } else {
             // filter model
-            $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+            $model = \Exment::user()->filterModel($model, $this->custom_view);
             // get data
             $datalist = $model->get();
             $chart_label = $datalist->map(function ($val) use ($item_x) {

@@ -343,13 +343,15 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
-            $view = $tableObj->custom_views()->where('default_flg', true)->first();
+            $view = $tableObj->custom_views()->where('default_flg', true)
+                ->where('view_kind_type', '<>', ViewKindType::FILTER)->first();
         }
         // get all data view
         $alldata = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
-        // if all data view is not exists, create view
+        // if all data view is not exists, create view and column
         if (!isset($alldata)) {
             $alldata = static::createDefaultView($tableObj);
+            $alldata->createDefaultViewColumns();
         }
         // if default view is not setting, show all data view
         if (!isset($view)) {

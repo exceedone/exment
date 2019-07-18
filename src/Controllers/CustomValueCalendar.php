@@ -10,7 +10,7 @@ trait CustomValueCalendar
     {
         $table_name = $this->custom_table->table_name;
         $model = $this->getModelNameDV()::query();
-        \Exment::user()->filterModel($model, $table_name, $this->custom_view);
+        \Exment::user()->filterModel($model, $this->custom_view);
 
         $tools = [];
         $tools[] = new Tools\GridChangePageMenu('data', $this->custom_table, false);

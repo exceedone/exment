@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
@@ -15,12 +16,14 @@ use Illuminate\Support\Collection;
 class SelectTable extends CustomItem
 {
     protected $target_table;
+    protected $target_view;
     
     public function __construct($custom_column, $custom_value)
     {
         parent::__construct($custom_column, $custom_value);
 
         $this->target_table = CustomTable::getEloquent(array_get($custom_column, 'options.select_target_table'));
+        $this->target_view = CustomView::getEloquent(array_get($custom_column, 'options.select_target_view'));
     }
 
     public function getSelectTable()
@@ -149,7 +152,7 @@ class SelectTable extends CustomItem
                 }
             }
             // get DB option value
-            return $this->target_table->getOptions($value, $this->custom_column->custom_table, null, null, $callback ?? null);
+            return $this->target_table->getOptions($value, $this->custom_column->custom_table, null, null, $callback ?? null, $this->target_view);
         });
         $ajax = $this->target_table->getOptionAjaxUrl();
         if (isset($ajax)) {
