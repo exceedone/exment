@@ -37,7 +37,6 @@ class Bootstrap
         Ad::css(asset('vendor/exment/fullcalendar/list/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/fullcalendar/timegrid/main.min.css?ver='.$ver));
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
-        //Ad::js(asset('vendor/exment/js/common.js'));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));
@@ -49,6 +48,7 @@ class Bootstrap
         Ad::js(asset('vendor/exment/fullcalendar/timegrid/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common_all.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
+        Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
 
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');

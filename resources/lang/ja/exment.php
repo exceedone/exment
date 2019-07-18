@@ -1088,7 +1088,7 @@ return [
         'message' => [
             'check_succeeded' => '選択データを既読に変更しました。',
             'check_notfound' => '更新対象のデータが存在しません。',
-            'no_newitem' => '新着通知が存在しません。',
+            'no_newitem' => '新着通知はありません。',
         ],
     ],
 

@@ -360,7 +360,7 @@ class CustomValue extends ModelBase
     
     
     // notify user --------------------------------------------------
-    public function notify(NotifySavedType $notifySavedType)
+    public function notify($notifySavedType)
     {
         // if $saved_notify is false, return
         if ($this->saved_notify === false) {

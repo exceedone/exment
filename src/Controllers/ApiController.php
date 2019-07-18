@@ -171,6 +171,7 @@ class ApiController extends AdminControllerBase
                 }
 
                 return [
+                    'id' => array_get($l, 'id'),
                     'icon' => $icon ?? 'fa-bell',
                     'color' => $color ?? null,
                     'table_view_name' => $table_view_name ?? null,

@@ -98,7 +98,7 @@ class Notify extends ModelBase
      * notify_create_update_user
      * *Contains Comment, share
      */
-    public function notifyCreateUpdateUser($data, NotifySavedType $notifySavedType)
+    public function notifyCreateUpdateUser($data, $notifySavedType)
     {
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
@@ -122,7 +122,7 @@ class Notify extends ModelBase
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => $notifySavedType->getLabel(),
+                'create_or_update' => NotifySavedType::getEnum($notifySavedType)->getLabel(),
             ];
 
             // send mail

@@ -26,7 +26,6 @@ namespace Exment {
         }
         public static AddEvent() {
             CommonEvent.ToggleHelp();
-            CommonEvent.notifyNavbar();
             CommonEvent.addSelect2();
             CommonEvent.setFormFilter($('[data-filter]'));
             CommonEvent.tableHoverLink();
@@ -74,62 +73,6 @@ namespace Exment {
             $manual.children('i').removeClass('help_personal');
         }
         
-        /**
-         * toggle right-top help link and color
-         */
-        private static notifyNavbar(){
-            $.ajax({
-                url: admin_url(URLJoin('webapi', 'notifyPage')),
-                dataType: "json",
-                type: "GET",
-                success: function (data) {
-                    $('.navbar-notify ul.menu').empty();
-                    $('.container-notify .label-danger').remove();
-                    if(data.count > 0){
-                        $('.container-notify').append('<span class="label label-danger">' + data.count + '</span>');
-
-                        for(let i = 0; i < data.items.length; i++){
-                            let d = data.items[i];
-                            let li = $('<li/>', {
-                                html: $('<a/>', {
-                                    href: hasValue(d.href) ? d.href : 'javascript:void(0);',
-                                    html: [
-                                        $('<p/>', {
-                                            html:[
-                                                $('<i/>', {
-                                                    'class': 'fa ' + d.icon,
-                                                    //'style': hasValue(d.color) ? 'color:' + d.color : null
-                                                }),
-                                                $('<span></span>', {
-                                                    'text': d.table_view_name,
-                                                    'style': hasValue(d.color) ? 'background-color:' + d.color : null
-                                                }),
-                                            ],
-                                            'class': 'search-item-icon'
-                                        }),
-                                        $('<span/>', {
-                                            'text': d.label,
-                                        }),
-                                    ],
-                                }),
-                            });
-    
-                            $('.navbar-notify ul.menu').append(li);
-                        }
-                    }
-                    else{
-                        let li = $('<li/>', {
-                            text: data.noItemMessage,
-                            'class': 'text-center',
-                            style: 'padding:7px;'
-                        });
-
-                        $('.navbar-notify ul.menu').append(li);
-                    }
-                },
-            });
-        }
-
         /**
          * 
          */
