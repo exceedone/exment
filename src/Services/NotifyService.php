@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyPage;
 use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
 use Exceedone\Exment\Services\MailSender;
@@ -256,7 +257,7 @@ class NotifyService
             $mail_template = array_get($notify->action_settings, 'mail_template_id');
         }
         if(is_numeric($mail_template)){
-            $mail_template = MailTemplate::find($mail_template);
+            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         }
 
         // get notify actions 

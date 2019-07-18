@@ -18,9 +18,9 @@ class NotifyNav implements Renderable
                 dataType: "json",
                 type: "GET",
                 success: function (data) {
-                    $('.navbar-notify ul.menu').html();
+                    $('.navbar-notify ul.menu').empty();
+                    $('.container-notify .label-danger').remove();
                     if(data.count > 0){
-                        $('.container-notify .label-danger').remove();
                         $('.container-notify').append('<span class="label label-danger">' + data.count + '</span>');
                     }
                     for(let i = 0; i < data.items.length; i++){
@@ -59,6 +59,7 @@ SCRIPT;
         \Admin::script($script);
 
         $list = trans('admin.list');
+        $list_url = admin_url('notify_page');
         return <<<EOT
 <li class="navbar-notify dropdown notifications-menu">
     <a href="javascript:void(0);" class="container-notify hidden-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
@@ -73,7 +74,7 @@ SCRIPT;
            
         </ul>
         </li>
-        <li class="footer"><a href="#">$list</a></li>
+        <li class="footer"><a href="$list_url">$list</a></li>
     </ul>
 </li>
 EOT;

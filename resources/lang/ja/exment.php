@@ -1068,6 +1068,26 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
+    'notify_page' => [
+        'header' => '通知一覧',
+        'description' => 'ユーザーへの通知一覧です。',
+        'read_flg' => '状態',
+        'parent_type' => '対象テーブル',
+        'notify_subject' => '通知件名',
+        'notify_body' => '通知本文',
+        'target_custom_value' => '対象データ',
+        'data_refer' => 'この通知に紐づくデータを表示します。',
+        'all_check' => '一括既読',
+        'read_flg_options' => [
+            '0' => '未読',
+            '1' => '既読',
+        ],
+        'message' => [
+            'check_succeeded' => '選択データを既読に変更しました。',
+            'check_notfound' => '更新対象のデータが存在しません。',
+        ],
+    ],
+
     'notify' => [
         'notify' => '通知',
         'header' => '通知設定',

@@ -4,23 +4,14 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Exceedone\Exment\Form\Show;
 use Encore\Admin\Grid\Linker;
-//use Encore\Admin\Controllers\HasResourceActions;
-//use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
-use Encore\Admin\Layout\Content;
+use Exceedone\Exment\Form\Show;
+use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyPage;
-use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Enums\NotifyAction;
-use Exceedone\Exment\Enums\NotifyBeforeAfter;
-use Exceedone\Exment\Enums\NotifyActionTarget;
-use Exceedone\Exment\Enums\MailKeyName;
 use DB;
 
 class NotifyPageController extends AdminControllerBase
@@ -29,11 +20,7 @@ class NotifyPageController extends AdminControllerBase
 
     public function __construct(Request $request)
     {
-        // 井坂さん：下記の見出しはNotirfyControllerからのコピペなので、ちゃんと修正する。
-        // ページ名は「通知一覧」
-        // 説明文は「ユーザーへの通知一覧です。」
-        // アイコンは一緒でOK
-        $this->setPageInfo(exmtrans("notify.header"), exmtrans("notify.header"), exmtrans("notify.description"), 'fa-bell');
+        $this->setPageInfo(exmtrans('notify_page.header'), exmtrans('notify_page.header'), exmtrans('notify_page.description'), 'fa-bell');
     }
 
     /**
@@ -43,33 +30,49 @@ class NotifyPageController extends AdminControllerBase
      */
     protected function grid()
     {
-        // 井坂さん：下記の見出しはNotirfyControllerからのコピペなので、ちゃんと修正する。
         $grid = new Grid(new NotifyPage);
-        $grid->column('read_flg', exmtrans("notify.notify_title"))->sortable();
-        $grid->column('notify_subject', exmtrans("notify.notify_subject"))->sortable();
+        $grid->column('read_flg', exmtrans('notify_page.read_flg'))->sortable()->display(function ($read_flg) {
+            return exmtrans("notify_page.read_flg_options.$read_flg");
+        });
+        $grid->column('parent_type', exmtrans('notify_page.parent_type'))->sortable()->display(function ($parent_type) {
+            return CustomTable::getEloquent($parent_type)->table_view_name;
+        });
+        $grid->column('notify_subject', exmtrans('notify_page.notify_subject'))->sortable();
+        $grid->column('created_at', exmtrans('common.created_at'))->sortable();
        
         $grid->disableCreation();
         $grid->disableExport();
 
+        $grid->tools(function (Grid\Tools $tools) {
+            $tools->batch(function (Grid\Tools\BatchActions $batch) {
+                $batch->add(exmtrans('notify_page.all_check'), new BatchCheck());
+            });
+        });
+
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableEdit();
             
-            // 井坂さん：以下のコメントアウト内容を改造して、「対象データを表示】のリンクを追加する
-            // $linker = (new Linker)
-            //     ->url(admin_urls("notify_page/create?copy_id={$actions->row->id}"))
-            //     ->icon('fa-copy')
-            //     ->tooltip(exmtrans('common.copy_item', exmtrans('notify.notify')));
-            // $actions->prepend($linker);
-
-            //
-            // [できれば]以下のURLの「CheckRow」を追加して、左上のチェックボックスのアクション「既読にする」を追加する。
-            // ※「CheckRow」が用途が異なるものかもしれないので、一度検証いただけると嬉しいです
-            // https://laravel-admin.org/docs/#/en/model-grid-actions
+            // reference target data
+            $linker = (new Linker)
+                ->url(admin_url("notify_page/rowdetail/{$actions->row->id}"))
+                ->icon('fa-list')
+                ->tooltip(exmtrans('notify_page.data_refer'));
+            $actions->prepend($linker);
         });
         return $grid;
     }
 
-    
+
+    /**
+     * Make a form builder.
+     *
+     * @return Form
+     */
+    protected function form($id = null)
+    {
+        return new Form(new NotifyPage);
+    }
+
     /**
      * Make a show builder.
      *
@@ -80,37 +83,84 @@ class NotifyPageController extends AdminControllerBase
     {
         $model = NotifyPage::findOrFail($id);
 
-        //井坂さん：ここで$model->read_flgがfalseだった場合に、trueにして保存
+        if (!isset($model)) {
+            abort(404);
+        }
 
-        // 井坂さん：下記の日本語を、ちゃんとexmtrans追加って翻訳する
+        if ($model->read_flg == 0) {
+            $model->update(['read_flg' => true]);
+        } 
+
         return new Show($model, function (Show $show) use($model) {
-            $show->field('id', 'ID');
-            $show->field('target_custom_value', '対象データ')->as(function($v) use($model){
+            $show->field('id', exmtrans('common.id'));
+            $show->field('target_custom_value', exmtrans('notify_page.target_custom_value'))->as(function($v) use($model){
                 return CustomTable::getEloquent(array_get($model, 'parent_type'))
                     ->getValueModel(array_get($model, 'parent_id'))
                     ->getValue(true);
             })->setEscape(false);
-            $show->field('notify_subject', '通知件名');
-            $show->field('notify_body', '通知本文');
+            $show->field('notify_subject', exmtrans('notify_page.notify_subject'));
+            $show->field('notify_body', exmtrans('notify_page.notify_body'))
+                ->as(function ($v) {
+                    return  replaceBreak($v);
+                })->setEscape(false);
+
+            $show->panel()->tools(function ($tools) {
+                $tools->disableEdit();
+            });
         });
     }
-
     
     /**
      * redirect custom values's detail page
      *
      * @param mixed   $id
      */
-    public function redirectTargetData(Request $request)
+    public function redirectTargetData(Request $request, $id = null)
     {
-        // 井坂さん：一度redirectTargetDataを実行させて、read_flgを立てる
-
         $model = NotifyPage::findOrFail($id);
-        //井坂さん：ここで$model->read_flgがfalseだった場合に、trueにして保存
 
-        // CustomValueモデル作成
-        // CustomValueモデルのgetUrlメソッドを実行して、リダイレクト先のURL取得
-        // リダイレクト実行
+        if (!isset($model)) {
+            abort(404);
+        }
+
+        // update read_flg
+        if ($model->read_flg == 0) {
+            $model->update(['read_flg' => true]);
+        } 
+
+        $custom_value = getModelName($model->parent_type)::find($model->parent_id);
+
+        // redirect custom value page
+        return redirect($custom_value->getUrl());
+    }
+
+    /**
+     * update read_flg when row checked
+     * 
+     * @param mixed   $id
+     */
+    public function rowCheck(Request $request, $id = null)
+    {
+        if (!isset($id)) {
+            abort(404);
+        }
+
+        $models = NotifyPage::whereIn('id', explode(',', $id))->where('read_flg', false)->get();
+        if (!isset($models) || $models->count() == 0) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('notify_page.message.check_notfound'),
+            ]);
+        }
+
+        foreach ($models as $model) {
+            $model->update(['read_flg' => true]);
+        }
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'toastr' => exmtrans('notify_page.message.check_succeeded'),
+        ]);
     }
 
 }
