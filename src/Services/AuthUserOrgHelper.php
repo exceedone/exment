@@ -23,7 +23,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleOrganizationQuery($target_table, &$builder = null)
+    public static function getRoleOrganizationQuery($target_table, $tablePermission = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -40,17 +40,19 @@ class AuthUserOrgHelper
 
             // check request session
             $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS, $target_table->id);
-            if (is_null($target_ids = System::requestSession($key))) {
+            
+            // if set $tablePermission, always call
+            if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
                 // get organiztion ids
-                $target_ids = static::getRoleUserOrgId($target_table, SystemTableName::ORGANIZATION);
-                System::requestSession($key, $target_ids);
+                $target_ids = static::getRoleUserOrgId($target_table, SystemTableName::ORGANIZATION, $tablePermission);
+                if(!isset($tablePermission)){
+                    System::requestSession($key, $target_ids);
+                }
             }
         }
 
         // return target values
-        if (!isset($builder)) {
-            $builder = getModelName(SystemTableName::ORGANIZATION)::query();
-        }
+        $builder = getModelName(SystemTableName::ORGANIZATION)::query();
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
@@ -63,7 +65,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleUserQuery($target_table, &$builder = null)
+    public static function getRoleUserQueryTable($target_table, $tablePermission = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -76,9 +78,10 @@ class AuthUserOrgHelper
         } else {
             // check request session
             $key = sprintf(Define::SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS, $target_table->id);
-            if (is_null($target_ids = System::requestSession($key))) {
+            // if set $tablePermission, always call
+            if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
                 // get user ids
-                $target_ids = static::getRoleUserOrgId($target_table ?? [], SystemTableName::USER);
+                $target_ids = static::getRoleUserOrgId($target_table ?? [], SystemTableName::USER, $tablePermission);
 
                 if (System::organization_available()) {
                     // and get authoritiable organization
@@ -93,14 +96,15 @@ class AuthUserOrgHelper
                         }
                     }
                 }
-                System::requestSession($key, $target_ids);
+
+                if (!isset($tablePermission)) {
+                    System::requestSession($key, $target_ids);
+                }
             }
         }
     
         // return target values
-        if (!isset($builder)) {
-            $builder = getModelName(SystemTableName::USER)::query();
-        }
+        $builder = getModelName(SystemTableName::USER)::query();
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
@@ -112,14 +116,15 @@ class AuthUserOrgHelper
      * *key:custom_value
      * @return CustomValue users who can access custom_value.
      */
-    public static function getAllRoleUserQuery($custom_value, &$builder = null)
+    public static function getRoleUserQueryValue($custom_value)
     {
         // get custom_value's users
         $target_ids = [];
         
         // check request session
         $key = sprintf(Define::SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS, $custom_value->custom_table->id, $custom_value->id);
-        if (is_null($target_ids = System::requestSession($key))) {
+        // if set $tablePermission, always call
+        if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
             $target_ids = array_merge(
                 $custom_value->value_authoritable_users()->pluck('id')->toArray(),
                 []
@@ -143,17 +148,17 @@ class AuthUserOrgHelper
 
             // get custom table's user ids
             $target_ids = array_merge(
-                static::getRoleUserQuery($custom_value->custom_table)->pluck('id')->toArray(),
+                static::getRoleUserQueryTable($custom_value->custom_table)->pluck('id')->toArray(),
                 $target_ids
             );
 
-            System::requestSession($key, $target_ids);
+            if (!isset($tablePermission)) {
+                System::requestSession($key, $target_ids);
+            }
         }
     
         // return target values
-        if (!isset($builder)) {
-            $builder = getModelName(SystemTableName::USER)::query();
-        }
+        $builder = getModelName(SystemTableName::USER)::query();
         $builder->whereIn('id', $target_ids);
         return $builder;
     }
@@ -303,7 +308,7 @@ class AuthUserOrgHelper
      * @param CustomTable $target_table access table.
      * @param array $related_types "user" or "organization"
      */
-    protected static function getRoleUserOrgId($target_table, $related_type)
+    protected static function getRoleUserOrgId($target_table, $related_type, $tablePermission = null)
     {
         $target_table = CustomTable::getEloquent($target_table);
         
@@ -311,18 +316,37 @@ class AuthUserOrgHelper
         $roleGroups = RoleGroup::whereHas('role_group_permissions', function($query) use ($target_table){
             $query->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('role_group_permission_type', RoleType::SYSTEM)
-                        ->whereJsonContains('permissions', [Permission::SYSTEM, Permission::CUSTOM_TABLE], 'or');
+                    $query->where('role_group_permission_type', RoleType::SYSTEM);
                 });
                 $query->orWhere(function ($query) use ($target_table) {
                     $query->where('role_group_permission_type', RoleType::TABLE)
-                        ->whereJsonContains('permissions', Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, 'or');
+                        ->where('role_group_target_id', $target_table->id);
                 });
             });
-        })->with('role_group_user_organizations')->get();
+        })->with(['role_group_user_organizations', 'role_group_permissions'])->get();
 
         $target_ids = collect();
         foreach($roleGroups as $roleGroup){
+            // check permission
+            if(!$roleGroup->role_group_permissions->first(function($role_group_permission) use($tablePermission){
+                // check as system
+                if($role_group_permission->role_group_permission_type == RoleType::SYSTEM){
+                    $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE];
+                }
+
+                // check as table
+                elseif(!isset($tablePermission)){
+                    $tablePermission = Permission::AVAILABLE_ACCESS_CUSTOM_VALUE;
+                }
+                
+                // check contains $tablePermission in $role_group_permission
+                return collect($tablePermission)->contains(function($p) use($role_group_permission){
+                    return in_array($p, $role_group_permission->permissions);
+                });
+            })){
+                continue;
+            }
+
             foreach($roleGroup->role_group_user_organizations as $role_group_user_organization){
                 // merge users from $role_group_user_organization
                 if($role_group_user_organization->role_group_user_org_type != $related_type){

@@ -794,6 +794,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'showMessage_ifDeny' => null,
                 'filterCallback' => null,
                 'target_view' => null,
+                'permission' => null,
             ]
             , $options
         ));
@@ -819,9 +820,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
         } else {
             $query = $this->getOptionsQuery($target_view);
         }
