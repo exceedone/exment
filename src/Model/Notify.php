@@ -109,7 +109,7 @@ class Notify extends ModelBase
      */
     public function notifyCreateUpdateUser($custom_value, $notifySavedType)
     {
-        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
+        if (!$this->isNotifyTarget($custom_value, $notifySavedType)) {
             return;
         }
 

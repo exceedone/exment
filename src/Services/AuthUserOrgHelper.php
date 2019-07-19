@@ -4,10 +4,14 @@ namespace Exceedone\Exment\Services;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\RoleGroupPermission;
+use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * Role, user , organization helper
@@ -294,28 +298,39 @@ class AuthUserOrgHelper
     }
 
     /**
-     * get user or ornganization id who can access table.
+     * get users or organizaitons who can access table.
      *
      * @param CustomTable $target_table access table.
-     * @param string $related_type "user" or "organization"
+     * @param array $related_types "user" or "organization"
      */
     protected static function getRoleUserOrgId($target_table, $related_type)
     {
         $target_table = CustomTable::getEloquent($target_table);
         
-        // get user or organiztion ids
-        $target_ids = \DB::table('roles as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
-            ->where('related_type', $related_type)
-            ->where(function ($query) use ($target_table) {
+        // Get role group contains target_table's
+        $roleGroups = RoleGroup::whereHas('role_group_permissions', function($query) use ($target_table){
+            $query->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
-                    $query->where('morph_type', RoleType::SYSTEM()->lowerKey());
+                    $query->where('role_group_permission_type', RoleType::SYSTEM)
+                        ->whereJsonContains('permissions', [Permission::SYSTEM, Permission::CUSTOM_TABLE], 'or');
                 });
                 $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', RoleType::TABLE()->lowerKey())
-                    ->where('morph_id', $target_table->id);
+                    $query->where('role_group_permission_type', RoleType::TABLE)
+                        ->whereJsonContains('permissions', Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, 'or');
                 });
-            })->get(['related_id'])->pluck('related_id') ?? [];
-        return $target_ids;
+            });
+        })->with('role_group_user_organizations')->get();
+
+        $target_ids = collect();
+        foreach($roleGroups as $roleGroup){
+            foreach($roleGroup->role_group_user_organizations as $role_group_user_organization){
+                // merge users from $role_group_user_organization
+                if($role_group_user_organization->role_group_user_org_type != $related_type){
+                    continue;
+                }
+                $target_ids = $target_ids->merge($role_group_user_organization->role_group_target_id);
+            }
+        }
+        return $target_ids->toArray();
     }
 }

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
 use Carbon\Carbon;
 
@@ -129,7 +130,7 @@ class CustomValueAuthoritable extends ModelBase
                         ->where('parent_id', $custom_value->id)
                         ->where('authoritable_type', $item['name']);
                     },
-                    'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item){
+                    'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item, $custom_value){
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                             ->where('parent_id', $custom_value->id)
                             ->where('authoritable_type', $item['name'])
@@ -148,8 +149,14 @@ class CustomValueAuthoritable extends ModelBase
             $shares = collect($shares)->map(function($share){
                 return CustomTable::getEloquent($share['parent_type'])->getValueModel($share['parent_id']);
             });
-            //TODO:changed
-            $custom_value->notifyShared($custom_value, $shares);
+            
+            // share
+            $notifies = $custom_value->custom_table->notifies;
+
+            // loop for $notifies
+            foreach ($notifies as $notify) {
+                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE);
+            }
 
             return getAjaxResponse([
                 'result'  => true,
