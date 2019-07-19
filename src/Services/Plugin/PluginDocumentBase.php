@@ -45,7 +45,7 @@ abstract class PluginDocumentBase
 
         // set path and file info
         $file = ExmentFile::saveFileInfo($service->getDirPath(), $service->getFileName(), $service->getUniqueFileName())
-            ->saveCustomValue($this->custom_value);
+            ->saveCustomValue($this->custom_value->id, null, $this->custom_value->custom_table);
 
         // save Document Model
         $document_model = $file->saveDocumentModel($this->custom_value, $service->getFileName());
