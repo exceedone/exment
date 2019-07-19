@@ -177,8 +177,16 @@ class CustomValueAuthoritable extends ModelBase
      */
     public static function getUserOrgSelectOptions($custom_table){
         // get options
-        $users = CustomTable::getEloquent(SystemTableName::USER)->getOptions(null, $custom_table);
-        $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions(null, $custom_table);
+        $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
+            [
+                'display_table' => $custom_table,
+            ]
+        );
+        $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
+            [
+                'display_table' => $custom_table,
+            ]
+        );
         
         // get mapkey
         $users = $users->mapWithKeys(function($item, $key){

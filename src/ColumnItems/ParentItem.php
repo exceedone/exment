@@ -162,7 +162,10 @@ class ParentItem implements ItemInterface
             $field = new Select($this->name(), [$this->parent_table->table_view_name]);
             $field->options(function ($value) {
                 // get DB option value
-                return $this->parent_table->getOptions($value, null, false, true);
+                return $this->parent_table->getSelectOptions([
+                    'selected_value' => $value,
+                    'showMessage_ifDeny' => true,
+                ]);
             });
             return $field;
         }

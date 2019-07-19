@@ -784,9 +784,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false, 
-        $showMessage_ifDeny = false, $filterCallback = null, $target_view = null)
+    public function getSelectOptions($options = [])
     {
+        extract(array_merge(
+            [
+                'selected_value' => null,
+                'display_table' => null,
+                'all' => false,
+                'showMessage_ifDeny' => null,
+                'filterCallback' => null,
+                'target_view' => null,
+            ]
+            , $options
+        ));
+
         if (is_null($display_table)) {
             $display_table = $this;
         }
