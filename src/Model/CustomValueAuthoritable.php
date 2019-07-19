@@ -159,12 +159,9 @@ class CustomValueAuthoritable extends ModelBase
                 return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
             
-            // share
-            $notifies = $custom_value->custom_table->notifies;
-
             // loop for $notifies
-            foreach ($notifies as $notify) {
-                $notify->notifySharedUser($custom_value, $shares);
+            foreach ($custom_value->custom_table->notifies as $notify) {
+                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shares]);
             }
 
             return getAjaxResponse([

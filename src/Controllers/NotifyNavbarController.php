@@ -91,8 +91,7 @@ class NotifyNavbarController extends AdminControllerBase
             $model->update(['read_flg' => true]);
         } 
 
-        return new Show($model, function (Show $show) use($model) {
-            $show->field('id', exmtrans('common.id'));
+        return new Show($model, function (Show $show) use($id, $model) {
             $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) {
                 return CustomTable::getEloquent($parent_type)->table_view_name;
             });
@@ -107,8 +106,15 @@ class NotifyNavbarController extends AdminControllerBase
                     return  replaceBreak($v);
                 })->setEscape(false);
 
-            $show->panel()->tools(function ($tools) {
+            $show->panel()->tools(function ($tools) use($id) {
                 $tools->disableEdit();
+                
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_url("notify_navbar/rowdetail/{$id}"),
+                    'label' => exmtrans('notify_navbar.data_refer'),
+                    'icon' => 'fa-list',
+                    'btn_class' => 'btn-purple',
+                ]));
             });
         });
     }

@@ -23,6 +23,7 @@ return [
         'created' => '新規作成',
         'updated' => '更新', 
         'shared' => '共有', 
+        'attachmented' => 'ファイル添付', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
@@ -1108,7 +1109,7 @@ return [
         'notify_subject' => '通知件名',
         'notify_body' => '通知本文',
         'target_custom_value' => '対象データ',
-        'data_refer' => 'この通知に紐づくデータを表示します。',
+        'data_refer' => 'この通知に紐づくデータを表示',
         'all_check' => '一括既読',
         'read_flg_options' => [
             '0' => '未読',

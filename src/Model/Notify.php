@@ -107,8 +107,17 @@ class Notify extends ModelBase
      * notify_create_update_user
      * *Contains Comment, share
      */
-    public function notifyCreateUpdateUser($custom_value, $notifySavedType)
+    public function notifyCreateUpdateUser($custom_value, $notifySavedType, $options = [])
     {
+        $options = array_merge(
+            [
+                'targetUserOrgs' => null,
+                'comment' => null,
+                'attachment' => null,
+            ],
+            $options
+        );
+
         if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
             return;
         }
@@ -119,23 +128,47 @@ class Notify extends ModelBase
             return;
         }
 
+        $notifySavedType = NotifySavedType::getEnum($notifySavedType);
+
         $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
         // loop custom_value
-        $users = $this->getNotifyTargetUsers($custom_value);
+        if(!isset($options['targetUserOrgs'])){
+            $users = $this->getNotifyTargetUsers($custom_value);
+        }else{
+            $users = [];
+            foreach($options['targetUserOrgs'] as $targetUserOrg){
+                if($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION){
+                    $users = array_merge($users, $targetUserOrg->users);
+                }else{
+                    $users[] = $targetUserOrg;
+                }
+            }
+        }
         
         foreach ($users as $user) {
             if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                 continue;
             }
 
+            // create freespace
+            $freeSpace = '';
+            if(isset($options['comment'])){
+                $freeSpace = "\n" . exmtrans('common.comment') . ":\n" . $options['comment'] . "\n";
+            }
+            elseif(isset($options['attachment'])){
+                $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
+            } 
+
             $prms = [
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => NotifySavedType::getEnum($notifySavedType)->getLabel(),
+                'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
+                'create_or_update' => $notifySavedType->getLabel(),
+                'free_space' => $freeSpace,
             ];
 
             // send mail
@@ -155,65 +188,6 @@ class Notify extends ModelBase
         }
     }
     
-    /**
-     * notify_create_update_user
-     * *Contains Comment, share
-     */
-    public function notifySharedUser($custom_value, $targetUserOrgs)
-    {
-        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
-            return;
-        }
-
-        if(count($targetUserOrgs) == 0){
-            return;
-        }
-
-        // check trigger
-        $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
-        if(!isset($notify_saved_triggers) || !in_array(NotifySavedType::SHARE, $notify_saved_triggers)){
-            return;
-        }
-
-        $custom_table = $custom_value->custom_table;
-        $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
-        $mail_template = $this->getMailTemplate();
-
-        // loop data
-        $users = [];
-        foreach($targetUserOrgs as $targetUserOrg){
-            if($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION){
-                $users = array_merge($users, $targetUserOrg->users);
-            }else{
-                $users[] = $targetUserOrg;
-            }
-        }
-        
-        foreach ($users as $user) {
-            $prms = [
-                'user' => $user,
-                'notify' => $this,
-                'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => NotifySavedType::getEnum(NotifySavedType::SHARE)->getLabel(),
-            ];
-
-            // send mail
-            try {
-                NotifyService::executeNotifyAction($this, [
-                    'mail_template' => $mail_template,
-                    'prms' => $prms,
-                    'user' => $user,
-                    'custom_value' => $custom_value,
-                ]);
-            }
-            // throw mailsend Exception
-            catch (\Swift_TransportException $ex) {
-                // show warning message
-                admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
-            }
-        }
-    }
-
     /**
      * check if notify target data
      *
