@@ -377,25 +377,8 @@ class CustomValue extends ModelBase
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            if ($this->isNotifyTarget($notify, NotifyTrigger::CREATE_UPDATE_DATA)) {
-                $notify->notifyCreateUpdateUser($this, $create);
-            }
+            $notify->notifyCreateUpdateUser($this, $create);
         }
-    }
-
-    // check if notify target data --------------------------------------------------
-    public function isNotifyTarget($notify, $notify_trigger)
-    {
-        if (array_get($notify, 'notify_trigger') != $notify_trigger) {
-            return false;
-        }
-        $custom_view_id = array_get($notify, 'custom_view_id');
-        if (isset($custom_view_id)) {
-            $custom_view = CustomView::getEloquent($custom_view_id);
-            return $custom_view->setValueFilters($this->custom_table->getValueModel())
-                ->where('id', $this->id)->exists();
-        }
-        return true;
     }
 
     /**

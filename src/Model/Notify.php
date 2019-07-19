@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\NotifyService;
 use Carbon\Carbon;
@@ -75,15 +76,15 @@ class Notify extends ModelBase
         list($datalist, $table, $column) = $this->getNotifyTargetDatalist();
 
         // loop data
-        foreach ($datalist as $data) {
-            $users = $this->getNotifyTargetUsers($data);
+        foreach ($datalist as $custom_value) {
+            $users = $this->getNotifyTargetUsers($custom_value);
             foreach ($users as $user) {
                 $prms = [
                     'user' => $user,
                     'notify' => $this,
                     'target_table' => $table->table_view_name ?? null,
                     'notify_target_column_key' => $column->column_view_name ?? null,
-                    'notify_target_column_value' => $data->getValue($column),
+                    'notify_target_column_value' => $custom_value->getValue($column),
                 ];
 
                 // send mail
@@ -91,7 +92,7 @@ class Notify extends ModelBase
                     NotifyService::executeNotifyAction($this, [
                         'prms' => $prms,
                         'user' => $user,
-                        'custom_value' => $data,
+                        'custom_value' => $custom_value,
                     ]);
                 }
                 // throw mailsend Exception
@@ -106,23 +107,27 @@ class Notify extends ModelBase
      * notify_create_update_user
      * *Contains Comment, share
      */
-    public function notifyCreateUpdateUser($data, $notifySavedType)
+    public function notifyCreateUpdateUser($custom_value, $notifySavedType)
     {
+        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
+            return;
+        }
+
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
         if(!isset($notify_saved_triggers) || !in_array($notifySavedType, $notify_saved_triggers)){
             return;
         }
 
-        $custom_table = $data->custom_table;
+        $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
-        // loop data
-        $users = $this->getNotifyTargetUsers($data);
+        // loop custom_value
+        $users = $this->getNotifyTargetUsers($custom_value);
         
         foreach ($users as $user) {
-            if (!$this->approvalSendUser($mail_template, $custom_table, $data, $user)) {
+            if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                 continue;
             }
 
@@ -139,7 +144,7 @@ class Notify extends ModelBase
                     'mail_template' => $mail_template,
                     'prms' => $prms,
                     'user' => $user,
-                    'custom_value' => $data,
+                    'custom_value' => $custom_value,
                 ]);
             }
             // throw mailsend Exception
@@ -154,7 +159,7 @@ class Notify extends ModelBase
      * notify_create_update_user
      * *Contains Comment, share
      */
-    public function notifyShared($data, $targetUserOrgs)
+    public function notifyShared($custom_value, $targetUserOrgs)
     {
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
@@ -162,7 +167,7 @@ class Notify extends ModelBase
             return;
         }
 
-        $custom_table = $data->custom_table;
+        $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
@@ -190,7 +195,7 @@ class Notify extends ModelBase
                     'mail_template' => $mail_template,
                     'prms' => $prms,
                     'user' => $user,
-                    'custom_value' => $data,
+                    'custom_value' => $custom_value,
                 ]);
             }
             // throw mailsend Exception
@@ -199,6 +204,27 @@ class Notify extends ModelBase
                 admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
             }
         }
+    }
+
+    /**
+     * check if notify target data
+     *
+     * @param CustomValue $custom_value
+     * @param [type] $notify_trigger
+     * @return boolean
+     */
+    public function isNotifyTarget($custom_value, $notify_trigger)
+    {
+        if (array_get($this, 'notify_trigger') != $notify_trigger) {
+            return false;
+        }
+        $custom_view_id = array_get($this, 'custom_view_id');
+        if (isset($custom_view_id)) {
+            $custom_view = CustomView::getEloquent($custom_view_id);
+            return $custom_view->setValueFilters($custom_value->custom_table->getValueModel())
+                ->where('id', $custom_value->id)->exists();
+        }
+        return true;
     }
 
     /**
@@ -309,7 +335,7 @@ class Notify extends ModelBase
     /**
      * whether $user is target send user
      */
-    protected function approvalSendUser($mail_template, $custom_table, $data, NotifyTarget $user, $checkHistory = true)
+    protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true)
     {
         // if $user is myself, return false
         if ($checkHistory && \Exment::user()->email == $user->email()) {
@@ -325,7 +351,7 @@ class Notify extends ModelBase
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
                 ::where($index_user, $user->id())
                 ->where($index_mail_template, $mail_template->id)
-                ->where('parent_id', $data->id)
+                ->where('parent_id', $custom_value->id)
                 ->where('parent_type', $custom_table->table_name)
                 ->get()
             ;
