@@ -267,7 +267,7 @@ class CustomValueController extends AdminControllerTableBase
         // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
         $custom_value = $this->getModelNameDV()::find($id);
         $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
-            ->saveCustomValue($custom_value);
+            ->saveCustomValue($custom_value->id, null, $this->custom_table);
 
         // save document model
         $document_model = $file->saveDocumentModel($custom_value, $filename);
