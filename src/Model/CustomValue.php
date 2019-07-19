@@ -377,7 +377,7 @@ class CustomValue extends ModelBase
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            $notify->notifyCreateUpdateUser($this, $create);
+            $notify->notifyCreateUpdateUser($this, $notifySavedType);
         }
     }
 

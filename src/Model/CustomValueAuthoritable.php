@@ -93,11 +93,21 @@ class CustomValueAuthoritable extends ModelBase
      */
     public static function saveShareDialogForm($custom_value)
     {
+        $custom_table = $custom_value->custom_table;
+
         $request = request();
         // create form fields
-        $tableKey = $custom_value->custom_table->table_name;
+        $tableKey = $custom_table->table_name;
         $id = $custom_value->id;
         
+        // check permission
+        if (!$custom_table->hasPermissionEditData($id) || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => trans('admin.deny'),
+            ]);
+        }
+
         \DB::beginTransaction();
 
         try {
@@ -146,7 +156,7 @@ class CustomValueAuthoritable extends ModelBase
 
             // send notify
             $shares = collect($shares)->map(function($share){
-                return CustomTable::getEloquent($share['parent_type'])->getValueModel($share['parent_id']);
+                return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
             
             // share
@@ -154,7 +164,7 @@ class CustomValueAuthoritable extends ModelBase
 
             // loop for $notifies
             foreach ($notifies as $notify) {
-                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE);
+                $notify->notifySharedUser($custom_value, $shares);
             }
 
             return getAjaxResponse([

@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\NotifyNavbar;
@@ -285,7 +286,12 @@ class NotifyService
                     break;
 
                 case NotifyAction::SHOW_PAGE:
-                    $id = $user->id();
+                    if($user instanceof CustomValue){
+                        $id = $user->id;
+                    }elseif($user instanceof NotifyTarget){
+                        $id = $user->id();
+                    }
+
                     if(!isset($id)){
                         break;
                     }

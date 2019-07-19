@@ -116,7 +116,7 @@ class AuthUserOrgHelper
      * *key:custom_value
      * @return CustomValue users who can access custom_value.
      */
-    public static function getRoleUserQueryValue($custom_value)
+    public static function getRoleUserQueryValue($custom_value, $tablePermission = null)
     {
         // get custom_value's users
         $target_ids = [];
@@ -126,7 +126,7 @@ class AuthUserOrgHelper
         // if set $tablePermission, always call
         if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
             $target_ids = array_merge(
-                $custom_value->value_authoritable_users()->pluck('id')->toArray(),
+                $custom_value->value_authoritable_users()->pluck('authoritable_target_id')->toArray(),
                 []
             );
 
@@ -148,7 +148,7 @@ class AuthUserOrgHelper
 
             // get custom table's user ids
             $target_ids = array_merge(
-                static::getRoleUserQueryTable($custom_value->custom_table)->pluck('id')->toArray(),
+                static::getRoleUserQueryTable($custom_value->custom_table, $tablePermission)->pluck('id')->toArray(),
                 $target_ids
             );
 

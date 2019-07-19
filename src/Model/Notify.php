@@ -109,7 +109,7 @@ class Notify extends ModelBase
      */
     public function notifyCreateUpdateUser($custom_value, $notifySavedType)
     {
-        if (!$this->isNotifyTarget($custom_value, $notifySavedType)) {
+        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
             return;
         }
 
@@ -159,8 +159,16 @@ class Notify extends ModelBase
      * notify_create_update_user
      * *Contains Comment, share
      */
-    public function notifyShared($custom_value, $targetUserOrgs)
+    public function notifySharedUser($custom_value, $targetUserOrgs)
     {
+        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
+            return;
+        }
+
+        if(count($targetUserOrgs) == 0){
+            return;
+        }
+
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
         if(!isset($notify_saved_triggers) || !in_array(NotifySavedType::SHARE, $notify_saved_triggers)){
@@ -186,7 +194,7 @@ class Notify extends ModelBase
                 'user' => $user,
                 'notify' => $this,
                 'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => NotifySavedType::getEnum($notifySavedType)->getLabel(),
+                'create_or_update' => NotifySavedType::getEnum(NotifySavedType::SHARE)->getLabel(),
             ];
 
             // send mail

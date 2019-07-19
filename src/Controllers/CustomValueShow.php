@@ -177,7 +177,12 @@ trait CustomValueShow
                             $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
                         }
                     }
-                    $tools->append(new Tools\ShareButton($this->custom_table, $id));
+
+                    // check share permission.
+                    // ignore master table, and has permission
+                    if(!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
+                        $tools->append(new Tools\ShareButton($this->custom_table, $id));                        
+                    }
                 }
             });
         });
