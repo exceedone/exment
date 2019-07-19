@@ -355,6 +355,10 @@ class AuthUserOrgHelper
                 $target_ids = $target_ids->merge($role_group_user_organization->role_group_target_id);
             }
         }
+
+        // set system user
+        $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+
         return $target_ids->toArray();
     }
 }
