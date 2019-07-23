@@ -100,7 +100,14 @@ class NotifyController extends AdminControllerBase
             ->default(NotifyTrigger::TIME)
             ->required()
             ->config('allowClear', false)
-            ->attribute(['data-filtertrigger' =>true])
+            ->attribute([
+                'data-filtertrigger' =>true,
+                'data-changedata' => json_encode([
+                    'getitem' =>
+                        [  'uri' => admin_url('notify/notifytrigger_template')
+                        ]
+                ])
+            ])
             ->help(exmtrans("notify.help.notify_trigger"));
 
         $form->select('custom_table_id', exmtrans("notify.custom_table_id"))
@@ -286,5 +293,37 @@ class NotifyController extends AdminControllerBase
         } else {
             return collect($options)->pluck('text', 'id')->toArray();
         }
+    }
+    
+    public function getNotifyTriggerTemplate(Request $request)
+    {
+        $keyName = 'action_settings_mail_template_id';
+        $value = $request->input('value');
+
+        // get mail key enum
+        $enum = NotifyTrigger::getEnum($value);
+        if(!isset($enum)){
+            return [$keyName => null];
+        }
+
+        // get mailKeyName
+        $mailKeyName = $enum->getDefaultMailKeyName();
+        if(!isset($mailKeyName)){
+            return [$keyName => null];
+        }
+
+        // get mail template
+        $mail_template = CustomTable::getEloquent(SystemTableName::MAIL_TEMPLATE)
+            ->getValueModel()
+            ->where('value->mail_key_name', $mailKeyName)
+            ->first();
+    
+        if(!isset($mail_template)){
+            return [$keyName => null];
+        }
+
+        return [
+            $keyName => $mail_template->id
+        ];
     }
 }
