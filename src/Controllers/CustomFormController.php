@@ -101,6 +101,11 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function update(Request $request, $tableKey, $id)
     {
+        if (!$this->saveformValidate($request, $id)) {
+            admin_toastr(exmtrans('custom_form.message.no_exists_column'), 'error');
+            return back()->withInput();
+        }
+
         if ($this->saveform($request, $id)) {
             admin_toastr(trans('admin.save_succeeded'));
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
@@ -115,6 +120,11 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function store(Request $request)
     {
+        if (!$this->saveformValidate($request, $id)) {
+            admin_toastr(exmtrans('custom_form.message.no_exists_column'), 'error');
+            return back()->withInput();
+        }
+
         if ($this->saveform($request)) {
             admin_toastr(trans('admin.save_succeeded'));
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
@@ -444,6 +454,40 @@ class CustomFormController extends AdminControllerTableBase
             'clone' => true,
             'form_column_type' => FormColumnType::OTHER,
         ]);
+    }
+
+    /**
+     * validate before update or store
+     */
+    protected function saveformValidate($request, $id) {
+        $inputs = $request->input('custom_form_blocks');
+        foreach ($inputs as $key => $value) {
+            $columns = [];
+            if (!isset($value['form_block_target_table_id'])) {
+                continue;
+            }
+            // get column id for registration
+            if (is_array(array_get($value, 'custom_form_columns'))) {
+                foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
+                    if (!isset($column_value['form_column_type']) || $column_value['form_column_type'] != FormColumnType::COLUMN) {
+                        continue;
+                    }
+                    if (boolval(array_get($column_value, 'delete_flg'))) {
+                        continue;
+                    }
+                    if (isset($column_value['form_column_target_id'])) {
+                        $columns[] = array_get($column_value, 'form_column_target_id');
+                    }
+                }
+            }
+            $table_id = array_get($value, 'form_block_target_table_id');
+            // check if required column not for registration exist
+            if (CustomColumn::where('custom_table_id', $table_id)
+                    ->required()->whereNotIn('id', $columns)->exists()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
