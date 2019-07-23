@@ -70,7 +70,7 @@ trait CustomValueGrid
                 // if set, create select
                 if (isset($relation)) {
                     // get options and ajax url
-                    $options = $relation->parent_custom_table->getOptions();
+                    $options = $relation->parent_custom_table->getSelectOptions();
                     $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
                     if (isset($ajax)) {
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');

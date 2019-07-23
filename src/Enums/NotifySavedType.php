@@ -8,6 +8,7 @@ class NotifySavedType extends EnumBase
     const UPDATE = "updated";
     const SHARE = "shared";
     const COMMENT = "comment";
+    const ATTACHMENT = "attachmented";
 
     public function getLabel(){
         switch($this){
@@ -22,6 +23,9 @@ class NotifySavedType extends EnumBase
         
             case static::COMMENT;
                 return exmtrans('common.comment');
+                
+            case static::ATTACHMENT;
+                return exmtrans('common.attachmented');
         }
     }
 }

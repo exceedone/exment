@@ -136,7 +136,7 @@ class CustomViewController extends AdminControllerTableBase
             if (isset($custom_table)) {
                 $table_name = $custom_table->table_name;
             }
-            if (boolval($actions->row->system_flg)) {
+            if (boolval($actions->row->disabled_delete)) {
                 $actions->disableDelete();
             }
             if (intval($actions->row->view_kind_type) === Enums\ViewKindType::AGGREGATE ||
@@ -216,6 +216,10 @@ class CustomViewController extends AdminControllerTableBase
             $view_kind_type =  $request->query('view_kind_type');
         } elseif (isset($copy_custom_view)) {
             $view_kind_type =  array_get($copy_custom_view, 'view_kind_type');
+            // if all data, change default
+            if($view_kind_type == ViewKindType::ALLDATA){
+                $view_kind_type = ViewKindType::DEFAULT;
+            }
         } elseif (is_null($view_kind_type)) {
             $view_kind_type = ViewKindType::DEFAULT;
         }

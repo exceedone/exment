@@ -784,9 +784,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false, 
-        $showMessage_ifDeny = false, $filterCallback = null, $target_view = null)
+    public function getSelectOptions($options = [])
     {
+        extract(array_merge(
+            [
+                'selected_value' => null,
+                'display_table' => null,
+                'all' => false,
+                'showMessage_ifDeny' => null,
+                'filterCallback' => null,
+                'target_view' => null,
+                'permission' => null,
+            ]
+            , $options
+        ));
+
         if (is_null($display_table)) {
             $display_table = $this;
         }
@@ -808,9 +820,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
         } else {
             $query = $this->getOptionsQuery($target_view);
         }

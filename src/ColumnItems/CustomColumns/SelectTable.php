@@ -152,7 +152,12 @@ class SelectTable extends CustomItem
                 }
             }
             // get DB option value
-            return $this->target_table->getOptions($value, $this->custom_column->custom_table, null, null, $callback ?? null, $this->target_view);
+            return $this->target_table->getSelectOptions([
+                'selected_value' => $value,
+                'display_table' => $this->custom_column->custom_table,
+                'filterCallback' => $callback ?? null,
+                'target_view' => $this->target_view,
+            ]);
         });
         $ajax = $this->target_table->getOptionAjaxUrl();
         if (isset($ajax)) {
@@ -174,7 +179,7 @@ class SelectTable extends CustomItem
     protected function setAdminFilterOptions(&$filter)
     {
         if (isset($this->target_table)) {
-            $options = $this->target_table->getOptions();
+            $options = $this->target_table->getSelectOptions();
             $ajax = $this->target_table->getOptionAjaxUrl();
     
             if (isset($ajax)) {

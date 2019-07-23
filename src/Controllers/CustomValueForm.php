@@ -71,7 +71,10 @@ trait CustomValueForm
             if (!isset($id) && !isset($select_parent)) {
                 $select = $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getOptions($value, null, false, true);
+                    return $parent_custom_table->getSelectOptions([
+                        'selected_value' => $value,
+                        'showMessage_ifDeny' => true,
+                    ]);
                 });
                 $select->required();
 
@@ -145,7 +148,11 @@ trait CustomValueForm
                     );
                     $custom_table = $this->custom_table;
                     $field->options(function ($select) use ($custom_table, $target_table) {
-                        return $target_table->getOptions($select, $custom_table);
+                        return $target_table->getSelectOptions(
+                            [
+                                'selected_value' => $select,
+                                'display_table' => $custom_table,
+                            ]);
                     });
                     if (!$target_table->isGetOptions()) {
                         $field->ajax($target_table->getOptionAjaxUrl());

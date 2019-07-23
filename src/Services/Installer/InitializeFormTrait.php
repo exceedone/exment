@@ -111,7 +111,9 @@ trait InitializeFormTrait
                 ->help(exmtrans('system.help.system_admin_users'))
                 ->required()
                 ->options(function($option){
-                    return CustomTable::getEloquent(SystemTableName::USER)->getOptions($option);
+                    return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
+                        'selected_value' => $option,
+                    ]);
                 })->default(System::system_admin_users());
 
             // use mail setting

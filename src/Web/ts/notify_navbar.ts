@@ -1,6 +1,8 @@
 
 namespace Exment {
     export class NotifyNavbarEvent {
+        private static timeout_id;
+
         /**
          * Call only once. It's $(document).on event.
          */
@@ -16,12 +18,17 @@ namespace Exment {
          * toggle right-top help link and color
          */
         private static notifyNavbar(){
+            if(NotifyNavbarEvent.timeout_id !== null){
+                clearTimeout(NotifyNavbarEvent.timeout_id);
+                NotifyNavbarEvent.timeout_id = null;
+            }
+
             $.ajax({
                 url: admin_url(URLJoin('webapi', 'notifyPage')),
                 dataType: "json",
                 type: "GET",
                 success: function (data) {
-                    setTimeout(function(){
+                    NotifyNavbarEvent.timeout_id = setTimeout(function(){
                         NotifyNavbarEvent.notifyNavbar();
                     }, 60000);
 

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
 use Carbon\Carbon;
 
@@ -69,16 +70,15 @@ class CustomValueAuthoritable extends ModelBase
 
         $form->description(exmtrans('role_group.share_description'))->setWidth(9, 2);
 
-        $options = static::getUserOrgSelectOptions($custom_value->custom_table);
         // select target users
         $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
-            ->options($options)
+            ->options(static::getUserOrgSelectOptions($custom_value->custom_table, Permission::AVAILABLE_EDIT_CUSTOM_VALUE))
             ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT))
             ->help(exmtrans('role_group.role_type_option_value.custom_value_edit.help') . exmtrans('common.bootstrap_duallistbox_container.help'))
             ->setWidth(9, 2);
 
         $form->multipleSelect('custom_value_view', exmtrans('role_group.role_type_option_value.custom_value_view.label'))
-            ->options($options)
+            ->options(static::getUserOrgSelectOptions($custom_value->custom_table))
             ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_VIEW))
             ->help(exmtrans('role_group.role_type_option_value.custom_value_view.help') . exmtrans('common.bootstrap_duallistbox_container.help'))
             ->setWidth(9, 2);
@@ -93,11 +93,21 @@ class CustomValueAuthoritable extends ModelBase
      */
     public static function saveShareDialogForm($custom_value)
     {
+        $custom_table = $custom_value->custom_table;
+
         $request = request();
         // create form fields
-        $tableKey = $custom_value->custom_table->table_name;
+        $tableKey = $custom_table->table_name;
         $id = $custom_value->id;
         
+        // check permission
+        if (!$custom_table->hasPermissionEditData($id) || !$custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => trans('admin.deny'),
+            ]);
+        }
+
         \DB::beginTransaction();
 
         try {
@@ -129,7 +139,7 @@ class CustomValueAuthoritable extends ModelBase
                         ->where('parent_id', $custom_value->id)
                         ->where('authoritable_type', $item['name']);
                     },
-                    'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item){
+                    'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item, $custom_value){
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                             ->where('parent_id', $custom_value->id)
                             ->where('authoritable_type', $item['name'])
@@ -146,10 +156,13 @@ class CustomValueAuthoritable extends ModelBase
 
             // send notify
             $shares = collect($shares)->map(function($share){
-                return CustomTable::getEloquent($share['parent_type'])->getValueModel($share['parent_id']);
+                return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
-            //TODO:changed
-            $custom_value->notifyShared($custom_value, $shares);
+            
+            // loop for $notifies
+            foreach ($custom_value->custom_table->notifies as $notify) {
+                $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::SHARE, ['targetUserOrgs' => $shares]);
+            }
 
             return getAjaxResponse([
                 'result'  => true,
@@ -168,10 +181,20 @@ class CustomValueAuthoritable extends ModelBase
      * @param [type] $custom_table
      * @return void
      */
-    public static function getUserOrgSelectOptions($custom_table){
+    public static function getUserOrgSelectOptions($custom_table, $permission = null){
         // get options
-        $users = CustomTable::getEloquent(SystemTableName::USER)->getOptions(null, $custom_table);
-        $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getOptions(null, $custom_table);
+        $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
+            [
+                'display_table' => $custom_table,
+                'permission' => $permission,
+            ]
+        );
+        $organizations = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions(
+            [
+                'display_table' => $custom_table,
+                'permission' => $permission,
+            ]
+        );
         
         // get mapkey
         $users = $users->mapWithKeys(function($item, $key){

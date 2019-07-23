@@ -173,11 +173,16 @@ trait CustomValueShow
                         $tools->append($b->toHtml());
                     }
                     foreach ($notifies as $notify) {
-                        if ($custom_value->isNotifyTarget($notify, NotifyTrigger::BUTTON)) {
+                        if ($notify->isNotifyTarget($custom_value, NotifyTrigger::BUTTON)) {
                             $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
                         }
                     }
-                    $tools->append(new Tools\ShareButton($this->custom_table, $id));
+
+                    // check share permission.
+                    // ignore master table, and has permission
+                    if(!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
+                        $tools->append(new Tools\ShareButton($this->custom_table, $id));                        
+                    }
                 }
             });
         });

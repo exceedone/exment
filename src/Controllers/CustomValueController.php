@@ -240,7 +240,9 @@ class CustomValueController extends AdminControllerTableBase
             // execute notify
             $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
             if (isset($custom_value)) {
-                $custom_value->notify(NotifySavedType::COMMENT);
+                foreach($custom_value->custom_table->notifies as $notify){
+                    $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
+                }
             }
         }
 
@@ -265,10 +267,15 @@ class CustomValueController extends AdminControllerTableBase
         // $file = ExmentFile::store($httpfile, config('admin.upload.disk'), $this->custom_table->table_name, $uniqueFileName);
         $custom_value = $this->getModelNameDV()::find($id);
         $file = ExmentFile::storeAs($httpfile, $this->custom_table->table_name, $filename)
-            ->saveCustomValue($custom_value);
+            ->saveCustomValue($custom_value->id, null, $this->custom_table);
 
         // save document model
         $document_model = $file->saveDocumentModel($custom_value, $filename);
+        
+        // loop for $notifies
+        foreach ($custom_value->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
+        }
         
         return getAjaxResponse([
             'result'  => true,

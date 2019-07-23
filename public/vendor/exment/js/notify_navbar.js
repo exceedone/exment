@@ -16,12 +16,16 @@ var Exment;
          * toggle right-top help link and color
          */
         NotifyNavbarEvent.notifyNavbar = function () {
+            if (NotifyNavbarEvent.timeout_id !== null) {
+                clearTimeout(NotifyNavbarEvent.timeout_id);
+                NotifyNavbarEvent.timeout_id = null;
+            }
             $.ajax({
                 url: admin_url(URLJoin('webapi', 'notifyPage')),
                 dataType: "json",
                 type: "GET",
                 success: function (data) {
-                    setTimeout(function () {
+                    NotifyNavbarEvent.timeout_id = setTimeout(function () {
                         NotifyNavbarEvent.notifyNavbar();
                     }, 60000);
                     $('.navbar-notify ul.menu').empty();

@@ -779,36 +779,6 @@ if (!function_exists('getCurrencySymbolLabel')) {
     }
 }
 
-if (!function_exists('getRoleUser')) {
-    /**
-     * get users who has roles.
-     */
-    function getRoleUser($target_table, $related_type)
-    {
-        if (is_null($target_table)) {
-            return [];
-        }
-        $target_table = CustomTable::getEloquent($target_table);
-
-        // get user or organiztion ids
-        $target_ids = DB::table('roles as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
-            ->whereIn('related_type', $related_type)
-            ->where(function ($query) use ($target_table) {
-                $query->orWhere(function ($query) {
-                    $query->where('morph_type', RoleType::SYSTEM()->lowerKey());
-                });
-                $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', RoleType::TABLE()->lowerKey())
-                    ->where('morph_id', $target_table->id);
-                });
-            })->get(['related_id'])->pluck('related_id');
-        
-        // return target values
-        return getModelName($related_type)::whereIn('id', $target_ids);
-    }
-}
-
 if (!function_exists('replaceTextFromFormat')) {
     /**
      * Replace value from format. ex. ${value:user_name} to user_name's value

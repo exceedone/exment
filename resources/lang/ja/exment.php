@@ -23,6 +23,7 @@ return [
         'created' => '新規作成',
         'updated' => '更新', 
         'shared' => '共有', 
+        'attachmented' => 'ファイル添付', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
@@ -868,7 +869,7 @@ return [
         ],
 
         'role_group_system' => [
-            'system' => 'システム権限',
+            'system' => 'システム全体',
             'role_group' => '役割グループ',
         ],
 
@@ -881,12 +882,12 @@ return [
             'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
         ],
         'role_type_option_role_group' => [
-            'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。'],
+            'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。<br/>グループの追加・変更・削除、グループの権限設定変更、ユーザー・組織の設定変更ができます。'],
             'role_group_permission' => ['label' => '権限設定変更', 'help' => '役割グループの権限の設定を変更できます。'],
             'role_group_user_organization' => ['label' => 'ユーザー・組織管理', 'help' => '役割グループに登録する、ユーザー・組織の設定を変更できます。'],
         ],
         'role_type_option_master' => [
-            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、マスターデータを追加・編集・削除できます。'],
+            'custom_table' => ['label' => 'マスター管理', 'help' => 'マスターの定義を変更できます。また、マスターデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
             'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
@@ -902,6 +903,7 @@ return [
             'custom_value_edit' => ['label' => '担当データの編集', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを追加・編集・削除できます。'],
             'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
             'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_value_share' => ['label' => 'データの共有', 'help' => 'データを、他のユーザーに共有することができます。<br />※そのデータに対する編集権限が必要です。'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
@@ -1107,7 +1109,7 @@ return [
         'notify_subject' => '通知件名',
         'notify_body' => '通知本文',
         'target_custom_value' => '対象データ',
-        'data_refer' => 'この通知に紐づくデータを表示します。',
+        'data_refer' => 'この通知に紐づくデータを表示',
         'all_check' => '一括既読',
         'read_flg_options' => [
             '0' => '未読',

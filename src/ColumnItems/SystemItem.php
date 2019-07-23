@@ -223,7 +223,12 @@ class SystemItem implements ItemInterface
                 $field->options(function ($value) {
                     // get DB option value
                     return CustomTable::getEloquent(SystemTableName::USER)
-                        ->getOptions($value, SystemTableName::USER);
+                        ->getSelectOptions(
+                            [
+                                'selected_value' => $value,
+                                'display_table' => SystemTableName::USER,
+                            ]
+                        );
                 });
                 $field->default($this->value);
                 break;

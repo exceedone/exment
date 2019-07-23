@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * get and set notify target
@@ -201,7 +202,7 @@ class NotifyTarget
      */
     protected static function getModelsAsRole($custom_value)
     {
-        $users = AuthUserOrgHelper::getAllRoleUserQuery($custom_value)->get();
+        $users = AuthUserOrgHelper::getRoleUserQueryValue($custom_value, [Permission::CUSTOM_VALUE_EDIT_ALL, Permission::CUSTOM_VALUE_VIEW_ALL])->get();
 
         // get 'email' custom column
         $email_column = CustomColumn::getEloquent('email', SystemTableName::USER);
