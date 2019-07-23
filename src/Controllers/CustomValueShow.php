@@ -32,7 +32,7 @@ trait CustomValueShow
     protected function createShowForm($id = null, $modal = false)
     {
         //Plugin::pluginPreparing($this->plugins, 'loading');
-        return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+        return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
             // add parent link if this form is 1:n relation
@@ -156,7 +156,9 @@ trait CustomValueShow
                     ]));
                 }
 
-                if (!$modal) {
+                if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+                    $tools->disableList();
+                } else if (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 

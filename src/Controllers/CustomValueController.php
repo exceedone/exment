@@ -65,9 +65,15 @@ class CustomValueController extends AdminControllerTableBase
         if ($one_record_flg) {
             // get record list
             $record = $this->getModelNameDV()::first();
+            $id = isset($record)? $record->id: null;
+
+            // if no edit permission show readonly form
+            if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+                return $this->show($request, $content, $this->custom_table->table_name, $id);
+            }
+
             // has record, execute
             if (isset($record)) {
-                $id = $record->id;
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
                 $content->body($form);

@@ -3790,3 +3790,7 @@ fieldset[disabled] .btn.btn-purple.active {
 #tile-template .row-eq-height > [class^="col-"] {
   margin-bottom: 10px;
 }
+
+.icheckbox_minimal-blue.checked.disabled {
+  background-color: gray;
+}
