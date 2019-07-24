@@ -180,7 +180,8 @@ trait CustomValueGrid
     public function import(Request $request)
     {
         $service = $this->getImportExportService()
-            ->format($request->file('custom_table_file'));
+            ->format($request->file('custom_table_file'))
+            ->filebasename($this->custom_table->table_name);
         $result = $service->import($request);
 
         return getAjaxResponse($result);
