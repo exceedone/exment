@@ -48,4 +48,20 @@ trait UserTrait
         })->get();
     }
 
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        // only administrator can delete and edit administrator record
+        if (!\Exment::user()->isAdministrator() && $this->login_user()->first()->isAdministrator()) {
+            return true;
+        }
+        // cannnot delete myself
+        if (\Exment::user()->base_user_id == $this->id) {
+            return true;
+        }
+    }
 }

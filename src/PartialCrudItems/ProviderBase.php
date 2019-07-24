@@ -22,9 +22,30 @@ abstract class ProviderBase
     }
 
     /**
+     * set laravel admin row action
+     */
+    public function setGridRowAction(&$actions)
+    {
+    }
+
+    /**
      * set laravel admin form's option
      */
     public function setAdminFormOptions(&$form, $id = null)
+    {
+    }
+
+    /**
+     * set laravel admin form's tool
+     */
+    public function setAdminFormTools(&$tools, $id = null)
+    {
+    }
+
+    /**
+     * set laravel admin show form's tool
+     */
+    public function setAdminShowTools(&$tools, $id = null)
     {
     }
 

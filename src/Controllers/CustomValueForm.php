@@ -387,6 +387,8 @@ EOT;
                     $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
                 }
             }
+
+            PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             
             $tools->add((new Tools\GridChangePageMenu('data', $custom_table, false))->render());
         });

@@ -22,6 +22,11 @@ trait HasPermissions
     use Authenticatable;
     use CanResetPassword;
 
+    public function isAdministrator()
+    {
+        return collect(System::system_admin_users())->contains($this->base_user_id);
+    }
+
     /**
      * whethere has permission, permission level
      * $role_key * if set array, check whether either items.

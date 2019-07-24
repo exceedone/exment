@@ -166,6 +166,45 @@ class LoginUserItem extends ProviderBase
             throw $ex;
         }
     }
+
+    /**
+     * set user grid's actions
+     */
+    public function setGridRowAction(&$actions)
+    {
+        $this->setEditDelete($actions, $actions->getKey());
+    }
+
+    /**
+     * set user form's tools
+     */
+    public function setAdminFormTools(&$tools, $id = null)
+    {
+        $this->setEditDelete($tools, $id);
+    }
+
+    /**
+     * set user show form's tool
+     */
+    public function setAdminShowTools(&$tools, $id = null)
+    {
+        $this->setEditDelete($tools, $id);
+    }
+
+    protected function setEditDelete($tools, $id) {
+        $classname = getModelName(SystemTableName::USER);
+        $login_user = $this->getLoginUser($classname::find($id));
+
+        // only administrator can delete and edit administrator record
+        if (!\Exment::user()->isAdministrator() && $login_user->isAdministrator()) {
+            $tools->disableDelete();
+            $tools->disableEdit();
+        }
+        // cannnot delete myself
+        if (\Exment::user()->base_user_id == $login_user->base_user_id) {
+            $tools->disableDelete();
+        }
+    }
     
     protected function getLoginUser($user)
     {

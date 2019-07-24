@@ -30,7 +30,6 @@ class Permission extends EnumBase
     public const AVAILABLE_ACCESS_ROLE_GROUP = [self::ROLE_GROUP_ALL, self::ROLE_GROUP_PERMISSION, self::ROLE_GROUP_USER_ORGANIZATION];
 
     public const SYSTEM_ROLE_PERMISSIONS = [
-        self::SYSTEM,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::LOGIN_USER,
     ];
