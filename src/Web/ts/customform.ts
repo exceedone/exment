@@ -69,6 +69,11 @@ namespace Exment {
                                 type: 'hidden',
                             }));
                             ui.helper.append($('<input/>', {
+                                name: header_name + '[required]',
+                                value: ui.helper.find('.required').val(),
+                                type: 'hidden',
+                            }));
+                            ui.helper.append($('<input/>', {
                                 name: header_name + '[column_no]',
                                 value: ui.helper.closest('[data-form_column_no]').data('form_column_no'),
                                 'class': 'column_no',

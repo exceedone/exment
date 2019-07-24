@@ -1,7 +1,9 @@
 @if(!isset($template_item) && (isset($custom_form_column['has_custom_forms']) && boolval($custom_form_column['has_custom_forms'])))
 
 @else
-<li class="ui-state-default custom_form_column_item draggable" id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
+<li class="ui-state-default custom_form_column_item draggable"
+    style="{{boolval(array_get($custom_form_column, 'delete_flg')) ? 'display:none' : ''}}"
+    id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" data-header_column_name="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}">
         <span class="item-label {{array_get($custom_form_column, 'required') ? 'asterisk' : ''}}">{{ $custom_form_column['column_view_name'] }}</span>
 
         <a href="javascript:void(0);" class="delete" style="display:{{!boolval($suggest) ? 'inline-block' : 'none'}};">
@@ -77,11 +79,17 @@
         {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[form_column_target_id]", $custom_form_column['form_column_target_id']) }}
         {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[form_column_type]", $custom_form_column['form_column_type']) }}
         {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[column_no]", $custom_form_column['column_no'], ['class' => 'column_no']) }}
+        {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[required]", $custom_form_column['required'], ['class' => 'required']) }}
+        @endif
+
+        @if(boolval(array_get($custom_form_column, 'delete_flg')))
+        {{ Form::hidden("{$custom_form_block['header_name']}{$custom_form_column['header_column_name']}[delete_flg]", $custom_form_column['delete_flg']) }}
         @endif
 
         {{-- set value for script, and set disabled(don't post. only use script) --}}
         {{ Form::hidden("", $custom_form_column['form_column_type'], ['class' => 'form_column_type', 'disabled' => 'disabled']) }}
         {{ Form::hidden("", $custom_form_column['form_column_target_id'], ['class' => 'form_column_target_id', 'disabled' => 'disabled']) }}
         {{ Form::hidden("", $custom_form_column['header_column_name'], ['class' => 'header_column_name', 'disabled' => 'disabled']) }}
+        {{ Form::hidden("", $custom_form_column['required'], ['class' => 'header_column_name', 'disabled' => 'disabled']) }}
     </li>    
 @endif
