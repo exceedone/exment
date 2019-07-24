@@ -328,14 +328,21 @@ class AuthUserOrgHelper
         $target_ids = collect();
         foreach($roleGroups as $roleGroup){
             // check permission
-            if(!$roleGroup->role_group_permissions->first(function($role_group_permission) use($tablePermission){
+            if(!$roleGroup->role_group_permissions->contains(function($role_group_permission) use($target_table, $tablePermission){
                 // check as system
                 if($role_group_permission->role_group_permission_type == RoleType::SYSTEM){
-                    $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE];
+                    $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EDIT_ALL];
+                }
+                // check as table
+                else{
+                    // not match table, return false
+                    if($target_table->id != $role_group_permission->role_group_target_id){
+                        return false;
+                    }
                 }
 
                 // check as table
-                elseif(!isset($tablePermission)){
+                if(!isset($tablePermission)){
                     $tablePermission = Permission::AVAILABLE_ACCESS_CUSTOM_VALUE;
                 }
                 

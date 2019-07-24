@@ -146,6 +146,11 @@ class Notify extends ModelBase
                     $users[] = $targetUserOrg;
                 }
             }
+
+            // convert as NotifyTarget
+            $users = collect($users)->map(function($user){
+                return NotifyTarget::getModelAsUser($user);
+            })->toArray();
         }
         
         foreach ($users as $user) {

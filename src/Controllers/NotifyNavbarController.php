@@ -139,6 +139,10 @@ class NotifyNavbarController extends AdminControllerBase
 
         $custom_value = getModelName($model->parent_type)::find($model->parent_id);
 
+        if(!isset($custom_value)){
+            return back();
+        }
+
         // redirect custom value page
         return redirect($custom_value->getUrl());
     }
