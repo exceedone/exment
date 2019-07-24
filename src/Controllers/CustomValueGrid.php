@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
 
@@ -170,6 +171,8 @@ trait CustomValueGrid
                     $actions->disableEdit();
                     $actions->disableDelete();
                 }
+
+                PartialCrudService::setGridRowAction($custom_table, $actions);
             });
         }
     }

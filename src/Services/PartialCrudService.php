@@ -32,9 +32,27 @@ class PartialCrudService
         });
     }
 
+    public static function setAdminFormTools($custom_table, &$tools, $id = null){
+        static::getItem($custom_table, function($item) use(&$tools, $id){
+            $item->setAdminFormTools($tools, $id);
+        });
+    }
+
+    public static function setAdminShowTools($custom_table, &$tools, $id = null){
+        static::getItem($custom_table, function($item) use(&$tools, $id){
+            $item->setAdminShowTools($tools, $id);
+        });
+    }
+
     public static function setGridContent($custom_table, &$form, $id = null){
         static::getItem($custom_table, function($item) use(&$form, $id){
             $item->setGridContent($form, $id);
+        });
+    }
+
+    public static function setGridRowAction($custom_table, &$actions){
+        static::getItem($custom_table, function($item) use(&$actions){
+            $item->setGridRowAction($actions);
         });
     }
 
