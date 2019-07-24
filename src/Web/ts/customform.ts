@@ -12,6 +12,7 @@ namespace Exment {
             $(document).off('click', '#changedata-button-reset').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
 
             CustomFromEvent.addDragEvent();
+            CustomFromEvent.addCollapseEvent();
             CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.ignoreSuggests);
         }
@@ -54,7 +55,7 @@ namespace Exment {
                         var $ul = ui.helper.closest('.draggables');
                         // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
                         if ($ul.hasClass('custom_form_column_items')) {
-                            ui.helper.find('.delete,.options').show();
+                            ui.helper.find('.delete,.options,[data-toggle]').show();
                             // add hidden form
                             var header_name = CustomFromEvent.getHeaderName(ui.helper);
                             ui.helper.append($('<input/>', {
@@ -68,6 +69,11 @@ namespace Exment {
                                 type: 'hidden',
                             }));
                             ui.helper.append($('<input/>', {
+                                name: header_name + '[required]',
+                                value: ui.helper.find('.required').val(),
+                                type: 'hidden',
+                            }));
+                            ui.helper.append($('<input/>', {
                                 name: header_name + '[column_no]',
                                 value: ui.helper.closest('[data-form_column_no]').data('form_column_no'),
                                 'class': 'column_no',
@@ -77,7 +83,7 @@ namespace Exment {
                             // add icheck event
                             CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
                         } else {
-                            ui.helper.find('.delete,.options').hide();
+                            ui.helper.find('.delete,.options,[data-toggle]').hide();
                         }
                     }
                 });
@@ -94,6 +100,18 @@ namespace Exment {
                         CustomFromEvent.setDragItemEvent($(elem2));
                     });
                 });
+        }
+
+        private static addCollapseEvent($elem: JQuery<Element>= null) {
+            $('.panel-collapse').off('show.bs.collapse').on('show.bs.collapse', function () {
+                CustomFromEvent.appendIcheckEvent($(this));
+                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-up').removeClass('fa-chevron-down');
+            });
+        
+            $('.panel-collapse').off('hide.bs.collapse').on('hide.bs.collapse', function () {
+                $(this).siblings('.panel-heading').removeClass('active');
+                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-down').removeClass('fa-chevron-up');
+            });
         }
 
         private static setDragItemEvent($elem, initialize = true){
@@ -125,7 +143,7 @@ namespace Exment {
 
         private static toggleFormColumnItem($elem: JQuery, isShow = true) {
             if(isShow){
-                $elem.find('.delete,.options').show();
+                $elem.find('.delete,.options,[data-toggle]').show();
                 // add hidden form
                 var header_name = CustomFromEvent.getHeaderName($elem);
                 $elem.append($('<input/>', {
@@ -141,7 +159,7 @@ namespace Exment {
                 // add icheck event
                 CustomFromEvent.appendIcheckEvent($elem.find('.icheck'));
             }else{
-                $elem.find('.delete,.options').hide();
+                $elem.find('.delete,.options,[data-toggle]').hide();
             }
 
             $('.custom_form_column_suggests.draggables').each(function(index:number, elem:Element){
@@ -166,6 +184,8 @@ namespace Exment {
             $(".custom_form_column_items.draggables").sortable({});
         }
         private static toggleFromBlock = (ev) => {
+            ev.preventDefault();
+            
             var available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
             var $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
             if (available) {
@@ -176,6 +196,8 @@ namespace Exment {
         }
 
         private static deleteColumn = (ev) => {
+            ev.preventDefault();
+
             var item = $(ev.target).closest('.custom_form_column_item');
             if(item.hasClass('deleting')){
                 return;
