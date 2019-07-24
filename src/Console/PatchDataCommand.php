@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Services\DataImportExport;
 use Carbon\Carbon;
 
@@ -73,6 +74,9 @@ class PatchDataCommand extends Command
                 return;
             case 'role_group':
                 $this->roleToRoleGroup();
+                return;
+            case 'notify_saved':
+                $this->updateSavedTemplate();
                 return;
         }
 
@@ -181,27 +185,21 @@ class PatchDataCommand extends Command
      */
     protected function import2factorTemplate()
     {
-        // get vendor folder
-        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
-        $path = "$templates_data_path/mail_template.xlsx";
-
-        $table_name = \File::name($path);
-        $format = \File::extension($path);
-        $custom_table = CustomTable::getEloquent($table_name);
-
-        // execute import
-        $service = (new DataImportExport\DataImportExportService())
-            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
-                'custom_table' => $custom_table,
-                'filter' => ['value.mail_key_name' => [
-                    'verify_2factor',
-                    'verify_2factor_google',
-                    'verify_2factor_system',
-                ]],
-                'primary_key' => 'value.mail_key_name',
-            ]))
-            ->format($format);
-        $service->import($path);
+        return $this->patchMailTemplate([
+            'verify_2factor',
+            'verify_2factor_google',
+            'verify_2factor_system',
+        ]);
+    }
+    
+    /**
+     * update mail template for 2factor
+     *
+     * @return void
+     */
+    protected function updateSavedTemplate()
+    {
+        return $this->patchMailTemplate([MailKeyName::DATA_SAVED_NOTIFY]);
     }
     
     /**
@@ -245,8 +243,10 @@ class PatchDataCommand extends Command
     protected function roleToRoleGroup(){
         $this->patchSystemAuthoritable();
         $this->patchValueAuthoritable();
-        $this->removeRoleMenu();
+        $this->updateRoleMenu();
     }
+
+
 
     protected function patchSystemAuthoritable(){
         if(!\Schema::hasTable('system_authoritable')){
@@ -334,11 +334,42 @@ class PatchDataCommand extends Command
             ->insert($custom_value_authoritables);
     }
 
-    protected function removeRoleMenu(){
+    protected function updateRoleMenu(){
         // remove "role" menu
         \DB::table('admin_menu')
             ->where('menu_type', 'system')
             ->where('menu_target', 'role')
-            ->delete();
+            ->update([
+                'uri' => 'role_group',
+                'menu_name' => 'role_group',
+                'menu_target' => 'role_group',
+            ]);
+    }
+
+    
+    /**
+     * patch mail template
+     *
+     * @return void
+     */
+    protected function patchMailTemplate($mail_key_names = [])
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $path = "$templates_data_path/mail_template.xlsx";
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => $mail_key_names],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
     }
 }

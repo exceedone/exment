@@ -109,8 +109,9 @@ class SupportForV20 extends Migration
             });
         }
 
-        // patch role group
+        // patch role group and mail template
         \Artisan::call('exment:patchdata', ['action' => 'role_group']);
+        \Artisan::call('exment:patchdata', ['action' => 'notify_saved']);
 
         // remove unused role
         Schema::dropIfExists('roles');
