@@ -248,14 +248,6 @@ class Define
             'uri' => 'role_group',
             'icon' => 'fa-user-secret',
         ],
-        'user' => [
-            'uri' => 'data/user',
-            'icon' => 'fa-users',
-        ],
-        'organization' => [
-            'uri' => 'data/organization',
-            'icon' => 'fa-building',
-        ],
         'menu' => [
             'uri' => 'auth/menu',
             'icon' => 'fa-sitemap',
@@ -279,10 +271,6 @@ class Define
         'loginuser' => [
             'uri' => 'loginuser',
             'icon' => 'fa-user-plus',
-        ],
-        'mail' => [
-            'uri' => 'mail',
-            'icon' => 'fa-envelope',
         ],
     ];
 

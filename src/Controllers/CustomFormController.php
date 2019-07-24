@@ -375,7 +375,6 @@ class CustomFormController extends AdminControllerTableBase
         }
 
         $custom_form_columns = $req_custom_form_blocks[$custom_form_block['id']]['custom_form_columns'];
-        // remove delete_flg is true
         return collect($custom_form_columns)->map(function($custom_form_column, $id){
             $custom_form_column['id'] = $id;
             return collect($custom_form_column);
@@ -419,7 +418,7 @@ class CustomFormController extends AdminControllerTableBase
                         if(boolval(array_get($custom_form_column, 'delete_flg'))){
                             return false;
                         }
-                        return array_get($custom_form_column, 'form_column_type') == FormColumnType::COLUMN && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
+                        return array_get($custom_form_column, 'form_column_type') == $form_column_type && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
                     })) {
                         $has_custom_forms = true;
                     }
