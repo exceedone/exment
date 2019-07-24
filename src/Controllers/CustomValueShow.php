@@ -20,6 +20,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 
 /**
  * CustomValueShow
@@ -183,6 +184,8 @@ trait CustomValueShow
                     if(!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
                         $tools->append(new Tools\ShareButton($this->custom_table, $id));                        
                     }
+
+                    PartialCrudService::setAdminShowTools($this->custom_table, $tools, $id);
                 }
             });
         });
