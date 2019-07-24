@@ -195,6 +195,10 @@ class LoginUserItem extends ProviderBase
         $classname = getModelName(SystemTableName::USER);
         $login_user = $this->getLoginUser($classname::find($id));
 
+        if(!isset($login_user)){
+            return;
+        }
+
         // only administrator can delete and edit administrator record
         if (!\Exment::user()->isAdministrator() && $login_user->isAdministrator()) {
             $tools->disableDelete();
