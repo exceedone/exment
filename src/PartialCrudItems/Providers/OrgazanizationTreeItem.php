@@ -3,14 +3,11 @@
 namespace Exceedone\Exment\PartialCrudItems\Providers;
 
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Enums\SystemTableName;
 use Encore\Admin\Tree;
-use Encore\Admin\Widgets\Box;
 
 /**
- * OrgazanizationTreeItem 
+ * OrgazanizationTreeItem
  */
 class OrgazanizationTreeItem extends ProviderBase
 {

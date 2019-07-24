@@ -159,7 +159,7 @@ trait CustomValueShow
 
                 if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
                     $tools->disableList();
-                } else if (!$modal) {
+                } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
@@ -183,8 +183,8 @@ trait CustomValueShow
 
                     // check share permission.
                     // ignore master table, and has permission
-                    if(!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
-                        $tools->append(new Tools\ShareButton($this->custom_table, $id));                        
+                    if (!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+                        $tools->append(new Tools\ShareButton($this->custom_table, $id));
                     }
 
                     PartialCrudService::setAdminShowTools($this->custom_table, $tools, $id);

@@ -4,11 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Model\File as ExmentFile;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Carbon\Carbon;
 use Storage;
-use DB;
 
 class System extends ModelBase
 {

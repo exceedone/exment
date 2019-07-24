@@ -246,7 +246,7 @@ class CustomValueController extends AdminControllerTableBase
             // execute notify
             $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
             if (isset($custom_value)) {
-                foreach($custom_value->custom_table->notifies as $notify){
+                foreach ($custom_value->custom_table->notifies as $notify) {
                     $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
                 }
             }

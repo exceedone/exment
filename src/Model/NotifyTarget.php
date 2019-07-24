@@ -194,7 +194,8 @@ class NotifyTarget
         return $notifyTarget;
     }
 
-    public static function getModelAsUser($target_value, $email_column = null, $custom_column = null){
+    public static function getModelAsUser($target_value, $email_column = null, $custom_column = null)
+    {
         return static::getModelAsSelectTable($target_value, $email_column, $custom_column);
     }
     

@@ -11,7 +11,8 @@ trait BuilderTrait
      *
      * @return void
      */
-    public function insertDelete($table, $values, $settings = []){
+    public function insertDelete($table, $values, $settings = [])
+    {
         $settings = array_merge(
             [
                 'dbValueFilter' => null,
@@ -25,7 +26,7 @@ trait BuilderTrait
         // get DB values
         $dbValueQuery = \DB::table($table);
 
-        if($dbValueFilter){
+        if ($dbValueFilter) {
             $dbValueFilter($dbValueQuery);
         }
 
@@ -51,7 +52,7 @@ trait BuilderTrait
                 return $matchFilter($dbValue, $value);
             })) {
                 $dbDeleteQuery = \DB::table($table);
-                if($dbDeleteFilter){
+                if ($dbDeleteFilter) {
                     $dbDeleteFilter($dbDeleteQuery, $dbValue);
                 }
                 $dbDeleteQuery->delete();

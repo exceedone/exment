@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;

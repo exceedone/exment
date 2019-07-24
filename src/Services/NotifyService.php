@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
-use Exceedone\Exment\Services\MailSender;
 
 /**
  * Notify dialog, send mail etc.
@@ -250,23 +249,23 @@ class NotifyService
                     'subject' => null,
                     'body' => null,
                     'attach_files' => null,
-                ]
-                , $params
+                ],
+                $params
             )
         );
 
         // get template
-        if(!isset($mail_template)){
+        if (!isset($mail_template)) {
             $mail_template = array_get($notify->action_settings, 'mail_template_id');
         }
-        if(is_numeric($mail_template)){
+        if (is_numeric($mail_template)) {
             $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
         }
 
-        // get notify actions 
+        // get notify actions
         $notify_actions = $notify->notify_actions;
-        foreach($notify_actions as $notify_action){
-            switch($notify_action){
+        foreach ($notify_actions as $notify_action) {
+            switch ($notify_action) {
                 case NotifyAction::EMAIL:
                     // send mail
                     try {
@@ -286,13 +285,13 @@ class NotifyService
                     break;
 
                 case NotifyAction::SHOW_PAGE:
-                    if($user instanceof CustomValue){
+                    if ($user instanceof CustomValue) {
                         $id = $user->id;
-                    }elseif($user instanceof NotifyTarget){
+                    } elseif ($user instanceof NotifyTarget) {
                         $id = $user->id();
                     }
 
-                    if(!isset($id)){
+                    if (!isset($id)) {
                         break;
                     }
 
@@ -322,8 +321,6 @@ class NotifyService
                     break;
             }
         }
-
-        
     }
 
     /**
@@ -358,7 +355,7 @@ class NotifyService
     public static function replaceWord($target, $custom_value = null, $prms = null)
     {
         $target = replaceTextFromFormat($target, $custom_value, [
-            'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) use($prms) {
+            'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) use ($prms) {
                 // if has prms using $match, return value
                 $matchKey = str_replace(":", ".", $matchKey);
                 if (isset($prms) && array_has($prms, $matchKey)) {
@@ -370,5 +367,4 @@ class NotifyService
 
         return $target;
     }
-    
 }

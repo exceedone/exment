@@ -12,15 +12,10 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Services\PartialCrudService;
 
 trait CustomValueForm
@@ -152,7 +147,8 @@ trait CustomValueForm
                             [
                                 'selected_value' => $select,
                                 'display_table' => $custom_table,
-                            ]);
+                            ]
+                        );
                     });
                     if (!$target_table->isGetOptions()) {
                         $field->ajax($target_table->getOptionAjaxUrl());
@@ -324,12 +320,12 @@ EOT;
     protected function manageFormSaving($form, $id = null)
     {
         // before saving
-        $form->saving(function ($form) use($id) {
+        $form->saving(function ($form) use ($id) {
             Plugin::pluginPreparing($this->plugins, 'saving');
 
             $result = PartialCrudService::saving($this->custom_table, $form, $id);
-            if($result instanceof Response){
-                return $result; 
+            if ($result instanceof Response) {
+                return $result;
             }
         });
     }

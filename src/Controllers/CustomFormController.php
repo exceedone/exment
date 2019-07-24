@@ -364,18 +364,19 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return void
      */
-    protected function getFormColumns($custom_form_block){
+    protected function getFormColumns($custom_form_block)
+    {
         // get custom_form_blocks from request
         $req_custom_form_blocks = old('custom_form_blocks');
-        if(!isset($req_custom_form_blocks)
+        if (!isset($req_custom_form_blocks)
             || !isset($req_custom_form_blocks[$custom_form_block['id']])
             || !isset($req_custom_form_blocks[$custom_form_block['id']]['custom_form_columns'])
-        ){
+        ) {
             return $custom_form_block->custom_form_columns;
         }
 
         $custom_form_columns = $req_custom_form_blocks[$custom_form_block['id']]['custom_form_columns'];
-        return collect($custom_form_columns)->map(function($custom_form_column, $id){
+        return collect($custom_form_columns)->map(function ($custom_form_column, $id) {
             $custom_form_column['id'] = $id;
             return collect($custom_form_column);
         });
@@ -415,7 +416,7 @@ class CustomFormController extends AdminControllerTableBase
                     // check $custom_form_block->custom_form_columns. if $custom_column has $this->custom_form_columns, add parameter has_custom_forms.
                     // if has_custom_forms is true, not show display default.
                     if (collect(array_get($custom_form_block, 'custom_form_columns', []))->first(function ($custom_form_column) use ($custom_column, $form_column_type) {
-                        if(boolval(array_get($custom_form_column, 'delete_flg'))){
+                        if (boolval(array_get($custom_form_column, 'delete_flg'))) {
                             return false;
                         }
                         return array_get($custom_form_column, 'form_column_type') == $form_column_type && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
@@ -490,7 +491,8 @@ class CustomFormController extends AdminControllerTableBase
     /**
      * validate before update or store
      */
-    protected function saveformValidate($request, $id) {
+    protected function saveformValidate($request, $id)
+    {
         $inputs = $request->input('custom_form_blocks');
         foreach ($inputs as $key => $value) {
             $columns = [];

@@ -22,7 +22,6 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 
 class CustomTableController extends AdminControllerBase

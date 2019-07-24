@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 
 /**
- * Role group item for User and organizaiton 
+ * Role group item for User and organizaiton
  */
 class UserOrgRoleGroupItem extends ProviderBase
 {
@@ -18,16 +18,16 @@ class UserOrgRoleGroupItem extends ProviderBase
      */
     public function setAdminFormOptions(&$form, $id = null)
     {
-        if(!System::permission_available()){
+        if (!System::permission_available()) {
             return;
         }
 
-        if(!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])){
+        if (!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
             return;
         }
 
         $defaults = [];
-        if(isset($id)){
+        if (isset($id)) {
             $defaults = $this->custom_table->getValueModel($id)->belong_role_groups()->pluck('id')->toArray();
         }
 
@@ -35,7 +35,7 @@ class UserOrgRoleGroupItem extends ProviderBase
             ->default($defaults)
             ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')])
             ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
-            ->options(function($option){
+            ->options(function ($option) {
                 return RoleGroup::all()->pluck('role_group_view_name', 'id');
             });
         $form->ignore('role_groups');
@@ -46,21 +46,21 @@ class UserOrgRoleGroupItem extends ProviderBase
      */
     public function saved($form, $id)
     {
-        if(!System::permission_available()){
+        if (!System::permission_available()) {
             return;
         }
 
-        if(!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])){
+        if (!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
             return;
         }
 
         // get request value
         $request = request();
-        if(!$request->has('role_groups')){
+        if (!$request->has('role_groups')) {
             return;
         }
 
-        $role_groups = collect($request->get('role_groups', []))->filter()->map(function($role_group) use($id){
+        $role_groups = collect($request->get('role_groups', []))->filter()->map(function ($role_group) use ($id) {
             return [
                 'role_group_id' => $role_group,
                 'role_group_user_org_type' => $this->custom_table->table_name,
@@ -69,16 +69,16 @@ class UserOrgRoleGroupItem extends ProviderBase
         });
         
         \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_groups, [
-            'dbValueFilter' => function(&$model) use($id){
+            'dbValueFilter' => function (&$model) use ($id) {
                 $model->where('role_group_target_id', $id)
                     ->where('role_group_user_org_type', $this->custom_table->table_name);
             },
-            'dbDeleteFilter' => function(&$model, $dbValue) use($id){
+            'dbDeleteFilter' => function (&$model, $dbValue) use ($id) {
                 $model->where('role_group_target_id', $id)
                     ->where('role_group_user_org_type', $this->custom_table->table_name)
                     ->where('role_group_id', array_get((array)$dbValue, 'role_group_id'));
             },
-            'matchFilter' => function($dbValue, $value){
+            'matchFilter' => function ($dbValue, $value) {
                 return array_get((array)$dbValue, 'role_group_id') == array_get($value, 'role_group_id');
             },
         ]);

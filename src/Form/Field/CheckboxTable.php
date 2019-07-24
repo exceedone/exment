@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Field;
 
-use Encore\Admin\Form\Field;
 use Encore\Admin\Form\Field\Checkbox;
 
 class CheckboxTable extends Checkbox
@@ -11,7 +10,8 @@ class CheckboxTable extends Checkbox
     
     protected $checkWidth = 100;
 
-    public function checkWidth($checkWidth){
+    public function checkWidth($checkWidth)
+    {
         $this->checkWidth = $checkWidth;
     }
 

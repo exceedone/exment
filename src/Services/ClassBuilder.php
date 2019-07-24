@@ -1,11 +1,9 @@
 <?php
 namespace Exceedone\Exment\Services;
 
-use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\RelationType;
 
 class ClassBuilder

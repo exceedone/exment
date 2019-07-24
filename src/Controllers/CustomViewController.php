@@ -148,7 +148,7 @@ class CustomViewController extends AdminControllerTableBase
                     ->icon('fa-edit')
                     ->tooltip(trans('admin.edit'));
                 $actions->prepend($linker);
-            } 
+            }
             // if ($actions->row->disabled_delete) {
             //     $actions->disableDelete();
             // }
@@ -217,7 +217,7 @@ class CustomViewController extends AdminControllerTableBase
         } elseif (isset($copy_custom_view)) {
             $view_kind_type =  array_get($copy_custom_view, 'view_kind_type');
             // if all data, change default
-            if($view_kind_type == ViewKindType::ALLDATA){
+            if ($view_kind_type == ViewKindType::ALLDATA) {
                 $view_kind_type = ViewKindType::DEFAULT;
             }
         } elseif (is_null($view_kind_type)) {
@@ -238,7 +238,7 @@ class CustomViewController extends AdminControllerTableBase
         $form->display('custom_table.table_name', exmtrans("custom_table.table_name"))->default($this->custom_table->table_name);
         $form->display('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->default($this->custom_table->table_view_name);
         $form->display('view_kind_type', exmtrans("custom_view.view_kind_type"))
-            ->with(function($value) use($view_kind_type) {
+            ->with(function ($value) use ($view_kind_type) {
                 return ViewKindType::getEnum($value?? $view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
             });
 
@@ -674,7 +674,7 @@ EOT;
             ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
         ];
 
-        if($this->hasSystemPermission()){
+        if ($this->hasSystemPermission()) {
             $view_kind_types[] = ['name' => 'create_filter', 'uri' => 'create?view_kind_type=3'];
         }
 

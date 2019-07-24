@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\RoleType;
 
 class RoleGroupUserOrganization extends ModelBase
 {
@@ -12,7 +11,8 @@ class RoleGroupUserOrganization extends ModelBase
      *
      * @return void
      */
-    public static function deleteRoleGroupUserOrganization($custom_value){
+    public static function deleteRoleGroupUserOrganization($custom_value)
+    {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
 

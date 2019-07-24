@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RoleGroup;
-use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Encore\Admin\Traits\ModelTree;
 use Encore\Admin\Traits\AdminBuilder;
 
@@ -135,7 +134,7 @@ trait OrganizationTrait
      */
     public function belong_role_groups()
     {
-        return RoleGroup::whereHas('role_group_organizations', function($query){
+        return RoleGroup::whereHas('role_group_organizations', function ($query) {
             $query->where('role_group_target_id', $this->id);
         })->get();
     }

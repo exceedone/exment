@@ -15,7 +15,8 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
-    public static function setValueAuthoritable($custom_value){
+    public static function setValueAuthoritable($custom_value)
+    {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
         if (in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())) {
@@ -41,7 +42,8 @@ class CustomValueAuthoritable extends ModelBase
      *
      * @return void
      */
-    public static function deleteValueAuthoritable($custom_value){
+    public static function deleteValueAuthoritable($custom_value)
+    {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
         static::query()
@@ -118,9 +120,9 @@ class CustomValueAuthoritable extends ModelBase
             ];
 
             $shares = [];
-            foreach($items as $item){
+            foreach ($items as $item) {
                 $user_organizations = $request->get($item['name'], []);
-                $user_organizations = collect($user_organizations)->filter()->map(function($user_organization) use($custom_value, $item){
+                $user_organizations = collect($user_organizations)->filter()->map(function ($user_organization) use ($custom_value, $item) {
                     list($authoritable_user_org_type, $authoritable_target_id) = explode('_', $user_organization);
                     return [
                         'authoritable_type' => $item['name'],
@@ -134,19 +136,19 @@ class CustomValueAuthoritable extends ModelBase
                 });
                     
                 $shares = array_merge($shares, \Schema::insertDelete(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, $user_organizations, [
-                    'dbValueFilter' => function(&$model) use($custom_value, $item){
+                    'dbValueFilter' => function (&$model) use ($custom_value, $item) {
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                         ->where('parent_id', $custom_value->id)
                         ->where('authoritable_type', $item['name']);
                     },
-                    'dbDeleteFilter' => function(&$model, $dbValue) use($id, $item, $custom_value){
+                    'dbDeleteFilter' => function (&$model, $dbValue) use ($id, $item, $custom_value) {
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                             ->where('parent_id', $custom_value->id)
                             ->where('authoritable_type', $item['name'])
                             ->where('authoritable_user_org_type', array_get((array)$dbValue, 'authoritable_user_org_type'))
                             ->where('authoritable_target_id', array_get((array)$dbValue, 'authoritable_target_id'));
                     },
-                    'matchFilter' => function($dbValue, $value) use($id, $item){
+                    'matchFilter' => function ($dbValue, $value) use ($id, $item) {
                         return array_get((array)$dbValue, 'authoritable_user_org_type') == array_get($value, 'authoritable_user_org_type')
                             && array_get((array)$dbValue, 'authoritable_target_id') == array_get($value, 'authoritable_target_id');
                     },
@@ -155,7 +157,7 @@ class CustomValueAuthoritable extends ModelBase
             \DB::commit();
 
             // send notify
-            $shares = collect($shares)->map(function($share){
+            $shares = collect($shares)->map(function ($share) {
                 return CustomTable::getEloquent($share['authoritable_user_org_type'])->getValueModel($share['authoritable_target_id']);
             });
             
@@ -181,7 +183,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param [type] $custom_table
      * @return void
      */
-    public static function getUserOrgSelectOptions($custom_table, $permission = null){
+    public static function getUserOrgSelectOptions($custom_table, $permission = null)
+    {
         // get options
         $users = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions(
             [
@@ -197,10 +200,10 @@ class CustomValueAuthoritable extends ModelBase
         );
         
         // get mapkey
-        $users = $users->mapWithKeys(function($item, $key){
+        $users = $users->mapWithKeys(function ($item, $key) {
             return [SystemTableName::USER . '_' . $key => $item];
         });
-        $organizations = $organizations->mapWithKeys(function($item, $key){
+        $organizations = $organizations->mapWithKeys(function ($item, $key) {
             return [SystemTableName::ORGANIZATION . '_' . $key => $item];
         });
 
@@ -214,7 +217,8 @@ class CustomValueAuthoritable extends ModelBase
      * @param [type] $custom_value
      * @return void
      */
-    protected static function getUserOrgSelectDefault($custom_value, $permission){
+    protected static function getUserOrgSelectDefault($custom_value, $permission)
+    {
         $custom_table = $custom_value->custom_table;
         $table_name = $custom_table->table_name;
         
@@ -222,10 +226,10 @@ class CustomValueAuthoritable extends ModelBase
         $items = static::query()
             ->where('parent_id', $custom_value->id)
             ->where('parent_type', $table_name)
-            ->where('authoritable_type',  $permission)
+            ->where('authoritable_type', $permission)
             ->get();
         
-        $defaults = $items->map(function($item, $key){
+        $defaults = $items->map(function ($item, $key) {
             return array_get($item, 'authoritable_user_org_type') . '_' . array_get($item, 'authoritable_target_id');
         })->toArray();
 

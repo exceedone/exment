@@ -43,7 +43,7 @@ trait UserTrait
      */
     public function belong_role_groups()
     {
-        return Model\RoleGroup::whereHas('role_group_users', function($query){
+        return Model\RoleGroup::whereHas('role_group_users', function ($query) {
             $query->where('role_group_target_id', $this->id);
         })->get();
     }

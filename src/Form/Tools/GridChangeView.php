@@ -42,7 +42,7 @@ class GridChangeView extends AbstractTool
     
             if ($atype == ViewKindType::ALLDATA) {
                 return -1;
-            } else if ($btype == ViewKindType::ALLDATA) {
+            } elseif ($btype == ViewKindType::ALLDATA) {
                 return 1;
             } else {
                 return $atype > $btype;

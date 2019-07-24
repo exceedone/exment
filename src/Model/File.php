@@ -245,7 +245,7 @@ class File extends ModelBase
         // get from model
         $value = $custom_value->toArray();
         // if match path, return this model's id
-        if(array_get($value, 'value.' . array_get($uuidObj, 'column_name')) == $path){
+        if (array_get($value, 'value.' . array_get($uuidObj, 'column_name')) == $path) {
             return $value;
         }
 

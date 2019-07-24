@@ -507,7 +507,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->with($with);
         }
 
-        if(isset($options['filter'])) {
+        if (isset($options['filter'])) {
             $model = $options['filter']($model);
         }
 
@@ -795,8 +795,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'filterCallback' => null,
                 'target_view' => null,
                 'permission' => null,
-            ]
-            , $options
+            ],
+            $options
         ));
 
         if (is_null($display_table)) {
@@ -1343,7 +1343,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return false;
         }
 
-        if(is_string($role_key)){
+        if (is_string($role_key)) {
             $role_key = [$role_key];
         }
 

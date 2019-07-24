@@ -2,7 +2,6 @@
 namespace Exceedone\Exment\Auth;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Auth\Authenticatable;
 use Exceedone\Exment\Auth\Permission as AuthPermission;
@@ -39,7 +38,7 @@ trait HasPermissions
             return true;
         }
 
-        if($role_key == Permission::SYSTEM){
+        if ($role_key == Permission::SYSTEM) {
             return $this->isAdministrator();
         }
 
@@ -263,12 +262,12 @@ trait HasPermissions
                 if (!isset($role_group_permission->permissions)) {
                     continue;
                 }
-                if($role_group_permission->role_group_permission_type != RoleType::TABLE){
+                if ($role_group_permission->role_group_permission_type != RoleType::TABLE) {
                     continue;
                 }
 
                 $custom_table = CustomTable::getEloquent($role_group_permission->role_group_target_id);
-                if(!isset($custom_table)){
+                if (!isset($custom_table)) {
                     continue;
                 }
 
@@ -310,11 +309,11 @@ trait HasPermissions
         // get roles records
         $permissions = [];
         foreach ($roles as $role) {
-            foreach($role->role_group_permissions as $role_group_permission){
+            foreach ($role->role_group_permissions as $role_group_permission) {
                 if (is_null($role_group_permission->permissions)) {
                     continue;
                 }
-                if($role_group_permission->role_group_permission_type != RoleType::SYSTEM){
+                if ($role_group_permission->role_group_permission_type != RoleType::SYSTEM) {
                     continue;
                 }
 
@@ -328,16 +327,17 @@ trait HasPermissions
         }
 
         // set system setting
-        if(!array_has($permissions, 'system') && collect(System::system_admin_users())->first(function($system_admin_user){
+        if (!array_has($permissions, 'system') && collect(System::system_admin_users())->first(function ($system_admin_user) {
             return $system_admin_user == $this->base_user_id;
-        })){
+        })) {
             $permissions['system'] = "1";
         }
         
         return $permissions;
     }
 
-    protected function getPermissionItems(){
+    protected function getPermissionItems()
+    {
         $organization_ids = $this->getOrganizationIds();
 
         // get all permissons for system. --------------------------------------------------

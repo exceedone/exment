@@ -110,7 +110,7 @@ trait InitializeFormTrait
             $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
                 ->help(exmtrans('system.help.system_admin_users'))
                 ->required()
-                ->options(function($option){
+                ->options(function ($option) {
                     return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
                         'selected_value' => $option,
                     ]);
@@ -157,7 +157,7 @@ trait InitializeFormTrait
                 'email' => 'required|email',
                 'password' => get_password_rule(true),
             ]);
-        }else{
+        } else {
             $rules = array_merge($rules, [
                 'system_admin_users' => 'required',
             ]);
