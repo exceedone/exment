@@ -188,6 +188,7 @@ class NotifyController extends AdminControllerBase
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::BUTTON]])])
                 ->rules("max:40");
+
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();

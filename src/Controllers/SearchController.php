@@ -415,6 +415,8 @@ EOT;
             $list_url = admin_url("data/{$custom_table->table_name}");
 
             if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
+                $query['view'] = CustomView::getAllData($custom_table)->suuid;
+                
                 $list_url .= '?' . http_build_query($query);
             }
         }

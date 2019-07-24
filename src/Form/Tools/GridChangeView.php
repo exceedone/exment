@@ -62,7 +62,7 @@ class GridChangeView extends AbstractTool
         $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?from_data=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create')];
         $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=1&from_data=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_sum')];
         $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=2&from_data=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_calendar')];
-        $settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=3&from_data=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_filter')];
+        //$settings[] = ['url' => admin_urls('view', $this->custom_table->table_name, 'create?view_kind_type=3&from_data=1'), 'view_view_name' => exmtrans('custom_view.custom_view_menulist.create_filter')];
         //}
 
         return view('exment::tools.view-button', [
