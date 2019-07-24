@@ -39,6 +39,10 @@ trait HasPermissions
             return true;
         }
 
+        if($role_key == Permission::SYSTEM){
+            return $this->isAdministrator();
+        }
+
         if (!is_array($role_key)) {
             $role_key = [$role_key];
         }
