@@ -29,7 +29,7 @@
                     <div class="form-group" style="margin-bottom:2em;">
                         <label class="col-sm-2 control-label">{{exmtrans('revision.revision_select')}}</label>
                         <div class="col-sm-5">
-                            <select id="revisions" data-add-select2>
+                            <select id="revisions" data-add-select2 data-add-select2-allow-clear="false">
                                 @foreach($revisions as $index => $revision)
                                 <option value="{{$revision->suuid}}" {{ $revision->suuid == $revision_suuid ? 'selected' : '' }}>
                                     No.{{$revision->revision_no}}

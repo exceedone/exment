@@ -49,14 +49,15 @@ class File extends ModelBase
         return $document_model;
     }
 
-    public function saveCustomValue($custom_value, $custom_column = null)
+    public function saveCustomValue($custom_value_id, $custom_column = null, $custom_table = null)
     {
-        if (isset($custom_value)) {
-            $this->parent_id = $custom_value->id;
-            $this->parent_type = $custom_value->custom_table->table_name;
+        if (isset($custom_value_id)) {
+            $this->parent_id = $custom_value_id;
+            $this->parent_type = $custom_table->table_name;
         }
         if (isset($custom_column)) {
-            $custom_column = CustomColumn::getEloquent($custom_column, $custom_value->custom_table);
+            $table_name = $this->local_dirname ?? $custom_table->table_name;
+            $custom_column = CustomColumn::getEloquent($custom_column, $table_name);
             $this->custom_column_id = $custom_column->id;
         }
         $this->save();
@@ -231,6 +232,24 @@ class File extends ModelBase
         }
 
         return Storage::disk(config('admin.upload.disk'))->get($path);
+    }
+
+    /**
+     * get CustomValue from form. for saved CustomValue
+     */
+    public function getCustomValueFromForm($custom_value, $uuidObj)
+    {
+        // replace $uuidObj[path] for windows
+        $path = str_replace('\\', '/', $this->path);
+
+        // get from model
+        $value = $custom_value->toArray();
+        // if match path, return this model's id
+        if(array_get($value, 'value.' . array_get($uuidObj, 'column_name')) == $path){
+            return $value;
+        }
+
+        return null;
     }
 
     /**

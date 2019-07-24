@@ -162,13 +162,13 @@ class TemplateController extends AdminControllerBase
         $form->checkbox('export_target', exmtrans('template.export_target'))
             ->options(TemplateExportTarget::transArray('template.export_target_options'))
             ->help(exmtrans('template.help.export_target'))
-            ->default([TemplateExportTarget::TABLE, TemplateExportTarget::DASHBOARD])
+            ->default([TemplateExportTarget::TABLE, TemplateExportTarget::MENU])
             ;
         
         $form->listbox('target_tables', exmtrans('template.target_tables'))
             ->options(CustomTable::filterList()->pluck('table_view_name', 'table_name'))
             ->help(exmtrans('template.help.target_tables'))
-            ->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
         ;
 
         $form->hidden('_token')->default(csrf_token());
@@ -189,7 +189,6 @@ class TemplateController extends AdminControllerBase
         $form->hidden('_token')->default(csrf_token());
 
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
-        
     }
 
     /**

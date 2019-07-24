@@ -18,12 +18,18 @@ class CustomTableAction implements ActionInterface
      * custom_table's relations
      */
     protected $relations;
+    
+    /**
+     * import data filter
+     */
+    protected $filter;
 
     protected $primary_key;
 
     public function __construct($args = [])
     {
         $this->custom_table = array_get($args, 'custom_table');
+        $this->filter = array_get($args, 'filter');
 
         // get relations
         $this->relations = CustomRelation::getRelationsByParent($this->custom_table);
@@ -116,6 +122,7 @@ class CustomTableAction implements ActionInterface
             return new Import\DefaultTableProvider([
                 'custom_table' => $this->custom_table,
                 'promary_key' => $this->primary_key,
+                'filter' => $this->filter,
             ]);
         } else {
             // get relations
@@ -128,6 +135,7 @@ class CustomTableAction implements ActionInterface
                     return new Import\DefaultTableProvider([
                         'custom_table' => $relation->child_custom_table,
                         'promary_key' => 'id',
+                        'filter' => $this->filter,
                     ]);
                 }
             }

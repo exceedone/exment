@@ -40,6 +40,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $serviceProviders = [
         ExmentProviders\RouteServiceProvider::class,
+        ExmentProviders\Route2factorServiceProvider::class,
         ExmentProviders\RouteOAuthServiceProvider::class,
         ExmentProviders\PasswordResetServiceProvider::class,
         ExmentProviders\PluginServiceProvider::class,
@@ -68,6 +69,7 @@ class ExmentServiceProvider extends ServiceProvider
      */
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
         'admin.bootstrap2'  => \Exceedone\Exment\Middleware\Bootstrap::class,
         'admin.initialize'  => \Exceedone\Exment\Middleware\Initialize::class,
         'admin.morph'  => \Exceedone\Exment\Middleware\Morph::class,
@@ -91,6 +93,7 @@ class ExmentServiceProvider extends ServiceProvider
         'admin' => [
             'admin.initialize',
             'admin.auth',
+            'admin.auth-2factor',
             'admin.morph',
             'admin.bootstrap2',
             'admin.pjax',

@@ -36,11 +36,11 @@ class ProgressTracker extends Field\Display
             $options = $options->toArray();
         }
 
-        foreach($options as $index => $option) {
+        foreach ($options as $index => $option) {
             $class = '';
             if (isset($option['active']) && $option['active']) {
                 $class = 'active';
-            } else if (isset($option['complete']) && $option['complete']) {
+            } elseif (isset($option['complete']) && $option['complete']) {
                 $class = 'complete';
             };
             $this->options[] = [

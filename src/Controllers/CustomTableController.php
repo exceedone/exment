@@ -11,18 +11,24 @@ use Encore\Admin\Grid\Linker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Role;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 
 class CustomTableController extends AdminControllerBase
 {
-    use HasResourceActions, RoleForm;
+    use HasResourceActions;
 
     protected $exists = false;
 
@@ -44,6 +50,7 @@ class CustomTableController extends AdminControllerBase
         $grid->column('order', exmtrans("custom_table.order"))->editable('number')->sortable();
         
         $grid->tools(function (Grid\Tools $tools) {
+            $tools->disableBatchActions();
             $tools->append(new Tools\GridChangePageMenu('table', null, true));
         });
 
@@ -59,7 +66,7 @@ class CustomTableController extends AdminControllerBase
             // add new multiple columns
             $linker = (new Linker)
                 ->url(admin_urls('table', $actions->getKey(), 'edit').'?columnmulti=1')
-                ->icon('fa-exchange')
+                ->icon('fa-cogs')
                 ->tooltip(exmtrans('custom_table.expand_setting'));
             $actions->append($linker);
                 
@@ -181,15 +188,19 @@ class CustomTableController extends AdminControllerBase
             ;
             $form->ignore('add_parent_menu');
             $form->ignore('add_parent_menu_flg');
+
+            $form->switchbool('add_notify_flg', exmtrans("custom_table.add_notify_flg"))->help(exmtrans("custom_table.help.add_notify_flg"))
+                ->default("0")
+            ;
+            $form->ignore('add_notify_flg');
         }
 
         // Role setting --------------------------------------------------
-        $this->addRoleForm($form, RoleType::TABLE);
         $deleteButton = $this->confirmDeleteButton($id);
 
         $form->tools(function (Form\Tools $tools) use ($id, $deleteButton) {
             $custom_table = CustomTable::getEloquent($id);
-            if (isset($custom_table) && boolval($custom_table->system_flg)) {
+            if (isset($custom_table) && $custom_table->disabled_delete) {
                 $tools->disableDelete();
             } elseif (isset($deleteButton)) {
                 $tools->disableDelete();
@@ -202,7 +213,7 @@ class CustomTableController extends AdminControllerBase
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_urls('table', $id, 'edit?columnmulti=1'),
                     'label' => exmtrans('custom_table.expand_setting'),
-                    'icon' => 'fa-exchange',
+                    'icon' => 'fa-cogs',
                 ]));
 
                 $tools->append((new Tools\GridChangePageMenu('table', $model, false))->render());
@@ -213,13 +224,20 @@ class CustomTableController extends AdminControllerBase
             $this->exists = $form->model()->exists;
         });
 
+        $form->savedInTransaction(function (Form $form) use ($id) {
+            // create or drop index --------------------------------------------------
+            $model = $form->model();
+            // if has value 'add_parent_menu', add menu
+            $this->addMenuAfterSaved($model);
+
+            // if has value 'add_notify_flg', add notify
+            $this->addNotifyAfterSaved($model);
+        });
+
         $form->saved(function (Form $form) use ($id) {
             // create or drop index --------------------------------------------------
             $model = $form->model();
             $model->createTable();
-
-            // if has value 'add_parent_menu', add menu
-            $this->addMenuAfterSaved($model);
 
             // redirect custom column page
             if (!$this->exists) {
@@ -338,6 +356,8 @@ HTML;
         }
 
         $form->tools(function (Form\Tools $tools) use ($id) {
+            $tools->disableDelete();
+            
             // if edit mode
             if ($id != null) {
                 $model = CustomTable::getEloquent($id);
@@ -430,6 +450,43 @@ HTML;
             'menu_name' => $model->table_name,
             'menu_target' => $model->id,
         ]);
+    }
+
+    /**
+     * add notofy after saved
+     */
+    protected function addNotifyAfterSaved($model)
+    {
+        // if has value 'add_parent_menu', add menu
+        if (!app('request')->has('add_notify_flg')) {
+            return;
+        }
+        
+        $add_notify_flg = app('request')->input('add_notify_flg');
+        if (!boolval($add_notify_flg)) {
+            return;
+        }
+
+        // get mail template
+        $mail_template_id = getModelName(SystemTableName::MAIL_TEMPLATE)
+            ::where('value->mail_key_name', MailKeyName::DATA_SAVED_NOTIFY)
+            ->first()
+            ->id;
+
+        // insert
+        $notify = new Notify;
+        $notify->notify_view_name = exmtrans('notify.notify_trigger_options.create_update_data');
+        $notify->notify_trigger = NotifyTrigger::CREATE_UPDATE_DATA;
+        $notify->custom_table_id = $model->id;
+        $notify->notify_actions = NotifyAction::SHOW_PAGE;
+        $notify->trigger_settings = [
+            'notify_saved_trigger' =>  NotifySavedType::arrays()
+        ];
+        $notify->action_settings = [
+            'mail_template_id' => $mail_template_id,
+            'notify_action_target' =>  [NotifyActionTarget::HAS_ROLES]
+        ];
+        $notify->save();
     }
 
     /**

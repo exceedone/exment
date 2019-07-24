@@ -25,6 +25,11 @@ class DataImportExportService extends AbstractExporter
     protected $format;
     
     /**
+     * file base name
+     */
+    protected $filebasename;
+    
+    /**
      * import action.
      */
     protected $importAction;
@@ -50,6 +55,17 @@ class DataImportExportService extends AbstractExporter
         }
 
         $this->format = static::getFormat($format);
+
+        return $this;
+    }
+
+    public function filebasename($filebasename = null)
+    {
+        if (!func_num_args()) {
+            return $this->filebasename;
+        }
+
+        $this->filebasename = $filebasename;
 
         return $this;
     }
@@ -127,6 +143,8 @@ class DataImportExportService extends AbstractExporter
                 'errors' => $validateRequest,
             ];
         }
+
+        $this->format->filebasename($this->filebasename);
 
         // get table data
         if (method_exists($this->importAction, 'getDataTable')) {

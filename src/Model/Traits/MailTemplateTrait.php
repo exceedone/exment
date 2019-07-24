@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model\Traits;
 
-use Exceedone\Exment\Model;
 use Exceedone\Exment\Enums\MailTemplateType;
 use Exceedone\Exment\Enums\SystemTableName;
 
@@ -13,7 +12,8 @@ trait MailTemplateTrait
      *
      * @return string
      */
-    public function getJoinedBody(){
+    public function getJoinedBody()
+    {
 
         ///// get body using header and footer
         $header = $this->getHeaderFooter(MailTemplateType::HEADER);
@@ -45,5 +45,4 @@ trait MailTemplateTrait
         }
         return $mail_template->getValue('mail_body');
     }
-
 }

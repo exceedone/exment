@@ -87,6 +87,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->index_enabled', [1, "1", true]);
     }
 
+    public function scopeRequired($query)
+    {
+        return $query->whereIn('options->required', [1, "1", true]);
+    }
+
     public function getColumnItemAttribute()
     {
         return ColumnItems\CustomItem::getItem($this);
@@ -94,6 +99,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     public function getSelectTargetTableAttribute()
     {
+        if (ColumnType::isUserOrganization($this->column_type)) {
+            return CustomTable::getEloquent($this->column_type);
+        }
         return CustomTable::getEloquent($this->getOption('select_target_table'));
     }
 
@@ -130,6 +138,16 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     public function getSelectImportColumnAttribute()
     {
         return CustomColumn::getEloquent($this->getOption('select_import_column_id'));
+    }
+
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return boolval($this->system_flg);
     }
 
     public function getOption($key, $default = null)

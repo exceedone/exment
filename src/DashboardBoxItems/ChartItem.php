@@ -6,7 +6,6 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewSummary;
-use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Enums\ChartAxisType;
 use Exceedone\Exment\Enums\ChartOptionType;
 use Exceedone\Exment\Enums\ChartType;
@@ -64,7 +63,7 @@ class ChartItem implements ItemInterface
      */
     public function header()
     {
-        return $this->tableheader();
+        return null;
     }
     
     /**
@@ -81,15 +80,15 @@ class ChartItem implements ItemInterface
      */
     public function body()
     {
-        if (!$this->hasPermission()) {
-            return trans('admin.deny');
+        if (($result = $this->hasPermission()) !== true) {
+            return $result;
         }
         
         if (is_null($this->custom_view)) {
             return null;
         }
-        $view_column_x = $this->getViewColumn($this->axis_x);
-        $view_column_y = $this->getViewColumn($this->axis_y);
+        $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
+        $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
 
         if (!isset($view_column_x) || !isset($view_column_y)) {
             return exmtrans('dashboard.message.need_setting');
@@ -120,7 +119,7 @@ class ChartItem implements ItemInterface
             $chart_data = $datalist->pluck("column_$this->axis_y");
         } else {
             // filter model
-            $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+            $model = \Exment::user()->filterModel($model, $this->custom_view);
             // get data
             $datalist = $model->get();
             $chart_label = $datalist->map(function ($val) use ($item_x) {
@@ -146,25 +145,6 @@ class ChartItem implements ItemInterface
             'chart_begin_zero' => in_array(ChartOptionType::BEGIN_ZERO, $this->chart_options),
             'chart_color' => json_encode($this->getChartColor(count($chart_data)))
         ])->render();
-    }
-
-    /**
-     * get custom view column or summary record.
-     */
-    protected function getViewColumn($column_keys)
-    {
-        if (preg_match('/\d+_\d+$/i', $column_keys) === 1) {
-            $keys = explode('_', $column_keys);
-            if (count($keys) === 2) {
-                if ($keys[0] == ViewKindType::AGGREGATE) {
-                    $view_column = CustomViewSummary::getEloquent($keys[1]);
-                } else {
-                    $view_column = CustomViewColumn::getEloquent($keys[1]);
-                }
-                return $view_column;
-            }
-        }
-        return null;
     }
 
     /**

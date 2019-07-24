@@ -23,6 +23,7 @@
                     "column_view_name": "Document Name",
                     "column_type": "text",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "use_label_flg": "1",
                         "index_enabled": "1"
@@ -33,6 +34,7 @@
                     "column_view_name": "File Uuid",
                     "column_type": "text",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "index_enabled": "1"
                     }
@@ -59,6 +61,7 @@
                     "column_view_name": "Cocument detail",
                     "column_type": "textarea",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "use_label_flg": "1",
                         "index_enabled": "1"
@@ -272,6 +275,7 @@
                     "column_view_name": "User Code",
                     "column_type": "text",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
@@ -284,6 +288,7 @@
                     "column_view_name": "User Name",
                     "column_type": "text",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
@@ -295,6 +300,7 @@
                     "column_view_name": "Email",
                     "column_type": "email",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
@@ -322,6 +328,7 @@
                     "column_view_name": "Organization Code",
                     "column_type": "text",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
@@ -334,6 +341,7 @@
                     "column_view_name": "Organization Name",
                     "column_type": "text",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
@@ -345,6 +353,7 @@
                     "column_view_name": "Parent Organization",
                     "column_type": "select_table",
                     "description": null,
+                    "system_flg": "1",
                     "options": {
                         "select_target_table_name": "organization",
                         "index_enabled": "1"
@@ -371,6 +380,7 @@
                     "column_name": "mail_key_name",
                     "column_view_name": "Email key name",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
@@ -383,6 +393,7 @@
                     "column_name": "mail_view_name",
                     "column_view_name": "Email display name",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "use_label_flg": "1",
@@ -395,6 +406,7 @@
                     "column_view_name": "Template type",
                     "description": null,
                     "column_type": "select_valtext",
+                    "system_flg": "1",
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
@@ -406,6 +418,7 @@
                     "column_name": "mail_subject",
                     "column_view_name": "Email subject",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                         "help": "Enter the subject of the email to be sent. You can use variables."
                     }
@@ -414,6 +427,7 @@
                     "column_name": "mail_body",
                     "column_view_name": "Email body",
                     "column_type": "textarea",
+                    "system_flg": "1",
                     "options": {
                         "help": "Enter the text of the email you want to send. You can use variables."
                     }
@@ -438,6 +452,7 @@
                     "column_name": "mail_from",
                     "column_view_name": "Email sender",
                     "column_type": "email",
+                    "system_flg": "1",
                     "options": {
                         "required": "1"
                     }
@@ -446,6 +461,7 @@
                     "column_name": "mail_to",
                     "column_view_name": "Email destination",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                         "required": "1"
                     }
@@ -454,6 +470,7 @@
                     "column_name": "mail_cc",
                     "column_view_name": "Email destination(CC)",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                     }
                 },
@@ -461,6 +478,7 @@
                     "column_name": "mail_bcc",
                     "column_view_name": "Email destination(BCC)",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                     }
                 },
@@ -468,6 +486,7 @@
                     "column_name": "mail_subject",
                     "column_view_name": "Email subject",
                     "column_type": "text",
+                    "system_flg": "1",
                     "options": {
                     }
                 },
@@ -475,6 +494,7 @@
                     "column_name": "mail_body",
                     "column_view_name": "Email body",
                     "column_type": "textarea",
+                    "system_flg": "1",
                     "options": {
                     }
                 },
@@ -482,6 +502,7 @@
                     "column_name": "user",
                     "column_view_name": "Send target user",
                     "column_type": "user",
+                    "system_flg": "1",
                     "options": {
                         "index_enabled": "1"
                     }
@@ -490,6 +511,7 @@
                     "column_name": "mail_template",
                     "column_view_name": "Outgoing mail template",
                     "column_type": "select_table",
+                    "system_flg": "1",
                     "options": {
                         "select_target_table_name": "mail_template",
                         "index_enabled": "1"
@@ -499,6 +521,7 @@
                     "column_name": "send_datetime",
                     "column_view_name": "Transmission date",
                     "column_type": "datetime",
+                    "system_flg": "1",
                     "options": {
                         "index_enabled": "1"
                     }
@@ -1142,129 +1165,75 @@
 			]
 		}
 	],
-    "roles": [
+    "role_groups": [
         {
-            "role_type": 0,
-            "role_name": "system_admin",
-            "role_view_name": "System Administrator",
-            "description": "Role that allows all operations.",
-            "permissions": [
-                "system",
-                "custom_table",
-                "custom_form",
-                "custom_view",
-                "custom_value_edit_all"
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "All data manager Group",
+            "description": "Role group that allows to edit and view all data.",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "0",
+                    "role_group_target_name": "0",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                }
             ]
         },
         {
-            "role_type": 0,
-            "role_name": "data_admin",
-            "role_view_name": "Data manager",
-            "description": "Role that allows to edit and view all data.",
-            "permissions": [
-                "custom_value_edit_all"
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "User and Organization manage Group",
+            "description": "Role group that managements users and organizations",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "0",
+                    "role_group_target_name": "0",
+                    "permissions": [
+                        "login_user"
+                    ]
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "role_group_target_name": "user",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "role_group_target_name": "organization",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                },
+                {
+                    "role_group_permission_type": "0",
+                    "role_group_target_name": "1",
+                    "permissions": [
+                        "role_group_user_organization"
+                    ]
+                }
             ]
         },
         {
-            "role_type": 1,
-            "role_name": "table_admin",
-            "role_view_name": "Manager",
-            "description": "Role that allows to edit and delete table and form view setting.",
-            "permissions": [
-                "custom_table",
-                "custom_form",
-                "custom_view",
-                "custom_value_edit_all",
-                "custom_value_edit",
-                "custom_value_view_all",
-                "custom_value_view",
-                "custom_value_access_all",
-                "custom_value_access"
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "Information manage Group",
+            "description": "Role group that manage information.",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "role_group_target_name": "information",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ]
+                }
             ]
         },
         {
-            "role_type": 1,
-            "role_name": "table_all_editor",
-            "role_view_name": "All data editor",
-            "description": "Role that allows to edit all data in the table.",
-            "permissions": [
-                "custom_value_edit_all",
-                "custom_value_edit",
-                "custom_value_view_all",
-                "custom_value_view",
-                "custom_value_access_all",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_all_viewer",
-            "role_view_name": "All data viewer",
-            "description": "Role that allows to browse all data in the table.",
-            "permissions": [
-                "custom_value_view_all",
-                "custom_value_view",
-                "custom_value_access_all",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_editor",
-            "role_view_name": "Table editor",
-            "description": "Role that allows to edit owner data.",
-            "permissions": [
-                "custom_value_edit",
-                "custom_value_view",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 1,
-            "role_name": "table_viewer",
-            "role_view_name": "Table viewer",
-            "description": "Role that allows to browse owner data.",
-            "permissions": [
-                "custom_value_view",
-                "custom_value_access"
-            ]
-        },
-        {
-            "role_type": 2,
-            "role_name": "value_editor",
-            "role_view_name": "Editor",
-            "description": "Role that allows to edit target data.",
-            "permissions": [
-                "custom_value_edit",
-                "custom_value_view"
-            ]
-        },
-        {
-            "role_type": 2,
-            "role_name": "value_viewer",
-            "role_view_name": "Viewer",
-            "description": "Role that allows to browse target data.",
-            "permissions": [
-                "custom_value_view"
-            ]
-        },
-        {
-            "role_type": 3,
-            "role_name": "plugin_manager",
-            "role_view_name": "Plugin manager",
-            "description": "Role that allows to change plugin settings.",
-            "permissions": [
-                "plugin_setting",
-                "plugin_access"
-            ]
-        },
-        {
-            "role_type": 3,
-            "role_name": "plugin_access",
-            "role_view_name": "Plugin user",
-            "description": "Role that allows to use plugins.",
-            "permissions": [
-                "plugin_access"
+            "role_group_name": "user_group",
+            "role_group_view_name": "User Group",
+            "description": "Role group that default user group.",
+            "role_group_permissions": [
             ]
         }
     ],
@@ -1298,18 +1267,18 @@
         {
             "order": "2",
             "menu_type": "table",
-            "menu_name": "user",
-            "title": "User",
-            "parent_name": "master",
-            "menu_target_name": "user"
-        },
-        {
-            "order": "3",
-            "menu_type": "table",
             "menu_name": "organization",
             "title": "Organization",
             "parent_name": "master",
             "menu_target_name": "organization"
+        },
+        {
+            "order": "3",
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "User",
+            "parent_name": "master",
+            "menu_target_name": "user"
         },
         {
             "order": "4",
@@ -1379,10 +1348,10 @@
         {
             "order": "7",
             "menu_type": "system",
-            "menu_name": "role",
-            "title": "Role",
+            "menu_name": "role_group",
+            "title": "Role Group",
             "parent_name": "admin",
-            "menu_target_name": "role"
+            "menu_target_name": "role_group"
         },
         {
             "order": "8",

@@ -35,9 +35,38 @@ trait HasResourceActions
                 return response()->json($data);
             }
         }
+
+        $rows = collect(explode(',', $id))->filter();
+            
+        // check row's disabled_delete
+        $disabled_delete = false;
+        $rows->each(function ($id) use (&$disabled_delete) {
+            if (!$disabled_delete) {
+                $model = $this->form($id)->model()->find($id);
+
+                if (boolval(array_get($model, 'disabled_delete'))) {
+                    $disabled_delete = true;
+                }
+            }
+        });
+
+        if ($disabled_delete) {
+            return response()->json([
+                'status'  => false,
+                'message' => exmtrans('error.disable_delete_row'),
+                'reload' => false,
+            ]);
+        }
+
         $result = true;
-        collect(explode(',', $id))->filter()->each(function ($id) use (&$result) {
-            if (!$this->form($id)->destroy($id)) {
+        $rows->each(function ($id) use (&$result) {
+            if(method_exists($this, 'widgetDestroy')){
+                if(!$this->widgetDestroy($id)){
+                    $result = false;
+                    return;
+                }
+            }
+            elseif (!$this->form($id)->destroy($id)) {
                 $result = false;
                 return;
             }

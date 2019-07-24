@@ -89,29 +89,7 @@ class System extends ModelBase
         foreach (static::get_system_keys($group) as $k) {
             $array[$k] = static::{$k}();
         }
-
-        // add system role --------------------------------------------------
-        // get system role value
-        $system_role = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
-            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
-            ->get();
-        // get Role list for system.
-        $roles = Role::where('role_type', RoleType::SYSTEM)->get(['id', 'suuid', 'role_name']);
-        foreach ($roles as $role) {
-            foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $related_type) {
-                // filter related_type and role_id. convert to string
-                $filter = $system_role->filter(function ($value, $key) use ($role, $related_type) {
-                    return $value->related_type  == $related_type && $value->role_id  == $role->id;
-                });
-                if (!isset($filter)) {
-                    continue;
-                }
-
-                $array[$role->getRoleName($related_type)] = $filter->pluck('related_id')->map(function ($value) {
-                    return strval($value);
-                })->toArray();
-            }
-        }
+        
         return $array;
     }
 
@@ -133,6 +111,7 @@ class System extends ModelBase
                 return $record->system_name == $name;
             }, false)->first();
 
+            $type = array_get($setting, 'type');
             $value = null;
             
             // if has data, return setting value or default value
@@ -142,13 +121,17 @@ class System extends ModelBase
             // if don't has data, but has config value in Define, return value from config
             elseif (!is_null(array_get($setting, 'config'))) {
                 $value = Config::get(array_get($setting, 'config'));
+
+                // if password, return
+                if ($type == 'password') {
+                    return $value;
+                }
             }
             // if don't has data, but has default value in Define, return default value
             elseif (!is_null(array_get($setting, 'default'))) {
                 $value = array_get($setting, 'default');
             }
     
-            $type = array_get($setting, 'type');
             if ($type == 'boolean') {
                 $value = boolval($value);
             } elseif ($type == 'int') {
@@ -162,7 +145,10 @@ class System extends ModelBase
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
             } elseif ($type == 'password') {
-                $value = is_null($value) ? null : decrypt($value);
+                try {
+                    $value = is_null($value) ? null : decrypt($value);
+                } catch (\Exception $ex) {
+                }
             }
             return $value;
         });

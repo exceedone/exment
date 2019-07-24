@@ -28,7 +28,9 @@
         "phpoffice/phpspreadsheet": "^1.5.0",
         "myclabs/php-enum": "^1.6.0",
         "laravel/passport": "^7.0",
-        "mpdf/mpdf": "^8.0"
+        "mpdf/mpdf": "^8.0",
+        "pragmarx/google2fa": "^5.0",
+        "simplesoftwareio/simple-qrcode": "^2.0"
     },
     "require-dev": {
         "laravel/dusk": "~4.0.0"

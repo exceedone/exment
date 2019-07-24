@@ -21,6 +21,7 @@ use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 
 /**
  * CustomValueShow
@@ -33,7 +34,7 @@ trait CustomValueShow
     protected function createShowForm($id = null, $modal = false)
     {
         //Plugin::pluginPreparing($this->plugins, 'loading');
-        return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+        return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
             // add parent link if this form is 1:n relation
@@ -86,14 +87,23 @@ trait CustomValueShow
                     }
                     list($relation_name, $block_label) = $this->getRelationName($custom_form_block);
                     $target_table = $custom_form_block->target_table;
-                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table) {
+                    $show->{$relation_name}($block_label, function ($grid) use ($custom_form_block, $target_table, $id) {
                         $custom_view = CustomView::getDefault($target_table);
                         $custom_view->setGrid($grid);
+                        $table_name = $target_table->table_name;
                         
                         $grid->disableFilter();
                         $grid->disableCreateButton();
                         $grid->disableExport();
-                        $grid->tools(function ($tools) {
+                        $grid->tools(function ($tools) use ($table_name, $id, $custom_form_block) {
+                            // Add new button if one_to_many
+                            if ($custom_form_block->form_block_type == FormBlockType::ONE_TO_MANY) {
+                                $tools->append(view(
+                                    'exment::custom-value.new-button',
+                                    ['table_name' => $table_name, 'params' => ['select_parent' => $id]]
+                                ));
+                            }
+
                             $tools->batch(function ($batch) {
                                 $batch->disableDelete();
                             });
@@ -127,18 +137,30 @@ trait CustomValueShow
 
             // if modal, disable list and delete
             $show->panel()->tools(function ($tools) use ($modal, $custom_value, $id) {
-                if (count($this->custom_table->getRelationTables()) > 0) {
-                    $tools->append('<div class="btn-group pull-right" style="margin-right: 5px">
-                        <a href="'. $custom_value->getRelationSearchUrl(true) . '" class="btn btn-sm btn-purple" title="'. exmtrans('search.header_relation') . '">
-                            <i class="fa fa-compress"></i><span class="hidden-xs"> '. exmtrans('search.header_relation') . '</span>
-                        </a>
-                    </div>');
-                }
-
                 if ($modal) {
                     $tools->disableList();
                     $tools->disableDelete();
-                } else {
+
+                    $tools->append(view('exment::tools.button', [
+                        'href' => $custom_value->getUrl(),
+                        'label' => trans('admin.show'),
+                        'icon' => 'fa-eye',
+                        'btn_class' => 'btn-default',
+                    ]));
+                }
+
+                if (count($this->custom_table->getRelationTables()) > 0) {
+                    $tools->append(view('exment::tools.button', [
+                        'href' => $custom_value->getRelationSearchUrl(true),
+                        'label' => exmtrans('search.header_relation'),
+                        'icon' => 'fa-compress',
+                        'btn_class' => 'btn-purple',
+                    ]));
+                }
+
+                if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+                    $tools->disableList();
+                } else if (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
@@ -158,10 +180,18 @@ trait CustomValueShow
                         $tools->append($b->toHtml());
                     }
                     foreach ($notifies as $notify) {
-                        if (array_get($notify, 'notify_trigger') == NotifyTrigger::BUTTON) {
+                        if ($notify->isNotifyTarget($custom_value, NotifyTrigger::BUTTON)) {
                             $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
                         }
                     }
+
+                    // check share permission.
+                    // ignore master table, and has permission
+                    if(!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
+                        $tools->append(new Tools\ShareButton($this->custom_table, $id));                        
+                    }
+
+                    PartialCrudService::setAdminShowTools($this->custom_table, $tools, $id);
                 }
             });
         });

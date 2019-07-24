@@ -117,10 +117,10 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
     /**
      * get value from user setting table
      */
-    public function getSettingValue($key)
+    public function getSettingValue($key, $default = null)
     {
         if (is_null($this->base_user)) {
-            return null;
+            return $default;
         }
         // get settings from settion
         $settings = Session::get("user_setting.$key");
@@ -129,7 +129,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             $usersetting = UserSetting::firstOrCreate(['base_user_id' => $this->base_user->id]);
             $settings = $usersetting->settings ?? [];
         }
-        return array_get($settings, $key) ?? null;
+        return array_get($settings, $key) ?? $default;
     }
     public function setSettingValue($key, $value)
     {

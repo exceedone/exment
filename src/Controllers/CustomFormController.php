@@ -71,7 +71,7 @@ class CustomFormController extends AdminControllerTableBase
             return;
         }
         $this->AdminContent($content);
-        $this->droppableForm($content, $id);
+        $this->cerateForm($content, $id);
         return $content;
     }
 
@@ -88,7 +88,7 @@ class CustomFormController extends AdminControllerTableBase
             return;
         }
         $this->AdminContent($content);
-        $this->droppableForm($content);
+        $this->cerateForm($content);
         return $content;
     }
 
@@ -101,6 +101,11 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function update(Request $request, $tableKey, $id)
     {
+        if (!$this->saveformValidate($request, $id)) {
+            admin_toastr(exmtrans('custom_form.message.no_exists_column'), 'error');
+            return back()->withInput();
+        }
+
         if ($this->saveform($request, $id)) {
             admin_toastr(trans('admin.save_succeeded'));
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
@@ -115,6 +120,11 @@ class CustomFormController extends AdminControllerTableBase
      */
     public function store(Request $request)
     {
+        if (!$this->saveformValidate($request, $id)) {
+            admin_toastr(exmtrans('custom_form.message.no_exists_column'), 'error');
+            return back()->withInput();
+        }
+
         if ($this->saveform($request)) {
             admin_toastr(trans('admin.save_succeeded'));
             return redirect(admin_url("form/{$this->custom_table->table_name}"));
@@ -161,7 +171,7 @@ class CustomFormController extends AdminControllerTableBase
      *
      * @return Form
      */
-    protected function droppableForm($content, $id = null)
+    protected function cerateForm($content, $id = null)
     {
         // get form
         $form = CustomForm::getEloquent($id);
@@ -217,16 +227,24 @@ class CustomFormController extends AdminControllerTableBase
                 'label' => $this->getBlockLabelHeader(array_get($column_blocks, 'form_block_type')) . $custom_form_block->target_table->table_view_name ?? null,
                 'custom_form_columns' => [],
             ]);
-            foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
+
+            // get form columns
+            $custom_form_columns = $this->getFormColumns($custom_form_block);
+            foreach ($custom_form_columns as $custom_form_column) {
                 $custom_form_column_array = $custom_form_column->toArray();
                 if (!isset($custom_form_column_array['column_no'])) {
                     $custom_form_column_array['column_no'] = 1;
                 }
+                $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'required')) || boolval(array_get($custom_form_column, 'custom_column.required'));
 
                 // get column view name
-                switch ($custom_form_column->form_column_type) {
+                switch (array_get($custom_form_column, 'form_column_type')) {
                     case FormColumnType::COLUMN:
-                        $custom_column = $custom_form_column->custom_column;
+                        $custom_column = array_get($custom_form_column, 'custom_column');
+                        if (!isset($custom_column)) {
+                            // get from form_column_target_id
+                            $custom_column = CustomColumn::getEloquent(array_get($custom_form_column, 'form_column_target_id'));
+                        }
                         if (!isset($custom_column)) {
                             break 2; // break switch and Loop.
                         }
@@ -246,8 +264,8 @@ class CustomFormController extends AdminControllerTableBase
                 }
                 // set view_name using custom_column info.
                 $custom_form_column_array = array_merge($custom_form_column_array, [
-                            'column_view_name' => $column_view_name
-                        ]);
+                    'column_view_name' => $column_view_name
+                ]);
 
                 // add header name
                 $custom_form_column_array['header_column_name'] = '[custom_form_columns]['
@@ -340,6 +358,30 @@ class CustomFormController extends AdminControllerTableBase
     }
 
     /**
+     * Get form columns from $custom_form_block.
+     * If first request, set from database.
+     * If not (ex. validation error), set from request value
+     *
+     * @return void
+     */
+    protected function getFormColumns($custom_form_block){
+        // get custom_form_blocks from request
+        $req_custom_form_blocks = old('custom_form_blocks');
+        if(!isset($req_custom_form_blocks)
+            || !isset($req_custom_form_blocks[$custom_form_block['id']])
+            || !isset($req_custom_form_blocks[$custom_form_block['id']]['custom_form_columns'])
+        ){
+            return $custom_form_block->custom_form_columns;
+        }
+
+        $custom_form_columns = $req_custom_form_blocks[$custom_form_block['id']]['custom_form_columns'];
+        return collect($custom_form_columns)->map(function($custom_form_column, $id){
+            $custom_form_column['id'] = $id;
+            return collect($custom_form_column);
+        });
+    }
+
+    /**
      * get custom form column suggest list.
      */
     protected function setTableSuggests($form, $custom_form_block, &$suggests = [])
@@ -370,17 +412,13 @@ class CustomFormController extends AdminControllerTableBase
                 // loop each column
                 foreach ($columns as &$custom_column) {
                     $has_custom_forms = false;
-                    // check $form->custom_form_columns. if $custom_column has $this->custom_form_columns, add parameter has_custom_forms.
+                    // check $custom_form_block->custom_form_columns. if $custom_column has $this->custom_form_columns, add parameter has_custom_forms.
                     // if has_custom_forms is true, not show display default.
-                    if ($form->custom_form_columns->first(function ($custom_form_column) use ($custom_column, $form_column_type) {
-                        // if system column
-                        if ($form_column_type == FormColumnType::SYSTEM) {
-                            return array_get($custom_form_column, 'form_column_type') == FormColumnType::SYSTEM && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
+                    if (collect(array_get($custom_form_block, 'custom_form_columns', []))->first(function ($custom_form_column) use ($custom_column, $form_column_type) {
+                        if(boolval(array_get($custom_form_column, 'delete_flg'))){
+                            return false;
                         }
-                        // if column
-                        else {
-                            return array_get($custom_form_column, 'form_column_type') == FormColumnType::COLUMN && array_get($custom_form_column, 'custom_column.id') == array_get($custom_column, 'id');
-                        }
+                        return array_get($custom_form_column, 'form_column_type') == $form_column_type && array_get($custom_form_column, 'form_column_target_id') == array_get($custom_column, 'id');
                     })) {
                         $has_custom_forms = true;
                     }
@@ -394,6 +432,7 @@ class CustomFormController extends AdminControllerTableBase
                             'form_column_type' => $form_column_type,
                             'form_column_target_id' => array_get($custom_column, 'id'),
                             'has_custom_forms' => $has_custom_forms,
+                            'required' => boolval(array_get($custom_column, 'required')),
                         ];
                     } else {
                         $custom_column = [
@@ -403,6 +442,7 @@ class CustomFormController extends AdminControllerTableBase
                             'form_column_type' => $form_column_type,
                             'form_column_target_id' => array_get($custom_column, 'id'),
                             'has_custom_forms' => $has_custom_forms,
+                            'required' => boolval(array_get($custom_column, 'required')),
                         ];
                     }
 
@@ -434,6 +474,7 @@ class CustomFormController extends AdminControllerTableBase
                 'id' => null,
                 'column_view_name' => exmtrans("custom_form.form_column_type_other_options.".array_get($type, 'column_name')),
                 'form_column_type' => FormColumnType::OTHER,
+                'required' => false,
                 'form_column_target_id' => $id,
                 'header_column_name' =>$header_column_name
             ]);
@@ -444,6 +485,40 @@ class CustomFormController extends AdminControllerTableBase
             'clone' => true,
             'form_column_type' => FormColumnType::OTHER,
         ]);
+    }
+
+    /**
+     * validate before update or store
+     */
+    protected function saveformValidate($request, $id) {
+        $inputs = $request->input('custom_form_blocks');
+        foreach ($inputs as $key => $value) {
+            $columns = [];
+            if (!isset($value['form_block_target_table_id'])) {
+                continue;
+            }
+            // get column id for registration
+            if (is_array(array_get($value, 'custom_form_columns'))) {
+                foreach (array_get($value, 'custom_form_columns') as $column_key => $column_value) {
+                    if (!isset($column_value['form_column_type']) || $column_value['form_column_type'] != FormColumnType::COLUMN) {
+                        continue;
+                    }
+                    if (boolval(array_get($column_value, 'delete_flg'))) {
+                        continue;
+                    }
+                    if (isset($column_value['form_column_target_id'])) {
+                        $columns[] = array_get($column_value, 'form_column_target_id');
+                    }
+                }
+            }
+            $table_id = array_get($value, 'form_block_target_table_id');
+            // check if required column not for registration exist
+            if (CustomColumn::where('custom_table_id', $table_id)
+                    ->required()->whereNotIn('id', $columns)->exists()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

@@ -9,7 +9,7 @@ use Exceedone\Exment\Enums\InitializeStatus;
  */
 class LangForm
 {
-    use InstallFormTrait;
+    use EnvTrait;
 
     public function index()
     {

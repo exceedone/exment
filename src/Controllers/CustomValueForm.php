@@ -2,14 +2,15 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
@@ -20,6 +21,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 
 trait CustomValueForm
 {
@@ -30,10 +32,17 @@ trait CustomValueForm
      */
     protected function form($id = null)
     {
-        $this->setFormViewInfo(request());
+        $request = request();
+        $this->setFormViewInfo($request);
 
         $classname = $this->getModelNameDV();
         $form = new Form(new $classname);
+
+        // get select_parent
+        $select_parent = null;
+        if ($request->has('select_parent')) {
+            $select_parent = intval($request->get('select_parent'));
+        }
 
         //Plugin::pluginPreparing($this->plugins, 'loading');
         // create
@@ -50,6 +59,7 @@ trait CustomValueForm
         //TODO: escape laravel-admin bug.
         //https://github.com/z-song/laravel-admin/issues/1998
         $form->hidden('laravel_admin_escape');
+        $form->hidden('select_parent')->default($select_parent);
 
         // add parent select if this form is 1:n relation
         $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
@@ -57,20 +67,33 @@ trait CustomValueForm
             $parent_custom_table = $relation->parent_custom_table;
             $form->hidden('parent_type')->default($parent_custom_table->table_name);
 
-            // set select options
-            if ($parent_custom_table->isGetOptions()) {
-                $form->select('parent_id', $parent_custom_table->table_view_name)
+            // if create data and not has $select_parent, select item
+            if (!isset($id) && !isset($select_parent)) {
+                $select = $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getOptions($value, null, false, true);
-                })
-                ->required();
-            } else {
-                $form->select('parent_id', $parent_custom_table->table_view_name)
-                ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getOptions($value, null, false, true);
-                })
-                ->ajax($parent_custom_table->getOptionAjaxUrl())
-                ->required();
+                    return $parent_custom_table->getSelectOptions([
+                        'selected_value' => $value,
+                        'showMessage_ifDeny' => true,
+                    ]);
+                });
+                $select->required();
+
+                // set select options
+                if (!$parent_custom_table->isGetOptions()) {
+                    $select->ajax($parent_custom_table->getOptionAjaxUrl());
+                }
+            }
+            // if edit data or has $select_parent, only display
+            else {
+                if ($request->has('parent_id')) {
+                    $parent_id = $request->get('parent_id');
+                } else {
+                    $parent_id = isset($select_parent) ? $select_parent : $classname::find($id)->parent_id;
+                }
+                $parent_value = $parent_custom_table->getValueModel($parent_id);
+
+                $form->hidden('parent_id')->default($parent_id);
+                $form->display('parent_id_display', $parent_custom_table->table_view_name)->default($parent_value->label);
             }
         }
 
@@ -125,17 +148,23 @@ trait CustomValueForm
                     );
                     $custom_table = $this->custom_table;
                     $field->options(function ($select) use ($custom_table, $target_table) {
-                        return $target_table->getOptions($select, $custom_table);
+                        return $target_table->getSelectOptions(
+                            [
+                                'selected_value' => $select,
+                                'display_table' => $custom_table,
+                            ]);
                     });
                     if (!$target_table->isGetOptions()) {
                         $field->ajax($target_table->getOptionAjaxUrl());
                     }
-                    $field->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
-                    $field->help(exmtrans('custom_value.bootstrap_duallistbox_container.help'));
+                    $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+                    $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
                     $form->pushField($field);
                 }
             }
         }
+
+        PartialCrudService::setAdminFormOptions($this->custom_table, $form, $id);
 
         $calc_formula_array = [];
         $changedata_array = [];
@@ -168,12 +197,12 @@ EOT;
             Admin::script($script);
         }
 
-        // add role form
-        $this->setRoleForm($form);
+        // ignore select_parent
+        $form->ignore('select_parent');
 
         // add form saving and saved event
-        $this->manageFormSaving($form);
-        $this->manageFormSaved($form);
+        $this->manageFormSaving($form, $id);
+        $this->manageFormSaved($form, $select_parent);
 
         $form->disableReset();
 
@@ -185,30 +214,6 @@ EOT;
     }
 
     /**
-     * setRoleForm.
-     * if table is user, org, etc...., not set role
-     */
-    protected function setRoleForm($form)
-    {
-        // if ignore user and org, return
-        if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-            return;
-        }
-        // if table setting is "one_record_flg" (can save only one record), return
-        if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
-            return;
-        }
-        
-        // not contains edit all form
-        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
-            return;
-        }
-
-        // set addRoleForm(dufinition by trait)
-        $this->addRoleForm($form, RoleType::VALUE);
-    }
-
-    /**
      * set custom form columns
      */
     protected function setCustomFormColumns($form, $custom_form_block, $id = null)
@@ -216,6 +221,10 @@ EOT;
         $fields = []; // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
             if (!isset($id) && $form_column->form_column_type == FormColumnType::SYSTEM) {
+                continue;
+            }
+            // exclusion header and html
+            if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
             }
 
@@ -312,34 +321,37 @@ EOT;
     }
 
 
-    protected function manageFormSaving($form)
+    protected function manageFormSaving($form, $id = null)
     {
         // before saving
-        $form->saving(function ($form) {
+        $form->saving(function ($form) use($id) {
             Plugin::pluginPreparing($this->plugins, 'saving');
+
+            $result = PartialCrudService::saving($this->custom_table, $form, $id);
+            if($result instanceof Response){
+                return $result; 
+            }
         });
     }
 
-    protected function manageFormSaved($form)
+    protected function manageFormSaved($form, $select_parent = null)
     {
         // after saving
-        $form->saved(function ($form) {
-            $form->model()->setValueAuthoritable();
+        $form->savedInTransaction(function ($form) use ($select_parent) {
+            CustomValueAuthoritable::setValueAuthoritable($form->model());
             Plugin::pluginPreparing($this->plugins, 'saved');
-
-            // if requestsession "file upload uuid"(for set data this value's id and type into files)
-            $uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID);
-            if (isset($uuids)) {
-                foreach ($uuids as $uuid) {
-                    File::getData(array_get($uuid, 'uuid'))->saveCustomValue($form->model(), array_get($uuid, 'column_name'));
-                }
-            }
-
+            PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
+        });
+        
+        $form->saved(function ($form) use ($select_parent) {
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
             if ($one_record_flg) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect(admin_urls('data', $this->custom_table->table_name));
+            } elseif (!empty($select_parent)) {
+                admin_toastr(trans('admin.save_succeeded'));
+                return redirect(admin_url('data/'.$form->model()->parent_type.'/'. $form->model()->parent_id));
             } elseif (empty(request('after-save'))) {
                 admin_toastr(trans('admin.save_succeeded'));
                 return redirect($this->custom_table->getGridUrl(true));
@@ -375,6 +387,8 @@ EOT;
                     $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
                 }
             }
+
+            PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             
             $tools->add((new Tools\GridChangePageMenu('data', $custom_table, false))->render());
         });

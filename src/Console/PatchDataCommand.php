@@ -5,7 +5,16 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\DataImportExport;
+use Carbon\Carbon;
 
 class PatchDataCommand extends Command
 {
@@ -55,6 +64,15 @@ class PatchDataCommand extends Command
                 return;
             case 'alter_index_hyphen':
                 $this->reAlterIndexContainsHyphen();
+                return;
+            case '2factor':
+                $this->import2factorTemplate();
+                return;
+            case 'system_flg_column':
+                $this->patchSystemFlgColumn();
+                return;
+            case 'role_group':
+                $this->roleToRoleGroup();
                 return;
         }
 
@@ -154,5 +172,173 @@ class PatchDataCommand extends Command
             \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
             \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name);
         }
+    }
+    
+    /**
+     * import mail template for 2factor
+     *
+     * @return void
+     */
+    protected function import2factorTemplate()
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $path = "$templates_data_path/mail_template.xlsx";
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => [
+                    'verify_2factor',
+                    'verify_2factor_google',
+                    'verify_2factor_system',
+                ]],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
+    }
+    
+    /**
+     * system flg patch
+     *
+     * @return void
+     */
+    protected function patchSystemFlgColumn()
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template';
+        $configPath = "$templates_data_path/config.json";
+
+        $json = json_decode(\File::get($configPath), true);
+
+        // re-loop columns. because we have to get other column id --------------------------------------------------
+        foreach (array_get($json, "custom_tables", []) as $table) {
+            // find tables. --------------------------------------------------
+            $obj_table = CustomTable::getEloquent(array_get($table, 'table_name'));
+            // get columns. --------------------------------------------------
+            if (array_key_exists('custom_columns', $table)) {
+                foreach (array_get($table, 'custom_columns') as $column) {
+                    if (boolval(array_get($column, 'system_flg'))) {
+                        $obj_column = CustomColumn::getEloquent(array_get($column, 'column_name'), $obj_table);
+                        if (!isset($obj_column)) {
+                            continue;
+                        }
+                        $obj_column->system_flg = true;
+                        $obj_column->save();
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Move (system) role to role group
+     *
+     * @return void
+     */
+    protected function roleToRoleGroup(){
+        $this->patchSystemAuthoritable();
+        $this->patchValueAuthoritable();
+        $this->removeRoleMenu();
+    }
+
+    protected function patchSystemAuthoritable(){
+        if(!\Schema::hasTable('system_authoritable')){
+            return;
+        }
+
+        ///// move system admin to System
+        $system_authoritable = \DB::table('system_authoritable')
+        ->where('morph_type', 'system')
+        ->where('role_id', 1)
+        ->get();
+
+        $users = [];
+        foreach($system_authoritable as $s){
+            $item = (array)$s;
+            if(array_get($item, 'related_type') == SystemTableName::USER){
+                $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'));
+            }else{
+                $users = array_merge(
+                    $users, 
+                    CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(array_get($item, 'related_id'))
+                        ->users()
+                );
+            }
+        }
+
+        $users = collect($users)->filter()->map(function($user){
+        return array_get($user, 'id');
+        })->toArray();
+
+        // set System user's array
+        $system_admin_users = System::system_admin_users();
+        $system_admin_users = array_merge($system_admin_users, $users);
+        System::system_admin_users(array_unique($system_admin_users));
+    }
+    
+    protected function patchValueAuthoritable(){
+        if(!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())){
+            return;
+        }
+        
+        ///// value_auth to custom_value_auth
+        // get role info
+        $valueRoles = \DB::table('roles')
+            ->where('role_type', RoleType::VALUE)
+            ->get();
+        
+        $editRoles = [];
+        $viewRoles = [];
+        foreach($valueRoles as $valueRole){
+            $val = (array)$valueRole;
+            $permissions = json_decode($val['permissions'], true);
+            if(array_has($permissions, 'custom_value_edit')){
+                $editRoles[] = $val['id'];
+            }else{
+                $viewRoles[] = $val['id'];
+            }
+        }
+        
+        //get value_auth
+        $value_authoritable = \DB::table('value_authoritable')
+            ->get();
+        $custom_value_authoritables = [];
+        foreach($value_authoritable as $v){
+            $val = (array)$v;
+            if(in_array($val['role_id'], $editRoles)){
+                $authoritable_type = Permission::CUSTOM_VALUE_EDIT;
+            }else{
+                $authoritable_type = Permission::CUSTOM_VALUE_VIEW;
+            }
+            $custom_value_authoritables[] = [
+                'parent_id' => $val['morph_id'],
+                'parent_type' => $val['morph_type'],
+                'authoritable_type' => $authoritable_type,
+                'authoritable_user_org_type' => $val['related_type'],
+                'authoritable_target_id' => $val['related_id'],
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+                'created_user_id' => $val['related_type'] == SystemTableName::USER ? $val['related_id'] : null,
+                'updated_user_id' => $val['related_type'] == SystemTableName::USER ? $val['related_id'] : null,
+            ];
+        }
+
+        \DB::table(CustomValueAuthoritable::getTableName())
+            ->insert($custom_value_authoritables);
+    }
+
+    protected function removeRoleMenu(){
+        // remove "role" menu
+        \DB::table('admin_menu')
+            ->where('menu_type', 'system')
+            ->where('menu_target', 'role')
+            ->delete();
     }
 }

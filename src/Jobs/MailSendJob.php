@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Jobs;
 
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
 use Illuminate\Database\Eloquent\Collection;
@@ -40,7 +41,7 @@ class MailSendJob extends JobBase
         $this->history_body = array_get($options, 'history_body', true);
         $this->attachments = array_get($options, 'attachments', []);
 
-        if(!isset($this->from)){
+        if (!isset($this->from)) {
             $this->from = config('mail.from.address');
         }
     }
@@ -59,7 +60,7 @@ class MailSendJob extends JobBase
             // replace \r\n
             $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $this->body), 'text/html');
             // attach files
-            foreach($this->attachments as $attachment) {
+            foreach ($this->attachments as $attachment) {
                 $url = storage_paths('app', config('admin.upload.disk'), $attachment->path);
                 $message->attach($url, ['as' => $attachment->filename]);
             }
@@ -135,9 +136,11 @@ class MailSendJob extends JobBase
     {
         if ($user instanceof CustomValue) {
             return $user->id;
+        } elseif ($user instanceof LoginUser) {
+            return $user->base_user_id;
         } elseif ($user instanceof NotifyTarget) {
             return $user->id();
-        } 
+        }
         // pure email
         else {
             return $user;

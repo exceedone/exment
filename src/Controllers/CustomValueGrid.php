@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
 
@@ -21,7 +22,7 @@ trait CustomValueGrid
      *
      * @return Grid
      */
-    protected function grid()
+    protected function grid($filter_func = null)
     {
         $classname = $this->getModelNameDV();
         $grid = new Grid(new $classname);
@@ -37,7 +38,7 @@ trait CustomValueGrid
         $this->manageRowAction($grid);
 
         // filter
-        Admin::user()->filterModel($grid->model(), $this->custom_table->table_name, $this->custom_view);
+        Admin::user()->filterModel($grid->model(), $this->custom_view, $filter_func);
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
@@ -70,7 +71,7 @@ trait CustomValueGrid
                 // if set, create select
                 if (isset($relation)) {
                     // get options and ajax url
-                    $options = $relation->parent_custom_table->getOptions();
+                    $options = $relation->parent_custom_table->getSelectOptions();
                     $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
                     if (isset($ajax)) {
                         $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');
@@ -170,6 +171,8 @@ trait CustomValueGrid
                     $actions->disableEdit();
                     $actions->disableDelete();
                 }
+
+                PartialCrudService::setGridRowAction($custom_table, $actions);
             });
         }
     }
@@ -180,7 +183,8 @@ trait CustomValueGrid
     public function import(Request $request)
     {
         $service = $this->getImportExportService()
-            ->format($request->file('custom_table_file'));
+            ->format($request->file('custom_table_file'))
+            ->filebasename($this->custom_table->table_name);
         $result = $service->import($request);
 
         return getAjaxResponse($result);

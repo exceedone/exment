@@ -64,7 +64,7 @@ EOT;
         $url = admin_urls("data", $table_name, $this->id, "notifyClick");
         //Admin::script($this->script($suuid, $label));
 
-        return view('exment::tools.notify-button', [
+        return view('exment::tools.modal-button', [
             'suuid' => $suuid,
             'label' => $label ?? null,
             'button_class' => 'btn-info',

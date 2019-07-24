@@ -62,7 +62,7 @@ class Csv extends FormatBase
             \File::deleteDirectory($tmpfolderpath);
             \File::delete($fullpath);
         } else {
-            $basename = file_ext_strip($originalName);
+            $basename = $this->filebasename;
             $datalist[$basename] = $this->getCsvArray($path);
         }
 
@@ -142,7 +142,7 @@ class Csv extends FormatBase
     {
         $reader = $this->createReader();
         $reader->setInputEncoding('UTF-8');
-        $reader->setDelimiter("\t");
+        $reader->setDelimiter(",");
         $spreadsheet = $reader->load($file);
         return $spreadsheet->getActiveSheet()->toArray();
     }

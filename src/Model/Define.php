@@ -146,6 +146,7 @@ class Define
 
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
+        'system_admin_users' => ['type' => 'array'],
         'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
@@ -171,6 +172,8 @@ class Define
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
         'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
+        'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
+        'login_2factor_provider' => ['default' => 'email', 'group' => '2factor'],
     ];
 
     public const SYSTEM_SKIN = [
@@ -204,6 +207,7 @@ class Define
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_ORGS = "table_accessible_orgs_%s";
     public const SYSTEM_KEY_SESSION_TABLE_ACCRSSIBLE_USERS = "table_accessible_users_%s";
     public const SYSTEM_KEY_SESSION_VALUE_ACCRSSIBLE_USERS = "value_accessible_users_%s_%s";
+    public const SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE = "can_connection_database";
     public const SYSTEM_KEY_SESSION_ALL_DATABASE_TABLE_NAMES = "all_database_table_names";
     public const SYSTEM_KEY_SESSION_ALL_RECORDS = "all_records_%s";
     public const SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES = "all_custom_tables";
@@ -212,6 +216,7 @@ class Define
     public const SYSTEM_KEY_SESSION_DATABASE_COLUMN_NAMES_IN_TABLE = "database_column_names_in_table_%s";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
+    public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
@@ -239,17 +244,9 @@ class Define
             'uri' => 'table',
             'icon' => 'fa-table',
         ],
-        'role' => [
-            'uri' => 'role',
+        'role_group' => [
+            'uri' => 'role_group',
             'icon' => 'fa-user-secret',
-        ],
-        'user' => [
-            'uri' => 'data/user',
-            'icon' => 'fa-users',
-        ],
-        'organization' => [
-            'uri' => 'data/organization',
-            'icon' => 'fa-building',
         ],
         'menu' => [
             'uri' => 'auth/menu',
@@ -278,10 +275,6 @@ class Define
         'loginuser' => [
             'uri' => 'loginuser',
             'icon' => 'fa-user-plus',
-        ],
-        'mail' => [
-            'uri' => 'mail',
-            'icon' => 'fa-envelope',
         ],
     ];
 
@@ -378,7 +371,7 @@ class Define
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
-        ['uri'=> 'role', 'help_uri'=> 'permission'],
+        ['uri'=> 'role_group', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],

@@ -105,10 +105,15 @@ class CustomViewFilter extends ModelBase
         } elseif ($this->view_column_type == ViewColumnType::SYSTEM) {
             $view_column_target = SystemColumn::getOption(['id' => $view_column_target])['sqlname'] ?? null;
         }
-        
         if (isset($db_table_name)) {
             $view_column_target = $db_table_name.'.'.$view_column_target;
         }
+        if (isset($this->view_group_condition)) {
+            $view_column_target = \DB::getQueryGrammar()->getDateFormatString($this->view_group_condition, $view_column_target, false);
+            $view_column_target = \DB::raw($view_column_target);
+        }
+        $condition_value_text = $this->view_filter_condition_value_text;
+        $view_filter_condition = $this->view_filter_condition;
         // get filter condition
         switch ($view_filter_condition) {
             // equal

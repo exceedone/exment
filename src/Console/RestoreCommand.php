@@ -3,11 +3,12 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Services\Installer\EnvTrait;
 use \File;
 
 class RestoreCommand extends Command
 {
-    use CommandTrait, BackupRestoreTrait;
+    use CommandTrait, BackupRestoreTrait, EnvTrait;
 
     /**
      * The name and signature of the console command.
@@ -60,6 +61,9 @@ class RestoreCommand extends Command
             $result = -1;
         }
 
+        // copy env
+        $this->updateEnv();
+
         // delete temporary folder
         $success = \File::deleteDirectory($this->tmpDirFullPath());
 
@@ -103,27 +107,6 @@ __EOT__;
     }
 
     /**
-     * Drop unused "exm__" table
-     *
-     * @param [type] $files
-     * @return void
-     */
-    protected function dropUnusedTable($files)
-    {
-        return;
-        // $fileTables = collect($files)->map(function ($file) {
-        //     return $file->getBasename('.' . $file->getExtension());
-        // })->toArray();
-        // $exmTables = collect(\Schema::getTableListing())->filter(function ($table) use ($fileTables) {
-        //     return stripos($table, 'exm__') === 0 && !in_array($table, $fileTables);
-        // })->flatten()->all();
-
-        // foreach ($exmTables as $table) {
-        //     \Schema::dropIfExists($table);
-        // }
-    }
-
-    /**
      * copy folder from temp directory
      *
      * @return bool true:success/false:fail
@@ -144,6 +127,43 @@ __EOT__;
 
         return $result;
     }
+    
+    /**
+     * update env data
+     *
+     */
+    protected function updateEnv()
+    {
+        // get env file
+        $file = path_join($this->tmpDirFullPath(), '.env');
+        if (!\File::exists($file)) {
+            return;
+        }
+
+        $matchKeys = [
+            [
+                'keys' => ['EXMENT_'],
+                'prefix' => true,
+            ],
+            [
+                'keys' => ['APP_KEY', 'APP_LOCALE', 'APP_TIMEZONE'],
+                'prefix' => false,
+            ],
+        ];
+
+        foreach ($matchKeys as $item) {
+            foreach ($item['keys'] as $key) {
+                if (is_null($lines = $this->getEnv($key, $file, $item['prefix']))) {
+                    continue;
+                }
+
+                foreach ($lines as $line) {
+                    $this->setEnv([$line[0] => $line[1]]);
+                }
+            }
+        }
+    }
+
     /**
      * unzip backup file to temporary folder path.
      */
@@ -155,7 +175,7 @@ __EOT__;
         $this->initBackupRestore($targetfile);
 
         // set to tmp zip file
-        static::tmpDisk()->put($this->zipName(), $this->getRestoreZip());
+        static::tmpDisk()->writeStream($this->zipName(), $this->getRestoreZip());
 
         // create temporary folder if not exists
         if (!static::tmpDisk()->exists($this->tmpDirName())) {
@@ -237,6 +257,6 @@ __EOT__;
             return static::tmpDisk()->get($this->zipName());
         }
 
-        return static::disk()->get($this->listZipName());
+        return static::disk()->readStream($this->listZipName());
     }
 }

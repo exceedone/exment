@@ -46,6 +46,8 @@
 <script src="{{ admin_asset("/vendor/laravel-admin/AdminLTE/plugins/iCheck/icheck.min.js")}}"></script>
 
 <script src="{{ admin_asset("/vendor/laravel-admin/toastr/build/toastr.min.js")}}"></script>
+<script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
+
 <script>
   $(function () {
     $('input').iCheck({

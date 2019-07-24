@@ -41,9 +41,8 @@ class ListItem implements ItemInterface
             return;
         }
 
-        // if view not found, set view first data
         if (!isset($this->custom_view)) {
-            $this->custom_view = $this->custom_table->getDefault();
+            return;
         }
 
         // get paginate
@@ -64,8 +63,8 @@ class ListItem implements ItemInterface
      */
     public function body()
     {
-        if (!$this->hasPermission()) {
-            return trans('admin.deny');
+        if (($result = $this->hasPermission()) !== true) {
+            return $result;
         }
         
         $datalist = $this->paginate->items();
@@ -95,7 +94,7 @@ class ListItem implements ItemInterface
      */
     public function footer()
     {
-        if (!$this->hasPermission()) {
+        if (($result = $this->hasPermission()) !== true) {
             return null;
         }
 
@@ -185,7 +184,7 @@ class ListItem implements ItemInterface
             $model = $this->custom_view->getValueSummary($model, $this->custom_table->table_name);
         } else {
             // filter model
-            $model = \Exment::user()->filterModel($model, $this->custom_table->table_name, $this->custom_view);
+            $model = \Exment::user()->filterModel($model, $this->custom_view);
         }
         
         // pager count

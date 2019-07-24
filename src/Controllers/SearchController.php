@@ -226,7 +226,7 @@ EOT;
         }
         $links = $paginate->links('exment::search.links')->toHtml();
         // get headers and bodies
-        $view = CustomView::getDefault($table);
+        $view = CustomView::getAllData($table);
         list($headers, $bodies) = $view->getDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
                 if (count($custom_table->getRelationTables()) > 0) {
@@ -343,7 +343,7 @@ EOT;
         $links = isset($paginate) ? $paginate->links('exment::search.links')->toHtml() : "";
         
         // get headers and bodies
-        $view = CustomView::getDefault($search_table);
+        $view = CustomView::getAllData($search_table);
         // definition action_callback is not $search_type is SELF
         if ($search_type != SearchType::SELF) {
             $option = [
@@ -415,6 +415,8 @@ EOT;
             $list_url = admin_url("data/{$custom_table->table_name}");
 
             if (boolval(config('exment.search_list_link_filter', true)) && isset($query)) {
+                $query['view'] = CustomView::getAllData($custom_table)->suuid;
+                
                 $list_url .= '?' . http_build_query($query);
             }
         }
