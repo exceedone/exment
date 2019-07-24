@@ -522,7 +522,7 @@ EOT;
 
     protected function hasSystemPermission()
     {
-        return $this->custom_table->hasPermission(Permission::CUSTOM_VIEW);
+        return $this->custom_table->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VIEW]);
     }
 
     /**
@@ -672,8 +672,11 @@ EOT;
             ['name' => 'create', 'uri' => 'create'],
             ['name' => 'create_sum', 'uri' => 'create?view_kind_type=1'],
             ['name' => 'create_calendar', 'uri' => 'create?view_kind_type=2'],
-            ['name' => 'create_filter', 'uri' => 'create?view_kind_type=3'],
         ];
+
+        if($this->hasSystemPermission()){
+            $view_kind_types[] = ['name' => 'create_filter', 'uri' => 'create?view_kind_type=3'];
+        }
 
         // loop for role types
         $lists = [];
