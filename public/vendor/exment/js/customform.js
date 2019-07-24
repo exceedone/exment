@@ -12,6 +12,7 @@ var Exment;
             $(document).off('click', '#changedata-button-setting').on('click', '#changedata-button-setting', {}, CustomFromEvent.changedataSetting);
             $(document).off('click', '#changedata-button-reset').on('click', '#changedata-button-reset', {}, CustomFromEvent.changedataReset);
             CustomFromEvent.addDragEvent();
+            CustomFromEvent.addCollapseEvent();
             CustomFromEvent.appendIcheckEvent($('.icheck:visible,.icheck.icheck_hasmany_type'));
             $('form').on('submit', CustomFromEvent.ignoreSuggests);
         };
@@ -38,7 +39,7 @@ var Exment;
                         var $ul = ui.helper.closest('.draggables');
                         // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
                         if ($ul.hasClass('custom_form_column_items')) {
-                            ui.helper.find('.delete,.options').show();
+                            ui.helper.find('.delete,.options,[data-toggle]').show();
                             // add hidden form
                             var header_name = CustomFromEvent.getHeaderName(ui.helper);
                             ui.helper.append($('<input/>', {
@@ -61,7 +62,7 @@ var Exment;
                             CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
                         }
                         else {
-                            ui.helper.find('.delete,.options').hide();
+                            ui.helper.find('.delete,.options,[data-toggle]').hide();
                         }
                     }
                 });
@@ -76,6 +77,17 @@ var Exment;
                 $elem.each(function (index2, elem2) {
                     CustomFromEvent.setDragItemEvent($(elem2));
                 });
+            });
+        };
+        CustomFromEvent.addCollapseEvent = function ($elem) {
+            if ($elem === void 0) { $elem = null; }
+            $('.panel-collapse').off('show.bs.collapse').on('show.bs.collapse', function () {
+                CustomFromEvent.appendIcheckEvent($(this));
+                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-up').removeClass('fa-chevron-down');
+            });
+            $('.panel-collapse').off('hide.bs.collapse').on('hide.bs.collapse', function () {
+                $(this).siblings('.panel-heading').removeClass('active');
+                $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-down').removeClass('fa-chevron-up');
             });
         };
         CustomFromEvent.setDragItemEvent = function ($elem, initialize) {
@@ -109,7 +121,7 @@ var Exment;
         CustomFromEvent.toggleFormColumnItem = function ($elem, isShow) {
             if (isShow === void 0) { isShow = true; }
             if (isShow) {
-                $elem.find('.delete,.options').show();
+                $elem.find('.delete,.options,[data-toggle]').show();
                 // add hidden form
                 var header_name = CustomFromEvent.getHeaderName($elem);
                 $elem.append($('<input/>', {
@@ -126,7 +138,7 @@ var Exment;
                 CustomFromEvent.appendIcheckEvent($elem.find('.icheck'));
             }
             else {
-                $elem.find('.delete,.options').hide();
+                $elem.find('.delete,.options,[data-toggle]').hide();
             }
             $('.custom_form_column_suggests.draggables').each(function (index, elem) {
                 var d = $(elem);
@@ -182,6 +194,7 @@ var Exment;
             });
         };
         CustomFromEvent.toggleFromBlock = function (ev) {
+            ev.preventDefault();
             var available = $(ev.target).closest('.icheck_toggleblock').prop('checked');
             var $block = $(ev.target).closest('.box-custom_form_block').find('.custom_form_block');
             if (available) {
@@ -192,6 +205,7 @@ var Exment;
             }
         };
         CustomFromEvent.deleteColumn = function (ev) {
+            ev.preventDefault();
             var item = $(ev.target).closest('.custom_form_column_item');
             if (item.hasClass('deleting')) {
                 return;

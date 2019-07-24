@@ -232,6 +232,7 @@ class CustomFormController extends AdminControllerTableBase
                 if (!isset($custom_form_column_array['column_no'])) {
                     $custom_form_column_array['column_no'] = 1;
                 }
+                $custom_form_column_array['required'] = boolval(array_get($custom_form_column, 'custom_column.required'));
 
                 // get column view name
                 switch ($custom_form_column->form_column_type) {
@@ -256,8 +257,8 @@ class CustomFormController extends AdminControllerTableBase
                 }
                 // set view_name using custom_column info.
                 $custom_form_column_array = array_merge($custom_form_column_array, [
-                            'column_view_name' => $column_view_name
-                        ]);
+                    'column_view_name' => $column_view_name
+                ]);
 
                 // add header name
                 $custom_form_column_array['header_column_name'] = '[custom_form_columns]['
@@ -404,6 +405,7 @@ class CustomFormController extends AdminControllerTableBase
                             'form_column_type' => $form_column_type,
                             'form_column_target_id' => array_get($custom_column, 'id'),
                             'has_custom_forms' => $has_custom_forms,
+                            'required' => boolval(array_get($custom_column, 'required')),
                         ];
                     } else {
                         $custom_column = [
@@ -413,6 +415,7 @@ class CustomFormController extends AdminControllerTableBase
                             'form_column_type' => $form_column_type,
                             'form_column_target_id' => array_get($custom_column, 'id'),
                             'has_custom_forms' => $has_custom_forms,
+                            'required' => boolval(array_get($custom_column, 'required')),
                         ];
                     }
 

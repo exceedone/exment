@@ -16,6 +16,10 @@
     font-size:0.9em;
 }
 
+.d-block{
+    display: block;
+}
+
 .asterisk::after{
     content: " *";
     color: red;
