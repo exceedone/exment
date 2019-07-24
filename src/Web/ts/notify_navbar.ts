@@ -54,10 +54,10 @@ namespace Exment {
                                                 }),
                                                 $('<span></span>', {
                                                     'text': d.table_view_name,
-                                                    'style': hasValue(d.color) ? 'background-color:' + d.color : null
                                                 }),
                                             ],
-                                            'class': 'search-item-icon'
+                                            'class': 'search-item-icon',
+                                            'style': hasValue(d.color) ? 'background-color:' + d.color : null
                                         }),
                                         $('<span/>', {
                                             'text': d.label,

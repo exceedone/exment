@@ -74,13 +74,13 @@ class CustomValueAuthoritable extends ModelBase
         $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
             ->options(static::getUserOrgSelectOptions($custom_value->custom_table, Permission::AVAILABLE_EDIT_CUSTOM_VALUE))
             ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT))
-            ->help(exmtrans('role_group.role_type_option_value.custom_value_edit.help') . exmtrans('common.bootstrap_duallistbox_container.help'))
+            ->help(exmtrans('role_group.role_type_option_value.custom_value_edit.help'))
             ->setWidth(9, 2);
 
         $form->multipleSelect('custom_value_view', exmtrans('role_group.role_type_option_value.custom_value_view.label'))
             ->options(static::getUserOrgSelectOptions($custom_value->custom_table))
             ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_VIEW))
-            ->help(exmtrans('role_group.role_type_option_value.custom_value_view.help') . exmtrans('common.bootstrap_duallistbox_container.help'))
+            ->help(exmtrans('role_group.role_type_option_value.custom_value_view.help'))
             ->setWidth(9, 2);
 
         return $form;
