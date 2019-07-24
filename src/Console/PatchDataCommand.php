@@ -6,6 +6,9 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
@@ -14,6 +17,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Services\DataImportExport;
 use Carbon\Carbon;
 
@@ -77,6 +81,9 @@ class PatchDataCommand extends Command
                 return;
             case 'notify_saved':
                 $this->updateSavedTemplate();
+                return;
+            case 'alldata_view':
+                $this->copyViewColumnAllDataView();
                 return;
         }
 
@@ -246,6 +253,54 @@ class PatchDataCommand extends Command
         $this->updateRoleMenu();
     }
 
+    /**
+     * Copy custom view default to alldata
+     *
+     * @return void
+     */
+    protected function copyViewColumnAllDataView(){
+        // get default view counts
+        $defaultViews = CustomView::where('view_kind_type', ViewKindType::DEFAULT)
+            ->where('default_flg', true)
+            ->with(['custom_view_columns', 'custom_view_sorts'])
+            ->get();
+
+        foreach($defaultViews as $defaultView){
+            // if not found alldata view in same custom table, create
+            $alldata_view_count = CustomView
+                ::where('view_kind_type', ViewKindType::ALLDATA)
+                ->where('custom_table_id', $defaultView->custom_table_id)
+                ->count();
+
+            if($alldata_view_count > 0){
+                continue;
+            }
+
+            $aldata_view = CustomView::createDefaultView($defaultView->custom_table_id);
+
+            $view_columns = [];
+            foreach($defaultView->custom_view_columns as $custom_view_column){
+                $view_column = new CustomViewColumn;
+                $view_column->custom_view_id = $aldata_view->id;
+                $view_column->view_column_target = array_get($custom_view_column, 'view_column_target');
+                $view_column->order = array_get($custom_view_column, 'order');
+                array_push($view_columns, $view_column);
+            }
+            $aldata_view->custom_view_columns()->saveMany($view_columns);
+
+            $view_sorts = [];
+            foreach($defaultView->custom_view_sorts as $custom_view_sort){
+                $view_sort = new CustomViewSort;
+                $view_sort->custom_view_id = $aldata_view->id;
+                $view_sort->view_column_target = array_get($custom_view_sort, 'view_column_target');
+                $view_sort->sort = array_get($custom_view_sort, 'sort');
+                $view_sort->priority = array_get($custom_view_sort, 'priority');
+                array_push($view_sorts, $view_sort);
+            }
+            $aldata_view->custom_view_sorts()->saveMany($view_sorts);
+        }
+    }
+
 
 
     protected function patchSystemAuthoritable(){
@@ -334,6 +389,11 @@ class PatchDataCommand extends Command
             ->insert($custom_value_authoritables);
     }
 
+    /**
+     * Update role menu role to role_group
+     *
+     * @return void
+     */
     protected function updateRoleMenu(){
         // remove "role" menu
         \DB::table('admin_menu')
