@@ -62,6 +62,6 @@ class UpdateCommand extends Command
     {
         $this->call('migrate');
 
-        //TemplateImporter::importSystemTemplate(true);
+        TemplateImporter::importSystemTemplate(true);
     }
 }
