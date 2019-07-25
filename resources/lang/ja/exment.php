@@ -506,6 +506,9 @@ return [
         'has_autority_users' => '権限ユーザー',
         'has_autority_organizations' => '権限組織',
         'status_init' => '初期状態',
+        'start' => '開始',
+        'end' => '終了',
+        'no_setting' => '(未設定)',
         'help' => [
             'saved_redirect_column' => '保存しました！次はアクションを設定してください。',
         ],

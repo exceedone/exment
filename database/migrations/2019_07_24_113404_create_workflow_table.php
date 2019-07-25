@@ -37,6 +37,7 @@ class CreateWorkflowTable extends Migration
             $table->integer('workflow_group_id')->unsigned()->index();
             $table->string('status_name', 30);
             $table->boolean('editable_flg')->default(false);
+            $table->boolean('enabled_flg')->default(true)->index();
 
             $table->timestamps();
             $table->timeusers();
@@ -49,6 +50,7 @@ class CreateWorkflowTable extends Migration
             $table->integer('workflow_status_id')->unsigned()->index();
             $table->integer('order')->unsigned();
             $table->string('status_block_name', 30)->nullable();
+            $table->boolean('enabled_flg')->default(true)->index();
 
             $table->timestamps();
             $table->timeusers();
