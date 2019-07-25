@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Form;
+use Encore\Admin\Widgets\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -12,8 +12,11 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
+use Exceedone\Exment\Model\WorkflowStatusBlock;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\WorkflowStatusType;
+
 
 class Workflow2Controller extends AdminControllerBase
 {
@@ -67,16 +70,31 @@ class Workflow2Controller extends AdminControllerBase
      */
     protected function form($id = null)
     {
+        $workflow = isset($id) ? Workflow::findOrFail($id) : new Workflow;
+
+        // get workflow_statuses groupby
+        $workflow_statuses = $this->getWorkflowStatusGroup($workflow);
+
         $form = new Form(new Workflow);
         $form->text('workflow_name', exmtrans("workflow.workflow_name"))
             ->required()
             ->rules("max:40");
 
-        $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
-            $form->text('status_name', exmtrans("workflow.status_name"));
-            $form->switchbool('editable_flg', exmtrans("workflow.editable_flg"));
-        })->setTableColumnWidth(8, 2, 2)
-        ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
+        $form->exmheader(exmtrans("workflow.workflow_statuses"))->hr();
+
+        // get exment version
+        $ver = getExmentCurrentVersion() ?? date('YmdHis');
+        $form->html(view('exment::workflow.workflow', [
+            'css' => asset('/vendor/exment/css/workflow.css?ver='.$ver),
+            'js' => asset('/vendor/exment/js/customform.js?ver='.$ver),
+            'workflow_statuses' => $workflow_statuses,
+        ]))->setWidth(12,0);
+
+        // $form->hasManyTable('workflow_statuses', exmtrans("workflow.workflow_statuses"), function ($form) {
+        //     $form->text('status_name', exmtrans("workflow.status_name"));
+        //     $form->switchbool('editable_flg', exmtrans("workflow.editable_flg"));
+        // })->setTableColumnWidth(8, 2, 2)
+        // ->description(sprintf(exmtrans("workflow.description_workflow_statuses")));
         
         if (isset($id) && CustomTable::where('workflow_id', $id)->count() > 0) {
             $form->tools(function (Form\Tools $tools) {
@@ -102,6 +120,59 @@ class Workflow2Controller extends AdminControllerBase
         });
 
         return $form;
+    }
+
+    /**
+     * Get workflow statuses. group by status_group_id.
+     *
+     * @param Workflow $workflow
+     * @return array workflow statuses
+     */
+    protected function getWorkflowStatusGroup($workflow){
+        // get workflow statuses group by database
+        $workflow_statuses_groups = $workflow->workflow_statuses()
+            ->with(['workflow_status_blocks'])
+            ->groupBy('workflow_group_id')
+            ->orderBy('status_type')
+            ->orderBy('workflow_group_id')
+            ->get();
+
+        // loop $workflow_statuses_groups
+        $workflow_statuses = [];
+        foreach(WorkflowStatusType::values() as $workflow_status_type){
+            // filter $workflow_statuses_groups
+            $workflow_statuses_group_filter = $workflow_statuses_groups->filter(function($workflow_statuses_group) use($workflow_status_type){
+                return $workflow_statuses_group->status_type == $workflow_status_type;
+            });
+
+            $enumOptions = $workflow_status_type->getOption(['id' => $workflow_status_type->getValue()]);
+
+            $workflow_status_types = [];
+            for($i = 0; $i < $enumOptions['count']; $i++){
+                // if contains item, get 
+                if($i < count($workflow_statuses_group_filter)){
+                    $workflow_status_type = $workflow_statuses_group_filter->values()->get($i);
+                }
+                // else, create new item
+                else{
+                    $workflow_status_type = new WorkflowStatus;
+                }
+
+                for ($j = 0; $j < $enumOptions['count']; $j++) {
+                    // if not contains item, add
+                    if($j >= count($workflow_status_type->workflow_status_blocks)){
+                        $workflow_status_block = new WorkflowStatusBlock;
+                        $workflow_status_type->workflow_status_blocks->push($workflow_status_block);
+                    }
+                }
+
+                $workflow_status_types[] = $workflow_status_type;
+            }
+
+            $workflow_statuses[] = $workflow_status_types;
+        }
+        
+        return $workflow_statuses;
     }
 
     /**

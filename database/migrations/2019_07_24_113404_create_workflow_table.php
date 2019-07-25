@@ -33,11 +33,27 @@ class CreateWorkflowTable extends Migration
         $schema->create('workflow_statuses', function (ExtendedBlueprint $table) {
             $table->increments('id');
             $table->integer('workflow_id')->unsigned()->index();
+            $table->integer('status_type')->unsigned()->index();
+            $table->integer('workflow_group_id')->unsigned()->index();
             $table->string('status_name', 30);
             $table->boolean('editable_flg')->default(false);
 
             $table->timestamps();
             $table->timeusers();
+            
+            $table->foreign('workflow_id')->references('id')->on('workflows');
+        });
+
+        $schema->create('workflow_status_blocks', function (ExtendedBlueprint $table) {
+            $table->increments('id');
+            $table->integer('workflow_status_id')->unsigned()->index();
+            $table->integer('order')->unsigned();
+            $table->string('status_block_name', 30)->nullable();
+
+            $table->timestamps();
+            $table->timeusers();
+            
+            $table->foreign('workflow_status_id')->references('id')->on('workflow_statuses');
         });
 
         $schema->create('workflow_actions', function (ExtendedBlueprint $table) {
@@ -86,11 +102,12 @@ class CreateWorkflowTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('workflows');
-        Schema::dropIfExists('workflow_statuses');
         Schema::dropIfExists('workflow_actions');
         Schema::dropIfExists('workflow_authorities');
         Schema::dropIfExists('workflow_values');
+        Schema::dropIfExists('workflow_status_blocks');
+        Schema::dropIfExists('workflow_statuses');
+        Schema::dropIfExists('workflows');
         Schema::table('custom_tables', function (Blueprint $table) {
             $table->dropColumn('workflow_id');
         });

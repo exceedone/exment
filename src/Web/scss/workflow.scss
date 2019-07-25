@@ -1,0 +1,17 @@
+@import "_valiables.scss";
+
+.workflow_wrapper{
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flex;
+    display: -o-flex;
+    display: flex;
+
+    flex-direction: row;
+
+    .workflow_status{
+        width:150px;
+
+        margin: 0 3em;
+    }
+}
