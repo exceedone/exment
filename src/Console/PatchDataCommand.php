@@ -321,12 +321,12 @@ class PatchDataCommand extends Command
         foreach ($system_authoritable as $s) {
             $item = (array)$s;
             if (array_get($item, 'related_type') == SystemTableName::USER) {
-                $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'));
+                $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'))->toArray();
             } else {
                 $users = array_merge(
                     $users,
                     CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(array_get($item, 'related_id'))
-                        ->users()
+                        ->users->toArray()
                 );
             }
         }

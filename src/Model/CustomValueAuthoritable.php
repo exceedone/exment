@@ -74,7 +74,7 @@ class CustomValueAuthoritable extends ModelBase
 
         // select target users
         $form->multipleSelect('custom_value_edit', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
-            ->options(static::getUserOrgSelectOptions($custom_value->custom_table, Permission::AVAILABLE_EDIT_CUSTOM_VALUE))
+            ->options(static::getUserOrgSelectOptions($custom_value->custom_table))
             ->default(static::getUserOrgSelectDefault($custom_value, Permission::CUSTOM_VALUE_EDIT))
             ->help(exmtrans('role_group.role_type_option_value.custom_value_edit.help'))
             ->setWidth(9, 2);
