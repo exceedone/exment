@@ -163,6 +163,7 @@ class Workflow2Controller extends AdminControllerBase
                     // if not contains item, add
                     if($j >= count($workflow_status_type->workflow_status_blocks)){
                         $workflow_status_block = new WorkflowStatusBlock;
+                        $workflow_status_block->status_block_name = exmtrans('workflow.no_setting');
                         $workflow_status_type->workflow_status_blocks->push($workflow_status_block);
                     }
                 }
