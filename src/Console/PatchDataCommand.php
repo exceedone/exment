@@ -426,6 +426,7 @@ class PatchDataCommand extends Command
                 'uri' => 'role_group',
                 'menu_name' => 'role_group',
                 'menu_target' => 'role_group',
+                'title' => exmtrans('menu.system_definitions.role_group'),
             ]);
     }
 
