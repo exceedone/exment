@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\WorkflowStatusBlock;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowStatusType;
+use Exceedone\Exment\Form\Widgets\ModalInnerForm;
 
 
 class Workflow2Controller extends AdminControllerBase
@@ -89,6 +90,7 @@ class Workflow2Controller extends AdminControllerBase
             'css' => asset('/vendor/exment/css/workflow.css?ver='.$ver),
             'js' => asset('/vendor/exment/js/customform.js?ver='.$ver),
             'workflow_statuses' => $workflow_statuses,
+            'modalurl_status' => admin_urls('workflow', 'modal', 'status'),
         ]))->setWidth(12, 0);
 
         if (isset($id) && CustomTable::where('workflow_id', $id)->count() > 0) {
@@ -115,6 +117,45 @@ class Workflow2Controller extends AdminControllerBase
         });
 
         return $form;
+    }
+
+    /**
+     * show form for modal status
+     *
+     * @return void
+     */
+    public function modalStatus(Request $request){
+        
+        $form = new ModalInnerForm();
+        $form->disableReset();
+        $form->disableSubmit();
+        $form->modalAttribute('id', 'data_share_modal');
+        $form->modalHeader(exmtrans('common.shared'));
+        
+        // 
+        $form->switchbool('enabled_flg', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
+            ->default($request->get('enabled_flg'))
+            ->attribute(['data-filtertrigger' =>true])
+            ->setWidth(9, 2);
+
+        $form->text('status_name', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
+            ->required()
+            ->default($request->get('status_name'))
+            ->attribute(['data-filter' => json_encode(['key' => 'enabled_flg', 'value' => '1'])])
+            ->setWidth(9, 2);
+
+        $form->switchbool('editable_flg', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
+            ->default($request->get('editable_flg'))
+            ->attribute(['data-filter' => json_encode(['key' => 'enabled_flg', 'value' => '1'])])
+            ->setWidth(9, 2);
+
+
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
     }
 
     /**

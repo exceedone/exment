@@ -21,15 +21,24 @@ class Modal
         // Add script
         $script = <<<EOT
             $(document).off('click', '[data-widgetmodal_url]').on('click', '[data-widgetmodal_url]', {}, function(ev){
-                var url = $(ev.target).closest('[data-widgetmodal_url]').data('widgetmodal_url');
-                var original_title = $(ev.target).closest('[data-widgetmodal_url]').data('original-title');
+                var target = $(ev.target).closest('[data-widgetmodal_url]');
+                var url = target.data('widgetmodal_url');
+                var original_title = target.data('original-title');
+
+                /// get data from "data-widgetmodal_getdata"
+                var data = {targetid: $(this).attr('id')};
+                var getdataKeys = target.data('widgetmodal_getdata');
+                if(hasValue(getdataKeys)){
+                    for(var key in getdataKeys){
+                        data[getdataKeys[key]] = target.find('.' + getdataKeys[key]).val();
+                    }
+                }
+
                 // get ajax
                 $.ajax({
                     url: url,
                     method: 'GET',
-                    data: {
-                        targetid: $(this).attr('id')
-                    }
+                    data: data
                 }).done(function( res ) {
                     $('button.modal-submit').removeClass('d-none');
                     // change html
@@ -37,6 +46,8 @@ class Modal
 
                     if(!$('#$id').hasClass('in')){
                         $('#$id').modal('show');
+
+                        Exment.CommonEvent.AddEvent();
                     }
                 }).fail(function( res, textStatus, errorThrown ) {
                     
