@@ -7,6 +7,7 @@ return [
         'import' => 'Import',
         'plugin' => 'Plugin',
         'copy' => 'Copy',
+        'shared' => 'Share',
         'change' => 'Change',
         'reqired' => 'Required',
         'default' => 'Default',
@@ -21,40 +22,54 @@ return [
         'parent_type' => 'Parent Data Table Name',
         'created' => 'Created',
         'updated' => 'Updated',  
+        'attachmented' => 'Attachmented', 
         'created_at' => 'Created At',
         'updated_at' => 'Updated At',  
         'deleted_at' => 'Deleted At',      
+        'published_at' => 'Published At', 
+        'published_date' => 'Published Date', 
         'created_user' => 'Created User',
         'updated_user' => 'Updated User', 
         'deleted_user' => 'Deleted User',   
         'trashed_user' => '(Already Trashed User)', 
-        'attachment' => 'Attachment File',     
+        'attachment' => 'Attachment File',
+        'max_file_size' => 'Max Upload File Size',     
         'comment' => 'Comment',   
         'separate_word' => ',',
         'yes' => 'Yes',
         'no' => 'No',
         'row' => 'Row',
         'column' => 'Column',
-        'asc' => 'Asc',
-        'desc' => 'Desc',
+        'row_up' => 'Row Up',
+        'row_down' => 'Row Down',
+        'pager_count' => 'Pager Count',
+        'custom_table' => 'Custom Table',
+        'custom_column' => 'Custom Column',
+        'copy_item' => "This %s's Copy",
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',
             'success_execute' => 'Execute Success!',
             'error_execute' => 'Execute Error',
+            'execution_takes_time' => 'Execution takes time.',
             'import_success' => 'Success Import!',
             'import_error' => 'Success Error. Please Check Error Message.',
             'notfound' => 'Data Not Found.',
             'wrongdata' => 'Data is wrong. Please check url.',
             'wrongconfig' => 'Wrong config.json.',
+            'exists_row' => 'Be sure to enter at least one line of %s.',
+            'sendmail_succeeded' => 'E-mail transmission succeeded.',
         ],
 
         'help' =>[
             'view_name' => 'Please enter the name to be displayed.',
-            'max_length' => 'Please enter within %s characters.',
             'input_available_characters' => 'Please enter %s.',
+            'max_length' => 'Please enter within %s characters.',
             'no_permission' => 'Authority is not assigned. Please contact the administrator and ask them to assign permissions.',
             'task_schedule_id' => 'Task Schedule',
             'task_schedule' => '<br /><b>*You have to do scheduling setting.</b> Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
+            'order' => 'This is the display order when %s is listed.',
+            'max_file_size_link' => 'File upload upper limit size change.',
+            'max_file_size' => 'This is the size limit when uploading files from the page.Please execute<a href="%s" target="_blank">this<i class="fa fa-external-link"></i></a>to change.'
         ],
 
         'weekday' => [
@@ -65,7 +80,13 @@ return [
             'fri' => 'Fri',
             'sat' => 'Sat',
             'sun' => 'Sun',
-        ]
+        ],
+        
+        'bootstrap_duallistbox_container' => [
+            'nonSelectedListLabel' => 'Candidate data list',
+            'selectedListLabel' => 'Selected data list',
+            'help' => 'From the left column, select the appropriate data and move it to the right column.',
+        ],
     ],
 
     'error' => [
@@ -73,15 +94,39 @@ return [
         'description' => 'An error has occurred. Please check the content of the error.',
         'error_message' => 'Error Message',
         'error_trace' => 'Error Trace',
-        'failure_import_file' => 'The format of the uploaded file is incorrect. Please check it.',
         'not_install' => 'Exment is not installed. Please install Exment according to the following URL. <br /> https://exment.net/docs/#/quickstart',
+        'disabled_outside_api' => 'External connection is not permitted.',
         'login_failed' => 'ID or password is wrong.',
         'mailsend_failed' => 'E-mail transmission failed. Please check your email settings.',
+        'size_too_large' => 'File:{name} (<b>{size} KB</b>) exceeds uploadable size <b>{maxSize} KB</b>.',
+        'disable_delete_row' => 'Contains lines that can not be deleted.',
+        'no_mail_template' => 'There is no mail template. Please check your email template settings.',
     ],
 
-    'validation' => [
-        'not_has_custom_value' => 'The value entered in :attribute does not exist in table ":table_view_name". Please check the data.',
-        'empty' => 'The value of :attribute can only be blank.',
+    'install' => [
+        'title' => 'Install',
+        'installing' => 'Execute Install',
+
+        'database' => [
+            'header' => 'Database Settings',
+            'connection' => 'Database Type',
+            'host' => 'Host Name',
+            'port' => 'Port',
+            'database' => 'Database',
+            'username' => 'User Name',
+            'password' => 'Password',
+        ],
+
+        'help' => [
+            'installing' => 'Install initial data. This process takes time.',
+            'install_success' => 'Installation completed!',
+        ],
+
+        'error' => [
+            'database_canconnection' => 'Could not connect to the database. Please check your settings.',
+            'not_require_database_version' => '%s requires at least version %s. The version used is %s.',
+            'mistake_mysql_mariadb' => 'The database you are using is %s, but you have selected %s. Please check the settings.',
+        ],
     ],
 
     'system' => [
@@ -98,9 +143,19 @@ return [
         'site_favicon' => 'Site Favicon(ico)',
         'site_skin' => 'Site Skin',
         'site_layout' => 'Site Menu Layout',
+        'outside_api' => 'Perform server external communication',
         'permission_available' => 'Use Role Management',
         'organization_available' => 'Use Organization Management',
+        'system_admin_users' => 'System Administrator',
+        'system_mail' => 'System Mail Settings',
+        'system_mail_host' => 'Host Name',
+        'system_mail_port' => 'Port',
+        'system_mail_username' => 'User Name',
+        'system_mail_password' => 'Password',
+        'system_mail_encryption' => 'Encryption Format',
         'system_mail_from' => 'System Email',
+        'grid_pager_count' => 'Number of displayed data list',
+        'datalist_pager_count' => 'Number of displayed search and dashboard',
         'template' => 'Install Template',
         'version_header' => 'System version infomation',
         'version_progress' => 'Checking system version...',
@@ -139,10 +194,17 @@ return [
             'site_favicon' => 'Site Favicon(.ico). It is used for bookmarks on the homepage. Recommended size:16px * 16px',
             'site_skin' => 'Select the site theme color. *After saving, it will be reflected in reloading.',
             'site_layout' => 'On the left side of the page, select the layout of the site menu. *After saving, it will be reflected in reloading.',
+            'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
+            'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
+            'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
             'permission_available' => 'If Select YES, management role using user or organozation.',
             'organization_available' => 'If Select YES, create organizations to which the user belongs.',
+            'system_admin_users' => 'Set the user who will be the system administrator.',
+            'system_mail' => 'Configure settings when sending mail from the system.',
             'system_mail_from' => 'the mail address from this system. Using this mail address as "from", this system sends users.',
+            'system_mail_encryption' => 'Enter the mail encryption protocol format in lower case. (ssl, tls etc)',
             'template' => 'If select these templates, install tables, columns and forms.',
+            'role_one_user_organization' => 'Please register one or more users or organizations for permission.',
         ]
     ],
 
@@ -150,6 +212,7 @@ return [
         'header' => 'Dashboard',
         'dashboard_name' => 'Dashboard Name',
         'dashboard_view_name' => 'Dashboard View Name',
+        'dashboard_type' => 'Dashboard Type',
         'row' => 'Dashboard Row',
         'description_row' => 'The number of columns to display on the %s row of the dashboard.',
         'description_row2' => 'The number of columns to display on the %s row of the dashboard. *If you select "None", the %s row is not displayed.',
@@ -171,6 +234,7 @@ return [
             'list' => 'Data List',
             'system' => 'System',
             'chart' => 'Chart',
+            'calendar' => 'Calendar',
         ],
         
         'dashboard_box_options' => [
@@ -187,15 +251,21 @@ return [
             'chart_begin_zero' => 'Start at zero',
             'chart_legend' => 'Show legend',
             'chart_options' => 'Option settings',
+            'calendar_type' => 'Calendar Type',
         ],
 
         'dashboard_box_system_pages' => [
             'guideline' => 'Guideline',
+            'news' => 'Exment new arrival information list',
         ],
 
         'dashboard_menulist' => [
             'current_dashboard_edit' => 'Edit Current Dashboard Setting',
             'create' => 'Create Dashboard',
+        ],
+        'message' => [
+            'need_setting' => 'It is necessary to change dashboard settings. Please set again.',
+            'not_exists_table' => 'The table or view has been deleted.',
         ],
     ],
 
@@ -214,10 +284,13 @@ return [
         'select_plugin_file' => 'Select Plugin File',
         'options' => [
             'header' => 'Option Setting',
+            'custom_options_header' => 'Custom Options',
             'target_tables' => 'target Table',
             'event_triggers' => 'Execute Trigger',
             'label' => 'Label',
             'button_class' => "Button's Class",
+            'batch_hour' => 'Batch execution time(hour)',
+            'batch_cron' => 'Batch execution cron',
             'icon' => "Button's Icon",
             'uri' => 'URL',
 
@@ -238,6 +311,8 @@ return [
             'icon' => 'Icon to add to the HTML of the button.',
             'button_class' => 'The class added to the button HTML.',
             'errorMess' => 'Select a plugin file.',
+            'batch_hour' => 'Batch start time. ex)If input 3, start batch at 3:00.<br />* Batch will be executed every day at this time.',
+            'batch_cron' => '(For advanced users) Define a cron to execute the batch.<br />* If this item has a value, the setting of "Batch execution time" above will be disabled.',
         ],
 
         'error' => [
@@ -249,6 +324,7 @@ return [
             'page' => 'Page',
             'trigger' => 'Trigger',
             'document' => 'Document',
+            'batch' => 'Batch',
         ],
     ],
 
@@ -282,6 +358,7 @@ return [
             'backup_error' => 'Backup failed.',
             'download_error' => 'Download failed.',
             'restore_confirm' => 'Would you like to perform a restore? (Remove all current data.)',
+            'restore_confirm_text' => 'Also, all current data will be lost.',
             'restore_succeeded' => 'Restore success.',
             'restore_error' => 'Restore failed.',
             'restore_file_success' => 'Restore success. Redirect to login page.',
@@ -317,6 +394,7 @@ return [
         'create_password_auto' => 'Auto-Create Password',
         'avatar' => 'Avatar',
         'default_table_name' => 'User',
+        'belong_organizations' => 'Affiliation settings',
         'help' =>[
             'user_name' => 'The name is displayed on the window.',
             'email' => 'Please enter an email address that can receive system notifications.',
@@ -335,6 +413,7 @@ return [
 
     'organization' => [
         'default_table_name' => 'Organization',
+        'organization_tree' => 'Organization Tree',
     ],
 
     'login' => [
@@ -344,6 +423,54 @@ return [
         'back_login_page' => 'Back to Login Page',
         'sso_provider_error' => 'Failed to acquire login information from provider. If you fail many times, please contact your administrator.',
         'noexists_user' => 'User did not exist in Exment. Please contact your administrator to add users first.',
+        'throttle' => 'There are too many login attempts. Please try again after %s minutes.',
+    ],
+
+    '2factor' => [
+        '2factor' => 'Two-Step Authentication',
+        'login' => 'Authentication',
+        'submit_verify_code' => 'Authentication code transmission',
+        'login_use_2factor' => 'Use Two-Step Authentication',
+        'login_2factor_provider' => 'Default Authentication',
+        'login_2factor_provider_user' => 'Two-Step Authentication Type',
+        'login_2factor_verify_code' => 'Authentication Code',
+
+        'google' => [
+            'register_download' => 'Google verification system installation',
+            'add_acount' => 'Add account',
+            'input_verify_code' => 'Inpu authentication code',
+        ],
+
+        'message' => [
+            'description' => 'If you use 2-step verification, configure on this page. Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>for details. *In 2-step authentication, since the e-mail sending function is required, it is necessary to check e-mail connectivity first.',
+            'email_send_verify' => 'The authorization code has been sent to your email address. Please check your email and enter your verification code.<br />* The certification code is valid for %s minutes.',
+            'google_email_sended' => 'I sent an e-mail. Close this screen and set up Google 2-step verification from the link of the received email.',
+            'input_number' => 'Enter 6 digit authentication code',
+            'verify_failed' => 'Certification failed. The authentication code is incorrect or has expired.',
+
+            'google' => [
+                'resend' => 'Resend Google 2-Step Verification System Registration Email.',
+                'message_available' => 'It is necessary to register the setting of Google 2 phase authentication system. A link for Google 2-step verification will be sent to the registered e-mail address, so please register.',
+                'verify' => 'Please enter your Google 2-step verification code.',
+                'register_first' => 'Follow the steps below to complete the Google 2-step verification system setup.',
+                'register_download' => 'Install Google authentication system on your smartphone.',
+                'add_acount' => "Add an account to your smartphone's Google authentication system. Please read the following QR code with the application.",
+                'input_verify_code' => "Please enter the authentication code displayed on your smartphone's Google authentication system in the input field below.",
+            ],
+        ],
+
+        'help' => [
+            'login_use_2factor' => 'Set this to YES if you want to log in using 2-step verification in Exment. Two-step authentication login is enabled throughout the system.',
+            'submit_verify_code' => 'We will send an authorization code to the email address of the currently logged-in user to verify if the email can be sent successfully.',
+            'login_2factor_provider' => 'Select the 2-step authentication method to use by default. This setting can be changed individually by the user.',
+            'login_2factor_provider_user' => 'Please select a 2-step authentication method.',
+            'login_2factor_verify_code' => 'Please enter the received authorization code in this form.',
+        ],
+
+        '2factor_provider_options' => [
+            'email' => 'E-Mail Authentication',
+            'google' => 'Google 2-Step Verification',
+        ],
     ],
 
     'change_page_menu' =>[
@@ -364,8 +491,8 @@ return [
         'table' => 'Table',
         'table_name' => 'Table Name',
         'table_view_name' => 'Table View Name',
-        'field_description' => 'Description',
         'order' => 'Order',
+        'field_description' => 'Description',
         'color' => 'Color',
         'icon' => 'Icon',
         'search_enabled' => 'Search Enabled',
@@ -381,7 +508,10 @@ return [
         'all_user_viewable_flg' => 'All Users Can View',
         'all_user_accessable_flg' => 'All Users Can Access',
         'add_parent_menu_flg' => 'Add Menu',
+        'add_notify_flg' => 'Add To Notification',
         'add_parent_menu' => 'Target Parent Menu',
+        'default_setting' => 'General Settings',
+        'expand_setting' => 'Extended Settings',
         'help' => [
             'color' => 'Select table color. this color uses for example search.',
             'icon' => 'Select icons. these use for example menu.',
@@ -389,7 +519,7 @@ return [
             'one_record_flg' => 'Can Save Only One Record. For example, yourself company information.',
             'attachment_flg' => 'If set to YES, you can add attachments to each data.',
             'comment_flg' => 'If set to YES, comments can be added to each data.',
-            'use_label_id_flg' => 'If set to YES, the value of the data id is displayed as a heading item. Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
+            'use_label_id_flg' => 'If set to YES, the value of the data id is displayed as a heading item. Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
             'revision_flg' => 'If it is set to YES, save the data change history when saving each data. Also, you can restore previous saved information on each data screen.',
             'revision_count' => 'The maximum number of items to save change history of data. When saving more history, the past history is deleted.',
             'notify_flg' => 'If it is set to YES, a notification is sent to authorized users when adding / updating data.',
@@ -398,7 +528,27 @@ return [
             'all_user_accessable_flg' => 'If set to YES, all users will be able to see all the data in this table.<br/>*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.',
             'add_parent_menu_flg' => 'After creating custom table, you can add it to the menu. To add it, please set it to YES. *It will be displayed after updating the browser. <br /> *It can be set only when new table is created. When updating please set it from "Menu" page.',
             'add_parent_menu' => 'Please select the menu name to be parent.',
+            'add_notify_flg' => 'You can add settings for performing in-system notification to authorized users when creating/updating/sharing/commenting data, after creating a new table. Please add YES if you want to add.<br/>* It can be set only when creating a new table. Please set from the "notification" screen when updating.',
             'saved_redirct_column' => 'Save succeeded ! Please set column column.',
+            'delete_confirm_message' => 'Please enter "%s" to delete it.',
+            'delete_confirm_error' => 'Keyword is not correct.',
+        ],
+        'custom_column_multi' => [
+            'uniques' => 'Compound unique key setting',
+            'unique1' => 'Column 1',
+            'unique2' => 'Column 2',
+            'unique3' => 'Column 3',
+            'table_labels' => 'Headline display column setting',
+            'column_target' => 'Target column',
+            'priority' => 'Priority',
+            'table_label_format' => 'Headline format setting',
+            'table_label_format_string' => 'Headline format string',
+
+            'help' => [
+                'table_labels' => 'When selecting data, set the wording column to be displayed on the screen. Display as heading items in order from the top.<br/>Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for detail.',
+                'uniques' => 'Set a composite unique key. If all the values ​​in these columns match the registered values, an error will occur when saving the data.',
+                'table_label_format' => '(For advanced users) You can flexibly set the format to be displayed in the heading. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for the parameter to display the value.* If you set a value to this item, "header display column setting" above will be disabled.',
+            ],
         ],
     ],
     
@@ -422,14 +572,19 @@ return [
             'string_length' => 'Max Length',
             'rows' => 'Rows',
             'available_characters' => 'Available Characters',
+            'regex_validate' => 'Regular expression',
             'number_min' => 'Min Number',
             'number_max' => 'Max Number',
             'number_format' => 'Use Number Comma String',
             'decimal_digit' => 'Number of decimal places',
             'updown_button' => '+- Button',
+            'datetime_now_saving' => 'Register execution date when saving',
+            'datetime_now_creating' => 'Register execution date when creating',
             'select_item' => 'Select Choice',
             "select_valtext" => "Select Choice (Config value and text)",
             'select_target_table' => 'Select Target Table',
+            'select_target_view' => 'Target view',
+            'select_import_column_id' => 'Key column when importing',
             'true_value' => 'Select1 Value',
             'true_label' => 'Select1 Label',
             'true_label_default' => 'Yes',
@@ -479,13 +634,19 @@ return [
             'rows' => 'Set input form height.',
             'updown_button' => 'By turning YES, Add "+" and "-" buttons.',
             'select_item' => 'Enter choices by line break separator.',
+            'datetime_now_saving' => 'When creating or updating data, values ​​are automatically registered according to the date and time of execution. * You can not set the value by the user.',
+            'datetime_now_creating' => 'When new data is created, values ​​are automatically registered according to the date and time of execution. * You can not set the value by the user.',
             'select_item_valtext' => 'Enter choices by line break separator. The word before the comma is the value, the word after the comma is the label.<br/>Ex：「1,Adult<br/>2,Underage」→"1" is the value saving data. "Adult" is the label user selected.',
             'select_target_table' => 'Select the table to be selected.',
+            'select_target_view' => 'To narrow the data, specify a condition view. Please create the condition view on the custom table setting screen first.',
+            'select_import_column_id' => 'When importing data, you can specify custom columns to narrow the data in the selected table. If not set, use id. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
+            'select_import_column_id_key' => 'Change of specification method of data of parent table',
             'true_value' => 'Enter the value to be registered when the first choice is saved.',
             'true_label' => 'Enter the character string to be displayed when the first choice is saved.',
             'false_value' => 'Enter the value to be registered when saving the second choice.',
             'false_label' => 'Enter the character string to be displayed when saving the second choice.',
 			'available_characters' => 'Please select an inputable character. If you clear all checks, you can enter all the characters.',
+            'regex_validate' => '(For advanced users) Set the contents that can be input as a regular expression. If you set a value to this item, the setting of "Available Characters" above will be disabled. Please refer to &nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp; for details.',
             'auto_number_format' => 'Set the numbering rule to be registered. For details of rules, please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'calc_formula' => 'Enter the calculation formula using other fields. *It is currently beta version.',
             'currency_symbol' => 'Please select the format of the currency displayed on the screen.',
@@ -549,32 +710,56 @@ return [
             'changedata' => 'When you select another item in the form, you can copy the value of the selected data to the item.<br />Please check <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>.',
             'changedata_no_item' => '*There are no columns in the table whose column type is "Select (From Table)", "User", and "Organization". Register these columns if you want to use data linkage settings.',
         ],
+        'message' => [
+            'no_exists_column' => 'Required items have not been set.',
+        ],
     ],
 
     'custom_view' => [
-        'header' => 'Custom View Setting',
+        'header' => 'Custom view setting',
         'description' => 'Define the custom view setting.',
-        'view_view_name' => 'View Display Name',
-        'custom_view_columns' => 'Select View Columns',
-        'custom_view_groups' => 'Select grouping Columns',
-        'view_column_name' => 'Alter name',
-        'custom_view_summaries' => 'Select summary Columns',
-        'custom_view_sorts' => 'Sort Data',
-        'view_column_target' => 'View Target Column',
+        'view_view_name' => 'View display name',
+        'view_datalist' => 'List data in this view',
+        'custom_view_columns' => 'Select view columns',
+        'custom_view_groups' => 'Select grouping columns',
+        'view_column_name' => 'Alias display name',
+        'view_type' => 'View permission',
+        'view_kind_type' => 'View type',
+        'custom_view_summaries' => 'Select summary columns',
+        'custom_view_sorts' => 'Sort data',
+        'view_column_target' => 'View target column',
+        'view_column_start_date' => 'Start date',
+        'view_column_end_date' => 'End date',
+        'color' => 'Display color',
+        'font_color' => 'Letter color',
         'order' => 'Order',
+        'sort_order' => 'Sort order',
         'sort' => 'Sort',
         'priority' => 'Priority',
+        'pager_count_default' => 'Adjust to system settings',
         'custom_view_filters' => 'View Filter',
         'view_filter_condition' => 'Filter Condition',
         'view_filter_condition_value_text' => 'Filter Condition Value',
-        'view_summary_condition' => 'summary type',
+        'view_group_condition' => 'Column type',
+        'view_summary_condition' => 'Summary type',
         'default_view_name' => 'Default View',
+       	'alldata_view_name' => 'All Data View',
         'description_custom_view_columns' => 'Select display columns.',
+        'description_custom_view_calendar_columns' => 'Select the date column to display in the calendar.<br/>* If custom columns do not appear in Target column, no <a href="%s" target="_blank">search index columns<i class="fa fa-external-link"></i></a> has been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_groups' => 'Sets the grouping key columns displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_summaries' => 'Sets the summary columns of data displayed in the view.<br/>*The aggregation target is the column that becomes "ID" "Integer" "Decimal" "Currency" "Date".',
         'description_custom_view_sorts' => 'Sets the display order of data displayed in the view.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
         'description_custom_view_filters' => 'Select filter columns for search.<br/>* In addition to this setting, filter the data so that only the role data owned by the login user is displayed.<br />*If custom columns do not appear in "View Target Column", the <a href="%s" target="_blank">Search Index<i class="fa fa-external-link"></i></a> has not been set. Please confirm the content of the link destination and set it.',
 
+        'help' => [
+            'sort_type' => 'Specifies whether to sort in ascending order or in descending order.',
+            'sort_order_summaries' => 'Sort the data to be acquired.<br />Performs sorting in ascending order of numbers from "group column" and "summary column".',
+        ],
+
+        'column_sort_options' => [
+            'asc' => 'Asending',
+            'desc' => 'Descending',
+        ],
         'group_condition_options' => [
             'y' => 'Year',
             'ym' => 'Year-Month',
@@ -616,12 +801,21 @@ return [
             'next-x-day-or-before' => 'Before the date X days later', 
             'not-null' => 'Not Empty',
             'null' => 'Empty',
+            'gt' => 'Greater than search value', 
+            'lt' => 'Less than search value', 
+            'gte' => 'Greater than or equal to the search value', 
+            'lte' => 'Less than or equal to the search value', 
+            'select-eq' => 'Include search value', 
+            'select-ne' => 'Do not include search values', 
         ],
         
         'custom_view_menulist' => [
             'current_view_edit' => 'Edit Current View Setting',
+            'current_view_replicate' => 'Duplicate current view',
             'create' => 'Create View',
             'create_sum' => 'Create Summary View',
+            'create_calendar' => 'Calendar view new creation',
+            'create_filter' => 'Create condition view new',
         ],
         'message' => [
             'over_filters_max' => 'Cannot set 6 or more display filters.',
@@ -633,20 +827,26 @@ return [
             'system' => 'System View',
             'user' => 'User View',
         ],
+        'custom_view_kind_type_options' => [
+            'default' => 'List view',
+            'aggregate' => 'Summary view',
+            'calendar' => 'Calendar view',
+            'filter' => 'Filter view',
+            'alldata' => 'All data view',
+        ],
     ],
 
-    'role' => [
+    'role_group' => [
         'header' => 'Role Setting',
         'description' => 'Define Setting role.',
-        'role_name' => 'Role Name',
-        'role_view_name' => 'Role View Name',
-        'role_type' => 'Role Type',
-        'default_flg' => 'Default Role',
-        'default_flg_true' => 'True',
-        'default_flg_false' => '',
-        'description_field' => 'Explain',
+        'role_group_name' => 'Role Group Name',
+        'role_group_view_name' => 'Role Group View Name',
         'permissions' => 'Role Detail',
-        'permission_header' => 'Permission Setting',
+        'permission_setting' => 'Permission Setting',
+        'user_organization_setting' => 'User/organization setting',
+        'users_count' => 'User count',
+        'organizations_count' => 'Organization count',
+        'share_description' => 'Share this data with other users and organizations. Sharing enables other users and organizations to access this data.',
 
         'description_form' => [
             'system' => 'Please select users/organizations to whom role is given for the entire system.',
@@ -665,15 +865,33 @@ return [
             'table' => 'Table',
             'value' => 'Value',
             'plugin' => 'Plugin',
+            'master' => 'Master',
+        ],
+        'role_group_system' => [
+            'system' => 'Whole system',
+            'role_group' => 'Role group',
         ],
         
         'role_type_option_system' => [
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
+            'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can add, edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
             'custom_view' => ['label' => 'View', 'help' => 'Users can add, edit, delete custom views.'],
             'custom_value_edit_all' => ['label' => 'All Data', 'help' => 'Users can add, edit, delete all data in custom tables.'],
         ],
+        'role_type_option_role_group' => [
+            'role_group_all' => ['label' => 'Manage the entire role group', 'help' => 'You can change the settings for the entire role group.<br/>You can add, change and delete groups, change permission settings for groups, and change user and organization settings.'],
+            'role_group_permission' => ['label' => 'Authority setting change', 'help' => 'You can change the role group permission settings.'],
+            'role_group_user_organization' => ['label' => 'User/organization management', 'help' => 'You can change the settings of users and organizations registered in role groups.'],
+        ],
+        'role_type_option_master' => [
+            'custom_table' => ['label' => 'Master management', 'help' => 'You can change the definition of the master. You can also add, edit and delete master data.'],
+            'custom_form' => ['label' => 'Form', 'help' => 'You can add, change and delete forms.'],
+            'custom_view' => ['label' => 'View', 'help' => 'You can add, change and delete system views.'],
+            'custom_value_edit_all' => ['label' => 'Edit data', 'help' => 'You can add, edit and delete master data.'],
+            'custom_value_view_all' => ['label' => 'View data', 'help' => 'You can view the master data.'],
+        ], 
         'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
             'custom_form' => ['label' => 'Form', 'help' => 'Users can add, edit, delete custom forms.'],
@@ -684,6 +902,7 @@ return [
             'custom_value_edit' => ['label' => 'Edit Personnel Data', 'help' => 'Users can add, edit, delete personnel data in custom tables.'],
             'custom_value_view' => ['label' => 'View Personnel Data', 'help' => 'Users can view personnel data in custom tables.'],
             'custom_value_access' => ['label' => 'Access All Data', 'help' => 'Users can see personnel data in custom tables.<br />*It is not displayed on the menu or list screen, it can be displayed only with internal data or reference from another table.'],
+            'custom_value_share' => ['label' => 'Data sharing', 'help' => 'Data can be shared with other users.<br />* You need edit permission for the data.'],
         ], 
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
@@ -705,9 +924,11 @@ return [
         ],
         'parent_custom_table' => 'Parent Table',
         'child_custom_table' => 'Child Table',
+        'parent_import_column_id' => 'Key column when importing',
 
         'help' => [
             'relation_caution' => '<span class="red bold"><i class="fa fa-exclamation-circle"></i> In addition to this screen, there is one more method of setting the association between Exment tables.</span><br />Please be sure to check the <a href="%s" target="_blank">manual</a> and make the appropriate selection before registration.',
+            'parent_import_column_id' => 'When importing data, you can specify custom columns to refine the data in the parent table. If not set, use id. Please refer to&nbsp;<a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a>&nbsp;for details.',
         ]
     ],
 
@@ -739,6 +960,7 @@ return [
         'no_result' => 'There is no result found',
         'result_label' => 'Search Result for "%s"' ,
         'view_list' => 'List View',
+        'freeword' => 'Freeword',
     ],
 
     'menu' => [
@@ -760,7 +982,7 @@ return [
             'system' => 'System Setting',
             'plugin' => 'Plugin',
             'custom_table' => 'Custom Table',
-            'role' => 'Role',
+            'role_group' => 'Role group',
             'menu' => 'Menu',
             'template' => 'Template',
             'backup' => 'Backup',
@@ -768,6 +990,10 @@ return [
             'notify' => 'Notify',
             'master' => 'Manage Master',
             'admin' => 'Admin Setting',
+            'user' => 'User',
+            'organization' => 'Organization',
+            'mail_template' => 'Mail template',
+            'mail' => 'Email transmission history',
         ],
     ],
 
@@ -803,8 +1029,7 @@ return [
             'table' => 'Table',
             'dashboard' => 'Dashboard',
             'menu' => 'Menu',
-            'role' => 'Role',
-            'mail_template' => 'Mail Template',
+            'role_group' => 'Role group',
         ]
     ],
 
@@ -812,6 +1037,7 @@ return [
         'template' => 'Export Template',
         'import_export' => 'Import/Export',
         'export' => 'Export',
+        'view_summary_detail' => 'Display the items of aggregated data',
         'import' => [
             'manual_id' => 'Data Import',
             'import_file' => 'Import File',
@@ -820,6 +1046,7 @@ return [
             'error_flow' => 'Error Handling',
             'import_error_message' => 'Error Message',
             'import_error_format' => 'Line %d : %s',
+            'target_column_name' => 'Replacement target column name (alphanumeric characters)',
             'help' => [
                 'description' => 'You can import the data of each table into Exment. <br />Please refer to <a href="%s" target="_blank">here<i class="fa fa-external-link"></i></a> for details such as the procedure.',
                 'custom_table_file' => 'Select the CSV file that you output the template.',
@@ -836,19 +1063,29 @@ return [
                 'skip' => 'Normal data is captured, but error data is not imported.',
             ],
         ],
-        'data_detail' => 'Data Check',
-
-        'bootstrap_duallistbox_container' => [
-            'nonSelectedListLabel' => 'Suggest Data List',
-            'selectedListLabel' => 'Selected Data List',
-            'help' => 'Please select From the left column and move to the right column.',
+        'sendmail' => [
+            'title' => 'Send email',
+            'mail_to' => 'Email destination',
+            'mail_title' => 'Email subject',
+            'mail_message' => 'Email body',
+            'attachment' => 'Attachment files',
+            'send_error_message' => 'Error message',
+            'help' => [
+                'send_error_message' => 'Error messages will be displayed in this item if mail transmission has failed.',
+            ],
+            'message' => [
+                'send_succeeded' => 'Email transmission succeeded',
+                'empty_error' => 'Email subject and body are required items.',
+            ],
         ],
+        'data_detail' => 'Data Check',
         'auto_number_create' => '(After saving, this value ​​will be registered automatically)',
 
         'help' => [
             'no_columns_admin' => 'Custom column has not been registered. Please register a custom column first.',
             'no_columns_user' => 'Custom column has not been registered. Please contact your administrator and request additional custom columns.',
             'reference_error' => 'This data can not be deleted because it is referenced from another table.',
+            'multiple_uniques' => 'The value for which %s is key is already registered.',
         ],
     ],
 
@@ -862,17 +1099,39 @@ return [
         'new_revision' => 'New Revision',
         'revision_info' => 'Revision Info',
         'restore_revision' => 'Restore This Revision',
-        'new' => 'Newest',
+        'new' => 'Latest',
         'compare_revision' => 'Compare Revision',
+    ],
+    'notify_navbar' => [
+        'header' => 'Notify list',
+        'description' => 'List of notifications to the user.',
+        'read_flg' => 'Status',
+        'parent_type' => 'Target table',
+        'notify_subject' => 'Notify subject',
+        'notify_body' => 'Notify body',
+        'target_custom_value' => 'Target data',
+        'data_refer' => 'Display data linked to this notification',
+        'all_check' => 'Make it bulk read',
+        'read_flg_options' => [
+            '0' => 'Unread',
+            '1' => 'Read',
+        ],
+        'message' => [
+            'check_succeeded' => 'The selected data has been changed to read.',
+            'check_notfound' => 'There is no data to update.',
+            'no_newitem' => 'There is no new arrival notification.',
+        ],
     ],
 
     'notify' => [
+        'notify' => 'Notify',
         'header' => 'Notify Setting',
         'header_trigger' => 'Notify Trigger Setting',
         'header_action' => 'Notify Action Setting',
         'description' => 'Perform settings for notifying under specific conditions.',
         'notify_view_name' => 'Notify Display Name',
         'custom_table_id' => 'Notify Target Name',
+        'custom_view_id' => 'Target view',
         'notify_trigger' => 'Notify Trigger',
         'trigger_settings' => 'Notify Trigger Setting',
         'notify_target_column' => 'Notify Target Date Column',
@@ -883,10 +1142,12 @@ return [
         'action_settings' => 'Notify Action Setting',
         'notify_action_target' => 'Notify Target',
         'mail_template_id' => 'Notify Mail Template',
+        'notify_button_name' => 'Button display name',
 
         'help' => [
             'notify_day' => 'Please enter the date of the notification. By inputting "0", will notify you on the day.',
             'custom_table_id' => 'Select the table to use as the condition to notify.',
+            'custom_view_id' => 'Specify the condition view when you want to narrow the data of the target table. Please create the condition view on the custom table setting screen first.',
             'notify_trigger' => 'Please select the content to be notified trigger.',
             'trigger_settings' => 'Select the datetime or date field for judging whether to notify.',
             'notify_beforeafter' => 'Choose whether to notify you that you are "before" or "after" of the date you are registering.<br />Ex: If "Notification date" is 7, "before and after notification" is "before", notification is executed 7 days before the date of the specified field.',
@@ -899,13 +1160,15 @@ return [
         'notify_trigger_options' => [
             'time' => 'The Passage of Time',
             'create_update_data' => 'Data Create/Update',
+            'button' => 'Button',
         ],
         'notify_beforeafter_options' => [
             'before' => 'Before', 
             'after' => 'After'
         ],
         'notify_action_options' => [
-            'email' => 'Email', 
+            'email' => 'Email',
+            'show_page' => 'In-system alert',  
         ],
 
         'notify_action_target_options' => [
@@ -920,6 +1183,17 @@ return [
             'pie' => 'Pie chart',
         ]
     ],
+    'calendar' => [
+        'calendar_type_options' => [
+            'month' => 'Monthly',
+            'list' => 'List',
+        ],
+        'calendar_button_options' => [
+            'month' => 'Month',
+            'week' => 'Week',
+            'day' => 'Day',
+        ]
+    ],
     
     'api' => [
         'scopes' => [
@@ -929,5 +1203,9 @@ return [
             'value_read' => 'Get Value',
             'value_write' => 'Get, Create, Update, Delete Value',
         ],
+        'errors' => [
+            'access_denied' => 'Could not authenticate. The access token is incorrect or has expired.',
+            'wrong_scope' => 'There is an error in the scope for executing the API. Please contact the developer.',
+        ]
     ],
 ];

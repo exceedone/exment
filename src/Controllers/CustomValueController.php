@@ -381,7 +381,7 @@ class CustomValueController extends AdminControllerTableBase
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
-            'title' => exmtrans('common.share')
+            'title' => exmtrans('common.shared')
         ]);
     }
 
