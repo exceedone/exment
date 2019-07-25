@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Model\WorkflowAction;
 use Exceedone\Exment\Model\WorkflowStatus;
-use Exceedone\Exment\Model\WorkflowStatusBlock;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowStatusType;
@@ -74,7 +73,7 @@ class Workflow2Controller extends AdminControllerBase
         $workflow = isset($id) ? Workflow::findOrFail($id) : new Workflow;
 
         // get workflow_statuses groupby
-        $workflow_statuses = $this->getWorkflowStatusGroup($workflow);
+        $workflow_statuses = $this->getWorkflowStatuses($workflow);
 
         $form = new Form(new Workflow);
 
@@ -82,7 +81,7 @@ class Workflow2Controller extends AdminControllerBase
             ->required()
             ->rules("max:40");
 
-        $form->exmheader(exmtrans("workflow.workflow_statuses"))->hr();
+        $form->exmheader(exmtrans("workflow.workflow_status"))->hr();
 
         // get exment version
         $ver = getExmentCurrentVersion() ?? date('YmdHis');
@@ -133,19 +132,22 @@ class Workflow2Controller extends AdminControllerBase
         $form->modalHeader(exmtrans('common.shared'));
         
         // 
-        $form->switchbool('enabled_flg', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
+        $form->switchbool('enabled_flg', exmtrans('workflow.enabled_flg'))
             ->default($request->get('enabled_flg'))
+            ->help(exmtrans('workflow.help.enabled_flg'))
             ->attribute(['data-filtertrigger' =>true])
             ->setWidth(9, 2);
 
-        $form->text('status_name', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
+        $form->text('status_name', exmtrans('workflow.status_name'))
             ->required()
             ->default($request->get('status_name'))
+            ->help(exmtrans('workflow.help.status_name'))
             ->attribute(['data-filter' => json_encode(['key' => 'enabled_flg', 'value' => '1'])])
             ->setWidth(9, 2);
 
-        $form->switchbool('editable_flg', exmtrans('role_group.role_type_option_value.custom_value_edit.label'))
+        $form->switchbool('editable_flg', exmtrans('workflow.editable_flg'))
             ->default($request->get('editable_flg'))
+            ->help(exmtrans('workflow.help.editable_flg'))
             ->attribute(['data-filter' => json_encode(['key' => 'enabled_flg', 'value' => '1'])])
             ->setWidth(9, 2);
 
@@ -159,26 +161,24 @@ class Workflow2Controller extends AdminControllerBase
     }
 
     /**
-     * Get workflow statuses. group by status_group_id.
+     * Get workflow statuses
      *
      * @param Workflow $workflow
      * @return array workflow statuses
      */
-    protected function getWorkflowStatusGroup($workflow){
+    protected function getWorkflowStatuses($workflow){
         // get workflow statuses group by database
-        $workflow_statuses_groups = $workflow->workflow_statuses()
-            ->with(['workflow_status_blocks'])
-            ->groupBy('workflow_group_id')
+        $workflow_statuses = $workflow->workflow_statuses()
             ->orderBy('status_type')
-            ->orderBy('workflow_group_id')
+            ->orderBy('order')
             ->get();
-
+        
         // loop $workflow_statuses_groups
-        $workflow_statuses = [];
+        $result = [];
         foreach(WorkflowStatusType::values() as $workflow_status_type_enum){
             // filter $workflow_statuses_groups
-            $workflow_statuses_group_filter = $workflow_statuses_groups->filter(function($workflow_statuses_group) use($workflow_status_type_enum){
-                return $workflow_statuses_group->status_type == $workflow_status_type_enum;
+            $workflow_statuses_filter = $workflow_statuses->filter(function($workflow_status) use($workflow_status_type_enum){
+                return $workflow_status->status_type == $workflow_status_type_enum;
             });
 
             $enumOptions = $workflow_status_type_enum->getOption(['id' => $workflow_status_type_enum->getValue()]);
@@ -186,37 +186,30 @@ class Workflow2Controller extends AdminControllerBase
             $workflow_status_types = [];
             for($i = 0; $i < $enumOptions['count']; $i++){
                 // if contains item, get 
-                if($i < count($workflow_statuses_group_filter)){
-                    $workflow_status_type = $workflow_statuses_group_filter->values()->get($i);
+                if($i < count($workflow_statuses_filter)){
+                    $workflow_status_type = $workflow_statuses_filter->values()->get($i);
                 }
                 // else, create new item
                 else{
                     $workflow_status_type = new WorkflowStatus;
                     $workflow_status_type->status_type = array_get($enumOptions, 'id');
-                    $workflow_status_type->workflow_group_id = $i;
+                    $workflow_status_type->order = $i;
+                    $workflow_status_type->editable_flg = boolval(array_get($enumOptions, 'editable_flg'));
                     $workflow_status_type->enabled_flg = boolval(array_get($enumOptions, 'enabled_flg'));
 
                     $status_name_trans = array_get($enumOptions, 'status_name_trans');
                     $workflow_status_type->status_name = isset($status_name_trans) ? exmtrans($status_name_trans) : null;
                 }
 
-                for ($j = 0; $j < $enumOptions['count']; $j++) {
-                    // if not contains item, add
-                    if($j >= count($workflow_status_type->workflow_status_blocks)){
-                        $workflow_status_block = new WorkflowStatusBlock;
-                        $workflow_status_block->status_block_name = exmtrans('workflow.no_setting');
-                        $workflow_status_type->workflow_status_blocks->push($workflow_status_block);
-                    }
-                }
-
                 $workflow_status_types[] = $workflow_status_type;
             }
 
-            $workflow_statuses[] = $workflow_status_types;
+            $result[] = $workflow_status_types;
         }
         
-        return $workflow_statuses;
+        return $result;
     }
+
 
     /**
      * Make a action edit form builder.

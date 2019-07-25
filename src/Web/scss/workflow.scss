@@ -15,6 +15,14 @@
     .workflow_wrapper_item{
         width:120px;
         margin: 0 2em;
+        min-height: 200px;
+        display: -webkit-inline-flex;
+        display: -moz-inline-flex;
+        display: -ms-inline-flex;
+        display: -o-inline-flex;
+        display: inline-flex;
+        justify-content: center;
+        flex-direction: column;
 
         .workflow_status_name{
             font-size:0.9em;
@@ -39,20 +47,19 @@
         .workflow_status_1{
             border: 1px dashed $border-workflow;
         }
-    
-        .workflow_status_block{
-            margin:2em 0;
-            text-align: center;
-    
-            .status_icon{
-                font-size: 50px;
-                display: block;
-            }
+
+        margin:2em 0;
+        text-align: center;
+
+        .status_icon{
+            font-size: 50px;
+            display: block;
         }
     }
 
     .workflow_wrapper_action_item{
         text-align: center;
+        width:200px;
 
         .action_icon{
             font-size: 30px;
