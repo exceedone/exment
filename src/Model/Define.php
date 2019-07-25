@@ -376,6 +376,7 @@ class Define
         ['uri'=> 'data', 'help_uri'=> 'data'],
         ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'system', 'help_uri'=> 'system_setting'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 

@@ -43,7 +43,7 @@ namespace Exment {
             }
             var helps = JSON.parse(help_urls);
 
-            var pathname = location.pathname;
+            var pathname = trimAny(location.pathname, '/');
             var $manual = $('#manual_link');
             var manual_base_uri = $('#manual_base_uri').val();
 
@@ -54,9 +54,11 @@ namespace Exment {
                 let uri = trimAny(admin_base_path(help.uri), '/');
                 let isMatch = false;
                 if(!hasValue(uri)){
-                    isMatch = trimAny(pathname, '/') == uri;
+                    isMatch = (pathname == uri);
+                }else if(trimAny(admin_base_path(''), '/') == uri){
+                    isMatch = (pathname == uri);
                 }else{
-                    isMatch  = trimAny(pathname, '/').indexOf(uri) === 0;
+                    isMatch  = pathname.indexOf(uri) === 0;
                 }
                 if(isMatch){
                     // set new url
