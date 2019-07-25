@@ -1178,6 +1178,7 @@ return [
 
         'notify_action_target_options' => [
             'has_roles' => '権限のあるユーザー',
+            'created_user' => '作成者',
         ],
     ],
     
