@@ -201,7 +201,7 @@ trait CustomValueShow
     {
         $custom_value = $this->getModelNameDV()::find($id);
         $documents = $this->getDocuments($id, $modal);
-        $useFileUpload = $this->useFileUpload($modal);
+        $useFileUpload = $this->useFileUpload($id, $modal);
         $useComment = $this->useComment($modal);
  
         $revisions = $this->getRevisions($id, $modal);
@@ -413,10 +413,10 @@ EOT;
     /**
      * whether file upload field
      */
-    protected function useFileUpload($modal = false)
+    protected function useFileUpload($id, $modal = false)
     {
         // if no permission, return
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermissionEditData($id)) {
             return [];
         }
         
@@ -463,7 +463,7 @@ EOT;
         }
 
         // if no permission, return
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermissionEditData($id)) {
             return [];
         }
         

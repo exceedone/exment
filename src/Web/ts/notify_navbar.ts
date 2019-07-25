@@ -23,8 +23,6 @@ namespace Exment {
                 NotifyNavbarEvent.timeout_id = null;
             }
 
-            console.log('notifyNavbar : ' + Date());
-
             $.ajax({
                 url: admin_url(URLJoin('webapi', 'notifyPage')),
                 dataType: "json",

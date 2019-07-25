@@ -140,14 +140,17 @@ class Notify extends ModelBase
             $users = [];
             foreach ($options['targetUserOrgs'] as $targetUserOrg) {
                 if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
-                    $users = array_merge($users, $targetUserOrg->users);
+                    $users = array_merge($users, $targetUserOrg->users->pluck('id'));
                 } else {
-                    $users[] = $targetUserOrg;
+                    $users[] = $targetUserOrg->id;
                 }
             }
 
+            // get users 
+            $users = getModelName(SystemTableName::USER)::find($users);
+
             // convert as NotifyTarget
-            $users = collect($users)->map(function ($user) {
+            $users = $users->map(function ($user) {
                 return NotifyTarget::getModelAsUser($user);
             })->toArray();
         }
