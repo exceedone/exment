@@ -64,6 +64,37 @@ trait HasPermissions
     }
 
     /**
+     * whethere has permission, permission level
+     * $role_key * if set array, check whether either items.
+     * Checking also each table. If there is even one, return true.
+     * @param array|string $role_key
+     */
+    public function hasPermissionContainsTable($role_key)
+    {
+        // if system doesn't use role, return true
+        if (!System::permission_available()) {
+            return true;
+        }
+
+        if ($role_key == Permission::SYSTEM) {
+            return $this->isAdministrator();
+        }
+
+        if (!is_array($role_key)) {
+            $role_key = [$role_key];
+        }
+
+        $permissions = $this->allPermissions();
+        foreach ($permissions as $permission) {
+            // if role type is system, and has key
+            if (array_keys_exists($role_key, $permission->getPermissionDetails())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * whether user has no permission
      * if no permission, show message on dashboard
      */
