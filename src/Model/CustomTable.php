@@ -1295,7 +1295,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if ($this->hasPermission(Permission::AVAILABLE_ALL_EDIT_CUSTOM_VALUE)) {
             return true;
         }
 

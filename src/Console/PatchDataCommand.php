@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -18,6 +19,8 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\DataImportExport;
 use Carbon\Carbon;
 
@@ -206,7 +209,22 @@ class PatchDataCommand extends Command
      */
     protected function updateSavedTemplate()
     {
-        return $this->patchMailTemplate([MailKeyName::DATA_SAVED_NOTIFY]);
+        $this->patchMailTemplate([MailKeyName::DATA_SAVED_NOTIFY]);
+
+        // add Notify update options
+        $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
+            ->get();
+        
+        foreach($notifies as $notify){
+            $notify_saved_trigger = array_get($notify, 'trigger_settings.notify_saved_trigger');
+            if(!isset($notify_saved_trigger)){
+                $trigger_settings = $notify->trigger_settings;
+                $trigger_settings['notify_saved_trigger'] = NotifySavedType::arrays();
+                $notify->trigger_settings = $trigger_settings;
+
+                $notify->save();
+            }
+        }
     }
     
     /**
