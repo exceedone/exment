@@ -1304,7 +1304,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
-
     
     /** 
      * Check if current workflow status is editable.

@@ -153,7 +153,7 @@ class Workflow2Controller extends AdminControllerBase
                     $workflow_status_type = new WorkflowStatus;
                     $workflow_status_type->status_type = array_get($enumOptions, 'id');
                     $workflow_status_type->workflow_group_id = $i;
-                    $workflow_status_type->enabled_flg = array_get($enumOptions, 'enabled_flg');
+                    $workflow_status_type->enabled_flg = boolval(array_get($enumOptions, 'enabled_flg'));
 
                     $status_name_trans = array_get($enumOptions, 'status_name_trans');
                     $workflow_status_type->status_name = isset($status_name_trans) ? exmtrans($status_name_trans) : null;
