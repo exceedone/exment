@@ -285,8 +285,12 @@ class Notify extends ModelBase
         $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
 
         // find data. where equal target_date
-        $datalist = $this->custom_view->setValueFilters($table->getValueModel())
-            ->whereRaw("$raw = ?", [$target_date_str])->get();
+        if (isset($this->custom_view_id)) {
+            $datalist = $this->custom_view->setValueFilters($table->getValueModel())
+                ->whereRaw("$raw = ?", [$target_date_str])->get();
+        } else {
+            $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();
+        }
 
         return [$datalist, $table, $column];
     }

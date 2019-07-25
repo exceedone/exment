@@ -6,6 +6,7 @@ class NotifySavedType extends EnumBase
 {
     const CREATE = "created";
     const UPDATE = "updated";
+    const DELETE = "deleted";
     const SHARE = "shared";
     const COMMENT = "comment";
     const ATTACHMENT = "attachmented";
@@ -18,6 +19,9 @@ class NotifySavedType extends EnumBase
                 
             case static::UPDATE:
                 return exmtrans('common.updated');
+                
+            case static::DELETE:
+                return exmtrans('common.deleted');
         
             case static::SHARE:
                 return exmtrans('common.shared');

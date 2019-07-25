@@ -207,7 +207,12 @@ class CustomValue extends ModelBase
         
         static::deleting(function ($model) {
             static::setUser($model, ['deleted_user_id']);
+
+            // saved_notify(as update) disable
+            $saved_notify = $model->saved_notify;
+            $model->saved_notify = false;
             $model->save();
+            $model->saved_notify = $saved_notify;
             
             $model->deleteRelationValues();
         });
@@ -215,6 +220,8 @@ class CustomValue extends ModelBase
         static::deleted(function ($model) {
             $model->preSave();
             $model->postDelete();
+
+            $model->notify(NotifySavedType::DELETE);
         });
 
         static::addGlobalScope(new CustomValueModelScope);

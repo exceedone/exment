@@ -108,7 +108,6 @@ class NotifyController extends AdminControllerBase
         
         $form->select('notify_trigger', exmtrans("notify.notify_trigger"))
             ->options(NotifyTrigger::transKeyArray("notify.notify_trigger_options"))
-            ->default(NotifyTrigger::TIME)
             ->required()
             ->config('allowClear', false)
             ->attribute([

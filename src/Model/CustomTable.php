@@ -1294,7 +1294,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -1302,7 +1302,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_EDIT_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
     
     /** 
@@ -1337,8 +1337,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Whether login user has permission about target id data. (protected function)
+     * 
+     * @$tableRole if user doesn't have these permission, return false
+     * @$tableRoleTrue if user has these permission, return true
      */
-    protected function _hasPermissionData($id, $tableRole, $dataRole)
+    protected function _hasPermissionData($id, $tableRole, $tableRoleTrue, $dataRole)
     {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
@@ -1351,7 +1354,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if ($this->hasPermission($tableRoleTrue)) {
             return true;
         }
 
