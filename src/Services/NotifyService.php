@@ -298,8 +298,8 @@ class NotifyService
                     // save data
                     $login_user = \Exment::user();
 
-                    $mail_subject = array_get($mail_template->value, 'mail_subject');
-                    $mail_body = array_get($mail_template->value, 'mail_body');
+                    $mail_subject = $subject?? array_get($mail_template->value, 'mail_subject');
+                    $mail_body = $body?? array_get($mail_template->value, 'mail_body');
                     
                     // replace system:site_name to custom_value label
                     array_set($prms, 'system.site_name', $custom_value->label);
