@@ -65,7 +65,7 @@ class CustomValueAuthoritable extends ModelBase
         $form->disableReset();
         $form->disableSubmit();
         $form->modalAttribute('id', 'data_share_modal');
-        $form->modalHeader(exmtrans('common.share'));
+        $form->modalHeader(exmtrans('common.shared'));
         $form->action(admin_urls('data', $tableKey, $id, 'sendShares'));
 
         $form->description(exmtrans('role_group.share_description'))->setWidth(9, 2);
