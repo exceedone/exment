@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Encore\Admin\Widgets\Form;
+use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Encore\Admin\Controllers\HasResourceActions;

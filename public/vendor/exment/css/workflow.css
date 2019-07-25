@@ -5,9 +5,19 @@
   display: -o-flex;
   display: flex;
   flex-direction: row;
+  align-items: center;
 }
 
 .workflow_wrapper .workflow_status {
   width: 150px;
   margin: 0 3em;
+}
+
+.workflow_wrapper .workflow_status_block {
+  margin: 2em 0;
+}
+
+.workflow_wrapper .workflow_status_block .status_icon {
+  font-size: 50px;
+  display: block;
 }
