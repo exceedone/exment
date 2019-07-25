@@ -172,6 +172,10 @@ trait CustomValueGrid
                     $actions->disableDelete();
                 }
 
+                if(boolval(array_get($actions->row, 'disabled_delete'))){
+                    $actions->disableDelete();
+                }
+
                 PartialCrudService::setGridRowAction($custom_table, $actions);
             });
         }

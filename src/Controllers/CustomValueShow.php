@@ -157,6 +157,10 @@ trait CustomValueShow
                     ]));
                 }
 
+                if(boolval(array_get($custom_value, 'disabled_delete'))){
+                    $tools->disableDelete();
+                }
+
                 if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
                     $tools->disableList();
                 } elseif (!$modal) {

@@ -362,6 +362,8 @@ EOT;
         $form->disableViewCheck(false);
         
         $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
+            $custom_value = $custom_table->getValueModel($id);
+            
             $tools->disableView(false);
             $tools->setListPath($custom_table->getGridUrl(true));
 
@@ -374,6 +376,10 @@ EOT;
 
             // if user only view, disable delete and view
             elseif (!$custom_table->hasPermissionEditData($id)) {
+                $tools->disableDelete();
+            }
+
+            if(boolval(array_get($custom_value, 'disabled_delete'))){
                 $tools->disableDelete();
             }
 

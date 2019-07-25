@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Enums\MailTemplateType;
+use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
 
 trait MailTemplateTrait
@@ -44,5 +45,15 @@ trait MailTemplateTrait
             return null;
         }
         return $mail_template->getValue('mail_body');
+    }
+    
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        return in_array($this->getValue('mail_key_name'), MailKeyName::arrays());
     }
 }
