@@ -145,12 +145,13 @@ class Permission
             case "plugin":
             case "database":
             case "auth/menu":
-            case "notify":
                 if ($systemRole) {
                     return array_key_exists('system', $this->permission_details);
                 }
                 return false;
             ///// each permissions
+            case "notify":
+                return \Exment::user()->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE);
             case "loginuser":
                 if ($systemRole) {
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);

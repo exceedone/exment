@@ -140,7 +140,7 @@ class Notify extends ModelBase
             $users = [];
             foreach ($options['targetUserOrgs'] as $targetUserOrg) {
                 if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
-                    $users = array_merge($users, $targetUserOrg->users->pluck('id'));
+                    $users = array_merge($users, $targetUserOrg->users->pluck('id')->toArray());
                 } else {
                     $users[] = $targetUserOrg->id;
                 }

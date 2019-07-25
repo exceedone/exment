@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
+use Encore\Admin\Auth\Permission as Checker;
 //use Encore\Admin\Controllers\HasResourceActions;
 //use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
@@ -69,6 +70,12 @@ class NotifyController extends AdminControllerBase
             })->toArray());
         });
 
+        // filter only custom table user has permission custom table
+        if(!\Exment::user()->isAdministrator()){
+            $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
+            $grid->model()->whereIn('custom_table_id', $custom_tables);
+        }
+
         $grid->disableExport();
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableView();
@@ -89,6 +96,10 @@ class NotifyController extends AdminControllerBase
      */
     protected function form($id = null)
     {
+        if(!$this->hasPermissionEdit($id)){
+            return;
+        }
+
         $form = new Form(new Notify);
         $form->text('notify_view_name', exmtrans("notify.notify_view_name"))->required()->rules("max:40");
         // TODO: only role tables
@@ -325,5 +336,34 @@ class NotifyController extends AdminControllerBase
         return [
             $keyName => $mail_template->id
         ];
+    }
+
+    /**
+     * validate permission edit notify
+     *
+     * @param [type] $id
+     * @return boolean
+     */
+    protected function hasPermissionEdit($id){
+        
+        if(!isset($id)){
+            return true;
+        }
+
+        // filter only custom table user has permission custom table
+        if(\Exment::user()->isAdministrator()){
+            return true;
+        }
+
+        $notify = Notify::find($id);
+
+        $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
+
+        if (!in_array($notify->custom_table_id, $custom_tables)){
+            Checker::error();
+            return false;
+        }
+
+        return true;
     }
 }
