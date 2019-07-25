@@ -46,7 +46,7 @@ EOT;
     public function render()
     {
         // get label
-        $label = exmtrans('common.share');
+        $label = exmtrans('common.shared');
         // get uuid
         $suuid = short_uuid();
         $table_name = array_get($this->custom_table, 'table_name');

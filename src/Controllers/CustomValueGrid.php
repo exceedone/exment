@@ -167,7 +167,7 @@ trait CustomValueGrid
                 }
                 
                 // if user does't edit permission disable edit row.
-                if (!$custom_table->hasPermissionEditData($actions->getKey())) {
+                if (!$custom_table->hasPermissionEditData($actions->row)) {
                     $actions->disableEdit();
                     $actions->disableDelete();
                 }
