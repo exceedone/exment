@@ -6,6 +6,9 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Menu;
@@ -13,6 +16,8 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Services\DataImportExport;
 use Carbon\Carbon;
 
@@ -73,6 +78,12 @@ class PatchDataCommand extends Command
                 return;
             case 'role_group':
                 $this->roleToRoleGroup();
+                return;
+            case 'notify_saved':
+                $this->updateSavedTemplate();
+                return;
+            case 'alldata_view':
+                $this->copyViewColumnAllDataView();
                 return;
         }
 
@@ -181,27 +192,21 @@ class PatchDataCommand extends Command
      */
     protected function import2factorTemplate()
     {
-        // get vendor folder
-        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
-        $path = "$templates_data_path/mail_template.xlsx";
-
-        $table_name = \File::name($path);
-        $format = \File::extension($path);
-        $custom_table = CustomTable::getEloquent($table_name);
-
-        // execute import
-        $service = (new DataImportExport\DataImportExportService())
-            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
-                'custom_table' => $custom_table,
-                'filter' => ['value.mail_key_name' => [
-                    'verify_2factor',
-                    'verify_2factor_google',
-                    'verify_2factor_system',
-                ]],
-                'primary_key' => 'value.mail_key_name',
-            ]))
-            ->format($format);
-        $service->import($path);
+        return $this->patchMailTemplate([
+            'verify_2factor',
+            'verify_2factor_google',
+            'verify_2factor_system',
+        ]);
+    }
+    
+    /**
+     * update mail template for 2factor
+     *
+     * @return void
+     */
+    protected function updateSavedTemplate()
+    {
+        return $this->patchMailTemplate([MailKeyName::DATA_SAVED_NOTIFY]);
     }
     
     /**
@@ -242,14 +247,67 @@ class PatchDataCommand extends Command
      *
      * @return void
      */
-    protected function roleToRoleGroup(){
+    protected function roleToRoleGroup()
+    {
         $this->patchSystemAuthoritable();
         $this->patchValueAuthoritable();
-        $this->removeRoleMenu();
+        $this->updateRoleMenu();
     }
 
-    protected function patchSystemAuthoritable(){
-        if(!\Schema::hasTable('system_authoritable')){
+    /**
+     * Copy custom view default to alldata
+     *
+     * @return void
+     */
+    protected function copyViewColumnAllDataView()
+    {
+        // get default view counts
+        $defaultViews = CustomView::where('view_kind_type', ViewKindType::DEFAULT)
+            ->where('default_flg', true)
+            ->with(['custom_view_columns', 'custom_view_sorts'])
+            ->get();
+
+        foreach ($defaultViews as $defaultView) {
+            // if not found alldata view in same custom table, create
+            $alldata_view_count = CustomView
+                ::where('view_kind_type', ViewKindType::ALLDATA)
+                ->where('custom_table_id', $defaultView->custom_table_id)
+                ->count();
+
+            if ($alldata_view_count > 0) {
+                continue;
+            }
+
+            $aldata_view = CustomView::createDefaultView($defaultView->custom_table_id);
+
+            $view_columns = [];
+            foreach ($defaultView->custom_view_columns as $custom_view_column) {
+                $view_column = new CustomViewColumn;
+                $view_column->custom_view_id = $aldata_view->id;
+                $view_column->view_column_target = array_get($custom_view_column, 'view_column_target');
+                $view_column->order = array_get($custom_view_column, 'order');
+                array_push($view_columns, $view_column);
+            }
+            $aldata_view->custom_view_columns()->saveMany($view_columns);
+
+            $view_sorts = [];
+            foreach ($defaultView->custom_view_sorts as $custom_view_sort) {
+                $view_sort = new CustomViewSort;
+                $view_sort->custom_view_id = $aldata_view->id;
+                $view_sort->view_column_target = array_get($custom_view_sort, 'view_column_target');
+                $view_sort->sort = array_get($custom_view_sort, 'sort');
+                $view_sort->priority = array_get($custom_view_sort, 'priority');
+                array_push($view_sorts, $view_sort);
+            }
+            $aldata_view->custom_view_sorts()->saveMany($view_sorts);
+        }
+    }
+
+
+
+    protected function patchSystemAuthoritable()
+    {
+        if (!\Schema::hasTable('system_authoritable')) {
             return;
         }
 
@@ -260,21 +318,21 @@ class PatchDataCommand extends Command
         ->get();
 
         $users = [];
-        foreach($system_authoritable as $s){
+        foreach ($system_authoritable as $s) {
             $item = (array)$s;
-            if(array_get($item, 'related_type') == SystemTableName::USER){
-                $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'));
-            }else{
+            if (array_get($item, 'related_type') == SystemTableName::USER) {
+                $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'))->toArray();
+            } else {
                 $users = array_merge(
-                    $users, 
+                    $users,
                     CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(array_get($item, 'related_id'))
-                        ->users()
+                        ->users->toArray()
                 );
             }
         }
 
-        $users = collect($users)->filter()->map(function($user){
-        return array_get($user, 'id');
+        $users = collect($users)->filter()->map(function ($user) {
+            return array_get($user, 'id');
         })->toArray();
 
         // set System user's array
@@ -283,8 +341,9 @@ class PatchDataCommand extends Command
         System::system_admin_users(array_unique($system_admin_users));
     }
     
-    protected function patchValueAuthoritable(){
-        if(!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())){
+    protected function patchValueAuthoritable()
+    {
+        if (!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())) {
             return;
         }
         
@@ -296,12 +355,12 @@ class PatchDataCommand extends Command
         
         $editRoles = [];
         $viewRoles = [];
-        foreach($valueRoles as $valueRole){
+        foreach ($valueRoles as $valueRole) {
             $val = (array)$valueRole;
             $permissions = json_decode($val['permissions'], true);
-            if(array_has($permissions, 'custom_value_edit')){
+            if (array_has($permissions, 'custom_value_edit')) {
                 $editRoles[] = $val['id'];
-            }else{
+            } else {
                 $viewRoles[] = $val['id'];
             }
         }
@@ -310,11 +369,11 @@ class PatchDataCommand extends Command
         $value_authoritable = \DB::table('value_authoritable')
             ->get();
         $custom_value_authoritables = [];
-        foreach($value_authoritable as $v){
+        foreach ($value_authoritable as $v) {
             $val = (array)$v;
-            if(in_array($val['role_id'], $editRoles)){
+            if (in_array($val['role_id'], $editRoles)) {
                 $authoritable_type = Permission::CUSTOM_VALUE_EDIT;
-            }else{
+            } else {
                 $authoritable_type = Permission::CUSTOM_VALUE_VIEW;
             }
             $custom_value_authoritables[] = [
@@ -334,11 +393,48 @@ class PatchDataCommand extends Command
             ->insert($custom_value_authoritables);
     }
 
-    protected function removeRoleMenu(){
+    /**
+     * Update role menu role to role_group
+     *
+     * @return void
+     */
+    protected function updateRoleMenu()
+    {
         // remove "role" menu
         \DB::table('admin_menu')
             ->where('menu_type', 'system')
             ->where('menu_target', 'role')
-            ->delete();
+            ->update([
+                'uri' => 'role_group',
+                'menu_name' => 'role_group',
+                'menu_target' => 'role_group',
+            ]);
+    }
+
+    
+    /**
+     * patch mail template
+     *
+     * @return void
+     */
+    protected function patchMailTemplate($mail_key_names = [])
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $path = "$templates_data_path/mail_template.xlsx";
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => $mail_key_names],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
     }
 }

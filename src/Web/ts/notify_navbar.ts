@@ -23,6 +23,8 @@ namespace Exment {
                 NotifyNavbarEvent.timeout_id = null;
             }
 
+            console.log('notifyNavbar : ' + Date());
+
             $.ajax({
                 url: admin_url(URLJoin('webapi', 'notifyPage')),
                 dataType: "json",
@@ -52,10 +54,10 @@ namespace Exment {
                                                 }),
                                                 $('<span></span>', {
                                                     'text': d.table_view_name,
-                                                    'style': hasValue(d.color) ? 'background-color:' + d.color : null
                                                 }),
                                             ],
-                                            'class': 'search-item-icon'
+                                            'class': 'search-item-icon',
+                                            'style': hasValue(d.color) ? 'background-color:' + d.color : null
                                         }),
                                         $('<span/>', {
                                             'text': d.label,

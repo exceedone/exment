@@ -6,7 +6,6 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
@@ -398,7 +397,7 @@ if (!function_exists('array_keys_exists')) {
      */
     function array_keys_exists($keys, $array)
     {
-        if(is_string($array)){
+        if (is_string($array)) {
             $array = [$array];
         }
         if (is_null($keys)) {
@@ -1175,7 +1174,9 @@ if (!function_exists('downloadFile')) {
         // get page name
         $name = rawurlencode(mb_basename($path));
         
-        if (ob_get_level()) ob_end_clean();
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
         return response()->stream(
             function () use ($stream) {
                 fpassthru($stream);

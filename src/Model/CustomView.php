@@ -382,8 +382,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         });
     }
 
-    protected static function createDefaultView($tableObj)
+    public static function createDefaultView($tableObj)
     {
+        $tableObj = CustomTable::getEloquent($tableObj);
+        
         $view = new CustomView;
         $view->custom_table_id = $tableObj->id;
         $view->view_type = ViewType::SYSTEM;

@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Form\Navbar;
 
-use Exceedone\Exment\Model\Define;
 use Illuminate\Contracts\Support\Renderable;
 
 class NotifyNav implements Renderable

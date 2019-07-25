@@ -90,7 +90,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
             
-            $router->get('role', function(){
+            $router->get('role', function () {
                 return redirect(admin_urls('role_group'));
             });
             

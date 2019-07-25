@@ -3,7 +3,7 @@
 namespace Exceedone\Exment\PartialCrudItems;
 
 /**
- * ProviderBase 
+ * ProviderBase
  */
 abstract class ProviderBase
 {

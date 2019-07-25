@@ -7,8 +7,6 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -174,20 +172,21 @@ class ApiController extends AdminControllerBase
         return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
     }
     
-    public function notifyPage(Request $request){
+    public function notifyPage(Request $request)
+    {
         // get notify NotifyNavbar list
         $query = NotifyNavbar::where('target_user_id', \Exment::user()->base_user_id)
             ->where('read_flg', false)
             ->orderBy('created_at', 'desc');
         
         $count = $query->count();
-        $list = $query->take(5)->get();    
+        $list = $query->take(5)->get();
 
         return [
             'count' => $count,
-            'items' => $list->map(function($l){
+            'items' => $list->map(function ($l) {
                 $custom_table = CustomTable::getEloquent(array_get($l, 'parent_type'));
-                if(isset($custom_table)){
+                if (isset($custom_table)) {
                     $icon = $custom_table->getOption('icon');
                     $color = $custom_table->getOption('color');
                     $table_view_name = $custom_table->table_view_name;

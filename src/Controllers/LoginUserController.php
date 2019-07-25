@@ -2,17 +2,14 @@
 
 namespace Exceedone\Exment\Controllers;
 
-use Validator;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\PartialCrudItems\Providers\LoginUserItem;
@@ -108,7 +105,7 @@ class LoginUserController extends AdminControllerBase
 
         $showLoginInfo = useLoginProvider() && !boolval(config('exment.show_default_login_provider', true));
         if ($showLoginInfo) {
-            $form->disableSubmit();            
+            $form->disableSubmit();
         }
         $form->disableReset();
         $form->tools(function (Form\Tools $tools) {
@@ -129,7 +126,7 @@ class LoginUserController extends AdminControllerBase
         DB::beginTransaction();
         try {
             $result = LoginUserItem::getItem()->saved(null, $id);
-            if($result instanceof Response){
+            if ($result instanceof Response) {
                 DB::rollback();
                 return $result;
             }

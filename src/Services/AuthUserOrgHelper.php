@@ -5,8 +5,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\RoleGroup;
-use Exceedone\Exment\Model\RoleGroupPermission;
-use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
@@ -45,7 +43,7 @@ class AuthUserOrgHelper
             if (isset($tablePermission) || is_null($target_ids = System::requestSession($key))) {
                 // get organiztion ids
                 $target_ids = static::getRoleUserOrgId($target_table, SystemTableName::ORGANIZATION, $tablePermission);
-                if(!isset($tablePermission)){
+                if (!isset($tablePermission)) {
                     System::requestSession($key, $target_ids);
                 }
             }
@@ -313,7 +311,7 @@ class AuthUserOrgHelper
         $target_table = CustomTable::getEloquent($target_table);
         
         // Get role group contains target_table's
-        $roleGroups = RoleGroup::whereHas('role_group_permissions', function($query) use ($target_table){
+        $roleGroups = RoleGroup::whereHas('role_group_permissions', function ($query) use ($target_table) {
             $query->where(function ($query) use ($target_table) {
                 $query->orWhere(function ($query) {
                     $query->where('role_group_permission_type', RoleType::SYSTEM);
@@ -326,30 +324,37 @@ class AuthUserOrgHelper
         })->with(['role_group_user_organizations', 'role_group_permissions'])->get();
 
         $target_ids = collect();
-        foreach($roleGroups as $roleGroup){
+        foreach ($roleGroups as $roleGroup) {
             // check permission
-            if(!$roleGroup->role_group_permissions->first(function($role_group_permission) use($tablePermission){
+            if (!$roleGroup->role_group_permissions->contains(function ($role_group_permission) use ($target_table, $tablePermission) {
                 // check as system
-                if($role_group_permission->role_group_permission_type == RoleType::SYSTEM){
-                    $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE];
+                if ($role_group_permission->role_group_permission_type == RoleType::SYSTEM) {
+                    $tablePermission = [Permission::SYSTEM, Permission::CUSTOM_TABLE, Permission::CUSTOM_VALUE_EDIT_ALL];
+                }
+                // check as table
+                else {
+                    // not match table, return false
+                    if ($target_table->id != $role_group_permission->role_group_target_id) {
+                        return false;
+                    }
                 }
 
                 // check as table
-                elseif(!isset($tablePermission)){
+                if (!isset($tablePermission)) {
                     $tablePermission = Permission::AVAILABLE_ACCESS_CUSTOM_VALUE;
                 }
                 
                 // check contains $tablePermission in $role_group_permission
-                return collect($tablePermission)->contains(function($p) use($role_group_permission){
+                return collect($tablePermission)->contains(function ($p) use ($role_group_permission) {
                     return in_array($p, $role_group_permission->permissions);
                 });
-            })){
+            })) {
                 continue;
             }
 
-            foreach($roleGroup->role_group_user_organizations as $role_group_user_organization){
+            foreach ($roleGroup->role_group_user_organizations as $role_group_user_organization) {
                 // merge users from $role_group_user_organization
-                if($role_group_user_organization->role_group_user_org_type != $related_type){
+                if ($role_group_user_organization->role_group_user_org_type != $related_type) {
                     continue;
                 }
                 $target_ids = $target_ids->merge($role_group_user_organization->role_group_target_id);

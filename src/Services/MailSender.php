@@ -7,7 +7,6 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
-use Exceedone\Exment\Services\NotifyService;
 
 /**
  * Send Mail System
@@ -97,7 +96,7 @@ class MailSender
 
     public function subject($subject)
     {
-        if(isset($subject)){
+        if (isset($subject)) {
             $this->subject = $subject;
         }
 
@@ -106,7 +105,7 @@ class MailSender
 
     public function body($body)
     {
-        if(isset($body)){
+        if (isset($body)) {
             $this->body = $body;
         }
         
@@ -127,7 +126,7 @@ class MailSender
 
     public function attachments($attachments)
     {
-        if(isset($attachments)){
+        if (isset($attachments)) {
             $this->attachments = $attachments;
         }
 

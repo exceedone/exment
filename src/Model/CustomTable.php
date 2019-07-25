@@ -507,7 +507,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->with($with);
         }
 
-        if(isset($options['filter'])) {
+        if (isset($options['filter'])) {
             $model = $options['filter']($model);
         }
 
@@ -795,8 +795,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'filterCallback' => null,
                 'target_view' => null,
                 'permission' => null,
-            ]
-            , $options
+            ],
+            $options
         ));
 
         if (is_null($display_table)) {
@@ -1294,7 +1294,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -1302,15 +1302,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionEditData($id)
     {
-        $hasPermission = $this->_hasPermissionData($id, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
-
-        if ($hasPermission && isset($this->workflow_id)) {
-            $hasPermission = $this->_isEditableWorkflow($id);
-        }
-
-        return $hasPermission;
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
+    
     /** 
      * Check if current workflow status is editable.
     */
@@ -1336,14 +1331,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if workflow_value is not exists, no workflow table or before flow
         if (!isset($workflow_value)){
             return true;
-    }
+        }
 
         return $workflow_value->workflow_editable;
     }
+
     /**
      * Whether login user has permission about target id data. (protected function)
      */
-    protected function _hasPermissionData($id, $role)
+    protected function _hasPermissionData($id, $tableRole, $dataRole)
     {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
@@ -1351,7 +1347,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermission($role)) {
+        if (!$this->hasPermission($tableRole)) {
             return false;
         }
 
@@ -1378,7 +1374,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // else, get model using value_authoritable.
         // if count > 0, return true.
         $rows = $model->getAuthoritable(SystemTableName::USER);
-        if ($this->checkPermissionWithPivot($rows, $role)) {
+        if ($this->checkPermissionWithPivot($rows, $dataRole)) {
             return true;
         }
 
@@ -1386,7 +1382,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if count > 0, return true.
         if (System::organization_available()) {
             $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if ($this->checkPermissionWithPivot($rows, $role)) {
+            if ($this->checkPermissionWithPivot($rows, $dataRole)) {
                 return true;
             }
         }
@@ -1404,7 +1400,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return false;
         }
 
-        if(is_string($role_key)){
+        if (is_string($role_key)) {
             $role_key = [$role_key];
         }
 

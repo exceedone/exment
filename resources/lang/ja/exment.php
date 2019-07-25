@@ -7,7 +7,7 @@ return [
         'import' => 'インポート',
         'plugin' => 'プラグイン',
         'copy' => 'コピー',
-        'share' => '共有',
+        'shared' => '共有',
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
@@ -22,7 +22,6 @@ return [
         'parent_type' => '親データのテーブル名',
         'created' => '新規作成',
         'updated' => '更新', 
-        'shared' => '共有', 
         'attachmented' => 'ファイル添付', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
@@ -554,7 +553,7 @@ return [
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
             'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
             'comment_flg' => 'YESにした場合、各データにコメントを追加することができます。',
-            'use_label_id_flg' => 'YESにした場合、データのidの値を見出しの項目として表示します。詳細は詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'use_label_id_flg' => 'YESにした場合、データのidの値を見出しの項目として表示します。詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'revision_flg' => 'YESにした場合、各データの保存時、データの変更履歴を保存します。また、各データ画面で、以前の保存情報を復元することができます。',
             'revision_count' => 'データの変更履歴を保存する最大件数です。それ以上の履歴を保存する場合、過去の履歴は削除されます。',
             'notify_flg' => 'YESにした場合、データの追加・更新時、権限のあるユーザーに通知を送信します。',
@@ -913,10 +912,10 @@ return [
         'role_type_option_system' => [
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
             'login_user' => ['label' => 'ログインユーザーの管理', 'help' => 'Exmentにログインするユーザーを管理できます。'],
-            'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
+            'custom_table' => ['label' => 'すべてのテーブル管理', 'help' => 'カスタムテーブルの追加や、すべてのカスタムテーブルの変更・削除を行えます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
-            'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => 'すべてのデータ編集', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
         ],
         'role_type_option_role_group' => [
             'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。<br/>グループの追加・変更・削除、グループの権限設定変更、ユーザー・組織の設定変更ができます。'],
@@ -1118,7 +1117,6 @@ return [
             ],
         ],
         'data_detail' => 'データ確認',
-
         'auto_number_create' => '(※保存後、値が自動的に登録されます)',
 
         'help' => [

@@ -387,11 +387,6 @@
 	],
     "role_groups": [
         {
-            "role_group_name": "system_admin_group",
-            "role_group_view_name": "システム管理者グループ",
-            "description": "すべての操作が可能なシステム管理者グループです。"
-        },
-        {
             "role_group_name": "data_admin_group",
             "role_group_view_name": "全データ管理者グループ",
             "description": "すべてのテーブルのデータを編集・閲覧可能な役割グループです。"

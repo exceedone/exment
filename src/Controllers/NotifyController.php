@@ -64,7 +64,7 @@ class NotifyController extends AdminControllerBase
         });
 
         $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
-            return implode(exmtrans('common.separate_word'), collect($val)->map(function($v){
+            return implode(exmtrans('common.separate_word'), collect($val)->map(function ($v) {
                 return NotifyAction::getEnum($v)->transKey('notify.notify_action_options');
             })->toArray());
         });
@@ -188,7 +188,6 @@ class NotifyController extends AdminControllerBase
                 ->required()
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'notify_trigger', 'value' => [NotifyTrigger::BUTTON]])])
                 ->rules("max:40");
-
         })->disableHeader();
 
         $form->exmheader(exmtrans("notify.header_action"))->hr();
@@ -303,13 +302,13 @@ class NotifyController extends AdminControllerBase
 
         // get mail key enum
         $enum = NotifyTrigger::getEnum($value);
-        if(!isset($enum)){
+        if (!isset($enum)) {
             return [$keyName => null];
         }
 
         // get mailKeyName
         $mailKeyName = $enum->getDefaultMailKeyName();
-        if(!isset($mailKeyName)){
+        if (!isset($mailKeyName)) {
             return [$keyName => null];
         }
 
@@ -319,7 +318,7 @@ class NotifyController extends AdminControllerBase
             ->where('value->mail_key_name', $mailKeyName)
             ->first();
     
-        if(!isset($mail_template)){
+        if (!isset($mail_template)) {
             return [$keyName => null];
         }
 

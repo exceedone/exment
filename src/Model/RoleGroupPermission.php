@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 
 class RoleGroupPermission extends ModelBase
@@ -65,11 +64,10 @@ class RoleGroupPermission extends ModelBase
     
     protected static function importReplaceJson(&$json, $options = [])
     {
-        
         $role_group_target_name = array_get($json, 'role_group_target_name');
         $role_group_target_id = null;
 
-        switch(array_get($json, 'role_group_permission_type')){
+        switch (array_get($json, 'role_group_permission_type')) {
             case RoleType::SYSTEM:
                 $role_group_target_id = $role_group_target_name;
                 break;

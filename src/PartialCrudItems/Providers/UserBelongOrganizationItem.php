@@ -28,16 +28,16 @@ class UserBelongOrganizationItem extends ProviderBase
      */
     public function setAdminFormOptions(&$form, $id = null)
     {
-        if(!System::organization_available() || count($this->options) == 0){
+        if (!System::organization_available() || count($this->options) == 0) {
             return;
         }
         
-        if(!CustomTable::getEloquent(SystemTableName::ORGANIZATION)->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)){
+        if (!CustomTable::getEloquent(SystemTableName::ORGANIZATION)->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
             return;
         }
 
         $defaults = [];
-        if(isset($id)){
+        if (isset($id)) {
             $defaults = $this->custom_table->getValueModel($id)->belong_organizations->pluck('id')->toArray();
         }
 
@@ -54,17 +54,17 @@ class UserBelongOrganizationItem extends ProviderBase
      */
     public function saved($form, $id)
     {
-        if(!System::organization_available() || count($this->options) == 0){
+        if (!System::organization_available() || count($this->options) == 0) {
             return;
         }
 
         // get request value
         $request = request();
-        if(!$request->has('belong_organizations')){
+        if (!$request->has('belong_organizations')) {
             return;
         }
 
-        $belong_organizations = collect($request->get('belong_organizations', []))->filter()->map(function($belong_organization) use($id){
+        $belong_organizations = collect($request->get('belong_organizations', []))->filter()->map(function ($belong_organization) use ($id) {
             return [
                 'parent_id' => $belong_organization,
                 'child_id' => $id,
@@ -75,14 +75,14 @@ class UserBelongOrganizationItem extends ProviderBase
         $relationName = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
         
         \Schema::insertDelete($relationName, $belong_organizations, [
-            'dbValueFilter' => function(&$model) use($id){
+            'dbValueFilter' => function (&$model) use ($id) {
                 $model->where('child_id', $id);
             },
-            'dbDeleteFilter' => function(&$model, $dbValue) use($id){
+            'dbDeleteFilter' => function (&$model, $dbValue) use ($id) {
                 $model->where('child_id', $id)
                     ->where('parent_id', array_get((array)$dbValue, 'parent_id'));
             },
-            'matchFilter' => function($dbValue, $value){
+            'matchFilter' => function ($dbValue, $value) {
                 return array_get((array)$dbValue, 'parent_id') == array_get($value, 'parent_id');
             },
         ]);

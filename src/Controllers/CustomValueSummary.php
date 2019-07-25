@@ -36,7 +36,7 @@ trait CustomValueSummary
             $actions->disableView();
 
             $params = [];
-            foreach($actions->row->toArray() as $key => $value) {
+            foreach ($actions->row->toArray() as $key => $value) {
                 $keys = explode('_', $key);
                 if (count($keys) == 3 && $keys[1] == ViewKindType::DEFAULT) {
                     $params[$keys[2]] = $value;
@@ -94,7 +94,7 @@ trait CustomValueSummary
             $custom_view_filter->view_filter_condition_value_text = $value;
             $filters[] = $custom_view_filter;
         }
-        $filter_func = function($model) use($filters) {
+        $filter_func = function ($model) use ($filters) {
             foreach ($filters as $filter) {
                 $model = $filter->setValueFilter($model);
             }

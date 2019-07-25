@@ -6,7 +6,6 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
-use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\RoleType;
@@ -53,7 +52,7 @@ class CustomValue extends ModelBase
     public function __construct(array $attributes = [])
     {
         // set parent_id for org
-        if($this->custom_table->table_name == SystemTableName::ORGANIZATION){
+        if ($this->custom_table->table_name == SystemTableName::ORGANIZATION) {
             // treeview
             $this->titleColumn = 'label';
             $this->orderColumn = 'id';
@@ -377,7 +376,7 @@ class CustomValue extends ModelBase
                 // get id matching path
                 $file = File::getData(array_get($uuid, 'uuid'));
                 $value = $file->getCustomValueFromForm($this, $uuid);
-                if(is_null($value)){
+                if (is_null($value)) {
                     continue;
                 }
 

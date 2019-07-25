@@ -6,7 +6,6 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
-use Exceedone\Exment\Services\MailSender;
 use Exceedone\Exment\Services\NotifyService;
 use Carbon\Carbon;
 
@@ -35,11 +34,11 @@ class Notify extends ModelBase
     
     public function setNotifyActionsAttribute($notifyActions)
     {
-        if(is_null($notifyActions)){
-            $this->attributes['notify_actions'] = null;    
-        }elseif(is_string($notifyActions)){
+        if (is_null($notifyActions)) {
+            $this->attributes['notify_actions'] = null;
+        } elseif (is_string($notifyActions)) {
             $this->attributes['notify_actions'] = $notifyActions;
-        }else{
+        } else {
             $this->attributes['notify_actions'] = implode(',', array_filter($notifyActions));
         }
     }
@@ -124,7 +123,7 @@ class Notify extends ModelBase
 
         // check trigger
         $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
-        if(!isset($notify_saved_triggers) || !in_array($notifySavedType, $notify_saved_triggers)){
+        if (!isset($notify_saved_triggers) || !in_array($notifySavedType, $notify_saved_triggers)) {
             return;
         }
 
@@ -135,17 +134,22 @@ class Notify extends ModelBase
         $mail_template = $this->getMailTemplate();
 
         // loop custom_value
-        if(!isset($options['targetUserOrgs'])){
+        if (!isset($options['targetUserOrgs'])) {
             $users = $this->getNotifyTargetUsers($custom_value);
-        }else{
+        } else {
             $users = [];
-            foreach($options['targetUserOrgs'] as $targetUserOrg){
-                if($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION){
+            foreach ($options['targetUserOrgs'] as $targetUserOrg) {
+                if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
                     $users = array_merge($users, $targetUserOrg->users);
-                }else{
+                } else {
                     $users[] = $targetUserOrg;
                 }
             }
+
+            // convert as NotifyTarget
+            $users = collect($users)->map(function ($user) {
+                return NotifyTarget::getModelAsUser($user);
+            })->toArray();
         }
         
         foreach ($users as $user) {
@@ -155,12 +159,11 @@ class Notify extends ModelBase
 
             // create freespace
             $freeSpace = '';
-            if(isset($options['comment'])){
+            if (isset($options['comment'])) {
                 $freeSpace = "\n" . exmtrans('common.comment') . ":\n" . $options['comment'] . "\n";
-            }
-            elseif(isset($options['attachment'])){
+            } elseif (isset($options['attachment'])) {
                 $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
-            } 
+            }
 
             $prms = [
                 'user' => $user,

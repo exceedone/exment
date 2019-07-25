@@ -18,7 +18,8 @@ class CheckboxTableHeader extends Field
         $this->options = $options;
     }
 
-    public function checkWidth($checkWidth){
+    public function checkWidth($checkWidth)
+    {
         $this->checkWidth = $checkWidth;
     }
 
@@ -32,11 +33,11 @@ class CheckboxTableHeader extends Field
      */
     public function help($text = '', $icon = 'fa-info-circle')
     {
-        if(is_array($text)){
+        if (is_array($text)) {
             $this->help = $text;
-        }elseif($text instanceof Collection){
+        } elseif ($text instanceof Collection) {
             $this->help = $text->values()->toArray();
-        }else{
+        } else {
             $this->help[] = $text;
         }
 

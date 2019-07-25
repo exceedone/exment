@@ -3,12 +3,9 @@
 namespace Exceedone\Exment\PartialCrudItems\Providers;
 
 use Exceedone\Exment\PartialCrudItems\ProviderBase;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
-use \DB;
 
 /**
  * Login User item
@@ -20,7 +17,7 @@ class LoginUserItem extends ProviderBase
      */
     public function setAdminFormOptions(&$form, $id = null)
     {
-        if(!\Exment::user()->hasPermission(Permission::LOGIN_USER)){
+        if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
 
@@ -81,7 +78,6 @@ class LoginUserItem extends ProviderBase
                 ->help(exmtrans('user.help.send_password'))
                 ->attribute(['data-filter' => json_encode($send_password_filter)]);
         } else {
-            
         }
 
         $form->ignore(['use_loginuser', 'reset_password', 'create_password_auto', 'password', 'password_confirmation', 'send_password']);
@@ -92,7 +88,7 @@ class LoginUserItem extends ProviderBase
      */
     public function saved($form, $id)
     {
-        if(!\Exment::user()->hasPermission(Permission::LOGIN_USER)){
+        if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
         
@@ -104,7 +100,7 @@ class LoginUserItem extends ProviderBase
             $login_user = $this->getLoginUser($user);
             // if "$user" has "login_user" obj and unchecked "use_loginuser", delete login user object.
             if (!boolval(array_get($data, 'use_loginuser'))) {
-                if(!is_null($login_user)){
+                if (!is_null($login_user)) {
                     $login_user->delete();
                 }
                 return;
@@ -191,9 +187,14 @@ class LoginUserItem extends ProviderBase
         $this->setEditDelete($tools, $id);
     }
 
-    protected function setEditDelete($tools, $id) {
+    protected function setEditDelete($tools, $id)
+    {
         $classname = getModelName(SystemTableName::USER);
         $login_user = $this->getLoginUser($classname::find($id));
+
+        if (!isset($login_user)) {
+            return;
+        }
 
         // only administrator can delete and edit administrator record
         if (!\Exment::user()->isAdministrator() && $login_user->isAdministrator()) {
@@ -208,7 +209,7 @@ class LoginUserItem extends ProviderBase
     
     protected function getLoginUser($user)
     {
-        if(!isset($user)){
+        if (!isset($user)) {
             return null;
         }
 

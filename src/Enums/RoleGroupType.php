@@ -9,22 +9,25 @@ class RoleGroupType extends EnumBase
     const MASTER = "master";
     const ROLE_GROUP = "role_group";
     
-    public function getRoleGroupOptions(){
+    public function getRoleGroupOptions()
+    {
         $permissions = $this->getRoleGroupPermissions();
-        return collect($permissions)->mapWithKeys(function($permission){
+        return collect($permissions)->mapWithKeys(function ($permission) {
             return [$permission => exmtrans("role_group.role_type_option_{$this->lowerKey()}.$permission.label")];
         });
     }
     
-    public function getRoleGroupHelps(){
+    public function getRoleGroupHelps()
+    {
         $permissions = $this->getRoleGroupPermissions();
         return collect($permissions)->mapWithKeys(function ($permission) {
             return [$permission => exmtrans("role_group.role_type_option_{$this->lowerKey()}.$permission.help")];
         });
     }
 
-    protected function getRoleGroupPermissions(){
-        switch($this->lowerKey()){
+    protected function getRoleGroupPermissions()
+    {
+        switch ($this->lowerKey()) {
             case self::SYSTEM()->lowerKey():
                 return Permission::SYSTEM_ROLE_PERMISSIONS;
             case self::TABLE()->lowerKey():
@@ -34,6 +37,5 @@ class RoleGroupType extends EnumBase
             case self::ROLE_GROUP()->lowerKey():
                 return Permission::ROLE_GROUP_ROLE_PERMISSION;
         }
-
     }
 }

@@ -9,10 +9,7 @@ use Illuminate\Http\Request;
 use Exceedone\Exment\Form\Show;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
-use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyNavbar;
-use DB;
 
 class NotifyNavbarController extends AdminControllerBase
 {
@@ -89,13 +86,13 @@ class NotifyNavbarController extends AdminControllerBase
 
         if ($model->read_flg == 0) {
             $model->update(['read_flg' => true]);
-        } 
+        }
 
-        return new Show($model, function (Show $show) use($id, $model) {
+        return new Show($model, function (Show $show) use ($id, $model) {
             $show->field('parent_type', exmtrans('notify_navbar.parent_type'))->as(function ($parent_type) {
                 return CustomTable::getEloquent($parent_type)->table_view_name;
             });
-            $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function($v) use($model){
+            $show->field('target_custom_value', exmtrans('notify_navbar.target_custom_value'))->as(function ($v) use ($model) {
                 $custom_value = CustomTable::getEloquent(array_get($model, 'parent_type'))
                 ->getValueModel(array_get($model, 'parent_id'));
                 return isset($custom_value) ? $custom_value->getValue(true) : null;
@@ -106,7 +103,7 @@ class NotifyNavbarController extends AdminControllerBase
                     return  replaceBreak($v);
                 })->setEscape(false);
 
-            $show->panel()->tools(function ($tools) use($id) {
+            $show->panel()->tools(function ($tools) use ($id) {
                 $tools->disableEdit();
                 
                 $tools->append(view('exment::tools.button', [
@@ -135,9 +132,13 @@ class NotifyNavbarController extends AdminControllerBase
         // update read_flg
         if ($model->read_flg == 0) {
             $model->update(['read_flg' => true]);
-        } 
+        }
 
         $custom_value = getModelName($model->parent_type)::find($model->parent_id);
+
+        if (!isset($custom_value)) {
+            return back();
+        }
 
         // redirect custom value page
         return redirect($custom_value->getUrl());
@@ -145,7 +146,7 @@ class NotifyNavbarController extends AdminControllerBase
 
     /**
      * update read_flg when row checked
-     * 
+     *
      * @param mixed   $id
      */
     public function rowCheck(Request $request, $id = null)
@@ -171,5 +172,4 @@ class NotifyNavbarController extends AdminControllerBase
             'toastr' => exmtrans('notify_navbar.message.check_succeeded'),
         ]);
     }
-
 }
