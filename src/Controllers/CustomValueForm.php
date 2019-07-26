@@ -141,7 +141,6 @@ trait CustomValueForm
                     $isListbox = $target_table->isGetOptions();
                     if ($isListbox) {
                         $class = Field\Listbox::class;
-                        $field->ajax($target_table->getOptionAjaxUrl());
                     } else {
                         $class = Field\MultipleSelect::class;
                     }
