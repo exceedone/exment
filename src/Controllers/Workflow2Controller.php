@@ -162,22 +162,23 @@ class Workflow2Controller extends AdminControllerBase
 
     /**
      * Get workflow statuses
+     * Contains set default value
      *
      * @param Workflow $workflow
      * @return array workflow statuses
      */
     protected function getWorkflowStatuses($workflow){
         // get workflow statuses group by database
-        $workflow_statuses = $workflow->workflow_statuses()
+        $database_workflow_statuses = $workflow->workflow_statuses()
             ->orderBy('status_type')
             ->orderBy('order')
             ->get();
         
         // loop $workflow_statuses_groups
-        $result = [];
+        $workflow_statuses = [];
         foreach(WorkflowStatusType::values() as $workflow_status_type_enum){
             // filter $workflow_statuses_groups
-            $workflow_statuses_filter = $workflow_statuses->filter(function($workflow_status) use($workflow_status_type_enum){
+            $workflow_statuses_filter = $database_workflow_statuses->filter(function($workflow_status) use($workflow_status_type_enum){
                 return $workflow_status->status_type == $workflow_status_type_enum;
             });
 
@@ -204,10 +205,68 @@ class Workflow2Controller extends AdminControllerBase
                 $workflow_status_types[] = $workflow_status_type;
             }
 
-            $result[] = $workflow_status_types;
+            $workflow_statuses[] = $workflow_status_types;
         }
         
-        return $result;
+        return $workflow_statuses;
+    }
+
+    /**
+     * Get workflow status and actions
+     * Contains set default value
+     *
+     * @param Workflow $workflow
+     * @return array workflow actions
+     */
+    protected function getWorkflowStatusActions($workflow, $workflow_statuses, $workflow_actions){
+        
+        $results = [];
+        for($i = 0; $i < count($workflow_statuses); $i++){
+            $workflow_status = $workflow_statuses[$i];
+            $workflow_status_next = ($i + 1) < count($workflow_statuses) ? $workflow_statuses[$i + 1] : null;
+            
+            // get action using this and next status
+        }
+
+        foreach($workflow_statuses as $workflow_status){
+            // get action from $workflow_actions
+        }
+
+        // loop $workflow_statuses_groups
+        $workflow_statuses = [];
+        foreach(WorkflowStatusType::values() as $workflow_status_type_enum){
+            // filter $workflow_statuses_groups
+            $workflow_statuses_filter = $database_workflow_statuses->filter(function($workflow_status) use($workflow_status_type_enum){
+                return $workflow_status->status_type == $workflow_status_type_enum;
+            });
+
+            $enumOptions = $workflow_status_type_enum->getOption(['id' => $workflow_status_type_enum->getValue()]);
+
+            $workflow_status_types = [];
+            for($i = 0; $i < $enumOptions['count']; $i++){
+                // if contains item, get 
+                if($i < count($workflow_statuses_filter)){
+                    $workflow_status_type = $workflow_statuses_filter->values()->get($i);
+                }
+                // else, create new item
+                else{
+                    $workflow_status_type = new WorkflowStatus;
+                    $workflow_status_type->status_type = array_get($enumOptions, 'id');
+                    $workflow_status_type->order = $i;
+                    $workflow_status_type->editable_flg = boolval(array_get($enumOptions, 'editable_flg'));
+                    $workflow_status_type->enabled_flg = boolval(array_get($enumOptions, 'enabled_flg'));
+
+                    $status_name_trans = array_get($enumOptions, 'status_name_trans');
+                    $workflow_status_type->status_name = isset($status_name_trans) ? exmtrans($status_name_trans) : null;
+                }
+
+                $workflow_status_types[] = $workflow_status_type;
+            }
+
+            $workflow_statuses[] = $workflow_status_types;
+        }
+        
+        return $workflow_statuses;
     }
 
 
