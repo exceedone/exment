@@ -775,7 +775,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ));
 
         // if not ajax, return true
-        if(boolval($notAjax)){
+        if (boolval($notAjax)) {
             return true;
         }
 
@@ -1292,7 +1292,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
     /**
      * Whether login user has permission about target id data. (protected function)
-     * 
+     *
      * @$tableRole if user doesn't have these permission, return false
      * @$tableRoleTrue if user has these permission, return true
      */

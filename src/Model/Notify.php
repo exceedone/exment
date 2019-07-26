@@ -146,7 +146,7 @@ class Notify extends ModelBase
                 }
             }
 
-            // get users 
+            // get users
             $users = getModelName(SystemTableName::USER)::find($users);
 
             // convert as NotifyTarget

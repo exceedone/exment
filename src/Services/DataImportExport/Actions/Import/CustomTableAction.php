@@ -100,7 +100,7 @@ class CustomTableAction implements ActionInterface
     {
         // get tablenames
         $table_names = [];
-        if(isset($this->custom_table)){
+        if (isset($this->custom_table)) {
             $table_names[] = $this->custom_table->table_name;
         }
 

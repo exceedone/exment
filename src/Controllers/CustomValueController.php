@@ -504,13 +504,13 @@ class CustomValueController extends AdminControllerTableBase
                 Checker::error();
                 return false;
             }
-        }elseif (isset($id) && $show) {
+        } elseif (isset($id) && $show) {
             // if user doesn't have role for target id data, show deny error.
             if (!$this->custom_table->hasPermissionData($id)) {
                 Checker::error();
                 return false;
             }
-        }else{
+        } else {
             //Validation table value
             $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
             if (!$this->validateTable($this->custom_table, $roleValue)) {

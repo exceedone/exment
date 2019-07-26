@@ -71,7 +71,7 @@ class NotifyController extends AdminControllerBase
         });
 
         // filter only custom table user has permission custom table
-        if(!\Exment::user()->isAdministrator()){
+        if (!\Exment::user()->isAdministrator()) {
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
             $grid->model()->whereIn('custom_table_id', $custom_tables);
         }
@@ -96,7 +96,7 @@ class NotifyController extends AdminControllerBase
      */
     protected function form($id = null)
     {
-        if(!$this->hasPermissionEdit($id)){
+        if (!$this->hasPermissionEdit($id)) {
             return;
         }
 
@@ -343,14 +343,14 @@ class NotifyController extends AdminControllerBase
      * @param [type] $id
      * @return boolean
      */
-    protected function hasPermissionEdit($id){
-        
-        if(!isset($id)){
+    protected function hasPermissionEdit($id)
+    {
+        if (!isset($id)) {
             return true;
         }
 
         // filter only custom table user has permission custom table
-        if(\Exment::user()->isAdministrator()){
+        if (\Exment::user()->isAdministrator()) {
             return true;
         }
 
@@ -358,7 +358,7 @@ class NotifyController extends AdminControllerBase
 
         $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
 
-        if (!in_array($notify->custom_table_id, $custom_tables)){
+        if (!in_array($notify->custom_table_id, $custom_tables)) {
             Checker::error();
             return false;
         }

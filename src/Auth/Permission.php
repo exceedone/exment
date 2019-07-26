@@ -113,7 +113,7 @@ class Permission
         }
 
         // if 'role' or 'role_group' and !System::permission_available(), false
-        if(in_array($endpoint, ['role', 'role_group']) && !System::permission_available()){
+        if (in_array($endpoint, ['role', 'role_group']) && !System::permission_available()) {
             return false;
         }
 

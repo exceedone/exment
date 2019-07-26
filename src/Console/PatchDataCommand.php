@@ -215,9 +215,9 @@ class PatchDataCommand extends Command
         $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
             ->get();
         
-        foreach($notifies as $notify){
+        foreach ($notifies as $notify) {
             $notify_saved_trigger = array_get($notify, 'trigger_settings.notify_saved_trigger');
-            if(!isset($notify_saved_trigger)){
+            if (!isset($notify_saved_trigger)) {
                 $trigger_settings = $notify->trigger_settings;
                 $trigger_settings['notify_saved_trigger'] = NotifySavedType::arrays();
                 $notify->trigger_settings = $trigger_settings;

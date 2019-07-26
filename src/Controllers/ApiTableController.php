@@ -72,7 +72,7 @@ class ApiTableController extends AdminControllerTableBase
         ]);
 
         // if call as select ajax, return id and text array
-        if($request->has('selectajax')){
+        if ($request->has('selectajax')) {
             $paginator->getCollection()->transform(function ($value) {
                 return [
                     'id' => $value->id,

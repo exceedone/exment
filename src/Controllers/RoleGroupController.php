@@ -45,10 +45,10 @@ class RoleGroupController extends AdminControllerBase
             return count($counts);
         });
 
-        if(System::organization_available()){
+        if (System::organization_available()) {
             $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
                 return count($counts);
-            });    
+            });
         }
         
         // check has ROLE_GROUP_ALL

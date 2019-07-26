@@ -110,13 +110,13 @@ class NotifyNavbarController extends AdminControllerBase
             $show->panel()->tools(function ($tools) use ($id, $custom_value) {
                 $tools->disableEdit();
                 
-                if($custom_value){
+                if ($custom_value) {
                     $tools->append(view('exment::tools.button', [
                         'href' => admin_url("notify_navbar/rowdetail/{$id}"),
                         'label' => exmtrans('notify_navbar.data_refer'),
                         'icon' => 'fa-list',
                         'btn_class' => 'btn-purple',
-                    ]));    
+                    ]));
                 }
             });
         });

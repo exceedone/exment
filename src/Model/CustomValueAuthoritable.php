@@ -194,7 +194,7 @@ class CustomValueAuthoritable extends ModelBase
             ]
         );
         // get mapkey
-        if(is_array($users)){
+        if (is_array($users)) {
             $users = collect($users);
         }
         
@@ -211,7 +211,7 @@ class CustomValueAuthoritable extends ModelBase
                     'noAjax' => true,
                 ]
             );
-            if(is_array($organizations)){
+            if (is_array($organizations)) {
                 $organizations = collect($organizations);
             }
             
@@ -219,7 +219,7 @@ class CustomValueAuthoritable extends ModelBase
                 return [SystemTableName::ORGANIZATION . '_' . $key => $item];
             });
         
-            $options = array_merge($options, $organizations->toArray());    
+            $options = array_merge($options, $organizations->toArray());
         }
         return $options;
     }

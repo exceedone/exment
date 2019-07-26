@@ -142,7 +142,7 @@ trait CustomValueForm
                     if ($isListbox) {
                         $class = Field\Listbox::class;
                         $field->ajax($target_table->getOptionAjaxUrl());
-                    }else{
+                    } else {
                         $class = Field\MultipleSelect::class;
                     }
 
@@ -162,10 +162,10 @@ trait CustomValueForm
                     });
                     if (!$isListbox) {
                         $field->ajax($target_table->getOptionAjaxUrl());
-                    }else{
+                    } else {
                         $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
                         $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
-                    }    
+                    }
                     $form->pushField($field);
                 }
             }
@@ -390,7 +390,7 @@ EOT;
                 $tools->disableDelete();
             }
 
-            if(boolval(array_get($custom_value, 'disabled_delete'))){
+            if (boolval(array_get($custom_value, 'disabled_delete'))) {
                 $tools->disableDelete();
             }
 

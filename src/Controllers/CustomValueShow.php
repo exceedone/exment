@@ -158,7 +158,7 @@ trait CustomValueShow
                     ]));
                 }
 
-                if(boolval(array_get($custom_value, 'disabled_delete'))){
+                if (boolval(array_get($custom_value, 'disabled_delete'))) {
                     $tools->disableDelete();
                 }
 
@@ -487,24 +487,25 @@ EOT;
      *
      * @return boolean
      */
-    protected function hasPermissionShare($id){
+    protected function hasPermissionShare($id)
+    {
         // if system doesn't use role, return false
         if (!System::permission_available()) {
             return false;
         }
 
         // if master, false
-        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+        if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
             return false;
         }
 
         // if not has edit data, return false
-        if(!$this->custom_table->hasPermissionEditData($id)){
+        if (!$this->custom_table->hasPermissionEditData($id)) {
             return false;
         }
 
         // if not has share data, return false
-        if(!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
+        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
             return false;
         }
 
