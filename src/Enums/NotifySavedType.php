@@ -33,4 +33,25 @@ class NotifySavedType extends EnumBase
                 return exmtrans('common.attachmented');
         }
     }
+    
+    /**
+     * Get target user name.
+     *
+     * @param CutomValue $custom_value
+     * @return string
+     */
+    public function getTargetUserName($custom_value)
+    {
+        switch ($this) {
+            case static::CREATE:
+            case static::UPDATE:
+            case static::DELETE:
+                return $custom_value->updated_user;
+        
+            case static::SHARE:
+            case static::COMMENT:
+            case static::ATTACHMENT:
+                return \Exment::user()->base_user->label;
+        }
+    }
 }
