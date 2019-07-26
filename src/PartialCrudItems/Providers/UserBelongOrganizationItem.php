@@ -20,7 +20,9 @@ class UserBelongOrganizationItem extends ProviderBase
     public function __construct($custom_table)
     {
         parent::__construct($custom_table);
-        $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions();
+        $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
+            'notAjax' => true,
+        ]);
     }
 
     /**

@@ -137,24 +137,35 @@ trait CustomValueForm
                 }
                 // n:n
                 else {
-                    $field = new Field\Listbox(
+                    // get select classname
+                    $isListbox = $target_table->isGetOptions();
+                    if ($isListbox) {
+                        $class = Field\Listbox::class;
+                        $field->ajax($target_table->getOptionAjaxUrl());
+                    }else{
+                        $class = Field\MultipleSelect::class;
+                    }
+
+                    $field = new $class(
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
                     );
                     $custom_table = $this->custom_table;
-                    $field->options(function ($select) use ($custom_table, $target_table) {
+                    $field->options(function ($select) use ($custom_table, $target_table, $isListbox) {
                         return $target_table->getSelectOptions(
                             [
                                 'selected_value' => $select,
                                 'display_table' => $custom_table,
+                                'notAjax' => $isListbox,
                             ]
                         );
                     });
-                    if (!$target_table->isGetOptions()) {
+                    if (!$isListbox) {
                         $field->ajax($target_table->getOptionAjaxUrl());
-                    }
-                    $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
-                    $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
+                    }else{
+                        $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+                        $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
+                    }    
                     $form->pushField($field);
                 }
             }

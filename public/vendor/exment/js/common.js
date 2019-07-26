@@ -817,7 +817,8 @@ var Exment;
                         data: function (params) {
                             return {
                                 q: params.term,
-                                page: params.page
+                                page: params.page,
+                                selectajax: true
                             };
                         },
                         processResults: function (data, params) {
@@ -828,7 +829,7 @@ var Exment;
                             return {
                                 results: $.map(data.data, function (d) {
                                     d.id = d.id;
-                                    d.text = d.label; // label is custom value label appended.
+                                    d.text = hasValue(d.text) ? d.text : d.label; // label is custom value label appended.
                                     return d;
                                 }),
                                 pagination: {

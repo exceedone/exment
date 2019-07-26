@@ -113,6 +113,7 @@ trait InitializeFormTrait
                 ->options(function ($option) {
                     return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
                         'selected_value' => $option,
+                        'notAjax' => true,
                     ]);
                 })->default(System::system_admin_users());
 

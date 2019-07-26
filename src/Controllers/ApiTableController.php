@@ -70,6 +70,17 @@ class ApiTableController extends AdminControllerTableBase
             'paginate' => true,
             'makeHidden' => true,
         ]);
+
+        // if call as select ajax, return id and text array
+        if($request->has('selectajax')){
+            $paginator->getCollection()->transform(function ($value) {
+                return [
+                    'id' => $value->id,
+                    'text' => $value->label,
+                ];
+            });
+        }
+
         return $paginator;
     }
     
