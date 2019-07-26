@@ -7,6 +7,9 @@ var Exment;
          * Call only once. It's $(document).on event.
          */
         NotifyNavbarEvent.AddEventOnce = function () {
+            if ($('.navbar-notify').length == 0) {
+                return;
+            }
             NotifyNavbarEvent.notifyNavbar();
             $(document).on('pjax:complete', function (event) {
                 NotifyNavbarEvent.notifyNavbar();

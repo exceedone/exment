@@ -60,12 +60,16 @@ class SelectTable extends CustomItem
         $result = [];
 
         foreach ($value as $v) {
+            if(!isset($v)){
+                continue;
+            }
+            
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->target_table->table_name, $v);
             $model = System::requestSession($key, function () use ($v) {
                 return getModelName($this->target_table)::find($v);
             });
             if (is_null($model)) {
-                return null;
+                continue;
             }
             
             // if $model is array multiple, set as array

@@ -87,6 +87,10 @@ class ModelBase extends Model
      */
     public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
     {
+        if(!isset($obj)){
+            return null;
+        }
+        
         // get table
         $obj = static::allRecords(function ($table) use ($query_key, $obj) {
             return array_get($table, $query_key) == $obj;
