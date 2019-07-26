@@ -765,8 +765,20 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param $custom_view
      */
-    public function isGetOptions($custom_view = null)
+    public function isGetOptions($custom_view = null, $options = [])
     {
+        extract(array_merge(
+            [
+                'notAjax' => false,
+            ],
+            $options
+        ));
+
+        // if not ajax, return true
+        if(boolval($notAjax)){
+            return true;
+        }
+
         // get count table..
         $count = $this->getOptionsQuery($custom_view)->count();
         // when count > 0, create option only value.
@@ -795,6 +807,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'filterCallback' => null,
                 'target_view' => null,
                 'permission' => null,
+                'notAjax' => false,
             ],
             $options
         ));
@@ -832,7 +845,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // when count > 100, create option only value.
-        if (!$this->isGetOptions()) {
+        if (!$this->isGetOptions(null, $options)) {
             if (!isset($selected_value)) {
                 return [];
             }
@@ -861,12 +874,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param array|CustomTable $table
      * @param $value
      */
-    public function getOptionAjaxUrl($custom_view = null)
+    public function getOptionAjaxUrl($custom_view = null, $options = [])
     {
-        // get count table.
-        $count = $this->getOptionsQuery($custom_view)->count();
-        // when count > 0, create option only value.
-        if ($count <= 100) {
+        // if use options, return false
+        if ($this->isGetOptions($custom_view, $options)) {
             return null;
         }
         return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");

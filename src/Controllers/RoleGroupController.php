@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemRoleType;
@@ -43,9 +44,12 @@ class RoleGroupController extends AdminControllerBase
         $grid->column('role_group_users', exmtrans('role_group.users_count'))->display(function ($counts) {
             return count($counts);
         });
-        $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
-            return count($counts);
-        });
+
+        if(System::organization_available()){
+            $grid->column('role_group_organizations', exmtrans('role_group.organizations_count'))->display(function ($counts) {
+                return count($counts);
+            });    
+        }
         
         // check has ROLE_GROUP_ALL
         $hasCreatePermission = \Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL);

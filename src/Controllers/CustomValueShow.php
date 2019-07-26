@@ -15,6 +15,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\NotifyTrigger;
@@ -186,8 +187,7 @@ trait CustomValueShow
                     }
 
                     // check share permission.
-                    // ignore master table, and has permission
-                    if (!in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER()) && $this->custom_table->hasPermissionEditData($id) && $this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+                    if ($this->hasPermissionShare($id)) {
                         $tools->append(new Tools\ShareButton($this->custom_table, $id));
                     }
 
@@ -480,5 +480,34 @@ EOT;
             $query = $query->take(10);
         }
         return $query->get() ?? [];
+    }
+
+    /**
+     * Whether showing share button
+     *
+     * @return boolean
+     */
+    protected function hasPermissionShare($id){
+        // if system doesn't use role, return false
+        if (!System::permission_available()) {
+            return false;
+        }
+
+        // if master, false
+        if(in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())){
+            return false;
+        }
+
+        // if not has edit data, return false
+        if(!$this->custom_table->hasPermissionEditData($id)){
+            return false;
+        }
+
+        // if not has share data, return false
+        if(!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)){
+            return false;
+        }
+
+        return true;
     }
 }
