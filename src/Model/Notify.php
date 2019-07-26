@@ -171,6 +171,7 @@ class Notify extends ModelBase
             $prms = [
                 'user' => $user,
                 'notify' => $this,
+                'target_user' => $notifySavedType->getTargetUserName($custom_value),
                 'target_table' => $custom_table->table_view_name ?? null,
                 'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
                 'create_or_update' => $notifySavedType->getLabel(),
