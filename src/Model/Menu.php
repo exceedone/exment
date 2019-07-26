@@ -230,10 +230,17 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 case MenuType::TABLE:
                     $json['uri'] = $json['menu_name'];
                     break;
-                case MenuType::TABLE:
+                case MenuType::PARENT_NODE:
                     $json['uri'] = '#';
                     break;
             }
+        }
+
+        // (v2.0) replace "role" to "role_group"
+        if (array_get($json, 'menu_type') == MenuType::SYSTEM && array_get($json, 'menu_name') == 'role') {
+            $json['uri'] = 'role_group';
+            $json['menu_name'] = 'role_group';
+            $json['title'] = exmtrans('menu.system_definitions.role_group');
         }
     }
 
