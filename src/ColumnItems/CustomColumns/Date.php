@@ -9,6 +9,8 @@ use Exceedone\Exment\Form\Field as ExmentField;
 
 class Date extends CustomItem
 {
+    protected $format = 'Y-m-d';
+
     public function text()
     {
         // if not empty format, using carbon
@@ -31,7 +33,7 @@ class Date extends CustomItem
             return $this->value;
         }
 
-        return null;
+        return (new \Carbon\Carbon($this->value()))->format($this->format) ?? null;
     }
 
     protected function getAdminFieldClass()

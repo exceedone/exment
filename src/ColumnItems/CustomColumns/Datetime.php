@@ -7,6 +7,8 @@ use Exceedone\Exment\Form\Field as ExmentField;
 
 class Datetime extends Date
 {
+    protected $format = 'Y-m-d H:i:s';
+
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {

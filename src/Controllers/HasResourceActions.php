@@ -60,7 +60,12 @@ trait HasResourceActions
 
         $result = true;
         $rows->each(function ($id) use (&$result) {
-            if (!$this->form($id)->destroy($id)) {
+            if (method_exists($this, 'widgetDestroy')) {
+                if (!$this->widgetDestroy($id)) {
+                    $result = false;
+                    return;
+                }
+            } elseif (!$this->form($id)->destroy($id)) {
                 $result = false;
                 return;
             }

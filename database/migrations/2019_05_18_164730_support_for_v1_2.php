@@ -23,7 +23,6 @@ class SupportForV12 extends Migration
         'custom_tables' => Model\CustomTable::class,
         'dashboard_boxes' => Model\DashboardBox::class,
         'dashboards' => Model\Dashboard::class,
-        'roles' => Model\Role::class,
         'user_settings' => Model\UserSetting::class,
         'login_users' => Model\LoginUser::class,
         'plugins' => Model\Plugin::class,

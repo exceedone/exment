@@ -77,14 +77,22 @@ class RouteServiceProvider extends ServiceProvider
             
             $router->get('notify/targetcolumn', 'NotifyController@targetcolumn');
             $router->get('notify/notify_action_target', 'NotifyController@notify_action_target');
+            $router->post('notify/notifytrigger_template', 'NotifyController@getNotifyTriggerTemplate');
             $router->resource('notify', 'NotifyController', ['except' => ['show']]);
+            $router->resource('notify_navbar', 'NotifyNavbarController', ['except' => ['edit']]);
+            $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
+            $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
-            $router->resource('role', 'RoleController', ['except' => ['show']]);
+            $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
             $router->post("loginuser/import", 'LoginUserController@import');
             $router->resource('loginuser', 'LoginUserController', ['except'=> ['create']]);
-        
+            
+            $router->get('role', function () {
+                return redirect(admin_urls('role_group'));
+            });
+            
             $router->get('search', 'SearchController@index');
             $router->get('search/list', 'SearchController@getList');
             $router->get('search/header', 'SearchController@header');
@@ -105,8 +113,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
             $router->get("data/{tableKey}/{id}/notifyClick", 'CustomValueController@notifyClick');
+            $router->get("data/{tableKey}/{id}/shareClick", 'CustomValueController@shareClick');
             $router->post("data/{tableKey}/{id}/sendMail", 'CustomValueController@sendMail');
             $router->post("data/{tableKey}/{id}/sendTargetUsers", 'CustomValueController@sendTargetUsers');
+            $router->post("data/{tableKey}/{id}/sendShares", 'CustomValueController@sendShares');
             $router->post("data/{tableKey}/{id}/copyClick", 'CustomValueController@copyClick');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
@@ -214,6 +224,7 @@ class RouteServiceProvider extends ServiceProvider
                 // table --------------------------------------------------
                 $router->get("table", 'ApiController@tablelist')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/indexcolumns", 'ApiController@indexcolumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
+                $router->get("table/filterviews", 'ApiController@filterviews')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}", 'ApiController@table')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("table/{tableKey}/columns", 'ApiTableController@tableColumns')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
                 $router->get("column/{id}", 'ApiController@column')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::TABLE_READ, ApiScope::TABLE_WRITE));
@@ -221,6 +232,8 @@ class RouteServiceProvider extends ServiceProvider
                 
                 // System --------------------------------------------------
                 $router->get("version", 'ApiController@version');
+
+                $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ));
 
                 // User, LoginUser --------------------------------------------------
                 $router->get("me", 'ApiController@me')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ME));

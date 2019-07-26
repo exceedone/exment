@@ -4,10 +4,13 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewKindType;
 
 /**
  * Api about target table
@@ -85,6 +88,27 @@ class ApiController extends AdminControllerBase
     }
 
     /**
+     * get filter view list
+     * @return mixed
+     */
+    public function filterviews(Request $request)
+    {
+        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        $table = $request->get('q');
+        if (!isset($table)) {
+            return [];
+        }
+
+        return CustomView
+            ::where('custom_table_id', $table)
+            ->where('view_kind_type', ViewKindType::FILTER)
+            ->get();
+    }
+
+    /**
      * get table data by id or table_name
      * @param mixed $tableKey id or table_name
      * @return mixed
@@ -146,5 +170,38 @@ class ApiController extends AdminControllerBase
             return [];
         }
         return CustomTable::getEloquent($select_target_table)->custom_columns()->get(['id', 'column_view_name'])->pluck('column_view_name', 'id');
+    }
+    
+    public function notifyPage(Request $request)
+    {
+        // get notify NotifyNavbar list
+        $query = NotifyNavbar::where('target_user_id', \Exment::user()->base_user_id)
+            ->where('read_flg', false)
+            ->orderBy('created_at', 'desc');
+        
+        $count = $query->count();
+        $list = $query->take(5)->get();
+
+        return [
+            'count' => $count,
+            'items' => $list->map(function ($l) {
+                $custom_table = CustomTable::getEloquent(array_get($l, 'parent_type'));
+                if (isset($custom_table)) {
+                    $icon = $custom_table->getOption('icon');
+                    $color = $custom_table->getOption('color');
+                    $table_view_name = $custom_table->table_view_name;
+                }
+
+                return [
+                    'id' => array_get($l, 'id'),
+                    'icon' => $icon ?? 'fa-bell',
+                    'color' => $color ?? null,
+                    'table_view_name' => $table_view_name ?? null,
+                    'label' => array_get($l, 'notify_subject'),
+                    'href' => admin_urls('notify_navbar', $l->id)
+                ];
+            }),
+            'noItemMessage' => exmtrans('notify_navbar.message.no_newitem')
+        ];
     }
 }

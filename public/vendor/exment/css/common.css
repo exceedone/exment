@@ -14,6 +14,10 @@
   font-size: 0.9em;
 }
 
+.d-block {
+  display: block;
+}
+
 .asterisk::after {
   content: " *";
   color: red;
@@ -3451,6 +3455,28 @@
   border: 0;
 }
 
+.navbar-notify .container-notify {
+  font-size: 20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.navbar-notify .container-notify .label-danger {
+  font-size: 12px;
+}
+
+.navbar-notify .slimScrollDiv, .navbar-notify .slimScrollDiv .menu {
+  height: auto !important;
+}
+
+body .main-header .navbar .nav > li > a > .label {
+  font-size: 11px;
+}
+
+body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages-menu > .dropdown-menu, .navbar-nav > .tasks-menu > .dropdown-menu {
+  width: 400px;
+}
+
 .ui-autocomplete {
   z-index: 1031;
 }
@@ -3767,4 +3793,8 @@ fieldset[disabled] .btn.btn-purple.active {
 
 #tile-template .row-eq-height > [class^="col-"] {
   margin-bottom: 10px;
+}
+
+.icheckbox_minimal-blue.checked.disabled {
+  background-color: gray;
 }

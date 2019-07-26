@@ -48,7 +48,7 @@ class File extends CustomItem
         // set filename rule
         $custom_table = $this->getCustomTable();
         $field->move($custom_table->table_name);
-        $field->callableName(function ($file) use($custom_table) {
+        $field->callableName(function ($file) use ($custom_table) {
             return File::setFileInfo($this, $file, $custom_table);
         });
     }
@@ -83,9 +83,9 @@ class File extends CustomItem
         // set request session to save this custom_value's id and type into files table.
         $file_uuids = System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID) ?? [];
         $file_uuids[] = [
-            'uuid' => $exmentfile->uuid, 
-            'column_name' => $field->column(), 
-            'custom_table' => $custom_table, 
+            'uuid' => $exmentfile->uuid,
+            'column_name' => $field->column(),
+            'custom_table' => $custom_table,
             'path' => $exmentfile->path
         ];
         System::requestSession(Define::SYSTEM_KEY_SESSION_FILE_UPLOADED_UUID, $file_uuids);

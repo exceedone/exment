@@ -4,9 +4,14 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Grid;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Enums\ViewKindType;
 
 trait CustomValueSummary
 {
@@ -20,9 +25,30 @@ trait CustomValueSummary
 
         $grid->disableCreateButton();
         $grid->disableFilter();
-        $grid->disableActions();
+        //$grid->disableActions();
         $grid->disableRowSelector();
         $grid->disableExport();
+
+        $table_name = $this->custom_table->table_name;
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
+            $actions->disableDelete();
+            $actions->disableEdit();
+            $actions->disableView();
+
+            $params = [];
+            foreach ($actions->row->toArray() as $key => $value) {
+                $keys = explode('_', $key);
+                if (count($keys) == 3 && $keys[1] == ViewKindType::DEFAULT) {
+                    $params[$keys[2]] = $value;
+                }
+            }
+
+            $linker = (new Grid\Linker)
+                ->url(admin_urls('data', $table_name).'?group_key='.json_encode($params))
+                ->icon('fa-list')
+                ->tooltip(exmtrans('custom_value.view_summary_detail'));
+            $actions->prepend($linker);
+        });
 
         // create exporter
         $service = (new DataImportExport\DataImportExportService())
@@ -52,6 +78,30 @@ trait CustomValueSummary
         return $grid;
     }
 
+    protected function getSummaryDetailFilter($group_keys)
+    {
+        // replace view
+        $this->custom_view = CustomView::getAllData($this->custom_table);
+        $filters = [];
+        foreach ($group_keys as $key => $value) {
+            $custom_view_column = CustomViewColumn::find($key);
+            $custom_view_filter = new CustomViewFilter;
+            $custom_view_filter->custom_view_id = $custom_view_column->custom_view_id;
+            $custom_view_filter->view_column_type = $custom_view_column->view_column_type;
+            $custom_view_filter->view_column_target = $custom_view_column->view_column_target;
+            $custom_view_filter->view_group_condition = $custom_view_column->view_group_condition;
+            $custom_view_filter->view_filter_condition = ViewColumnFilterOption::EQ;
+            $custom_view_filter->view_filter_condition_value_text = $value;
+            $filters[] = $custom_view_filter;
+        }
+        $filter_func = function ($model) use ($filters) {
+            foreach ($filters as $filter) {
+                $model = $filter->setValueFilter($model);
+            }
+            return $model;
+        };
+        return $filter_func;
+    }
     /**
      * set summary grid
      */
@@ -60,6 +110,6 @@ trait CustomValueSummary
         $view = $this->custom_view;
 
         $query = $grid->model();
-        $view->getValueSummary($query, $this->custom_table, $grid);
+        return $view->getValueSummary($query, $this->custom_table, $grid);
     }
 }

@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\NotifyActionTarget;
+use Exceedone\Exment\Enums\Permission;
 
 /**
  * get and set notify target
@@ -78,7 +79,9 @@ class NotifyTarget
     {
         $result = [];
         // if role users, getModelsAsRole
-        if ($column == NotifyActionTarget::HAS_ROLES) {
+        if ($column == NotifyActionTarget::CREATED_USER) {
+            $result[] = static::getModelAsUser(CustomTable::getEloquent(SystemTableName::USER)->getValueModel($custom_value->created_user_id));
+        } elseif ($column == NotifyActionTarget::HAS_ROLES) {
             $roleUsers = static::getModelsAsRole($custom_value);
             foreach ($roleUsers as $roleUser) {
                 $result[] = $roleUser;
@@ -192,6 +195,11 @@ class NotifyTarget
 
         return $notifyTarget;
     }
+
+    public static function getModelAsUser($target_value, $email_column = null, $custom_column = null)
+    {
+        return static::getModelAsSelectTable($target_value, $email_column, $custom_column);
+    }
     
     /**
      * get models as role
@@ -201,7 +209,7 @@ class NotifyTarget
      */
     protected static function getModelsAsRole($custom_value)
     {
-        $users = AuthUserOrgHelper::getAllRoleUserQuery($custom_value)->get();
+        $users = AuthUserOrgHelper::getRoleUserQueryValue($custom_value, [Permission::CUSTOM_VALUE_EDIT_ALL, Permission::CUSTOM_VALUE_VIEW_ALL])->get();
 
         // get 'email' custom column
         $email_column = CustomColumn::getEloquent('email', SystemTableName::USER);

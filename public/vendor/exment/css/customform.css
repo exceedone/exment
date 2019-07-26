@@ -8,7 +8,7 @@
 }
 
 .custom_form_column_items {
-  padding: 1em 0.5em;
+  padding: 1em 0.5em 4em;
   border: 2px dashed #AAA;
   min-height: 100px;
 }

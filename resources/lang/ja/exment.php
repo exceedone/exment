@@ -7,6 +7,7 @@ return [
         'import' => 'インポート',
         'plugin' => 'プラグイン',
         'copy' => 'コピー',
+        'shared' => '共有',
         'change' => '変更',
         'reqired' => '必須',
         'default' => '既定',
@@ -19,8 +20,10 @@ return [
         'suuid' => '内部ID(20桁)',
         'parent_id' => '親データのID',
         'parent_type' => '親データのテーブル名',
-        'created' => '新規作成',
+        'created' => '作成',
         'updated' => '更新', 
+        'deleted' => '削除', 
+        'attachmented' => 'ファイル添付', 
         'created_at' => '作成日時',
         'updated_at' => '更新日時', 
         'deleted_at' => '削除日時', 
@@ -78,7 +81,13 @@ return [
             'fri' => '金',
             'sat' => '土',
             'sun' => '日',
-        ]
+        ],
+        
+        'bootstrap_duallistbox_container' => [
+            'nonSelectedListLabel' => '候補データ一覧',
+            'selectedListLabel' => '選択済データ一覧',
+            'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
+        ],
     ],
 
     'error' => [
@@ -138,6 +147,7 @@ return [
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
+        'system_admin_users' => 'システム管理者',
         'system_mail' => 'システムメール設定',
         'system_mail_host' => 'ホスト名',
         'system_mail_port' => 'ポート',
@@ -190,6 +200,7 @@ return [
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
             'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
+            'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
@@ -256,6 +267,7 @@ return [
 
         'message' => [
             'need_setting' => 'ダッシュボードの設定変更が必要です。再度、設定を行ってください。',
+            'not_exists_table' => 'テーブルまたはビューが削除されました。',
         ],
     ],
 
@@ -384,6 +396,7 @@ return [
         'create_password_auto' => 'パスワードを自動生成する',
         'avatar' => 'アバター',
         'default_table_name' => 'ユーザー',
+        'belong_organizations' => '所属組織設定',
         'help' =>[
             'user_name' => '画面に表示する名前です。',
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
@@ -402,6 +415,7 @@ return [
 
     'organization' => [
         'default_table_name' => '組織',
+        'organization_tree' => '組織階層',
     ],
 
     'login' => [
@@ -492,10 +506,11 @@ return [
         'revision_count' => '変更履歴バージョン数',
         'notify_flg' => '登録・更新時通知',
         'custom_columns' => '列一覧',
-        'all_user_editable_flg' => 'すべてのユーザーが編集可能',
-        'all_user_viewable_flg' => 'すべてのユーザーが閲覧可能',
-        'all_user_accessable_flg' => 'すべてのユーザーが参照可能',
+        'all_user_editable_flg' => '全ユーザーが編集可能',
+        'all_user_viewable_flg' => '全ユーザーが閲覧可能',
+        'all_user_accessable_flg' => '全ユーザーが参照可能',
         'add_parent_menu_flg' => 'メニューに追加する',
+        'add_notify_flg' => '通知に追加する',
         'add_parent_menu' => '追加先の親メニュー',
         'default_setting' => '通常設定',
         'expand_setting' => '拡張設定',
@@ -506,7 +521,7 @@ return [
             'one_record_flg' =>'データを1件のみ登録可能かどうかの設定です。自社情報など、データが1件しか存在しないテーブルの場合、YESにしてください。',
             'attachment_flg' => 'YESにした場合、各データに添付ファイルを追加することができます。',
             'comment_flg' => 'YESにした場合、各データにコメントを追加することができます。',
-            'use_label_id_flg' => 'YESにした場合、データのidの値を見出しの項目として表示します。詳細は詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
+            'use_label_id_flg' => 'YESにした場合、データのidの値を見出しの項目として表示します。詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'revision_flg' => 'YESにした場合、各データの保存時、データの変更履歴を保存します。また、各データ画面で、以前の保存情報を復元することができます。',
             'revision_count' => 'データの変更履歴を保存する最大件数です。それ以上の履歴を保存する場合、過去の履歴は削除されます。',
             'notify_flg' => 'YESにした場合、データの追加・更新時、権限のあるユーザーに通知を送信します。',
@@ -515,6 +530,7 @@ return [
             'all_user_accessable_flg' => 'YESにした場合、すべてのユーザーが、このテーブルのすべてのデータを参照可能になります。<br/>※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。',
             'add_parent_menu_flg' => '新規作成後、メニューに追加することができます。追加する場合はYESにしてください。<br/>※ブラウザ更新後に表示されます。<br />※テーブルの新規作成時のみ設定できます。更新時は「メニュー」画面より設定してください。',
             'add_parent_menu' => '親にするメニュー名を選択してください。',
+            'add_notify_flg' => 'データの新規作成・更新・共有、コメント時に、権限のあるユーザーに、システム内通知を行う設定を、テーブルの新規作成後に追加することができます。追加する場合はYESにしてください。<br/>※テーブルの新規作成時のみ設定できます。更新時は「通知」画面より設定してください。',
             'saved_redirect_column' => '保存しました！次はカスタム列を設定してください。',
             'delete_confirm_message' => '削除する場合は「%s」を入力してください。',
             'delete_confirm_error' => 'キーワードが正しくありません。',
@@ -570,6 +586,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
+            'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
@@ -624,6 +641,7 @@ return [
             'datetime_now_creating' => 'データの新規作成時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
+            'select_target_view' => 'データを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
             'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
             'true_value' => '1つ目の選択肢を保存した場合に登録する値を入力してください。',
@@ -695,6 +713,10 @@ return [
             'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'changedata_no_item' => '※列の種類が「選択肢 (他のテーブルの値一覧から選択)」、「ユーザー」、「組織」となる列がテーブル内に存在しません。データ連動設定を使用する場合、これらの列を登録してください。',
         ],
+
+        'message' => [
+            'no_exists_column' => '必須項目が設定されていません。',
+        ],
     ],
 
     'custom_view' => [
@@ -725,6 +747,7 @@ return [
         'view_group_condition' => '列タイプ',
         'view_summary_condition' => '集計タイプ',
         'default_view_name' => '既定のビュー',
+        'alldata_view_name' => '全件ビュー',
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
@@ -796,6 +819,7 @@ return [
             'create' => 'ビュー新規作成',
             'create_sum' => '集計ビュー新規作成',
             'create_calendar' => 'カレンダービュー新規作成',
+            'create_filter' => '条件ビュー新規作成',
         ],
         'message' => [
             'over_filters_max' => '表示条件は6件以上設定できません。',
@@ -811,21 +835,22 @@ return [
             'default' => '通常ビュー',
             'aggregate' => '集計ビュー',
             'calendar' => 'カレンダービュー',
+            'filter' => '条件ビュー',
+            'alldata' => '全件ビュー',
         ],
     ],
 
-    'role' => [
-        'header' => '役割設定',
-        'description' => '役割の設定を行います。役割は複数の権限を持ち、ユーザーのアクセス制御を行います。',
-        'role_name' => '役割名(英数字)',
-        'role_view_name' => '役割表示名',
-        'role_type' => '役割の種類',
-        'default_flg' => '既定の役割',
-        'default_flg_true' => '既定',
-        'default_flg_false' => '',
-        'description_field' => '説明文',
+    'role_group' => [
+        'header' => '役割グループ設定',
+        'description' => '役割グループの設定を行います。役割グループは、複数の権限を持ち、ユーザー・組織のアクセス制御を行います。',
+        'role_group_name' => '役割グループ名(英数字)',
+        'role_group_view_name' => '役割グループ表示名',
         'permissions' => '権限詳細',
-        'permission_header' => '権限設定',
+        'permission_setting' => '権限設定',
+        'user_organization_setting' => 'ユーザー・組織設定',
+        'users_count' => 'ユーザー数',
+        'organizations_count' => '組織数',
+        'share_description' => 'このデータを、他のユーザー・組織に共有します。共有することで、他のユーザー・組織が、このデータにアクセスすることができるようになります。',
 
         'description_form' => [
             'system' => 'システム全体を対象に、権限を付与するユーザー・組織を選択します。',
@@ -844,29 +869,49 @@ return [
             'table' => 'テーブル',
             'value' => 'データ',
             'plugin' => 'プラグイン',
+            'master' => 'マスター',
+        ],
+
+        'role_group_system' => [
+            'system' => 'システム全体',
+            'role_group' => '役割グループ',
         ],
 
         'role_type_option_system' => [
-            'system' => ['label' => 'システム情報', 'help' => 'システム情報を変更できます。'],
-            'custom_table' => ['label' => 'カスタムテーブル', 'help' => 'カスタムテーブルを追加・変更・削除できます。'],
+            'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
+            'login_user' => ['label' => 'ログインユーザーの管理', 'help' => 'Exmentにログインするユーザーを管理できます。'],
+            'custom_table' => ['label' => 'すべてのテーブル管理', 'help' => 'カスタムテーブルの追加や、すべてのカスタムテーブルの変更・削除を行えます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
-            'custom_value_edit_all' => ['label' => 'すべてのデータ', 'help' => 'すべてのデータを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => 'すべてのデータ編集', 'help' => 'カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
         ],
-        'role_type_option_table' => [
-            'custom_table' => ['label' => 'テーブル', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。'],
+        'role_type_option_role_group' => [
+            'role_group_all' => ['label' => '役割グループ全体の管理', 'help' => '役割グループ全体の設定を変更できます。<br/>グループの追加・変更・削除、グループの権限設定変更、ユーザー・組織の設定変更ができます。'],
+            'role_group_permission' => ['label' => '権限設定変更', 'help' => '役割グループの権限の設定を変更できます。'],
+            'role_group_user_organization' => ['label' => 'ユーザー・組織管理', 'help' => '役割グループに登録する、ユーザー・組織の設定を変更できます。'],
+        ],
+        'role_type_option_master' => [
+            'custom_table' => ['label' => 'マスター管理', 'help' => 'マスターの定義を変更できます。また、マスターデータを追加・編集・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
-            'custom_view' => ['label' => 'ビュー', 'help' => 'ビューを追加・変更・削除できます。'],
-            'custom_value_edit_all' => ['label' => 'すべてのデータの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
-            'custom_value_view_all' => ['label' => 'すべてのデータの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
-            'custom_value_access_all' => ['label' => 'すべてのデータの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
-            'custom_value_edit' => ['label' => '担当者データの編集', 'help' => '自分に権限のあるデータを追加・編集・削除できます。'],
-            'custom_value_view' => ['label' => '担当者データの閲覧', 'help' => '自分に権限のあるデータを閲覧できます。'],
-            'custom_value_access' => ['label' => '担当者データの参照', 'help' => '自分に権限のあるデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => 'データの編集', 'help' => 'マスターデータを追加・編集・削除できます。'],
+            'custom_value_view_all' => ['label' => 'データの閲覧', 'help' => 'マスターデータを閲覧できます。'],
+        ], 
+        'role_type_option_table' => [
+            'custom_table' => ['label' => 'テーブル管理', 'help' => 'テーブル定義を変更、またはテーブルを削除できます。また、すべてのデータを追加・編集・削除できます。'],
+            'custom_form' => ['label' => 'フォーム', 'help' => 'フォームを追加・変更・削除できます。'],
+            'custom_view' => ['label' => 'ビュー', 'help' => 'システムビューを追加・変更・削除できます。'],
+            'custom_value_edit_all' => ['label' => '全データの編集', 'help' => 'すべてのデータを追加・編集・削除できます。'],
+            'custom_value_view_all' => ['label' => '全データの閲覧', 'help' => 'すべてのデータを閲覧できます。'],
+            'custom_value_access_all' => ['label' => '全データの参照', 'help' => 'すべてのデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_value_edit' => ['label' => '担当データの編集', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを追加・編集・削除できます。'],
+            'custom_value_view' => ['label' => '担当データの閲覧', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを閲覧できます。'],
+            'custom_value_access' => ['label' => '担当データの参照', 'help' => '自分自身で作成した、もしくは他のユーザーに共有されたデータを参照できます。<br />※メニューや一覧画面では表示されず、内部データや、他のテーブルからの参照でのみ表示できます。'],
+            'custom_value_share' => ['label' => 'データの共有', 'help' => 'データを、他のユーザーに共有することができます。<br />※そのデータに対する編集権限が必要です。'],
         ], 
         'role_type_option_value' => [
-            'custom_value_edit' => ['label' => '編集者', 'help' => '対象のデータを編集できます。'],
-            'custom_value_view' => ['label' => '閲覧者', 'help' => '対象のデータを閲覧できます。'],
+            'custom_value_edit' => ['label' => '編集可能', 'help' => 'このデータを編集できるようになります。'],
+            'custom_value_view' => ['label' => '閲覧可能', 'help' => 'このデータを閲覧できるようになります。'],
         ], 
         'role_type_option_plugin' => [
             'plugin_access' => ['label' => '利用', 'help' => 'このプラグインを利用できます。'],
@@ -942,14 +987,18 @@ return [
             'system' => 'システム設定',
             'plugin' => 'プラグイン',
             'custom_table' => 'カスタムテーブル',
-            'role' => '役割',
+            'role_group' => '役割グループ',
             'menu' => 'メニュー',
             'template' => 'テンプレート',
             'backup' => 'バックアップ',
             'loginuser' => 'ログインユーザー',
-            'notify' => '通知・メール送信',
+            'notify' => '通知',
             'master' => 'マスター管理',
             'admin' => '管理者設定',
+            'user' => 'ユーザー',
+            'organization' => '組織',
+            'mail_template' => 'メールテンプレート',
+            'mail' => 'メール送信履歴',
         ],
     ],
 
@@ -985,8 +1034,7 @@ return [
             'table' => 'テーブル',
             'dashboard' => 'ダッシュボード',
             'menu' => 'メニュー',
-            'role' => '権限',
-            'mail_template' => 'メールテンプレート',
+            'role_group' => '役割グループ',
         ]
     ],
 
@@ -994,6 +1042,7 @@ return [
         'template' => 'テンプレート出力',
         'import_export' => 'インポート・エクスポート',
         'export' => 'エクスポート',
+        'view_summary_detail' => '集計データの明細を表示する',
         'import' => [
             'manual_id' => 'データインポート',
             'import_file' => 'インポートファイル',
@@ -1035,12 +1084,6 @@ return [
             ],
         ],
         'data_detail' => 'データ確認',
-
-        'bootstrap_duallistbox_container' => [
-            'nonSelectedListLabel' => '候補データ一覧',
-            'selectedListLabel' => '選択済データ一覧',
-            'help' => '左の列から、該当するデータを選択し、右の列に移動してください。',
-        ],
         'auto_number_create' => '(※保存後、値が自動的に登録されます)',
 
         'help' => [
@@ -1065,6 +1108,27 @@ return [
         'compare_revision' => 'リビジョン比較',
     ],
 
+    'notify_navbar' => [
+        'header' => '通知一覧',
+        'description' => 'ユーザーへの通知一覧です。',
+        'read_flg' => '状態',
+        'parent_type' => '対象テーブル',
+        'notify_subject' => '通知件名',
+        'notify_body' => '通知本文',
+        'target_custom_value' => '対象データ',
+        'data_refer' => 'この通知に紐づくデータを表示',
+        'all_check' => '一括既読',
+        'read_flg_options' => [
+            '0' => '未読',
+            '1' => '既読',
+        ],
+        'message' => [
+            'check_succeeded' => '選択データを既読に変更しました。',
+            'check_notfound' => '更新対象のデータが存在しません。',
+            'no_newitem' => '新着通知はありません。',
+        ],
+    ],
+
     'notify' => [
         'notify' => '通知',
         'header' => '通知設定',
@@ -1073,6 +1137,7 @@ return [
         'description' => '特定の条件で、通知を行うための設定を行います。',
         'notify_view_name' => '通知表示名',
         'custom_table_id' => '対象テーブル',
+        'custom_view_id' => '対象ビュー',
         'notify_trigger' => '実施トリガー',
         'trigger_settings' => '通知実施設定',
         'notify_target_column' => '日付対象列',
@@ -1082,24 +1147,25 @@ return [
         'notify_action' => '実施アクション',
         'action_settings' => '実施アクション設定',
         'notify_action_target' => '通知対象',
-        'mail_template_id' => 'メールテンプレート',
+        'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
             'custom_table_id' => '通知を行う条件として使用する、テーブルを選択します。',
+            'custom_view_id' => '対象テーブルのデータを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
             'notify_trigger' => '通知を行う条件となる内容を選択してください。',
             'trigger_settings' => '通知を行うかどうかの判定を行う、日付・日時のフィールドを選択します。',
             'notify_beforeafter' => '通知を行うのが、登録している日付の「前」か「後」かを選択します。<br/>例：「通知日」が7、「通知前後」が「前」の場合、指定したフィールドの日付の7日前に通知実行',
             'notify_hour' => '通知を実行する時間です。0～23で入力します。 例：「6」と入力した場合、6:00に通知実行',
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
-            'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」と、「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
-            'mail_template_id' => '送付するメールのテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」「作成者」と、カスタム列の「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
+            'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
         ],
 
         'notify_trigger_options' => [
             'time' => '時間の経過',
-            'create_update_data' => 'データ新規作成・更新',
+            'create_update_data' => 'データ新規作成・更新・共有・コメント',
             'button' => 'ボタン',
         ],
         'notify_beforeafter_options' => [
@@ -1108,10 +1174,12 @@ return [
         ],
         'notify_action_options' => [
             'email' => 'Eメール', 
+            'show_page' => 'システム内アラート', 
         ],
 
         'notify_action_target_options' => [
             'has_roles' => '権限のあるユーザー',
+            'created_user' => '作成者',
         ],
     ],
     

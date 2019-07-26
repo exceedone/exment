@@ -112,6 +112,11 @@ class Permission
             return $result;
         }
 
+        // if 'role' or 'role_group' and !System::permission_available(), false
+        if (in_array($endpoint, ['role', 'role_group']) && !System::permission_available()) {
+            return false;
+        }
+
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -137,16 +142,29 @@ class Permission
             case "dashboardbox":
             case "oauth":
             case "files":
+            case "notify_navbar":
                 return true;
+            ///// only system permission
             case "system":
             case "role":
             case "plugin":
             case "database":
-            case "loginuser":
             case "auth/menu":
-            case "notify":
                 if ($systemRole) {
                     return array_key_exists('system', $this->permission_details);
+                }
+                return false;
+            ///// each permissions
+            case "notify":
+                return \Exment::user()->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE);
+            case "loginuser":
+                if ($systemRole) {
+                    return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
+                }
+                return false;
+            case "role_group":
+                if ($systemRole) {
+                    return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);
                 }
                 return false;
             case "table":

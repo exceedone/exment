@@ -87,6 +87,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         return $query->whereIn('options->index_enabled', [1, "1", true]);
     }
 
+    public function scopeRequired($query)
+    {
+        return $query->whereIn('options->required', [1, "1", true]);
+    }
+
     public function getColumnItemAttribute()
     {
         return ColumnItems\CustomItem::getItem($this);

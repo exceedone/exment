@@ -6,8 +6,23 @@ use Illuminate\Console\Command;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Notify;
+use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\MailKeyName;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\DataImportExport;
+use Carbon\Carbon;
 
 class PatchDataCommand extends Command
 {
@@ -63,6 +78,15 @@ class PatchDataCommand extends Command
                 return;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
+                return;
+            case 'role_group':
+                $this->roleToRoleGroup();
+                return;
+            case 'notify_saved':
+                $this->updateSavedTemplate();
+                return;
+            case 'alldata_view':
+                $this->copyViewColumnAllDataView();
                 return;
         }
 
@@ -171,27 +195,36 @@ class PatchDataCommand extends Command
      */
     protected function import2factorTemplate()
     {
-        // get vendor folder
-        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
-        $path = "$templates_data_path/mail_template.xlsx";
+        return $this->patchMailTemplate([
+            'verify_2factor',
+            'verify_2factor_google',
+            'verify_2factor_system',
+        ]);
+    }
+    
+    /**
+     * update mail template for 2factor
+     *
+     * @return void
+     */
+    protected function updateSavedTemplate()
+    {
+        $this->patchMailTemplate([MailKeyName::DATA_SAVED_NOTIFY]);
 
-        $table_name = \File::name($path);
-        $format = \File::extension($path);
-        $custom_table = CustomTable::getEloquent($table_name);
+        // add Notify update options
+        $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
+            ->get();
+        
+        foreach ($notifies as $notify) {
+            $notify_saved_trigger = array_get($notify, 'trigger_settings.notify_saved_trigger');
+            if (!isset($notify_saved_trigger)) {
+                $trigger_settings = $notify->trigger_settings;
+                $trigger_settings['notify_saved_trigger'] = NotifySavedType::arrays();
+                $notify->trigger_settings = $trigger_settings;
 
-        // execute import
-        $service = (new DataImportExport\DataImportExportService())
-            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
-                'custom_table' => $custom_table,
-                'filter' => ['value.mail_key_name' => [
-                    'verify_2factor',
-                    'verify_2factor_google',
-                    'verify_2factor_system',
-                ]],
-                'primary_key' => 'value.mail_key_name',
-            ]))
-            ->format($format);
-        $service->import($path);
+                $notify->save();
+            }
+        }
     }
     
     /**
@@ -225,5 +258,202 @@ class PatchDataCommand extends Command
                 }
             }
         }
+    }
+
+    /**
+     * Move (system) role to role group
+     *
+     * @return void
+     */
+    protected function roleToRoleGroup()
+    {
+        $this->patchSystemAuthoritable();
+        $this->patchValueAuthoritable();
+        $this->updateRoleMenu();
+    }
+
+    /**
+     * Copy custom view default to alldata
+     *
+     * @return void
+     */
+    protected function copyViewColumnAllDataView()
+    {
+        // get default view counts
+        $defaultViews = CustomView::where('view_kind_type', ViewKindType::DEFAULT)
+            ->where('default_flg', true)
+            ->with(['custom_view_columns', 'custom_view_sorts'])
+            ->get();
+
+        foreach ($defaultViews as $defaultView) {
+            // if not found alldata view in same custom table, create
+            $alldata_view_count = CustomView
+                ::where('view_kind_type', ViewKindType::ALLDATA)
+                ->where('custom_table_id', $defaultView->custom_table_id)
+                ->count();
+
+            if ($alldata_view_count > 0) {
+                continue;
+            }
+
+            $aldata_view = CustomView::createDefaultView($defaultView->custom_table_id);
+
+            $view_columns = [];
+            foreach ($defaultView->custom_view_columns as $custom_view_column) {
+                $view_column = new CustomViewColumn;
+                $view_column->custom_view_id = $aldata_view->id;
+                $view_column->view_column_target = array_get($custom_view_column, 'view_column_target');
+                $view_column->order = array_get($custom_view_column, 'order');
+                array_push($view_columns, $view_column);
+            }
+            $aldata_view->custom_view_columns()->saveMany($view_columns);
+
+            $view_sorts = [];
+            foreach ($defaultView->custom_view_sorts as $custom_view_sort) {
+                $view_sort = new CustomViewSort;
+                $view_sort->custom_view_id = $aldata_view->id;
+                $view_sort->view_column_target = array_get($custom_view_sort, 'view_column_target');
+                $view_sort->sort = array_get($custom_view_sort, 'sort');
+                $view_sort->priority = array_get($custom_view_sort, 'priority');
+                array_push($view_sorts, $view_sort);
+            }
+            $aldata_view->custom_view_sorts()->saveMany($view_sorts);
+        }
+    }
+
+
+
+    protected function patchSystemAuthoritable()
+    {
+        if (!\Schema::hasTable('system_authoritable')) {
+            return;
+        }
+
+        ///// move system admin to System
+        $system_authoritable = \DB::table('system_authoritable')
+        ->where('morph_type', 'system')
+        ->where('role_id', 1)
+        ->get();
+
+        $users = [];
+        foreach ($system_authoritable as $s) {
+            $item = (array)$s;
+            if (array_get($item, 'related_type') == SystemTableName::USER) {
+                $users[] = CustomTable::getEloquent(SystemTableName::USER)->getValueModel(array_get($item, 'related_id'))->toArray();
+            } else {
+                $users = array_merge(
+                    $users,
+                    CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel(array_get($item, 'related_id'))
+                        ->users->toArray()
+                );
+            }
+        }
+
+        $users = collect($users)->filter()->map(function ($user) {
+            return array_get($user, 'id');
+        })->toArray();
+
+        // set System user's array
+        $system_admin_users = System::system_admin_users();
+        $system_admin_users = array_merge($system_admin_users, $users);
+        System::system_admin_users(array_unique($system_admin_users));
+    }
+    
+    protected function patchValueAuthoritable()
+    {
+        if (!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())) {
+            return;
+        }
+        
+        ///// value_auth to custom_value_auth
+        // get role info
+        $valueRoles = \DB::table('roles')
+            ->where('role_type', RoleType::VALUE)
+            ->get();
+        
+        $editRoles = [];
+        $viewRoles = [];
+        foreach ($valueRoles as $valueRole) {
+            $val = (array)$valueRole;
+            $permissions = json_decode($val['permissions'], true);
+            if (array_has($permissions, 'custom_value_edit')) {
+                $editRoles[] = $val['id'];
+            } else {
+                $viewRoles[] = $val['id'];
+            }
+        }
+        
+        //get value_auth
+        $value_authoritable = \DB::table('value_authoritable')
+            ->get();
+        $custom_value_authoritables = [];
+        foreach ($value_authoritable as $v) {
+            $val = (array)$v;
+            if (in_array($val['role_id'], $editRoles)) {
+                $authoritable_type = Permission::CUSTOM_VALUE_EDIT;
+            } else {
+                $authoritable_type = Permission::CUSTOM_VALUE_VIEW;
+            }
+            $custom_value_authoritables[] = [
+                'parent_id' => $val['morph_id'],
+                'parent_type' => $val['morph_type'],
+                'authoritable_type' => $authoritable_type,
+                'authoritable_user_org_type' => $val['related_type'],
+                'authoritable_target_id' => $val['related_id'],
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+                'created_user_id' => $val['related_type'] == SystemTableName::USER ? $val['related_id'] : null,
+                'updated_user_id' => $val['related_type'] == SystemTableName::USER ? $val['related_id'] : null,
+            ];
+        }
+
+        \DB::table(CustomValueAuthoritable::getTableName())
+            ->insert($custom_value_authoritables);
+    }
+
+    /**
+     * Update role menu role to role_group
+     *
+     * @return void
+     */
+    protected function updateRoleMenu()
+    {
+        // remove "role" menu
+        \DB::table('admin_menu')
+            ->where('menu_type', 'system')
+            ->where('menu_target', 'role')
+            ->update([
+                'uri' => 'role_group',
+                'menu_name' => 'role_group',
+                'menu_target' => 'role_group',
+                'title' => exmtrans('menu.system_definitions.role_group'),
+            ]);
+    }
+
+    
+    /**
+     * patch mail template
+     *
+     * @return void
+     */
+    protected function patchMailTemplate($mail_key_names = [])
+    {
+        // get vendor folder
+        $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
+        $path = "$templates_data_path/mail_template.xlsx";
+
+        $table_name = \File::name($path);
+        $format = \File::extension($path);
+        $custom_table = CustomTable::getEloquent($table_name);
+
+        // execute import
+        $service = (new DataImportExport\DataImportExportService())
+            ->importAction(new DataImportExport\Actions\Import\CustomTableAction([
+                'custom_table' => $custom_table,
+                'filter' => ['value.mail_key_name' => $mail_key_names],
+                'primary_key' => 'value.mail_key_name',
+            ]))
+            ->format($format);
+        $service->import($path);
     }
 }

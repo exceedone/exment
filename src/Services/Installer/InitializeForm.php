@@ -1,11 +1,9 @@
 <?php
 namespace Exceedone\Exment\Services\Installer;
 
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Illuminate\Http\Request;
@@ -63,15 +61,8 @@ class InitializeForm
             $loginuser->password = $request->get('password');
             $loginuser->saveOrFail();
             // add system role
-            \DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
-                [
-                    'related_id' => $user->id,
-                    'related_type' => SystemTableName::USER,
-                    'morph_id' => null,
-                    'morph_type' =>  RoleType::SYSTEM()->lowerKey(),
-                    'role_id' => Role::where('role_type', RoleType::SYSTEM)->first()->id,
-                ]
-            );
+            System::system_admin_users([$user->id]);
+
             // add system initialized flg.
             System::initialized(1);
             \DB::commit();

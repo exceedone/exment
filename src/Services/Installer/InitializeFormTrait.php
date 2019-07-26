@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Services\Installer;
 use Encore\Admin\Widgets\Form as WidgetForm;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -105,7 +107,17 @@ trait InitializeFormTrait
             ->default(Define::FILE_OPTION()['maxFileSizeHuman'])
             ->help(exmtrans("common.help.max_file_size", getManualUrl('quickstart_more#' . exmtrans('common.help.max_file_size_link'))));
             
-            // system setting
+            $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
+                ->help(exmtrans('system.help.system_admin_users'))
+                ->required()
+                ->options(function ($option) {
+                    return CustomTable::getEloquent(SystemTableName::USER)->getSelectOptions([
+                        'selected_value' => $option,
+                        'notAjax' => true,
+                    ]);
+                })->default(System::system_admin_users());
+
+            // use mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {
                 $form->exmheader(exmtrans('system.system_mail'))->hr();
 
@@ -146,34 +158,39 @@ trait InitializeFormTrait
                 'email' => 'required|email',
                 'password' => get_password_rule(true),
             ]);
+        } else {
+            $rules = array_merge($rules, [
+                'system_admin_users' => 'required',
+            ]);
         }
+
         $validation = Validator::make($request->all(), $rules);
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }
         
         // check role user-or-org at least 1 data
-        if (!$initialize && System::permission_available()) {
-            $roles = collect($request->all())->filter(function ($value, $key) {
-                if (strpos($key, "role_") !== 0) {
-                    return false;
-                }
+        // if (!$initialize && System::permission_available()) {
+        //     $roles = collect($request->all())->filter(function ($value, $key) {
+        //         if (strpos($key, "role_") !== 0) {
+        //             return false;
+        //         }
 
-                if (!collect($value)->filter(function ($v) {
-                    return isset($v);
-                })->first()) {
-                    return false;
-                }
+        //         if (!collect($value)->filter(function ($v) {
+        //             return isset($v);
+        //         })->first()) {
+        //             return false;
+        //         }
 
-                return true;
-            });
+        //         return true;
+        //     });
 
-            // if empty, return error
-            if (count($roles) == 0) {
-                admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
-                return back()->withInput();
-            }
-        }
+        //     // if empty, return error
+        //     if (count($roles) == 0) {
+        //         admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
+        //         return back()->withInput();
+        //     }
+        // }
 
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');

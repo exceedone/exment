@@ -6,10 +6,7 @@ use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Exment;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
@@ -24,7 +21,7 @@ use Carbon\Carbon;
 
 class SystemController extends AdminControllerBase
 {
-    use RoleForm, InitializeFormTrait;
+    use InitializeFormTrait;
     
     public function __construct(Request $request)
     {
@@ -41,9 +38,6 @@ class SystemController extends AdminControllerBase
         $this->AdminContent($content);
         $form = $this->getInitializeForm('system', false, true);
         $form->action(admin_url('system'));
-
-        // Role Setting
-        $this->addRoleForm($form, RoleType::SYSTEM);
 
         $content->row(new Box(trans('admin.edit'), $form));
 
@@ -171,56 +165,7 @@ class SystemController extends AdminControllerBase
 
             // Set Role
             if ($permission_available) {
-                Role::roleLoop(RoleType::SYSTEM, function ($role, $related_type) use ($request) {
-                    $values = $request->input($role->getRoleName($related_type)) ?? [];
-                    // array_filter
-                    $values = array_filter($values, function ($k) {
-                        return isset($k);
-                    });
-                    if (!isset($values)) {
-                        $values = [];
-                    }
-    
-                    // get DB system_authoritable values
-                    $dbValues = DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
-                        ->where('related_type', $related_type)
-                        ->where('morph_type', RoleType::SYSTEM()->lowerKey())
-                        ->where('role_id', $role->id)
-                        ->get(['related_id']);
-                    foreach ($values as $value) {
-                        if (!isset($value)) {
-                            continue;
-                        }
-                        /// not exists db value, insert
-                        if (!$dbValues->first(function ($dbValue, $k) use ($value) {
-                            return $dbValue->related_id == $value;
-                        })) {
-                            DB::table(SystemTableName::SYSTEM_AUTHORITABLE)->insert(
-                                [
-                                'related_id' => $value,
-                                'related_type' => $related_type,
-                                'morph_id' => null,
-                                'morph_type' => RoleType::SYSTEM()->lowerKey(),
-                                'role_id' => $role->id,
-                            ]
-                        );
-                        }
-                    }
-    
-                    ///// Delete if not exists value
-                    foreach ($dbValues as $dbValue) {
-                        if (!collect($values)->first(function ($value, $k) use ($dbValue) {
-                            return $dbValue->related_id == $value;
-                        })) {
-                            DB::table(SystemTableName::SYSTEM_AUTHORITABLE)
-                            ->where('related_id', $dbValue->related_id)
-                            ->where('related_type', $related_type)
-                            ->where('morph_type', RoleType::SYSTEM()->lowerKey())
-                            ->where('role_id', $role->id)
-                            ->delete();
-                        }
-                    }
-                });
+                System::system_admin_users($request->get('system_admin_users'));
             }
 
             DB::commit();

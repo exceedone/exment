@@ -6,10 +6,8 @@ use Encore\Admin\Facades\Admin;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
-use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\Permission;
 
 class CustomValue extends ModelBase
 {
@@ -22,6 +20,7 @@ class CustomValue extends ModelBase
     protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
     protected $keepRevisionOf = ['value'];
+    
     /**
      * remove_file_columns.
      * default flow, if file column is empty, set original value.
@@ -40,6 +39,26 @@ class CustomValue extends ModelBase
      */
     protected $already_updated = false;
     
+    
+    /**
+     * Create a new Eloquent model instance.
+     *
+     * @param  array  $attributes
+     * @return void
+     */
+    public function __construct(array $attributes = [])
+    {
+        // set parent_id for org
+        if ($this->custom_table->table_name == SystemTableName::ORGANIZATION) {
+            // treeview
+            $this->titleColumn = 'label';
+            $this->orderColumn = 'id';
+            $this->parentColumn = CustomColumn::getEloquent('parent_organization', $this->custom_table)->getIndexColumnName();
+        }
+
+        parent::__construct($attributes);
+    }
+
     public function getLabelAttribute()
     {
         return $this->getLabel();
@@ -56,18 +75,18 @@ class CustomValue extends ModelBase
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_users()
     {
-        return $this->morphToMany(getModelName(SystemTableName::USER), 'morph', 'value_authoritable', 'morph_id', 'related_id')
-            ->withPivot('related_id', 'related_type', 'role_id')
-            ->wherePivot('related_type', SystemTableName::USER)
+        return $this->morphToMany(getModelName(SystemTableName::USER), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
+            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
+            ->wherePivot('authoritable_user_org_type', SystemTableName::USER)
             ;
     }
 
     // user value_authoritable. it's all role data. only filter morph_type
     public function value_authoritable_organizations()
     {
-        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'morph', 'value_authoritable', 'morph_id', 'related_id')
-            ->withPivot('related_id', 'related_type', 'role_id')
-            ->wherePivot('related_type', SystemTableName::ORGANIZATION)
+        return $this->morphToMany(getModelName(SystemTableName::ORGANIZATION), 'parent', 'custom_value_authoritables', 'parent_id', 'authoritable_target_id')
+            ->withPivot('authoritable_target_id', 'authoritable_user_org_type', 'authoritable_type')
+            ->wherePivot('authoritable_user_org_type', SystemTableName::ORGANIZATION)
             ;
     }
 
@@ -110,17 +129,17 @@ class CustomValue extends ModelBase
         static::saved(function ($model) {
             $model->setFileValue();
             $model->savedValue();
-            $model->setValueAuthoritable();
+            CustomValueAuthoritable::setValueAuthoritable($model);
         });
         static::created(function ($model) {
             // send notify
-            $model->notify(true);
+            $model->notify(NotifySavedType::CREATE);
 
             $model->postCreate();
         });
         static::updated(function ($model) {
             // send notify
-            $model->notify(false);
+            $model->notify(NotifySavedType::UPDATE);
 
             // set revision
             $model->postSave();
@@ -128,7 +147,12 @@ class CustomValue extends ModelBase
         
         static::deleting(function ($model) {
             static::setUser($model, ['deleted_user_id']);
+
+            // saved_notify(as update) disable
+            $saved_notify = $model->saved_notify;
+            $model->saved_notify = false;
             $model->save();
+            $model->saved_notify = $saved_notify;
             
             $model->deleteRelationValues();
         });
@@ -136,6 +160,8 @@ class CustomValue extends ModelBase
         static::deleted(function ($model) {
             $model->preSave();
             $model->postDelete();
+
+            $model->notify(NotifySavedType::DELETE);
         });
 
         static::addGlobalScope(new CustomValueModelScope);
@@ -297,7 +323,7 @@ class CustomValue extends ModelBase
                 // get id matching path
                 $file = File::getData(array_get($uuid, 'uuid'));
                 $value = $file->getCustomValueFromForm($this, $uuid);
-                if(is_null($value)){
+                if (is_null($value)) {
                     continue;
                 }
 
@@ -342,59 +368,20 @@ class CustomValue extends ModelBase
         }
     }
 
-    /**
-     * set value_authoritable
-     */
-    public function setValueAuthoritable()
-    {
-        $table_name = $this->custom_table->table_name;
-        if (in_array($table_name, SystemTableName::SYSTEM_TABLE_NAME_IGNORE_SAVED_AUTHORITY())) {
-            return;
-        }
-        if ($this->value_authoritable_users()->count() > 0 || $this->value_authoritable_organizations()->count() > 0) {
-            return;
-        }
-        $user = \Exment::user();
-        if (!isset($user)) {
-            return;
-        }
-
-        // get role editable value
-        $role = Role::where('role_type', RoleType::VALUE)->whereIn('permissions->'.Permission::CUSTOM_VALUE_EDIT, [1, "1"])
-            ->first();
-        // set user
-        if (!isset($role)) {
-            return;
-        }
-
-        \DB::table(SystemTableName::VALUE_AUTHORITABLE)->insert(
-            [
-                'related_id' => $user->base_user_id,
-                'related_type' => SystemTableName::USER,
-                'morph_id' => $this->id,
-                'morph_type' => $table_name,
-                'role_id' => $role->id,
-            ]
-        );
-    }
-
-    
     
     // notify user --------------------------------------------------
-    public function notify($create = true)
+    public function notify($notifySavedType)
     {
         // if $saved_notify is false, return
         if ($this->saved_notify === false) {
             return;
         }
 
-        $notifies = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)
-            ->where('custom_table_id', $this->custom_table->id)
-            ->get();
+        $notifies = $this->custom_table->notifies;
 
         // loop for $notifies
         foreach ($notifies as $notify) {
-            $notify->notifyCreateUpdateUser($this, $create);
+            $notify->notifyCreateUpdateUser($this, $notifySavedType);
         }
     }
 
@@ -441,6 +428,11 @@ class CustomValue extends ModelBase
                 ->where('child_id', $this->id)
                 ->delete();
         }
+
+        // delete value_authoritables
+        CustomValueAuthoritable::deleteValueAuthoritable($this);
+        // delete role group
+        RoleGroupUserOrganization::deleteRoleGroupUserOrganization($this);
     }
     
     /**
@@ -452,11 +444,11 @@ class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('related_id', \Exment::user()->base_user_id);
+            ->where('authoritable_target_id', \Exment::user()->base_user_id);
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $query = $this
             ->value_authoritable_organizations()
-            ->whereIn('related_id', \Exment::user()->getOrganizationIds());
+            ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIds());
         }
 
         return $query->get();

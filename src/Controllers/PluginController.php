@@ -10,7 +10,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\Plugin\PluginInstaller;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +17,7 @@ use File;
 
 class PluginController extends AdminControllerBase
 {
-    use HasResourceActions, RoleForm;
+    use HasResourceActions;
 
     public function __construct(Request $request)
     {
@@ -189,9 +188,6 @@ class PluginController extends AdminControllerBase
         })->disableHeader();
 
         $this->setCustomOptionForm($plugin, $form);
-
-        // Role setting --------------------------------------------------
-        // $this->addRoleForm($form, RoleType::PLUGIN);
 
         $form->disableReset();
         return $form;

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Enums\SystemTableName;
 
 trait UserTrait
 {
@@ -29,9 +30,38 @@ trait UserTrait
         return $this->hasOne(Model\UserSetting::class, "user_id");
     }
     
-    public function belong_organizaitons()
+    public function belong_organizations()
     {
-        $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        $db_table_name_pivot = Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
         return $this->{$db_table_name_pivot}();
+    }
+    
+    /**
+     * get role_group user or org joined.
+     *
+     * @return void
+     */
+    public function belong_role_groups()
+    {
+        return Model\RoleGroup::whereHas('role_group_users', function ($query) {
+            $query->where('role_group_target_id', $this->id);
+        })->get();
+    }
+
+    /**
+     * Whether this model disable delete
+     *
+     * @return boolean
+     */
+    public function getDisabledDeleteAttribute()
+    {
+        // only administrator can delete and edit administrator record
+        if (!\Exment::user()->isAdministrator() && $this->login_user()->first()->isAdministrator()) {
+            return true;
+        }
+        // cannnot delete myself
+        if (\Exment::user()->base_user_id == $this->id) {
+            return true;
+        }
     }
 }

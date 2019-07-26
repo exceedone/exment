@@ -385,61 +385,26 @@
 			]
 		}
 	],
-    "roles": [
+    "role_groups": [
         {
-            "role_name": "system_admin",
-            "role_view_name": "システム管理者",
-            "description": "すべての操作が可能なシステム権限です。"
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "全データ管理者グループ",
+            "description": "すべてのテーブルのデータを編集・閲覧可能な役割グループです。"
         },
         {
-            "role_name": "data_admin",
-            "role_view_name": "データ管理者",
-            "description": "すべてのデータを編集・閲覧可能な権限です。"
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "ユーザー・組織管理グループ",
+            "description": "ユーザー・組織情報を管理する役割グループです。"
         },
         {
-            "role_name": "table_admin",
-            "role_view_name": "管理者",
-            "description": "テーブルやフォーム・ビュー設定を編集・削除可能な権限です。"
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "お知らせ情報管理グループ",
+            "description": "お知らせ情報テーブルの管理を行う役割グループです。"
         },
         {
-            "role_name": "table_all_editor",
-            "role_view_name": "全データ編集者",
-            "description": "テーブル内のすべてのデータを編集できます。"
-        },
-        {
-            "role_name": "table_all_viewer",
-            "role_view_name": "全データ閲覧者",
-            "description": "テーブル内のすべてのデータを閲覧できます。"
-        },
-        {
-            "role_name": "table_editor",
-            "role_view_name": "編集者",
-            "description": "自分が担当者のデータを編集できます。"
-        },
-        {
-            "role_name": "table_viewer",
-            "role_view_name": "閲覧者",
-            "description": "自分が担当者のデータを閲覧できます。"
-        },
-        {
-            "role_name": "value_editor",
-            "role_view_name": "編集者",
-            "description": "対象のデータを編集できます。"
-        },
-        {
-            "role_name": "value_viewer",
-            "role_view_name": "閲覧者",
-            "description": "対象のデータを閲覧できます。"
-        },
-        {
-            "role_name": "plugin_manager",
-            "role_view_name": "プラグイン管理者",
-            "description": "プラグインの設定を変更できます。"
-        },
-        {
-            "role_name": "plugin_access",
-            "role_view_name": "プラグイン利用者",
-            "description": "このプラグインを利用できます。"
+            "role_group_name": "user_group",
+            "role_group_view_name": "一般グループ",
+            "description": "一般ユーザーの役割グループです。"
         }
     ],
     "admin_menu": [
@@ -460,13 +425,13 @@
         },
         {
             "menu_type": "table",
-            "menu_name": "user",
-            "title": "ユーザー"
+            "menu_name": "organization",
+            "title": "組織"
         },
         {
             "menu_type": "table",
-            "menu_name": "organization",
-            "title": "組織"
+            "menu_name": "user",
+            "title": "ユーザー"
         },
         {
             "menu_type": "table",
@@ -510,8 +475,8 @@
         },
         {
             "menu_type": "system",
-            "menu_name": "role",
-            "title": "役割"
+            "menu_name": "role_group",
+            "title": "役割グループ"
         },
         {
             "menu_type": "system",

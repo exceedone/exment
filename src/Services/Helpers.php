@@ -6,7 +6,6 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
@@ -398,6 +397,9 @@ if (!function_exists('array_keys_exists')) {
      */
     function array_keys_exists($keys, $array)
     {
+        if (is_string($array)) {
+            $array = [$array];
+        }
         if (is_null($keys)) {
             return false;
         }
@@ -629,16 +631,15 @@ if (!function_exists('getModelName')) {
             $suuid = $obj->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            // cannot use CustomTable::allRecords function
-            $tables = getAllCustomTables();
+            $tables = CustomTable::allRecords();
 
             $table = collect($tables)->first(function ($table) use ($obj) {
                 if (is_numeric($obj)) {
-                    return array_get((array)$table, 'id') == $obj;
+                    return array_get($table, 'id') == $obj;
                 }
-                return array_get((array)$table, 'table_name') == $obj;
+                return array_get($table, 'table_name') == $obj;
             });
-            $suuid = array_get((array)$table, 'suuid');
+            $suuid = array_get($table, 'suuid');
         }
 
         if (!isset($suuid)) {
@@ -661,25 +662,6 @@ if (!function_exists('getModelName')) {
                 $table->createTable();
                 ClassBuilder::createCustomValue($namespace, $className, $fillpath, $table, $obj);
             }
-        }
-
-        return "\\".$fillpath;
-    }
-}
-if (!function_exists('getCustomTableTrait')) {
-    /**
-     * For use function in "CustomTable"、create CustomTableTrait class
-     * @param string|CustomTable $obj
-     * @return string
-     */
-    function getCustomTableTrait()
-    {
-        $namespace = "Exceedone\\Exment\\Model\\Traits";
-        $className = "CustomTableDynamicTrait";
-        $fillpath = "{$namespace}\\{$className}";
-        // if the model doesn't defined
-        if (!class_exists($fillpath)) {
-            ClassBuilder::createCustomTableTrait($namespace, $className, $fillpath);
         }
 
         return "\\".$fillpath;
@@ -752,34 +734,6 @@ if (!function_exists('getDBTableName')) {
     }
 }
 
-if (!function_exists('getAllCustomTables')) {
-    /**
-     * Get all custom table. * Use the function we cannot Eloquent Custom table.
-     * @return mixed
-     */
-    function getAllCustomTables()
-    {
-        $callback = function () {
-            if (!\Schema::hasTable(SystemTableName::CUSTOM_TABLE)) {
-                return [];
-            }
-    
-            // using DB query builder (because this function may be called createCustomTableTrait. this function is trait CustomTable
-            $tables = DB::table(SystemTableName::CUSTOM_TABLE)->get();
-            return $tables;
-        };
-
-        $tables = System::requestSession(Define::SYSTEM_KEY_SESSION_ALL_CUSTOM_TABLES, $callback) ?? [];
-
-        // if empty, re-get again item(for support first install)
-        if (empty($tables)) {
-            $tables = $callback();
-        }
-
-        return $tables;
-    }
-}
-
 if (!function_exists('getEndpointName')) {
     /**
      * get endpoint name.
@@ -821,36 +775,6 @@ if (!function_exists('getCurrencySymbolLabel')) {
             return $text;
         }
         return null;
-    }
-}
-
-if (!function_exists('getRoleUser')) {
-    /**
-     * get users who has roles.
-     */
-    function getRoleUser($target_table, $related_type)
-    {
-        if (is_null($target_table)) {
-            return [];
-        }
-        $target_table = CustomTable::getEloquent($target_table);
-
-        // get user or organiztion ids
-        $target_ids = DB::table('roles as a')
-            ->join(SystemTableName::SYSTEM_AUTHORITABLE.' AS sa', 'a.id', 'sa.role_id')
-            ->whereIn('related_type', $related_type)
-            ->where(function ($query) use ($target_table) {
-                $query->orWhere(function ($query) {
-                    $query->where('morph_type', RoleType::SYSTEM()->lowerKey());
-                });
-                $query->orWhere(function ($query) use ($target_table) {
-                    $query->where('morph_type', RoleType::TABLE()->lowerKey())
-                    ->where('morph_id', $target_table->id);
-                });
-            })->get(['related_id'])->pluck('related_id');
-        
-        // return target values
-        return getModelName($related_type)::whereIn('id', $target_ids);
     }
 }
 
@@ -1250,7 +1174,9 @@ if (!function_exists('downloadFile')) {
         // get page name
         $name = rawurlencode(mb_basename($path));
         
-        if (ob_get_level()) ob_end_clean();
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
         return response()->stream(
             function () use ($stream) {
                 fpassthru($stream);
@@ -1530,7 +1456,10 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $user = getModelName(SystemTableName::USER)::withTrashed()->find($id);
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, SystemTableName::USER, $id);
+        $user = System::requestSession($key, function () use ($id) {
+            return getModelName(SystemTableName::USER)::withTrashed()->find($id);
+        });
         if (!isset($user)) {
             return null;
         }

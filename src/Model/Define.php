@@ -146,6 +146,7 @@ class Define
 
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
+        'system_admin_users' => ['type' => 'array'],
         'site_name' => ['default' => 'Exment', 'group' => 'initialize'],
         'site_name_short' => ['default' => 'Exm', 'group' => 'initialize'],
         'site_logo' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
@@ -243,17 +244,9 @@ class Define
             'uri' => 'table',
             'icon' => 'fa-table',
         ],
-        'role' => [
-            'uri' => 'role',
+        'role_group' => [
+            'uri' => 'role_group',
             'icon' => 'fa-user-secret',
-        ],
-        'user' => [
-            'uri' => 'data/user',
-            'icon' => 'fa-users',
-        ],
-        'organization' => [
-            'uri' => 'data/organization',
-            'icon' => 'fa-building',
         ],
         'menu' => [
             'uri' => 'auth/menu',
@@ -278,10 +271,6 @@ class Define
         'loginuser' => [
             'uri' => 'loginuser',
             'icon' => 'fa-user-plus',
-        ],
-        'mail' => [
-            'uri' => 'mail',
-            'icon' => 'fa-envelope',
         ],
     ];
 
@@ -378,7 +367,7 @@ class Define
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
-        ['uri'=> 'role', 'help_uri'=> 'permission'],
+        ['uri'=> 'role_group', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
         ['uri'=> 'loginuser', 'help_uri'=> 'user'],
         ['uri'=> 'data/user', 'help_uri'=> 'user'],
@@ -387,6 +376,7 @@ class Define
         ['uri'=> 'data', 'help_uri'=> 'data'],
         ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
+        ['uri'=> 'system', 'help_uri'=> 'system_setting'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 

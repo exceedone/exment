@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RoleType;
 
 class PatchAuthoritable extends Migration
@@ -21,7 +20,11 @@ class PatchAuthoritable extends Migration
 
         foreach ($prms as $prm) {
             // foreach each authoritable table
-            foreach([SystemTableName::SYSTEM_AUTHORITABLE, SystemTableName::VALUE_AUTHORITABLE] as $table){
+            foreach(['system_authoritables', 'value_authoritables'] as $table){
+                if(!\Schema::hasTable($table)){
+                    continue;
+                }
+                
                 \DB::table($table)
                     ->where('morph_type', strval($prm['int']))
                     ->update([

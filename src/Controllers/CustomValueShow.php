@@ -15,11 +15,13 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 
 /**
  * CustomValueShow
@@ -32,7 +34,7 @@ trait CustomValueShow
     protected function createShowForm($id = null, $modal = false)
     {
         //Plugin::pluginPreparing($this->plugins, 'loading');
-        return new Show($this->getModelNameDV()::findOrFail($id), function (Show $show) use ($id, $modal) {
+        return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
 
             // add parent link if this form is 1:n relation
@@ -156,7 +158,13 @@ trait CustomValueShow
                     ]));
                 }
 
-                if (!$modal) {
+                if (boolval(array_get($custom_value, 'disabled_delete'))) {
+                    $tools->disableDelete();
+                }
+
+                if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+                    $tools->disableList();
+                } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
                     $tools->append((new Tools\GridChangePageMenu('data', $this->custom_table, false))->render());
 
@@ -173,10 +181,17 @@ trait CustomValueShow
                         $tools->append($b->toHtml());
                     }
                     foreach ($notifies as $notify) {
-                        if (array_get($notify, 'notify_trigger') == NotifyTrigger::BUTTON) {
+                        if ($notify->isNotifyTarget($custom_value, NotifyTrigger::BUTTON)) {
                             $tools->append(new Tools\NotifyButton($notify, $this->custom_table, $id));
                         }
                     }
+
+                    // check share permission.
+                    if ($this->hasPermissionShare($id)) {
+                        $tools->append(new Tools\ShareButton($this->custom_table, $id));
+                    }
+
+                    PartialCrudService::setAdminShowTools($this->custom_table, $tools, $id);
                 }
             });
         });
@@ -190,7 +205,7 @@ trait CustomValueShow
     {
         $custom_value = $this->getModelNameDV()::find($id);
         $documents = $this->getDocuments($id, $modal);
-        $useFileUpload = $this->useFileUpload($modal);
+        $useFileUpload = $this->useFileUpload($id, $modal);
         $useComment = $this->useComment($modal);
  
         $revisions = $this->getRevisions($id, $modal);
@@ -402,10 +417,10 @@ EOT;
     /**
      * whether file upload field
      */
-    protected function useFileUpload($modal = false)
+    protected function useFileUpload($id, $modal = false)
     {
         // if no permission, return
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermissionEditData($id)) {
             return [];
         }
         
@@ -452,7 +467,7 @@ EOT;
         }
 
         // if no permission, return
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermissionEditData($id)) {
             return [];
         }
         
@@ -465,5 +480,35 @@ EOT;
             $query = $query->take(10);
         }
         return $query->get() ?? [];
+    }
+
+    /**
+     * Whether showing share button
+     *
+     * @return boolean
+     */
+    protected function hasPermissionShare($id)
+    {
+        // if system doesn't use role, return false
+        if (!System::permission_available()) {
+            return false;
+        }
+
+        // if master, false
+        if (in_array($this->custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
+            return false;
+        }
+
+        // if not has edit data, return false
+        if (!$this->custom_table->hasPermissionEditData($id)) {
+            return false;
+        }
+
+        // if not has share data, return false
+        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_SHARE)) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -13,18 +13,22 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\PartialCrudService;
 use Symfony\Component\HttpFoundation\Response;
 
 class CustomValueController extends AdminControllerTableBase
 {
-    use HasResourceTableActions, RoleForm, CustomValueGrid, CustomValueForm;
+    use HasResourceTableActions, CustomValueGrid, CustomValueForm;
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
@@ -61,9 +65,15 @@ class CustomValueController extends AdminControllerTableBase
         if ($one_record_flg) {
             // get record list
             $record = $this->getModelNameDV()::first();
+            $id = isset($record)? $record->id: null;
+
+            // if no edit permission show readonly form
+            if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+                return $this->show($request, $content, $this->custom_table->table_name, $id);
+            }
+
             // has record, execute
             if (isset($record)) {
-                $id = $record->id;
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
                 $content->body($form);
@@ -79,6 +89,14 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
         } else {
+            $callback = null;
+            if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
+                $this->custom_view = CustomView::getAllData($this->custom_table);
+            }
+            if ($request->has('group_key')) {
+                $group_keys = json_decode($request->query('group_key'));
+                $callback = $this->getSummaryDetailFilter($group_keys);
+            }
             switch ($this->custom_view->view_kind_type) {
                 case ViewKindType::AGGREGATE:
                     $content->body($this->gridSummary());
@@ -87,9 +105,11 @@ class CustomValueController extends AdminControllerTableBase
                     $content->body($this->gridCalendar());
                     break;
                 default:
-                    $content->body($this->grid());
+                    $content->body($this->grid($callback));
                     $this->custom_table->saveGridParameter($request->path());
             }
+
+            PartialCrudService::setGridContent($this->custom_table, $content);
         }
         return $content;
     }
@@ -226,7 +246,9 @@ class CustomValueController extends AdminControllerTableBase
             // execute notify
             $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
             if (isset($custom_value)) {
-                $custom_value->notify(false);
+                foreach ($custom_value->custom_table->notifies as $notify) {
+                    $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
+                }
             }
         }
 
@@ -255,6 +277,11 @@ class CustomValueController extends AdminControllerTableBase
 
         // save document model
         $document_model = $file->saveDocumentModel($custom_value, $filename);
+        
+        // loop for $notifies
+        foreach ($custom_value->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $filename]);
+        }
         
         return getAjaxResponse([
             'result'  => true,
@@ -343,6 +370,22 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * create share form
+     */
+    public function shareClick(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        $form = CustomValueAuthoritable::getShareDialogForm($custom_value);
+        
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('common.shared')
+        ]);
+    }
+
+    /**
      * set notify target users and  get form
      */
     public function sendTargetUsers(Request $request, $tableKey, $id = null)
@@ -368,6 +411,16 @@ class CustomValueController extends AdminControllerTableBase
         $service = $this->getNotifyService($tableKey, $id);
         
         return $service->sendNotifyMail($this->custom_table);
+    }
+
+    /**
+     * set share users organizations
+     */
+    public function sendShares(Request $request, $tableKey, $id)
+    {
+        // get customvalue
+        $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id);
+        return CustomValueAuthoritable::saveShareDialogForm($custom_value);
     }
 
     protected function getNotifyService($tableKey, $id)
@@ -442,18 +495,25 @@ class CustomValueController extends AdminControllerTableBase
         }
 
         $this->setFormViewInfo($request);
-
-        //Validation table value
-        $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
-        if (!$this->validateTable($this->custom_table, $roleValue)) {
-            Checker::error();
-            return false;
-        }
-            
+ 
         // id set, checking as update.
-        if (isset($id)) {
+        // check for update
+        if (isset($id) && !$show) {
+            // if user doesn't have role for target id data, show deny error.
+            if (!$this->custom_table->hasPermissionEditData($id)) {
+                Checker::error();
+                return false;
+            }
+        } elseif (isset($id) && $show) {
             // if user doesn't have role for target id data, show deny error.
             if (!$this->custom_table->hasPermissionData($id)) {
+                Checker::error();
+                return false;
+            }
+        } else {
+            //Validation table value
+            $roleValue = $show ? Permission::AVAILABLE_VIEW_CUSTOM_VALUE : Permission::AVAILABLE_EDIT_CUSTOM_VALUE;
+            if (!$this->validateTable($this->custom_table, $roleValue)) {
                 Checker::error();
                 return false;
             }

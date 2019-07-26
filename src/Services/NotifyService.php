@@ -2,8 +2,12 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyTarget;
+use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Enums\NotifyAction;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
 
@@ -68,6 +72,8 @@ class NotifyService
         $form->listbox('target_users', exmtrans('custom_value.sendmail.mail_to'))
             ->options($options)
             ->required()
+            ->help(exmtrans('common.bootstrap_duallistbox_container.help'))
+            ->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')])
             ->setWidth(9, 2);
 
         $form->hidden('mail_template_id')->default($this->targetid);
@@ -223,6 +229,99 @@ class NotifyService
             ]);
         }
     }
+    
+    /**
+     * Execute Notify action
+     *
+     * @param [type] $notify
+     * @param array $params
+     * @return void
+     */
+    public static function executeNotifyAction($notify, $params = [])
+    {
+        extract(
+            array_merge(
+                [
+                    'mail_template' => null,
+                    'prms' => [],
+                    'user' => null,
+                    'custom_value' => null,
+                    'subject' => null,
+                    'body' => null,
+                    'attach_files' => null,
+                ],
+                $params
+            )
+        );
+
+        // get template
+        if (!isset($mail_template)) {
+            $mail_template = array_get($notify->action_settings, 'mail_template_id');
+        }
+        if (is_numeric($mail_template)) {
+            $mail_template = getModelName(SystemTableName::MAIL_TEMPLATE)::find($mail_template);
+        }
+
+        // get notify actions
+        $notify_actions = $notify->notify_actions;
+        foreach ($notify_actions as $notify_action) {
+            switch ($notify_action) {
+                case NotifyAction::EMAIL:
+                    // send mail
+                    try {
+                        MailSender::make($mail_template, $user)
+                        ->prms($prms)
+                        ->user($user)
+                        ->custom_value($custom_value)
+                        ->subject($subject)
+                        ->body($body)
+                        ->attachments($attach_files)
+                        ->send();
+                    }
+                    // throw mailsend Exception
+                    catch (\Swift_TransportException $ex) {
+                        throw $ex;
+                    }
+                    break;
+
+                case NotifyAction::SHOW_PAGE:
+                    if ($user instanceof CustomValue) {
+                        $id = $user->id;
+                    } elseif ($user instanceof NotifyTarget) {
+                        $id = $user->id();
+                    }
+
+                    if (!isset($id)) {
+                        break;
+                    }
+
+                    // save data
+                    $login_user = \Exment::user();
+
+                    $mail_subject = $subject ?? array_get($mail_template->value, 'mail_subject');
+                    $mail_body = $body ?? array_get($mail_template->value, 'mail_body');
+                    
+                    // replace system:site_name to custom_value label
+                    array_set($prms, 'system.site_name', $custom_value->label);
+            
+                    // replace value
+                    $mail_subject = static::replaceWord($mail_subject, $custom_value, $prms);
+                    $mail_body = static::replaceWord($mail_body, $custom_value, $prms);
+
+                    $notify_navbar = new NotifyNavbar;
+                    $notify_navbar->notify_id = array_get($notify, 'id');
+                    $notify_navbar->parent_id = array_get($custom_value, 'id');
+                    $notify_navbar->parent_type = $custom_value->custom_table->table_name;
+                    $notify_navbar->notify_subject = $mail_subject;
+                    $notify_navbar->notify_body = $mail_body;
+                    $notify_navbar->target_user_id = $id;
+                    $notify_navbar->trigger_user_id = $login_user->base_user_id ?? null;
+                    $notify_navbar->save();
+
+                    break;
+            }
+        }
+    }
 
     /**
      * get Progress Info
@@ -246,5 +345,26 @@ class NotifyService
             'description' => 'メッセージ入力'
         ];
         return $steps;
+    }
+
+
+
+    /**
+     * replace subject or body words.
+     */
+    public static function replaceWord($target, $custom_value = null, $prms = null)
+    {
+        $target = replaceTextFromFormat($target, $custom_value, [
+            'matchBeforeCallback' => function ($length_array, $matchKey, $format, $custom_value, $options) use ($prms) {
+                // if has prms using $match, return value
+                $matchKey = str_replace(":", ".", $matchKey);
+                if (isset($prms) && array_has($prms, $matchKey)) {
+                    return array_get($prms, $matchKey);
+                }
+                return null;
+            }
+        ]);
+
+        return $target;
     }
 }

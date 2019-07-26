@@ -4,7 +4,9 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
-use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\NotifyTrigger;
+use Exceedone\Exment\Services\NotifyService;
 use Carbon\Carbon;
 
 class Notify extends ModelBase
@@ -14,11 +16,36 @@ class Notify extends ModelBase
     use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
+    protected $appends = ['notify_actions'];
     protected $casts = ['trigger_settings' => 'json', 'action_settings' => 'json'];
     
     public function custom_table()
     {
         return $this->belongsTo(CustomTable::class, 'custom_table_id');
+    }
+    
+    public function custom_view()
+    {
+        if (isset($this->custom_view_id)) {
+            return $this->belongsTo(CustomView::class, 'custom_view_id');
+        }
+        return null;
+    }
+    
+    public function setNotifyActionsAttribute($notifyActions)
+    {
+        if (is_null($notifyActions)) {
+            $this->attributes['notify_actions'] = null;
+        } elseif (is_string($notifyActions)) {
+            $this->attributes['notify_actions'] = $notifyActions;
+        } else {
+            $this->attributes['notify_actions'] = implode(',', array_filter($notifyActions));
+        }
+    }
+ 
+    public function getNotifyActionsAttribute()
+    {
+        return explode(",", array_get($this->attributes, 'notify_actions'));
     }
 
     public function getMailTemplate()
@@ -48,24 +75,24 @@ class Notify extends ModelBase
         list($datalist, $table, $column) = $this->getNotifyTargetDatalist();
 
         // loop data
-        foreach ($datalist as $data) {
-            $users = $this->getNotifyTargetUsers($data);
+        foreach ($datalist as $custom_value) {
+            $users = $this->getNotifyTargetUsers($custom_value);
             foreach ($users as $user) {
                 $prms = [
                     'user' => $user,
                     'notify' => $this,
                     'target_table' => $table->table_view_name ?? null,
                     'notify_target_column_key' => $column->column_view_name ?? null,
-                    'notify_target_column_value' => $data->getValue($column),
+                    'notify_target_column_value' => $custom_value->getValue($column),
                 ];
 
                 // send mail
                 try {
-                    MailSender::make(array_get($this->action_settings, 'mail_template_id'), $user)
-                    ->prms($prms)
-                    ->user($user)
-                    ->custom_value($data)
-                    ->send();
+                    NotifyService::executeNotifyAction($this, [
+                        'prms' => $prms,
+                        'user' => $user,
+                        'custom_value' => $custom_value,
+                    ]);
                 }
                 // throw mailsend Exception
                 catch (\Swift_TransportException $ex) {
@@ -77,35 +104,88 @@ class Notify extends ModelBase
     
     /**
      * notify_create_update_user
+     * *Contains Comment, share
      */
-    public function notifyCreateUpdateUser($data, $create = true)
+    public function notifyCreateUpdateUser($custom_value, $notifySavedType, $options = [])
     {
-        $custom_table = $data->custom_table;
+        $options = array_merge(
+            [
+                'targetUserOrgs' => null,
+                'comment' => null,
+                'attachment' => null,
+            ],
+            $options
+        );
+
+        if (!$this->isNotifyTarget($custom_value, NotifyTrigger::CREATE_UPDATE_DATA)) {
+            return;
+        }
+
+        // check trigger
+        $notify_saved_triggers = array_get($this, 'trigger_settings.notify_saved_trigger', []);
+        if (!isset($notify_saved_triggers) || !in_array($notifySavedType, $notify_saved_triggers)) {
+            return;
+        }
+
+        $notifySavedType = NotifySavedType::getEnum($notifySavedType);
+
+        $custom_table = $custom_value->custom_table;
         $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
         $mail_template = $this->getMailTemplate();
 
-        // loop data
-        $users = $this->getNotifyTargetUsers($data);
+        // loop custom_value
+        if (!isset($options['targetUserOrgs'])) {
+            $users = $this->getNotifyTargetUsers($custom_value);
+        } else {
+            $users = [];
+            foreach ($options['targetUserOrgs'] as $targetUserOrg) {
+                if ($targetUserOrg->custom_table->table_name == SystemTableName::ORGANIZATION) {
+                    $users = array_merge($users, $targetUserOrg->users->pluck('id')->toArray());
+                } else {
+                    $users[] = $targetUserOrg->id;
+                }
+            }
+
+            // get users
+            $users = getModelName(SystemTableName::USER)::find($users);
+
+            // convert as NotifyTarget
+            $users = $users->map(function ($user) {
+                return NotifyTarget::getModelAsUser($user);
+            })->toArray();
+        }
         
         foreach ($users as $user) {
-            if (!$this->approvalSendUser($mail_template, $custom_table, $data, $user)) {
+            if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                 continue;
+            }
+
+            // create freespace
+            $freeSpace = '';
+            if (isset($options['comment'])) {
+                $freeSpace = "\n" . exmtrans('common.comment') . ":\n" . $options['comment'] . "\n";
+            } elseif (isset($options['attachment'])) {
+                $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
             }
 
             $prms = [
                 'user' => $user,
                 'notify' => $this,
+                'target_user' => $notifySavedType->getTargetUserName($custom_value),
                 'target_table' => $custom_table->table_view_name ?? null,
-                'create_or_update' => $create ? exmtrans('common.created') : exmtrans('common.updated')
+                'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
+                'create_or_update' => $notifySavedType->getLabel(),
+                'free_space' => $freeSpace,
             ];
 
             // send mail
             try {
-                MailSender::make($mail_template, $user)
-                ->prms($prms)
-                ->user($user)
-                ->custom_value($data)
-                ->send();
+                NotifyService::executeNotifyAction($this, [
+                    'mail_template' => $mail_template,
+                    'prms' => $prms,
+                    'user' => $user,
+                    'custom_value' => $custom_value,
+                ]);
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
@@ -115,6 +195,27 @@ class Notify extends ModelBase
         }
     }
     
+    /**
+     * check if notify target data
+     *
+     * @param CustomValue $custom_value
+     * @param [type] $notify_trigger
+     * @return boolean
+     */
+    public function isNotifyTarget($custom_value, $notify_trigger)
+    {
+        if (array_get($this, 'notify_trigger') != $notify_trigger) {
+            return false;
+        }
+        $custom_view_id = array_get($this, 'custom_view_id');
+        if (isset($custom_view_id)) {
+            $custom_view = CustomView::getEloquent($custom_view_id);
+            return $custom_view->setValueFilters($custom_value->custom_table->getValueModel())
+                ->where('id', $custom_value->id)->exists();
+        }
+        return true;
+    }
+
     /**
      * notify_create_update_user
      */
@@ -146,14 +247,15 @@ class Notify extends ModelBase
 
             // send mail
             try {
-                MailSender::make($mail_template, $user)
-                ->prms($prms)
-                ->user($user)
-                ->custom_value($custom_value)
-                ->subject($subject)
-                ->body($body)
-                ->attachments($attach_files)
-                ->send();
+                NotifyService::executeNotifyAction($this, [
+                    'mail_template' => $mail_template,
+                    'prms' => $prms,
+                    'user' => $user,
+                    'custom_value' => $custom_value,
+                    'subject' => $subject,
+                    'body' => $body,
+                    'attachments' => $attachments,
+                ]);
             }
             // throw mailsend Exception
             catch (\Swift_TransportException $ex) {
@@ -184,9 +286,12 @@ class Notify extends ModelBase
         $raw = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMD, 'value->'.$column->column_name, false, false);
 
         // find data. where equal target_date
-        $datalist = getModelName($table)
-            ::whereRaw("$raw = ?", [$target_date_str])
-            ->get();
+        if (isset($this->custom_view_id)) {
+            $datalist = $this->custom_view->setValueFilters($table->getValueModel())
+                ->whereRaw("$raw = ?", [$target_date_str])->get();
+        } else {
+            $datalist = getModelName($table)::whereRaw("$raw = ?", [$target_date_str])->get();
+        }
 
         return [$datalist, $table, $column];
     }
@@ -223,7 +328,7 @@ class Notify extends ModelBase
     /**
      * whether $user is target send user
      */
-    protected function approvalSendUser($mail_template, $custom_table, $data, NotifyTarget $user, $checkHistory = true)
+    protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true)
     {
         // if $user is myself, return false
         if ($checkHistory && \Exment::user()->email == $user->email()) {
@@ -239,7 +344,7 @@ class Notify extends ModelBase
             $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)
                 ::where($index_user, $user->id())
                 ->where($index_mail_template, $mail_template->id)
-                ->where('parent_id', $data->id)
+                ->where('parent_id', $custom_value->id)
                 ->where('parent_type', $custom_table->table_name)
                 ->get()
             ;

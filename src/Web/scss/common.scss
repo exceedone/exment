@@ -16,6 +16,10 @@
     font-size:0.9em;
 }
 
+.d-block{
+    display: block;
+}
+
 .asterisk::after{
     content: " *";
     color: red;
@@ -171,6 +175,29 @@
     }
 }
 
+// navbar
+.navbar-notify{
+    .container-notify{
+        font-size:20px; 
+        padding-top:15px; 
+        padding-bottom:15px;
+
+        .label-danger{
+            font-size:12px;
+        }
+    }
+    
+    .slimScrollDiv, .slimScrollDiv .menu{
+        height:auto !important;
+    }
+}
+
+body .main-header .navbar .nav>li>a>.label{
+    font-size:11px;
+}
+body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>.dropdown-menu, .navbar-nav>.tasks-menu>.dropdown-menu{
+    width:400px;
+}
 
 .ui-autocomplete {
     z-index: 1031;

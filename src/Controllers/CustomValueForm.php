@@ -2,24 +2,21 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Symfony\Component\HttpFoundation\Response;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Form;
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Tools;
-use Exceedone\Exment\Model\Role;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Enums\RoleType;
-use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
-use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Services\PartialCrudService;
 
 trait CustomValueForm
 {
@@ -69,7 +66,10 @@ trait CustomValueForm
             if (!isset($id) && !isset($select_parent)) {
                 $select = $form->select('parent_id', $parent_custom_table->table_view_name)
                 ->options(function ($value) use ($parent_custom_table) {
-                    return $parent_custom_table->getOptions($value, null, false, true);
+                    return $parent_custom_table->getSelectOptions([
+                        'selected_value' => $value,
+                        'showMessage_ifDeny' => true,
+                    ]);
                 });
                 $select->required();
 
@@ -137,23 +137,41 @@ trait CustomValueForm
                 }
                 // n:n
                 else {
-                    $field = new Field\Listbox(
+                    // get select classname
+                    $isListbox = $target_table->isGetOptions();
+                    if ($isListbox) {
+                        $class = Field\Listbox::class;
+                        $field->ajax($target_table->getOptionAjaxUrl());
+                    } else {
+                        $class = Field\MultipleSelect::class;
+                    }
+
+                    $field = new $class(
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
                         [$custom_form_block->target_table->table_view_name]
                     );
                     $custom_table = $this->custom_table;
-                    $field->options(function ($select) use ($custom_table, $target_table) {
-                        return $target_table->getOptions($select, $custom_table);
+                    $field->options(function ($select) use ($custom_table, $target_table, $isListbox) {
+                        return $target_table->getSelectOptions(
+                            [
+                                'selected_value' => $select,
+                                'display_table' => $custom_table,
+                                'notAjax' => $isListbox,
+                            ]
+                        );
                     });
-                    if (!$target_table->isGetOptions()) {
+                    if (!$isListbox) {
                         $field->ajax($target_table->getOptionAjaxUrl());
+                    } else {
+                        $field->settings(['nonSelectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('common.bootstrap_duallistbox_container.selectedListLabel')]);
+                        $field->help(exmtrans('common.bootstrap_duallistbox_container.help'));
                     }
-                    $field->settings(['nonSelectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.nonSelectedListLabel'), 'selectedListLabel' => exmtrans('custom_value.bootstrap_duallistbox_container.selectedListLabel')]);
-                    $field->help(exmtrans('custom_value.bootstrap_duallistbox_container.help'));
                     $form->pushField($field);
                 }
             }
         }
+
+        PartialCrudService::setAdminFormOptions($this->custom_table, $form, $id);
 
         $calc_formula_array = [];
         $changedata_array = [];
@@ -186,14 +204,11 @@ EOT;
             Admin::script($script);
         }
 
-        // add role form
-        $this->setRoleForm($form);
-
         // ignore select_parent
         $form->ignore('select_parent');
 
         // add form saving and saved event
-        $this->manageFormSaving($form);
+        $this->manageFormSaving($form, $id);
         $this->manageFormSaved($form, $select_parent);
 
         $form->disableReset();
@@ -203,30 +218,6 @@ EOT;
 
         $this->manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton);
         return $form;
-    }
-
-    /**
-     * setRoleForm.
-     * if table is user, org, etc...., not set role
-     */
-    protected function setRoleForm($form)
-    {
-        // if ignore user and org, return
-        if (in_array($this->custom_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-            return;
-        }
-        // if table setting is "one_record_flg" (can save only one record), return
-        if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
-            return;
-        }
-        
-        // not contains edit all form
-        if (!$this->custom_table->hasPermission(Permission::CUSTOM_VALUE_EDIT_ALL)) {
-            return;
-        }
-
-        // set addRoleForm(dufinition by trait)
-        $this->addRoleForm($form, RoleType::VALUE);
     }
 
     /**
@@ -337,21 +328,29 @@ EOT;
     }
 
 
-    protected function manageFormSaving($form)
+    protected function manageFormSaving($form, $id = null)
     {
         // before saving
-        $form->saving(function ($form) {
+        $form->saving(function ($form) use ($id) {
             Plugin::pluginPreparing($this->plugins, 'saving');
+
+            $result = PartialCrudService::saving($this->custom_table, $form, $id);
+            if ($result instanceof Response) {
+                return $result;
+            }
         });
     }
 
     protected function manageFormSaved($form, $select_parent = null)
     {
         // after saving
-        $form->saved(function ($form) use ($select_parent) {
-            $form->model()->setValueAuthoritable();
+        $form->savedInTransaction(function ($form) use ($select_parent) {
+            CustomValueAuthoritable::setValueAuthoritable($form->model());
             Plugin::pluginPreparing($this->plugins, 'saved');
-
+            PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
+        });
+        
+        $form->saved(function ($form) use ($select_parent) {
             // if $one_record_flg, redirect
             $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
             if ($one_record_flg) {
@@ -374,6 +373,8 @@ EOT;
         $form->disableViewCheck(false);
         
         $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
+            $custom_value = $custom_table->getValueModel($id);
+            
             $tools->disableView(false);
             $tools->setListPath($custom_table->getGridUrl(true));
 
@@ -389,12 +390,18 @@ EOT;
                 $tools->disableDelete();
             }
 
+            if (boolval(array_get($custom_value, 'disabled_delete'))) {
+                $tools->disableDelete();
+            }
+
             // add plugin button
             if ($listButton !== null && count($listButton) > 0) {
                 foreach ($listButton as $plugin) {
                     $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
                 }
             }
+
+            PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             
             $tools->add((new Tools\GridChangePageMenu('data', $custom_table, false))->render());
         });

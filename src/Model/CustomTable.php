@@ -16,13 +16,10 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Input;
 
-getCustomTableTrait();
-
 class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterface
 {
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonTrait;
-    use Traits\CustomTableDynamicTrait; // CustomTableDynamicTrait:Dynamic Creation trait it defines relationship.
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
 
@@ -484,6 +481,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'getModel' => true,
                 'permissions' => Permission::CUSTOM_TABLE,
                 'with' => null,
+                'filter' => null,
+                'checkPermission' => true,
             ],
             $options
         );
@@ -493,7 +492,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if ($options['checkPermission'] && !\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
             $permission_tables = \Exment::user()->allHasPermissionTables($options['permissions']);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
@@ -506,6 +505,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($options['with'])) {
             $with = is_array($options['with']) ? $options['with'] : [$options['with']];
             $model->with($with);
+        }
+
+        if (isset($options['filter'])) {
+            $model = $options['filter']($model);
         }
 
         if ($options['getModel']) {
@@ -587,47 +590,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $data = [];
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
-
-        // if (boolval(config('exment.filter_search_full', false))) {
-        //     $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
-        // } else {
-        //     $value = $q . ($isLike ? '%' : '');
-        // }
-        // $mark = ($isLike ? 'LIKE' : '=');
-
-        // if ($relation) {
-        //     $takeCount = intval(config('exment.keyword_search_relation_count', 5000));
-        // } else {
-        //     $takeCount = intval(config('exment.keyword_search_count', 1000));
-        // }
-
-        // // if not paginate, only take maxCount
-        // if (!$paginate) {
-        //     $takeCount = is_null($maxCount) ? $takeCount : min($takeCount, $maxCount);
-        // }
-
-        // // crate union query
-        // $queries = [];
-        // for ($i = 0; $i < count($searchColumns) - 1; $i++) {
-        //     $searchColumn = $searchColumns[$i];
-        //     $query = getModelName($this)::query();
-        //     $query->where($searchColumn, $mark, $value)->select('id');
-        //     $query->take($takeCount);
-
-        //     $queries[] = $query;
-        // }
-
-        // $searchColumn = $searchColumns->last();
-        // $subquery = getModelName($this)::query();
-        // $subquery->where($searchColumn, $mark, $value)->select('id');
-        // $subquery->take($takeCount);
-
-        // foreach ($queries as $inq) {
-        //     $subquery->union($inq);
-        // }
-
-        // // create main query
-        // $mainQuery =  \DB::query()->fromSub($subquery, 'sub');
 
         // return as paginate
         if ($paginate) {
@@ -801,13 +763,24 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * get options for select, multipleselect.
      * But if options count > 100, use ajax, so only one record.
      *
-     * @param array|CustomTable $table
-     * @param $selected_value
+     * @param $custom_view
      */
-    public function isGetOptions()
+    public function isGetOptions($custom_view = null, $options = [])
     {
-        // get count table.
-        $count = $this->getOptionsQuery()::count();
+        extract(array_merge(
+            [
+                'notAjax' => false,
+            ],
+            $options
+        ));
+
+        // if not ajax, return true
+        if (boolval($notAjax)) {
+            return true;
+        }
+
+        // get count table..
+        $count = $this->getOptionsQuery($custom_view)->count();
         // when count > 0, create option only value.
         return $count <= 100;
     }
@@ -823,8 +796,22 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param CustomTable $display_table Information on the table displayed on the screen
      * @param boolean $all is show all data. for system role, it's true.
      */
-    public function getOptions($selected_value = null, $display_table = null, $all = false, $showMessage_ifDeny = false, $filterCallback = null)
+    public function getSelectOptions($options = [])
     {
+        extract(array_merge(
+            [
+                'selected_value' => null,
+                'display_table' => null,
+                'all' => false,
+                'showMessage_ifDeny' => null,
+                'filterCallback' => null,
+                'target_view' => null,
+                'permission' => null,
+                'notAjax' => false,
+            ],
+            $options
+        ));
+
         if (is_null($display_table)) {
             $display_table = $this;
         }
@@ -846,11 +833,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table);
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
         } else {
-            $query = $this->getOptionsQuery();
+            $query = $this->getOptionsQuery($target_view);
         }
 
         if (isset($filterCallback)) {
@@ -858,7 +845,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // when count > 100, create option only value.
-        if (!$this->isGetOptions()) {
+        if (!$this->isGetOptions(null, $options)) {
             if (!isset($selected_value)) {
                 return [];
             }
@@ -887,12 +874,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param array|CustomTable $table
      * @param $value
      */
-    public function getOptionAjaxUrl()
+    public function getOptionAjaxUrl($custom_view = null, $options = [])
     {
-        // get count table.
-        $count = $this->getOptionsQuery()::count();
-        // when count > 0, create option only value.
-        if ($count <= 100) {
+        // if use options, return false
+        if ($this->isGetOptions($custom_view, $options)) {
             return null;
         }
         return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
@@ -901,7 +886,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * getOptionsQuery. this function uses for count, get, ...
      */
-    protected function getOptionsQuery()
+    protected function getOptionsQuery($custom_view = null)
     {
         // get model
         $model = $this->getValueModel();
@@ -909,7 +894,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // filter model
         $user = Admin::user();
         if (isset($user)) {
-            $model = $user->filterModel($model, $this);
+            $model = $user->filterModel($model, $custom_view);
         }
         return $model;
     }
@@ -1265,6 +1250,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         $permissions = $user->allPermissions();
         foreach ($permissions as $permission) {
+            // check system permission
+            if (RoleType::SYSTEM == $permission->getRoleType()
+                && array_key_exists('system', $permission->getPermissionDetails())) {
+                return true;
+            }
+
             // if role type is system, and has key
             if (RoleType::SYSTEM == $permission->getRoleType()
                 && array_keys_exists($role_key, $permission->getPermissionDetails())) {
@@ -1288,7 +1279,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
     }
 
     /**
@@ -1296,13 +1287,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function hasPermissionEditData($id)
     {
-        return $this->_hasPermissionData($id, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
+        return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_EDIT_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
     /**
      * Whether login user has permission about target id data. (protected function)
+     *
+     * @$tableRole if user doesn't have these permission, return false
+     * @$tableRoleTrue if user has these permission, return true
      */
-    protected function _hasPermissionData($id, $role)
+    protected function _hasPermissionData($id, $tableRole, $tableRoleTrue, $dataRole)
     {
         // if system doesn't use role, return true
         if (!System::permission_available()) {
@@ -1310,12 +1304,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // if user doesn't have all permissons about target table, return false.
-        if (!$this->hasPermission($role)) {
+        if (!$this->hasPermission($tableRole)) {
             return false;
         }
 
         // if user has all edit table, return true.
-        if ($this->hasPermission(Permission::AVAILABLE_ALL_CUSTOM_VALUE)) {
+        if ($this->hasPermission($tableRoleTrue)) {
             return true;
         }
 
@@ -1337,7 +1331,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // else, get model using value_authoritable.
         // if count > 0, return true.
         $rows = $model->getAuthoritable(SystemTableName::USER);
-        if ($this->checkPermissionWithPivot($rows, $role)) {
+        if ($this->checkPermissionWithPivot($rows, $dataRole)) {
             return true;
         }
 
@@ -1345,7 +1339,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // if count > 0, return true.
         if (System::organization_available()) {
             $rows = $model->getAuthoritable(SystemTableName::ORGANIZATION);
-            if ($this->checkPermissionWithPivot($rows, $role)) {
+            if ($this->checkPermissionWithPivot($rows, $dataRole)) {
                 return true;
             }
         }
@@ -1363,13 +1357,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return false;
         }
 
-        foreach ($rows as $row) {
-            // get role
-            $role = Role::getEloquent(array_get($row, 'pivot.role_id'));
+        if (is_string($role_key)) {
+            $role_key = [$role_key];
+        }
 
-            // if role type is system, and has key
-            $permissions = $role->permissions;
-            if (array_keys_exists($role_key, $permissions)) {
+        foreach ($rows as $row) {
+            // check role permissions
+            $authoritable_type = array_get($row, 'pivot.authoritable_type');
+            if (in_array($authoritable_type, $role_key)) {
                 return true;
             }
         }

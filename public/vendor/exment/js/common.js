@@ -82,7 +82,7 @@ var Exment;
                 return;
             }
             var helps = JSON.parse(help_urls);
-            var pathname = location.pathname;
+            var pathname = trimAny(location.pathname, '/');
             var $manual = $('#manual_link');
             var manual_base_uri = $('#manual_base_uri').val();
             for (var i = 0; i < helps.length; i++) {
@@ -91,10 +91,13 @@ var Exment;
                 var uri = trimAny(admin_base_path(help.uri), '/');
                 var isMatch = false;
                 if (!hasValue(uri)) {
-                    isMatch = trimAny(pathname, '/') == uri;
+                    isMatch = (pathname == uri);
+                }
+                else if (trimAny(admin_base_path(''), '/') == uri) {
+                    isMatch = (pathname == uri);
                 }
                 else {
-                    isMatch = trimAny(pathname, '/').indexOf(uri) === 0;
+                    isMatch = pathname.indexOf(uri) === 0;
                 }
                 if (isMatch) {
                     // set new url
@@ -247,7 +250,10 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
-                var linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                var linkElem = $(ev.target).closest('tr').find('.rowclick');
+                if (!hasValue(linkElem)) {
+                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                }
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-edit');
                 }
@@ -811,7 +817,8 @@ var Exment;
                         data: function (params) {
                             return {
                                 q: params.term,
-                                page: params.page
+                                page: params.page,
+                                selectajax: true
                             };
                         },
                         processResults: function (data, params) {
@@ -822,7 +829,7 @@ var Exment;
                             return {
                                 results: $.map(data.data, function (d) {
                                     d.id = d.id;
-                                    d.text = d.label; // label is custom value label appended.
+                                    d.text = hasValue(d.text) ? d.text : d.label; // label is custom value label appended.
                                     return d;
                                 }),
                                 pagination: {
@@ -943,8 +950,14 @@ var Exment;
             // execute linkage event
             for (var key in linkages) {
                 var link = linkages[key];
+                var url = link;
+                // if link is object and has 'text', set linkage_text
+                if (link instanceof Object) {
+                    url = link.url;
+                    linkage_text = link.text;
+                }
                 var $target = $parent.find(CommonEvent.getClassKey(key));
-                CommonEvent.linkage($target, link, $base.val(), expand, linkage_text);
+                CommonEvent.linkage($target, url, $base.val(), expand, linkage_text);
             }
         };
         /**

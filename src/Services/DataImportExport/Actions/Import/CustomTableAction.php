@@ -99,7 +99,10 @@ class CustomTableAction implements ActionInterface
     public function filterDatalist($datalist)
     {
         // get tablenames
-        $table_names = [$this->custom_table->table_name];
+        $table_names = [];
+        if (isset($this->custom_table)) {
+            $table_names[] = $this->custom_table->table_name;
+        }
 
         foreach ($this->relations as $relation) {
             $table_names[] = $relation->getSheetName();
