@@ -1067,6 +1067,9 @@ return [
                 'stop' => 'すべてのデータを取り込まない。',
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
+            'message' => [
+                'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。'
+            ]
         ],
         'sendmail' => [
             'title' => 'メール送信',

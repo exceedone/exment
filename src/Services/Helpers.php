@@ -20,6 +20,10 @@ use Carbon\Carbon;
 if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
     {
+        if (count($args) > 0 && is_array($args[0])) {
+            return trans("exment::exment.$key", $args[0]);
+        }
+
         $trans = trans("exment::exment.$key");
         if (count($args) > 0) {
             $trans = vsprintf($trans, $args);
