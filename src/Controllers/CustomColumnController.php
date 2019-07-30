@@ -199,6 +199,8 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
+            $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
+                ->help(exmtrans("custom_column.help.init_only"));
             $form->text('default', exmtrans("custom_column.options.default"));
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));

@@ -244,6 +244,13 @@ abstract class CustomItem implements ItemInterface
             $field->attribute(['suggest_url' => $url]);
         }
 
+        // edit when create only
+        if (boolval(array_get($options, 'init_only'))) {
+            if (isset($this->id)) {
+                $field->readOnly();
+            }
+        }
+
         // set validates
         $validate_options = [];
         $validates = $this->getColumnValidates($validate_options);
