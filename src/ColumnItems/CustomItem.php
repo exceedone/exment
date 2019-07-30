@@ -238,6 +238,12 @@ abstract class CustomItem implements ItemInterface
             $field->rules('nullable');
         }
 
+        // suggest input
+        if (boolval(array_get($options, 'suggest_input'))) {
+            $url = admin_urls('webapi/data', $this->custom_table->table_name, 'column', $this->name());
+            $field->attribute(['suggest_url' => $url]);
+        }
+
         // set validates
         $validate_options = [];
         $validates = $this->getColumnValidates($validate_options);
