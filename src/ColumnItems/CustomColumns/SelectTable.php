@@ -172,6 +172,14 @@ class SelectTable extends CustomItem
         }
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
+
+        // add view info
+        if(isset($this->target_view)){
+            $field->attribute(['data-select2_expand' => json_encode([
+                    'target_view_id' => array_get($this->target_view, 'id')
+                ])
+            ]);
+        }
     }
     
     public function getAdminFilterWhereQuery($query, $input)

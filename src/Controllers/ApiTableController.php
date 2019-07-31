@@ -66,9 +66,16 @@ class ApiTableController extends AdminControllerTableBase
             return [];
         }
 
+        // get custom_view
+        $custom_view = null;
+        if ($request->has('target_view_id')) {
+            $custom_view = CustomView::getEloquent($request->get('target_view_id'));
+        }
+
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
             'makeHidden' => true,
+            'target_view' => $custom_view,
         ]);
 
         // if call as select ajax, return id and text array

@@ -582,6 +582,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'makeHidden' => false,
                 'searchColumns' => null,
                 'relation' => false,
+                'target_view' => null,
             ],
             $options
         );
@@ -590,6 +591,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $data = [];
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
+
+        // set custom view's filter
+        if(isset($target_view)){
+            $mainQuery = \Exment::user()->filterModel($mainQuery, $target_view);
+        }
 
         // return as paginate
         if ($paginate) {
