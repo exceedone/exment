@@ -343,18 +343,28 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
         // if url doesn't contain view query, get custom view. first
         if (!isset($view)) {
-            $view = $tableObj->custom_views()->where('default_flg', true)
-                ->where('view_kind_type', '<>', ViewKindType::FILTER)->first();
+            $view = static::allRecords(function ($record) use ($tableObj) {
+                return array_get($record, 'custom_table_id') == $tableObj->id
+                    && array_get($record, 'default_flg') == true 
+                    && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
+            })->first();
+            // $view = $tableObj->custom_views()->where('default_flg', true)
+            //     ->where('view_kind_type', '<>', ViewKindType::FILTER)->first();
         }
-        // get all data view
-        $alldata = $tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
-        // if all data view is not exists, create view and column
-        if (!isset($alldata)) {
-            $alldata = static::createDefaultView($tableObj);
-            $alldata->createDefaultViewColumns();
-        }
+        
         // if default view is not setting, show all data view
         if (!isset($view)) {
+            // get all data view
+            $alldata = static::allRecords(function ($record) use ($tableObj) {
+                return array_get($record, 'custom_table_id') == $tableObj->id
+                    && array_get($record, 'view_kind_type') == ViewKindType::ALLDATA;
+            })->first();
+            //$tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
+            // if all data view is not exists, create view and column
+            if (!isset($alldata)) {
+                $alldata = static::createDefaultView($tableObj);
+                $alldata->createDefaultViewColumns();
+            }
             $view = $alldata;
         }
 
@@ -836,5 +846,49 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function getDisabledDeleteAttribute()
     {
         return boolval($this->view_kind_type == ViewKindType::ALLDATA);
+    }
+    
+    /**
+     * get all records. use system session
+     */
+    public static function allRecords(\Closure $filter = null, $isGetAll = true)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
+        // get from request session
+        $records = System::requestSession($key, function () {
+            return self::all();
+        });
+
+        // execute filter
+        if (isset($filter)) {
+            $records = $records->filter(function ($record) use ($filter) {
+                return $filter($record);
+            });
+        }
+
+        // if exists, return
+        if (count($records) > 0) {
+            return $records;
+        }
+        
+        if ((!isset($records) || count($records) == 0) && !$isGetAll) {
+            return $records;
+        }
+
+        // else, get all again
+        $records = self::all();
+        System::requestSession($key, $records);
+
+        if (!isset($records)) {
+            return $records;
+        }
+
+        // execute filter
+        if (isset($filter)) {
+            $records = $records->filter(function ($record) use ($filter) {
+                return $filter($record);
+            });
+        }
+        return $records;
     }
 }

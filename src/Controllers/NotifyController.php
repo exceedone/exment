@@ -66,7 +66,8 @@ class NotifyController extends AdminControllerBase
 
         $grid->column('notify_actions', exmtrans("notify.notify_action"))->sortable()->display(function ($val) {
             return implode(exmtrans('common.separate_word'), collect($val)->map(function ($v) {
-                return NotifyAction::getEnum($v)->transKey('notify.notify_action_options');
+                $enum = NotifyAction::getEnum($v);
+                return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
             })->toArray());
         });
 
