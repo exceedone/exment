@@ -54,6 +54,7 @@ class AuthUserOrgHelper
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
+
         return $builder;
     }
     
@@ -106,6 +107,7 @@ class AuthUserOrgHelper
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
+
         return $builder;
     }
 

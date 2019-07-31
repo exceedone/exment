@@ -837,7 +837,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
             $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
         } else {
-            $query = $this->getOptionsQuery($target_view);
+            $query = $this->getOptionsQuery();
+        }
+
+        // filter model using view
+        if(isset($target_view)){
+            $user = Admin::user();
+            if (isset($user)) {
+                $query = $user->filterModel($query, $target_view);
+            }    
         }
 
         if (isset($filterCallback)) {
@@ -891,11 +899,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get model
         $model = $this->getValueModel();
 
-        // filter model
-        $user = Admin::user();
-        if (isset($user)) {
-            $model = $user->filterModel($model, $custom_view);
-        }
         return $model;
     }
 
