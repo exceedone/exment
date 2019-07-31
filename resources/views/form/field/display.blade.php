@@ -6,7 +6,7 @@
             <div class="box-body" style="padding-bottom:0;">
                 <span class="{{$class}}">
                 @if(isset($displayText))
-                {{ $displayText }}
+                {!! $displayText !!}
                 @else
                 {{ $value }}
                 @endif
