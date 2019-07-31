@@ -61,7 +61,7 @@ class SelectTable extends CustomItem
         $result = [];
 
         foreach ($value as $v) {
-            if(!isset($v)){
+            if (!isset($v)) {
                 continue;
             }
             

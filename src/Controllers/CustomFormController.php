@@ -220,11 +220,11 @@ class CustomFormController extends AdminControllerTableBase
                 
         // Loop using CustomFormBlocks
         $custom_form_blocks = [];
-        foreach ($form->custom_form_blocks as $custom_form_block) {
+        foreach ($this->getFormBlockItems($form) as $custom_form_block) {
             $column_blocks = $custom_form_block->toArray();
             // get label header.
             $column_blocks = array_merge($column_blocks, [
-                'label' => $this->getBlockLabelHeader(array_get($column_blocks, 'form_block_type')) . $custom_form_block->target_table->table_view_name ?? null,
+                'label' => $this->getBlockLabelHeader(array_get($column_blocks, 'form_block_type')) . array_get($custom_form_block, 'target_table.table_view_name') ?? null,
                 'custom_form_columns' => [],
             ]);
 
@@ -355,6 +355,29 @@ class CustomFormController extends AdminControllerTableBase
         }
 
         return $custom_form_blocks;
+    }
+
+    /**
+     * Get form blocks.
+     * If first request, set from database.
+     * If not (ex. validation error), set from request value
+     *
+     * @return void
+     */
+    protected function getFormBlockItems($form)
+    {
+        // get custom_form_blocks from request
+        $req_custom_form_blocks = old('custom_form_blocks');
+        if (!isset($req_custom_form_blocks)
+        ) {
+            return $form->custom_form_blocks;
+        }
+
+        return collect($req_custom_form_blocks)->map(function ($custom_form_block, $id) {
+            $custom_form_block['id'] = $id;
+            $custom_form_block['target_table'] = CustomTable::getEloquent($custom_form_block['form_block_target_table_id']);
+            return collect($custom_form_block);
+        });
     }
 
     /**
@@ -497,6 +520,9 @@ class CustomFormController extends AdminControllerTableBase
         foreach ($inputs as $key => $value) {
             $columns = [];
             if (!isset($value['form_block_target_table_id'])) {
+                continue;
+            }
+            if (!boolval(array_get($value, 'available'))) {
                 continue;
             }
             // get column id for registration

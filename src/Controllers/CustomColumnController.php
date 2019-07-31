@@ -181,7 +181,11 @@ class CustomColumnController extends AdminControllerTableBase
                 'options_select_import_column_id' => [
                     'url' => admin_url('webapi/table/indexcolumns'),
                     'text' => 'column_view_name',
-                ]
+                ],
+                'options_select_target_view' => [
+                    'url' => admin_url('webapi/table/filterviews'),
+                    'text' => 'view_view_name',
+                ],
             ]),
             'data-linkage-expand' => json_encode(['custom_type' => true]),
         ])
@@ -327,23 +331,28 @@ class CustomColumnController extends AdminControllerTableBase
             // define select-target table view
             $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
                 ->help(exmtrans("custom_column.help.select_target_view"))
-                ->options(function ($select_view, $form) {
+                ->options(function ($select_view, $form) use ($column_type) {
                     $data = $form->data();
                     if (!isset($data)) {
                         return [];
                     }
 
                     // select_table
-                    if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
-                        return [];
+                    $select_target_table = array_get($data, 'select_target_table');
+                    if (!isset($select_target_table)) {
+                        if (!ColumnType::isUserOrganization($column_type)) {
+                            return [];
+                        }
+                        $select_target_table = CustomTable::getEloquent($column_type);
                     }
+
                     return CustomTable::getEloquent($select_target_table)->custom_views
                         ->filter(function ($value) {
                             return array_get($value, 'view_kind_type') == ViewKindType::FILTER;
                         })->pluck('view_view_name', 'id');
                 })
                 ->attribute([
-                    'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
+                    'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()]),
                 ]);
             
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
@@ -371,7 +380,7 @@ class CustomColumnController extends AdminControllerTableBase
                     }
                     return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
                 })
-                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION]])]);
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
 
             $form->switchbool('select_load_ajax', exmtrans("custom_column.options.select_load_ajax"))
                 ->help(exmtrans("custom_column.help.select_load_ajax"))
