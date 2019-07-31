@@ -776,7 +776,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         extract(array_merge(
             [
                 'target_view' => null,
-                'ajax' => false,
+                'custom_column' => null,
                 'notAjax' => false,
                 'callQuery' => true,
             ],
@@ -788,7 +788,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return true;
         }
         // if custom table option's select_load_ajax is true, return false (as ajax).
-        elseif(boolval($ajax)){
+        elseif(isset($custom_column) && boolval(array_get($custom_column, 'options.select_load_ajax'))){
             return false;
         }
 
@@ -825,7 +825,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'target_view' => null,
                 'permission' => null,
                 'notAjax' => false,
-                'ajax' => false,
+                'custom_column' => null,
             ],
             $options
         ));
@@ -892,7 +892,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'target_view' => null,
                 'permission' => null,
                 'notAjax' => false,
-                'ajax' => false,
+                'custom_column' => null,
             ],
             $options
         ));

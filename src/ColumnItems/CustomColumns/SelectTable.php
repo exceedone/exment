@@ -164,7 +164,7 @@ class SelectTable extends CustomItem
                 'target_view' => $this->target_view,
             ]);
         });
-        $ajax = $this->target_table->getOptionAjaxUrl(['ajax' => array_get($this->custom_column, 'options.select_load_ajax')]);
+        $ajax = $this->target_table->getOptionAjaxUrl(['custom_column' => $this->custom_column]);
         if (isset($ajax)) {
             $field->attribute([
                 'data-add-select2' => $this->label(),
