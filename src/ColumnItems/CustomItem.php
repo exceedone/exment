@@ -213,6 +213,10 @@ abstract class CustomItem implements ItemInterface
         $field = new $classname($form_column_name, [$this->label()]);
         $this->setAdminOptions($field, $form_column_options);
 
+        if($this->initonly() && isset($this->id)){
+            $field->displayText($this->text());
+        }
+
         ///////// get common options
         if (array_key_value_exists('placeholder', $options)) {
             $field->placeholder(array_get($options, 'placeholder'));
