@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
@@ -122,6 +123,9 @@ class SelectTable extends CustomItem
         if (!isset($this->target_table)) {
             return;
         }
+        if($field instanceof ExmentField\Display){
+            return;
+        }
 
         $relationColumn = collect($this->custom_column->custom_table
             ->getSelectTableRelationColumns())
@@ -157,7 +161,7 @@ class SelectTable extends CustomItem
             }
             // get DB option value
             return $this->target_table->getSelectOptions([
-                'select_load_ajax' => array_get($this->custom_column, 'options.select_load_ajax'),
+                'custom_column' => $this->custom_column,
                 'selected_value' => $value,
                 'display_table' => $this->custom_column->custom_table,
                 'filterCallback' => $callback ?? null,
