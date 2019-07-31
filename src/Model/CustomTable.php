@@ -833,9 +833,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
+            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission, $target_view);
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission, $target_view);
         } else {
             $query = $this->getOptionsQuery($target_view);
         }
