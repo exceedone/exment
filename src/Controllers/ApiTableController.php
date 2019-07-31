@@ -219,6 +219,29 @@ class ApiTableController extends AdminControllerTableBase
         return $this->custom_columns;
     }
 
+    /**
+     * get table columns data
+     */
+    public function columnData(Request $request, $tableKey, $column_name)
+    {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+            return abortJson(403, trans('admin.deny'));
+        }
+
+        $query = $request->get('query');
+        $custom_column = CustomColumn::getEloquent($column_name, $this->custom_table->table_name);
+
+        $list = [];
+
+        if ($custom_column->index_enabled) {
+            $column_name = $custom_column->getIndexColumnName();
+            $list = $this->custom_table->searchValue($query, [
+                'searchColumns' => collect([$column_name]),
+            ])->pluck($column_name)->unique()->toArray();
+        }
+        return json_encode($list);
+    }
+
     
     protected function saveData($custom_value, $request)
     {
