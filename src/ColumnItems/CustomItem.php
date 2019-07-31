@@ -216,7 +216,7 @@ abstract class CustomItem implements ItemInterface
         }
 
         if($this->initonly() && isset($this->id)){
-            $field->displayText($this->text());
+            $field->displayText($this->html());
         }
 
         ///////// get common options
