@@ -771,11 +771,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param $custom_view
      */
-    public function isGetOptions($custom_view = null, $options = [])
+    public function isGetOptions($options = [])
     {
         extract(array_merge(
             [
+                'target_view' => null,
+                'ajax' => false,
                 'notAjax' => false,
+                'callQuery' => true,
             ],
             $options
         ));
@@ -784,11 +787,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (boolval($notAjax)) {
             return true;
         }
+        // if custom table option's select_load_ajax is true, return false (as ajax).
+        elseif(boolval($ajax)){
+            return false;
+        }
 
         // get count table..
-        $count = $this->getOptionsQuery($custom_view)->count();
-        // when count > 0, create option only value.
-        return $count <= 100;
+        if(boolval($callQuery)){
+            $count = $this->getOptionsQuery($options)->count();
+            // when count > 0, create option only value.
+            return $count <= config('exment.select_table_limit_count', 100);    
+        }
+
+        return true;
     }
 
     /**
@@ -814,52 +825,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'target_view' => null,
                 'permission' => null,
                 'notAjax' => false,
+                'ajax' => false,
             ],
             $options
         ));
 
-        if (is_null($display_table)) {
-            $display_table = $this;
-        }
-        $table_name = $this->table_name;
-        $display_table = CustomTable::getEloquent($display_table);
-
-        // check table permission. if not exists, show admin_warning
-        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
-            if ($showMessage_ifDeny) {
-                admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
-            }
+        // if ajax, return []. (set callQuery is false)
+        if(!$this->isGetOptions(array_merge(['callQuery' => false], $options))){
             return [];
         }
 
-        // get query.
-        // if org
-        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
-            $query = $this->getValueModel();
-        }
-        // if $table_name is user or organization, get from getRoleUserOrOrg
-        elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
-        } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
-        } else {
-            $query = $this->getOptionsQuery();
-        }
-
-        // filter model using view
-        if(isset($target_view)){
-            $user = Admin::user();
-            if (isset($user)) {
-                $query = $user->filterModel($query, $target_view);
-            }    
-        }
-
-        if (isset($filterCallback)) {
-            $query = $filterCallback($query);
-        }
+        // get query
+        $query = $this->getOptionsQuery($options);
 
         // when count > 100, create option only value.
-        if (!$this->isGetOptions(null, $options)) {
+        if (!$this->isGetOptions($options)) {
             if (!isset($selected_value)) {
                 return [];
             }
@@ -888,10 +868,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param array|CustomTable $table
      * @param $value
      */
-    public function getOptionAjaxUrl($custom_view = null, $options = [])
+    public function getOptionAjaxUrl($options = [])
     {
-        // if use options, return false
-        if ($this->isGetOptions($custom_view, $options)) {
+        // if use options, return null
+        if ($this->isGetOptions($options)) {
             return null;
         }
         return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
@@ -900,12 +880,54 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * getOptionsQuery. this function uses for count, get, ...
      */
-    protected function getOptionsQuery($custom_view = null)
+    protected function getOptionsQuery($options = [])
     {
-        // get model
-        $model = $this->getValueModel();
+        extract(array_merge(
+            [
+                'selected_value' => null,
+                'display_table' => null,
+                'all' => false,
+                'showMessage_ifDeny' => null,
+                'filterCallback' => null,
+                'target_view' => null,
+                'permission' => null,
+                'notAjax' => false,
+                'ajax' => false,
+            ],
+            $options
+        ));
 
-        return $model;
+        if (is_null($display_table)) {
+            $display_table = $this;
+        }
+        $table_name = $this->table_name;
+        // get query.
+        // if org
+        if (in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && in_array($display_table->table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION])) {
+            $query = $this->getValueModel();
+        }
+        // if $table_name is user or organization, get from getRoleUserOrOrg
+        elseif ($table_name == SystemTableName::USER && !$all) {
+            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
+        } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
+        } else {
+            $query = $this->getValueModel();
+        }
+
+        // filter model using view
+        if(isset($target_view)){
+            $user = Admin::user();
+            if (isset($user)) {
+                $query = $user->filterModel($query, $target_view);
+            }    
+        }
+
+        if (isset($filterCallback)) {
+            $query = $filterCallback($query);
+        }
+
+        return $query;
     }
 
     /**

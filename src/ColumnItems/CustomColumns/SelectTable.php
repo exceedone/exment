@@ -157,13 +157,14 @@ class SelectTable extends CustomItem
             }
             // get DB option value
             return $this->target_table->getSelectOptions([
+                'select_load_ajax' => array_get($this->custom_column, 'options.select_load_ajax'),
                 'selected_value' => $value,
                 'display_table' => $this->custom_column->custom_table,
                 'filterCallback' => $callback ?? null,
                 'target_view' => $this->target_view,
             ]);
         });
-        $ajax = $this->target_table->getOptionAjaxUrl();
+        $ajax = $this->target_table->getOptionAjaxUrl(['ajax' => array_get($this->custom_column, 'options.select_load_ajax')]);
         if (isset($ajax)) {
             $field->attribute([
                 'data-add-select2' => $this->label(),
