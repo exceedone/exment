@@ -211,7 +211,9 @@ abstract class CustomItem implements ItemInterface
         $form_column_name = $column_name_prefix.$this->name();
         
         $field = new $classname($form_column_name, [$this->label()]);
-        $this->setAdminOptions($field, $form_column_options);
+        if($this->isSetAdminOptions()){
+            $this->setAdminOptions($field, $form_column_options);
+        }
 
         ///////// get common options
         if (array_key_value_exists('placeholder', $options)) {
@@ -516,5 +518,15 @@ abstract class CustomItem implements ItemInterface
             $this->required = false;
         }
         return $initOnly;
+    }
+
+    protected function isSetAdminOptions(){
+        if (boolval(array_get($form_column_options, 'hidden'))) {
+            return false;
+        }elseif ($this->initonly() && isset($this->id)) {
+            return false;
+        }
+
+        return true;
     }
 }
