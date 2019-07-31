@@ -819,7 +819,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $display_table = CustomTable::getEloquent($display_table);
 
         // check table permission. if not exists, show admin_warning
-        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
+        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             if ($showMessage_ifDeny) {
                 admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
             }
