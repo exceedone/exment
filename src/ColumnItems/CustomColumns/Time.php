@@ -7,6 +7,8 @@ use Exceedone\Exment\Form\Field as ExmentField;
 
 class Time extends Date
 {
+    protected $format = 'H:i:s';
+
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
@@ -30,6 +32,10 @@ class Time extends Date
         return \Carbon\Carbon::now()->format('H:i:s');
     }
     
+    protected function setValidates(&$validates)
+    {
+    }
+
     /**
      * whether column is date
      *

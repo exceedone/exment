@@ -19,9 +19,14 @@ class Date extends CustomItem
             $format = array_get($this->options, 'format');
         }
         
+        if(!isset($this->value)){
+            return null;
+        }
+
         if (!is_nullorempty($format)) {
             return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
         }
+
         // else, return
         return $this->value();
     }
@@ -31,6 +36,10 @@ class Date extends CustomItem
         if ($this->autoDate()) {
             $this->value = $this->getNowString();
             return $this->value;
+        }
+
+        if(!isset($this->value)){
+            return null;
         }
 
         return (new \Carbon\Carbon($this->value()))->format($this->format) ?? null;
@@ -58,6 +67,11 @@ class Date extends CustomItem
         }
     }
     
+    protected function setValidates(&$validates)
+    {
+        $validates[] = 'date';
+    }
+
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->date();

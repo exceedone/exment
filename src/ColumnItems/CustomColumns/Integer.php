@@ -29,7 +29,7 @@ class Integer extends CustomItem
         if (!isset($rmv)) {
             return null;
         }
-        return $rmv;
+        return strval(intval($rmv));
     }
 
     protected function getAdminFieldClass()
