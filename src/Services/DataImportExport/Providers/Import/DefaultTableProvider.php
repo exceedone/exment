@@ -233,7 +233,7 @@ class DefaultTableProvider extends ProviderBase
                                 'value' => is_array($base_value) ? implode(',', $base_value) : $base_value,
                                 'target_table_name' => isset($target_column->select_target_table) ? $target_column->select_target_table->table_view_name : null
                             ]);
-                            $this->selectTableNotFounds[] =  sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $message);
+                            $this->selectTableNotFounds[] =  sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
                         }
                     }
                 }
