@@ -819,7 +819,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $display_table = CustomTable::getEloquent($display_table);
 
         // check table permission. if not exists, show admin_warning
-        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission()) {
+        if (!in_array($table_name, [SystemTableName::USER, SystemTableName::ORGANIZATION]) && !$this->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             if ($showMessage_ifDeny) {
                 admin_warning(trans('admin.deny'), sprintf(exmtrans('custom_column.help.select_table_deny'), $display_table->table_view_name));
             }
@@ -833,9 +833,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         // if $table_name is user or organization, get from getRoleUserOrOrg
         elseif ($table_name == SystemTableName::USER && !$all) {
-            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission);
+            $query = AuthUserOrgHelper::getRoleUserQueryTable($display_table, $permission, $target_view);
         } elseif ($table_name == SystemTableName::ORGANIZATION && !$all) {
-            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission);
+            $query = AuthUserOrgHelper::getRoleOrganizationQuery($display_table, $permission, $target_view);
         } else {
             $query = $this->getOptionsQuery($target_view);
         }

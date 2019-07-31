@@ -102,8 +102,20 @@ class ApiController extends AdminControllerBase
             return [];
         }
 
+        // if execute as selecting column_type
+        if ($request->has('custom_type')) {
+            // check user or organization
+            if (!ColumnType::isUserOrganization($table)) {
+                return [];
+            }
+        }
+        $table = CustomTable::getEloquent($table);
+        if (!isset($table)) {
+            return [];
+        }
+
         return CustomView
-            ::where('custom_table_id', $table)
+            ::where('custom_table_id', $table->id)
             ->where('view_kind_type', ViewKindType::FILTER)
             ->get();
     }

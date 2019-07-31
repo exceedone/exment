@@ -21,7 +21,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleOrganizationQuery($target_table, $tablePermission = null)
+    public static function getRoleOrganizationQuery($target_table, $tablePermission = null, $custom_view = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -54,6 +54,12 @@ class AuthUserOrgHelper
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
+        
+        if (isset($custom_view)) {
+            // filter model
+            $builder = \Exment::user()->filterModel($builder, $custom_view);
+        }
+
         return $builder;
     }
     
@@ -63,7 +69,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleUserQueryTable($target_table, $tablePermission = null)
+    public static function getRoleUserQueryTable($target_table, $tablePermission = null, $custom_view = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -106,6 +112,12 @@ class AuthUserOrgHelper
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
+
+        if (isset($custom_view)) {
+            // filter model
+            $builder = \Exment::user()->filterModel($builder, $custom_view);
+        }
+
         return $builder;
     }
 

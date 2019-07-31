@@ -87,7 +87,7 @@ class ModelBase extends Model
      */
     public static function getEloquentDefault($obj, $withs = [], $query_key = 'id')
     {
-        if(!isset($obj)){
+        if (!isset($obj)) {
             return null;
         }
         
