@@ -5,7 +5,6 @@ use Illuminate\Database\Schema\Blueprint;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Model\Notify;
 
 class SupportForV20 extends Migration

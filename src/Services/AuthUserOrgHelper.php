@@ -55,7 +55,7 @@ class AuthUserOrgHelper
             $builder->whereIn('id', $target_ids);
         }
         
-        if(isset($custom_view)){
+        if (isset($custom_view)) {
             // filter model
             $builder = \Exment::user()->filterModel($builder, $custom_view);
         }
@@ -113,7 +113,7 @@ class AuthUserOrgHelper
             $builder->whereIn('id', $target_ids);
         }
 
-        if(isset($custom_view)){
+        if (isset($custom_view)) {
             // filter model
             $builder = \Exment::user()->filterModel($builder, $custom_view);
         }

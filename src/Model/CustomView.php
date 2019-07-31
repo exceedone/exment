@@ -345,7 +345,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         if (!isset($view)) {
             $view = static::allRecords(function ($record) use ($tableObj) {
                 return array_get($record, 'custom_table_id') == $tableObj->id
-                    && array_get($record, 'default_flg') == true 
+                    && array_get($record, 'default_flg') == true
                     && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
             })->first();
             // $view = $tableObj->custom_views()->where('default_flg', true)

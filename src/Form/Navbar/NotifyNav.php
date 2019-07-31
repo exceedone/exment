@@ -8,7 +8,7 @@ class NotifyNav implements Renderable
 {
     public function render()
     {
-        if(config('exment.notify_navbar', true) === false){
+        if (config('exment.notify_navbar', true) === false) {
             return;
         }
         

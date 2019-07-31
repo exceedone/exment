@@ -324,7 +324,7 @@ class CustomColumnController extends AdminControllerTableBase
             // define select-target table view
             $form->select('select_target_view', exmtrans("custom_column.options.select_target_view"))
                 ->help(exmtrans("custom_column.help.select_target_view"))
-                ->options(function ($select_view, $form) use($column_type) {
+                ->options(function ($select_view, $form) use ($column_type) {
                     $data = $form->data();
                     if (!isset($data)) {
                         return [];
@@ -332,8 +332,8 @@ class CustomColumnController extends AdminControllerTableBase
 
                     // select_table
                     $select_target_table = array_get($data, 'select_target_table');
-                    if(!isset($select_target_table)){
-                        if(!ColumnType::isUserOrganization($column_type)){
+                    if (!isset($select_target_table)) {
+                        if (!ColumnType::isUserOrganization($column_type)) {
                             return [];
                         }
                         $select_target_table = CustomTable::getEloquent($column_type);

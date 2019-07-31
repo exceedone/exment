@@ -19,7 +19,7 @@ class Date extends CustomItem
             $format = array_get($this->options, 'format');
         }
         
-        if(!isset($this->value)){
+        if (!isset($this->value)) {
             return null;
         }
 
@@ -38,7 +38,7 @@ class Date extends CustomItem
             return $this->value;
         }
 
-        if(!isset($this->value)){
+        if (!isset($this->value)) {
             return null;
         }
 
