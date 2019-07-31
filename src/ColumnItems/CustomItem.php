@@ -211,7 +211,7 @@ abstract class CustomItem implements ItemInterface
         $form_column_name = $column_name_prefix.$this->name();
         
         $field = new $classname($form_column_name, [$this->label()]);
-        if($this->isSetAdminOptions()){
+        if($this->isSetAdminOptions($form_column_options)){
             $this->setAdminOptions($field, $form_column_options);
         }
 
@@ -524,7 +524,7 @@ abstract class CustomItem implements ItemInterface
         return $initOnly;
     }
 
-    protected function isSetAdminOptions(){
+    protected function isSetAdminOptions($form_column_options){
         if (boolval(array_get($form_column_options, 'hidden'))) {
             return false;
         }elseif ($this->initonly() && isset($this->id)) {
