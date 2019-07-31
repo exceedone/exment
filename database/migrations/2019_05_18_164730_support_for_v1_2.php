@@ -80,13 +80,18 @@ class SupportForV12 extends Migration
     {
         //
         Schema::table('custom_view_columns', function (Blueprint $table) {
-            $table->dropColumn('options');
+            if (Schema::hasColumn('custom_view_columns', 'options')) {
+                $table->dropColumn('options');
+            }
         });
         
         foreach (static::ADD_INDEX_TABLES as $table_name => $column_name) {
+            if(!Schema::hasTable($table_name)){
+                continue;
+            }
             Schema::table($table_name, function (Blueprint $table) use($column_name) {
-                $table->dropIndex([ $column_name]);
-            });
+                $table->dropIndex([$column_name]);
+            });    
         }
     }
 

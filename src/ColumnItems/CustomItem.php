@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\CustomTable;
@@ -193,6 +194,8 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
+        }elseif ($this->initonly() && isset($this->id)) {
+            $classname = ExmentField\Display::class;
         } else {
             // get field
             $classname = $this->getAdminFieldClass();
@@ -244,13 +247,6 @@ abstract class CustomItem implements ItemInterface
             $field->attribute(['suggest_url' => $url]);
         }
 
-        // edit when create only
-        if (boolval(array_get($options, 'init_only'))) {
-            if (isset($this->id)) {
-                $field->readOnly();
-            }
-        }
-
         // set validates
         $validate_options = [];
         $validates = $this->getColumnValidates($validate_options);
@@ -261,13 +257,29 @@ abstract class CustomItem implements ItemInterface
 
         // set help string using result_options
         $help = null;
-        $help_regexes = array_get($validate_options, 'help_regexes');
         if (array_key_value_exists('help', $options)) {
             $help = array_get($options, 'help');
         }
-        if (isset($help_regexes)) {
-            $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+        $help_regexes = array_get($validate_options, 'help_regexes');
+        
+        // if initonly is true and edit, not showing help
+        if ($this->initonly() && isset($this->id)) {
+            $help = null;
         }
+        // if initonly is true and now, showing help and cannot edit help
+        elseif($this->initonly() && !isset($this->id)){
+            $help .= exmtrans('custom_value.help.init_flg');
+            if (isset($help_regexes)) {
+                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+            }
+        }
+        // if initonly is false, showing help
+        else{
+            if (isset($help_regexes)) {
+                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+            }
+        }
+
         if (isset($help)) {
             $field->help(esc_html($help));
         }
@@ -496,5 +508,13 @@ abstract class CustomItem implements ItemInterface
         $this->setValidates($validates);
 
         return $validates;
+    }
+
+    protected function initonly(){
+        $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
+        if($initOnly){
+            $this->required = false;
+        }
+        return $initOnly;
     }
 }
