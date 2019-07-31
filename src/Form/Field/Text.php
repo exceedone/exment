@@ -26,7 +26,7 @@ $('{$this->getElementClassSelector()}').autocomplete({
     },
     autoFocus: true,
     delay: 500,
-    minLength: 2
+    minLength: 1
 });
 EOT;
         }
