@@ -345,7 +345,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute([
                     'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::SELECT_TABLE]),
                 ]);
-                            
+            
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
@@ -373,6 +373,12 @@ class CustomColumnController extends AdminControllerTableBase
                 })
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::SELECT_TABLE, ColumnType::USER, ColumnType::ORGANIZATION]])]);
 
+            $form->switchbool('select_load_ajax', exmtrans("custom_column.options.select_load_ajax"))
+                ->help(exmtrans("custom_column.help.select_load_ajax"))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
+             
+            // yes/no ----------------------------
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
                     ->required()
