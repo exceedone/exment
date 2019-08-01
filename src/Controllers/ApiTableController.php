@@ -52,7 +52,7 @@ class ApiTableController extends AdminControllerTableBase
      */
     public function dataQuery(Request $request)
     {
-        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE)) {
+        if (!$this->custom_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, trans('admin.deny'));
         }
 
@@ -76,6 +76,7 @@ class ApiTableController extends AdminControllerTableBase
             'paginate' => true,
             'makeHidden' => true,
             'target_view' => $custom_view,
+            'maxCount' => 10,
         ]);
 
         // if call as select ajax, return id and text array
