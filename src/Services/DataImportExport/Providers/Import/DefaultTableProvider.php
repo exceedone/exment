@@ -228,10 +228,11 @@ class DefaultTableProvider extends ProviderBase
 
                         // if not found, set error
                         if(!isset($value)){
+                            $target_table_name = isset($target_column->select_target_table) ? $target_column->select_target_table->table_view_name : $target_column->custom_table->table_view_name;
                             $message = exmtrans('custom_value.import.message.select_table_not_found', [
                                 'column_view_name' => $target_column->column_view_name,
                                 'value' => is_array($base_value) ? implode(',', $base_value) : $base_value,
-                                'target_table_name' => isset($target_column->select_target_table) ? $target_column->select_target_table->table_view_name : null
+                                'target_table_name' => $target_table_name
                             ]);
                             $this->selectTableNotFounds[] =  sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
                         }
