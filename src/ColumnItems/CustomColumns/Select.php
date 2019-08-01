@@ -8,6 +8,8 @@ use Encore\Admin\Grid\Filter;
 
 class Select extends CustomItem
 {
+    use ImportValueTrait;
+    
     public function value()
     {
         return $this->getResultForSelect(false);
@@ -73,5 +75,10 @@ class Select extends CustomItem
     {
         $options = $this->custom_column->createSelectOptions();
         $filter->select($options);
+    }
+    
+    protected function getImportValueOption()
+    {
+        return $this->custom_column->createSelectOptions();
     }
 }
