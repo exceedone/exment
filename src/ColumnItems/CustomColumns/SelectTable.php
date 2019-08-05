@@ -146,7 +146,17 @@ class SelectTable extends CustomItem
                         $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
                         return $query;
                     };
-                } else {
+                }
+                // elseif ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
+                //     $callback = function (&$query) use ($parent_v, $parent_target_table_name, $relationColumn) {
+                //         $relation = $relationColumn['relation'];
+                //         $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v) {
+                //             $query->where($relation->getRelationName() . '.parent_id', $parent_v);
+                //         });
+                //         return $query;
+                //     };
+                // }
+                else {
                     $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
                         ->where('column_type', ColumnType::SELECT_TABLE)
                         ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
