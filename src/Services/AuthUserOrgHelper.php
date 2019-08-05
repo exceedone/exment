@@ -167,7 +167,7 @@ class AuthUserOrgHelper
      * get organizations as eloquent model
      * @return mixed
      */
-    public static function getOrganizations()
+    public static function getOrganizations($withUsers = false)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
@@ -176,6 +176,10 @@ class AuthUserOrgHelper
         $query = static::getOrganizationQuery();
         $deeps = intval(config('exment.organization_deeps', 4));
         
+        if($withUsers){
+            $query->with('users');
+        }
+
         $orgs = $query->get();
         return $orgs;
     }
@@ -191,7 +195,7 @@ class AuthUserOrgHelper
             return [];
         }
         
-        $orgs = static::getOrganizations();
+        $orgs = static::getOrganizations(true);
         $org_flattens = [];
 
         // if get only user joined organization, call function
