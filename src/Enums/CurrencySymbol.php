@@ -7,11 +7,13 @@ class CurrencySymbol extends EnumBase
     const JPY1 = 'JPY1';
     const JPY2 = 'JPY2';
     const USD = 'USD';
+    const EUR = 'EUR';
     
     protected static $options = [
         'JPY1' => ['text' => '¥', 'html' => '&yen;', 'type' => 'before'],
         'JPY2' => ['text' => '円', 'html' => '円', 'type' => 'after'],
         'USD' => ['text' => '$', 'html' => '$', 'type' => 'before'],
+        'EUR' => ['text' => '€', 'html' => '&euro;', 'type' => 'after'],
     ];
 
     public function getOption()
