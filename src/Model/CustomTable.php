@@ -1408,7 +1408,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function allUserAccessable()
     {
-        return boolval($this->getOption('all_user_editable_flg'))
+        return !System::permission_available()
+            || boolval($this->getOption('all_user_editable_flg'))
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
     }
