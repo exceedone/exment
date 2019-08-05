@@ -155,18 +155,13 @@ class SystemController extends AdminControllerBase
     {
         DB::beginTransaction();
         try {
-            // get permission_available before save
-            $permission_available = System::permission_available();
-
             $result = $this->postInitializeForm($request, ['initialize', 'system']);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
                 return $result;
             }
 
             // Set Role
-            if ($permission_available) {
-                System::system_admin_users($request->get('system_admin_users'));
-            }
+            System::system_admin_users($request->get('system_admin_users'));
 
             DB::commit();
 
