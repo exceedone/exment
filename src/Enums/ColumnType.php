@@ -52,6 +52,14 @@ class ColumnType extends EnumBase
         ];
     }
 
+    public static function COLUMN_TYPE_ATTACHMENT()
+    {
+        return [
+            ColumnType::IMAGE,
+            ColumnType::FILE,
+        ];
+    }
+
     public static function COLUMN_TYPE_URL()
     {
         return [
@@ -129,6 +137,11 @@ class ColumnType extends EnumBase
     public static function isUrl($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_URL());
+    }
+    
+    public static function isAttachment($column_type)
+    {
+        return in_array($column_type, static::COLUMN_TYPE_ATTACHMENT());
     }
     
     public static function isUserOrganization($column_type)

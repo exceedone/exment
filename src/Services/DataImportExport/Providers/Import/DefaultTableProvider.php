@@ -223,19 +223,8 @@ class DefaultTableProvider extends ProviderBase
                         })->first();
                     }
                     if (isset($target_column->column_item)) {
-                        $base_value = $value;
-                        $value = $target_column->column_item->getImportValue($value, $s ?? null);
-
-                        // if not found, set error
-                        if(!isset($value)){
-                            $target_table_name = isset($target_column->select_target_table) ? $target_column->select_target_table->table_view_name : $target_column->custom_table->table_view_name;
-                            $message = exmtrans('custom_value.import.message.select_table_not_found', [
-                                'column_view_name' => $target_column->column_view_name,
-                                'value' => is_array($base_value) ? implode(',', $base_value) : $base_value,
-                                'target_table_name' => $target_table_name
-                            ]);
-                            $this->selectTableNotFounds[] =  sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
-                        }
+                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table;
+                        $this->getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s, $target_table, $line_no);
                     }
                 }
             } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
@@ -245,9 +234,11 @@ class DefaultTableProvider extends ProviderBase
                         return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
                     })->first();
                 }
-                $parent_item = ParentItem::getItem(CustomTable::getEloquent(array_get($data, 'parent_type')));
+
+                $target_table = CustomTable::getEloquent(array_get($data, 'parent_type'));
+                $parent_item = ParentItem::getItem($target_table);
                 if (isset($parent_item)) {
-                    $value = $parent_item->getImportValue($value, $s ?? null);
+                    $this->getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s, $target_table, $line_no);
                 }
             }
         }
@@ -343,5 +334,36 @@ class DefaultTableProvider extends ProviderBase
             }
         }
         return $is_filter;
+    }
+
+    /**
+     * get column import value. if error, set message
+     *
+     * @return void
+     */
+    protected function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $line_no){
+        $base_value = $value;
+        $importValue = $column_item->getImportValue($value, $setting ?? null);
+
+        if(!isset($importValue)){
+            return;
+        }
+
+        // if skip column, remove from data, and return
+        if(boolval(array_get($importValue, 'skip'))){
+            array_forget($data, $key);
+            return;
+        }
+
+        // if not found, set error
+        if(!boolval(array_get($importValue, 'result'))){
+            $message = isset($importValue['message']) ? $importValue['message'] : exmtrans('custom_value.import.message.select_table_not_found', [
+                'column_view_name' => $column_view_name,
+                'value' => is_array($base_value) ? implode(exmtrans('common.separate_word'), $base_value) : $base_value,
+                'target_table_name' => $target_table->table_view_name
+            ]);
+            $this->selectTableNotFounds[] =  sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
+        }
+        $value = array_get($importValue, 'value');
     }
 }

@@ -375,7 +375,10 @@ abstract class CustomItem implements ItemInterface
      */
     public function getImportValue($value, $options = [])
     {
-        return $value;
+        return [
+            'result' => true,
+            'value' => $value,
+        ];
     }
 
     abstract protected function getAdminFieldClass();

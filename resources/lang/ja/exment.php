@@ -1076,7 +1076,8 @@ return [
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
             'message' => [
-                'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。'
+                'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。',
+                'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。'
             ]
         ],
         'sendmail' => [

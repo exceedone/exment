@@ -3,6 +3,10 @@
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\File as ExmentFile;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -128,7 +132,7 @@ class DefaultTableProvider extends ProviderBase
             $body_items = [];
             // add items
             $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value."));
+            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value.", ViewColumnType::COLUMN));
             $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
 
             $bodies[] = $body_items;
@@ -140,7 +144,7 @@ class DefaultTableProvider extends ProviderBase
     /**
      * get export body items
      */
-    protected function getBodyItems($record, $columns, $array_header_key = null)
+    protected function getBodyItems($record, $columns, $array_header_key = null, $view_column_type = ViewColumnType::SYSTEM)
     {
         $body_items = [];
         foreach ($columns as $column) {
@@ -150,6 +154,20 @@ class DefaultTableProvider extends ProviderBase
             if (is_array($value)) {
                 $value = implode(",", $value);
             }
+
+            // if $view_column_type is column, get customcolumn
+            if($view_column_type == ViewColumnType::COLUMN){
+                $custom_column = CustomColumn::getEloquent($column, $this->custom_table);
+                if(!isset($custom_column)){
+                    continue;
+                }
+
+                // if attachment, set url
+                if(ColumnType::isAttachment($custom_column->column_type)){
+                    $value = ExmentFile::getUrl($value);
+                }
+            }
+
             $body_items[] = $value;
         }
         return $body_items;

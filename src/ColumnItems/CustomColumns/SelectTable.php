@@ -226,21 +226,37 @@ class SelectTable extends CustomItem
      */
     public function getImportValue($value, $setting = [])
     {
+        $result = true;
+        $message = null;
+
         if (!isset($this->target_table)) {
-            return null;
+            $result = false;
         }
 
-        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
-            return $value;
+        elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+            // if get as id and not numeric, set error
+            if(!is_numeric($value)){
+                $result = false;
+                $message = trans('validation.integer', ['attribute' => $this->label()]);
+            }
         }
 
-        // get target value
-        $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
+        else{
+            // get target value
+            $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
-        if (!isset($target_value)) {
-            return null;
+            if (!isset($target_value)) {
+                $result = false;
+            }
+            else{
+                $value = $target_value->id;
+            }
         }
-
-        return $target_value->id;
+        
+        return [
+            'result' => $result,
+            'value' => $value,
+            'message' => $message,
+        ];
     }
 }

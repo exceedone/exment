@@ -11,7 +11,7 @@ class ParentItem implements ItemInterface
     use ItemTrait;
     
     /**
-     * this column's target custom_table
+     * this column's target custom_table. THIS IS CHILD TABLE.
      */
     protected $custom_table;
 
@@ -137,22 +137,32 @@ class ParentItem implements ItemInterface
      */
     public function getImportValue($value, $setting = [])
     {
+        $result = true;
+
         if (!isset($this->custom_table)) {
-            return null;
+            $result = false;
         }
 
-        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
-            return $value;
+        elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
         }
 
-        // get target value
-        $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
+        else{
+            // get target value
+            $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
-        if (!isset($target_value)) {
-            return null;
+            if (!isset($target_value)) {
+                $result = false;
+            }
+
+            else{
+                $value = $target_value->id;
+            }
         }
 
-        return $target_value->id;
+        return [
+            'result' => $result,
+            'value' => $value,
+        ];        
     }
 
     
