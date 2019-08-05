@@ -194,7 +194,7 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
-        }elseif ($this->initonly() && isset($this->id)) {
+        }elseif ($this->initonly() && isset($this->value)) {
             $classname = ExmentField\Display::class;
         } else {
             // get field
@@ -215,7 +215,7 @@ abstract class CustomItem implements ItemInterface
             $this->setAdminOptions($field, $form_column_options);
         }
 
-        if($this->initonly() && isset($this->id)){
+        if($this->initonly() && isset($this->value)){
             $field->displayText($this->html());
         }
 
@@ -268,12 +268,12 @@ abstract class CustomItem implements ItemInterface
         }
         $help_regexes = array_get($validate_options, 'help_regexes');
         
-        // if initonly is true and edit, not showing help
-        if ($this->initonly() && isset($this->id)) {
+        // if initonly is true and has value, not showing help
+        if ($this->initonly() && isset($this->value)) {
             $help = null;
         }
         // if initonly is true and now, showing help and cannot edit help
-        elseif($this->initonly() && !isset($this->id)){
+        elseif($this->initonly() && !isset($this->value)){
             $help .= exmtrans('custom_value.help.init_flg');
             if (isset($help_regexes)) {
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
@@ -530,7 +530,7 @@ abstract class CustomItem implements ItemInterface
     protected function isSetAdminOptions($form_column_options){
         if (boolval(array_get($form_column_options, 'hidden'))) {
             return false;
-        }elseif ($this->initonly() && isset($this->id)) {
+        }elseif ($this->initonly() && isset($this->value)) {
             return false;
         }
 
