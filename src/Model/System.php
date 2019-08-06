@@ -141,6 +141,9 @@ class System extends ModelBase
                 $value = is_null($value) ? [] : explode(',', $value);
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
+            } elseif ($type == 'favicon') {
+                $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
+                $value = str_replace('files', 'favicon', $value);
             } elseif ($type == 'password') {
                 try {
                     $value = is_null($value) ? null : decrypt($value);
