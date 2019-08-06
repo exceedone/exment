@@ -38,7 +38,11 @@ class ParentItem implements ItemInterface
      */
     public function name()
     {
-        return 'parent_id_'.$this->custom_table->table_name;
+        if (array_get($this->options, 'grid_column')) {
+            return 'parent_id';
+        } else {
+            return 'parent_id_'.$this->custom_table->table_name;
+        }
     }
 
     /**
