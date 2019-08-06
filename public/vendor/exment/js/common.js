@@ -39,10 +39,10 @@ var Exment;
          * toggle right-top help link and color
          */
         static ToggleHelp() {
-            const help_urls = String($('#help_urls').val());
-            if (!hasValue(help_urls)) {
+            if (!hasValue($('#help_urls').val())) {
                 return;
             }
+            const help_urls = String($('#help_urls').val());
             const helps = JSON.parse(help_urls);
             const pathname = trimAny(location.pathname, '/');
             const $manual = $('#manual_link');

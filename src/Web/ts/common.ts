@@ -37,10 +37,11 @@ namespace Exment {
          * toggle right-top help link and color
          */
         public static ToggleHelp(){
-            const help_urls:string = String($('#help_urls').val());
-            if(!hasValue(help_urls)){
+            if(!hasValue($('#help_urls').val())){
                 return;
             }
+
+            const help_urls:string = String($('#help_urls').val());
             const helps = JSON.parse(help_urls);
 
             const pathname = trimAny(location.pathname, '/');

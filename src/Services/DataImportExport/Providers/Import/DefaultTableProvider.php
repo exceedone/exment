@@ -224,7 +224,7 @@ class DefaultTableProvider extends ProviderBase
                     }
                     if (isset($target_column->column_item)) {
                         $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table;
-                        $this->getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s, $target_table, $line_no);
+                        $this->getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s ?? null, $target_table, $line_no);
                     }
                 }
             } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
@@ -238,7 +238,7 @@ class DefaultTableProvider extends ProviderBase
                 $target_table = CustomTable::getEloquent(array_get($data, 'parent_type'));
                 $parent_item = ParentItem::getItem($target_table);
                 if (isset($parent_item)) {
-                    $this->getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s, $target_table, $line_no);
+                    $this->getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s ?? null, $target_table, $line_no);
                 }
             }
         }
