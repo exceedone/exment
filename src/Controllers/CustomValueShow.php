@@ -261,7 +261,7 @@ trait CustomValueShow
 EOT;
                 Admin::script($script);
             }
-            $row->column(6, (new Box(exmtrans("common.attachment"), $form))->style('info'));
+            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
         }
 
         if (count($revisions) > 0) {
@@ -280,7 +280,7 @@ EOT;
                     'No.'.($revision->revision_no)
                 )->setWidth(9, 2);
             }
-            $row->column(6, (new Box(exmtrans('revision.update_history'), $form))->style('info'));
+            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('revision.update_history'), $form))->style('info'));
         }
 
         if ($useComment) {
@@ -309,7 +309,7 @@ EOT;
                 ->required()
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-            $row->column(6, (new Box(exmtrans("common.comment"), $form))->style('info'));
+            $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
         }
     }
     
