@@ -36,8 +36,8 @@ class TimeRule implements Rule
             return true;
         }
 
-        foreach(static::TIME_FORMATS as $time_format){
-            if(preg_match("/{$time_format}/u", $value)){
+        foreach (static::TIME_FORMATS as $time_format) {
+            if (preg_match("/{$time_format}/u", $value)) {
                 return true;
             }
         }

@@ -176,7 +176,7 @@ class AuthUserOrgHelper
         $query = static::getOrganizationQuery();
         $deeps = intval(config('exment.organization_deeps', 4));
         
-        if($withUsers){
+        if ($withUsers) {
             $query->with('users');
         }
 

@@ -121,7 +121,8 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from list-view
      */
-    protected function getListData() {
+    protected function getListData()
+    {
         $view_column_x = CustomViewSummary::getSummaryViewColumn($this->axis_x);
         $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
 
@@ -154,7 +155,8 @@ class ChartItem implements ItemInterface
     /**
      * get chart data from aggregate-view
      */
-    protected function getAggregateData() {
+    protected function getAggregateData()
+    {
         $view_column_x_list = $this->custom_view->custom_view_columns;
         $view_column_y = CustomViewSummary::getSummaryViewColumn($this->axis_y);
 
@@ -177,7 +179,7 @@ class ChartItem implements ItemInterface
         // get data
         $datalist = $this->custom_view->getValueSummary($model, $this->custom_table->table_name)->get();
         $chart_label = $datalist->map(function ($val) use ($item_x_list) {
-            $labels = $item_x_list->map(function($item_x) use($val) {
+            $labels = $item_x_list->map(function ($item_x) use ($val) {
                 $item = $item_x->setCustomValue($val);
                 $option = SystemColumn::getOption(['name' => $item->name()]);
                 if (array_get($option, 'type') == 'user') {
@@ -191,7 +193,7 @@ class ChartItem implements ItemInterface
         $chart_data = $datalist->pluck("column_$this->axis_y");
 
         // get item label
-        $axisx_label = collect($view_column_x_list)->map(function($item) {
+        $axisx_label = collect($view_column_x_list)->map(function ($item) {
             return array_get($item, 'view_column_name')?? $item->column_item->label();
         })->implode(' ');
 
@@ -247,7 +249,7 @@ class ChartItem implements ItemInterface
                 [admin_url('dashboardbox/chart_axis').'/x', admin_url('dashboardbox/chart_axis').'/y']
             );
 
-            $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
+        $form->select('chart_axisx', exmtrans("dashboard.dashboard_box_options.chart_axisx"))
             ->required()
             ->options(function ($value, $model) {
                 $target_view_id = array_get($model->data(), 'target_view_id');

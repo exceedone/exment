@@ -23,7 +23,7 @@ class Yesno extends CustomItem
 
     public function saving()
     {
-        if(is_null($this->value)){
+        if (is_null($this->value)) {
             return 0;
         }
     }

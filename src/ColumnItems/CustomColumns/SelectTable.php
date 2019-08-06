@@ -123,7 +123,7 @@ class SelectTable extends CustomItem
         if (!isset($this->target_table)) {
             return;
         }
-        if($field instanceof ExmentField\Display){
+        if ($field instanceof ExmentField\Display) {
             return;
         }
 
@@ -189,7 +189,7 @@ class SelectTable extends CustomItem
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
 
         // add view info
-        if(isset($this->target_view)){
+        if (isset($this->target_view)) {
             $field->attribute(['data-select2_expand' => json_encode([
                     'target_view_id' => array_get($this->target_view, 'id')
                 ])
@@ -231,24 +231,19 @@ class SelectTable extends CustomItem
 
         if (!isset($this->target_table)) {
             $result = false;
-        }
-
-        elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+        } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
             // if get as id and not numeric, set error
-            if(!is_numeric($value)){
+            if (!is_numeric($value)) {
                 $result = false;
                 $message = trans('validation.integer', ['attribute' => $this->label()]);
             }
-        }
-
-        else{
+        } else {
             // get target value
             $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
             if (!isset($target_value)) {
                 $result = false;
-            }
-            else{
+            } else {
                 $value = $target_value->id;
             }
         }

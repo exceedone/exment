@@ -145,20 +145,14 @@ class ParentItem implements ItemInterface
 
         if (!isset($this->custom_table)) {
             $result = false;
-        }
-
-        elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
-        }
-
-        else{
+        } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+        } else {
             // get target value
             $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
 
             if (!isset($target_value)) {
                 $result = false;
-            }
-
-            else{
+            } else {
                 $value = $target_value->id;
             }
         }
@@ -166,7 +160,7 @@ class ParentItem implements ItemInterface
         return [
             'result' => $result,
             'value' => $value,
-        ];        
+        ];
     }
 
     

@@ -77,16 +77,15 @@ trait CustomValueGrid
                     $table_view_name = $relation->parent_custom_table->table_view_name;
 
                     // switch 1:n or n:n
-                    if($relation->relation_type == RelationType::ONE_TO_MANY){
+                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                         if (isset($ajax)) {
                             $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'label');
                         } else {
                             $filter->equal('parent_id', $table_view_name)->select($options);
                         }
-                    }
-                    else{
-                        $relationQuery = function ($query) use($relation) {
-                            $query->whereHas($relation->getRelationName(), function ($query) use($relation) {
+                    } else {
+                        $relationQuery = function ($query) use ($relation) {
+                            $query->whereHas($relation->getRelationName(), function ($query) use ($relation) {
                                 $query->where($relation->getRelationName() . '.parent_id', $this->input);
                             });
                         };

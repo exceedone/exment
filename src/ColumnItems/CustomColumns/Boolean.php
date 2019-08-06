@@ -27,7 +27,7 @@ class Boolean extends CustomItem
 
     public function saving()
     {
-        if(is_null($this->value)){
+        if (is_null($this->value)) {
             return array_get($this->custom_column, 'options.false_value');
         }
     }

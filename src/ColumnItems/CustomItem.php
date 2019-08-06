@@ -194,7 +194,7 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
-        }elseif ($this->initonly() && isset($this->value)) {
+        } elseif ($this->initonly() && isset($this->value)) {
             $classname = ExmentField\Display::class;
         } else {
             // get field
@@ -211,11 +211,11 @@ abstract class CustomItem implements ItemInterface
         $form_column_name = $column_name_prefix.$this->name();
         
         $field = new $classname($form_column_name, [$this->label()]);
-        if($this->isSetAdminOptions($form_column_options)){
+        if ($this->isSetAdminOptions($form_column_options)) {
             $this->setAdminOptions($field, $form_column_options);
         }
 
-        if($this->initonly() && isset($this->value)){
+        if ($this->initonly() && isset($this->value)) {
             $field->displayText($this->html());
         }
 
@@ -273,14 +273,14 @@ abstract class CustomItem implements ItemInterface
             $help = null;
         }
         // if initonly is true and now, showing help and cannot edit help
-        elseif($this->initonly() && !isset($this->value)){
+        elseif ($this->initonly() && !isset($this->value)) {
             $help .= exmtrans('custom_value.help.init_flg');
             if (isset($help_regexes)) {
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
             }
         }
         // if initonly is false, showing help
-        else{
+        else {
             if (isset($help_regexes)) {
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
             }
@@ -519,18 +519,20 @@ abstract class CustomItem implements ItemInterface
         return $validates;
     }
 
-    protected function initonly(){
+    protected function initonly()
+    {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
-        if($initOnly){
+        if ($initOnly) {
             $this->required = false;
         }
         return $initOnly;
     }
 
-    protected function isSetAdminOptions($form_column_options){
+    protected function isSetAdminOptions($form_column_options)
+    {
         if (boolval(array_get($form_column_options, 'hidden'))) {
             return false;
-        }elseif ($this->initonly() && isset($this->value)) {
+        } elseif ($this->initonly() && isset($this->value)) {
             return false;
         }
 

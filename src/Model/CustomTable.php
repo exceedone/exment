@@ -593,7 +593,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
         // set custom view's filter
-        if(isset($target_view)){
+        if (isset($target_view)) {
             $mainQuery = \Exment::user()->filterModel($mainQuery, $target_view);
         }
 
@@ -788,15 +788,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return true;
         }
         // if custom table option's select_load_ajax is true, return false (as ajax).
-        elseif(isset($custom_column) && boolval(array_get($custom_column, 'options.select_load_ajax'))){
+        elseif (isset($custom_column) && boolval(array_get($custom_column, 'options.select_load_ajax'))) {
             return false;
         }
 
         // get count table..
-        if(boolval($callQuery)){
+        if (boolval($callQuery)) {
             $count = $this->getOptionsQuery($options)->count();
             // when count > 0, create option only value.
-            return $count <= config('exment.select_table_limit_count', 100);    
+            return $count <= config('exment.select_table_limit_count', 100);
         }
 
         return true;
@@ -831,7 +831,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         ));
 
         // if ajax, return []. (set callQuery is false)
-        if(!$this->isGetOptions(array_merge(['callQuery' => false], $options))){
+        if (!$this->isGetOptions(array_merge(['callQuery' => false], $options))) {
             return [];
         }
 
@@ -916,11 +916,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         // filter model using view
-        if(isset($target_view)){
+        if (isset($target_view)) {
             $user = Admin::user();
             if (isset($user)) {
                 $query = $user->filterModel($query, $target_view);
-            }    
+            }
         }
 
         if (isset($filterCallback)) {

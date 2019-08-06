@@ -62,14 +62,13 @@ class Integer extends CustomItem
         // value size
         if (array_get($options, 'number_min')) {
             $validates[] = new Validator\NumberMinRule(array_get($options, 'number_min'));
-        }else{
+        } else {
             $validates[] = new Validator\NumberMinRule(-1 * Define::MAX_SIZE_NUMBER);
         }
 
         if (array_get($options, 'number_max')) {
             $validates[] = new Validator\NumberMaxRule(array_get($options, 'number_max'));
-        }
-        else{
+        } else {
             $validates[] = new Validator\NumberMaxRule(Define::MAX_SIZE_NUMBER);
         }
 

@@ -113,7 +113,7 @@ class DefaultTableProvider extends ProviderBase
         }
 
         // loop target select table error
-        foreach($this->selectTableNotFounds as $selectTableNotFound){
+        foreach ($this->selectTableNotFounds as $selectTableNotFound) {
             $error_data[] = $selectTableNotFound;
         }
 
@@ -341,22 +341,23 @@ class DefaultTableProvider extends ProviderBase
      *
      * @return void
      */
-    protected function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $line_no){
+    protected function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $line_no)
+    {
         $base_value = $value;
         $importValue = $column_item->getImportValue($value, $setting ?? null);
 
-        if(!isset($importValue)){
+        if (!isset($importValue)) {
             return;
         }
 
         // if skip column, remove from data, and return
-        if(boolval(array_get($importValue, 'skip'))){
+        if (boolval(array_get($importValue, 'skip'))) {
             array_forget($data, $key);
             return;
         }
 
         // if not found, set error
-        if(!boolval(array_get($importValue, 'result'))){
+        if (!boolval(array_get($importValue, 'result'))) {
             $message = isset($importValue['message']) ? $importValue['message'] : exmtrans('custom_value.import.message.select_table_not_found', [
                 'column_view_name' => $column_view_name,
                 'value' => is_array($base_value) ? implode(exmtrans('common.separate_word'), $base_value) : $base_value,

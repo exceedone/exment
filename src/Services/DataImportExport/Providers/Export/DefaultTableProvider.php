@@ -156,14 +156,14 @@ class DefaultTableProvider extends ProviderBase
             }
 
             // if $view_column_type is column, get customcolumn
-            if($view_column_type == ViewColumnType::COLUMN){
+            if ($view_column_type == ViewColumnType::COLUMN) {
                 $custom_column = CustomColumn::getEloquent($column, $this->custom_table);
-                if(!isset($custom_column)){
+                if (!isset($custom_column)) {
                     continue;
                 }
 
                 // if attachment, set url
-                if(ColumnType::isAttachment($custom_column->column_type)){
+                if (ColumnType::isAttachment($custom_column->column_type)) {
                     $value = ExmentFile::getUrl($value);
                 }
             }

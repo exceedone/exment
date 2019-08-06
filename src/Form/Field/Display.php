@@ -15,7 +15,8 @@ class Display extends Field\Display
      */
     protected $displayText;
 
-    public function displayText($displayText){
+    public function displayText($displayText)
+    {
         $this->displayText = $displayText;
     }
     
