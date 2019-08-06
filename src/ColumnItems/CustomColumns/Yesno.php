@@ -21,6 +21,13 @@ class Yesno extends CustomItem
         return boolval($this->value) ? 'YES' : 'NO';
     }
 
+    public function saving()
+    {
+        if(is_null($this->value)){
+            return 0;
+        }
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\SwitchBoolField::class;

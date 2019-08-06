@@ -25,6 +25,13 @@ class Boolean extends CustomItem
         return null;
     }
 
+    public function saving()
+    {
+        if(is_null($this->value)){
+            return array_get($this->custom_column, 'options.false_value');
+        }
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\SwitchField::class;

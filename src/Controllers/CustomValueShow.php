@@ -250,8 +250,6 @@ trait CustomValueShow
                 ->options($options)
                 ->setLabelClass(['d-none'])
                 ->setWidth(12, 0);
-                // // create file upload option
-                //             $form->html('<input type="file" id="'.$input_id.'" />')->plain();
                 $script = <<<EOT
     $(".$input_id").on('fileuploaded', function(e, params) {
         console.log('file uploaded', e, params);
