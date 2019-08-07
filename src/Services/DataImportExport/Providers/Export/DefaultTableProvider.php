@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\File as ExmentFile;
 class DefaultTableProvider extends ProviderBase
 {
     protected $grid;
+    protected $parent_table;
 
     public function __construct($args = [])
     {
@@ -18,6 +19,7 @@ class DefaultTableProvider extends ProviderBase
         $this->custom_table = array_get($args, 'custom_table');
 
         $this->grid = array_get($args, 'grid');
+        $this->parent_table = array_get($args, 'parent_table');
     }
 
     /**
@@ -111,6 +113,12 @@ class DefaultTableProvider extends ProviderBase
             $records = $records->merge($data);
         }) ?? [];
 
+        if (isset($this->parent_table) && $records->count() > 0) {
+            return getModelName($this->name())
+                ::whereIn('parent_id', $records->pluck('id'))
+                ->where('parent_type', $this->parent_table)
+                ->get();
+        }
         return $records;
     }
 
