@@ -149,7 +149,6 @@ class Plugin extends ModelBase
      */
     public function getPath(...$pass_array)
     {
-        //$pluginBasePath = path_join("app", "Plugins");
         $pluginPath = pascalize(preg_replace('/\s+/', '', $this->plugin_name));
 
         if (count($pass_array) > 0) {

@@ -259,7 +259,9 @@ class PluginInstaller
 
             // upload file
             $stream = $tmpDisk->readStream($file);
-            $adminDisk->writeStream(path_join($pluginFolderPath, $movedFileName), $stream);
+            $movedpath = path_join($pluginFolderPath, $movedFileName);
+            $adminDisk->delete($movedpath);
+            $adminDisk->writeStream($movedpath, $stream);
         }
     }
     
