@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Adapter;
 use League\Flysystem\Adapter\Local;
 
 use Exceedone\Exment\Model\File;
+use Exceedone\Exment\Model\Define;
 
 class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
 {
@@ -22,12 +23,13 @@ class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
      * @return void
      */
     public function getPluginFullPath($plugin, ...$pass_array){
-        $fullpath = base_path($plugin->getPath(...$pass_array));
-        if (!\File::exists($fullpath)) {
-            \File::makeDirectory($fullpath, 0775, true);
+        $pluginDir = \Storage::disk(Define::DISKNAME_PLUGIN_LOCAL)->getAdapter()->applyPathPrefix($plugin->getPath()); 
+        if (!\File::exists($pluginDir)) {
+            \File::makeDirectory($pluginDir, 0775, true);
         }
+        $plugin->requirePlugin($pluginDir);
 
-        return $fullpath;
+        return path_join($pluginDir, ...$pass_array);
     }
 
     /**

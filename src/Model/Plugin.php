@@ -149,8 +149,8 @@ class Plugin extends ModelBase
      */
     public function getPath(...$pass_array)
     {
-        $pluginBasePath = path_join("app", "Plugins");
-        $pluginPath = path_join($pluginBasePath, pascalize(preg_replace('/\s+/', '', $this->plugin_name)));
+        //$pluginBasePath = path_join("app", "Plugins");
+        $pluginPath = pascalize(preg_replace('/\s+/', '', $this->plugin_name));
 
         if (count($pass_array) > 0) {
             $pluginPath = array_merge(
@@ -172,6 +172,23 @@ class Plugin extends ModelBase
         $disk = \Storage::disk('admin');
         $adapter = $disk->getDriver()->getAdapter();
         return $adapter->getPluginFullPath($this, ...$pass_array);
+    }
+
+    /**
+     * call require
+     *
+     * @param [type] $pathDir
+     * @return void
+     */
+    public function requirePlugin($fullPathDir){
+        // call plugin
+        $plugin_paths = \File::allFiles($fullPathDir);
+        foreach($plugin_paths as $plugin_path){
+            if(pathinfo($plugin_path)['extension'] != 'php'){
+                continue;
+            }
+            require_once($plugin_path);
+        }
     }
     
     //Check all plugins satisfied take out from function getPluginByTableId

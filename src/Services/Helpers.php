@@ -282,8 +282,12 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
         $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-        if ($mkdir && !\File::exists($path)) {
-            \File::makeDirectory($path, 0755, true);
+
+        if ($mkdir) {
+            $dirPath = pathinfo($path)['dirname'];
+            if(!\File::exists($dirPath)){
+                \File::makeDirectory($dirPath, 0755, true);
+            }
         }
         return $path;
     }
