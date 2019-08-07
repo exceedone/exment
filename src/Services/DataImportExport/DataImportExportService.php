@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\DataImportExport;
 
 use Encore\Admin\Grid\Exporters\AbstractExporter;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -144,6 +145,12 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
+        $import_plugin = $request->get('import_plugin');
+
+        if (isset($import_plugin)) {
+            return $this->customImport($import_plugin, $request->file('custom_table_file'));
+        }
+
         $this->format->filebasename($this->filebasename);
 
         // get table data
@@ -153,12 +160,34 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->format->getDataTable($request);
         }
 
+
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
         $response = $this->importAction->import($datalist);
 
         return $response;
+    }
+
+    /**
+     * import data by custom logic
+     * @param $import_plugin
+     */
+    protected function customImport($import_plugin, $file) {
+        $plugin = Plugin::find($import_plugin);
+        $batch = $plugin->getClass(['file' => $file]);
+        $result = $batch->execute();
+        if ($result) {
+            return [
+                'result' => true,
+                'toastr' => exmtrans('common.message.import_success')
+            ];
+        } else {
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error')
+            ];
+        }
     }
 
     /**
@@ -206,7 +235,7 @@ class DataImportExportService extends AbstractExporter
     }
 
     // Import Modal --------------------------------------------------
-    public function getImportModal()
+    public function getImportModal($pluginlist = null)
     {
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
@@ -229,6 +258,13 @@ class DataImportExportService extends AbstractExporter
             ->setWidth(8, 3)
             ->addElementClass('select_primary_key')
             ->help(exmtrans('custom_value.import.help.primary_key'));
+
+        if (!empty($pluginlist)) {
+            $form->select('import_plugin', exmtrans('custom_value.import.import_plugin'))
+            ->options($pluginlist)
+            ->setWidth(8, 3)
+            ->help(exmtrans('custom_value.import.help.import_plugin'));
+        }
 
         $form->hidden('select_action')->default('stop');
         // $form->select('select_action', exmtrans('custom_value.import.error_flow'))

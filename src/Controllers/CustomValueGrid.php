@@ -44,7 +44,8 @@ trait CustomValueGrid
 
         // manage tool button
         $listButton = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
-        $this->manageMenuToolButton($grid, $listButton);
+        $importlist = Plugin::pluginPreparingImport($this->plugins);
+        $this->manageMenuToolButton($grid, $listButton, $importlist);
 
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $grid;
@@ -113,7 +114,7 @@ trait CustomValueGrid
      * Manage Grid Tool Button
      * And Manage Batch Action
      */
-    protected function manageMenuToolButton($grid, $listButton)
+    protected function manageMenuToolButton($grid, $listButton, $importlist)
     {
         $custom_table = $this->custom_table;
         $grid->disableCreateButton();
@@ -123,14 +124,14 @@ trait CustomValueGrid
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
         
-        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid, $service) {
+        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid, $service, $importlist) {
             // have edit flg
             $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid));
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
-                $tools->append($service->getImportModal());
+                $tools->append($service->getImportModal($importlist));
             }
             
             // add page change button(contains view seting)

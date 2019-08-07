@@ -91,7 +91,7 @@ class PluginController extends AdminControllerBase
     protected function destroy($id)
     {
         $this->deleteFolder($id);
-        if ($this->form($id)->destroy($id)) {
+        if ($this->form($id, true)->destroy($id)) {
             return response()->json([
                 'status' => true,
                 'message' => trans('admin.delete_succeeded'),
@@ -138,7 +138,7 @@ class PluginController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function form($id = null)
+    protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
 
@@ -156,7 +156,7 @@ class PluginController extends AdminControllerBase
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
         $plugin_type = Plugin::getFieldById($id, 'plugin_type');
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT])) {
+            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
@@ -187,7 +187,9 @@ class PluginController extends AdminControllerBase
             }
         })->disableHeader();
 
-        $this->setCustomOptionForm($plugin, $form);
+        if(!$isDelete){
+            $this->setCustomOptionForm($plugin, $form);
+        }
 
         $form->disableReset();
         return $form;
