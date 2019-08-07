@@ -3,10 +3,15 @@
 namespace Exceedone\Exment\Services\DataImportExport\Providers\Export;
 
 use Illuminate\Support\Collection;
+use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\File as ExmentFile;
 
 class DefaultTableProvider extends ProviderBase
 {
     protected $grid;
+    protected $parent_table;
 
     public function __construct($args = [])
     {
@@ -14,6 +19,7 @@ class DefaultTableProvider extends ProviderBase
         $this->custom_table = array_get($args, 'custom_table');
 
         $this->grid = array_get($args, 'grid');
+        $this->parent_table = array_get($args, 'parent_table');
     }
 
     /**
@@ -107,6 +113,12 @@ class DefaultTableProvider extends ProviderBase
             $records = $records->merge($data);
         }) ?? [];
 
+        if (isset($this->parent_table) && $records->count() > 0) {
+            return getModelName($this->name())
+                ::whereIn('parent_id', $records->pluck('id'))
+                ->where('parent_type', $this->parent_table)
+                ->get();
+        }
         return $records;
     }
 
@@ -128,7 +140,7 @@ class DefaultTableProvider extends ProviderBase
             $body_items = [];
             // add items
             $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value."));
+            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_column_names, "value.", ViewColumnType::COLUMN));
             $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
 
             $bodies[] = $body_items;
@@ -140,7 +152,7 @@ class DefaultTableProvider extends ProviderBase
     /**
      * get export body items
      */
-    protected function getBodyItems($record, $columns, $array_header_key = null)
+    protected function getBodyItems($record, $columns, $array_header_key = null, $view_column_type = ViewColumnType::SYSTEM)
     {
         $body_items = [];
         foreach ($columns as $column) {
@@ -150,6 +162,20 @@ class DefaultTableProvider extends ProviderBase
             if (is_array($value)) {
                 $value = implode(",", $value);
             }
+
+            // if $view_column_type is column, get customcolumn
+            if ($view_column_type == ViewColumnType::COLUMN) {
+                $custom_column = CustomColumn::getEloquent($column, $this->custom_table);
+                if (!isset($custom_column)) {
+                    continue;
+                }
+
+                // if attachment, set url
+                if (ColumnType::isAttachment($custom_column->column_type)) {
+                    $value = ExmentFile::getUrl($value);
+                }
+            }
+
             $body_items[] = $value;
         }
         return $body_items;

@@ -33,6 +33,20 @@ class File extends CustomItem
         return '<a href="'.$url.'" target="_blank">'.esc_html($file->filename).'</a>';
     }
 
+    /**
+     * replace value for import
+     *
+     * @param mixed $value
+     * @param array $setting
+     * @return void
+     */
+    public function getImportValue($value, $setting = [])
+    {
+        return [
+            'skip' => true,
+        ];
+    }
+
     protected function getAdminFieldClass()
     {
         return Field\File::class;

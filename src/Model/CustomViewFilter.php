@@ -133,7 +133,17 @@ class CustomViewFilter extends ModelBase
             case ViewColumnFilterOption::USER_NULL:
                 $model = $model->whereNull($view_column_target);
                 break;
-
+            
+            // like
+            case ViewColumnFilterOption::LIKE:
+                $condition_value_text = (boolval(config('exment.filter_search_full', false)) ? '%' : '') . $condition_value_text . '%';
+                $model = $model->where($view_column_target, 'LIKE', $condition_value_text);
+                break;
+            case ViewColumnFilterOption::NOT_LIKE:
+                $condition_value_text = (boolval(config('exment.filter_search_full', false)) ? '%' : '') . $condition_value_text . '%';
+                $model = $model->where($view_column_target, 'NOT LIKE', $condition_value_text);
+                break;
+                
             // for number --------------------------------------------------
             // greater
             case ViewColumnFilterOption::NUMBER_GT:

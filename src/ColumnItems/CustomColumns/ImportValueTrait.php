@@ -13,19 +13,28 @@ trait ImportValueTrait
      */
     public function getImportValue($value, $setting = [])
     {
+        $result = true;
         $options = $this->getImportValueOption();
         
-        // get default value
-        if (array_has($options, $value)) {
-            return $value;
+        // not default value
+        if (!array_has($options, $value)) {
+            foreach ($options as $k => $v) {
+                if ($v == $value) {
+                    $value = $k;
+                    break;
+                }
+            }
+
+            $result = false;
         }
 
-        //
-        foreach ($options as $k => $v) {
-            if ($v == $value) {
-                return $k;
-            }
-        }
-        return null;
+        return [
+            'result' => $result,
+            'value' => $value,
+            'message' => !$result ? exmtrans('custom_value.import.message.select_item_not_found', [
+                'column_view_name' => $this->label(),
+                'value_options' => implode(exmtrans('common.separate_word'), collect($options)->keys()->toArray())
+            ]) : null
+        ];
     }
 }

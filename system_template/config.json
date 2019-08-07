@@ -279,6 +279,7 @@
                     "options": {
                         "required": "1",
                         "index_enabled": "1",
+                        "init_only": "1",
                         "unique": "1",
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
@@ -333,6 +334,7 @@
                         "required": "1",
                         "index_enabled": "1",
                         "unique": "1",
+                        "init_only": "1",
                         "available_characters": ["lower","upper","number","hyphen_underscore"]
                     }
                 },
@@ -385,6 +387,7 @@
                         "required": "1",
                         "index_enabled": "1",
                         "unique": "1",
+                        "init_only": "1",
                         "available_characters": ["lower", "upper", "number", "hyphen_underscore"],
                         "help": "It is a key name to uniquely identify the mail template on the system."
                     }

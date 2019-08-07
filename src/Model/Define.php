@@ -144,6 +144,8 @@ class Define
     
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
 
+    public const MAX_SIZE_NUMBER = 1000000000000;
+
     public const SYSTEM_SETTING_NAME_VALUE = [
         'initialized' => ['type' => 'boolean', 'default' => '0'],
         'system_admin_users' => ['type' => 'array'],

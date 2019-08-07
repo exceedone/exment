@@ -91,7 +91,7 @@ class PluginController extends AdminControllerBase
     protected function destroy($id)
     {
         $this->deleteFolder($id);
-        if ($this->form($id)->destroy($id)) {
+        if ($this->form($id, true)->destroy($id)) {
             return response()->json([
                 'status' => true,
                 'message' => trans('admin.delete_succeeded'),
@@ -138,7 +138,7 @@ class PluginController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function form($id = null)
+    protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
 
@@ -187,7 +187,9 @@ class PluginController extends AdminControllerBase
             }
         })->disableHeader();
 
-        $this->setCustomOptionForm($plugin, $form);
+        if(!$isDelete){
+            $this->setCustomOptionForm($plugin, $form);
+        }
 
         $form->disableReset();
         return $form;

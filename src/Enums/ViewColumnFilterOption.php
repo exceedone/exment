@@ -8,6 +8,8 @@ class ViewColumnFilterOption extends EnumBase
     const NE = 2;
     const NOT_NULL = 3;
     const NULL = 4;
+    const LIKE = 5;
+    const NOT_LIKE = 6;
 
     const DAY_ON = 1001;
     const DAY_ON_OR_AFTER = 1002;
@@ -57,6 +59,8 @@ class ViewColumnFilterOption extends EnumBase
             case ViewColumnFilterOption::USER_NE:
             case ViewColumnFilterOption::EQ:
             case ViewColumnFilterOption::NE:
+            case ViewColumnFilterOption::LIKE:
+            case ViewColumnFilterOption::NOT_LIKE:
             case ViewColumnFilterOption::NUMBER_GT:
             case ViewColumnFilterOption::NUMBER_LT:
             case ViewColumnFilterOption::NUMBER_GTE:
@@ -80,6 +84,8 @@ class ViewColumnFilterOption extends EnumBase
             ViewColumnFilterType::DEFAULT => [
                 ['id' => ViewColumnFilterOption::EQ, 'name' => 'eq'],
                 ['id' => ViewColumnFilterOption::NE, 'name' => 'ne'],
+                ['id' => ViewColumnFilterOption::LIKE, 'name' => 'like'],
+                ['id' => ViewColumnFilterOption::NOT_LIKE, 'name' => 'not-like'],
                 ['id' => ViewColumnFilterOption::NOT_NULL, 'name' => 'not-null'],
                 ['id' => ViewColumnFilterOption::NULL, 'name' => 'null'],
             ],

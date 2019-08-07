@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\CustomTable;
@@ -193,6 +194,8 @@ abstract class CustomItem implements ItemInterface
         // if hidden setting, add hidden field
         if (boolval(array_get($form_column_options, 'hidden'))) {
             $classname = Field\Hidden::class;
+        } elseif ($this->initonly() && isset($this->value)) {
+            $classname = ExmentField\Display::class;
         } else {
             // get field
             $classname = $this->getAdminFieldClass();
@@ -208,7 +211,13 @@ abstract class CustomItem implements ItemInterface
         $form_column_name = $column_name_prefix.$this->name();
         
         $field = new $classname($form_column_name, [$this->label()]);
-        $this->setAdminOptions($field, $form_column_options);
+        if ($this->isSetAdminOptions($form_column_options)) {
+            $this->setAdminOptions($field, $form_column_options);
+        }
+
+        if ($this->initonly() && isset($this->value)) {
+            $field->displayText($this->html());
+        }
 
         ///////// get common options
         if (array_key_value_exists('placeholder', $options)) {
@@ -238,6 +247,12 @@ abstract class CustomItem implements ItemInterface
             $field->rules('nullable');
         }
 
+        // suggest input
+        if (boolval(array_get($options, 'suggest_input'))) {
+            $url = admin_urls('webapi/data', $this->custom_table->table_name, 'column', $this->name());
+            $field->attribute(['suggest_url' => $url]);
+        }
+
         // set validates
         $validate_options = [];
         $validates = $this->getColumnValidates($validate_options);
@@ -248,13 +263,29 @@ abstract class CustomItem implements ItemInterface
 
         // set help string using result_options
         $help = null;
-        $help_regexes = array_get($validate_options, 'help_regexes');
         if (array_key_value_exists('help', $options)) {
             $help = array_get($options, 'help');
         }
-        if (isset($help_regexes)) {
-            $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+        $help_regexes = array_get($validate_options, 'help_regexes');
+        
+        // if initonly is true and has value, not showing help
+        if ($this->initonly() && isset($this->value)) {
+            $help = null;
         }
+        // if initonly is true and now, showing help and cannot edit help
+        elseif ($this->initonly() && !isset($this->value)) {
+            $help .= exmtrans('custom_value.help.init_flg');
+            if (isset($help_regexes)) {
+                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+            }
+        }
+        // if initonly is false, showing help
+        else {
+            if (isset($help_regexes)) {
+                $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
+            }
+        }
+
         if (isset($help)) {
             $field->help(esc_html($help));
         }
@@ -344,7 +375,10 @@ abstract class CustomItem implements ItemInterface
      */
     public function getImportValue($value, $options = [])
     {
-        return $value;
+        return [
+            'result' => true,
+            'value' => $value,
+        ];
     }
 
     abstract protected function getAdminFieldClass();
@@ -483,5 +517,25 @@ abstract class CustomItem implements ItemInterface
         $this->setValidates($validates);
 
         return $validates;
+    }
+
+    protected function initonly()
+    {
+        $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
+        if ($initOnly) {
+            $this->required = false;
+        }
+        return $initOnly;
+    }
+
+    protected function isSetAdminOptions($form_column_options)
+    {
+        if (boolval(array_get($form_column_options, 'hidden'))) {
+            return false;
+        } elseif ($this->initonly() && isset($this->value)) {
+            return false;
+        }
+
+        return true;
     }
 }

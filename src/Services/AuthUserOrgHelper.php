@@ -21,7 +21,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleOrganizationQuery($target_table, $tablePermission = null, $custom_view = null)
+    public static function getRoleOrganizationQuery($target_table, $tablePermission = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -54,11 +54,6 @@ class AuthUserOrgHelper
         if (!$all) {
             $builder->whereIn('id', $target_ids);
         }
-        
-        if (isset($custom_view)) {
-            // filter model
-            $builder = \Exment::user()->filterModel($builder, $custom_view);
-        }
 
         return $builder;
     }
@@ -69,7 +64,7 @@ class AuthUserOrgHelper
      * this function is called from custom value role
      */
     // getRoleUserOrgQuery
-    public static function getRoleUserQueryTable($target_table, $tablePermission = null, $custom_view = null)
+    public static function getRoleUserQueryTable($target_table, $tablePermission = null)
     {
         if (is_null($target_table)) {
             return [];
@@ -111,11 +106,6 @@ class AuthUserOrgHelper
         $builder = getModelName(SystemTableName::USER)::query();
         if (!$all) {
             $builder->whereIn('id', $target_ids);
-        }
-
-        if (isset($custom_view)) {
-            // filter model
-            $builder = \Exment::user()->filterModel($builder, $custom_view);
         }
 
         return $builder;
@@ -177,7 +167,7 @@ class AuthUserOrgHelper
      * get organizations as eloquent model
      * @return mixed
      */
-    public static function getOrganizations()
+    public static function getOrganizations($withUsers = false)
     {
         // if system doesn't use organization, return empty array.
         if (!System::organization_available()) {
@@ -186,6 +176,10 @@ class AuthUserOrgHelper
         $query = static::getOrganizationQuery();
         $deeps = intval(config('exment.organization_deeps', 4));
         
+        if ($withUsers) {
+            $query->with('users');
+        }
+
         $orgs = $query->get();
         return $orgs;
     }
@@ -201,7 +195,7 @@ class AuthUserOrgHelper
             return [];
         }
         
-        $orgs = static::getOrganizations();
+        $orgs = static::getOrganizations(true);
         $org_flattens = [];
 
         // if get only user joined organization, call function
@@ -373,9 +367,11 @@ class AuthUserOrgHelper
             }
         }
 
-        // set system user
-        $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+        // set system user if $related_type is USER
+        if($related_type == SystemTableName::USER){
+            $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+        }
 
-        return $target_ids->toArray();
+        return $target_ids->filter()->toArray();
     }
 }

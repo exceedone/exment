@@ -20,6 +20,10 @@ use Carbon\Carbon;
 if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
     {
+        if (count($args) > 0 && is_array($args[0])) {
+            return trans("exment::exment.$key", $args[0]);
+        }
+
         $trans = trans("exment::exment.$key");
         if (count($args) > 0) {
             $trans = vsprintf($trans, $args);
@@ -1350,12 +1354,26 @@ if (!function_exists('getPagerOptions')) {
     }
 }
 
+if (!function_exists('getTrueMark')) {
+    /**
+     * get true mark. If $val is true, output mark
+     */
+    function getTrueMark($val)
+    {
+        if (!boolval($val)) {
+            return null;
+        }
+
+        return config('exment.true_mark', '<i class="fa fa-check"></i>');
+    }
+}
+
 // Excel --------------------------------------------------
 if (!function_exists('getDataFromSheet')) {
     /**
      * get Data from excel sheet
      */
-    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false)
+    function getDataFromSheet($sheet, $skip_excel_row_no = 0, $keyvalue = false, $isGetMerge = false)
     {
         $data = [];
         foreach ($sheet->getRowIterator() as $row_no => $row) {
@@ -1368,11 +1386,11 @@ if (!function_exists('getDataFromSheet')) {
             $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells,
             $cells = [];
             foreach ($cellIterator as $column_no => $cell) {
-                $value = getCellValue($cell, $sheet);
+                $value = getCellValue($cell, $sheet, $isGetMerge);
 
                 // if keyvalue, set array as key value
                 if ($keyvalue) {
-                    $key = getCellValue($column_no."1", $sheet);
+                    $key = getCellValue($column_no."1", $sheet, $isGetMerge);
                     $cells[$key] = mbTrim($value);
                 }
                 // if false, set as array
@@ -1392,29 +1410,22 @@ if (!function_exists('getDataFromSheet')) {
     }
 }
 
-if (!function_exists('getTrueMark')) {
-    /**
-     * get true mark. If $val is true, output mark
-     */
-    function getTrueMark($val)
-    {
-        if (!boolval($val)) {
-            return null;
-        }
-
-        return config('exment.true_mark', '<i class="fa fa-check"></i>');
-    }
-}
-
 if (!function_exists('getCellValue')) {
     /**
      * get cell value
      */
-    function getCellValue($cell, $sheet)
+    function getCellValue($cell, $sheet, $isGetMerge = false)
     {
         if (is_string($cell)) {
             $cell = $sheet->getCell($cell);
         }
+
+        // if merge cell, get from master cell
+        if($isGetMerge && $cell->isInMergeRange()){
+            $mergeRange = $cell->getMergeRange();
+            $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
+        }
+
         $value = $cell->getCalculatedValue();
         // is datetime, convert to date string
         if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {

@@ -189,7 +189,7 @@ class TemplateImporter
                 continue;
             }
 
-            $data = getDataFromSheet($sheet, 2, true);
+            $data = getDataFromSheet($sheet, 2, true, true);
             // set config json
             $settings[$sheetname] = $data;
         }

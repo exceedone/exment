@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Encore\Admin\Form\Field;
 use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Validator;
 
 class Time extends Date
 {
@@ -34,6 +35,7 @@ class Time extends Date
     
     protected function setValidates(&$validates)
     {
+        $validates[] = new Validator\TimeRule();
     }
 
     /**

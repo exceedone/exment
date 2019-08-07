@@ -74,9 +74,7 @@ trait CustomValueForm
                 $select->required();
 
                 // set select options
-                if (!$parent_custom_table->isGetOptions()) {
-                    $select->ajax($parent_custom_table->getOptionAjaxUrl());
-                }
+                $select->ajax($parent_custom_table->getOptionAjaxUrl());
             }
             // if edit data or has $select_parent, only display
             else {
