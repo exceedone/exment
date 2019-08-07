@@ -228,10 +228,7 @@ class Initialize
 
             
             // favicon
-            $val = System::site_favicon();
-            if (isset($val)) {
-                \Admin::setFavicon($val);
-            }
+            \Admin::setFavicon(admin_url('favicon'));
 
             // mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {
