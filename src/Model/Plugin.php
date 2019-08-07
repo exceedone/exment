@@ -160,7 +160,7 @@ class Plugin extends ModelBase
         } else {
             $pluginPath = [$pluginPath];
         }
-        return path_join(...$pluginPath);
+        return path_join('plugins', ...$pluginPath);
     }
     
     /**
@@ -169,7 +169,7 @@ class Plugin extends ModelBase
      */
     public function getFullPath(...$pass_array)
     {
-        $disk = \Storage::disk('admin');
+        $disk = \Storage::disk(Define::DISKNAME_ADMIN);
         $adapter = $disk->getDriver()->getAdapter();
         return $adapter->getPluginFullPath($this, ...$pass_array);
     }
