@@ -269,6 +269,9 @@ class ExmentServiceProvider extends ServiceProvider
                 case 's3':
                     $adaper = Adapter\ExmentAdapterS3::getAdapter($app, $config);
                     break;
+                case 'azure':
+                    $adaper = Adapter\ExmentAdapterAzure::getAdapter($app, $config);
+                    break;
                 default:
                     $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
                     break;
