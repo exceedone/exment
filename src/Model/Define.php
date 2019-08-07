@@ -388,6 +388,7 @@ class Define
         1    => 'YES',
     ];
 
+    public const DISKNAME_ADMIN = 'admin';
     public const DISKNAME_ADMIN_TMP = 'admin_tmp';
     public const DISKNAME_BACKUP = 'backup';
 }

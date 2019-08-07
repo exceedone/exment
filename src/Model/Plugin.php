@@ -144,20 +144,13 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin  fullpath.
-     * if $pass_array is  empty, return plugin folder full path.
+     * Get plugin path. (not fullpath. relation from laravel root)
+     * if $pass_array is empty, return plugin folder path.
      */
-    public function getFullPath(...$pass_array)
+    public function getPath(...$pass_array)
     {
-        $pluginBasePath = app_path("Plugins");
-        if (!\File::exists($pluginBasePath)) {
-            \File::makeDirectory($pluginBasePath, 0775);
-        }
-
+        $pluginBasePath = path_join("app", "Plugins");
         $pluginPath = path_join($pluginBasePath, pascalize(preg_replace('/\s+/', '', $this->plugin_name)));
-        if (!\File::exists($pluginPath)) {
-            \File::makeDirectory($pluginPath, 0775);
-        }
 
         if (count($pass_array) > 0) {
             $pluginPath = array_merge(
@@ -168,6 +161,17 @@ class Plugin extends ModelBase
             $pluginPath = [$pluginPath];
         }
         return path_join(...$pluginPath);
+    }
+    
+    /**
+     * Get plugin fullpath.
+     * if $pass_array is empty, return plugin folder full path.
+     */
+    public function getFullPath(...$pass_array)
+    {
+        $disk = \Storage::disk('admin');
+        $adapter = $disk->getDriver()->getAdapter();
+        return $adapter->getPluginFullPath($this, ...$pass_array);
     }
     
     //Check all plugins satisfied take out from function getPluginByTableId

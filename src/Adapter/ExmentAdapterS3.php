@@ -17,6 +17,10 @@ class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
         return File::getUrl($path);
     }
 
+    public function getPluginFullPath($plugin, ...$pass_array){
+        return false;
+    }
+
     /**
      * get adapter class
      */
