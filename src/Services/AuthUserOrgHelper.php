@@ -367,9 +367,11 @@ class AuthUserOrgHelper
             }
         }
 
-        // set system user
-        $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+        // set system user if $related_type is USER
+        if($related_type == SystemTableName::USER){
+            $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+        }
 
-        return $target_ids->toArray();
+        return $target_ids->filter()->toArray();
     }
 }
