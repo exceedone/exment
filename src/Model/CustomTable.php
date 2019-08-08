@@ -874,7 +874,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if ($this->isGetOptions($options)) {
             return null;
         }
-        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "query");
+        return admin_urls("webapi", 'data', array_get($this, 'table_name'), "select");
     }
 
     /**

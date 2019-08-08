@@ -942,7 +942,6 @@ namespace Exment {
                             return {
                                 q: params.term,
                                 page: params.page,
-                                selectajax: true
                             };
                         },
                         processResults: function (data, params) {
