@@ -4,10 +4,7 @@ namespace Exceedone\Exment\Adapter;
 
 interface ExmentAdapterInterface
 {
-    /**
-     * get adapter class
-     */
-    public static function getAdapter($app, $config);
+    public function getUrl($path);
 
     /**
      * Get Plugin Fullpath
@@ -15,4 +12,9 @@ interface ExmentAdapterInterface
      * @return string
      */
     public function getPluginFullPath($plugin, ...$pass_array);
+
+    /**
+     * get adapter class
+     */
+    public static function getAdapter($app, $config);
 }
