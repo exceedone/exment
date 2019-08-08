@@ -45,6 +45,28 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
+     * find match data for select ajax
+     * @param mixed $id
+     * @return mixed
+     */
+    public function dataSelect(Request $request)
+    {
+        $paginator = $this->dataQuery($request);
+        if(!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)){
+            return $paginator;
+        }
+        // if call as select ajax, return id and text array
+        $paginator->getCollection()->transform(function ($value) {
+            return [
+                'id' => $value->id,
+                'text' => $value->label,
+            ];
+        });
+
+        return $paginator;
+    }
+    
+    /**
      * find match data by query
      * use form select ajax
      * @param mixed $id
@@ -78,16 +100,6 @@ class ApiTableController extends AdminControllerTableBase
             'target_view' => $custom_view,
             'maxCount' => 10,
         ]);
-
-        // if call as select ajax, return id and text array
-        if ($request->has('selectajax')) {
-            $paginator->getCollection()->transform(function ($value) {
-                return [
-                    'id' => $value->id,
-                    'text' => $value->label,
-                ];
-            });
-        }
 
         return $paginator;
     }
