@@ -569,12 +569,14 @@ return [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
             'unique' => 'ユニーク(一意)',
+            'init_only' => '1度のみ入力',
             'default' => '初期値',
             'placeholder' => 'プレースホルダー',
             'help' => 'ヘルプ',
             'string_length' => '最大文字数',
             'rows' => '高さ',
             'available_characters' => '使用可能文字',
+            'suggest_input' => 'サジェスト入力',
             'regex_validate' => '正規表現',
             'number_min' => '最小値',
             'number_max' => '最大値',
@@ -588,6 +590,7 @@ return [
             'select_target_table' => '対象テーブル',
             'select_target_view' => '対象ビュー',
             'select_import_column_id' => 'インポート時のキー列',
+            'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
             'true_label' => '選択肢1のときの表示',
             'true_label_default' => 'はい',
@@ -631,6 +634,7 @@ return [
         'help' => [
             'index_enabled' => 'YESにすることで、検索インデックスが追加されます。これにより、検索時やビューで、条件絞り込みが出来ます。<br/>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'unique' => '同じ値を、他のデータで重複して登録させない場合にYESにしてください。<br/>※件数が多いデータの場合、「検索インデックス」をYESにすることをおすすめします。',
+            'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
@@ -641,6 +645,7 @@ return [
             'datetime_now_creating' => 'データの新規作成時に、実行した日時で、値を自動的に登録します。※ユーザーによる値の設定はできなくなります。',
             'select_item_valtext' => '改行区切りで選択肢を入力します。カンマの前が値、後が見出しとなります。<br/>例：<br/>「1,成人<br/>2,未成年」→"1"が選択時にデータとして登録する値、"成人"が選択時の見出し',
             'select_target_table' => '選択対象となるテーブルを選択してください。',
+            'select_load_ajax' => 'YESにすることで、はじめは選択肢を読み込まず、ユーザーの入力値でデータを検索し、候補を絞り込みます。<br/>※この設定に関わらず、データの件数が%s件以上の場合は、パフォーマンス向上のために、絞り込みを行う設定になります。',
             'select_target_view' => 'データを絞り込む場合に、条件ビューを指定します。条件ビューは、先にカスタムテーブルの設定画面で作成してください。',
             'select_import_column_id' => 'データのインポート時、選択テーブルのデータを絞り込むための、カスタム列を指定することができます。未設定の場合は、idを使用します。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'select_import_column_id_key' => '親テーブルのデータの指定方法変更',
@@ -649,6 +654,7 @@ return [
             'false_value' => '2つ目の選択肢を保存した場合に登録する値を入力してください。',
             'false_label' => '2つ目の選択肢を保存した場合に表示する文字列を入力してください。',
             'available_characters' => '入力可能な文字を選択してください。すべてのチェックを外すと、すべての文字を入力できます。',
+            'suggest_input' => 'YESにすることで、すでに登録しているデータから、入力候補を一覧表示できます。<br/>※使用する場合、「検索インデックス」をYESにしてください。',
             'regex_validate' => '（上級者向け）入力できる内容を正規表現で設定します。この項目に値を設定した場合、上記の「使用可能文字」の設定は無効になります。詳細は&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'auto_number_format' => '登録する採番のルールを設定します。詳細のルールは&nbsp;<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>&nbsp;をご参照ください。',
             'calc_formula' => '他のフィールドを使用した、計算式を入力します。※現在β版です。',
@@ -783,6 +789,8 @@ return [
         'filter_condition_options' => [
             'eq' => '検索値と合致する', 
             'ne' => '検索値と合致しない', 
+            'like' => '検索値を含む', 
+            'not-like' => '検索値を含まない', 
             'eq-user' => 'ログインユーザーに合致する', 
             'ne-user' => 'ログインユーザーに合致しない', 
             'on' => '指定日',
@@ -1067,6 +1075,10 @@ return [
                 'stop' => 'すべてのデータを取り込まない。',
                 'skip' => '正常データは取り込むが、エラーデータは取り込まない。',
             ],
+            'message' => [
+                'select_table_not_found' => ':column_view_nameが:valueとなるデータが、:target_table_nameに存在しませんでした。',
+                'select_item_not_found' => ':column_view_nameの形式が不正です。:value_optionsのいずれかを入力してください。'
+            ]
         ],
         'sendmail' => [
             'title' => 'メール送信',
@@ -1091,6 +1103,7 @@ return [
             'no_columns_user' => 'カスタム列が登録されていません。管理者に問い合わせし、カスタム列を追加の依頼を行ってください。',
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
+            'init_flg' => '保存後、変更はできません。',
         ],
     ],
 

@@ -88,6 +88,9 @@ class PatchDataCommand extends Command
             case 'alldata_view':
                 $this->copyViewColumnAllDataView();
                 return;
+            case 'init_column':
+                $this->initOnlyCodeColumn();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -430,6 +433,29 @@ class PatchDataCommand extends Command
             ]);
     }
 
+    /**
+     * update init only option custom column
+     *
+     * @return void
+     */
+    protected function initOnlyCodeColumn()
+    {
+        $tableColumns = [
+            SystemTableName::USER => 'user_code', 
+            SystemTableName::ORGANIZATION => 'organization_code', 
+            SystemTableName::MAIL_TEMPLATE => 'mail_key_name', 
+        ];
+
+        foreach($tableColumns as $table => $column){
+            $custom_column = CustomColumn::getEloquent($column, $table);
+            if(!isset($custom_column)){
+                continue;
+            }
+
+            $custom_column->setOption('init_only', 1);
+            $custom_column->save();
+        }
+    }
     
     /**
      * patch mail template

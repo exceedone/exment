@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Form\Field as ExmentField;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Support\Collection;
@@ -122,6 +123,9 @@ class SelectTable extends CustomItem
         if (!isset($this->target_table)) {
             return;
         }
+        if ($field instanceof ExmentField\Display) {
+            return;
+        }
 
         $relationColumn = collect($this->custom_column->custom_table
             ->getSelectTableRelationColumns())
@@ -142,7 +146,17 @@ class SelectTable extends CustomItem
                         $query = $query->where("parent_id", $parent_v)->where('parent_type', $parent_target_table_name);
                         return $query;
                     };
-                } else {
+                }
+                // elseif ($relationColumn['searchType'] == SearchType::MANY_TO_MANY) {
+                //     $callback = function (&$query) use ($parent_v, $parent_target_table_name, $relationColumn) {
+                //         $relation = $relationColumn['relation'];
+                //         $query->whereHas($relation->getRelationName(), function ($query) use($relation, $parent_v) {
+                //             $query->where($relation->getRelationName() . '.parent_id', $parent_v);
+                //         });
+                //         return $query;
+                //     };
+                // }
+                else {
                     $searchColumn = $relationColumn['child_column']->select_target_table->custom_columns()
                         ->where('column_type', ColumnType::SELECT_TABLE)
                         ->whereIn('options->select_target_table', [strval($parent_target_table_id), intval($parent_target_table_id)])
@@ -157,13 +171,14 @@ class SelectTable extends CustomItem
             }
             // get DB option value
             return $this->target_table->getSelectOptions([
+                'custom_column' => $this->custom_column,
                 'selected_value' => $value,
                 'display_table' => $this->custom_column->custom_table,
                 'filterCallback' => $callback ?? null,
                 'target_view' => $this->target_view,
             ]);
         });
-        $ajax = $this->target_table->getOptionAjaxUrl();
+        $ajax = $this->target_table->getOptionAjaxUrl(['custom_column' => $this->custom_column]);
         if (isset($ajax)) {
             $field->attribute([
                 'data-add-select2' => $this->label(),
@@ -172,6 +187,14 @@ class SelectTable extends CustomItem
         }
         // add table info
         $field->attribute(['data-target_table_name' => array_get($this->target_table, 'table_name')]);
+
+        // add view info
+        if (isset($this->target_view)) {
+            $field->attribute(['data-select2_expand' => json_encode([
+                    'target_view_id' => array_get($this->target_view, 'id')
+                ])
+            ]);
+        }
     }
     
     public function getAdminFilterWhereQuery($query, $input)
@@ -203,21 +226,32 @@ class SelectTable extends CustomItem
      */
     public function getImportValue($value, $setting = [])
     {
+        $result = true;
+        $message = null;
+
         if (!isset($this->target_table)) {
-            return null;
+            $result = false;
+        } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+            // if get as id and not numeric, set error
+            if (!is_numeric($value)) {
+                $result = false;
+                $message = trans('validation.integer', ['attribute' => $this->label()]);
+            }
+        } else {
+            // get target value
+            $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
+
+            if (!isset($target_value)) {
+                $result = false;
+            } else {
+                $value = $target_value->id;
+            }
         }
-
-        if (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
-            return $value;
-        }
-
-        // get target value
-        $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
-
-        if (!isset($target_value)) {
-            return null;
-        }
-
-        return $target_value->id;
+        
+        return [
+            'result' => $result,
+            'value' => $value,
+            'message' => $message,
+        ];
     }
 }

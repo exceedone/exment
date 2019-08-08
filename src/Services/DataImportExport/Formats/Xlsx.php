@@ -49,7 +49,7 @@ class Xlsx extends FormatBase
         // get all data
         foreach ($spreadsheet->getSheetNames() as $sheetName) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
-            $datalist[$sheetName] = getDataFromSheet($sheet);
+            $datalist[$sheetName] = getDataFromSheet($sheet, 0, false, true);
         }
 
         return $datalist;

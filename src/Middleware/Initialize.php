@@ -234,10 +234,7 @@ class Initialize
 
             
             // favicon
-            $val = System::site_favicon();
-            if (isset($val)) {
-                \Admin::setFavicon($val);
-            }
+            \Admin::setFavicon(admin_url('favicon'));
 
             // mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {
@@ -323,6 +320,7 @@ class Initialize
 
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,
+            'text'          => Field\Text::class,
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,

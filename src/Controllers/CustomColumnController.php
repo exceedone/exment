@@ -203,6 +203,8 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(sprintf(exmtrans("custom_column.help.index_enabled"), getManualUrl('column?id='.exmtrans('custom_column.options.index_enabled'))));
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
+            $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
+                ->help(exmtrans("custom_column.help.init_only"));
             $form->text('default', exmtrans("custom_column.options.default"));
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
@@ -227,6 +229,11 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])])
                 ->help(exmtrans("custom_column.help.available_characters"))
                 ;
+
+            $form->switchbool('suggest_input', exmtrans("custom_column.options.suggest_input"))
+                ->help(exmtrans("custom_column.help.suggest_input"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::TEXT]])]);
+
             if (boolval(config('exment.expart_mode', false))) {
                 $manual_url = getManualUrl('column#'.exmtrans('custom_column.options.regex_validate'));
                 $form->text('regex_validate', exmtrans("custom_column.options.regex_validate"))
@@ -347,7 +354,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->attribute([
                     'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()]),
                 ]);
-                            
+            
             $manual_url = getManualUrl('data_import_export#'.exmtrans('custom_column.help.select_import_column_id_key'));
             $form->select('select_import_column_id', exmtrans("custom_column.options.select_import_column_id"))
                 ->help(exmtrans("custom_column.help.select_import_column_id", $manual_url))
@@ -375,6 +382,12 @@ class CustomColumnController extends AdminControllerTableBase
                 })
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
 
+            $form->switchbool('select_load_ajax', exmtrans("custom_column.options.select_load_ajax"))
+                ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
+                ->default("0")
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
+             
+            // yes/no ----------------------------
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
                     ->required()

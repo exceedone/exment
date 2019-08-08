@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\PartialCrudService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Request as Req;
@@ -73,10 +74,28 @@ trait CustomValueGrid
                     // get options and ajax url
                     $options = $relation->parent_custom_table->getSelectOptions();
                     $ajax = $relation->parent_custom_table->getOptionAjaxUrl();
-                    if (isset($ajax)) {
-                        $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                    $table_view_name = $relation->parent_custom_table->table_view_name;
+
+                    // switch 1:n or n:n
+                    if ($relation->relation_type == RelationType::ONE_TO_MANY) {
+                        if (isset($ajax)) {
+                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                        } else {
+                            $filter->equal('parent_id', $table_view_name)->select($options);
+                        }
                     } else {
-                        $filter->equal('parent_id', $relation->parent_custom_table->table_view_name)->select($options);
+                        $relationQuery = function ($query) use ($relation) {
+                            $query->whereHas($relation->getRelationName(), function ($query) use ($relation) {
+                                $query->where($relation->getRelationName() . '.parent_id', $this->input);
+                            });
+                        };
+
+                        // set relation
+                        if (isset($ajax)) {
+                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                        } else {
+                            $filter->where($relationQuery, $table_view_name)->select($options);
+                        }
                     }
                 }
             });
