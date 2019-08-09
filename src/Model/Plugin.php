@@ -113,7 +113,7 @@ class Plugin extends ModelBase
                     break;
 
                 case PluginType::IMPORT:
-                    $class = new $classname($this, array_get($options, 'file'));
+                    $class = new $classname($this, array_get($options, 'custom_table'), array_get($options, 'file'));
                     break;
             }
         } else {
