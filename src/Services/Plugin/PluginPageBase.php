@@ -1,10 +1,19 @@
 <?php
+
+/**
+ * Execute Batch
+ */
 namespace Exceedone\Exment\Services\Plugin;
 
-use App\Http\Controllers\Controller;
-
-abstract class PluginPageControllerBase extends Controller
+class PluginPageBase
 {
+    use PluginBase;
+    
+    public function __construct($plugin)
+    {
+        $this->plugin = $plugin;
+    }
+
     /**
      * Append css
      *
@@ -19,7 +28,11 @@ abstract class PluginPageControllerBase extends Controller
      */
     protected $js = [];
 
-    public function css($css = null){
+    public function _plugin(){
+        return $this->plugin;
+    }
+
+    public function _css($css = null){
         if (is_null($css)) {
             return $this->css;
         }
@@ -34,7 +47,7 @@ abstract class PluginPageControllerBase extends Controller
         return $this;
     }
 
-    public function js($js){
+    public function _js($js = null){
         if (is_null($js)) {
             return $this->js;
         }

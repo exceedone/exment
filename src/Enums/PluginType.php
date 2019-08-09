@@ -44,15 +44,12 @@ class PluginType extends EnumBase
                     break;
                     
                 case PluginType::BATCH:
+                case PluginType::PAGE:
                     $class = new $classname($plugin);
                     break;
 
                 case PluginType::IMPORT:
                     $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
-                    break;
-                    
-                case PluginType::PAGE:
-                    $class = new $classname();
                     break;
             }
         } else {
@@ -68,9 +65,9 @@ class PluginType extends EnumBase
     }
 
     public function getPluginClassShortName($plugin){
-        if($this == PluginType::PAGE){
-            return array_get($plugin, 'options.controller');
-        }
+        // if($this == PluginType::PAGE){
+        //     return array_get($plugin, 'options.controller');
+        // }
 
         return 'Plugin';
     }

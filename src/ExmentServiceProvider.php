@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\Plugin\PluginPageBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -176,6 +177,11 @@ class ExmentServiceProvider extends ServiceProvider
             $db->extend('mariadb', function ($config, $name) use ($app) {
                 return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
             });
+        });
+
+        // bind plugin for page
+        $this->app->bind(PluginPageBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
         });
         
         Passport::ignoreMigrations();

@@ -251,6 +251,35 @@ class Plugin extends ModelBase
     }
 
     /**
+     * Get plugin page model
+     *
+     * @return void
+     */
+    public static function getPluginPageModel(){
+        // get namespace
+        $pattern = '@plugins/([^/\?]+)@';
+        preg_match($pattern, request()->url(), $matches);
+
+        if (!isset($matches) || count($matches) <= 1) {
+            return;
+        }
+
+        $pluginName = $matches[1];
+        
+        // get target plugin
+        $plugin = static::where('active_flg', 1)
+            ->where('plugin_type', PluginType::PAGE)
+            ->where('plugin_name', $pluginName)
+            ->first();
+        if (!isset($plugin)) {
+            return;
+        }
+        
+        // get class
+        return $plugin->getClass();
+    }
+
+    /**
      * get eloquent using request settion.
      * now only support only id.
      */

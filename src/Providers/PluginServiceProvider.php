@@ -21,30 +21,27 @@ class PluginServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        $pattern = '@plugins/([^/\?]+)@';
-        preg_match($pattern, request()->url(), $matches);
+        // get page's plugins
+        $plugins = Plugin
+            ::where('active_flg', 1)
+            ->where('plugin_type', PluginType::PAGE)
+            ->get();
 
-        if (!isset($matches) || count($matches) <= 1) {
-            return;
-        }
-
-        $pluginName = $matches[1];
-        
-        $plugin = $this->getPluginActivate($pluginName);
-        if (!isset($plugin)) {
-            return;
-        }
-        
-        $class = $plugin->getClass();
-        $base_path = $plugin->getFullPath();
-//        $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
-        if (!$this->app->routesAreCached()) {
-            $config_path = path_join($base_path, 'config.json');
-            if (file_exists($config_path)) {
-                $config = \File::get($config_path);
-                $json = json_decode($config, true);
-                $this->pluginRoute($plugin, $json);
+        // loop
+        foreach($plugins as $plugin){
+            $base_path = $plugin->getFullPath();
+            if ($this->app->routesAreCached()) {
+                continue;
             }
+
+            $config_path = path_join($base_path, 'config.json');
+            if (!file_exists($config_path)) {
+                continue;
+            }
+
+            $config = \File::get($config_path);
+            $json = json_decode($config, true);
+            $this->pluginRoute($plugin, $json);
         }
     }
 
@@ -60,10 +57,11 @@ class PluginServiceProvider extends ServiceProvider
         $namespace = $plugin->getNameSpace();
         Route::group([
             'prefix'        => config('admin.route.prefix').'/plugins/' . $plugin->plugin_name,
-            'namespace'     => $namespace,
+            'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => config('admin.route.middleware'),
             'module'        => $namespace,
         ], function (Router $router) use ($plugin, $namespace, $json) {
+            $class = $plugin->getClass();
             foreach ($json['route'] as $route) {
                 $methods = is_string($route['method']) ? [$route['method']] : $route['method'];
                 foreach ($methods as $method) {
@@ -73,28 +71,23 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), $json['controller'].'@'.$route['function'].'');
+                        Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), 'PluginPageController@'.$route['function'].'');
                     }
                 }
             }
+
+            // get css and js
+            $publics = ['css', 'js'];
+            foreach($publics as $p){
+                $items = $class->{"_$p"}();
+                if(empty($items)){
+                    continue;
+                }
+
+                foreach($items as $item){
+
+                }
+            }
         });
-    }
-    
-    /**
-     * Check plugin satisfying conditions
-     */
-    protected function getPluginActivate($pluginName)
-    {
-        $plugin = Plugin
-            ::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->where('plugin_name', $pluginName)
-            ->first();
-
-        if ($plugin !== null) {
-            return $plugin;
-        }
-
-        return null;
     }
 }
