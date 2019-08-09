@@ -32,6 +32,12 @@ class PluginPageBase
         return $this->plugin;
     }
 
+    /**
+     * get and set css path
+     *
+     * @param [type] $css
+     * @return void
+     */
     public function _css($css = null){
         if (is_null($css)) {
             return $this->css;
@@ -47,6 +53,12 @@ class PluginPageBase
         return $this;
     }
 
+    /**
+     * get and set ja path
+     *
+     * @param [type] $js
+     * @return void
+     */
     public function _js($js = null){
         if (is_null($js)) {
             return $this->js;

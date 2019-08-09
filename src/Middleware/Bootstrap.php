@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Encore\Admin;
 use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
+use Exceedone\Exment\Model\Plugin;
 
 /**
  * Middleware as Bootstrap.
@@ -16,6 +17,23 @@ class Bootstrap
 {
     public function handle(Request $request, \Closure $next)
     {
+        $this->setCssJs($request, $next);
+
+        return $next($request);
+    }
+
+    /**
+     * Set css and js. only first request(not ajax and pjax)
+     *
+     * @param Request $request
+     * @param \Closure $next
+     * @return void
+     */
+    protected function setCssJs(Request $request, \Closure $next){
+        if($request->ajax() || $request->pjax()){
+            return;
+        }
+
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
@@ -49,6 +67,25 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/common_all.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
+
+        // set Plugin resource
+        $pluginPages = Plugin::getPluginPages();
+        foreach($pluginPages as $pluginPage){
+            // get css and js
+            $publics = ['css', 'js'];
+            foreach($publics as $p){
+                // get css
+                $func = "_$p"; 
+                $items = collect($pluginPage->{$func}())->map(function($item) use($pluginPage, $p){
+                    return admin_urls($pluginPage->_plugin()->getRouteUri(), $p, $item);
+                });
+                if(!empty($items)){
+                    foreach($items as $item){
+                        Ad::{$p}($item);
+                    }
+                }
+            }
+        }
 
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
@@ -103,6 +140,5 @@ class Bootstrap
 EOT;
         Ad::script($script);
 
-        return $next($request);
     }
 }

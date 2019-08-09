@@ -251,7 +251,27 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin page model
+     * Get plugin object model
+     *
+     * @return void
+     */
+    public static function getPluginPages(){
+        // get plugin page's
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_PAGES, function(){
+            // get plugin
+            $plugins = Plugin::allRecords(function($plugin){
+                return array_get($plugin, 'plugin_type') == PluginType::PAGE
+                ;
+            });
+
+            return collect($plugins)->map(function($plugin){
+                return $plugin->getClass();
+            });
+        });
+    }
+    
+    /**
+     * Get plugin page model using request uri
      *
      * @return void
      */
@@ -267,10 +287,12 @@ class Plugin extends ModelBase
         $pluginName = $matches[1];
         
         // get target plugin
-        $plugin = static::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->where('plugin_name', $pluginName)
-            ->first();
+        $plugin = static::allRecords(function($plugin) use($pluginName){
+            return array_get($plugin, 'plugin_type') == PluginType::PAGE
+                && array_get($plugin, 'plugin_name') == pascalize($pluginName)
+            ;
+        })->first();
+
         if (!isset($plugin)) {
             return;
         }
@@ -280,12 +302,55 @@ class Plugin extends ModelBase
     }
 
     /**
-     * get eloquent using request settion.
-     * now only support only id.
+     * Get route uri for page
+     *
+     * @return void
      */
-    public static function getEloquent($id, $withs = [])
+    public function getRouteUri(){
+        return url_join('plugins', snake_case($this->plugin_name));
+    }
+
+    /**
+     * get eloquent using request settion.
+     */
+    public static function getEloquent($obj, $withs = [])
     {
-        return static::getEloquentDefault($id, $withs);
+        if ($obj instanceof Plugin) {
+            return $obj;
+        }
+
+        if ($obj instanceof \stdClass) {
+            $obj = (array)$obj;
+        }
+        // get id or array value
+        if (is_array($obj)) {
+            // get id or table_name
+            if (array_key_value_exists('id', $obj)) {
+                $obj = array_get($obj, 'id');
+            } elseif (array_key_value_exists('plugin_name', $obj)) {
+                $obj = array_get($obj, 'plugin_name');
+            } else {
+                return null;
+            }
+        }
+
+        // get eloquent model
+        if (is_numeric($obj)) {
+            $query_key = 'id';
+        } elseif (is_string($obj)) {
+            $query_key = 'plugin_name';
+        }
+        if (isset($query_key)) {
+            // get table
+            $obj = static::allRecords(function ($plugin) use ($query_key, $obj) {
+                return array_get($plugin, $query_key) == $obj;
+            })->first();
+            if (!isset($obj)) {
+                return null;
+            }
+        }
+
+        return $obj;
     }
     
     public function getOption($key, $default = null)

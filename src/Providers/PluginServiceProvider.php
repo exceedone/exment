@@ -8,12 +8,12 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\PluginType;
 use Request;
 
 class PluginServiceProvider extends ServiceProvider
 {
-    
     /**
      * Define the routes for the application.
      *
@@ -21,15 +21,12 @@ class PluginServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        // get page's plugins
-        $plugins = Plugin
-            ::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->get();
-
+        // get plugin page's
+        $pluginPages = Plugin::getPluginPages();
+        
         // loop
-        foreach($plugins as $plugin){
-            $base_path = $plugin->getFullPath();
+        foreach($pluginPages as $pluginPage){
+            $base_path = $pluginPage->_plugin()->getFullPath();
             if ($this->app->routesAreCached()) {
                 continue;
             }
@@ -41,7 +38,7 @@ class PluginServiceProvider extends ServiceProvider
 
             $config = \File::get($config_path);
             $json = json_decode($config, true);
-            $this->pluginRoute($plugin, $json);
+            $this->pluginRoute($pluginPage, $json);
         }
     }
 
@@ -52,16 +49,13 @@ class PluginServiceProvider extends ServiceProvider
      * @param json $json
      * @return void
      */
-    protected function pluginRoute($plugin, $json)
+    protected function pluginRoute($pluginPage, $json)
     {
-        $namespace = $plugin->getNameSpace();
         Route::group([
-            'prefix'        => config('admin.route.prefix').'/plugins/' . $plugin->plugin_name,
+            'prefix'        => url_join(config('admin.route.prefix'), $pluginPage->_plugin()->getRouteUri()),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => config('admin.route.middleware'),
-            'module'        => $namespace,
-        ], function (Router $router) use ($plugin, $namespace, $json) {
-            $class = $plugin->getClass();
+        ], function (Router $router) use ($pluginPage, $json) {
             foreach ($json['route'] as $route) {
                 $methods = is_string($route['method']) ? [$route['method']] : $route['method'];
                 foreach ($methods as $method) {
@@ -71,7 +65,7 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), 'PluginPageController@'.$route['function'].'');
+                        Route::{$method}(url_join(array_get($pluginPage->_plugin()->options, 'uri'), $route['uri']), 'PluginPageController@'.$route['function']);
                     }
                 }
             }
@@ -79,15 +73,19 @@ class PluginServiceProvider extends ServiceProvider
             // get css and js
             $publics = ['css', 'js'];
             foreach($publics as $p){
-                $items = $class->{"_$p"}();
+                $items = $pluginPage->{"_$p"}();
                 if(empty($items)){
                     continue;
                 }
 
                 foreach($items as $item){
-
+                    Route::get(url_join($p, $item), 'PluginPageController@_readPublicFile');
                 }
             }
+
+            Route::get('css/', 'PluginPageController@_readPublicFile');
+            //Route::get('css/{cssfile?}', 'PluginPageController@_readPublicFile');
+            //Route::get('css/{cssfile?}/{aaa?}', 'PluginPageController@_readPublicFile');
         });
     }
 }
