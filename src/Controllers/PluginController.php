@@ -159,7 +159,7 @@ class PluginController extends AdminControllerBase
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
         $plugin_type = Plugin::getFieldById($id, 'plugin_type');
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT])) {
+            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
@@ -183,7 +183,7 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if ($plugin_type != PluginType::BATCH) {
+            if (!in_array($plugin_type, [PluginType::BATCH, PluginType::IMPORT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));

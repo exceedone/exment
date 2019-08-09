@@ -42,7 +42,7 @@ class Plugin extends ModelBase
     {
         // execute query
         return static::where('active_flg', '=', 1)
-            ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT])
+            ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])
             ->whereJsonContains('options->target_tables', $table_name)
             ->get()
             ;
@@ -110,6 +110,10 @@ class Plugin extends ModelBase
                     
                 case PluginType::BATCH:
                     $class = new $classname($this);
+                    break;
+
+                case PluginType::IMPORT:
+                    $class = new $classname($this, array_get($options, 'custom_table'), array_get($options, 'file'));
                     break;
             }
         } else {
@@ -252,6 +256,27 @@ class Plugin extends ModelBase
             }
         }
         return $buttonList;
+    }
+
+    /**
+     * @param $plugins
+     * @return array
+     */
+    public static function pluginPreparingImport($plugins)
+    {
+        $itemlist = [];
+        if (count($plugins) > 0) {
+            foreach ($plugins as $plugin) {
+                // get plugin_type
+                $plugin_type = array_get($plugin, 'plugin_type');
+                switch ($plugin_type) {
+                    case PluginType::IMPORT:
+                        $itemlist[$plugin->id] = $plugin->plugin_view_name;
+                        break;
+                }
+            }
+        }
+        return $itemlist;
     }
 
     /**
