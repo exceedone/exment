@@ -10,7 +10,7 @@ use Exceedone\Exment\Model\Define;
 trait PluginCloudTrait
 {
     protected function adminDisk(){
-        return \Storage::disk(Define::DISKNAME_ADMIN);
+        return \Storage::disk(Define::DISKNAME_PLUGIN);
     }
     
     protected function tmpDisk(){

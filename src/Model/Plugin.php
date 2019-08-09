@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use DB;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Carbon\Carbon;
 
 class Plugin extends ModelBase
@@ -93,38 +92,9 @@ class Plugin extends ModelBase
      */
     public function getClass($options = [])
     {
-        $options = array_merge([
-            'custom_table' => null,
-            'id' => null,
-        ], $options);
-
-        $classname = $this->getNameSpace('Plugin');
-        $fuleFullPath = $this->getFullPath('Plugin.php');
-
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
-            switch (array_get($this, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                case PluginType::TRIGGER:
-                    $class = new $classname($this, array_get($options, 'custom_table'), array_get($options, 'id'));
-                    break;
-                    
-                case PluginType::BATCH:
-                    $class = new $classname($this);
-                    break;
-
-                case PluginType::IMPORT:
-                    $class = new $classname($this, array_get($options, 'custom_table'), array_get($options, 'file'));
-                    break;
-            }
-        } else {
-            // set default class
-            switch (array_get($this, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                    $class = new PluginDocumentDefault($this, array_get($options, 'custom_table'), array_get($options, 'id'));
-                    break;
-            }
-        }
-
+        $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
+        $class = $pluginType->getPluginClass($this);
+        
         if (!isset($class)) {
             throw new \Exception('plugin not found');
         }
@@ -163,7 +133,8 @@ class Plugin extends ModelBase
         } else {
             $pluginPath = [$pluginPath];
         }
-        return path_join('plugins', ...$pluginPath);
+        //return path_join('plugins', ...$pluginPath);
+        return path_join(...$pluginPath);
     }
     
     /**
@@ -286,6 +257,11 @@ class Plugin extends ModelBase
     public static function getEloquent($id, $withs = [])
     {
         return static::getEloquentDefault($id, $withs);
+    }
+    
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
     }
     
     public function getCustomOption($key, $default = null)

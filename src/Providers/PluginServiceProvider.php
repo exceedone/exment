@@ -22,7 +22,7 @@ class PluginServiceProvider extends ServiceProvider
     public function map()
     {
         $pattern = '@plugins/([^/\?]+)@';
-        preg_match($pattern, Request::url(), $matches);
+        preg_match($pattern, request()->url(), $matches);
 
         if (!isset($matches) || count($matches) <= 1) {
             return;
@@ -34,11 +34,15 @@ class PluginServiceProvider extends ServiceProvider
         if (!isset($plugin)) {
             return;
         }
-        $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
+        
+        $class = $plugin->getClass();
+        $base_path = $plugin->getFullPath();
+//        $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
         if (!$this->app->routesAreCached()) {
             $config_path = path_join($base_path, 'config.json');
             if (file_exists($config_path)) {
-                $json = json_decode(File::get($config_path), true);
+                $config = \File::get($config_path);
+                $json = json_decode($config, true);
                 $this->pluginRoute($plugin, $json);
             }
         }
@@ -55,7 +59,7 @@ class PluginServiceProvider extends ServiceProvider
     {
         $namespace = $plugin->getNameSpace();
         Route::group([
-            'prefix'        => config('admin.route.prefix').'/plugins',
+            'prefix'        => config('admin.route.prefix').'/plugins/' . $plugin->plugin_name,
             'namespace'     => $namespace,
             'middleware'    => config('admin.route.middleware'),
             'module'        => $namespace,
@@ -69,8 +73,7 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        //Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), $json['controller'].'@'.$route['function'].'');
-                        Route::{$method}(url_join(array_get($plugin->options, 'uri'), $route['uri']), 'Office365UserController@'.$route['function']);
+                        Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), $json['controller'].'@'.$route['function'].'');
                     }
                 }
             }
@@ -85,13 +88,13 @@ class PluginServiceProvider extends ServiceProvider
         $plugin = Plugin
             ::where('active_flg', 1)
             ->where('plugin_type', PluginType::PAGE)
-            ->where('options->uri', $pluginName)
+            ->where('plugin_name', $pluginName)
             ->first();
 
         if ($plugin !== null) {
             return $plugin;
         }
 
-        return false;
+        return null;
     }
 }
