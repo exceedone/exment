@@ -75,9 +75,8 @@ class Bootstrap
             $publics = ['css', 'js'];
             foreach($publics as $p){
                 // get css
-                $func = "_$p"; 
-                $items = collect($pluginPage->{$func}())->map(function($item) use($pluginPage, $p){
-                    return admin_urls($pluginPage->_plugin()->getRouteUri(), $p, $item);
+                $items = collect($pluginPage->{$p}())->map(function($item) use($pluginPage, $p){
+                    return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
                 });
                 if(!empty($items)){
                     foreach($items as $item){

@@ -40,20 +40,19 @@ class PluginPageController extends Controller
         $html = call_user_func_array([$this->pluginPage, $method], $parameters);
 
         $content = new Content;
-        return $content
-            ->header($this->plugin->plugin_view_name)
-            ->headericon($this->plugin->getOption('icon'))
-            ->row($html);
+        $content->row($html);
+        if($this->pluginPage->_showHeader()){
+            $content->header($this->plugin->plugin_view_name)
+            ->headericon($this->plugin->getOption('icon'));
+        }
+
+        return $content;
     }
 
-    public function _readPublicFile(Request $request, $cssfile){
+    public function _readPublicFile(Request $request, ...$args){
         // get file path
-        $path = trim($request->getPathInfo(), '/');
-        $path = ltrim($path, $this->plugin->getRouteUri());
-        $path = trim($path, '/');
-
-        $extension = pathinfo($path)['extension'];
-        $mineType = $extension == 'css' ? 'css' : 'javascript';
+        $extension = $args[0];
+        $path = implode('/', $args);
         
         // get base path
         $base_path = $this->plugin->getFullPath();
@@ -65,9 +64,22 @@ class PluginPageController extends Controller
         }
 
         $file = \File::get($filePath);
+
+        switch($extension){
+            case 'css':
+                $mimeType = 'text/css';
+                break;
+            case 'js':
+                $mimeType = 'text/javascript';
+                break;
+            default:
+                $mimeType = \File::mimeType($filePath);
+                break;
+        }
+        
         // create response
         $response = Response::make($file, 200);
-        $response->header("Content-Type", "text/$mineType");
+        $response->header("Content-Type", $mimeType);
 
         return $response;
     }

@@ -207,6 +207,14 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+
+        // load plugins
+        $pluginPages = Plugin::getPluginPages();
+        foreach ($pluginPages as $pluginPage) {
+            if(!is_null($items = $pluginPage->_getLoadView())){
+                $this->loadViewsFrom($items[0], $items[1]);
+            }
+        }
     }
 
     protected function bootApp()

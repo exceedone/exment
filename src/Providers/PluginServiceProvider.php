@@ -70,22 +70,8 @@ class PluginServiceProvider extends ServiceProvider
                 }
             }
 
-            // get css and js
-            $publics = ['css', 'js'];
-            foreach($publics as $p){
-                $items = $pluginPage->{"_$p"}();
-                if(empty($items)){
-                    continue;
-                }
-
-                foreach($items as $item){
-                    Route::get(url_join($p, $item), 'PluginPageController@_readPublicFile');
-                }
-            }
-
-            Route::get('css/', 'PluginPageController@_readPublicFile');
-            //Route::get('css/{cssfile?}', 'PluginPageController@_readPublicFile');
-            //Route::get('css/{cssfile?}/{aaa?}', 'PluginPageController@_readPublicFile');
+            // for public file
+            Route::get('public/{type}/{arg1}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
         });
     }
 }
