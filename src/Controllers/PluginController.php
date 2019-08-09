@@ -113,9 +113,12 @@ class PluginController extends AdminControllerBase
             if (!isset($plugin)) {
                 continue;
             }
-            $folder = $plugin->getFullPath();
-            if (File::isDirectory($folder)) {
-                File::deleteDirectory($folder);
+
+            // get disk
+            $disk = \Storage::disk(Define::DISKNAME_ADMIN);
+            $folder = $plugin->getPath();
+            if ($disk->exists($folder)) {
+                $disk->deleteDirectory($folder);
             }
         }
     }

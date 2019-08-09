@@ -9,6 +9,8 @@ use Exceedone\Exment\Model\File;
 
 class ExmentAdapterS3 extends AwsS3Adapter implements ExmentAdapterInterface
 {
+    use PluginCloudTrait;
+
     /**
      * Get URL using File class
      */

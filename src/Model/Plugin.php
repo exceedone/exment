@@ -144,20 +144,12 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin  fullpath.
-     * if $pass_array is  empty, return plugin folder full path.
+     * Get plugin path. (not fullpath. relation from laravel root)
+     * if $pass_array is empty, return plugin folder path.
      */
-    public function getFullPath(...$pass_array)
+    public function getPath(...$pass_array)
     {
-        $pluginBasePath = app_path("Plugins");
-        if (!\File::exists($pluginBasePath)) {
-            \File::makeDirectory($pluginBasePath, 0775);
-        }
-
-        $pluginPath = path_join($pluginBasePath, pascalize(preg_replace('/\s+/', '', $this->plugin_name)));
-        if (!\File::exists($pluginPath)) {
-            \File::makeDirectory($pluginPath, 0775);
-        }
+        $pluginPath = pascalize(preg_replace('/\s+/', '', $this->plugin_name));
 
         if (count($pass_array) > 0) {
             $pluginPath = array_merge(
@@ -167,7 +159,35 @@ class Plugin extends ModelBase
         } else {
             $pluginPath = [$pluginPath];
         }
-        return path_join(...$pluginPath);
+        return path_join('plugins', ...$pluginPath);
+    }
+    
+    /**
+     * Get plugin fullpath.
+     * if $pass_array is empty, return plugin folder full path.
+     */
+    public function getFullPath(...$pass_array)
+    {
+        $disk = \Storage::disk(Define::DISKNAME_ADMIN);
+        $adapter = $disk->getDriver()->getAdapter();
+        return $adapter->getPluginFullPath($this, ...$pass_array);
+    }
+
+    /**
+     * call require
+     *
+     * @param [type] $pathDir
+     * @return void
+     */
+    public function requirePlugin($fullPathDir){
+        // call plugin
+        $plugin_paths = \File::allFiles($fullPathDir);
+        foreach($plugin_paths as $plugin_path){
+            if(pathinfo($plugin_path)['extension'] != 'php'){
+                continue;
+            }
+            require_once($plugin_path);
+        }
     }
     
     //Check all plugins satisfied take out from function getPluginByTableId

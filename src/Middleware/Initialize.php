@@ -122,6 +122,12 @@ class Initialize
                 'root' => storage_path('app/backup'),
             ]);
         }
+        if (!Config::has('filesystems.disks.plugin_local')) {
+            Config::set('filesystems.disks.plugin_local', [
+                'driver' => 'local',
+                'root' => storage_path('app/plugins'),
+            ]);
+        }
 
         // mysql setting
         Config::set('database.connections.mysql.strict', false);

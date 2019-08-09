@@ -80,10 +80,12 @@ class DocumentExcelService
             $writer = new Document\ExmentMpdf($spreadsheet);
             $writer->setTempDir(getFullpath(path_join('tmp', 'document'), 'local', true));
         }
-        $writer->save($this->getFullPath());
+
+        $this->saveFile($writer);
 
         // remove tmpfile
-        $file = \File::delete($this->getFullPathTmp());
+        \File::delete($this->getFullPath());
+        \File::delete($this->getFullPathTmp());
 
         return true;
     }
@@ -304,19 +306,35 @@ class DocumentExcelService
      * get Directory full path from root
      * @return string File path
      */
-    public function getFullPath()
+    protected function getFullPath()
     {
         $filepath = path_join($this->getDirPath(), $this->getUniqueFileName());
-        return getFullpath($filepath, config('admin.upload.disk'));
+        return getFullpath($filepath, Define::DISKNAME_ADMIN_TMP, true);
     }
     
     /**
      * get Directory full path from root
      * @return string File path
      */
-    public function getFullPathTmp()
+    protected function getFullPathTmp()
     {
         $filepath = path_join($this->getDirPath(), $this->getFileName(DocumentType::EXCEL).'tmp');
-        return getFullpath($filepath, config('admin.upload.disk'));
+        return getFullpath($filepath, Define::DISKNAME_ADMIN_TMP, true);
+    }
+
+    /**
+     * Save admin_tmp and move admin
+     *
+     * @return void
+     */
+    protected function saveFile($writer){
+        // save file to local
+        $tmpFullPath = $this->getFullPath();
+        $writer->save($tmpFullPath);
+
+        $file = path_join($this->getDirPath(), $this->getUniqueFileName());
+        // copy admin_tmp to admin
+        $stream = \Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
+        \Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
     }
 }

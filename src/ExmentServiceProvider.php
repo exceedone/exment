@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
@@ -263,18 +264,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         Storage::extend('exment-driver', function ($app, $config) {
-            switch (config('exment.driver.default', 'local')) {
-                case 'local':
-                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
-                    break;
-                case 's3':
-                    $adaper = Adapter\ExmentAdapterS3::getAdapter($app, $config);
-                    break;
-                default:
-                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
-                    break;
-            }
-            return new Filesystem($adaper);
+            return Driver::getExmentDriver($app, $config);
         });
 
         Initialize::initializeConfig(false);
