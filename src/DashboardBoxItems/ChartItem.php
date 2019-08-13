@@ -262,7 +262,7 @@ class ChartItem implements ItemInterface
                     return [];
                 }
 
-                $options = $custom_view->getColumnsSelectOptions(false);
+                $options = $custom_view->getViewColumnsSelectOptions(false);
                 return array_column($options, 'text', 'id');
             });
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
@@ -278,7 +278,7 @@ class ChartItem implements ItemInterface
                     return [];
                 }
 
-                $options = $custom_view->getColumnsSelectOptions(true);
+                $options = $custom_view->getViewColumnsSelectOptions(true);
                 return array_column($options, 'text', 'id');
             });
         $form->checkbox('chart_axis_label', exmtrans("dashboard.dashboard_box_options.chart_axis_label"))

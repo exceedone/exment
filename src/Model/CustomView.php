@@ -745,7 +745,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
      * @param $is_number
      */
-    public function getColumnsSelectOptions($is_number = null)
+    public function getViewColumnsSelectOptions($is_number = null)
     {
         $options = [];
         

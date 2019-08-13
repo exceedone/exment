@@ -931,14 +931,35 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param array|CustomTable $table
-     * @param $selected_value
+     * get columns select options.
+     * 'append_table': whether appending custom table id in options value
+     * 'index_enabled_only': only getting index column
+     * 'include_parent': whether getting parent table's column
+     * 'include_child': whether getting child table's column
+     * 'include_select_table': whether getting select table's column
+     * 'include_system': whether getting system column
+     * @param array $selectOptions
+     * @param option items
      */
-    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
+    //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
+    public function getColumnSelectOptions($selectOptions = [])
     {
+        $selectOptions = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => false,
+                'include_parent' => false,
+                'include_child' => false,
+                'include_select_table' => false,
+                'include_system' => true,
+            ],
+            $selectOptions
+        );
+        extract($selectOptions);
+
         $options = [];
         
+        // getting this table's column options
         $this->setColumnOptions(
             $options,
             $this->custom_columns,
@@ -984,6 +1005,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 );
             }
         }
+
+
         if ($include_child) {
             ///// get child table columns
             $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
@@ -1022,6 +1045,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     
         return $options;
     }
+
     protected function setColumnOptions(
         &$options,
         $custom_columns,
