@@ -988,7 +988,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => true,
                         'include_system' => $include_system,
-                        'tablename' => $tablename,
+                        'table_view_name' => $tablename,
                     ]
                 );
             }
@@ -1006,7 +1006,37 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => true,
                         'include_system' => $include_system,
-                        'tablename' => $tablename,
+                        'table_view_name' => $tablename,
+                    ]
+                );
+            }
+        }
+
+        if ($include_select_table) {
+            ///// get select table column's
+            $select_target_columns = $this->custom_columns->filter(function($custom_column){
+                if(!ColumnType::isSelectTable($custom_column->column_type)){
+                    return false;
+                }
+
+                if(!isset($custom_column->select_target_table)){
+                    return false;
+                }
+                return true;
+            });
+            foreach ($select_target_columns as $select_target_column) {
+                $select_target_table = $select_target_column->select_target_table;
+                $tablename = array_get($select_target_table, 'table_view_name');
+                $this->setColumnOptions(
+                    $options,
+                    $select_target_table->custom_columns,
+                    $select_target_table->id,
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => false,
+                        'include_system' => $include_system,
+                        'table_view_name' => $tablename,
                     ]
                 );
             }
@@ -1029,7 +1059,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => false,
                         'include_system' => true,
-                        'tablename' => $tablename,
+                        'table_view_name' => $tablename,
                     ]
                 );
             }
@@ -1047,7 +1077,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => true,
                         'include_system' => true,
-                        'tablename' => $tablename,
+                        'table_view_name' => $tablename,
                     ]
                 );
             }
@@ -1068,7 +1098,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'index_enabled_only' => false,
                 'include_parent' => false,
                 'include_system' => true,
-                'table_name' => null,
+                'table_view_name' => null,
             ],
             $selectOptions
         );
@@ -1079,8 +1109,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach (SystemColumn::getOptions(['header' => true]) as $option) {
                 $key = $this->getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
-                if (isset($table_name)) {
-                    $value = $table_name . ' : ' . $value;
+                if (isset($table_view_name)) {
+                    $value = $table_view_name . ' : ' . $value;
                 }
                 $options[$key] = $value;
             }
@@ -1091,8 +1121,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if (isset($relation)) {
                 $key = $this->getOptionKey('parent_id', $append_table, $table_id);
                 $value = array_get($relation, 'parent_custom_table.table_view_name');
-                if (isset($table_name)) {
-                    $value = $table_name . ' : ' . $value;
+                if (isset($table_view_name)) {
+                    $value = $table_view_name . ' : ' . $value;
                 }
                 $options[$key] = $value;
             }
@@ -1104,8 +1134,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             $key = $this->getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id);
             $value = array_get($custom_column, 'column_view_name');
-            if (isset($table_name)) {
-                $value = $table_name . ' : ' . $value;
+            if (isset($table_view_name)) {
+                $value = $table_view_name . ' : ' . $value;
             }
             $options[$key] = $value;
         }
@@ -1114,8 +1144,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
                 $key = $this->getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
-                if (isset($table_name)) {
-                    $value = $table_name . ' : ' . $value;
+                if (isset($table_view_name)) {
+                    $value = $table_view_name . ' : ' . $value;
                 }
                 $options[$key] = $value;
             }

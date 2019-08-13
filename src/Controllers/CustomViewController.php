@@ -370,6 +370,7 @@ class CustomViewController extends AdminControllerTableBase
                         $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                             ->options($this->custom_table->getColumnSelectOptions([
                                 'append_table' => true,
+                                'include_select_table' => true,
                             ]));
                         $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                         $form->hidden('order')->default(0);
