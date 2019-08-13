@@ -963,11 +963,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $this->setColumnOptions(
             $options,
             $this->custom_columns,
-            $index_enabled_only,
-            $include_system,
-            true,
-            $append_table,
-            $this->id
+            $this->id,
+            [
+                'append_table' => $append_table,
+                'index_enabled_only' => $index_enabled_only,
+                'include_parent' => true,
+                'include_system' => $include_system,
+            ]
         );
 
         if ($include_parent) {
@@ -980,12 +982,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $parent->custom_columns,
-                    $index_enabled_only,
-                    $include_system,
-                    true,
-                    $append_table,
                     $parent_id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => true,
+                        'include_system' => $include_system,
+                        'tablename' => $tablename,
+                    ]
                 );
             }
             ///// get select table columns
@@ -996,12 +1000,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $custom_table->custom_columns,
-                    $index_enabled_only,
-                    $include_system,
-                    true,
-                    $append_table,
                     $custom_table->id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => true,
+                        'include_system' => $include_system,
+                        'tablename' => $tablename,
+                    ]
                 );
             }
         }
@@ -1017,12 +1023,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $child->custom_columns,
-                    $index_enabled_only,
-                    true,
-                    false,
-                    $append_table,
                     $child_id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => false,
+                        'include_system' => true,
+                        'tablename' => $tablename,
+                    ]
                 );
             }
             ///// get selected table columns
@@ -1033,12 +1041,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $custom_table->custom_columns,
-                    $index_enabled_only,
-                    true,
-                    true,
-                    $append_table,
                     $custom_table->id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => true,
+                        'include_system' => true,
+                        'tablename' => $tablename,
+                    ]
                 );
             }
         }
@@ -1049,13 +1059,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected function setColumnOptions(
         &$options,
         $custom_columns,
-        $index_enabled_only,
-        $include_system,
-        $include_parent,
-        $append_table,
         $table_id,
-        $table_name = null
+        $selectOptions = []
     ) {
+        $selectOptions = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => false,
+                'include_parent' => false,
+                'include_system' => true,
+                'table_name' => null,
+            ],
+            $selectOptions
+        );
+        extract($selectOptions);
+
         if ($include_system) {
             /// get system columns
             foreach (SystemColumn::getOptions(['header' => true]) as $option) {
