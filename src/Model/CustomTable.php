@@ -1012,36 +1012,36 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
         }
 
-        if ($include_select_table) {
-            ///// get select table column's
-            $select_target_columns = $this->custom_columns->filter(function($custom_column){
-                if(!ColumnType::isSelectTable($custom_column->column_type)){
-                    return false;
-                }
+        // todo : remove
+        // if ($include_select_table) {
+        //     ///// get select table column's
+        //     $select_target_columns = $this->custom_columns->filter(function($custom_column){
+        //         if(!ColumnType::isSelectTable($custom_column->column_type)){
+        //             return false;
+        //         }
 
-                if(!isset($custom_column->select_target_table)){
-                    return false;
-                }
-                return true;
-            });
-            foreach ($select_target_columns as $select_target_column) {
-                $select_target_table = $select_target_column->select_target_table;
-                $tablename = array_get($select_target_table, 'table_view_name');
-                $this->setColumnOptions(
-                    $options,
-                    $select_target_table->custom_columns,
-                    $select_target_table->id,
-                    [
-                        'append_table' => $append_table,
-                        'index_enabled_only' => $index_enabled_only,
-                        'include_parent' => false,
-                        'include_system' => $include_system,
-                        'table_view_name' => $tablename,
-                    ]
-                );
-            }
-        }
-
+        //         if(!isset($custom_column->select_target_table)){
+        //             return false;
+        //         }
+        //         return true;
+        //     });
+        //     foreach ($select_target_columns as $select_target_column) {
+        //         $select_target_table = $select_target_column->select_target_table;
+        //         $tablename = array_get($select_target_column, 'column_view_name');
+        //         $this->setColumnOptions(
+        //             $options,
+        //             $select_target_table->custom_columns,
+        //             $select_target_table->id,
+        //             [
+        //                 'append_table' => $append_table,
+        //                 'index_enabled_only' => $index_enabled_only,
+        //                 'include_parent' => false,
+        //                 'include_system' => $include_system,
+        //                 'table_view_name' => $tablename,
+        //             ]
+        //         );
+        //     }
+        // }
 
         if ($include_child) {
             ///// get child table columns
