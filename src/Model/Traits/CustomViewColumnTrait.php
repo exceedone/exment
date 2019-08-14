@@ -124,7 +124,7 @@ trait CustomViewColumnTrait
     protected function getViewColumnTargetItems($view_column_target, $column_table_name_key = 'custom_view')
     {
         $column_type_target = explode("?", $view_column_target)[0];
-        $params = static::getOptionParams($view_column_target, $this->{$column_table_name_key}->custom_table_id);
+        $params = static::getOptionParams($view_column_target, $this->{$column_table_name_key}->custom_table_id ?? null);
 
         $view_pivot_column_id = array_get($params, 'view_pivot_column_id');
         $column_table_id = array_get($params, 'column_table_id');

@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
@@ -163,9 +164,14 @@ abstract class CustomItem implements ItemInterface
 
         // if options has "view_pivot_column", get select_table's custom_value first
         if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
-            $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
-            $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
-            $custom_value = CustomTable::getEloquent($this->custom_column)->getValueModel($pivot_id);
+            $view_pivot_column = $this->options['view_pivot_column'];
+            if($view_pivot_column == SystemColumn::PARENT_ID){
+                $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
+            }else{
+                $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
+                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+                $custom_value = $this->custom_table->getValueModel($pivot_id);
+            }
         }
 
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);

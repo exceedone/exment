@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Enums\SystemColumn;
 
 trait ColumnOptionQueryTrait
 {
@@ -33,7 +34,11 @@ trait ColumnOptionQueryTrait
 
         // set as select_table key
         if(isset($view_pivot_column)){
-            $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
+            if($view_pivot_column == SystemColumn::PARENT_ID){
+                $query['view_pivot_column_id'] = SystemColumn::PARENT_ID;
+            }else{
+                $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
+            }
         }
         if(boolval($child_sum)){
             $query['child_sum'] = true;
