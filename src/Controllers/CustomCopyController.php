@@ -8,6 +8,7 @@ use Encore\Admin\Layout\Content;
 //use Encore\Admin\Widgets\Form;
 use Encore\Admin\Widgets\Table;
 use Illuminate\Http\Request;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomCopy;
 use Exceedone\Exment\Form\Tools;
@@ -104,6 +105,29 @@ class CustomCopyController extends AdminControllerTableBase
     }
 
     /**
+     * get child table copy options.
+     *
+     * @return child copy options
+     */
+    protected function getChildCopyOptions($to_table)
+    {
+        if (isset($to_table)) {
+            $from_relations = $this->custom_table->custom_relations()->pluck('child_custom_table_id');
+            $to_relations = $to_table->custom_relations()->pluck('child_custom_table_id');
+            return CustomCopy::whereIn('from_custom_table_id', $from_relations->toArray())
+              ->whereIn('to_custom_table_id', $to_relations->toArray())->get()
+              ->filter(function($item) {
+                return count($item->custom_copy_input_columns) == 0;
+              })->mapWithKeys(function ($item) {
+                    $from_name = $item->from_custom_table->table_view_name;
+                    $to_name = $item->to_custom_table->table_view_name;
+                    return [$item['id'] => exmtrans("custom_copy.options.child_copy_format", 
+                        $item['options']['label'], $from_name, $to_name)];
+              })->toArray();
+        }
+    }
+
+    /**
      * Make a form builder.
      *
      * @return Form
@@ -136,11 +160,17 @@ class CustomCopyController extends AdminControllerTableBase
             $form->hidden('to_custom_table_id')->default($to_table->id);
         }
 
+        $child_options = $this->getChildCopyOptions($to_table);
+
         // exmtrans "plugin". it's same value
-        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) {
+        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use($child_options) {
             $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"))->rules("max:40");
             $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"))->default('fa-copy');
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+            if (!empty($child_options)) {
+                $form->select('child_copy', exmtrans("custom_copy.options.child_copy"))
+                    ->help(exmtrans("custom_copy.help.child_copy"))->options($child_options);
+            }
         })->disableHeader();
 
         ///// get from and to columns
@@ -154,22 +184,56 @@ class CustomCopyController extends AdminControllerTableBase
             'include_system' => false,
         ]) : [];
         $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
-            $form->select('from_column_target', exmtrans("custom_copy.from_custom_column"))->options($from_custom_column_options);
+            $form->select('from_column_target', exmtrans("custom_copy.from_custom_column"))
+                ->options($from_custom_column_options)->required();
             $form->description('▶');
-            $form->select('to_column_target', exmtrans("custom_copy.to_custom_column"))->options($to_custom_column_options);
+            $form->select('to_column_target', exmtrans("custom_copy.to_custom_column"))
+                ->options($to_custom_column_options)->required();
             $form->hidden('copy_column_type')->default(CopyColumnType::DEFAULT);
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.column_description"));
 
         ///// get input columns
         $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
-            $form->select('to_column_target', exmtrans("custom_copy.input_custom_column"))->options($to_custom_column_options);
+            $form->select('to_column_target', exmtrans("custom_copy.input_custom_column"))
+                ->options($to_custom_column_options)->required();
             $form->hidden('copy_column_type')->default(CopyColumnType::INPUT);
         })->setTableWidth(10, 1)
         ->description(exmtrans("custom_copy.input_column_description"));
 
         $form->tools(function (Form\Tools $tools) use ($id, $form, $custom_table) {
             $tools->add((new Tools\GridChangePageMenu('copy', $custom_table, false))->render());
+        });
+
+        // validate before saving
+        $form->saving(function (Form $form) use($to_table) {
+            if (!is_null($form->custom_copy_columns)) {
+                $columns = collect($form->custom_copy_columns)
+                    ->filter(function($value) {
+                        return $value[Form::REMOVE_FLAG_NAME] != 1;
+                    })
+                    ->pluck('to_column_target');
+            } else {
+                $columns = collect([]);
+            }
+            if (!is_null($form->custom_copy_input_columns)) {
+                $columns = $columns->merge(collect($form->custom_copy_input_columns)
+                    ->filter(function($value) {
+                        return $value[Form::REMOVE_FLAG_NAME] != 1;
+                    })->pluck('to_column_target'));
+            }
+            $columns = $columns->map(function($column) {
+                $value = explode('-', $column);
+                return $value[1];
+            });
+            $required_columns = CustomColumn::where('custom_table_id', $to_table->id)->required()->pluck('id');
+            $result = $required_columns->every(function ($required_column) use($columns) {
+                return $columns->contains($required_column);
+            });
+            if (!$result) {
+                admin_toastr(exmtrans('custom_copy.message.to_custom_column_required'), 'error');
+                return back()->withInput();
+            }
         });
         return $form;
     }

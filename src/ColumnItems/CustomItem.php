@@ -119,6 +119,16 @@ abstract class CustomItem implements ItemInterface
     }
 
     /**
+     * get grid style
+     */
+    public function gridStyle(){
+        return $this->getStyleString([
+            'min-width' => $this->custom_column->getOption('min_width', config('exment.grid_min_width', 100)) . 'px',
+            'max-width' => $this->custom_column->getOption('max_width', config('exment.grid_max_width', 300)) . 'px',
+        ]);
+    }
+
+    /**
      * sortable for grid
      */
     public function sortable()

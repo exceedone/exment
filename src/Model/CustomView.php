@@ -186,6 +186,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
+                ->style($item->gridStyle())
                 ->display(function ($v) use ($item) {
                     if (is_null($this)) {
                         return '';
@@ -216,14 +217,17 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // get custom view columns and custom view summaries
         $view_column_items = $this->getSummaryIndexAndViewColumns();
         
-        // create headers
+        // create headers and column_styles
         $headers = [];
+        $columnStyles = [];
         foreach ($view_column_items as $view_column_item) {
             $item = array_get($view_column_item, 'item');
             $headers[] = $item
                 ->column_item
                 ->label(array_get($item, 'view_column_name'))
                 ->label();
+
+            $columnStyles[] = $item->column_item->gridStyle();
         }
         if ($this->view_kind_type != ViewKindType::AGGREGATE) {
             $headers[] = trans('admin.action');
@@ -289,7 +293,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         }
 
         //return headers, bodies
-        return [$headers, $bodies];
+        return [$headers, $bodies, $columnStyles];
     }
 
     /**

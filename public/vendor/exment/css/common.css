@@ -3584,7 +3584,7 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
 }
 
 .box.box-dashboard table td, .box.box-dashboard table th {
-  white-space: nowrap;
+  word-wrap: break-word;
 }
 
 .box.box-dashboard .pagination {
