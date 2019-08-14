@@ -265,8 +265,14 @@ class Plugin extends ModelBase
         return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_PAGES, function(){
             // get plugin
             $plugins = Plugin::allRecords(function($plugin){
-                return array_get($plugin, 'plugin_type') == PluginType::PAGE
-                ;
+                if(array_get($plugin, 'plugin_type') != PluginType::PAGE){
+                    return false;
+                }
+                if(!boolval(array_get($plugin, 'active_flg'))){
+                    return false;
+                }
+                
+                return true;
             });
 
             return collect($plugins)->map(function($plugin){
