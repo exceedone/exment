@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\Plugin\PluginPageBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -177,6 +178,11 @@ class ExmentServiceProvider extends ServiceProvider
                 return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
             });
         });
+
+        // bind plugin for page
+        $this->app->bind(PluginPageBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
         
         Passport::ignoreMigrations();
     }
@@ -201,6 +207,14 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+
+        // load plugins
+        $pluginPages = Plugin::getPluginPages();
+        foreach ($pluginPages as $pluginPage) {
+            if(!is_null($items = $pluginPage->_getLoadView())){
+                $this->loadViewsFrom($items[0], $items[1]);
+            }
+        }
     }
 
     protected function bootApp()

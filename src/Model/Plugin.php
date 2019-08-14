@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Model;
 use DB;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
 use Carbon\Carbon;
 
 class Plugin extends ModelBase
@@ -93,38 +92,9 @@ class Plugin extends ModelBase
      */
     public function getClass($options = [])
     {
-        $options = array_merge([
-            'custom_table' => null,
-            'id' => null,
-        ], $options);
-
-        $classname = $this->getNameSpace('Plugin');
-        $fuleFullPath = $this->getFullPath('Plugin.php');
-
-        if (\File::exists($fuleFullPath) && class_exists($classname)) {
-            switch (array_get($this, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                case PluginType::TRIGGER:
-                    $class = new $classname($this, array_get($options, 'custom_table'), array_get($options, 'id'));
-                    break;
-                    
-                case PluginType::BATCH:
-                    $class = new $classname($this);
-                    break;
-
-                case PluginType::IMPORT:
-                    $class = new $classname($this, array_get($options, 'custom_table'), array_get($options, 'file'));
-                    break;
-            }
-        } else {
-            // set default class
-            switch (array_get($this, 'plugin_type')) {
-                case PluginType::DOCUMENT:
-                    $class = new PluginDocumentDefault($this, array_get($options, 'custom_table'), array_get($options, 'id'));
-                    break;
-            }
-        }
-
+        $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
+        $class = $pluginType->getPluginClass($this);
+        
         if (!isset($class)) {
             throw new \Exception('plugin not found');
         }
@@ -163,7 +133,8 @@ class Plugin extends ModelBase
         } else {
             $pluginPath = [$pluginPath];
         }
-        return path_join('plugins', ...$pluginPath);
+        //return path_join('plugins', ...$pluginPath);
+        return path_join(...$pluginPath);
     }
     
     /**
@@ -187,7 +158,12 @@ class Plugin extends ModelBase
         // call plugin
         $plugin_paths = \File::allFiles($fullPathDir);
         foreach($plugin_paths as $plugin_path){
-            if(pathinfo($plugin_path)['extension'] != 'php'){
+            $pathinfo = pathinfo($plugin_path);
+            if($pathinfo['extension'] != 'php'){
+                continue;
+            }
+            // if blade, not require
+            if(strpos($pathinfo['basename'], 'blade.php') !== false){
                 continue;
             }
             require_once($plugin_path);
@@ -280,12 +256,111 @@ class Plugin extends ModelBase
     }
 
     /**
-     * get eloquent using request settion.
-     * now only support only id.
+     * Get plugin object model
+     *
+     * @return void
      */
-    public static function getEloquent($id, $withs = [])
+    public static function getPluginPages(){
+        // get plugin page's
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_PAGES, function(){
+            // get plugin
+            $plugins = Plugin::allRecords(function($plugin){
+                return array_get($plugin, 'plugin_type') == PluginType::PAGE
+                ;
+            });
+
+            return collect($plugins)->map(function($plugin){
+                return $plugin->getClass();
+            });
+        });
+    }
+    
+    /**
+     * Get plugin page model using request uri
+     *
+     * @return void
+     */
+    public static function getPluginPageModel(){
+        // get namespace
+        $pattern = '@plugins/([^/\?]+)@';
+        preg_match($pattern, request()->url(), $matches);
+
+        if (!isset($matches) || count($matches) <= 1) {
+            return;
+        }
+
+        $pluginName = $matches[1];
+        
+        // get target plugin
+        $plugin = static::allRecords(function($plugin) use($pluginName){
+            return array_get($plugin, 'plugin_type') == PluginType::PAGE
+                && array_get($plugin, 'plugin_name') == pascalize($pluginName)
+            ;
+        })->first();
+
+        if (!isset($plugin)) {
+            return;
+        }
+        
+        // get class
+        return $plugin->getClass();
+    }
+
+    /**
+     * Get route uri for page
+     *
+     * @return void
+     */
+    public function getRouteUri(){
+        return url_join('plugins', snake_case($this->plugin_name));
+    }
+
+    /**
+     * get eloquent using request settion.
+     */
+    public static function getEloquent($obj, $withs = [])
     {
-        return static::getEloquentDefault($id, $withs);
+        if ($obj instanceof Plugin) {
+            return $obj;
+        }
+
+        if ($obj instanceof \stdClass) {
+            $obj = (array)$obj;
+        }
+        // get id or array value
+        if (is_array($obj)) {
+            // get id or table_name
+            if (array_key_value_exists('id', $obj)) {
+                $obj = array_get($obj, 'id');
+            } elseif (array_key_value_exists('plugin_name', $obj)) {
+                $obj = array_get($obj, 'plugin_name');
+            } else {
+                return null;
+            }
+        }
+
+        // get eloquent model
+        if (is_numeric($obj)) {
+            $query_key = 'id';
+        } elseif (is_string($obj)) {
+            $query_key = 'plugin_name';
+        }
+        if (isset($query_key)) {
+            // get table
+            $obj = static::allRecords(function ($plugin) use ($query_key, $obj) {
+                return array_get($plugin, $query_key) == $obj;
+            })->first();
+            if (!isset($obj)) {
+                return null;
+            }
+        }
+
+        return $obj;
+    }
+    
+    public function getOption($key, $default = null)
+    {
+        return $this->getJson('options', $key, $default);
     }
     
     public function getCustomOption($key, $default = null)

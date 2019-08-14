@@ -219,6 +219,7 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
+    public const SYSTEM_KEY_SESSION_PLUGIN_PAGES = "plugin_pages";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
@@ -393,5 +394,6 @@ class Define
     public const DISKNAME_ADMIN = 'admin';
     public const DISKNAME_ADMIN_TMP = 'admin_tmp';
     public const DISKNAME_BACKUP = 'backup';
+    public const DISKNAME_PLUGIN = 'plugin';
     public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
 }

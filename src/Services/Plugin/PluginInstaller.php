@@ -12,77 +12,10 @@ use File;
 use Validator;
 
 /**
- * Install Template
+ * Install Plugin
  */
 class PluginInstaller
 {
-    /**
-     * get template list (get from app folder and vendor/exceedone/exment/templates)
-     */
-    public static function getTemplates()
-    {
-        $templates = [];
-
-        foreach (static::getTemplateBasePaths() as $templates_path) {
-            $paths = File::glob("$templates_path/*/config.json");
-            foreach ($paths as $path) {
-                try {
-                    $dirname = pathinfo($path)['dirname'];
-                    $json = json_decode(File::get($path), true);
-                    // add thumbnail
-                    if (isset($json['thumbnail'])) {
-                        $thumbnail_fullpath = path_join($dirname, $json['thumbnail']);
-                        if (File::exists($thumbnail_fullpath)) {
-                            $json['thumbnail_fullpath'] = $thumbnail_fullpath;
-                        }
-                    }
-                    array_push($templates, $json);
-                } catch (Exception $exception) {
-                    //TODO:error handling
-                }
-            }
-        }
-
-        return $templates;
-    }
-
-    /**
-     * Install template (from display)
-     */
-    public static function installTemplate($templateName)
-    {
-        if (!is_array($templateName)) {
-            $templateName = [$templateName];
-        }
-        
-        foreach (static::getTemplateBasePaths() as $templates_path) {
-            foreach ($templateName as $t) {
-                if (!isset($t)) {
-                    continue;
-                }
-                $path = "$templates_path/$t/config.json";
-                if (!File::exists($path)) {
-                    continue;
-                }
-                
-                static::install($path);
-            }
-        }
-    }
-
-
-    /**
-     * Install System template (from command)
-     */
-    public static function installSystemTemplate()
-    {
-        // get vendor folder
-        $templates_base_path = base_path() . '/vendor/exceedone/exment/system_template';
-        $path = "$templates_base_path/config.json";
-
-        static::install($path, true);
-    }
-
     /**
      * Upload plugin (from display)
      */
@@ -130,7 +63,7 @@ class PluginInstaller
             } else {
                 //Validate json file with fields require
                 $checkRuleConfig = static::checkRuleConfigFile($json);
-                if ($checkRuleConfig) {
+                if ($checkRuleConfig === true) {
                     //Check if the name of the plugin has existed
                     $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
                     //Check if the uuid of the plugin has existed
@@ -170,7 +103,7 @@ class PluginInstaller
                         $response = back();
                     }
                 } else {
-                    $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
+                    $response = back()->with('errorMess', $checkRuleConfig);
                 }
             }
         }
@@ -202,7 +135,11 @@ class PluginInstaller
         if ($validator->passes()) {
             return true;
         } else {
-            return false;
+            $messages = collect($validator->errors()->messages());
+            $message = $messages->map(function($message){
+                return $message[0];
+            });
+            return implode("\r\n", $message->values()->toArray());
         }
     }
 
@@ -232,7 +169,7 @@ class PluginInstaller
             $options['target_tables'] = $target_tables;
         }
 
-        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron'] as $key) {
+        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'controller'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }
@@ -246,7 +183,7 @@ class PluginInstaller
     protected static function copyPluginNameFolder($json, $pluginFolderPath, $tmpfolderpath)
     {
         // get all files
-        $adminDisk = static::adminDisk();
+        $pluginDisk = static::pluginDisk();
         $tmpDisk = static::tmpDisk();
         $files = $tmpDisk->allFiles($tmpfolderpath);
 
@@ -260,13 +197,13 @@ class PluginInstaller
             // upload file
             $stream = $tmpDisk->readStream($file);
             $movedpath = path_join($pluginFolderPath, $movedFileName);
-            $adminDisk->delete($movedpath);
-            $adminDisk->writeStream($movedpath, $stream);
+            $pluginDisk->delete($movedpath);
+            $pluginDisk->writeStream($movedpath, $stream);
         }
     }
     
-    protected static function adminDisk(){
-        return \Storage::disk(Define::DISKNAME_ADMIN);
+    protected static function pluginDisk(){
+        return \Storage::disk(Define::DISKNAME_PLUGIN);
     }
     
     protected static function tmpDisk(){

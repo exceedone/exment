@@ -8,12 +8,12 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\PluginType;
 use Request;
 
 class PluginServiceProvider extends ServiceProvider
 {
-    
     /**
      * Define the routes for the application.
      *
@@ -21,26 +21,24 @@ class PluginServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        $pattern = '@plugins/([^/\?]+)@';
-        preg_match($pattern, Request::url(), $matches);
-
-        if (!isset($matches) || count($matches) <= 1) {
-            return;
-        }
-
-        $pluginName = $matches[1];
+        // get plugin page's
+        $pluginPages = Plugin::getPluginPages();
         
-        $plugin = $this->getPluginActivate($pluginName);
-        if (!isset($plugin)) {
-            return;
-        }
-        $base_path = path_join(app_path(), 'plugins', $plugin->plugin_name);
-        if (!$this->app->routesAreCached()) {
-            $config_path = path_join($base_path, 'config.json');
-            if (file_exists($config_path)) {
-                $json = json_decode(File::get($config_path), true);
-                $this->pluginRoute($plugin, $json);
+        // loop
+        foreach($pluginPages as $pluginPage){
+            $base_path = $pluginPage->_plugin()->getFullPath();
+            if ($this->app->routesAreCached()) {
+                continue;
             }
+
+            $config_path = path_join($base_path, 'config.json');
+            if (!file_exists($config_path)) {
+                continue;
+            }
+
+            $config = \File::get($config_path);
+            $json = json_decode($config, true);
+            $this->pluginRoute($pluginPage, $json);
         }
     }
 
@@ -51,15 +49,13 @@ class PluginServiceProvider extends ServiceProvider
      * @param json $json
      * @return void
      */
-    protected function pluginRoute($plugin, $json)
+    protected function pluginRoute($pluginPage, $json)
     {
-        $namespace = $plugin->getNameSpace();
         Route::group([
-            'prefix'        => config('admin.route.prefix').'/plugins',
-            'namespace'     => $namespace,
+            'prefix'        => url_join(config('admin.route.prefix'), $pluginPage->_plugin()->getRouteUri()),
+            'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => config('admin.route.middleware'),
-            'module'        => $namespace,
-        ], function (Router $router) use ($plugin, $namespace, $json) {
+        ], function (Router $router) use ($pluginPage, $json) {
             foreach ($json['route'] as $route) {
                 $methods = is_string($route['method']) ? [$route['method']] : $route['method'];
                 foreach ($methods as $method) {
@@ -69,29 +65,13 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        //Route::{$method}(path_join(array_get($plugin->options, 'uri'), $route['uri']), $json['controller'].'@'.$route['function'].'');
-                        Route::{$method}(url_join(array_get($plugin->options, 'uri'), $route['uri']), 'Office365UserController@'.$route['function']);
+                        Route::{$method}(url_join(array_get($pluginPage->_plugin()->options, 'uri'), $route['uri']), 'PluginPageController@'.$route['function']);
                     }
                 }
             }
+
+            // for public file
+            Route::get('public/{type}/{arg1}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
         });
-    }
-    
-    /**
-     * Check plugin satisfying conditions
-     */
-    protected function getPluginActivate($pluginName)
-    {
-        $plugin = Plugin
-            ::where('active_flg', 1)
-            ->where('plugin_type', PluginType::PAGE)
-            ->where('options->uri', $pluginName)
-            ->first();
-
-        if ($plugin !== null) {
-            return $plugin;
-        }
-
-        return false;
     }
 }

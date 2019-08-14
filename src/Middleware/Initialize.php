@@ -122,6 +122,13 @@ class Initialize
                 'root' => storage_path('app/backup'),
             ]);
         }
+
+        if (!Config::has('filesystems.disks.plugin')) {
+            Config::set('filesystems.disks.plugin', [
+                'driver' => 'exment-driver',
+                'root' => storage_path('app/plugins'),
+            ]);
+        }
         if (!Config::has('filesystems.disks.plugin_local')) {
             Config::set('filesystems.disks.plugin_local', [
                 'driver' => 'local',
