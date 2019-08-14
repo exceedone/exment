@@ -35,6 +35,11 @@ interface ItemInterface
     public function html();
 
     /**
+     * get grid style
+     */
+    public function gridStyle();
+
+    /**
      * get or set value's id.
      */
     public function id($id = null);

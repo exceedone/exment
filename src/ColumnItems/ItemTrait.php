@@ -103,6 +103,21 @@ trait ItemTrait
     }
 
     /**
+     * get style string from key-values
+     *
+     * @param [type] $array
+     * @return void
+     */
+    public function getStyleString($array){
+        
+        $array['word-wrap'] = 'break-word';
+        $array['white-space'] = 'normal';
+        return implode('; ', collect($array)->map(function($value, $key){
+            return "$key : $value";
+        })->toArray());
+    }
+
+    /**
      * whether column is date
      *
      */
@@ -119,4 +134,5 @@ trait ItemTrait
     {
         return false;
     }
+
 }

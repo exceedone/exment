@@ -227,7 +227,7 @@ EOT;
         $links = $paginate->links('exment::search.links')->toHtml();
         // get headers and bodies
         $view = CustomView::getAllData($table);
-        list($headers, $bodies) = $view->getDataTable($datalist, [
+        list($headers, $bodies, $columnStyles) = $view->getDataTable($datalist, [
             'action_callback' => function (&$link, $custom_table, $data) {
                 if (count($custom_table->getRelationTables()) > 0) {
                     $link .= (new Linker)
@@ -359,11 +359,11 @@ EOT;
         } else {
             $option = [];
         }
-        list($headers, $bodies) = $view->getDataTable($data, $option);
+        list($headers, $bodies, $columnStyles) = $view->getDataTable($data, $option);
         return [
             'table_name' => array_get($search_table, 'table_name'),
             'header' => $boxHeader,
-            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->render(),
+            'body' => (new WidgetTable($headers, $bodies))->class('table table-hover')->setColumnStyle($columnStyles)->render(),
             'footer' => $links
         ];
     }

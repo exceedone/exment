@@ -306,8 +306,27 @@ return [
     | It is limit count whether ajax or select.
     |
     */
-    'select_table_limit_count' => env('SELECT_TABLE_LIMIT_COUNT', 100),
+    'select_table_limit_count' => env('EXMENT_SELECT_TABLE_LIMIT_COUNT', 100),
 
+    /*
+    |--------------------------------------------------------------------------
+    | GRID_MIN_WIDTH
+    |--------------------------------------------------------------------------
+    |
+    | set grid min width default
+    |
+    */
+    'grid_min_width' => env('EXEMTN_GRID_MIN_WIDTH', 100),
+
+    /*
+    |--------------------------------------------------------------------------
+    | GRID_MAX_WIDTH
+    |--------------------------------------------------------------------------
+    |
+    | set grid max width default
+    |
+    */
+    'grid_max_width' => env('EXEMTN_GRID_MAX_WIDTH', 300),
 
     /*
     |--------------------------------------------------------------------------

@@ -18,16 +18,16 @@ class SystemColumn extends EnumBase
     const DELETED_USER = 'deleted_user';
     
     protected static $options = [
-        'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true],
-        'suuid' => ['id' => 2, 'name' => 'suuid', 'sqlname' => 'suuid', 'default' => false, 'order' => 2, 'header' => true],
-        'parent_id' => ['id' => 3, 'name' => 'parent_id', 'sqlname' => 'parent_id', 'default' => false, 'order' => 3],
-        'parent_type' => ['id' => 4, 'name' => 'parent_type', 'sqlname' => 'parent_type', 'default' => false, 'order' => 4],
-        'created_at' => ['id' => 96, 'type' => 'datetime', 'name' => 'created_at', 'sqlname' => 'created_at', 'default' => true, 'order' => 81, 'footer' => true, 'summary' => true],
-        'updated_at' => ['id' => 97, 'type' => 'datetime', 'name' => 'updated_at', 'sqlname' => 'updated_at', 'default' => true, 'order' => 82, 'footer' => true, 'summary' => true],
-        'deleted_at' => ['id' => 101, 'type' => 'datetime', 'name' => 'deleted_at', 'sqlname' => 'deleted_at', 'default' => false, 'order' => 83],
-        'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'sqlname' => 'created_user_id', 'tagname' => 'created_user_tag', 'default' => false, 'order' => 91, 'footer' => true],
-        'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'sqlname' => 'updated_user_id', 'tagname' => 'updated_user_tag', 'default' => false, 'order' => 92, 'footer' => true],
-        'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'sqlname' => 'deleted_user_id', 'tagname' => 'deleted_user_tag', 'default' => false, 'order' => 93],
+        'id' => ['id' => 1, 'name' => 'id', 'sqlname' => 'id', 'default' => true, 'order' => 1, 'header' => true, 'summary' => true, 'min_width' => 30, 'max_width' => 100],
+        'suuid' => ['id' => 2, 'name' => 'suuid', 'sqlname' => 'suuid', 'default' => false, 'order' => 2, 'header' => true, 'min_width' => 100, 'max_width' => 300],
+        'parent_id' => ['id' => 3, 'name' => 'parent_id', 'sqlname' => 'parent_id', 'default' => false, 'order' => 3, 'min_width' => 100, 'max_width' => 300],
+        'parent_type' => ['id' => 4, 'name' => 'parent_type', 'sqlname' => 'parent_type', 'default' => false, 'order' => 4, 'min_width' => 100, 'max_width' => 300],
+        'created_at' => ['id' => 96, 'type' => 'datetime', 'name' => 'created_at', 'sqlname' => 'created_at', 'default' => true, 'order' => 81, 'footer' => true, 'summary' => true, 'min_width' => 100, 'max_width' => 300],
+        'updated_at' => ['id' => 97, 'type' => 'datetime', 'name' => 'updated_at', 'sqlname' => 'updated_at', 'default' => true, 'order' => 82, 'footer' => true, 'summary' => true, 'min_width' => 100, 'max_width' => 300],
+        'deleted_at' => ['id' => 101, 'type' => 'datetime', 'name' => 'deleted_at', 'sqlname' => 'deleted_at', 'default' => false, 'order' => 83, 'min_width' => 100, 'max_width' => 300],
+        'created_user' => ['id' => 98, 'type' => 'user', 'name' => 'created_user', 'sqlname' => 'created_user_id', 'tagname' => 'created_user_tag', 'default' => false, 'order' => 91, 'footer' => true, 'min_width' => 100, 'max_width' => 300],
+        'updated_user' => ['id' => 99, 'type' => 'user', 'name' => 'updated_user', 'sqlname' => 'updated_user_id', 'tagname' => 'updated_user_tag', 'default' => false, 'order' => 92, 'footer' => true, 'min_width' => 100, 'max_width' => 300],
+        'deleted_user' => ['id' => 102, 'type' => 'user', 'name' => 'deleted_user', 'sqlname' => 'deleted_user_id', 'tagname' => 'deleted_user_tag', 'default' => false, 'order' => 93, 'min_width' => 100, 'max_width' => 300],
     ];
 
     public function id()

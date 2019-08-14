@@ -114,7 +114,7 @@ class SystemItem implements ItemInterface
     protected function getSqlColumnName()
     {
         // get SystemColumn enum
-        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $option = $this->getSystemColumnOption();
         if (!isset($option)) {
             $sqlname = $this->column_name;
         } else {
@@ -133,7 +133,7 @@ class SystemItem implements ItemInterface
      */
     public function index()
     {
-        $option = SystemColumn::getOption(['name' => $this->name()]);
+        $option = $this->getSystemColumnOption();
         return array_get($option, 'sqlname', $this->name());
     }
 
@@ -152,6 +152,17 @@ class SystemItem implements ItemInterface
     public function html()
     {
         return $this->getTargetValue(true);
+    }
+
+    /**
+     * get grid style
+     */
+    public function gridStyle(){
+        $option = $this->getSystemColumnOption();
+        return $this->getStyleString([
+            'min-width' => array_get($option, 'min_width', config('exment.grid_min_width', 100)) . 'px',
+            'max-width' => array_get($option, 'max_width', config('exment.grid_max_width', 300)) . 'px',
+        ]);
     }
 
     /**
@@ -187,7 +198,7 @@ class SystemItem implements ItemInterface
         }
 
         if ($html) {
-            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            $option = $this->getSystemColumnOption();
             if (!is_null($keyname = array_get($option, 'tagname'))) {
                 return array_get($this->custom_value, $keyname);
             }
@@ -208,7 +219,7 @@ class SystemItem implements ItemInterface
     public function getFilterField($value_type = null)
     {
         if (is_null($value_type)) {
-            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            $option = $this->getSystemColumnOption();
             $value_type = array_get($option, 'type');
         }
 
@@ -247,7 +258,7 @@ class SystemItem implements ItemInterface
      */
     public function isDate()
     {
-        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $option = $this->getSystemColumnOption();
         $value_type = array_get($option, 'type');
 
         return in_array($value_type, ['day', 'datetime']);
@@ -272,6 +283,11 @@ class SystemItem implements ItemInterface
         }
         return ViewColumnFilterType::DEFAULT;
     }
+
+    protected function getSystemColumnOption(){
+        return SystemColumn::getOption(['name' => $this->column_name]);
+    }
+
 
     public static function getItem(...$args)
     {
