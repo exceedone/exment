@@ -182,7 +182,7 @@ class MenuController extends AdminControllerBase
                 ]
             )->help(exmtrans('common.help_code'));
         $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
-        $form->icon('icon', trans('admin.icon'))->default('');
+        $form->icon('icon', trans('admin.icon'))->required()->default('');
         $form->hidden('order');
         $form->setWidth(8, 3);
 

@@ -112,10 +112,16 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 })
         ->all();
 
+        $results = [];
         foreach ($rows as &$row) {
+            $result = true;
             switch ($row['menu_type']) {
                 case MenuType::PLUGIN:
                     $plugin = Plugin::getEloquent($row['menu_target']);
+                    if(!isset($plugin)){
+                        $result = false;
+                        continue;
+                    }
                     $row['uri'] = $plugin->getRouteUri();
                     break;
                 case MenuType::TABLE:
@@ -141,9 +147,14 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
                 // database-row has icon column, set icon
             }
+
+            if(!$result){
+                continue;
+            }
+            $results[] = $row;
         }
 
-        return $rows;
+        return $results;
     }
 
     public static function importReplaceJson(&$json, $options = [])
