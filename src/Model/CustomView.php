@@ -252,6 +252,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     $item->options([
                         'view_pivot_column' => $column->view_pivot_column_id ?? null,
                         'view_pivot_table' => $column->view_pivot_table_id ?? null,
+                        'grid_column' => true, 
                     ]);
                     $body_items[] = $item->setCustomValue($data)->html();
                 }

@@ -114,7 +114,8 @@ abstract class CustomItem implements ItemInterface
     public function html()
     {
         // default escapes text
-        return esc_html($this->text());
+        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($this->text()) : $this->text();
+        return esc_html($text);
     }
 
     /**
