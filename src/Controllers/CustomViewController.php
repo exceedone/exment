@@ -370,7 +370,7 @@ class CustomViewController extends AdminControllerTableBase
                         $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
                             ->options($this->custom_table->getColumnSelectOptions([
                                 'append_table' => true,
-                                'include_select_table' => true,
+                                'include_parent' => true,
                             ]));
                         $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                         $form->hidden('order')->default(0);
@@ -431,6 +431,9 @@ class CustomViewController extends AdminControllerTableBase
             if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
                 $suuid = $form->model()->suuid;
+                
+                admin_toastr(trans('admin.save_succeeded'));
+
                 return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
             }
         });

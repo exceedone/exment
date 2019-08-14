@@ -96,13 +96,14 @@ trait CustomViewColumnTrait
         }
 
         $optionKeyParams['view_pivot_column'] = $this->view_pivot_column_id ?? null;
+        $optionKeyParams['view_pivot_table'] = $this->view_pivot_table_id ?? null;
 
         return static::getOptionKey($column_type, true, $column_table_id, $optionKeyParams);
     }
 
     protected function setViewColumnTarget($view_column_target, $column_table_name_key = 'custom_view', $column_table_id_key = 'view_column_table_id', $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')
     {
-        list($column_type, $column_table_id, $column_type_target, $view_pivot_column) = $this->getViewColumnTargetItems($view_column_target, $column_table_name_key);
+        list($column_type, $column_table_id, $column_type_target, $view_pivot_column, $view_pivot_table) = $this->getViewColumnTargetItems($view_column_target, $column_table_name_key);
 
         $this->{$column_table_id_key} = $column_table_id;
         $this->{$column_type_key} = $column_type;
@@ -110,6 +111,7 @@ trait CustomViewColumnTrait
 
         if(method_exists($this, 'setViewPivotColumnIdAttribute')){
             $this->view_pivot_column_id = $view_pivot_column;
+            $this->view_pivot_table_id = $view_pivot_table;
         }
     }
     
@@ -127,6 +129,7 @@ trait CustomViewColumnTrait
         $params = static::getOptionParams($view_column_target, $this->{$column_table_name_key}->custom_table_id ?? null);
 
         $view_pivot_column_id = array_get($params, 'view_pivot_column_id');
+        $view_pivot_table_id = array_get($params, 'view_pivot_table_id');
         $column_table_id = array_get($params, 'column_table_id');
 
         if (!is_numeric($column_type_target)) {
@@ -142,7 +145,7 @@ trait CustomViewColumnTrait
             $column_type = ViewColumnType::COLUMN;
         }
 
-        return [$column_type, $column_table_id, $column_type_target, $view_pivot_column_id];
+        return [$column_type, $column_table_id, $column_type_target, $view_pivot_column_id, $view_pivot_table_id];
     }
 
     /**

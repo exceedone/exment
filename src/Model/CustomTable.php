@@ -990,55 +990,28 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_parent' => true,
                         'include_system' => $include_system,
                         'table_view_name' => $tablename,
+                        'view_pivot_column' => SystemColumn::PARENT_ID,
+                        'view_pivot_table' => $this,
                     ]
                 );
             }
             ///// get select table columns
             $select_table_columns = $this->getSelectTableColumns();
             foreach ($select_table_columns as $select_table_column) {
-                $custom_table = $select_table_column->column_item->getSelectTable();
-                $tablename = array_get($custom_table, 'table_view_name');
+                $select_table = $select_table_column->column_item->getSelectTable();
+                $tablename = array_get($select_table, 'table_view_name');
                 $this->setColumnOptions(
                     $options,
-                    $custom_table->custom_columns,
-                    $custom_table->id,
+                    $select_table->custom_columns,
+                    $select_table->id,
                     [
                         'append_table' => $append_table,
                         'index_enabled_only' => $index_enabled_only,
                         'include_parent' => true,
                         'include_system' => $include_system,
                         'table_view_name' => $tablename,
-                    ]
-                );
-            }
-        }
-
-        if ($include_select_table) {
-            ///// get select table column's
-            $select_target_columns = $this->custom_columns->filter(function($custom_column){
-                if(!ColumnType::isSelectTable($custom_column->column_type)){
-                    return false;
-                }
-
-                if(!isset($custom_column->select_target_table)){
-                    return false;
-                }
-                return true;
-            });
-            foreach ($select_target_columns as $view_pivot_column) {
-                $select_target_table = $view_pivot_column->select_target_table;
-                $tablename = array_get($view_pivot_column, 'column_view_name');
-                $this->setColumnOptions(
-                    $options,
-                    $select_target_table->custom_columns,
-                    $select_target_table->id,
-                    [
-                        'append_table' => $append_table,
-                        'index_enabled_only' => $index_enabled_only,
-                        'include_parent' => false,
-                        'include_system' => $include_system,
-                        'table_view_name' => $tablename,
-                        'view_pivot_column' => $view_pivot_column,
+                        'view_pivot_column' => $select_table_column,
+                        'view_pivot_table' => $this,
                     ]
                 );
             }
@@ -1098,6 +1071,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'include_system' => true,
                 'table_view_name' => null,
                 'view_pivot_column' => null,
+                'view_pivot_table' => null,
                 'child_sum' => false,
             ],
             $selectOptions
@@ -1107,6 +1081,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get option key
         $optionKeyParams = [
             'view_pivot_column' => $view_pivot_column,
+            'view_pivot_table' => $view_pivot_table,
             'child_sum' => $child_sum,
         ];
 
@@ -1296,11 +1271,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
-    public function getValueModel($id = null)
+    public function getValueModel($id = null, $withTrashed = false)
     {
         $modelname = getModelName($this);
         if (isset($id)) {
-            $model = $modelname::find($id);
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
+            $model = System::requestSession($key, function () use ($id, $withTrashed) {
+                if($withTrashed){
+                    return getModelName($this->table_name)::withTrashed()->find($id);
+                }
+                return getModelName($this->table_name)::find($id);
+            });
         } else {
             $model = new $modelname;
         }

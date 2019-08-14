@@ -1471,10 +1471,7 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, SystemTableName::USER, $id);
-        $user = System::requestSession($key, function () use ($id) {
-            return getModelName(SystemTableName::USER)::withTrashed()->find($id);
-        });
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         if (!isset($user)) {
             return null;
         }

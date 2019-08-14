@@ -46,7 +46,7 @@ abstract class CustomItem implements ItemInterface
 
         $params = static::getOptionParams($view_column_target, $this->custom_table);
         // get label. check not match $this->custom_table and pivot table
-        if(array_has($params, 'view_pivot_table_id') && $this->custom_table->id != $params['view_pivot_table_id']){
+        if(array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']){
             $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
         }else{
             $this->label = $this->custom_column->column_view_name;

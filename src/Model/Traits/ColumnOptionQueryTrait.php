@@ -21,6 +21,7 @@ trait ColumnOptionQueryTrait
         extract(array_merge(
             [
                 'view_pivot_column' => null,
+                'view_pivot_table' => null,
                 'child_sum' => false,
             ],
             $options
@@ -39,6 +40,8 @@ trait ColumnOptionQueryTrait
             }else{
                 $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
             }
+
+            $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
         }
         if(boolval($child_sum)){
             $query['child_sum'] = true;
@@ -74,17 +77,9 @@ trait ColumnOptionQueryTrait
 
             $params['column_table_id'] = array_get($view_column_query_array, 'table_id', $defaultCustomTable->id ?? null);
             $params['view_pivot_column_id'] = array_get($view_column_query_array, 'view_pivot_column_id');
+            $params['view_pivot_table_id'] = array_get($view_column_query_array, 'view_pivot_table_id');
         }else{
             $params['column_table_id'] = $defaultCustomTable->id ?? null;
-        }
-
-        // check not match pivot table and custom table
-        if(isset($params['view_pivot_column_id'])){
-            $view_pivot_column = CustomColumn::getEloquent($params['view_pivot_column_id']);
-            $view_pivot_table = CustomTable::getEloquent($view_pivot_column);
-            if(isset($view_pivot_table) && $params['column_table_id'] != $view_pivot_table->id){
-                $params['view_pivot_table_id'] = $view_pivot_table->id;
-            }    
         }
 
         return $params;

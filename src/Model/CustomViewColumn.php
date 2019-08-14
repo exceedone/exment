@@ -13,7 +13,7 @@ class CustomViewColumn extends ModelBase
     use Traits\DatabaseJsonTrait;
 
     protected $guarded = ['id'];
-    protected $appends = ['view_column_target', 'view_column_end_date', 'view_pivot_column_id', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type'];
+    protected $appends = ['view_column_target', 'view_column_end_date', 'view_group_condition', 'view_column_color', 'view_column_font_color', 'sort_order', 'sort_type'];
     protected $with = ['custom_column'];
     protected $casts = ['options' => 'json'];
 
@@ -96,7 +96,7 @@ class CustomViewColumn extends ModelBase
             return $this;
         }
         
-        list($column_type, $column_table_id, $column_type_target, $view_pivot_column) = $this->getViewColumnTargetItems($end_date);
+        list($column_type, $column_table_id, $column_type_target, $view_pivot_column, $view_pivot_table) = $this->getViewColumnTargetItems($end_date);
 
         $this->setOption('end_date_type', $column_type);
         $this->setOption('end_date_target', $column_type_target);
@@ -115,6 +115,19 @@ class CustomViewColumn extends ModelBase
             return $this;
         }
         $this->setOption('view_pivot_column_id', $view_pivot_column_id);
+        return $this;
+    }
+    public function getViewPivotTableIdAttribute()
+    {
+        return $this->getOption('view_pivot_table_id');
+    }
+    public function setViewPivotTableIdAttribute($view_pivot_table_id)
+    {
+        if (!isset($view_pivot_table_id)) {
+            $this->setOption('view_pivot_table_id', null);
+            return $this;
+        }
+        $this->setOption('view_pivot_table_id', $view_pivot_table_id);
         return $this;
     }
 

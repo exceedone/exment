@@ -32,7 +32,7 @@ class SystemItem implements ItemInterface
         $this->column_name = $params['column_column_target'];
 
         // get label. check not match $this->custom_table and pivot table
-        if(array_has($params, 'view_pivot_table_id') && $this->custom_table->id != $params['view_pivot_table_id']){
+        if(array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']){
             $this->label = static::getViewColumnLabel(exmtrans("common.$this->column_name"), $this->custom_table->table_view_name);
         }else{
             $this->label = exmtrans("common.$this->column_name");
