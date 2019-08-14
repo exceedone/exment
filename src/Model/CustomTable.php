@@ -340,6 +340,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         // get table info
         if (!isset($endpoint)) {
+            // for command execute
+            if(is_null(app('request')->route())){
+                return null;
+            }
+
             $tableKey = app('request')->route()->parameter('tableKey');
             if (!isset($tableKey)) {
                 abort(404);
