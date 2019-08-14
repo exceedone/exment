@@ -80,10 +80,11 @@ class ListItem implements ItemInterface
                 }
             }
         ];
-        list($headers, $bodies) = $this->custom_view->getDataTable($datalist, $option);
+        list($headers, $bodies, $columnStyles) = $this->custom_view->getDataTable($datalist, $option);
         
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
+        $widgetTable->setColumnStyle($columnStyles);
 
         return $widgetTable->render();
     }

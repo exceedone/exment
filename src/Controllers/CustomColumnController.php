@@ -209,6 +209,15 @@ class CustomColumnController extends AdminControllerTableBase
             $form->text('placeholder', exmtrans("custom_column.options.placeholder"));
             $form->text('help', exmtrans("custom_column.options.help"))->help(exmtrans("custom_column.help.help"));
             
+            $form->text('min_width', exmtrans("custom_column.options.min_width"))
+                ->help(exmtrans("custom_column.help.min_width"))
+                ->rules(['nullable', 'integer'])
+                ;
+            $form->text('max_width', exmtrans("custom_column.options.max_width"))
+                ->help(exmtrans("custom_column.help.max_width"))
+                ->rules(['nullable', 'integer'])
+                ;
+            
             // setting for each settings of column_type. --------------------------------------------------
 
             // text
@@ -386,7 +395,7 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.select_load_ajax", config('exment.select_table_limit_count', 100)))
                 ->default("0")
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_SELECT_TABLE()])]);
-             
+            
             // yes/no ----------------------------
             $form->text('true_value', exmtrans("custom_column.options.true_value"))
                     ->help(exmtrans("custom_column.help.true_value"))
