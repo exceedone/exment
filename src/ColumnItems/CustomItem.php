@@ -8,6 +8,8 @@ use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -15,8 +17,7 @@ use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
 
 abstract class CustomItem implements ItemInterface
 {
-    use ItemTrait;
-    use SummaryItemTrait;
+    use ItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
     protected $custom_column;
     
@@ -35,13 +36,21 @@ abstract class CustomItem implements ItemInterface
     public static $availableFields = [];
 
 
-    public function __construct($custom_column, $custom_value)
+    public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         $this->custom_column = $custom_column;
         $this->custom_table = $custom_column->custom_table;
-        $this->label = $this->custom_column->column_view_name;
         $this->setCustomValue($custom_value);
         $this->options = [];
+
+        $params = static::getOptionParams($view_column_target, $this->custom_table);
+        // get label. check not match $this->custom_table and pivot table
+        if(array_has($params, 'view_pivot_table_id') && $this->custom_table->id != $params['view_pivot_table_id']){
+            $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
+        }else{
+            $this->label = $this->custom_column->column_view_name;
+        }
+        
     }
 
     /**
@@ -151,6 +160,14 @@ abstract class CustomItem implements ItemInterface
         if (isset($custom_value) && boolval(array_get($this->options, 'summary_child'))) {
             return $custom_value->getSum($this->custom_column);
         }
+
+        // if options has "view_pivot_column", get select_table's custom_value first
+        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+            $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
+            $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+            $custom_value = CustomTable::getEloquent($this->custom_column)->getValueModel($pivot_id);
+        }
+
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
     
@@ -406,11 +423,11 @@ abstract class CustomItem implements ItemInterface
 
     public static function getItem(...$args)
     {
-        list($custom_column, $custom_value) = $args + [null, null];
+        list($custom_column, $custom_value, $view_column_target) = $args + [null, null, null];
         $column_type = $custom_column->column_type;
 
         if ($className = static::findItemClass($column_type)) {
-            return new $className($custom_column, $custom_value);
+            return new $className($custom_column, $custom_value, $view_column_target);
         }
         
         admin_error('Error', "Field type [$column_type] does not exist.");
