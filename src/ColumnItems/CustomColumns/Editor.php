@@ -13,6 +13,9 @@ class Editor extends CustomItem
         if (is_null($text)) {
             return null;
         }
+
+        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($text) : $text;
+        
         return '<div class="show-tinymce">'.preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text)).'</div>';
     }
     

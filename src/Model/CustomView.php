@@ -178,7 +178,11 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item
                 ->label(array_get($custom_view_column, 'view_column_name'))
-                ->options(['grid_column' => true]);
+                ->options([
+                    'grid_column' => true, 
+                    'view_pivot_column' => $custom_view_column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $custom_view_column->view_pivot_table_id ?? null,
+                ]);
             $grid->column($item->indexEnabled() ? $item->index() : $item->name(), $item->label())
                 ->sort($item->sortable())
                 ->cast($item->getCastName())
@@ -248,6 +252,12 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                             'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
                         ]);
                     }
+
+                    $item->options([
+                        'view_pivot_column' => $column->view_pivot_column_id ?? null,
+                        'view_pivot_table' => $column->view_pivot_table_id ?? null,
+                        'grid_column' => true, 
+                    ]);
                     $body_items[] = $item->setCustomValue($data)->html();
                 }
 
@@ -749,7 +759,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
      * @param $is_number
      */
-    public function getColumnsSelectOptions($is_number = null)
+    public function getViewColumnsSelectOptions($is_number = null)
     {
         $options = [];
         

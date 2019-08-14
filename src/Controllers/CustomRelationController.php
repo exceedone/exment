@@ -141,7 +141,10 @@ class CustomRelationController extends AdminControllerTableBase
                 ->help(exmtrans("custom_relation.help.parent_import_column_id", $manual_url))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'relation_type', 'value' => [RelationType::ONE_TO_MANY]])])
                 ->options(function ($select_table, $form) use ($custom_table) {
-                    return CustomTable::getEloquent($custom_table)->getColumnsSelectOptions(false, true, false, false, false) ?? [];
+                    return CustomTable::getEloquent($custom_table)->getColumnSelectOptions([
+                        'append_table' => true,
+                        'include_system' => false
+                    ]) ?? [];
                 });
         })->disableHeader();
         
