@@ -484,6 +484,7 @@ return [
         'custom_form' => 'フォーム設定',
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
+        'custom_operation' => '一括更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -724,6 +725,21 @@ return [
         'message' => [
             'no_exists_column' => '必須項目が設定されていません。',
         ],
+    ],
+
+    'custom_operation_columns' => [
+        'update_value' => '更新値',
+    ],
+
+    'custom_operation' => [
+        'header' => '一括更新設定',
+        'description' => '選択データを一括更新するための設定を行います。',
+        'operation_name' => '一括更新文言',
+        'custom_operation_button_label' => '一括更新設定',
+        'custom_operation_columns' => '更新列設定',
+        'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
+        'view_column_target' => '対象列',
+        'update_value_text' => '更新値',
     ],
 
     'custom_view' => [
@@ -1107,6 +1123,10 @@ return [
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
             'init_flg' => '保存後、変更はできません。',
+        ],
+        'message' => [
+            'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_succeeded' => '一括更新を実行しました。',
         ],
     ],
 

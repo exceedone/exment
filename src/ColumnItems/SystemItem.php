@@ -162,6 +162,14 @@ class SystemItem implements ItemInterface
         return true;
     }
 
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
+    }
+
     public function setCustomValue($custom_value)
     {
         $this->custom_value = $custom_value;

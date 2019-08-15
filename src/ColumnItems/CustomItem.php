@@ -124,6 +124,14 @@ abstract class CustomItem implements ItemInterface
         return $this->custom_column->index_enabled;
     }
 
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
+    }
+
     public function setCustomValue($custom_value)
     {
         $this->value = $this->getTargetValue($custom_value);

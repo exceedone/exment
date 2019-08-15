@@ -121,12 +121,15 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->post("data/{tableKey}/{id}/rowUpdate/{rowid}", 'CustomValueController@rowUpdate');
 
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
+
+            $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         
             $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
             $router->post("navisearch/result/{tableKey}", 'NaviSearchController@getNaviResult');
@@ -147,6 +150,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'view', 'CustomViewController');
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
+            $this->setTableResouce($router, 'operation', 'CustomOperationController');
             $this->setTableResouce($router, 'data', 'CustomValueController');
 
             $router->get('webapi/menu/menutype', 'MenuController@menutype');

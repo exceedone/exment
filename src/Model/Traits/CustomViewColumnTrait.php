@@ -75,8 +75,7 @@ trait CustomViewColumnTrait
         $column_type = array_get($this, $column_type_key);
         $column_type_target = array_get($this, $column_type_target_key);
 
-        if (!isset($column_table_id) ||
-            !isset($column_type) ||
+        if (!isset($column_type) ||
             !isset($column_type_target)) {
             return null;
         }
@@ -90,7 +89,7 @@ trait CustomViewColumnTrait
             $column_type = $column_type_target;
         }
 
-        return $column_table_id . '-' . $column_type;
+        return isset($column_table_id)? $column_table_id . '-' . $column_type: $column_type;
     }
 
     protected function setViewColumnTarget($view_column_target, $column_table_name_key = 'custom_view', $column_table_id_key = 'view_column_table_id', $column_type_key = 'view_column_type', $column_type_target_key = 'view_column_target_id')

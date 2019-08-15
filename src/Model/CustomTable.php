@@ -56,6 +56,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
     }
+ 
+    public function custom_operations()
+    {
+        return $this->hasMany(CustomOperation::class, 'custom_table_id');
+    }
     public function custom_relations()
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
@@ -899,6 +904,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if (is_null($display_table)) {
             $display_table = $this;
+        } else {
+            $display_table = self::getEloquent($display_table);
         }
         $table_name = $this->table_name;
         // get query.

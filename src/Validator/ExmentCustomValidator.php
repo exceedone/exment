@@ -11,8 +11,9 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Providers\CustomUserProvider;
+use Illuminate\Validation\Validator as AdminValidator;
 
-class ExmentCustomValidator extends \Illuminate\Validation\Validator
+class ExmentCustomValidator extends AdminValidator
 {
     /**
     * Validation current password
@@ -255,41 +256,23 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     */
     public function validateChangeFieldValue($attribute, $value, &$parameters)
     {
-        $field_name = str_replace('.view_filter_condition_value', '.view_column_target', $attribute);
-        $condition = str_replace('.view_filter_condition_value', '.view_filter_condition', $attribute);
-        $view_column_target = array_get($this->data, $field_name);
-        $view_filter_condition = array_get($this->data, $condition);
+        $field_label = null;
 
-        $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
+        if (isset($parameters) && count($parameters) > 0) {
+            $field_label = $parameters[0];
+        }
 
-        if ($value_type == 'none') {
+        $prefix = substr($attribute, 0, strrpos($attribute, '.'));
+
+        $field = getCustomField(array_get($this->data, $prefix), $field_label);
+
+        if (!$validator = $field->getValidator([$field->column() => $value])) {
             return true;
         }
 
-        if (is_null($value_type)) {
-            // get column item
-            $column_item = CustomViewFilter::getColumnItem($view_column_target)
-                ->options([
-                    'view_column_target' => true,
-                ]);
-
-            ///// get column_type
-            $value_type = $column_item->getViewFilterType();
-        }
-
-        $parameters = [$value_type];
-
-        if (is_nullorempty($value)) {
+        if (($validator instanceof AdminValidator) && !$validator->passes()) {
+            $parameters[] = $validator->messages->first();
             return false;
-        }
-
-        switch ($value_type) {
-            case ViewColumnFilterType::NUMBER:
-                return $this->validateNumeric($attribute, $value);
-                break;
-            case ViewColumnFilterType::DAY:
-                return $this->validateDate($attribute, $value);
-                break;
         }
 
         return true;
@@ -297,15 +280,7 @@ class ExmentCustomValidator extends \Illuminate\Validation\Validator
     protected function replaceChangeFieldValue($message, $attribute, $rule, $parameters)
     {
         if (count($parameters) > 0) {
-            $name = exmtrans("custom_view.view_filter_condition_value_text");
-            switch ($parameters[0]) {
-                case ViewColumnFilterType::NUMBER:
-                    return str_replace(':attribute', $name, trans('validation.numeric'));
-                case ViewColumnFilterType::DAY:
-                    return str_replace(':attribute', $name, trans('validation.date'));
-                default:
-                    return str_replace(':attribute', $name, trans('validation.required'));
-            }
+            return $parameters[count($parameters) - 1];
         }
         return $message;
     }
