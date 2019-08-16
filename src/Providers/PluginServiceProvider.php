@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Request;
 
 class PluginServiceProvider extends ServiceProvider
@@ -21,6 +22,10 @@ class PluginServiceProvider extends ServiceProvider
      */
     public function map()
     {
+        // load plugins
+        if(!\DB::canConnection() || !hasTable(SystemTableName::PLUGIN)){
+            return;
+        }
         // get plugin page's
         $pluginPages = Plugin::getPluginPages();
         

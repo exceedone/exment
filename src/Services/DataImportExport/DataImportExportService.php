@@ -145,7 +145,7 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        $import_plugin = $request->get('import_plugin');
+        $import_plugin = is_string($request) ? null : $request->get('import_plugin');
 
         if (isset($import_plugin)) {
             return $this->customImport($import_plugin, $request->file('custom_table_file'));
