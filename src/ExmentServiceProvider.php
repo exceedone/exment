@@ -8,7 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Services\Plugin\PluginPageBase;
+use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -180,7 +180,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         // bind plugin for page
-        $this->app->bind(PluginPageBase::class, function ($app) {
+        $this->app->bind(PluginPublicBase::class, function ($app) {
             return Plugin::getPluginPageModel();
         });
         

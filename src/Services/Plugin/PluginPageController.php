@@ -12,7 +12,7 @@ class PluginPageController extends Controller
     protected $pluginPage;
     protected $plugin;
     
-    public function __construct(PluginPageBase $pluginPage)
+    public function __construct(PluginPublicBase $pluginPage)
     {
         $this->pluginPage = $pluginPage;
         $this->plugin = isset($pluginPage) ? $pluginPage->_plugin() : null ;
@@ -51,7 +51,6 @@ class PluginPageController extends Controller
 
     public function _readPublicFile(Request $request, ...$args){
         // get file path
-        $extension = $args[0];
         $path = implode('/', $args);
         
         // get base path
@@ -64,6 +63,7 @@ class PluginPageController extends Controller
         }
 
         $file = \File::get($filePath);
+        $extension = pathinfo($filePath)['extension'];
 
         switch($extension){
             case 'css':

@@ -68,14 +68,34 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
 
+        // set scripts
+        $pluginScripts = Plugin::getPluginScripts();
+        foreach($pluginScripts as $pluginScript){
+            // get scripts
+            $plugin = $pluginScript->_plugin();
+            $cdns = array_get($plugin, 'options.cdns', []);
+            foreach($cdns as $cdn){
+                Ad::js($cdn);
+            }
+
+            // get each scripts
+            $items = collect($pluginScript->js(true))->map(function($item) use($pluginScript){
+                return admin_urls($pluginScript->_plugin()->getRouteUri(), 'public/', $item);
+            });
+            if(!empty($items)){
+                foreach($items as $item){
+                    Ad::js($item);
+                }
+            }
+        }
+
         // set Plugin resource
         $pluginPages = Plugin::getPluginPages();
         foreach($pluginPages as $pluginPage){
             // get css and js
             $publics = ['css', 'js'];
             foreach($publics as $p){
-                // get css
-                $items = collect($pluginPage->{$p}())->map(function($item) use($pluginPage, $p){
+                $items = collect($pluginPage->{$p}())->map(function($item) use($pluginPage){
                     return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
                 });
                 if(!empty($items)){
@@ -85,6 +105,8 @@ class Bootstrap
                 }
             }
         }
+
+        Ad::js(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
@@ -138,6 +160,5 @@ class Bootstrap
 
 EOT;
         Ad::script($script);
-
     }
 }

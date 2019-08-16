@@ -261,13 +261,43 @@ class Plugin extends ModelBase
      * @return void
      */
     public static function getPluginPages(){
+        $plugins = static::getPluginsReqSession();
+        $plugins = $plugins->filter(function($plugin){
+            if(array_get($plugin, 'plugin_type') != PluginType::PAGE){
+                return false;
+            }
+            return true;
+        });
+
+        return $plugins->map(function($plugin){
+            return $plugin->getClass();
+        });
+    }
+    
+    /**
+     * Get plugin scripts
+     *
+     * @return void
+     */
+    public static function getPluginScripts(){
+        $plugins = static::getPluginsReqSession();
+        $plugins = $plugins->filter(function($plugin){
+            if(array_get($plugin, 'plugin_type') != PluginType::SCRIPT){
+                return false;
+            }
+            return true;
+        });
+
+        return $plugins->map(function($plugin){
+            return $plugin->getClass();
+        });
+    }
+
+    protected static function getPluginsReqSession(){
         // get plugin page's
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_PAGES, function(){
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGINS, function(){
             // get plugin
             $plugins = Plugin::allRecords(function($plugin){
-                if(array_get($plugin, 'plugin_type') != PluginType::PAGE){
-                    return false;
-                }
                 if(!boolval(array_get($plugin, 'active_flg'))){
                     return false;
                 }
@@ -275,9 +305,7 @@ class Plugin extends ModelBase
                 return true;
             });
 
-            return collect($plugins)->map(function($plugin){
-                return $plugin->getClass();
-            });
+            return collect($plugins);
         });
     }
     
@@ -298,11 +326,11 @@ class Plugin extends ModelBase
         $pluginName = $matches[1];
         
         // get target plugin
-        $plugin = static::allRecords(function($plugin) use($pluginName){
-            return array_get($plugin, 'plugin_type') == PluginType::PAGE
-                && array_get($plugin, 'plugin_name') == pascalize($pluginName)
+        $plugin = static::getPluginsReqSession()->first(function($plugin) use($pluginName){
+            return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT])
+                && pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
             ;
-        })->first();
+        });
 
         if (!isset($plugin)) {
             return;

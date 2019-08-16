@@ -26,19 +26,15 @@ class PluginServiceProvider extends ServiceProvider
         
         // loop
         foreach($pluginPages as $pluginPage){
-            $base_path = $pluginPage->_plugin()->getFullPath();
-            if ($this->app->routesAreCached()) {
-                continue;
-            }
+            $this->pluginRoute($pluginPage);
+        }
 
-            $config_path = path_join($base_path, 'config.json');
-            if (!file_exists($config_path)) {
-                continue;
-            }
-
-            $config = \File::get($config_path);
-            $json = json_decode($config, true);
-            $this->pluginRoute($pluginPage, $json);
+        // get plugin script's
+        $pluginScripts = Plugin::getPluginScripts();
+        
+        // loop
+        foreach($pluginScripts as $pluginScript){
+            $this->pluginScriptRoute($pluginScript);
         }
     }
 
@@ -49,8 +45,21 @@ class PluginServiceProvider extends ServiceProvider
      * @param json $json
      * @return void
      */
-    protected function pluginRoute($pluginPage, $json)
+    protected function pluginRoute($pluginPage)
     {
+        $base_path = $pluginPage->_plugin()->getFullPath();
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+        $config_path = path_join($base_path, 'config.json');
+        if (!file_exists($config_path)) {
+            return;
+        }
+
+        $config = \File::get($config_path);
+        $json = json_decode($config, true);
+
         Route::group([
             'prefix'        => url_join(config('admin.route.prefix'), $pluginPage->_plugin()->getRouteUri()),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
@@ -72,6 +81,29 @@ class PluginServiceProvider extends ServiceProvider
 
             // for public file
             Route::get('public/{type}/{arg1}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
+        });
+    }
+    
+    /**
+     * routing plugin
+     *
+     * @param Plugin $plugin
+     * @param json $json
+     * @return void
+     */
+    protected function pluginScriptRoute($pluginScript)
+    {
+        if ($this->app->routesAreCached()) {
+            return;
+        }
+
+        Route::group([
+            'prefix'        => url_join(config('admin.route.prefix'), $pluginScript->_plugin()->getRouteUri()),
+            'namespace'     => 'Exceedone\Exment\Services\Plugin',
+            'middleware'    => config('admin.route.middleware'),
+        ], function (Router $router) use ($pluginScript) {
+            // for public file
+            Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
         });
     }
 }
