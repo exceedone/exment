@@ -27,7 +27,7 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
+        if (!canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
             $path = trim(admin_base_path('install'), '/');
             if (!$request->is($path)) {
                 return redirect()->guest(admin_base_path('install'));

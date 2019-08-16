@@ -214,7 +214,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
 
         // load plugins
-        if(!\DB::canConnection() || !hasTable(SystemTableName::PLUGIN)){
+        if(!canConnection() || !hasTable(SystemTableName::PLUGIN)){
             return;
         }
         $pluginPages = Plugin::getPluginPages();

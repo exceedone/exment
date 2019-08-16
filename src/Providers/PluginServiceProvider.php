@@ -23,7 +23,7 @@ class PluginServiceProvider extends ServiceProvider
     public function map()
     {
         // load plugins
-        if(!\DB::canConnection() || !hasTable(SystemTableName::PLUGIN)){
+        if(!canConnection() || !hasTable(SystemTableName::PLUGIN)){
             return;
         }
         // get plugin page's
