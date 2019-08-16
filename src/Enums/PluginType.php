@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
+use Exceedone\Exment\Services\Plugin\PluginScriptDefault;
+use Exceedone\Exment\Services\Plugin\PluginStyleDefault;
 
 class PluginType extends EnumBase
 {
@@ -13,10 +15,12 @@ class PluginType extends EnumBase
     public const BATCH = '4';
     public const DASHBOARD = '5';
     public const IMPORT = '6';
-
+    public const SCRIPT = '7';
+    public const STYLE = '8';
+    
     public static function getRequiredString()
     {
-        return 'trigger,page,api,dashboard,batch,document,import';
+        return 'trigger,page,api,dashboard,batch,document,import,script,style';
     }
 
     /**
@@ -58,6 +62,12 @@ class PluginType extends EnumBase
                 case PluginType::DOCUMENT:
                     $class = new PluginDocumentDefault($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
                     break;
+                case PluginType::SCRIPT:
+                    $class = new PluginScriptDefault($plugin);
+                    break;
+                case PluginType::STYLE:
+                    $class = new PluginStyleDefault($plugin);
+                    break;
             }
         }
 
@@ -65,10 +75,6 @@ class PluginType extends EnumBase
     }
 
     public function getPluginClassShortName($plugin){
-        // if($this == PluginType::PAGE){
-        //     return array_get($plugin, 'options.controller');
-        // }
-
         return 'Plugin';
     }
 }

@@ -8,6 +8,7 @@ use Encore\Admin;
 use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 
 /**
  * Middleware as Bootstrap.
@@ -68,14 +69,35 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/common.js?ver='.$ver));
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
 
+        // set scripts
+        $pluginPublics = Plugin::getPluginPublics();
+        foreach($pluginPublics as $pluginPublic){
+            // get scripts
+            $plugin = $pluginPublic->_plugin();
+            $p = $plugin->plugin_type == PluginType::SCRIPT ? 'js' : 'css';
+            $cdns = array_get($plugin, 'options.cdns', []);
+            foreach($cdns as $cdn){
+                Ad::{$p}($cdn);
+            }
+
+            // get each scripts
+            $items = collect($pluginPublic->{$p}(true))->map(function($item) use($pluginPublic){
+                return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
+            });
+            if(!empty($items)){
+                foreach($items as $item){
+                    Ad::{$p}($item);
+                }
+            }
+        }
+
         // set Plugin resource
         $pluginPages = Plugin::getPluginPages();
         foreach($pluginPages as $pluginPage){
             // get css and js
             $publics = ['css', 'js'];
             foreach($publics as $p){
-                // get css
-                $items = collect($pluginPage->{$p}())->map(function($item) use($pluginPage, $p){
+                $items = collect($pluginPage->{$p}())->map(function($item) use($pluginPage){
                     return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
                 });
                 if(!empty($items)){
@@ -85,6 +107,8 @@ class Bootstrap
                 }
             }
         }
+
+        Ad::js(asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // add admin_url and file delete confirm
         $delete_confirm = trans('admin.delete_confirm');
@@ -138,6 +162,5 @@ class Bootstrap
 
 EOT;
         Ad::script($script);
-
     }
 }

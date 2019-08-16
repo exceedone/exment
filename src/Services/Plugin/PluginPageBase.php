@@ -5,7 +5,7 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-class PluginPageBase
+class PluginPageBase extends PluginPublicBase
 {
     use PluginBase;
 
@@ -16,28 +16,6 @@ class PluginPageBase
         $this->plugin = $plugin;
     }
 
-    public function _plugin(){
-        return $this->plugin;
-    }
-
-    /**
-     * get css files
-     *
-     * @return array
-     */
-    public function css(){
-        return $this->getCssJsFiles('css');
-    }
-
-    /**
-     * get js path
-     *
-     * @return void
-     */
-    public function js(){
-        return $this->getCssJsFiles('js');
-    }
-
     /**
      * whether showing content header
      *
@@ -45,24 +23,6 @@ class PluginPageBase
      */
     public function _showHeader(){
         return $this->showHeader;
-    }
-
-    protected function getCssJsFiles($type){
-        $base_path = $this->plugin->getFullPath('public');
-        $type_path = \path_join($base_path, $type);
-        if(!\File::exists($type_path)){
-            return [];
-        }
-
-        // get files
-        $files = \File::allFiles($type_path);
-
-        return collect($files)->filter(function($file) use($type){
-            return pathinfo($file)['extension'] == $type;
-        })->map(function($file) use($base_path){
-            $path = trim(str_replace($base_path, '', $file->getPathName()), '/');
-            return str_replace('\\', '/', $path);
-        })->toArray();
     }
 
     /**
