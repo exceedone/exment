@@ -275,14 +275,14 @@ class Plugin extends ModelBase
     }
     
     /**
-     * Get plugin scripts
+     * Get plugin scripts and styles
      *
      * @return void
      */
-    public static function getPluginScripts(){
+    public static function getPluginPublics(){
         $plugins = static::getPluginsReqSession();
         $plugins = $plugins->filter(function($plugin){
-            if(array_get($plugin, 'plugin_type') != PluginType::SCRIPT){
+            if(!in_array(array_get($plugin, 'plugin_type'), [PluginType::SCRIPT, PluginType::STYLE])){
                 return false;
             }
             return true;
@@ -327,7 +327,7 @@ class Plugin extends ModelBase
         
         // get target plugin
         $plugin = static::getPluginsReqSession()->first(function($plugin) use($pluginName){
-            return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT])
+            return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
                 && pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
             ;
         });

@@ -4,7 +4,7 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-class PluginScriptDefault extends PluginPublicBase
+class PluginStyleDefault extends PluginPublicBase
 {
     use PluginBase;
 

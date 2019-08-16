@@ -118,6 +118,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.session',
         ],
+        'admin_plugin_public' => [
+            'admin.auth',
+            'admin.auth-2factor',
+            'admin.bootstrap2',
+        ],
         'adminapi' => [
             'adminapi.auth',
             'throttle:60,1',

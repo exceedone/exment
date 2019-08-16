@@ -8,6 +8,7 @@ use Encore\Admin;
 use Encore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 
 /**
  * Middleware as Bootstrap.
@@ -69,22 +70,23 @@ class Bootstrap
         Ad::js(asset('vendor/exment/js/notify_navbar.js?ver='.$ver));
 
         // set scripts
-        $pluginScripts = Plugin::getPluginScripts();
-        foreach($pluginScripts as $pluginScript){
+        $pluginPublics = Plugin::getPluginPublics();
+        foreach($pluginPublics as $pluginPublic){
             // get scripts
-            $plugin = $pluginScript->_plugin();
+            $plugin = $pluginPublic->_plugin();
+            $p = $plugin->plugin_type == PluginType::SCRIPT ? 'js' : 'css';
             $cdns = array_get($plugin, 'options.cdns', []);
             foreach($cdns as $cdn){
-                Ad::js($cdn);
+                Ad::{$p}($cdn);
             }
 
             // get each scripts
-            $items = collect($pluginScript->js(true))->map(function($item) use($pluginScript){
-                return admin_urls($pluginScript->_plugin()->getRouteUri(), 'public/', $item);
+            $items = collect($pluginPublic->{$p}(true))->map(function($item) use($pluginPublic){
+                return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
             });
             if(!empty($items)){
                 foreach($items as $item){
-                    Ad::js($item);
+                    Ad::{$p}($item);
                 }
             }
         }

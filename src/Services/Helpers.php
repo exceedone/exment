@@ -555,6 +555,11 @@ if (!function_exists('make_licensecode')) {
 if (!function_exists('pascalize')) {
     function pascalize($string)
     {
+        // replace A to _a
+        $string = preg_replace_callback('/[A-Z]/', function($match){
+            return '_' . strtolower($match[0]);
+        }, $string);
+        $string = ltrim($string, '_');
         $string = strtolower($string);
         $string = str_replace('_', ' ', $string);
         $string = ucwords($string);

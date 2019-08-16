@@ -29,12 +29,12 @@ class PluginServiceProvider extends ServiceProvider
             $this->pluginRoute($pluginPage);
         }
 
-        // get plugin script's
-        $pluginScripts = Plugin::getPluginScripts();
+        // get plugin script's and style's
+        $pluginPublics = Plugin::getPluginPublics();
         
         // loop
-        foreach($pluginScripts as $pluginScript){
-            $this->pluginScriptRoute($pluginScript);
+        foreach($pluginPublics as $pluginScriptStyle){
+            $this->pluginScriptStyleRoute($pluginScriptStyle);
         }
     }
 
@@ -78,10 +78,9 @@ class PluginServiceProvider extends ServiceProvider
                     }
                 }
             }
-
-            // for public file
-            Route::get('public/{type}/{arg1}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
         });
+
+        $this->pluginScriptStyleRoute($pluginPage);
     }
     
     /**
@@ -91,17 +90,17 @@ class PluginServiceProvider extends ServiceProvider
      * @param json $json
      * @return void
      */
-    protected function pluginScriptRoute($pluginScript)
+    protected function pluginScriptStyleRoute($pluginScriptStyle)
     {
         if ($this->app->routesAreCached()) {
             return;
         }
 
         Route::group([
-            'prefix'        => url_join(config('admin.route.prefix'), $pluginScript->_plugin()->getRouteUri()),
+            'prefix'        => url_join(config('admin.route.prefix'), $pluginScriptStyle->_plugin()->getRouteUri()),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
-            'middleware'    => config('admin.route.middleware'),
-        ], function (Router $router) use ($pluginScript) {
+            'middleware'    => ['web', 'admin_plugin_public'],
+        ], function (Router $router) use ($pluginScriptStyle) {
             // for public file
             Route::get('public/{arg1?}/{arg2?}/{arg3?}/{arg4?}/{arg5?}', 'PluginPageController@_readPublicFile');
         });
