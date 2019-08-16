@@ -247,7 +247,7 @@ class ExmentServiceProvider extends ServiceProvider
                 
             // set cron event
             try {
-                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
+                if (hasTable(SystemTableName::PLUGIN)) {
                     $plugins = Plugin::getCronBatches();
                     foreach ($plugins as $plugin) {
                         $cronSchedule = $this->app->make(Schedule::class);

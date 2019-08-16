@@ -31,16 +31,17 @@ class System extends ModelBase
     {
         $config_key = "exment_global.$key";
         if (is_null($value)) {
-            return static::$requestSession[$config_key] ?? null;
+            return array_get(static::$requestSession, $config_key);
         } elseif ($value instanceof \Closure) {
-            $val = static::$requestSession[$config_key] ?? null;
-            if (is_null($val)) {
-                $val = $value();
-                static::$requestSession[$config_key] = $val;
+            // check array_has
+            if(array_has(static::$requestSession, $config_key)){
+                return array_get(static::$requestSession, $config_key);
             }
+            $val = $value();
+            array_set(static::$requestSession, $config_key, $val);
             return $val;
         }
-        static::$requestSession[$config_key] = $value;
+        array_set(static::$requestSession, $config_key, $value);
     }
 
     /**
