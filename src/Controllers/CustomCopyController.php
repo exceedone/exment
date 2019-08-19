@@ -175,11 +175,11 @@ class CustomCopyController extends AdminControllerTableBase
 
         ///// get from and to columns
         $custom_table = $this->custom_table;
-        $from_custom_column_options = $custom_table->getColumnSelectOptions([
+        $from_custom_column_options = $custom_table->getColumnsSelectOptions([
             'append_table' => true,
             'include_system' => false,
         ]);
-        $to_custom_column_options = $to_table ? $to_table->getColumnSelectOptions([
+        $to_custom_column_options = $to_table ? $to_table->getColumnsSelectOptions([
             'append_table' => true,
             'include_system' => false,
         ]) : [];

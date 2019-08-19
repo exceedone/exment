@@ -948,7 +948,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * @param option items
      */
     //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
-    public function getColumnSelectOptions($selectOptions = [])
+    public function getColumnsSelectOptions($selectOptions = [])
     {
         $selectOptions = array_merge(
             [

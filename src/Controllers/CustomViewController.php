@@ -279,7 +279,7 @@ class CustomViewController extends AdminControllerTableBase
                 // group columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnSelectOptions([
+                        ->options($this->custom_table->getColumnsSelectOptions([
                             'append_table' => true,
                             'index_enabled_only' => true,
                             'include_parent' => true,
@@ -368,7 +368,7 @@ class CustomViewController extends AdminControllerTableBase
                     // columns setting
                     $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                         $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                            ->options($this->custom_table->getColumnSelectOptions([
+                            ->options($this->custom_table->getColumnsSelectOptions([
                                 'append_table' => true,
                                 'include_parent' => true,
                             ]));
@@ -387,7 +387,7 @@ class CustomViewController extends AdminControllerTableBase
                 // sort setting
                 $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnSelectOptions([
+                    ->options($this->custom_table->getColumnsSelectOptions([
                         'append_table' => true,
                         'index_enabled_only' => true,
                     ]));
@@ -483,7 +483,7 @@ EOT;
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnSelectOptions(
+                ->options($this->custom_table->getColumnsSelectOptions(
                     [
                         'append_table' => true,
                         'index_enabled_only' => true,

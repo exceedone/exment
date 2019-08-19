@@ -380,7 +380,7 @@ class CustomColumnController extends AdminControllerTableBase
                         $model = CustomColumn::getEloquent($id);
                     }
                     if (isset($model) && in_array($model->column_type, [ColumnType::USER, ColumnType::ORGANIZATION])) {
-                        return CustomTable::getEloquent($model->column_type)->getColumnSelectOptions([
+                        return CustomTable::getEloquent($model->column_type)->getColumnsSelectOptions([
                             'index_enabled_only' => true,
                             'include_system' => false,
                         ]);
@@ -390,7 +390,7 @@ class CustomColumnController extends AdminControllerTableBase
                     if (is_null($select_target_table = array_get($data, 'select_target_table'))) {
                         return [];
                     }
-                    return CustomTable::getEloquent($select_target_table)->getColumnSelectOptions([
+                    return CustomTable::getEloquent($select_target_table)->getColumnsSelectOptions([
                         'index_enabled_only' => true,
                         'include_system' => false,
                     ]);
