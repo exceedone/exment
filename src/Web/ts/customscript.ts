@@ -8,7 +8,7 @@ namespace Exment {
     */
     export class CustomScriptEvent {
         public static AddEvent() {
-            CustomScriptEvent.fireLoadEvent();
+            CustomScriptEvent.fireListEvent();
             CustomScriptEvent.fireFormEvent();
         }
 
@@ -19,55 +19,19 @@ namespace Exment {
         }
 
         private static fireFormEvent(){
-            // get endpoint
-            const pathname = CustomScriptEvent.getEndpoint();
-            
-            if(!hasValue(pathname)){
-                return;
-            }
-
-            // if path is not 'data', return
-            if(pathname.indexOf('data/') === -1){
-                return;
-            }
-
-            // check create or edit using regex
-            const regexCreate = new RegExp('^data\/[a-zA-Z0-9\-_]+\/create');
-            const regexEdit = new RegExp('^data\/[a-zA-Z0-9\-_]+\/[0-9]+\/edit');
-
-            if(!pathname.match(regexCreate) && !pathname.match(regexEdit)){
+            if(!hasValue($('.custom_value_form'))){
                 return;
             }
 
             $(window).trigger(EVENT_FORM_LOADED);
         }
 
-        private static fireLoadEvent(){
-            // get endpoint
-            const pathname = CustomScriptEvent.getEndpoint();
-            
-            if(!hasValue(pathname)){
-                return;
-            }
-
-            // if path is not 'data', return
-            if(pathname.indexOf('data/') === -1){
-                return;
-            }
-
-            // check list
-            const regexListFix = new RegExp('^data\/[a-zA-Z0-9\-_]+$');
-            const regexListQuery = new RegExp('^data\/[a-zA-Z0-9\-_]+\?.*$');
-
-            if(!pathname.match(regexListFix) && !pathname.match(regexListQuery)){
+        private static fireListEvent(){
+            if(!hasValue($('.custom_value_grid'))){
                 return;
             }
 
             $(window).trigger(EVENT_LIST_LOADED);
-        }
-
-        private static getEndpoint() : string{
-            return trimAny(location.pathname, '/');
         }
     }
 }
