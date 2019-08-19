@@ -26,13 +26,15 @@ class PluginPageController extends Controller
      */
     public function __call($method, $parameters)
     {
-        if(!$this->pluginPage){
+        if (!$this->pluginPage) {
             abort(404);
         }
 
-        if(!method_exists($this->pluginPage, $method)){
+        if (!method_exists($this->pluginPage, $method)) {
             throw new BadMethodCallException(sprintf(
-                'Method %s::%s does not exist.', static::class, $method
+                'Method %s::%s does not exist.',
+                static::class,
+                $method
             ));
         }
 
@@ -41,7 +43,7 @@ class PluginPageController extends Controller
 
         $content = new Content;
         $content->row($html);
-        if($this->pluginPage->_showHeader()){
+        if ($this->pluginPage->_showHeader()) {
             $content->header($this->plugin->plugin_view_name)
             ->headericon($this->plugin->getOption('icon'));
         }
@@ -49,7 +51,8 @@ class PluginPageController extends Controller
         return $content;
     }
 
-    public function _readPublicFile(Request $request, ...$args){
+    public function _readPublicFile(Request $request, ...$args)
+    {
         // get file path
         $path = implode('/', $args);
         
@@ -58,14 +61,14 @@ class PluginPageController extends Controller
         $filePath = path_join($base_path, 'public', $path);
 
         // if not exists, return 404
-        if(!\File::exists($filePath)){
+        if (!\File::exists($filePath)) {
             abort(404);
         }
 
         $file = \File::get($filePath);
         $extension = pathinfo($filePath)['extension'];
 
-        switch($extension){
+        switch ($extension) {
             case 'css':
                 $mimeType = 'text/css';
                 break;

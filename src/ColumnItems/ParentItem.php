@@ -97,7 +97,8 @@ class ParentItem implements ItemInterface
     /**
      * get grid style
      */
-    public function gridStyle(){
+    public function gridStyle()
+    {
         return $this->getStyleString([
             'min-width' => config('exment.grid_min_width', 100) . 'px',
             'max-width' => config('exment.grid_max_width', 100) . 'px',

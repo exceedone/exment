@@ -116,13 +116,17 @@ class CustomCopyController extends AdminControllerTableBase
             $to_relations = $to_table->custom_relations()->pluck('child_custom_table_id');
             return CustomCopy::whereIn('from_custom_table_id', $from_relations->toArray())
               ->whereIn('to_custom_table_id', $to_relations->toArray())->get()
-              ->filter(function($item) {
-                return count($item->custom_copy_input_columns) == 0;
+              ->filter(function ($item) {
+                  return count($item->custom_copy_input_columns) == 0;
               })->mapWithKeys(function ($item) {
-                    $from_name = $item->from_custom_table->table_view_name;
-                    $to_name = $item->to_custom_table->table_view_name;
-                    return [$item['id'] => exmtrans("custom_copy.options.child_copy_format", 
-                        $item['options']['label'], $from_name, $to_name)];
+                  $from_name = $item->from_custom_table->table_view_name;
+                  $to_name = $item->to_custom_table->table_view_name;
+                  return [$item['id'] => exmtrans(
+                        "custom_copy.options.child_copy_format",
+                        $item['options']['label'],
+                        $from_name,
+                        $to_name
+                    )];
               })->toArray();
         }
     }
@@ -163,7 +167,7 @@ class CustomCopyController extends AdminControllerTableBase
         $child_options = $this->getChildCopyOptions($to_table);
 
         // exmtrans "plugin". it's same value
-        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use($child_options) {
+        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($child_options) {
             $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"))->rules("max:40");
             $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"))->default('fa-copy');
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
@@ -206,10 +210,10 @@ class CustomCopyController extends AdminControllerTableBase
         });
 
         // validate before saving
-        $form->saving(function (Form $form) use($to_table) {
+        $form->saving(function (Form $form) use ($to_table) {
             if (!is_null($form->custom_copy_columns)) {
                 $columns = collect($form->custom_copy_columns)
-                    ->filter(function($value) {
+                    ->filter(function ($value) {
                         return $value[Form::REMOVE_FLAG_NAME] != 1;
                     })
                     ->pluck('to_column_target');
@@ -218,16 +222,16 @@ class CustomCopyController extends AdminControllerTableBase
             }
             if (!is_null($form->custom_copy_input_columns)) {
                 $columns = $columns->merge(collect($form->custom_copy_input_columns)
-                    ->filter(function($value) {
+                    ->filter(function ($value) {
                         return $value[Form::REMOVE_FLAG_NAME] != 1;
                     })->pluck('to_column_target'));
             }
-            $columns = $columns->map(function($column) {
+            $columns = $columns->map(function ($column) {
                 $value = explode('-', $column);
                 return $value[1];
             });
             $required_columns = CustomColumn::where('custom_table_id', $to_table->id)->required()->pluck('id');
-            $result = $required_columns->every(function ($required_column) use($columns) {
+            $result = $required_columns->every(function ($required_column) use ($columns) {
                 return $columns->contains($required_column);
             });
             if (!$result) {

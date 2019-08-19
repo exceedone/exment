@@ -4,7 +4,6 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnType;
 
@@ -138,9 +137,14 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         ];
     }
 
-    protected static function saveCopyModel($custom_copy_columns, $custom_copy_input_columns, 
-        $to_custom_table, $from_custom_value, $request = null, $skipParent = false)
-    {
+    protected static function saveCopyModel(
+        $custom_copy_columns,
+        $custom_copy_input_columns,
+        $to_custom_table,
+        $from_custom_value,
+        $request = null,
+        $skipParent = false
+    ) {
         // get to_custom_value model
         $to_modelname = getModelName($to_custom_table);
         $to_custom_value = new $to_modelname;
@@ -154,13 +158,15 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
             $fromkey = static::getColumnKey(
                 $custom_copy_column->from_column_type,
                 $custom_copy_column->from_column_target_id,
-                $custom_copy_column->from_custom_column);
+                $custom_copy_column->from_custom_column
+            );
             $val = array_get($from_custom_value, $fromkey);
 
             $tokeys = static::getColumnKey(
                 $custom_copy_column->to_column_type,
                 $custom_copy_column->to_column_target_id,
-                $custom_copy_column->to_custom_column);
+                $custom_copy_column->to_custom_column
+            );
 
             if ($skipParent && $tokeys == Define::PARENT_ID_NAME) {
                 continue;
@@ -190,7 +196,8 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $to_custom_value;
     }
     
-    protected static function getColumnKey($column_type, $column_type_target, $custom_column) {
+    protected static function getColumnKey($column_type, $column_type_target, $custom_column)
+    {
         // check column_type
         if ($column_type == ViewColumnType::SYSTEM) {
             // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.

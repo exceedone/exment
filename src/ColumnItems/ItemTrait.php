@@ -108,11 +108,11 @@ trait ItemTrait
      * @param [type] $array
      * @return void
      */
-    public function getStyleString($array){
-        
+    public function getStyleString($array)
+    {
         $array['word-wrap'] = 'break-word';
         $array['white-space'] = 'normal';
-        return implode('; ', collect($array)->map(function($value, $key){
+        return implode('; ', collect($array)->map(function ($value, $key) {
             return "$key : $value";
         })->toArray());
     }
@@ -134,5 +134,4 @@ trait ItemTrait
     {
         return false;
     }
-
 }

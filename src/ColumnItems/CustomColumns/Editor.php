@@ -14,7 +14,7 @@ class Editor extends CustomItem
             return null;
         }
 
-        if(boolval(array_get($this->options, 'grid_column'))){
+        if (boolval(array_get($this->options, 'grid_column'))) {
             // if grid, remove tag and omit string
             $text = get_omitted_string(strip_tags($text));
         }

@@ -3,10 +3,8 @@
 namespace Exceedone\Exment\Adapter;
 
 use League\Flysystem\AzureBlobStorage\AzureBlobStorageAdapter;
-use League\Flysystem\Filesystem;
 use MicrosoftAzure\Storage\Blob\BlobRestProxy;
 use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Model\Define;
 
 class ExmentAdapterAzure extends AzureBlobStorageAdapter implements ExmentAdapterInterface
 {

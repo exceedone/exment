@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
-use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -214,12 +213,12 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
 
         // load plugins
-        if(!canConnection() || !hasTable(SystemTableName::PLUGIN)){
+        if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
             return;
         }
         $pluginPages = Plugin::getPluginPages();
         foreach ($pluginPages as $pluginPage) {
-            if(!is_null($items = $pluginPage->_getLoadView())){
+            if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);
             }
         }

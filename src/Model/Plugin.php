@@ -154,16 +154,17 @@ class Plugin extends ModelBase
      * @param [type] $pathDir
      * @return void
      */
-    public function requirePlugin($fullPathDir){
+    public function requirePlugin($fullPathDir)
+    {
         // call plugin
         $plugin_paths = \File::allFiles($fullPathDir);
-        foreach($plugin_paths as $plugin_path){
+        foreach ($plugin_paths as $plugin_path) {
             $pathinfo = pathinfo($plugin_path);
-            if($pathinfo['extension'] != 'php'){
+            if ($pathinfo['extension'] != 'php') {
                 continue;
             }
             // if blade, not require
-            if(strpos($pathinfo['basename'], 'blade.php') !== false){
+            if (strpos($pathinfo['basename'], 'blade.php') !== false) {
                 continue;
             }
             require_once($plugin_path);
@@ -260,16 +261,17 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public static function getPluginPages(){
+    public static function getPluginPages()
+    {
         $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function($plugin){
-            if(array_get($plugin, 'plugin_type') != PluginType::PAGE){
+        $plugins = $plugins->filter(function ($plugin) {
+            if (array_get($plugin, 'plugin_type') != PluginType::PAGE) {
                 return false;
             }
             return true;
         });
 
-        return $plugins->map(function($plugin){
+        return $plugins->map(function ($plugin) {
             return $plugin->getClass();
         });
     }
@@ -279,26 +281,28 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public static function getPluginPublics(){
+    public static function getPluginPublics()
+    {
         $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function($plugin){
-            if(!in_array(array_get($plugin, 'plugin_type'), [PluginType::SCRIPT, PluginType::STYLE])){
+        $plugins = $plugins->filter(function ($plugin) {
+            if (!in_array(array_get($plugin, 'plugin_type'), [PluginType::SCRIPT, PluginType::STYLE])) {
                 return false;
             }
             return true;
         });
 
-        return $plugins->map(function($plugin){
+        return $plugins->map(function ($plugin) {
             return $plugin->getClass();
         });
     }
 
-    protected static function getPluginsReqSession(){
+    protected static function getPluginsReqSession()
+    {
         // get plugin page's
-        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGINS, function(){
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGINS, function () {
             // get plugin
-            $plugins = Plugin::allRecords(function($plugin){
-                if(!boolval(array_get($plugin, 'active_flg'))){
+            $plugins = Plugin::allRecords(function ($plugin) {
+                if (!boolval(array_get($plugin, 'active_flg'))) {
                     return false;
                 }
                 
@@ -314,7 +318,8 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public static function getPluginPageModel(){
+    public static function getPluginPageModel()
+    {
         // get namespace
         $pattern = '@plugins/([^/\?]+)@';
         preg_match($pattern, request()->url(), $matches);
@@ -326,7 +331,7 @@ class Plugin extends ModelBase
         $pluginName = $matches[1];
         
         // get target plugin
-        $plugin = static::getPluginsReqSession()->first(function($plugin) use($pluginName){
+        $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
             return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
                 && pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
             ;
@@ -345,7 +350,8 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public function getRouteUri(){
+    public function getRouteUri()
+    {
         return url_join('plugins', snake_case($this->plugin_name));
     }
 

@@ -379,8 +379,7 @@ class Initialize
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
                 $log_string .= "    , function: $function";
-            }
-            elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
+            } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
                 $function = static::getFunctionName(true);
                 $log_string .= "    , function: $function";
             }
@@ -399,7 +398,7 @@ class Initialize
                 $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
             }
 
-            if($oneFunction && count($functions) >= 1){
+            if ($oneFunction && count($functions) >= 1) {
                 break;
             }
 

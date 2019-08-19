@@ -118,7 +118,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             switch ($row['menu_type']) {
                 case MenuType::PLUGIN:
                     $plugin = Plugin::getEloquent($row['menu_target']);
-                    if(!isset($plugin)){
+                    if (!isset($plugin)) {
                         $result = false;
                         continue;
                     }
@@ -148,7 +148,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 // database-row has icon column, set icon
             }
 
-            if(!$result){
+            if (!$result) {
                 continue;
             }
             $results[] = $row;

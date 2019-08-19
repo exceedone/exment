@@ -303,7 +303,7 @@ if (!function_exists('getFullpath')) {
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
-            if(!\File::exists($dirPath)){
+            if (!\File::exists($dirPath)) {
                 \File::makeDirectory($dirPath, 0755, true);
             }
         }
@@ -570,7 +570,7 @@ if (!function_exists('pascalize')) {
     function pascalize($string)
     {
         // replace A to _a
-        $string = preg_replace_callback('/[A-Z]/', function($match){
+        $string = preg_replace_callback('/[A-Z]/', function ($match) {
             return '_' . strtolower($match[0]);
         }, $string);
         $string = ltrim($string, '_');
@@ -1444,7 +1444,7 @@ if (!function_exists('getCellValue')) {
         }
 
         // if merge cell, get from master cell
-        if($isGetMerge && $cell->isInMergeRange()){
+        if ($isGetMerge && $cell->isInMergeRange()) {
             $mergeRange = $cell->getMergeRange();
             $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
         }

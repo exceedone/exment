@@ -30,7 +30,8 @@ class PluginType extends EnumBase
      * @param array $options
      * @return void
      */
-    public function getPluginClass($plugin, $options = []){
+    public function getPluginClass($plugin, $options = [])
+    {
         $options = array_merge([
             'custom_table' => null,
             'id' => null,
@@ -74,7 +75,8 @@ class PluginType extends EnumBase
         return $class ?? null;
     }
 
-    public function getPluginClassShortName($plugin){
+    public function getPluginClassShortName($plugin)
+    {
         return 'Plugin';
     }
 }

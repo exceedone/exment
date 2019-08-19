@@ -20,7 +20,8 @@ class Driver extends EnumBase
      * @param [type] $config
      * @return void
      */
-    public static function getExmentDriver($app, $config){
+    public static function getExmentDriver($app, $config)
+    {
         switch (config('exment.driver.default', 'local')) {
             case self::LOCAL:
                 $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);

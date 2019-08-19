@@ -8,10 +8,7 @@ use Illuminate\Routing\Router;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Request;
 
 class PluginServiceProvider extends ServiceProvider
 {
@@ -23,14 +20,14 @@ class PluginServiceProvider extends ServiceProvider
     public function map()
     {
         // load plugins
-        if(!canConnection() || !hasTable(SystemTableName::PLUGIN)){
+        if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
             return;
         }
         // get plugin page's
         $pluginPages = Plugin::getPluginPages();
         
         // loop
-        foreach($pluginPages as $pluginPage){
+        foreach ($pluginPages as $pluginPage) {
             $this->pluginRoute($pluginPage);
         }
 
@@ -38,7 +35,7 @@ class PluginServiceProvider extends ServiceProvider
         $pluginPublics = Plugin::getPluginPublics();
         
         // loop
-        foreach($pluginPublics as $pluginScriptStyle){
+        foreach ($pluginPublics as $pluginScriptStyle) {
             $this->pluginScriptStyleRoute($pluginScriptStyle);
         }
     }

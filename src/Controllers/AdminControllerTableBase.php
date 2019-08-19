@@ -24,7 +24,7 @@ class AdminControllerTableBase extends Controller
     {
         $this->custom_table = CustomTable::findByEndpoint();
         
-        if(!isset($this->custom_table)){
+        if (!isset($this->custom_table)) {
             return;
         }
 

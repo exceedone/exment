@@ -190,7 +190,7 @@ class PluginController extends AdminControllerBase
             }
         })->disableHeader();
 
-        if(!$isDelete){
+        if (!$isDelete) {
             $this->setCustomOptionForm($plugin, $form);
         }
 

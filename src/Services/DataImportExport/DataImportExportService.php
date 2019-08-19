@@ -173,7 +173,8 @@ class DataImportExportService extends AbstractExporter
      * import data by custom logic
      * @param $import_plugin
      */
-    protected function customImport($import_plugin, $file) {
+    protected function customImport($import_plugin, $file)
+    {
         $plugin = Plugin::find($import_plugin);
         $batch = $plugin->getClass(['file' => $file]);
         $result = $batch->execute();

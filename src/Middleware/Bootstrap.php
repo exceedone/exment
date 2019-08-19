@@ -30,8 +30,9 @@ class Bootstrap
      * @param \Closure $next
      * @return void
      */
-    protected function setCssJs(Request $request, \Closure $next){
-        if($request->ajax() || $request->pjax()){
+    protected function setCssJs(Request $request, \Closure $next)
+    {
+        if ($request->ajax() || $request->pjax()) {
             return;
         }
 
@@ -71,21 +72,21 @@ class Bootstrap
 
         // set scripts
         $pluginPublics = Plugin::getPluginPublics();
-        foreach($pluginPublics as $pluginPublic){
+        foreach ($pluginPublics as $pluginPublic) {
             // get scripts
             $plugin = $pluginPublic->_plugin();
             $p = $plugin->plugin_type == PluginType::SCRIPT ? 'js' : 'css';
             $cdns = array_get($plugin, 'options.cdns', []);
-            foreach($cdns as $cdn){
+            foreach ($cdns as $cdn) {
                 Ad::{$p}($cdn);
             }
 
             // get each scripts
-            $items = collect($pluginPublic->{$p}(true))->map(function($item) use($pluginPublic){
+            $items = collect($pluginPublic->{$p}(true))->map(function ($item) use ($pluginPublic) {
                 return admin_urls($pluginPublic->_plugin()->getRouteUri(), 'public/', $item);
             });
-            if(!empty($items)){
-                foreach($items as $item){
+            if (!empty($items)) {
+                foreach ($items as $item) {
                     Ad::{$p}($item);
                 }
             }
@@ -93,15 +94,15 @@ class Bootstrap
 
         // set Plugin resource
         $pluginPages = Plugin::getPluginPages();
-        foreach($pluginPages as $pluginPage){
+        foreach ($pluginPages as $pluginPage) {
             // get css and js
             $publics = ['css', 'js'];
-            foreach($publics as $p){
-                $items = collect($pluginPage->{$p}())->map(function($item) use($pluginPage){
+            foreach ($publics as $p) {
+                $items = collect($pluginPage->{$p}())->map(function ($item) use ($pluginPage) {
                     return admin_urls($pluginPage->_plugin()->getRouteUri(), 'public/', $item);
                 });
-                if(!empty($items)){
-                    foreach($items as $item){
+                if (!empty($items)) {
+                    foreach ($items as $item) {
                         Ad::{$p}($item);
                     }
                 }

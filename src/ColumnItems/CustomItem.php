@@ -46,12 +46,11 @@ abstract class CustomItem implements ItemInterface
 
         $params = static::getOptionParams($view_column_target, $this->custom_table);
         // get label. check not match $this->custom_table and pivot table
-        if(array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']){
+        if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
             $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
-        }else{
+        } else {
             $this->label = $this->custom_column->column_view_name;
         }
-        
     }
 
     /**
@@ -121,7 +120,8 @@ abstract class CustomItem implements ItemInterface
     /**
      * get grid style
      */
-    public function gridStyle(){
+    public function gridStyle()
+    {
         return $this->getStyleString([
             'min-width' => $this->custom_column->getOption('min_width', config('exment.grid_min_width', 100)) . 'px',
             'max-width' => $this->custom_column->getOption('max_width', config('exment.grid_max_width', 300)) . 'px',
@@ -176,9 +176,9 @@ abstract class CustomItem implements ItemInterface
         // if options has "view_pivot_column", get select_table's custom_value first
         if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
             $view_pivot_column = $this->options['view_pivot_column'];
-            if($view_pivot_column == SystemColumn::PARENT_ID){
+            if ($view_pivot_column == SystemColumn::PARENT_ID) {
                 $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
-            }else{
+            } else {
                 $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
                 $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
                 $custom_value = $this->custom_table->getValueModel($pivot_id);

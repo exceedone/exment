@@ -34,7 +34,7 @@ class System extends ModelBase
             return static::$requestSession[$config_key] ?? null;
         } elseif ($value instanceof \Closure) {
             // check array_has
-            if(array_has(static::$requestSession, $config_key)){
+            if (array_has(static::$requestSession, $config_key)) {
                 return static::$requestSession[$config_key];
             }
             $val = $value();

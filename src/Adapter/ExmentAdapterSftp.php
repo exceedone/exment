@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Adapter;
 use League\Flysystem\Sftp\SftpAdapter;
 
 use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Model\Define;
 
 class ExmentAdapterSftp extends SftpAdapter implements ExmentAdapterInterface
 {

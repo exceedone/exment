@@ -136,7 +136,7 @@ class PluginInstaller
             return true;
         } else {
             $messages = collect($validator->errors()->messages());
-            $message = $messages->map(function($message){
+            $message = $messages->map(function ($message) {
                 return $message[0];
             });
             return implode("\r\n", $message->values()->toArray());
@@ -187,7 +187,7 @@ class PluginInstaller
         $tmpDisk = static::tmpDisk();
         $files = $tmpDisk->allFiles($tmpfolderpath);
 
-        foreach($files as $file){
+        foreach ($files as $file) {
             // get moved file name
             $movedFileName = str_replace($tmpfolderpath, '', $file);
             $movedFileName = str_replace(str_replace('\\', '/', $tmpfolderpath), '', $movedFileName);
@@ -202,11 +202,13 @@ class PluginInstaller
         }
     }
     
-    protected static function pluginDisk(){
+    protected static function pluginDisk()
+    {
         return \Storage::disk(Define::DISKNAME_PLUGIN);
     }
     
-    protected static function tmpDisk(){
+    protected static function tmpDisk()
+    {
         return \Storage::disk(Define::DISKNAME_ADMIN_TMP);
     }
 }

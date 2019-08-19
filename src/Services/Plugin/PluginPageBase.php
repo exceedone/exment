@@ -21,7 +21,8 @@ class PluginPageBase extends PluginPublicBase
      *
      * @return void
      */
-    public function _showHeader(){
+    public function _showHeader()
+    {
         return $this->showHeader;
     }
 
@@ -30,9 +31,10 @@ class PluginPageBase extends PluginPublicBase
      *
      * @return void
      */
-    public function _getLoadView(){
+    public function _getLoadView()
+    {
         $base_path = $this->plugin->getFullPath(path_join('resources', 'views'));
-        if(!\File::exists($base_path)){
+        if (!\File::exists($base_path)) {
             return null;
         }
 

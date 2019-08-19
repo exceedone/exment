@@ -34,20 +34,20 @@ trait ColumnOptionQueryTrait
         $query = ['table_id' => $table_id ?? null];
 
         // set as select_table key
-        if(isset($view_pivot_column)){
-            if($view_pivot_column == SystemColumn::PARENT_ID){
+        if (isset($view_pivot_column)) {
+            if ($view_pivot_column == SystemColumn::PARENT_ID) {
                 $query['view_pivot_column_id'] = SystemColumn::PARENT_ID;
-            }else{
+            } else {
                 $query['view_pivot_column_id'] = CustomColumn::getEloquent($view_pivot_column)->id ?? null;
             }
 
             $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
         }
-        if(boolval($child_sum)){
+        if (boolval($child_sum)) {
             $query['child_sum'] = true;
         }
 
-        return $column_key . '?' . implode('&', collect($query)->map(function($val, $key){
+        return $column_key . '?' . implode('&', collect($query)->map(function ($val, $key) {
             return $key . '=' . $val;
         })->toArray());
     }
@@ -57,7 +57,8 @@ trait ColumnOptionQueryTrait
         $options[$key] = static::getViewColumnLabel($value, $table_view_name);
     }
 
-    protected static function getViewColumnLabel($value, $table_view_name){
+    protected static function getViewColumnLabel($value, $table_view_name)
+    {
         return isset($table_view_name) ? $table_view_name . ' : ' . $value : $value;
     }
 
@@ -66,7 +67,8 @@ trait ColumnOptionQueryTrait
      *
      * @return void
      */
-    protected static function getOptionParams($query, $defaultCustomTable){
+    protected static function getOptionParams($query, $defaultCustomTable)
+    {
         $params = [];
         $params['column_column_target'] = explode("?", $query)[0];
         $defaultCustomTable = CustomTable::getEloquent($defaultCustomTable);
@@ -78,7 +80,7 @@ trait ColumnOptionQueryTrait
             $params['column_table_id'] = array_get($view_column_query_array, 'table_id', $defaultCustomTable->id ?? null);
             $params['view_pivot_column_id'] = array_get($view_column_query_array, 'view_pivot_column_id');
             $params['view_pivot_table_id'] = array_get($view_column_query_array, 'view_pivot_table_id');
-        }else{
+        } else {
             $params['column_table_id'] = $defaultCustomTable->id ?? null;
         }
 

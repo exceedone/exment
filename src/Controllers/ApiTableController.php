@@ -52,7 +52,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataSelect(Request $request)
     {
         $paginator = $this->dataQuery($request);
-        if(!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)){
+        if (!($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator)) {
             return $paginator;
         }
         // if call as select ajax, return id and text array

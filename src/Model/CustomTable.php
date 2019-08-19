@@ -342,7 +342,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // get table info
         if (!isset($endpoint)) {
             // for command execute
-            if(is_null(app('request')->route())){
+            if (is_null(app('request')->route())) {
                 return null;
             }
 
@@ -1067,7 +1067,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         return $options;
     }
 
-    protected function setColumnOptions(&$options, $custom_columns, $table_id, $selectOptions = []) {
+    protected function setColumnOptions(&$options, $custom_columns, $table_id, $selectOptions = [])
+    {
         $selectOptions = array_merge(
             [
                 'append_table' => false,
@@ -1282,7 +1283,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         if (isset($id)) {
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
             $model = System::requestSession($key, function () use ($id, $withTrashed) {
-                if($withTrashed){
+                if ($withTrashed) {
                     return getModelName($this->table_name)::withTrashed()->find($id);
                 }
                 return getModelName($this->table_name)::find($id);

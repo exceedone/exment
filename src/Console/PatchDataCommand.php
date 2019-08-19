@@ -448,14 +448,14 @@ class PatchDataCommand extends Command
     protected function initOnlyCodeColumn()
     {
         $tableColumns = [
-            SystemTableName::USER => 'user_code', 
-            SystemTableName::ORGANIZATION => 'organization_code', 
-            SystemTableName::MAIL_TEMPLATE => 'mail_key_name', 
+            SystemTableName::USER => 'user_code',
+            SystemTableName::ORGANIZATION => 'organization_code',
+            SystemTableName::MAIL_TEMPLATE => 'mail_key_name',
         ];
 
-        foreach($tableColumns as $table => $column){
+        foreach ($tableColumns as $table => $column) {
             $custom_column = CustomColumn::getEloquent($column, $table);
-            if(!isset($custom_column)){
+            if (!isset($custom_column)) {
                 continue;
             }
 
@@ -520,15 +520,14 @@ class PatchDataCommand extends Command
         // get app/$pathName folder
         $beforeFolder = app_path($pathName);
         $befores = scandir($beforeFolder);
-        if(!is_array($befores)){
+        if (!is_array($befores)) {
             return;
         }
 
-        foreach($befores as $before){
-            if (in_array($before, [".",".."])) 
-            { 
+        foreach ($befores as $before) {
+            if (in_array($before, [".",".."])) {
                 continue;
-            } 
+            }
             $oldPath = path_join($beforeFolder, $before);
             \File::move($oldPath, getFullpath($before, $diskName));
         }

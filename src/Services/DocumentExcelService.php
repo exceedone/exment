@@ -327,7 +327,8 @@ class DocumentExcelService
      *
      * @return void
      */
-    protected function saveFile($writer){
+    protected function saveFile($writer)
+    {
         // save file to local
         $tmpFullPath = $this->getFullPath();
         $writer->save($tmpFullPath);

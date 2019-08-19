@@ -5,8 +5,6 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Field as ExmentField;

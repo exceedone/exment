@@ -109,7 +109,7 @@ trait CustomViewColumnTrait
         $this->{$column_type_key} = $column_type;
         $this->{$column_type_target_key} = $column_type_target;
 
-        if(method_exists($this, 'setViewPivotColumnIdAttribute')){
+        if (method_exists($this, 'setViewPivotColumnIdAttribute')) {
             $this->view_pivot_column_id = $view_pivot_column;
             $this->view_pivot_table_id = $view_pivot_table;
         }
@@ -136,8 +136,7 @@ trait CustomViewColumnTrait
             if ($column_type_target === Define::CUSTOM_COLUMN_TYPE_PARENT_ID || $column_type_target === SystemColumn::PARENT_ID) {
                 $column_type = ViewColumnType::PARENT_ID;
                 $column_type_target = Define::CUSTOM_COLUMN_TYPE_PARENT_ID;
-            }
-            else {
+            } else {
                 $column_type = ViewColumnType::SYSTEM;
                 $column_type_target = SystemColumn::getOption(['name' => $column_type_target])['id'] ?? null;
             }
