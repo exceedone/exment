@@ -183,7 +183,7 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if (!in_array($plugin_type, [PluginType::BATCH, PluginType::IMPORT])) {
+            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));

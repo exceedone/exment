@@ -2,6 +2,7 @@
 namespace Exment {
     const EVENT_FORM_LOADED = 'exment:form_loaded';
     const EVENT_LIST_LOADED = 'exment:list_loaded';
+    const EVENT_SHOW_LOADED = 'exment:show_loaded';
 
     /**
     * Column Event Script.
@@ -10,6 +11,7 @@ namespace Exment {
         public static AddEvent() {
             CustomScriptEvent.fireListEvent();
             CustomScriptEvent.fireFormEvent();
+            CustomScriptEvent.fireShowEvent();
         }
 
         public static AddEventOnce() {
@@ -32,6 +34,14 @@ namespace Exment {
             }
 
             $(window).trigger(EVENT_LIST_LOADED);
+        }
+
+        private static fireShowEvent(){
+            if(!hasValue($('.custom_value_show'))){
+                return;
+            }
+
+            $(window).trigger(EVENT_SHOW_LOADED);
         }
     }
 }

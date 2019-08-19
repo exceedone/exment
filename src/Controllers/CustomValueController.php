@@ -36,6 +36,7 @@ class CustomValueController extends AdminControllerTableBase
     const CLASSNAME_CUSTOM_VALUE_SHOW = 'custom_value_show';
     const CLASSNAME_CUSTOM_VALUE_GRID = 'custom_value_grid';
     const CLASSNAME_CUSTOM_VALUE_FORM = 'custom_value_form';
+    const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
 
     /**
      * CustomValueController constructor.
@@ -96,7 +97,7 @@ class CustomValueController extends AdminControllerTableBase
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
 
-            $row->class(static::CLASSNAME_CUSTOM_VALUE_FORM);
+            $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         } else {
             $callback = null;
             if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
@@ -120,7 +121,7 @@ class CustomValueController extends AdminControllerTableBase
 
             PartialCrudService::setGridContent($this->custom_table, $content);
 
-            $row->class(static::CLASSNAME_CUSTOM_VALUE_GRID);
+            $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         }
 
         $content->row($row);
@@ -143,7 +144,7 @@ class CustomValueController extends AdminControllerTableBase
         Plugin::pluginPreparing($this->plugins, 'loading');
 
         $row = new Row($this->form(null));
-        $row->class(static::CLASSNAME_CUSTOM_VALUE_FORM);
+        $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
         
         Plugin::pluginPreparing($this->plugins, 'loaded');
@@ -171,7 +172,7 @@ class CustomValueController extends AdminControllerTableBase
         Plugin::pluginPreparing($this->plugins, 'loading');
 
         $row = new Row($this->form($id)->edit($id));
-        $row->class(static::CLASSNAME_CUSTOM_VALUE_FORM);
+        $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         $content->row($row);
 
         Plugin::pluginPreparing($this->plugins, 'loaded');
@@ -198,7 +199,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
         $content->row($this->createShowForm($id));
         $content->row(function ($row) use ($id) {
-            $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW]);
+            $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
             $this->setOptionBoxes($row, $id, false);
         });
         return $content;
