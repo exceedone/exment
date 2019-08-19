@@ -17,6 +17,20 @@ use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
 
+if (!function_exists('exmDebugLog')) {
+    /**
+     * Debug log
+     */
+    function exmDebugLog($log)
+    {
+        $now = Carbon::now();
+
+        $log_string = $now->format("YmdHisv")." ".$log;
+
+        \Log::debug($log_string);
+    }
+}
+
 if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
     {

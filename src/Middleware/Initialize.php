@@ -368,20 +368,22 @@ class Initialize
                 }
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
-            $now = \Carbon\Carbon::now();
 
-            $log_string = 'SQL: ' . $now->format("YmdHisv")." ".$sql;
-
+            $log_string = 'SQL: ' .$sql;
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
                 $log_string .= "    , function: $function";
             }
-    
-            \Log::debug($log_string);
+            elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
+                $function = static::getFunctionName(true);
+                $log_string .= "    , function: $function";
+            }
+
+            exmDebugLog($log_string);
         });
     }
 
-    protected static function getFunctionName()
+    protected static function getFunctionName($oneFunction = false)
     {
         $bt = debug_backtrace();
         $functions = [];
@@ -389,6 +391,10 @@ class Initialize
         foreach ($bt as $b) {
             if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
                 $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            if($oneFunction && count($functions) >= 1){
+                break;
             }
 
             $i++;
