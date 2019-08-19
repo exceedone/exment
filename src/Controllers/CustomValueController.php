@@ -33,9 +33,9 @@ class CustomValueController extends AdminControllerTableBase
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
-    const CLASSNAME_CUSTOM_VALUE_SHOW = 'custom_value_show';
-    const CLASSNAME_CUSTOM_VALUE_GRID = 'custom_value_grid';
-    const CLASSNAME_CUSTOM_VALUE_FORM = 'custom_value_form';
+    const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
+    const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
+    const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
     const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
 
     /**

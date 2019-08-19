@@ -21,7 +21,7 @@ namespace Exment {
         }
 
         private static fireFormEvent(){
-            if(!hasValue($('.custom_value_form'))){
+            if(!hasValue($('.block_custom_value_form'))){
                 return;
             }
 
@@ -29,7 +29,7 @@ namespace Exment {
         }
 
         private static fireListEvent(){
-            if(!hasValue($('.custom_value_grid'))){
+            if(!hasValue($('.block_custom_value_grid'))){
                 return;
             }
 
@@ -37,7 +37,7 @@ namespace Exment {
         }
 
         private static fireShowEvent(){
-            if(!hasValue($('.custom_value_show'))){
+            if(!hasValue($('.block_custom_value_show'))){
                 return;
             }
 
