@@ -135,6 +135,12 @@ class Initialize
                 'root' => storage_path('app/plugins'),
             ]);
         }
+        if (!Config::has('filesystems.disks.template_local')) {
+            Config::set('filesystems.disks.template_local', [
+                'driver' => 'local',
+                'root' => storage_path('app/templates'),
+            ]);
+        }
 
         // mysql setting
         Config::set('database.connections.mysql.strict', false);

@@ -593,7 +593,7 @@ class TemplateImporter
 
     protected static function getTemplatePath()
     {
-        $path = app_path("Templates");
+        $path = getFullpath('', Define::DISKNAME_TEMPLATE_LOCAL);
         if (!File::exists($path)) {
             File::makeDirectory($path, 0775, true);
         }
