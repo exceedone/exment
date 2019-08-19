@@ -58,6 +58,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | exment debug mode add function in sql
+    |--------------------------------------------------------------------------
+    |
+    | if true, function details when calling sql in laravel.log. (only 1 function)
+    |
+    */
+    'debugmode_sqlfunction1' => env('EXMENT_DEBUG_MODE_SQLFUNCTION1', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | driver
     |--------------------------------------------------------------------------
     |

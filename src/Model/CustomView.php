@@ -363,8 +363,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                     && array_get($record, 'default_flg') == true
                     && array_get($record, 'view_kind_type') != ViewKindType::FILTER;
             })->first();
-            // $view = $tableObj->custom_views()->where('default_flg', true)
-            //     ->where('view_kind_type', '<>', ViewKindType::FILTER)->first();
         }
         
         // if default view is not setting, show all data view
@@ -374,7 +372,6 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
                 return array_get($record, 'custom_table_id') == $tableObj->id
                     && array_get($record, 'view_kind_type') == ViewKindType::ALLDATA;
             })->first();
-            //$tableObj->custom_views()->where('view_kind_type', ViewKindType::ALLDATA)->first();
             // if all data view is not exists, create view and column
             if (!isset($alldata)) {
                 $alldata = static::createDefaultView($tableObj);
