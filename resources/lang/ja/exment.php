@@ -284,6 +284,7 @@ return [
         'version' => 'バージョン',
         'active_flg' => '有効フラグ',
         'select_plugin_file' => 'プラグインを選択',
+        'show_plugin_page' => 'プラグインページを表示',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
