@@ -172,7 +172,7 @@ class PluginController extends AdminControllerBase
                 }
             } elseif ($plugin_type == PluginType::PAGE) {
                 // Plugin_type = 'page'
-                $form->text('uri', exmtrans("plugin.options.uri"));
+                $form->text('uri', exmtrans("plugin.options.uri"))->required();
             } elseif ($plugin_type == PluginType::BATCH) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))

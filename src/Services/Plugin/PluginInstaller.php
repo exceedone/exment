@@ -169,11 +169,17 @@ class PluginInstaller
             $options['target_tables'] = $target_tables;
         }
 
-        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'controller', 'cdns'] as $key) {
+        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'cdns', 'uri'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }
         }
+
+        // if page and 'uri' is empty, set snake_case plugin_name
+        if($plugin_type->isPluginTypeUri() && !array_has($options, 'uri')){
+            $options['uri'] = snake_case(array_get($json, 'plugin_name'));
+        }
+
         $plugin->options = $options;
 
         return $plugin;

@@ -333,7 +333,10 @@ class Plugin extends ModelBase
         // get target plugin
         $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
             return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
-                && pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
+                && (
+                    pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName) 
+                    || $plugin->getOption('uri') == $pluginName
+                )
             ;
         });
 
@@ -350,9 +353,10 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public function getRouteUri()
+    public function getRouteUri($endpoint = null)
     {
-        return url_join('plugins', snake_case($this->plugin_name));
+        $uri = $this->getOption('uri');
+        return url_join('plugins', snake_case($uri), $endpoint);
     }
 
     /**

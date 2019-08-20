@@ -76,7 +76,7 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        Route::{$method}(url_join(array_get($pluginPage->_plugin()->options, 'uri'), $route['uri']), 'PluginPageController@'.$route['function']);
+                        Route::{$method}($route['uri'], 'PluginPageController@'.$route['function']);
                     }
                 }
             }

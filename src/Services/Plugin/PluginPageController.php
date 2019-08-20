@@ -39,10 +39,14 @@ class PluginPageController extends Controller
         }
 
         // create html
-        $html = call_user_func_array([$this->pluginPage, $method], $parameters);
+        $result = call_user_func_array([$this->pluginPage, $method], $parameters);
+
+        if($result instanceof \Symfony\Component\HttpFoundation\Response){
+            return $result;
+        }
 
         $content = new Content;
-        $content->row($html);
+        $content->row($result);
         if ($this->pluginPage->_showHeader()) {
             $content->header($this->plugin->plugin_view_name)
             ->headericon($this->plugin->getOption('icon'));
