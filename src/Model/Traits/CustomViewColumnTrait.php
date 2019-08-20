@@ -190,11 +190,6 @@ trait CustomViewColumnTrait
                     // get parent table
                     if (isset($custom_table)) {
                         $target_table_id = $custom_table->id;
-                        // $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY, true);
-
-                        // if (isset($relation)) {
-                        //     $target_table_id = $relation->parent_custom_table_id;
-                        // }
                     }
                 } else {
                     $target_column_id = SystemColumn::getOption(['name' => $column_name])['id'];
@@ -278,6 +273,7 @@ trait CustomViewColumnTrait
             $custom_table = $custom_view->custom_table;
         }
 
+        ///// set view_column_table_name and view_column_target_name
         list($view_column_target_id, $view_column_table_id) = static::getColumnAndTableId(
             array_get($json, "view_column_type"),
             array_get($json, "view_column_target_name"),
@@ -289,5 +285,20 @@ trait CustomViewColumnTrait
 
         array_forget($json, 'view_column_target_name');
         array_forget($json, 'view_column_table_name');
+
+
+        ///// set view_pivot_column_id and view_pivot_table_id
+        if(array_key_value_exists("view_pivot_column_name", $json)){
+            list($view_pivot_column_id, $view_pivot_table_id) = static::getColumnAndTableId(
+                array_get($json, "view_column_type"),
+                array_get($json, "view_pivot_column_name"),
+                array_get($json, "view_pivot_table_name")
+            );
+    
+            $json['view_pivot_column_id'] = $view_pivot_column_id;
+            $json['view_pivot_table_id'] = $view_pivot_table_id;
+        }
+        array_forget($json, 'view_pivot_column_name');
+        array_forget($json, 'view_pivot_table_name');
     }
 }
