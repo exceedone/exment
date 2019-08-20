@@ -88,24 +88,33 @@ if (!function_exists('esc_script_tag')) {
             return $html;
         }
         
-        $dom = new \DOMDocument();
+        try{
+            libxml_use_internal_errors(true);
 
-        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-
-        $script = $dom->getElementsByTagName('script');
-
-        $remove = [];
-        foreach ($script as $item) {
-            $remove[] = $item;
+            $dom = new \DOMDocument();
+    
+            $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    
+            $script = $dom->getElementsByTagName('script');
+    
+            $remove = [];
+            foreach ($script as $item) {
+                $remove[] = $item;
+            }
+    
+            foreach ($remove as $item) {
+                $item->parentNode->removeChild($item);
+            }
+    
+            $html = trim($dom->saveHTML());
+            $html = preg_replace('/^<br>/u', '', $html);
+            $html = preg_replace('/<br>$/u', '', $html);
+            
+            libxml_use_internal_errors(false);
         }
-
-        foreach ($remove as $item) {
-            $item->parentNode->removeChild($item);
+        catch(\Exception $ex){
+            return $html;
         }
-
-        $html = trim($dom->saveHTML());
-        $html = preg_replace('/^<br>/u', '', $html);
-        $html = preg_replace('/<br>$/u', '', $html);
         
         return $html;
     }
