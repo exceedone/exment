@@ -53,6 +53,17 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             [
                 'replaceNames' => [
                     [
+                        'replacingName' => 'options.select_target_view',
+                        'replacedName' => [
+                            'suuid' => 'options.select_target_view_suuid',
+                        ],
+                    ]
+                ],
+                'uniqueKeyClassName' => CustomView::class,
+            ],
+            [
+                'replaceNames' => [
+                    [
                         'replacedName' => [
                             'table_name' => 'options.select_import_table_name',
                             'column_name' => 'options.select_import_column_name',
@@ -429,6 +440,40 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             // set as json string
             $obj_column->setOption('calc_formula', $calc_formula);
             $update_flg = true;
+        }
+
+        if ($update_flg) {
+            $obj_column->save();
+        }
+        return $obj_column;
+    }
+
+    /**
+     * import template (for setting other custom view id)
+     */
+    public static function importTemplateTargetView($json, $is_update, $options = [])
+    {
+        $custom_table = array_get($options, 'parent');
+        $column_name = array_get($json, 'column_name');
+
+        $obj_column = CustomColumn::firstOrNew([
+            'custom_table_id' => $custom_table->id,
+            'column_name' => $column_name
+        ]);
+
+        // if record is already exists skip process, when update
+        if ($is_update && $obj_column->exists) {
+            return $obj_column;
+        }
+
+        ///// set view
+        $update_flg = false;
+        if(!is_null(array_get($json, 'options.select_target_view_suuid'))){
+            $view = CustomView::where('suuid', array_get($json, 'options.select_target_view_suuid'))->first();
+            if(isset($view)){
+                $obj_column->setOption('select_target_view', $view->id);
+                $update_flg = true;    
+            }
         }
 
         if ($update_flg) {

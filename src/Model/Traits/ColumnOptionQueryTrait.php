@@ -73,7 +73,7 @@ trait ColumnOptionQueryTrait
         $params['column_column_target'] = explode("?", $query)[0];
         $defaultCustomTable = CustomTable::getEloquent($defaultCustomTable);
 
-        if (preg_match('/\d+\?.+$/i', $query) === 1) {
+        if (preg_match('/.+\?.+$/i', $query) === 1) {
             $view_column_query = explode("?", $query)[1];
             parse_str($view_column_query, $view_column_query_array);
 
