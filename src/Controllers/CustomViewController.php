@@ -506,12 +506,12 @@ EOT;
                     $data = $select->data();
                     $view_column_target = array_get($data, 'view_column_target');
 
-                    if (array_get($data, 'view_column_type') != ViewColumnType::COLUMN) {
-                        list($table_name, $target_id) = explode("-", $view_column_target);
-                        if (is_numeric($target_id)) {
-                            $view_column_target = $table_name . '-' . SystemColumn::getOption(['id' => $target_id])['name'];
-                        }
-                    }
+                    // if (array_get($data, 'view_column_type') != ViewColumnType::COLUMN) {
+                    //     list($table_name, $target_id) = explode("-", $view_column_target);
+                    //     if (is_numeric($target_id)) {
+                    //         $view_column_target = $table_name . '-' . SystemColumn::getOption(['id' => $target_id])['name'];
+                    //     }
+                    // }
 
                     // get column item
                     $column_item = CustomViewFilter::getColumnItem($view_column_target)

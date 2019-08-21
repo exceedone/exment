@@ -120,7 +120,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     $plugin = Plugin::getEloquent($row['menu_target']);
                     if (!isset($plugin)) {
                         $result = false;
-                        continue;
+                        break;
                     }
                     $row['uri'] = $plugin->getRouteUri();
                     break;
