@@ -8,6 +8,7 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -18,7 +19,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
-use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -117,6 +117,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.session',
         ],
+        'admin_plugin_public' => [
+            'admin.auth',
+            'admin.auth-2factor',
+            'admin.bootstrap2',
+        ],
         'adminapi' => [
             'adminapi.auth',
             'throttle:60,1',
@@ -177,6 +182,11 @@ class ExmentServiceProvider extends ServiceProvider
                 return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
             });
         });
+
+        // bind plugin for page
+        $this->app->bind(PluginPublicBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
         
         Passport::ignoreMigrations();
     }
@@ -201,6 +211,17 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+
+        // load plugins
+        if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
+            return;
+        }
+        $pluginPages = Plugin::getPluginPages();
+        foreach ($pluginPages as $pluginPage) {
+            if (!is_null($items = $pluginPage->_getLoadView())) {
+                $this->loadViewsFrom($items[0], $items[1]);
+            }
+        }
     }
 
     protected function bootApp()
@@ -225,7 +246,7 @@ class ExmentServiceProvider extends ServiceProvider
                 
             // set cron event
             try {
-                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
+                if (hasTable(SystemTableName::PLUGIN)) {
                     $plugins = Plugin::getCronBatches();
                     foreach ($plugins as $plugin) {
                         $cronSchedule = $this->app->make(Schedule::class);

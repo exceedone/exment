@@ -20,6 +20,10 @@ class ModalForm extends WidgetForm
                 e.preventDefault();
                 var form = $('#$id form').get()[0];
 
+                if(!form.reportValidity()){
+                    return;
+                }
+
                 // get button element
                 var button = $(e.target).closest('button');
                 button.data('buttontext', button.text());

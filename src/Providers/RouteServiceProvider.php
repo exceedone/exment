@@ -131,9 +131,6 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
                         
-            $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
-            $router->post("navisearch/result/{tableKey}", 'NaviSearchController@getNaviResult');
-
             $router->get('api/table/{id}', 'ApiController@table');
             $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
         
@@ -168,7 +165,7 @@ class RouteServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
-            $router->put('initialize/filedelete', 'initialize@filedelete');
+            $router->put('initialize/filedelete', 'InitializeController@filedelete');
             $router->get('auth/login', 'AuthController@getLoginExment');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');

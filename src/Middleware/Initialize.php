@@ -27,7 +27,7 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
+        if (!canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
             $path = trim(admin_base_path('install'), '/');
             if (!$request->is($path)) {
                 return redirect()->guest(admin_base_path('install'));
@@ -122,10 +122,23 @@ class Initialize
                 'root' => storage_path('app/backup'),
             ]);
         }
+
+        if (!Config::has('filesystems.disks.plugin')) {
+            Config::set('filesystems.disks.plugin', [
+                'driver' => 'exment-driver',
+                'root' => storage_path('app/plugins'),
+            ]);
+        }
         if (!Config::has('filesystems.disks.plugin_local')) {
             Config::set('filesystems.disks.plugin_local', [
                 'driver' => 'local',
                 'root' => storage_path('app/plugins'),
+            ]);
+        }
+        if (!Config::has('filesystems.disks.template_local')) {
+            Config::set('filesystems.disks.template_local', [
+                'driver' => 'local',
+                'root' => storage_path('app/templates'),
             ]);
         }
 
@@ -361,20 +374,21 @@ class Initialize
                 }
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
-            $now = \Carbon\Carbon::now();
 
-            $log_string = 'SQL: ' . $now->format("YmdHisv")." ".$sql;
-
+            $log_string = 'SQL: ' .$sql;
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
                 $log_string .= "    , function: $function";
+            } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
+                $function = static::getFunctionName(true);
+                $log_string .= "    , function: $function";
             }
-    
-            \Log::debug($log_string);
+
+            exmDebugLog($log_string);
         });
     }
 
-    protected static function getFunctionName()
+    protected static function getFunctionName($oneFunction = false)
     {
         $bt = debug_backtrace();
         $functions = [];
@@ -382,6 +396,10 @@ class Initialize
         foreach ($bt as $b) {
             if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
                 $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            if ($oneFunction && count($functions) >= 1) {
+                break;
             }
 
             $i++;

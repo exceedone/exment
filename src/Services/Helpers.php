@@ -19,6 +19,20 @@ use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
 
+if (!function_exists('exmDebugLog')) {
+    /**
+     * Debug log
+     */
+    function exmDebugLog($log)
+    {
+        $now = Carbon::now();
+
+        $log_string = $now->format("YmdHisv")." ".$log;
+
+        \Log::debug($log_string);
+    }
+}
+
 if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
     {
@@ -76,24 +90,33 @@ if (!function_exists('esc_script_tag')) {
             return $html;
         }
         
-        $dom = new \DOMDocument();
+        try{
+            libxml_use_internal_errors(true);
 
-        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-
-        $script = $dom->getElementsByTagName('script');
-
-        $remove = [];
-        foreach ($script as $item) {
-            $remove[] = $item;
+            $dom = new \DOMDocument();
+    
+            $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    
+            $script = $dom->getElementsByTagName('script');
+    
+            $remove = [];
+            foreach ($script as $item) {
+                $remove[] = $item;
+            }
+    
+            foreach ($remove as $item) {
+                $item->parentNode->removeChild($item);
+            }
+    
+            $html = trim($dom->saveHTML());
+            $html = preg_replace('/^<br>/u', '', $html);
+            $html = preg_replace('/<br>$/u', '', $html);
+            
+            libxml_use_internal_errors(false);
         }
-
-        foreach ($remove as $item) {
-            $item->parentNode->removeChild($item);
+        catch(\Exception $ex){
+            return $html;
         }
-
-        $html = trim($dom->saveHTML());
-        $html = preg_replace('/^<br>/u', '', $html);
-        $html = preg_replace('/<br>$/u', '', $html);
         
         return $html;
     }
@@ -256,6 +279,10 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
+            if(empty($value)){
+                continue;
+            }
+            
             if (is_array($value)) {
                 $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
             } elseif ($ret_pass == "") {
@@ -291,7 +318,7 @@ if (!function_exists('getFullpath')) {
 
         if ($mkdir) {
             $dirPath = pathinfo($path)['dirname'];
-            if(!\File::exists($dirPath)){
+            if (!\File::exists($dirPath)) {
                 \File::makeDirectory($dirPath, 0755, true);
             }
         }
@@ -557,6 +584,11 @@ if (!function_exists('make_licensecode')) {
 if (!function_exists('pascalize')) {
     function pascalize($string)
     {
+        // replace A to _a
+        $string = preg_replace_callback('/[A-Z]/', function ($match) {
+            return '_' . strtolower($match[0]);
+        }, $string);
+        $string = ltrim($string, '_');
         $string = strtolower($string);
         $string = str_replace('_', ' ', $string);
         $string = ucwords($string);
@@ -1427,7 +1459,7 @@ if (!function_exists('getCellValue')) {
         }
 
         // if merge cell, get from master cell
-        if($isGetMerge && $cell->isInMergeRange()){
+        if ($isGetMerge && $cell->isInMergeRange()) {
             $mergeRange = $cell->getMergeRange();
             $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
         }
@@ -1473,10 +1505,7 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, SystemTableName::USER, $id);
-        $user = System::requestSession($key, function () use ($id) {
-            return getModelName(SystemTableName::USER)::withTrashed()->find($id);
-        });
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         if (!isset($user)) {
             return null;
         }

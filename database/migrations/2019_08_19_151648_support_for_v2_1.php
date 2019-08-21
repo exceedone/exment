@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 
-class InitColumn extends Migration
+class SupportForV21 extends Migration
 {
     /**
      * Run the migrations.
@@ -11,7 +11,8 @@ class InitColumn extends Migration
      */
     public function up()
     {
-        \Artisan::call('exment:patchdata', ['action' => 'init_column']);
+        \Artisan::call('exment:patchdata', ['action' => 'move_plugin']);
+        \Artisan::call('exment:patchdata', ['action' => 'move_template']);
     }
 
     /**

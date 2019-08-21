@@ -11,10 +11,12 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 
 class SystemItem implements ItemInterface
 {
-    use ItemTrait;
+    use ItemTrait, ColumnOptionQueryTrait;
     
     protected $column_name;
     
@@ -22,14 +24,19 @@ class SystemItem implements ItemInterface
     
     public function __construct($custom_table, $column_name, $custom_value)
     {
+        // if view_pivot(like select table), custom_table is target's table
         $this->custom_table = $custom_table;
-        if (preg_match('/\d+-.+$/i', $column_name) === 1) {
-            list($table_name, $this->column_name) = explode("-", $column_name);
+        $this->setCustomValue($custom_value);
+
+        $params = static::getOptionParams($column_name, $custom_table);
+        $this->column_name = $params['column_column_target'];
+
+        // get label. check not match $this->custom_table and pivot table
+        if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
+            $this->label = static::getViewColumnLabel(exmtrans("common.$this->column_name"), $this->custom_table->table_view_name);
         } else {
-            $this->column_name = $column_name;
+            $this->label = exmtrans("common.$this->column_name");
         }
-        $this->custom_value = $custom_value;
-        $this->label = exmtrans("common.$this->column_name");
     }
 
     /**
@@ -114,7 +121,7 @@ class SystemItem implements ItemInterface
     protected function getSqlColumnName()
     {
         // get SystemColumn enum
-        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $option = $this->getSystemColumnOption();
         if (!isset($option)) {
             $sqlname = $this->column_name;
         } else {
@@ -133,7 +140,7 @@ class SystemItem implements ItemInterface
      */
     public function index()
     {
-        $option = SystemColumn::getOption(['name' => $this->name()]);
+        $option = $this->getSystemColumnOption();
         return array_get($option, 'sqlname', $this->name());
     }
 
@@ -155,6 +162,18 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * get grid style
+     */
+    public function gridStyle()
+    {
+        $option = $this->getSystemColumnOption();
+        return $this->getStyleString([
+            'min-width' => array_get($option, 'min_width', config('exment.grid_min_width', 100)) . 'px',
+            'max-width' => array_get($option, 'max_width', config('exment.grid_max_width', 300)) . 'px',
+        ]);
+    }
+
+    /**
      * sortable for grid
      */
     public function sortable()
@@ -172,6 +191,18 @@ class SystemItem implements ItemInterface
 
     public function setCustomValue($custom_value)
     {
+        // if options has "view_pivot_column", get select_table's custom_value first
+        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+            $view_pivot_column = $this->options['view_pivot_column'];
+            if ($view_pivot_column == SystemColumn::PARENT_ID) {
+                $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
+            } else {
+                $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
+                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+                $custom_value = $this->custom_table->getValueModel($pivot_id);
+            }
+        }
+
         $this->custom_value = $custom_value;
         if (isset($custom_value)) {
             $this->id = array_get($custom_value, 'id');
@@ -195,7 +226,7 @@ class SystemItem implements ItemInterface
         }
 
         if ($html) {
-            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            $option = $this->getSystemColumnOption();
             if (!is_null($keyname = array_get($option, 'tagname'))) {
                 return array_get($this->custom_value, $keyname);
             }
@@ -216,7 +247,7 @@ class SystemItem implements ItemInterface
     public function getFilterField($value_type = null)
     {
         if (is_null($value_type)) {
-            $option = SystemColumn::getOption(['name' => $this->column_name]);
+            $option = $this->getSystemColumnOption();
             $value_type = array_get($option, 'type');
         }
 
@@ -255,7 +286,7 @@ class SystemItem implements ItemInterface
      */
     public function isDate()
     {
-        $option = SystemColumn::getOption(['name' => $this->column_name]);
+        $option = $this->getSystemColumnOption();
         $value_type = array_get($option, 'type');
 
         return in_array($value_type, ['day', 'datetime']);
@@ -280,6 +311,12 @@ class SystemItem implements ItemInterface
         }
         return ViewColumnFilterType::DEFAULT;
     }
+
+    protected function getSystemColumnOption()
+    {
+        return SystemColumn::getOption(['name' => $this->column_name]);
+    }
+
 
     public static function getItem(...$args)
     {

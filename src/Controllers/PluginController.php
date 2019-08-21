@@ -144,6 +144,7 @@ class PluginController extends AdminControllerBase
     protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
+        $plugin_type = Plugin::getFieldById($id, 'plugin_type');
 
         // create form
         $form = new Form(new Plugin);
@@ -157,7 +158,6 @@ class PluginController extends AdminControllerBase
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
-        $plugin_type = Plugin::getFieldById($id, 'plugin_type');
         $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
             if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
@@ -172,7 +172,8 @@ class PluginController extends AdminControllerBase
                 }
             } elseif ($plugin_type == PluginType::PAGE) {
                 // Plugin_type = 'page'
-                $form->text('uri', exmtrans("plugin.options.uri"));
+                $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
+                $form->text('uri', exmtrans("plugin.options.uri"))->required();
             } elseif ($plugin_type == PluginType::BATCH) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
@@ -183,17 +184,28 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if (!in_array($plugin_type, [PluginType::BATCH, PluginType::IMPORT])) {
+            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
             }
         })->disableHeader();
 
-        if(!$isDelete){
+        if (!$isDelete) {
             $this->setCustomOptionForm($plugin, $form);
         }
 
+        $form->tools(function (Form\Tools $tools) use ($plugin, $plugin_type) {
+            if($plugin_type == PluginType::PAGE){
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_url($plugin->getRouteUri()),
+                    'label' => exmtrans('plugin.show_plugin_page'),
+                    'icon' => 'fa-desktop',
+                    'btn_class' => 'btn-purple',
+                ]));
+            }
+        });
+        
         $form->disableReset();
         return $form;
     }

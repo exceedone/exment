@@ -80,7 +80,7 @@ class ModelBase extends Model
             $model->{$column} = $id;
         }
     }
-    
+
     /**
      * get eloquent using request settion.
      * now only support only id.

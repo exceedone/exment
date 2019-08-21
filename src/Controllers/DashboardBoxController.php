@@ -260,6 +260,6 @@ class DashboardBoxController extends AdminControllerBase
         // get custom views
         $custom_view = CustomView::getEloquent($id);
 
-        return $custom_view->getColumnsSelectOptions($axis_type == 'y');
+        return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
     }
 }

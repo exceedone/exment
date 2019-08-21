@@ -145,7 +145,7 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        $import_plugin = $request->get('import_plugin');
+        $import_plugin = is_string($request) ? null : $request->get('import_plugin');
 
         if (isset($import_plugin)) {
             return $this->customImport($import_plugin, $request->file('custom_table_file'));
@@ -173,7 +173,8 @@ class DataImportExportService extends AbstractExporter
      * import data by custom logic
      * @param $import_plugin
      */
-    protected function customImport($import_plugin, $file) {
+    protected function customImport($import_plugin, $file)
+    {
         $plugin = Plugin::find($import_plugin);
         $batch = $plugin->getClass(['file' => $file]);
         $result = $batch->execute();

@@ -15,6 +15,9 @@ class Url extends CustomItem
     {
         $value = $this->value();
         $url = $this->value();
+
+        $value = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($value) : $value;
+     
         return "<a href='{$url}' target='_blank'>$value</a>";
     }
     

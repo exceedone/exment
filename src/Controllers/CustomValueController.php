@@ -6,6 +6,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Auth\Permission as Checker;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
+use Encore\Admin\Layout\Row;
 use Encore\Admin\Form\Field;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Enums\RelationType;
@@ -32,6 +33,11 @@ class CustomValueController extends AdminControllerTableBase
     use CustomValueShow, CustomValueSummary, CustomValueCalendar;
     protected $plugins = [];
 
+    const CLASSNAME_CUSTOM_VALUE_SHOW = 'block_custom_value_show';
+    const CLASSNAME_CUSTOM_VALUE_GRID = 'block_custom_value_grid';
+    const CLASSNAME_CUSTOM_VALUE_FORM = 'block_custom_value_form';
+    const CLASSNAME_CUSTOM_VALUE_PREFIX = 'custom_value_';
+
     /**
      * CustomValueController constructor.
      * @param Request $request
@@ -40,12 +46,14 @@ class CustomValueController extends AdminControllerTableBase
     {
         parent::__construct($request);
 
+        if (!isset($this->custom_table)) {
+            return;
+        }
+
         $this->setPageInfo($this->custom_table->table_view_name, $this->custom_table->table_view_name, $this->custom_table->description, $this->custom_table->getOption('icon'));
 
-        if (!is_null($this->custom_table)) {
-            //Get all plugin satisfied
-            $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
-        }
+        //Get all plugin satisfied
+        $this->plugins = Plugin::getPluginsByTable($this->custom_table->table_name);
     }
 
     /**
@@ -76,18 +84,20 @@ class CustomValueController extends AdminControllerTableBase
             if (isset($record)) {
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
-                $content->body($form);
+                $row = new Row($form);
             }
             // no record
             else {
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
-                $content->body($form);
+                $row = new Row($form);
             }
 
             $form->disableViewCheck();
             $form->disableEditingCheck();
             $form->disableCreatingCheck();
+
+            $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         } else {
             $callback = null;
             if ($request->has('query') && $this->custom_view->view_kind_type != ViewKindType::ALLDATA) {
@@ -99,18 +109,23 @@ class CustomValueController extends AdminControllerTableBase
             }
             switch ($this->custom_view->view_kind_type) {
                 case ViewKindType::AGGREGATE:
-                    $content->body($this->gridSummary());
+                    $row = new Row($this->gridSummary());
                     break;
                 case ViewKindType::CALENDAR:
-                    $content->body($this->gridCalendar());
+                    $row = new Row($this->gridCalendar());
                     break;
                 default:
-                    $content->body($this->grid($callback));
+                    $row = new Row($this->grid($callback));
                     $this->custom_table->saveGridParameter($request->path());
             }
 
             PartialCrudService::setGridContent($this->custom_table, $content);
+
+            $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         }
+
+        $content->row($row);
+
         return $content;
     }
     
@@ -125,8 +140,13 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
         $this->AdminContent($content);
+        
         Plugin::pluginPreparing($this->plugins, 'loading');
-        $content->body($this->form(null));
+
+        $row = new Row($this->form(null));
+        $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+        $content->row($row);
+        
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
@@ -150,7 +170,11 @@ class CustomValueController extends AdminControllerTableBase
         }
         $this->AdminContent($content);
         Plugin::pluginPreparing($this->plugins, 'loading');
-        $content->body($this->form($id)->edit($id));
+
+        $row = new Row($this->form($id)->edit($id));
+        $row->class([static::CLASSNAME_CUSTOM_VALUE_FORM, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
+        $content->row($row);
+
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $content;
     }
@@ -175,7 +199,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
         $content->row($this->createShowForm($id));
         $content->row(function ($row) use ($id) {
-            $row->class('row-eq-height');
+            $row->class(['row-eq-height', static::CLASSNAME_CUSTOM_VALUE_SHOW, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
             $this->setOptionBoxes($row, $id, false);
         });
         return $content;

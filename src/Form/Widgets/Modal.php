@@ -31,7 +31,7 @@ class Modal
                         targetid: $(this).attr('id')
                     }
                 }).done(function( res ) {
-                    $('button.modal-submit').removeClass('d-none');
+                    $('#$id button.modal-submit').removeClass('d-none');
                     // change html
                     setBodyHtml(res, null, original_title);
 
@@ -158,7 +158,7 @@ class Modal
                     if(hasValue(original_title)){
                         $('#$id .modal-title').html(original_title);
                     }
-                    $('button.modal-submit').addClass('d-none');
+                    $('#$id button.modal-submit').addClass('d-none');
                 }
                 // reomve class and prop
                 if(hasValue(button)){

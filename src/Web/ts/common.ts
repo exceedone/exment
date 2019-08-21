@@ -1,3 +1,7 @@
+declare var toastr: any;
+declare var LA: any;
+declare var BigNumber: any;
+declare function swal(...x:any): any;
 
 namespace Exment {
     export class CommonEvent {
@@ -14,7 +18,7 @@ namespace Exment {
             $(document).on('click', '.add,.remove', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
-            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject, state) => {
+            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
 
@@ -125,7 +129,7 @@ namespace Exment {
         }
 
 
-        public static ShowSwal(url: string, options = []) {
+        public static ShowSwal(url: string, options?: any) {
             options = $.extend(
                 {
                     title: 'Swal',
@@ -154,7 +158,7 @@ namespace Exment {
                 options.method = 'POST';
             }
 
-            var swalOptions = {
+            var swalOptions:any = {
                 title: options.title,
                 type: options.type,
                 showCancelButton: true,
@@ -316,7 +320,7 @@ namespace Exment {
         /**
         * get model and change value
         */
-        private static async changeModelData($target: JQuery<TElement>, data: any = null) {
+        private static async changeModelData($target: JQuery<Element>, data: any = null) {
             var $d = $.Deferred();
             // get parent element from the form field.
             var $parent = CommonEvent.getParentRow($target);
@@ -340,7 +344,7 @@ namespace Exment {
                     }
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('[name="_token"]').val()
+                            'X-CSRF-TOKEN': $('[name="_token"]').val() as string
                         }
                     });
                     $.ajax({
@@ -382,7 +386,7 @@ namespace Exment {
                     // send ajax
                     $.ajaxSetup({
                         headers: {
-                            'X-CSRF-TOKEN': $('[name="_token"]').val()
+                            'X-CSRF-TOKEN': $('[name="_token"]').val() as string
                         }
                     });
                     $.ajax({
@@ -411,7 +415,7 @@ namespace Exment {
         /**
          * set getmodel or getitem data to form
          */
-        private static async setModelItem(modeldata: any, $changedata_target: JQuery, $elem: JQuery, options: Array<any>) {
+        private static async setModelItem(modeldata: any, $changedata_target: JQuery<Element>, $elem: JQuery<Element>, options: Array<any>) {
             // loop for options
             for (var i = 0; i < options.length; i++) {
                 var option = options[i];
@@ -602,7 +606,7 @@ namespace Exment {
          * Switch display / non-display according to the target input value
          * @param $target
          */
-        private static setFormFilter = ($target: JQuery<TElement>) => {
+        private static setFormFilter = ($target: JQuery<Element>) => {
             $target = CommonEvent.getParentRow($target).find('[data-filter]');
             for (var tIndex = 0; tIndex < $target.length; tIndex++) {
                 var $t = $target.eq(tIndex);
@@ -735,7 +739,7 @@ namespace Exment {
          * data : has "to" and "options". options has properties "val" and "type"
          * 
          */
-        public static async setCalc($target: JQuery<TElement>, data) {
+        public static async setCalc($target: JQuery<Element>, data) {
             // if not found target, return.
             if (!hasValue($target)) { return; }
 
@@ -1038,10 +1042,6 @@ const hasValue = (obj): boolean => {
     }
     return true;
 }
-//const comma = (x) => {
-//    return rmcomma(x).replace(/(\d)(?=(?:\d{3}){2,}(?:\.|$))|(\d)(\d{3}(?:\.\d*)?$)/g
-//        , '$1$2,$3');
-//}
 
 const comma = (x) => {
     if (x === null || x === undefined) {
@@ -1102,5 +1102,4 @@ const getParamFromArray = function (array) {
         return (x.value !== (undefined || null || ''));
     });
     return $.param(array);
-
 }

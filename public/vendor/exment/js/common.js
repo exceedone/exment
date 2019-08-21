@@ -20,7 +20,7 @@ var Exment;
             $(document).on('click', '.add,.remove', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
-            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev, state) => {
+            $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
@@ -119,7 +119,7 @@ var Exment;
                 $.pjax.reload('#pjax-container');
             }
         }
-        static ShowSwal(url, options = []) {
+        static ShowSwal(url, options) {
             options = $.extend({
                 title: 'Swal',
                 text: null,
@@ -693,7 +693,6 @@ var Exment;
                             return {
                                 q: params.term,
                                 page: params.page,
-                                selectajax: true
                             };
                         },
                         processResults: function (data, params) {
@@ -988,10 +987,6 @@ const hasValue = (obj) => {
     }
     return true;
 };
-//const comma = (x) => {
-//    return rmcomma(x).replace(/(\d)(?=(?:\d{3}){2,}(?:\.|$))|(\d)(\d{3}(?:\.\d*)?$)/g
-//        , '$1$2,$3');
-//}
 const comma = (x) => {
     if (x === null || x === undefined) {
         return x;

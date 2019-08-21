@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Adapter;
 use League\Flysystem\Adapter\Ftp;
 
 use Exceedone\Exment\Model\File;
-use Exceedone\Exment\Model\Define;
 
 class ExmentAdapterFtp extends Ftp implements ExmentAdapterInterface
 {
