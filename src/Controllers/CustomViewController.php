@@ -514,10 +514,7 @@ EOT;
                     // }
 
                     // get column item
-                    $column_item = CustomViewFilter::getColumnItem($view_column_target)
-                        ->options([
-                            'view_column_target' => true,
-                        ]);
+                    $column_item = CustomViewFilter::getColumnItem($view_column_target);
 
                     ///// get column_type
                     $column_type = $column_item->getViewFilterType();
@@ -535,8 +532,9 @@ EOT;
 
                     return [];
                 });
-            $form->changeField('view_filter_condition_value', exmtrans("custom_view.view_filter_condition_value_text"))
-                ->rules('changeFieldValue');
+            $label = exmtrans('custom_view.view_filter_condition_value_text');
+            $form->changeField('view_filter_condition_value', $label)
+                ->rules("changeFieldValue:$label");
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
     }
@@ -616,12 +614,13 @@ EOT;
             return [];
         }
         $columnname = 'view_filter_condition_value';
+        $label = exmtrans('custom_view.'.$columnname.'_text');
 
-        $field = new ChangeField($columnname, exmtrans('custom_view.'.$columnname.'_text'));
+        $field = new ChangeField($columnname, $label);
         $field->data([
             'view_column_target' => $data['target'],
             'view_filter_condition' => $data['cond_val']
-        ]);
+        ])->rules("changeFieldValue:$label");
         $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
         $field->setElementName($element_name);
 

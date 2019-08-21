@@ -181,6 +181,14 @@ class SystemItem implements ItemInterface
         return true;
     }
 
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
+    }
+
     public function setCustomValue($custom_value)
     {
         // if options has "view_pivot_column", get select_table's custom_value first

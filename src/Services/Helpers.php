@@ -4,12 +4,14 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -1555,6 +1557,36 @@ if (!function_exists('useLoginProvider')) {
             $path = trim($path, '/');
     
             return $path?? '/';
+        }
+    }
+
+    if (!function_exists('getCustomField')) {
+        function getCustomField($data, $field_label = null)
+        {
+            $view_column_target = array_get($data, 'view_column_target');
+            $view_filter_condition = array_get($data, 'view_filter_condition');
+
+            if (!isset($view_column_target)) {
+                return null;
+            }
+    
+            $value_type = null;
+    
+            if (isset($view_filter_condition)) {
+                $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
+    
+                if ($value_type == 'none') {
+                    return null;
+                }
+            }
+    
+            // get column item
+            $column_item = CustomViewFilter::getColumnItem($view_column_target);
+            if (isset($field_label)) {
+                $column_item->setLabel($field_label);
+            }
+    
+            return $column_item->getFilterField($value_type);
         }
     }
 }

@@ -80,8 +80,7 @@ trait CustomViewColumnTrait
         $column_type = array_get($this, $column_type_key);
         $column_type_target = array_get($this, $column_type_target_key);
 
-        if (!isset($column_table_id) ||
-            !isset($column_type) ||
+        if (!isset($column_type) ||
             !isset($column_type_target)) {
             return null;
         }
