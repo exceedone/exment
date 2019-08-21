@@ -159,7 +159,13 @@ class CustomOperationController extends AdminControllerTableBase
         // filter setting
         $form->hasManyTable('custom_operation_columns', exmtrans("custom_operation.custom_operation_columns"), function ($form) use ($custom_table) {
             $form->select('view_column_target', exmtrans("custom_operation.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, false, false, false, false));
+                ->options($this->custom_table->getColumnsSelectOptions([
+                    'append_table' => true,
+                    'index_enabled_only' => false,
+                    'include_parent' => false,
+                    'include_child' => false,
+                    'include_system' => false,
+                ]));
 
             $label = exmtrans("custom_operation.update_value_text");
             $form->changeField('update_value', $label)
