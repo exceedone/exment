@@ -116,7 +116,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             switch ($row['menu_type']) {
                 case MenuType::PLUGIN:
                     //$row['icon'] = null;
-                    $row['uri'] = 'plugins/'.$row['uri'];;
+                    $row['uri'] = 'plugins/'.$row['uri'];
                     break;
                 case MenuType::TABLE:
                     if (is_nullorempty($row['icon'])) {

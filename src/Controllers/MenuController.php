@@ -87,7 +87,7 @@ class MenuController extends AdminControllerBase
                 switch ($branch['menu_type']) {
                     case MenuType::PLUGIN:
                         $icon = null;
-                        $uri = null;
+                        $uri = array_get($branch, 'uri');
                         break;
                     case MenuType::TABLE:
                         $icon = $branch['icon'];
