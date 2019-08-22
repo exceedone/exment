@@ -32,17 +32,19 @@ class SupportForV21 extends Migration
             });
         }
 
-        $schema->create('custom_operation_columns', function (ExtendedBlueprint $table) {
-            $table->increments('id');
-            $table->integer('custom_operation_id')->unsigned();
-            $table->integer('view_column_type')->default(0);
-            $table->integer('view_column_target_id');
-            $table->string('update_value_text', 1024);
-            $table->timestamps();
-            $table->timeusers();
+        if (!\Schema::hasTable('custom_operation_columns')) {
+            $schema->create('custom_operation_columns', function (ExtendedBlueprint $table) {
+                $table->increments('id');
+                $table->integer('custom_operation_id')->unsigned();
+                $table->integer('view_column_type')->default(0);
+                $table->integer('view_column_target_id');
+                $table->string('update_value_text', 1024);
+                $table->timestamps();
+                $table->timeusers();
 
-            $table->foreign('custom_operation_id')->references('id')->on('custom_operations');
-        });
+                $table->foreign('custom_operation_id')->references('id')->on('custom_operations');
+            });
+        }
 
         \Artisan::call('exment:patchdata', ['action' => 'move_plugin']);
         \Artisan::call('exment:patchdata', ['action' => 'move_template']);
