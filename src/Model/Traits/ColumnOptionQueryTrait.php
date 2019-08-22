@@ -70,7 +70,7 @@ trait ColumnOptionQueryTrait
     protected static function getOptionParams($query, $defaultCustomTable)
     {
         $params = [];
-        $params['column_column_target'] = explode("?", $query)[0];
+        $params['column_target'] = explode("?", $query)[0];
         $defaultCustomTable = CustomTable::getEloquent($defaultCustomTable);
 
         if (preg_match('/.+\?.+$/i', $query) === 1) {

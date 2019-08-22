@@ -10,11 +10,14 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Illuminate\Validation\Validator as AdminValidator;
 
 class ExmentCustomValidator extends AdminValidator
 {
+    use ColumnOptionQueryTrait;
+
     /**
     * Validation current password
     *
@@ -74,12 +77,11 @@ class ExmentCustomValidator extends AdminValidator
     {
         $field_name = str_replace('.view_summary_condition', '.view_column_target', $attribute);
         $view_column_target = array_get($this->data, $field_name);
-        if (preg_match('/\d+-.+$/i', $view_column_target) === 1) {
-            list($view_column_table_id, $view_column_target) = explode("-", $view_column_target);
-        }
-        if (is_numeric($view_column_target)) {
+        $view_column_target = static::getOptionParams($view_column_target, null);
+        $column_target = array_get($view_column_target, 'column_target');
+        if (is_numeric($column_target)) {
             // get column_type
-            $column_type = CustomColumn::getEloquent($view_column_target)->column_type;
+            $column_type = CustomColumn::getEloquent($column_target)->column_type;
             // numeric column can select all summary condition.
             if (ColumnType::isCalc($column_type)) {
                 return true;
