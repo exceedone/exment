@@ -152,7 +152,7 @@ trait CustomValueGrid
                 // if cannot edit, disable delete and update operations
                 if ($edit_flg) {
                     foreach($this->custom_table->custom_operations as $custom_operation) {
-                        $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation->id));
+                        $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation));
                     }
                 } else {
                     $batch->disableDelete();

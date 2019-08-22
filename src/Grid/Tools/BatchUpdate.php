@@ -6,16 +6,16 @@ use Encore\Admin\Grid\Tools\BatchAction;
 
 class BatchUpdate extends BatchAction
 {
-    protected $operation_id;
+    protected $operation;
 
     /**
      * Create a new Tools instance.
      *
      * @param Grid $grid
      */
-    public function __construct($operation_id)
+    public function __construct($operation)
     {
-        $this->operation_id = $operation_id;
+        $this->operation = $operation;
     }
 
     /**
@@ -24,28 +24,47 @@ class BatchUpdate extends BatchAction
     public function script()
     {
         $url = url($this->resource);
-        $operation_id = $this->operation_id;
+        $operation_id = $this->operation->id;
+
+        $confirm = trans('admin.confirm');
+        $cancel = trans('admin.cancel');
+
+        $label = $this->operation->operation_name;
+        $text = exmtrans('common.message.confirm_execute', exmtrans('custom_operation.custom_operation'));
 
         return <<<EOT
 
 $('{$this->getElementClass()}').on('click', function() {
-    $.ajax({
-        method: 'post',
-        url: '{$url}/{$operation_id}/rowUpdate/' + $.admin.grid.selected().join(),
+    var url = '{$url}/{$operation_id}/rowUpdate/' + $.admin.grid.selected().join();
+    Exment.CommonEvent.ShowSwal(url, {
+        title: "$label",
+        confirm:"$confirm",
+        cancel:"$cancel",
+        text:"$text",
         data: {
             _method:'post',
             _token:'{$this->getToken()}'
         },
-    })
-    .then(
-        function (repsonse) {
-            $.pjax.reload('#pjax-container');
-            Exment.CommonEvent.CallbackExmentAjax(repsonse);
-        },
-        function (repsonse) {
-            Exment.CommonEvent.CallbackExmentAjax(repsonse);
-        }
-    );
+    });
+
+
+    // $.ajax({
+    //     method: 'post',
+    //     url: '{$url}/{$operation_id}/rowUpdate/' + $.admin.grid.selected().join(),
+    //     data: {
+    //         _method:'post',
+    //         _token:'{$this->getToken()}'
+    //     },
+    // })
+    // .then(
+    //     function (repsonse) {
+    //         $.pjax.reload('#pjax-container');
+    //         Exment.CommonEvent.CallbackExmentAjax(repsonse);
+    //     },
+    //     function (repsonse) {
+    //         Exment.CommonEvent.CallbackExmentAjax(repsonse);
+    //     }
+    // );
 });
 
 EOT;

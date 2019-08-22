@@ -739,6 +739,7 @@ return [
     ],
 
     'custom_operation' => [
+        'custom_operation' => '一括更新',
         'header' => '一括更新設定',
         'description' => '選択データを一括更新するための設定を行います。',
         'operation_name' => '一括更新文言',

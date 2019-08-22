@@ -133,7 +133,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function sortable()
     {
-        return $this->indexEnabled();
+        return $this->indexEnabled() && !array_key_value_exists('view_pivot_column', $this->options);
     }
 
     /**
