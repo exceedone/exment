@@ -214,9 +214,7 @@ class ChartItem implements ItemInterface
                 ->options(ChartType::transArray("chart.chart_type_options"));
 
         // get only has summaryview
-        $model = CustomTable::whereHas('custom_views', function ($query) {
-            $query->where('view_kind_type', ViewKindType::AGGREGATE);
-        });
+        $model = CustomTable::query();
         $tables = CustomTable::filterList($model, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])
             ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
