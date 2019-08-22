@@ -92,10 +92,17 @@ class Plugin extends ModelBase
      */
     public function getClass($options = [])
     {
+        extract(
+            array_merge([
+                'throw_ex' => true,
+            ],
+            $options
+        ));
+
         $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
         $class = $pluginType->getPluginClass($this);
         
-        if (!isset($class)) {
+        if (!isset($class) && $throw_ex) {
             throw new \Exception('plugin not found');
         }
 
@@ -272,8 +279,8 @@ class Plugin extends ModelBase
         });
 
         return $plugins->map(function ($plugin) {
-            return $plugin->getClass();
-        });
+            return $plugin->getClass(['throw_ex' => false]);
+        })->filter();
     }
     
     /**
@@ -292,8 +299,8 @@ class Plugin extends ModelBase
         });
 
         return $plugins->map(function ($plugin) {
-            return $plugin->getClass();
-        });
+            return $plugin->getClass(['throw_ex' => false]);
+        })->filter();
     }
 
     protected static function getPluginsReqSession()
