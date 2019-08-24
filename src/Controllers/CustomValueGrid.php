@@ -148,10 +148,10 @@ trait CustomValueGrid
             }
             
             // manage batch --------------------------------------------------
-            $tools->batch(function ($batch) use($edit_flg) {
+            $tools->batch(function ($batch) use ($edit_flg) {
                 // if cannot edit, disable delete and update operations
                 if ($edit_flg) {
-                    foreach($this->custom_table->custom_operations as $custom_operation) {
+                    foreach ($this->custom_table->custom_operations as $custom_operation) {
                         $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation));
                     }
                 } else {
@@ -260,7 +260,7 @@ trait CustomValueGrid
             ]);
         }
 
-        $updates = collect($operation->custom_operation_columns)->mapWithKeys(function($operation_column) {
+        $updates = collect($operation->custom_operation_columns)->mapWithKeys(function ($operation_column) {
             $column_name= 'value->'.$operation_column->custom_column->column_name;
             return [$column_name => $operation_column['update_value_text']];
         })->toArray();

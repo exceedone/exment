@@ -90,7 +90,7 @@ if (!function_exists('esc_script_tag')) {
             return $html;
         }
         
-        try{
+        try {
             libxml_use_internal_errors(true);
 
             $dom = new \DOMDocument();
@@ -113,8 +113,7 @@ if (!function_exists('esc_script_tag')) {
             $html = preg_replace('/<br>$/u', '', $html);
             
             libxml_use_internal_errors(false);
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return $html;
         }
         
@@ -279,7 +278,7 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
-            if(empty($value)){
+            if (empty($value)) {
                 continue;
             }
             

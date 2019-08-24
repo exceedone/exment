@@ -519,7 +519,7 @@ class PatchDataCommand extends Command
     {
         // get app/$pathName folder
         $beforeFolder = app_path($pathName);
-        if(!\File::isDirectory($beforeFolder)){
+        if (!\File::isDirectory($beforeFolder)) {
             return;
         }
         

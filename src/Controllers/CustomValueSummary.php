@@ -31,7 +31,7 @@ trait CustomValueSummary
 
         $table_name = $this->custom_table->table_name;
         $isShowViewSummaryDetail = $this->isShowViewSummaryDetail();
-        if(!$isShowViewSummaryDetail){
+        if (!$isShowViewSummaryDetail) {
             $grid->disableActions();
         }
 
@@ -48,7 +48,7 @@ trait CustomValueSummary
                 }
             }
 
-            if($isShowViewSummaryDetail){
+            if ($isShowViewSummaryDetail) {
                 $linker = (new Grid\Linker)
                 ->url(admin_urls('data', $table_name).'?group_key='.json_encode($params))
                 ->icon('fa-list')
@@ -120,8 +120,9 @@ trait CustomValueSummary
         return $view->getValueSummary($query, $this->custom_table, $grid);
     }
 
-    protected function isShowViewSummaryDetail(){
-        return !$this->custom_view->custom_view_columns->contains(function($custom_view_column){
+    protected function isShowViewSummaryDetail()
+    {
+        return !$this->custom_view->custom_view_columns->contains(function ($custom_view_column) {
             return $this->custom_table->id != $custom_view_column->view_column_table_id;
         });
     }

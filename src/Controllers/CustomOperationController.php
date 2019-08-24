@@ -9,7 +9,6 @@ use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\CustomOperation;
-use Exceedone\Exment\Model\CustomOperationColumn;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Form\Field\ChangeField;

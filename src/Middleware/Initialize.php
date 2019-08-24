@@ -247,7 +247,7 @@ class Initialize
 
             
             // favicon
-            if(!is_null(System::site_favicon())){
+            if (!is_null(System::site_favicon())) {
                 \Admin::setFavicon(admin_url('favicon'));
             }
 

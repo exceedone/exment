@@ -176,7 +176,7 @@ class PluginInstaller
         }
 
         // if page and 'uri' is empty, set snake_case plugin_name
-        if($plugin_type->isPluginTypeUri() && !array_has($options, 'uri')){
+        if ($plugin_type->isPluginTypeUri() && !array_has($options, 'uri')) {
             $options['uri'] = snake_case(array_get($json, 'plugin_name'));
         }
 

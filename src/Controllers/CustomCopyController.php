@@ -122,10 +122,10 @@ class CustomCopyController extends AdminControllerTableBase
                   $from_name = $item->from_custom_table->table_view_name;
                   $to_name = $item->to_custom_table->table_view_name;
                   return [$item['id'] => exmtrans(
-                        "custom_copy.options.child_copy_format",
-                        $item['options']['label'],
-                        $from_name,
-                        $to_name
+                      "custom_copy.options.child_copy_format",
+                      $item['options']['label'],
+                      $from_name,
+                      $to_name
                     )];
               })->toArray();
         }

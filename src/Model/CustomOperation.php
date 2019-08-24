@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use Illuminate\Support\Facades\DB;
-
 class CustomOperation extends ModelBase
 {
     use Traits\UseRequestSessionTrait;

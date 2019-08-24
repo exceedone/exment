@@ -93,11 +93,13 @@ class Plugin extends ModelBase
     public function getClass($options = [])
     {
         extract(
-            array_merge([
+            array_merge(
+                [
                 'throw_ex' => true,
             ],
-            $options
-        ));
+                $options
+        )
+        );
 
         $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
         $class = $pluginType->getPluginClass($this, $options);
@@ -341,7 +343,7 @@ class Plugin extends ModelBase
         $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
             return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
                 && (
-                    pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName) 
+                    pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
                     || $plugin->getOption('uri') == $pluginName
                 )
             ;

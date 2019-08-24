@@ -3,8 +3,6 @@ namespace Exceedone\Exment\Validator;
 
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SummaryCondition;
-use Exceedone\Exment\Enums\ViewColumnFilterOption;
-use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;

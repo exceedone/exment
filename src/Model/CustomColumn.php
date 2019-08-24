@@ -468,11 +468,11 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         ///// set view
         $update_flg = false;
-        if(!is_null(array_get($json, 'options.select_target_view_suuid'))){
+        if (!is_null(array_get($json, 'options.select_target_view_suuid'))) {
             $view = CustomView::where('suuid', array_get($json, 'options.select_target_view_suuid'))->first();
-            if(isset($view)){
+            if (isset($view)) {
                 $obj_column->setOption('select_target_view', $view->id);
-                $update_flg = true;    
+                $update_flg = true;
             }
         }
 
