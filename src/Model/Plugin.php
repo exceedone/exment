@@ -100,7 +100,7 @@ class Plugin extends ModelBase
         ));
 
         $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
-        $class = $pluginType->getPluginClass($this);
+        $class = $pluginType->getPluginClass($this, $options);
         
         if (!isset($class) && $throw_ex) {
             throw new \Exception('plugin not found');
