@@ -22,6 +22,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\DatabaseJsonTrait;
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
+    use Traits\ColumnOptionQueryTrait;
 
     protected $casts = ['options' => 'json'];
     protected $guarded = ['id', 'suuid', 'system_flg'];
@@ -55,6 +56,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function custom_forms()
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
+    }
+ 
+    public function custom_operations()
+    {
+        return $this->hasMany(CustomOperation::class, 'custom_table_id');
     }
     public function custom_relations()
     {
@@ -340,6 +346,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         // get table info
         if (!isset($endpoint)) {
+            // for command execute
+            if (is_null(app('request')->route())) {
+                return null;
+            }
+
             $tableKey = app('request')->route()->parameter('tableKey');
             if (!isset($tableKey)) {
                 abort(404);
@@ -899,6 +910,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if (is_null($display_table)) {
             $display_table = $this;
+        } else {
+            $display_table = self::getEloquent($display_table);
         }
         $table_name = $this->table_name;
         // get query.
@@ -931,22 +944,45 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get columns select options. It contains system column(ex. id, suuid, created_at, updated_at), and table columns.
-     * @param array|CustomTable $table
-     * @param $selected_value
+     * get columns select options.
+     * 'append_table': whether appending custom table id in options value
+     * 'index_enabled_only': only getting index column
+     * 'include_parent': whether getting parent table's column
+     * 'include_child': whether getting child table's column
+     * 'include_select_table': whether getting select table's column
+     * 'include_system': whether getting system column
+     * @param array $selectOptions
+     * @param option items
      */
-    public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
+    //public function getColumnsSelectOptions($append_table = false, $index_enabled_only = false, $include_parent = false, $include_child = false, $include_system = true)
+    public function getColumnsSelectOptions($selectOptions = [])
     {
+        $selectOptions = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => false,
+                'include_parent' => false,
+                'include_child' => false,
+                'include_select_table' => false,
+                'include_system' => true,
+            ],
+            $selectOptions
+        );
+        extract($selectOptions);
+
         $options = [];
         
+        // getting this table's column options
         $this->setColumnOptions(
             $options,
             $this->custom_columns,
-            $index_enabled_only,
-            $include_system,
-            true,
-            $append_table,
-            $this->id
+            $this->id,
+            [
+                'append_table' => $append_table,
+                'index_enabled_only' => $index_enabled_only,
+                'include_parent' => true,
+                'include_system' => $include_system,
+            ]
         );
 
         if ($include_parent) {
@@ -959,31 +995,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $parent->custom_columns,
-                    $index_enabled_only,
-                    $include_system,
-                    true,
-                    $append_table,
                     $parent_id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => true,
+                        'include_system' => $include_system,
+                        'table_view_name' => $tablename,
+                        'view_pivot_column' => SystemColumn::PARENT_ID,
+                        'view_pivot_table' => $this,
+                    ]
                 );
             }
             ///// get select table columns
             $select_table_columns = $this->getSelectTableColumns();
             foreach ($select_table_columns as $select_table_column) {
-                $custom_table = $select_table_column->column_item->getSelectTable();
-                $tablename = array_get($custom_table, 'table_view_name');
+                $select_table = $select_table_column->column_item->getSelectTable();
+                $tablename = array_get($select_table, 'table_view_name');
                 $this->setColumnOptions(
                     $options,
-                    $custom_table->custom_columns,
-                    $index_enabled_only,
-                    $include_system,
-                    true,
-                    $append_table,
-                    $custom_table->id,
-                    $tablename
+                    $select_table->custom_columns,
+                    $select_table->id,
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => true,
+                        'include_system' => $include_system,
+                        'table_view_name' => $tablename,
+                        'view_pivot_column' => $select_table_column,
+                        'view_pivot_table' => $this,
+                    ]
                 );
             }
         }
+
         if ($include_child) {
             ///// get child table columns
             $relations = CustomRelation::with('child_custom_table')->where('parent_custom_table_id', $this->id)->get();
@@ -994,12 +1039,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $child->custom_columns,
-                    $index_enabled_only,
-                    true,
-                    false,
-                    $append_table,
                     $child_id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => false,
+                        'include_system' => true,
+                        'table_view_name' => $tablename,
+                    ]
                 );
             }
             ///// get selected table columns
@@ -1010,85 +1057,82 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $this->setColumnOptions(
                     $options,
                     $custom_table->custom_columns,
-                    $index_enabled_only,
-                    true,
-                    true,
-                    $append_table,
                     $custom_table->id,
-                    $tablename
+                    [
+                        'append_table' => $append_table,
+                        'index_enabled_only' => $index_enabled_only,
+                        'include_parent' => true,
+                        'include_system' => true,
+                        'table_view_name' => $tablename,
+                    ]
                 );
             }
         }
     
         return $options;
     }
-    protected function setColumnOptions(
-        &$options,
-        $custom_columns,
-        $index_enabled_only,
-        $include_system,
-        $include_parent,
-        $append_table,
-        $table_id,
-        $table_name = null
-    ) {
+
+    protected function setColumnOptions(&$options, $custom_columns, $table_id, $selectOptions = [])
+    {
+        $selectOptions = array_merge(
+            [
+                'append_table' => false,
+                'index_enabled_only' => false,
+                'include_parent' => false,
+                'include_system' => true,
+                'table_view_name' => null,
+                'view_pivot_column' => null,
+                'view_pivot_table' => null,
+            ],
+            $selectOptions
+        );
+        extract($selectOptions);
+
+        // get option key
+        $optionKeyParams = [
+            'view_pivot_column' => $view_pivot_column,
+            'view_pivot_table' => $view_pivot_table,
+        ];
+
         if ($include_system) {
             /// get system columns
             foreach (SystemColumn::getOptions(['header' => true]) as $option) {
-                $key = $this->getOptionKey(array_get($option, 'name'), $append_table, $table_id);
+                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id);
                 $value = exmtrans('common.'.array_get($option, 'name'));
-                if (isset($table_name)) {
-                    $value = $table_name . ' : ' . $value;
-                }
-                $options[$key] = $value;
+                static::setKeyValueOption($options, $key, $value, $table_view_name);
             }
         }
+
         if ($include_parent) {
             $relation = CustomRelation::with('parent_custom_table')->where('child_custom_table_id', $table_id)->first();
             ///// if this table is child relation(1:n), add parent table
             if (isset($relation)) {
-                $key = $this->getOptionKey('parent_id', $append_table, $table_id);
+                $key = static::getOptionKey('parent_id', $append_table, $table_id);
                 $value = array_get($relation, 'parent_custom_table.table_view_name');
-                if (isset($table_name)) {
-                    $value = $table_name . ' : ' . $value;
-                }
-                $options[$key] = $value;
+                static::setKeyValueOption($options, $key, $value, $table_view_name);
             }
         }
+
         foreach ($custom_columns as $custom_column) {
             // if $index_enabled_only = true and options.index_enabled_only is false, continue
             if ($index_enabled_only && !$custom_column->index_enabled) {
                 continue;
             }
-            $key = $this->getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id);
+            $key = static::getOptionKey(array_get($custom_column, 'id'), $append_table, $table_id, $optionKeyParams);
             $value = array_get($custom_column, 'column_view_name');
-            if (isset($table_name)) {
-                $value = $table_name . ' : ' . $value;
-            }
-            $options[$key] = $value;
+            static::setKeyValueOption($options, $key, $value, $table_view_name);
         }
+
         if ($include_system) {
             ///// get system columns
             foreach (SystemColumn::getOptions(['footer' => true]) as $option) {
-                $key = $this->getOptionKey(array_get($option, 'name'), $append_table, $table_id);
+                $key = static::getOptionKey(array_get($option, 'name'), $append_table, $table_id, $optionKeyParams);
                 $value = exmtrans('common.'.array_get($option, 'name'));
-                if (isset($table_name)) {
-                    $value = $table_name . ' : ' . $value;
-                }
-                $options[$key] = $value;
+                static::setKeyValueOption($options, $key, $value, $table_view_name);
             }
         }
     }
     
-    protected function getOptionKey($key, $append_table = true, $table_name = null)
-    {
-        if ($append_table) {
-            return ($table_name?? $this->id) . '-' . $key;
-        } else {
-            return $key;
-        }
-    }
-
     /**
      * get number columns select options. It contains integer, decimal, currency columns.
      * @param array|CustomTable $table
@@ -1100,7 +1144,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         
         /// get system columns for summary
         foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-            $options[$this->getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
+            $key = static::getOptionKey(array_get($option, 'name'));
+            $options[$key] = exmtrans('common.'.array_get($option, 'name'));
         }
 
         ///// get table columns
@@ -1108,7 +1153,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         foreach ($custom_columns as $option) {
             $column_type = array_get($option, 'column_type');
             if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                $options[$this->getOptionKey(array_get($option, 'id'))] = array_get($option, 'column_view_name');
+                $key = static::getOptionKey(array_get($option, 'id'));
+                $options[$key] = array_get($option, 'column_view_name');
             }
         }
         ///// get child table columns for summary
@@ -1119,15 +1165,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $tablename = array_get($child, 'table_view_name');
             /// get system columns for summary
             foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $options[$this->getOptionKey(array_get($option, 'name'), true, $tableid)]
-                    = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
+                $key = static::getOptionKey(array_get($option, 'name'), true, $tableid);
+                $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
             }
             $child_columns = $child->custom_columns;
             foreach ($child_columns as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $options[$this->getOptionKey(array_get($option, 'id'), true, $tableid)]
-                        = $tablename . ' : ' . array_get($option, 'column_view_name');
+                    $key = static::getOptionKey(array_get($option, 'id'), true, $tableid);
+                    $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
                 }
             }
         }
@@ -1138,14 +1184,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $tablename = array_get($custom_table, 'table_view_name');
             /// get system columns for summary
             foreach (SystemColumn::getOptions(['summary' => true]) as $option) {
-                $options[$this->getOptionKey(array_get($option, 'name'), true, $custom_table->id)]
-                    = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
+                $key = static::getOptionKey(array_get($option, 'name'), true, $custom_table->id);
+                $options[$key] = $tablename . ' : ' . exmtrans('common.'.array_get($option, 'name'));
             }
             foreach ($custom_table->custom_columns as $option) {
                 $column_type = array_get($option, 'column_type');
                 if (ColumnType::isCalc($column_type) || ColumnType::isDateTime($column_type)) {
-                    $options[$this->getOptionKey(array_get($option, 'id'), true, $custom_table->id)]
-                        = $tablename . ' : ' . array_get($option, 'column_view_name');
+                    $key = static::getOptionKey(array_get($option, 'id'), true, $custom_table->id);
+                    $options[$key] = $tablename . ' : ' . array_get($option, 'column_view_name');
                 }
             }
         }
@@ -1169,13 +1215,13 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             $column_type = array_get($option, 'column_type');
             if (ColumnType::isDate($column_type)) {
-                $options[$this->getOptionKey(array_get($option, 'id'))] = array_get($option, 'column_view_name');
+                $options[static::getOptionKey(array_get($option, 'id'))] = array_get($option, 'column_view_name');
             }
         }
         
         /// get system date columns
         foreach (SystemColumn::getOptions(['type' => 'datetime']) as $option) {
-            $options[$this->getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
+            $options[static::getOptionKey(array_get($option, 'name'))] = exmtrans('common.'.array_get($option, 'name'));
         }
 
         return $options;
@@ -1234,11 +1280,17 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         });
     }
 
-    public function getValueModel($id = null)
+    public function getValueModel($id = null, $withTrashed = false)
     {
         $modelname = getModelName($this);
         if (isset($id)) {
-            $model = $modelname::find($id);
+            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
+            $model = System::requestSession($key, function () use ($id, $withTrashed) {
+                if ($withTrashed) {
+                    return getModelName($this->table_name)::withTrashed()->find($id);
+                }
+                return getModelName($this->table_name)::find($id);
+            });
         } else {
             $model = new $modelname;
         }

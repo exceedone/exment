@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 
 class CustomViewColumn extends ModelBase
 {
@@ -19,8 +20,8 @@ class CustomViewColumn extends ModelBase
 
     public static $templateItems = [
         'excepts' => [
-            'import' => ['custom_table', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_group_condition'],
-            'export' => ['custom_table', 'custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_column_table_id', 'view_column_target_id', 'view_group_condition'],
+            'import' => ['custom_table', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_group_condition', 'view_pivot_column_name', 'view_pivot_table_name'],
+            'export' => ['custom_table', 'custom_view_id', 'view_column_target', 'custom_column', 'target_view_name', 'view_column_name', 'view_column_table_id', 'view_column_target_id', 'view_pivot_column_id', 'view_pivot_table_id', 'view_group_condition'],
         ],
         'uniqueKeys' => ['custom_view_id', 'view_column_type', 'view_column_target_id', 'view_column_table_id'],
         'parent' => 'custom_view_id',
@@ -35,6 +36,17 @@ class CustomViewColumn extends ModelBase
                     ]
                 ],
                 'uniqueKeyFunction' => 'getUniqueKeyValues',
+            ],
+            [
+                'replaceNames' => [
+                    [
+                        'replacedName' => [
+                            'table_name' => 'view_pivot_table_name',
+                            'column_name' => 'view_pivot_column_name',
+                        ]
+                    ]
+                ],
+                'uniqueKeyFunction' => 'getPivotUniqueKeyValues',
             ],
         ],
         'enums' => [
@@ -96,11 +108,38 @@ class CustomViewColumn extends ModelBase
             return $this;
         }
         
-        list($column_type, $column_table_id, $column_type_target) = $this->getViewColumnTargetItems($end_date);
+        list($column_type, $column_table_id, $column_type_target, $view_pivot_column, $view_pivot_table) = $this->getViewColumnTargetItems($end_date);
 
         $this->setOption('end_date_type', $column_type);
         $this->setOption('end_date_target', $column_type_target);
 
+        return $this;
+    }
+
+    public function getViewPivotColumnIdAttribute()
+    {
+        return $this->getOption('view_pivot_column_id');
+    }
+    public function setViewPivotColumnIdAttribute($view_pivot_column_id)
+    {
+        if (!isset($view_pivot_column_id)) {
+            $this->setOption('view_pivot_column_id', null);
+            return $this;
+        }
+        $this->setOption('view_pivot_column_id', $view_pivot_column_id);
+        return $this;
+    }
+    public function getViewPivotTableIdAttribute()
+    {
+        return $this->getOption('view_pivot_table_id');
+    }
+    public function setViewPivotTableIdAttribute($view_pivot_table_id)
+    {
+        if (!isset($view_pivot_table_id)) {
+            $this->setOption('view_pivot_table_id', null);
+            return $this;
+        }
+        $this->setOption('view_pivot_table_id', $view_pivot_table_id);
         return $this;
     }
 
@@ -117,5 +156,33 @@ class CustomViewColumn extends ModelBase
     public function getViewColumnEndDateTypeAttribute()
     {
         return $this->getOption('end_date_type');
+    }
+    
+    /**
+     * get Table And Column Name
+     */
+    public function getPivotUniqueKeyValues()
+    {
+        if (!isset($this->view_pivot_column_id)) {
+            return [
+                'table_name' => null,
+                'column_name' => null,
+            ];
+        }
+
+        $table_name = CustomTable::getEloquent($this->view_pivot_table_id)->table_name;
+        switch ($this->view_column_type) {
+            case ViewColumnType::COLUMN:
+                return [
+                    'table_name' => $table_name,
+                    'column_name' => CustomColumn::getEloquent($this->view_pivot_column_id)->column_name ?? null,
+                ];
+            case ViewColumnType::SYSTEM:
+                return [
+                    'table_name' => $table_name,
+                    'column_name' => SystemColumn::getOption(['id' => $this->view_pivot_column_id])['name'] ?? null,
+                ];
+        }
+        return [];
     }
 }

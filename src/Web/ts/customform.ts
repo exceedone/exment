@@ -141,7 +141,7 @@ namespace Exment {
             }
         }
 
-        private static toggleFormColumnItem($elem: JQuery, isShow = true) {
+        private static toggleFormColumnItem($elem: JQuery<Element>, isShow = true) {
             if(isShow){
                 $elem.find('.delete,.options,[data-toggle]').show();
                 // add hidden form
@@ -245,7 +245,7 @@ namespace Exment {
             }
         }
 
-        private static getHeaderName($li: JQuery): string {
+        private static getHeaderName($li: JQuery<Element>): string {
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val() as string;
             var header_column_name = $li.find('.header_column_name').val() as string;
             return header_name + header_column_name;
@@ -256,7 +256,7 @@ namespace Exment {
             return true;
         }
 
-        private static appendIcheckEvent($elem: JQuery) {
+        private static appendIcheckEvent($elem: JQuery<Element>) {
             $elem.each(function(index, elem){
                 var $e = $(elem);
                 if (!$e.data('ichecked')) {

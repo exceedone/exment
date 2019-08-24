@@ -14,6 +14,7 @@ use Encore\Admin\Form\NestedForm;
 class HasManyTable extends HasMany
 {
     protected $tablecolumnwidths = [];
+    protected $count = null;
 
     /**
      * Show row up down button
@@ -148,7 +149,7 @@ class HasManyTable extends HasMany
         $defaultKey = NestedForm::DEFAULT_KEY_NAME;
         $title = exmtrans("common.error");
         $message = sprintf(exmtrans("common.message.exists_row"), $this->label);
-        $count = !isset($this->value) ? 0 : count($this->value);
+        $count = $this->count?? (!isset($this->value) ? 0 : count($this->value));
         $indexName = "index_{$this->column}";
 
         $rowUpDownClassName = $this->rowUpDown;
@@ -339,7 +340,7 @@ EOT;
                 'helps' => $relatedhelps,
             ];
         }
-
+        $this->count = count($relatedforms);
         $this->setupScript($script);
 
         // get field class

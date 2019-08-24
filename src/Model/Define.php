@@ -219,6 +219,7 @@ class Define
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_TABLE_ORDER = "has_custom_table_order";
     public const SYSTEM_KEY_SESSION_HAS_CUSTOM_COLUMN_ORDER = "has_custom_column_order";
     public const SYSTEM_KEY_SESSION_AUTH_2FACTOR = "auth_2factor";
+    public const SYSTEM_KEY_SESSION_PLUGINS = "plugins";
 
     public const PLUGIN_EVENT_TRIGGER = [
         'saving',
@@ -296,6 +297,7 @@ class Define
         ['url' => 'form', 'icon' => 'fa-keyboard-o', 'roles' => [Permission::CUSTOM_FORM], 'exmtrans' => 'change_page_menu.custom_form'],
         ['url' => 'view', 'icon' => 'fa-th-list', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_view'],
         ['url' => 'copy', 'icon' => 'fa-copy', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_copy'],
+        ['url' => 'operation', 'icon' => 'fa-reply-all', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.custom_operation'],
         ['url' => 'data', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value'],
     ];
 
@@ -390,6 +392,10 @@ class Define
         1    => 'YES',
     ];
 
+    public const DISKNAME_ADMIN = 'admin';
     public const DISKNAME_ADMIN_TMP = 'admin_tmp';
     public const DISKNAME_BACKUP = 'backup';
+    public const DISKNAME_PLUGIN = 'plugin';
+    public const DISKNAME_PLUGIN_LOCAL = 'plugin_local';
+    public const DISKNAME_TEMPLATE_LOCAL = 'template_local';
 }

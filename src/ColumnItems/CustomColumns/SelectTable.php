@@ -5,8 +5,6 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Field as ExmentField;
@@ -65,10 +63,7 @@ class SelectTable extends CustomItem
                 continue;
             }
             
-            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->target_table->table_name, $v);
-            $model = System::requestSession($key, function () use ($v) {
-                return getModelName($this->target_table)::find($v);
-            });
+            $model = $this->target_table->getValueModel($v);
             if (is_null($model)) {
                 continue;
             }

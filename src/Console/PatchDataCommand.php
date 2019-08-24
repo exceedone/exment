@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -90,6 +91,12 @@ class PatchDataCommand extends Command
                 return;
             case 'init_column':
                 $this->initOnlyCodeColumn();
+                return;
+            case 'move_plugin':
+                $this->movePluginFolder();
+                return;
+            case 'move_template':
+                $this->moveTemplateFolder();
                 return;
         }
 
@@ -441,14 +448,14 @@ class PatchDataCommand extends Command
     protected function initOnlyCodeColumn()
     {
         $tableColumns = [
-            SystemTableName::USER => 'user_code', 
-            SystemTableName::ORGANIZATION => 'organization_code', 
-            SystemTableName::MAIL_TEMPLATE => 'mail_key_name', 
+            SystemTableName::USER => 'user_code',
+            SystemTableName::ORGANIZATION => 'organization_code',
+            SystemTableName::MAIL_TEMPLATE => 'mail_key_name',
         ];
 
-        foreach($tableColumns as $table => $column){
+        foreach ($tableColumns as $table => $column) {
             $custom_column = CustomColumn::getEloquent($column, $table);
-            if(!isset($custom_column)){
+            if (!isset($custom_column)) {
                 continue;
             }
 
@@ -481,5 +488,52 @@ class PatchDataCommand extends Command
             ]))
             ->format($format);
         $service->import($path);
+    }
+    
+    /**
+     * move plugin folder
+     *
+     * @return void
+     */
+    protected function movePluginFolder()
+    {
+        return $this->moveAppToStorageFolder('Plugins', Define::DISKNAME_PLUGIN_LOCAL);
+    }
+    
+    /**
+     * move template folder
+     *
+     * @return void
+     */
+    protected function moveTemplateFolder()
+    {
+        return $this->moveAppToStorageFolder('Templates', Define::DISKNAME_TEMPLATE_LOCAL);
+    }
+    
+    /**
+     * move folder
+     *
+     * @return void
+     */
+    protected function moveAppToStorageFolder($pathName, $diskName)
+    {
+        // get app/$pathName folder
+        $beforeFolder = app_path($pathName);
+        if (!\File::isDirectory($beforeFolder)) {
+            return;
+        }
+        
+        $befores = scandir($beforeFolder);
+        if (!is_array($befores)) {
+            return;
+        }
+
+        foreach ($befores as $before) {
+            if (in_array($before, [".",".."])) {
+                continue;
+            }
+            $oldPath = path_join($beforeFolder, $before);
+            \File::move($oldPath, getFullpath($before, $diskName));
+        }
     }
 }

@@ -14,7 +14,7 @@ class BackupTarget extends EnumBase
     {
         switch ($target) {
             case static::PLUGIN:
-                return path_join("app", "Plugins");
+                return path_join("storage", "app", "plugins");
             case static::ATTACHMENT:
                 return path_join("storage", "app", "admin");
             case static::LOG:

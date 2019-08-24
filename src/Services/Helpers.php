@@ -4,18 +4,34 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Webpatser\Uuid\Uuid;
 use Carbon\Carbon;
+
+if (!function_exists('exmDebugLog')) {
+    /**
+     * Debug log
+     */
+    function exmDebugLog($log)
+    {
+        $now = Carbon::now();
+
+        $log_string = $now->format("YmdHisv")." ".$log;
+
+        \Log::debug($log_string);
+    }
+}
 
 if (!function_exists('exmtrans')) {
     function exmtrans($key, ...$args)
@@ -74,7 +90,7 @@ if (!function_exists('esc_script_tag')) {
             return $html;
         }
         
-        try{
+        try {
             libxml_use_internal_errors(true);
 
             $dom = new \DOMDocument();
@@ -97,8 +113,7 @@ if (!function_exists('esc_script_tag')) {
             $html = preg_replace('/<br>$/u', '', $html);
             
             libxml_use_internal_errors(false);
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return $html;
         }
         
@@ -263,6 +278,10 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
+            if (empty($value)) {
+                continue;
+            }
+            
             if (is_array($value)) {
                 $ret_pass = $ret_pass.$trim_str.join_paths($trim_str, $value);
             } elseif ($ret_pass == "") {
@@ -295,8 +314,12 @@ if (!function_exists('getFullpath')) {
     function getFullpath($filename, $disk, $mkdir = false)
     {
         $path = Storage::disk($disk)->getDriver()->getAdapter()->applyPathPrefix($filename);
-        if ($mkdir && !\File::exists($path)) {
-            \File::makeDirectory($path, 0755, true);
+
+        if ($mkdir) {
+            $dirPath = pathinfo($path)['dirname'];
+            if (!\File::exists($dirPath)) {
+                \File::makeDirectory($dirPath, 0755, true);
+            }
         }
         return $path;
     }
@@ -560,6 +583,11 @@ if (!function_exists('make_licensecode')) {
 if (!function_exists('pascalize')) {
     function pascalize($string)
     {
+        // replace A to _a
+        $string = preg_replace_callback('/[A-Z]/', function ($match) {
+            return '_' . strtolower($match[0]);
+        }, $string);
+        $string = ltrim($string, '_');
         $string = strtolower($string);
         $string = str_replace('_', ' ', $string);
         $string = ucwords($string);
@@ -1430,7 +1458,7 @@ if (!function_exists('getCellValue')) {
         }
 
         // if merge cell, get from master cell
-        if($isGetMerge && $cell->isInMergeRange()){
+        if ($isGetMerge && $cell->isInMergeRange()) {
             $mergeRange = $cell->getMergeRange();
             $cell = $sheet->getCell(explode(":", $mergeRange)[0]);
         }
@@ -1476,10 +1504,7 @@ if (!function_exists('getUserName')) {
      */
     function getUserName($id, $link = false)
     {
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, SystemTableName::USER, $id);
-        $user = System::requestSession($key, function () use ($id) {
-            return getModelName(SystemTableName::USER)::withTrashed()->find($id);
-        });
+        $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel($id, true);
         if (!isset($user)) {
             return null;
         }
@@ -1531,6 +1556,36 @@ if (!function_exists('useLoginProvider')) {
             $path = trim($path, '/');
     
             return $path?? '/';
+        }
+    }
+
+    if (!function_exists('getCustomField')) {
+        function getCustomField($data, $field_label = null)
+        {
+            $view_column_target = array_get($data, 'view_column_target');
+            $view_filter_condition = array_get($data, 'view_filter_condition');
+
+            if (!isset($view_column_target)) {
+                return null;
+            }
+    
+            $value_type = null;
+    
+            if (isset($view_filter_condition)) {
+                $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
+    
+                if ($value_type == 'none') {
+                    return null;
+                }
+            }
+    
+            // get column item
+            $column_item = CustomViewFilter::getColumnItem($view_column_target);
+            if (isset($field_label)) {
+                $column_item->setLabel($field_label);
+            }
+    
+            return $column_item->getFilterField($value_type);
         }
     }
 }

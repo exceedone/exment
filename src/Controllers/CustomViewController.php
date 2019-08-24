@@ -279,7 +279,12 @@ class CustomViewController extends AdminControllerTableBase
                 // group columns setting
                 $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_groups"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                        ->options($this->custom_table->getColumnsSelectOptions(true, true, true, true))
+                        ->options($this->custom_table->getColumnsSelectOptions([
+                            'append_table' => true,
+                            'index_enabled_only' => true,
+                            'include_parent' => true,
+                            'include_child' => true,
+                        ]))
                         ->attribute([
                             'data-linkage' => json_encode(['view_group_condition' => admin_urls('view', $custom_table->table_name, 'group-condition')]),
                             'data-change_field_target' => 'view_column_target',
@@ -363,7 +368,10 @@ class CustomViewController extends AdminControllerTableBase
                     // columns setting
                     $form->hasManyTable('custom_view_columns', exmtrans("custom_view.custom_view_columns"), function ($form) use ($custom_table) {
                         $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                            ->options($this->custom_table->getColumnsSelectOptions(true));
+                            ->options($this->custom_table->getColumnsSelectOptions([
+                                'append_table' => true,
+                                'include_parent' => true,
+                            ]));
                         $form->text('view_column_name', exmtrans("custom_view.view_column_name"));
                         $form->hidden('order')->default(0);
                     })->required()->setTableColumnWidth(7, 3, 2)
@@ -379,7 +387,10 @@ class CustomViewController extends AdminControllerTableBase
                 // sort setting
                 $form->hasManyTable('custom_view_sorts', exmtrans("custom_view.custom_view_sorts"), function ($form) use ($custom_table) {
                     $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                    ->options($this->custom_table->getColumnsSelectOptions(true, true));
+                    ->options($this->custom_table->getColumnsSelectOptions([
+                        'append_table' => true,
+                        'index_enabled_only' => true,
+                    ]));
                     $form->select('sort', exmtrans("custom_view.sort"))->options(Enums\ViewColumnSort::transKeyArray('custom_view.column_sort_options'))
                         ->required()
                         ->default(1)
@@ -420,6 +431,9 @@ class CustomViewController extends AdminControllerTableBase
             if (boolval($from_data) && $form->model()->view_kind_type != Enums\ViewKindType::FILTER) {
                 // get view suuid
                 $suuid = $form->model()->suuid;
+                
+                admin_toastr(trans('admin.save_succeeded'));
+
                 return redirect($custom_table->getGridUrl(true, ['view' => $suuid]));
             }
         });
@@ -469,7 +483,14 @@ EOT;
         // filter setting
         $form->hasManyTable('custom_view_filters', exmtrans("custom_view.custom_view_filters"), function ($form) use ($custom_table, $is_aggregate) {
             $form->select('view_column_target', exmtrans("custom_view.view_column_target"))->required()
-                ->options($this->custom_table->getColumnsSelectOptions(true, true, $is_aggregate, $is_aggregate))
+                ->options($this->custom_table->getColumnsSelectOptions(
+                    [
+                        'append_table' => true,
+                        'index_enabled_only' => true,
+                        'include_parent' => $is_aggregate,
+                        'include_child' => $is_aggregate,
+                    ]
+                ))
                 ->attribute([
                     'data-linkage' => json_encode(['view_filter_condition' => admin_urls('view', $custom_table->table_name, 'filter-condition')]),
                     'data-change_field_target' => 'view_column_target',
@@ -485,18 +506,15 @@ EOT;
                     $data = $select->data();
                     $view_column_target = array_get($data, 'view_column_target');
 
-                    if (array_get($data, 'view_column_type') != ViewColumnType::COLUMN) {
-                        list($table_name, $target_id) = explode("-", $view_column_target);
-                        if (is_numeric($target_id)) {
-                            $view_column_target = $table_name . '-' . SystemColumn::getOption(['id' => $target_id])['name'];
-                        }
-                    }
+                    // if (array_get($data, 'view_column_type') != ViewColumnType::COLUMN) {
+                    //     list($table_name, $target_id) = explode("-", $view_column_target);
+                    //     if (is_numeric($target_id)) {
+                    //         $view_column_target = $table_name . '-' . SystemColumn::getOption(['id' => $target_id])['name'];
+                    //     }
+                    // }
 
                     // get column item
-                    $column_item = CustomViewFilter::getColumnItem($view_column_target)
-                        ->options([
-                            'view_column_target' => true,
-                        ]);
+                    $column_item = CustomViewFilter::getColumnItem($view_column_target);
 
                     ///// get column_type
                     $column_type = $column_item->getViewFilterType();
@@ -514,8 +532,9 @@ EOT;
 
                     return [];
                 });
-            $form->changeField('view_filter_condition_value', exmtrans("custom_view.view_filter_condition_value_text"))
-                ->rules('changeFieldValue');
+            $label = exmtrans('custom_view.view_filter_condition_value_text');
+            $form->changeField('view_filter_condition_value', $label)
+                ->rules("changeFieldValue:$label");
         })->setTableColumnWidth(4, 4, 3, 1)
         ->description(sprintf(exmtrans("custom_view.description_custom_view_filters"), $manualUrl));
     }
@@ -595,12 +614,13 @@ EOT;
             return [];
         }
         $columnname = 'view_filter_condition_value';
+        $label = exmtrans('custom_view.'.$columnname.'_text');
 
-        $field = new ChangeField($columnname, exmtrans('custom_view.'.$columnname.'_text'));
+        $field = new ChangeField($columnname, $label);
         $field->data([
             'view_column_target' => $data['target'],
             'view_filter_condition' => $data['cond_val']
-        ]);
+        ])->rules("changeFieldValue:$label");
         $element_name = str_replace('view_filter_condition', 'view_filter_condition_value', $data['cond_name']);
         $field->setElementName($element_name);
 

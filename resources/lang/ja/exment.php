@@ -53,7 +53,7 @@ return [
             'error_execute' => '実行失敗しました。',
             'execution_takes_time' => '実行には時間がかかります。',
             'import_success' => 'インポート完了しました！',
-            'import_error' => 'インポート失敗しました。エラーメッセージをご確認ください。',
+            'import_error' => 'インポートに失敗しました。',
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
@@ -284,6 +284,7 @@ return [
         'version' => 'バージョン',
         'active_flg' => '有効フラグ',
         'select_plugin_file' => 'プラグインを選択',
+        'show_plugin_page' => 'プラグインページを表示',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -327,6 +328,9 @@ return [
             'trigger' => '機能',
             'document' => 'ドキュメント',
             'batch' => 'バッチ',
+            'import' => 'インポートテンプレート',
+            'script' => 'スクリプト',
+            'style' => 'スタイル',
         ],
     ],
 
@@ -483,6 +487,7 @@ return [
         'custom_form' => 'フォーム設定',
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
+        'custom_operation' => '一括更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -573,6 +578,8 @@ return [
             'default' => '初期値',
             'placeholder' => 'プレースホルダー',
             'help' => 'ヘルプ',
+            'min_width' => '列の幅(最小値)',
+            'max_width' => '列の幅(最大値)',
             'string_length' => '最大文字数',
             'rows' => '高さ',
             'available_characters' => '使用可能文字',
@@ -637,6 +644,8 @@ return [
             'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
+            'min_width' => '一覧表示する時の、列の幅の最小値を、整数(px)で入力してください。',
+            'max_width' => '一覧表示する時の、列の幅の最大値を、整数(px)で入力してください。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
             'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',
@@ -725,6 +734,22 @@ return [
         ],
     ],
 
+    'custom_operation_columns' => [
+        'update_value' => '更新値',
+    ],
+
+    'custom_operation' => [
+        'custom_operation' => '一括更新',
+        'header' => '一括更新設定',
+        'description' => '選択データを一括更新するための設定を行います。',
+        'operation_name' => '一括更新文言',
+        'custom_operation_button_label' => '一括更新設定',
+        'custom_operation_columns' => '更新列設定',
+        'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
+        'view_column_target' => '対象列',
+        'update_value_text' => '更新値',
+    ],
+
     'custom_view' => [
         'header' => 'カスタムビュー設定',
         'description' => 'カスタムビューの設定を行います。',
@@ -757,7 +782,7 @@ return [
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
-        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
@@ -958,9 +983,20 @@ return [
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
         'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
+        'header' => 'データコピー設定',
+
+        'options' => [
+            'child_copy' => '子テーブル設定',
+            'child_copy_format' => '%s（%s → %s）',
+        ],
 
         'help' => [
             'to_custom_table_view_name' => 'コピー先のテーブルを選択してください。',
+            'child_copy' => '対象データに紐づく子テーブルのデータをあわせてコピーします。事前に登録した子テーブル間のデータコピー設定（入力ダイアログ設定が無いもの）が候補に表示されます。',
+        ],
+
+        'message' => [
+            'to_custom_column_required' => 'コピー先テーブルの必須項目をすべて指定する必要があります。',
         ],
     ],
 
@@ -1056,6 +1092,7 @@ return [
             'import_file' => 'インポートファイル',
             'import_file_select' => 'CSVもしくはExcelファイルを選択',
             'primary_key' => '主キー',
+            'import_plugin' => 'インポートプラグイン',
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
@@ -1064,6 +1101,7 @@ return [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。',
+                'import_plugin' => '取込ファイルを独自に処理する場合は、あらかじめプラグインをアップロードした上で選択してください。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
                 'import_error_message' => '取込ファイルに不備があった場合、この項目に、行番号と、エラーメッセージを表示します。',
             ],
@@ -1104,6 +1142,10 @@ return [
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
             'init_flg' => '保存後、変更はできません。',
+        ],
+        'message' => [
+            'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_succeeded' => '一括更新を実行しました。',
         ],
     ],
 

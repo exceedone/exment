@@ -124,7 +124,7 @@ class Permission
 
         // not admin page's (for custom url), return true
         $parse_url = parse_url($endpoint);
-        if($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false){
+        if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
             return true;
         }
 

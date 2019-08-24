@@ -58,6 +58,28 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | exment debug mode add function in sql
+    |--------------------------------------------------------------------------
+    |
+    | if true, function details when calling sql in laravel.log. (only 1 function)
+    |
+    */
+    'debugmode_sqlfunction1' => env('EXMENT_DEBUG_MODE_SQLFUNCTION1', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | driver
+    |--------------------------------------------------------------------------
+    |
+    | file upload driver
+    |
+    */
+    'driver' => [
+        'default' => env('EXMENT_DRIVER_DEFAULT', 'local'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | password rule
     |--------------------------------------------------------------------------
     |
@@ -294,8 +316,27 @@ return [
     | It is limit count whether ajax or select.
     |
     */
-    'select_table_limit_count' => env('SELECT_TABLE_LIMIT_COUNT', 100),
+    'select_table_limit_count' => env('EXMENT_SELECT_TABLE_LIMIT_COUNT', 100),
 
+    /*
+    |--------------------------------------------------------------------------
+    | GRID_MIN_WIDTH
+    |--------------------------------------------------------------------------
+    |
+    | set grid min width default
+    |
+    */
+    'grid_min_width' => env('EXEMTN_GRID_MIN_WIDTH', 100),
+
+    /*
+    |--------------------------------------------------------------------------
+    | GRID_MAX_WIDTH
+    |--------------------------------------------------------------------------
+    |
+    | set grid max width default
+    |
+    */
+    'grid_max_width' => env('EXEMTN_GRID_MAX_WIDTH', 300),
 
     /*
     |--------------------------------------------------------------------------

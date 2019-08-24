@@ -112,11 +112,17 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 })
         ->all();
 
+        $results = [];
         foreach ($rows as &$row) {
+            $result = true;
             switch ($row['menu_type']) {
                 case MenuType::PLUGIN:
-                    //$row['icon'] = null;
-                    $row['uri'] = 'plugins/'.$row['uri'];
+                    $plugin = Plugin::getEloquent($row['menu_target']);
+                    if (!isset($plugin)) {
+                        $result = false;
+                        break;
+                    }
+                    $row['uri'] = $plugin->getRouteUri();
                     break;
                 case MenuType::TABLE:
                     if (is_nullorempty($row['icon'])) {
@@ -141,9 +147,14 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
 
                 // database-row has icon column, set icon
             }
+
+            if (!$result) {
+                continue;
+            }
+            $results[] = $row;
         }
 
-        return $rows;
+        return $results;
     }
 
     public static function importReplaceJson(&$json, $options = [])
@@ -179,7 +190,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
             // case plugin or table
             switch ($json['menu_type']) {
                 case MenuType::PLUGIN:
-                    $parent = Plugin::where('plugin_name', $json['menu_target_name'])->first();
+                    $parent = Plugin::getEloquent($json['menu_target_name']);
                     if (isset($parent)) {
                         $json['menu_target'] = $parent->id;
                     }

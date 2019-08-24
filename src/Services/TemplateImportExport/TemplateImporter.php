@@ -494,6 +494,8 @@ class TemplateImporter
                 $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
                 // Create columns. --------------------------------------------------
                 foreach (array_get($table, 'custom_columns', []) as $column) {
+                    //
+                    array_forget($column, 'options.select_target_view_suuid');
                     CustomColumn::importTemplate($column, $is_update, [
                         'system_flg' => $system_flg,
                         'parent' => $obj_table,
@@ -536,6 +538,21 @@ class TemplateImporter
             // loop for view
             foreach (array_get($json, "custom_views", []) as $view) {
                 CustomView::importTemplate($view, $is_update);
+            }
+
+            // re-loop columns. because we have to get other column views --------------------------------------------------
+            foreach (array_get($json, "custom_tables", []) as $table) {
+                // find tables. --------------------------------------------------
+                $obj_table = CustomTable::firstOrNew(['table_name' => array_get($table, 'table_name')]);
+                // get columns. --------------------------------------------------
+                if (array_key_exists('custom_columns', $table)) {
+                    foreach (array_get($table, 'custom_columns') as $column) {
+                        CustomColumn::importTemplateTargetView($column, $is_update, [
+                            'system_flg' => $system_flg,
+                            'parent' => $obj_table,
+                        ]);
+                    }
+                }
             }
 
             // loop for copy
@@ -593,7 +610,7 @@ class TemplateImporter
 
     protected static function getTemplatePath()
     {
-        $path = app_path("Templates");
+        $path = getFullpath('', Define::DISKNAME_TEMPLATE_LOCAL);
         if (!File::exists($path)) {
             File::makeDirectory($path, 0775, true);
         }

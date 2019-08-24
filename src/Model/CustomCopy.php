@@ -4,7 +4,8 @@ namespace Exceedone\Exment\Model;
 
 use Illuminate\Support\Facades\DB;
 use Exceedone\Exment\Enums\CopyColumnType;
-use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Enums\ViewColumnType;
 
 class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterface
 {
@@ -101,60 +102,27 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
                 $request
             );
 
-            // Copy children values --------------------------------------------------
-            // get from and to_table_relations
-            $from_relations = $this->from_custom_table->custom_relations;
-            $to_relations = $this->to_custom_table->custom_relations;
-            if (isset($from_relations) && isset($to_relations)) {
-                foreach ($from_relations as $from_relation) {
-                    // get from-children values
-                    $from_child_custom_values = $from_custom_value->getChildrenValues($from_relation->child_custom_table) ?? [];
-                    foreach ($to_relations as $to_relation) {
-                        // if not match relation_type, continue
-                        if ($from_relation->relation_type != $to_relation->relation_type) {
-                            continue;
-                        }
+            $child_copy_id = $this->getOption('child_copy');
+            if (isset($child_copy_id)) {
+                $child_copy = static::find($child_copy_id);
 
-                        ////// relation is 1:n
-                        if ($from_relation->relation_type == RelationType::ONE_TO_MANY) {
-                            // get child copy object. from and to - child table
-                            $child_copy = static::where('from_custom_table_id', $from_relation->child_custom_table_id)
-                                ->where('to_custom_table_id', $to_relation->child_custom_table_id)
-                                ->first();
-                            if (!isset($child_copy)) {
-                                continue;
-                            }
-                            // loop children values
-                            foreach ($from_child_custom_values as $from_child_custom_value) {
-                                // update parent_id to $to_custom_value->id
-                                $from_child_custom_value->parent_id = $to_custom_value->id;
-                                $from_child_custom_value->parent_type = $to_relation->parent_custom_table->table_name;
-                                // execute copy
-                                static::saveCopyModel(
-                                    $child_copy->custom_copy_columns,
-                                    $child_copy->custom_copy_input_columns,
-                                    $child_copy->to_custom_table,
-                                    $from_child_custom_value
-                                );
-                            }
-                        }
-                        ///// n:n
-                        else {
-                            // if not match child_custom_table_id, continue
-                            if ($from_relation->child_custom_table_id != $to_relation->child_custom_table_id) {
-                                continue;
-                            }
-                            // insert new pivot table value
-                            $pivot_name = $relation->getRelationName();
-                            // insert value. child_id is save value
-                            foreach ($from_child_custom_values as $from_child_custom_value) {
-                                DB::table($pivot_name)->insert([
-                                    'parent_id' => $to_custom_value->id,
-                                    'child_id' => $from_child_custom_value->id,
-                                ]);
-                            }
-                        }
-                    }
+                // get from-children values
+                $from_child_custom_values = $from_custom_value->getChildrenValues($child_copy->from_custom_table_id) ?? [];
+
+                // loop children values
+                foreach ($from_child_custom_values as $from_child_custom_value) {
+                    // update parent_id to $to_custom_value->id
+                    $from_child_custom_value->parent_id = $to_custom_value->id;
+                    $from_child_custom_value->parent_type = $this->to_custom_table->table_name;
+                    // execute copy
+                    static::saveCopyModel(
+                        $child_copy->custom_copy_columns,
+                        $child_copy->custom_copy_input_columns,
+                        $child_copy->to_custom_table,
+                        $from_child_custom_value,
+                        null,
+                        true
+                    );
                 }
             }
 
@@ -169,8 +137,14 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         ];
     }
 
-    protected static function saveCopyModel($custom_copy_columns, $custom_copy_input_columns, $to_custom_table, $from_custom_value, $request = null)
-    {
+    protected static function saveCopyModel(
+        $custom_copy_columns,
+        $custom_copy_input_columns,
+        $to_custom_table,
+        $from_custom_value,
+        $request = null,
+        $skipParent = false
+    ) {
         // get to_custom_value model
         $to_modelname = getModelName($to_custom_table);
         $to_custom_value = new $to_modelname;
@@ -181,24 +155,28 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         // loop for custom_copy_columns
         foreach ($custom_copy_columns as $custom_copy_column) {
-            ///// get from_custom_value
-            // check number
-            if (is_numeric($custom_copy_column->from_column_target_id)) {
-                // get column
-                $from_custom_column = $custom_copy_column->from_custom_column;
-                // get value. (NOT use getValue function because don't want convert value. get $custom_value->value['column'] value.)
-                $val = array_get($from_custom_value, "value.{$from_custom_column->column_name}");
-            } else {
-                $val = $from_custom_value->{$custom_copy_column->from_column_target_id};
-            }
+            $fromkey = static::getColumnKey(
+                $custom_copy_column->from_column_type,
+                $custom_copy_column->from_column_target_id,
+                $custom_copy_column->from_custom_column
+            );
+            $val = array_get($from_custom_value, $fromkey);
 
-            ///// get tom_custom_value
-            // check number
-            if (is_numeric($custom_copy_column->to_column_target_id)) {
-                $to_custom_column = $custom_copy_column->to_custom_column;
-                $to_custom_value->setValue($to_custom_column->column_name, $val);
+            $tokeys = static::getColumnKey(
+                $custom_copy_column->to_column_type,
+                $custom_copy_column->to_column_target_id,
+                $custom_copy_column->to_custom_column
+            );
+
+            if ($skipParent && $tokeys == Define::PARENT_ID_NAME) {
+                continue;
+            }
+    
+            $tokeys = explode('.', $tokeys);
+            if (count($tokeys) > 1 && $tokeys[0] == 'value') {
+                $to_custom_value->setValue($tokeys[1], $val);
             } else {
-                $to_custom_value->{$custom_copy_column->to_column_target_id} = $val;
+                $to_custom_value->{$tokeys[0]} = $val;
             }
         }
 
@@ -218,6 +196,18 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $to_custom_value;
     }
     
+    protected static function getColumnKey($column_type, $column_type_target, $custom_column)
+    {
+        // check column_type
+        if ($column_type == ViewColumnType::SYSTEM) {
+            // get VIEW_COLUMN_SYSTEM_OPTIONS and get name.
+            return SystemColumn::getOption(['id' => $column_type_target])['name'] ?? null;
+        } elseif ($column_type == ViewColumnType::PARENT_ID) {
+            return Define::PARENT_ID_NAME;
+        } else {
+            return "value.{$custom_column->column_name}";
+        }
+    }
     /**
      * get eloquent using request settion.
      * now only support only id.
