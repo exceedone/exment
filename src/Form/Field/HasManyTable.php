@@ -172,6 +172,7 @@ $('#has-many-table-{$this->column}').off('click', '.add').on('click', '.add', fu
     $('.has-many-table-{$this->column}-table tbody').append(template);
 
     {$templateScript}
+    {$this->countscript}
 });
 
 $('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remove', function () {
@@ -179,6 +180,7 @@ $('#has-many-table-{$this->column}').off('click', '.remove').on('click', '.remov
     row.find('input,textarea,select').removeAttr('required max min maxlength pattern');
     row.hide();
     row.find('.$removeClass').val(1);
+    {$this->countscript}
 });
 
 $('#has-many-table-{$this->column}').off('click', '.row-move').on('click', '.row-move', function(ev){

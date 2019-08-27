@@ -569,6 +569,14 @@ return [
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
         'auto_number_format_rule' => '自動採番フォーマットのルール',
+        'child_count_text' => '%s:件数',
+        'child_sum_text' => '%s:%s(合計)',
+        'symbols' => [
+            'plus' => '＋',
+            'minus' => '－',
+            'times' => '×',
+            'div' => '÷',
+        ],
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',

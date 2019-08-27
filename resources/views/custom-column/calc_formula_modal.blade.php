@@ -5,7 +5,7 @@
         <div class="calc_formula_area" style="width:100%; border:1px solid black; min-height:100px;">
             @if(is_array($value))
             @foreach($value as $v)
-            <p class="col-value-item" data-type="{{ array_get($v, 'type') }}" data-val="{{ array_get($v, 'val') }}">
+            <p class="col-value-item" data-type="{{ array_get($v, 'type') }}" data-val="{{ array_get($v, 'val') }}" data-table="{{ array_get($v, 'table') }}">
                 <span>{{ array_get($v, 'text') }}</span>
                 <i class="fa fa-close pull-right col-value-item-remove"></i>
             </p>
@@ -28,7 +28,8 @@
             <div class="row">
                 @foreach($custom_columns as $custom_column)
                 <div class="col-sm-6">
-                    <button type="button" class="btn btn-default button-addcalcitem" style="width:100%;" data-type="dynamic" data-val="{{ array_get($custom_column, 'id') }}">
+                    <button type="button" class="btn btn-default button-addcalcitem" style="width:100%;" 
+                        data-type="{{ array_get($custom_column, 'type')??'dynamic' }}" data-val="{{ array_get($custom_column, 'id') }}" data-table="{{ array_get($custom_column, 'custom_table_id') }}">
                     {{ array_get($custom_column, 'column_view_name') }}
                 </button>
                 </div>

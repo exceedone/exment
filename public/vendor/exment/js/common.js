@@ -494,28 +494,32 @@ var Exment;
          */
         static setCalc($target, data) {
             return __awaiter(this, void 0, void 0, function* () {
-                // if not found target, return.
-                if (!hasValue($target)) {
-                    return;
-                }
-                var $parent = CommonEvent.getParentRow($target);
                 if (!hasValue(data)) {
                     return;
+                }
+                var $parent = null;
+                // if not found target, set root.
+                if (hasValue($target)) {
+                    $parent = CommonEvent.getParentRow($target);
+                }
+                if (!hasValue($parent)) {
+                    $parent = $('.box-body');
                 }
                 // loop for calc target.
                 for (var i = 0; i < data.length; i++) {
                     // for creating array contains object "value0" and "calc_type" and "value1".
-                    var value_itemlist = [];
-                    var value_item = { values: [], calc_type: null };
+                    var formula_list = [];
                     var $to = $parent.find(CommonEvent.getClassKey(data[i].to));
-                    var isfirst = true;
+                    if (data[i].is_default) {
+                        $to = $('.box-body').find(CommonEvent.getClassKey(data[i].to)).first();
+                    }
                     for (var j = 0; j < data[i].options.length; j++) {
                         var val = 0;
                         // calc option
                         var option = data[i].options[j];
                         // when fixed value
                         if (option.type == 'fixed') {
-                            value_item.values.push(rmcomma(option.val));
+                            formula_list.push(rmcomma(option.val));
                         }
                         // when dynamic value, get value
                         else if (option.type == 'dynamic') {
@@ -523,7 +527,29 @@ var Exment;
                             if (!hasValue(val)) {
                                 val = 0;
                             }
-                            value_item.values.push(val);
+                            formula_list.push(val);
+                        }
+                        // when summary value, get value
+                        else if (option.type == 'summary') {
+                            var sub_formula_list = [];
+                            $('.box-body').find('.has-many-' + option.relation_name + '-form:visible, .has-many-table-' + option.relation_name + '-row:visible').find(CommonEvent.getClassKey(option.val)).each(function(){
+                                if (hasValue($(this).val())) {
+                                    sub_formula_list.push($(this).val());
+                                }
+                            });
+                            if (sub_formula_list.length > 0) {
+                                formula_list.push('(' + sub_formula_list.join(' + ') + ')');
+                            } else {
+                                formula_list.push(0);
+                            }
+                        }
+                        // when count value, get count
+                        else if (option.type == 'count') {
+                            val = $('.box-body').find('.has-many-' + option.relation_name + '-form:visible, .has-many-table-' + option.relation_name + '-row:visible').length;
+                            if (!hasValue(val)) {
+                                val = 0;
+                            }
+                            formula_list.push(val);
                         }
                         // when select_table value, get value from table
                         else if (option.type == 'select_table') {
@@ -539,52 +565,27 @@ var Exment;
                                     val = 0;
                                 }
                             }
-                            value_item.values.push(val);
+                            formula_list.push(val);
                         }
                         // when symbol
                         else if (option.type == 'symbol') {
-                            value_item.calc_type = option.val;
-                        }
-                        // if hasValue calc_type and values.length == 1 or first, set value_itemlist
-                        if (hasValue(value_item.calc_type) &&
-                            value_item.values.length >= 2 || (!isfirst && value_item.values.length >= 1)) {
-                            value_itemlist.push(value_item);
-                            // reset
-                            value_item = { values: [], calc_type: null };
-                            isfirst = false;
-                        }
-                    }
-                    // get value useing value_itemlist
-                    var bn = null;
-                    for (var j = 0; j < value_itemlist.length; j++) {
-                        value_item = value_itemlist[j];
-                        // if first item, new BigNumber using first item
-                        if (value_item.values.length == 2) {
-                            bn = new BigNumber(value_item.values[0]);
-                        }
-                        // get appended value
-                        var v = value_item.values[value_item.values.length - 1];
-                        switch (value_item.calc_type) {
-                            case 'plus':
-                                bn = bn.plus(v);
-                                break;
-                            case 'minus':
-                                bn = bn.minus(v);
-                                break;
-                            case 'times':
-                                bn = bn.times(v);
-                                break;
-                            case 'div':
-                                if (v == 0) {
-                                    bn = new BigNumber(0);
-                                }
-                                else {
-                                    bn = bn.div(v);
-                                }
-                                break;
+                            switch (option.val) {
+                                case 'plus':
+                                    formula_list.push('+');
+                                    break;
+                                case 'minus':
+                                    formula_list.push('-');
+                                    break;
+                                case 'times':
+                                    formula_list.push('*');
+                                    break;
+                                case 'div':
+                                    formula_list.push('/');
+                                    break;
+                            }
                         }
                     }
-                    var precision = bn.toPrecision();
+                    var precision = math.evaluate(formula_list.join(' '));
                     CommonEvent.setValue($to, precision);
                 }
                 ///// re-loop after all data setting value
