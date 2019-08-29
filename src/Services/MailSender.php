@@ -168,7 +168,8 @@ class MailSender
                 'custom_value' => $this->custom_value,
                 'user' => $this->user,
                 'history_body' => $this->history_body,
-                'attachments' => $this->attachments
+                'attachments' => $this->attachments,
+                'prms' => $this->prms,
             ]
         );
         return true;
