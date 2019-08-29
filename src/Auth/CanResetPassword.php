@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Auth;
 
-use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 
 trait CanResetPassword
