@@ -231,7 +231,7 @@ class Notify extends ModelBase
             return File::where('uuid', $uuid)->first();
         })->filter();
 
-        if (in_array(NotifyAction::SLACK, $this->notify_actions)) {
+        if (NotifyAction::isChatMessage($this->notify_actions)){
             // send slack message
             NotifyService::executeNotifyAction($this, [
                 'mail_template' => $mail_template,
@@ -252,7 +252,7 @@ class Notify extends ModelBase
             }
 
             if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
-                continue;
+                continue; 
             }
 
             $prms = [
@@ -381,6 +381,10 @@ class Notify extends ModelBase
     }
     protected function routeNotificationForSlack()
     {
-        return array_get($this->action_settings, 'slack_url');
+        return array_get($this->action_settings, 'webhook_url');
+    }
+    protected function routeNotificationForMicrosoftTeams()
+    {
+        return array_get($this->action_settings, 'webhook_url');
     }
 }

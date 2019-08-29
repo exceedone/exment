@@ -649,9 +649,9 @@ if (!function_exists('replaceBreak')) {
      * replace new line code to <br />
      * @return string
      */
-    function replaceBreak($text)
+    function replaceBreak($text, $isescape = true)
     {
-        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text));
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_script_tag($text) : $text);
     }
 }
 

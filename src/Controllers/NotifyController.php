@@ -213,9 +213,9 @@ class NotifyController extends AdminControllerBase
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
             $controller = $this;
-            $form->text('slack_url', exmtrans("notify.slack_url"))
+            $form->text('webhook_url', exmtrans("notify.webhook_url"))
                 ->rules(["max:300", new RequiredIfExRule(['notify_actions', '3'])])
-                ->help(exmtrans("notify.help.slack_url", getManualUrl('notify')));
+                ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify')));
 
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(function ($val) use ($controller) {

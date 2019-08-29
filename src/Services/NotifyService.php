@@ -10,7 +10,7 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
-use Exceedone\Exment\Notifications\SlackSender;
+use Exceedone\Exment\Notifications;
 
 /**
  * Notify dialog, send mail etc.
@@ -274,7 +274,7 @@ class NotifyService
                 case NotifyAction::EMAIL:
                     // send mail
                     try {
-                        MailSender::make($mail_template, $user)
+                        Notifications\MailSender::make($mail_template, $user)
                         ->prms($prms)
                         ->user($user)
                         ->custom_value($custom_value)
@@ -313,7 +313,7 @@ class NotifyService
                     $mail_subject = static::replaceWord($mail_subject, $custom_value, $prms);
                     $mail_body = static::replaceWord($mail_body, $custom_value, $prms);
 
-                    $notify_navbar = new NotifyNavbar;
+                    $notify_navbar = new NotifyNavbar;  
                     $notify_navbar->notify_id = array_get($notify, 'id');
                     $notify_navbar->parent_id = array_get($custom_value, 'id');
                     $notify_navbar->parent_type = $custom_value->custom_table->table_name;
@@ -329,11 +329,19 @@ class NotifyService
                     // replace word
                     $slack_subject = static::replaceWord($subject, $custom_value, $prms);
                     $slack_body = static::replaceWord($body, $custom_value, $prms);
-                    $slack_content = SlackSender::editContent($slack_subject, $slack_body);
+                    $slack_content = Notifications\SlackSender::editContent($slack_subject, $slack_body);
                     // send slack message
-                    $notify->notify(new SlackSender($slack_content));
+                    $notify->notify(new Notifications\SlackSender($slack_content));
                     break;
     
+                case NotifyAction::MICROSOFT_TEAMS:
+                    // replace word
+                    $slack_subject = static::replaceWord($subject, $custom_value, $prms);
+                    $slack_body = static::replaceWord($body, $custom_value, $prms);
+                    $slack_content = Notifications\MicrosoftTeamsSender::editContent($slack_subject, $slack_body);
+                    // send slack message
+                    $notify->notify(new Notifications\MicrosoftTeamsSender($slack_subject, $slack_content));
+                    break;
             }
         }
     }

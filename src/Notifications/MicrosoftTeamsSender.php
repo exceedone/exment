@@ -6,11 +6,11 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Messages\SlackMessage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Notifications\MicrosoftTeams\MicrosoftTeamsMessage;
 
-class SlackSender extends Notification
+class MicrosoftTeamsSender extends Notification
 {
     use Queueable;
 
@@ -19,11 +19,12 @@ class SlackSender extends Notification
      *
      * @return void
      */
-    public function __construct($content)
+    public function __construct($subject, $content)
     {
-        $this->name = config('exment.slack_from_name') ?? System::site_name();
-        $this->icon = config('exment.slack_from_icon') ?? ':information_source:';
+        //$this->name = config('exment.slack_from_name') ?? System::site_name();
+        //$this->icon = config('exment.slack_from_icon') ?? ':information_source:';
         $this->content = $content;
+        $this->subject = $subject;
     }
 
     /**
@@ -34,7 +35,7 @@ class SlackSender extends Notification
      */
     public function via($notifiable)
     {
-        return ['slack'];
+        return [MicrosoftTeams\MicrosoftTeamsChannel::class];
     }
 
     /**
@@ -43,11 +44,11 @@ class SlackSender extends Notification
      * @param  mixed  $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
-    public function toSlack($notifiable)
+    public function toChat($notifiable)
     {
-        return (new SlackMessage)
-                ->from($this->name, $this->icon)
-                ->content($this->content);
+        return (new MicrosoftTeamsMessage)
+            ->content($this->content)
+            ->title($this->subject);
     }
 
     /**
@@ -68,8 +69,7 @@ class SlackSender extends Notification
      */
     public static function editContent($subject, $body)
     {
-        $content = $subject . "\n*************************\n" . $body;
-
+        $content = $body;
         preg_match_all(Define::RULES_REGEX_LINK_FORMAT, $content, $matches);
 
         if (isset($matches)) {
@@ -77,11 +77,12 @@ class SlackSender extends Notification
                 $match = $matches[1][$i];
                 $matchString = $matches[0][$i];
                 $matchName = $matches[2][$i];
-                $str = "<$match|$matchName>";
+                $str = "[$matchName]($match)";
                 $content = str_replace($matchString, $str, $content);
             }
         }
 
-        return $content;
+        // replace <br />
+        return replaceBreak($content, false);
     }
 }

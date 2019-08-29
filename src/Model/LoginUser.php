@@ -9,7 +9,7 @@ use Encore\Admin\Traits\AdminBuilder;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Support\Facades\Hash;
 
