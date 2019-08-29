@@ -203,9 +203,11 @@ class CustomViewController extends AdminControllerTableBase
         }
         if (isset($model)) {
             $suuid = $model->suuid;
+            $view_type = $model->view_type;
             $view_kind_type = $model->view_kind_type;
         } else {
             $suuid = null;
+            $view_type = null;
             $view_kind_type = null;
         }
         
@@ -248,7 +250,7 @@ class CustomViewController extends AdminControllerTableBase
             $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
             // select view type
-            if (!isset($id) && $this->hasSystemPermission()) {
+            if ($this->hasSystemPermission() && (is_null($view_type) || $view_type == Enums\ViewType::USER)) {
                 $form->select('view_type', exmtrans('custom_view.view_type'))
                     ->default(Enums\ViewType::SYSTEM)
                     ->config('allowClear', false)
