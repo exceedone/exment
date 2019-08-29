@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Form\Widgets\ModalInnerForm;
+use Exceedone\Exment\Notifications\SlackSender;
 
 /**
  * Notify dialog, send mail etc.
@@ -45,7 +46,7 @@ class NotifyService
         $users = $this->notify->getNotifyTargetUsers($this->custom_value);
 
         // if only one data, get form for detail
-        if (count($users) == 1) {
+        if (count($users) <= 1) {
             return $this->getSendForm($users);
         }
         
@@ -144,7 +145,9 @@ class NotifyService
             $form->progressTracker()->options($this->getProgressInfo(false));
         }
 
-        $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
+        if (!empty($notifyTarget)) {
+            $form->display(exmtrans('custom_value.sendmail.mail_to'))->default($notifyTarget);
+        }
         $form->hidden('target_users')->default($notifyTargetJson);
 
         $form->text('mail_title', exmtrans('custom_value.sendmail.mail_title'))
@@ -159,8 +162,10 @@ class NotifyService
         $options = ExmentFile::where('parent_type', $tableKey)
             ->where('parent_id', $id)->get()->pluck('filename', 'uuid');
 
-        $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
-            ->options($options);
+        if (!empty($notifyTarget)) {
+            $form->multipleSelect('mail_attachment', exmtrans('custom_value.sendmail.attachment'))
+                ->options($options);
+        }
 
         $form->textarea('send_error_message', exmtrans('custom_value.sendmail.send_error_message'))
             ->attribute(['readonly' => true, 'placeholder' => ''])
@@ -319,6 +324,16 @@ class NotifyService
                     $notify_navbar->save();
 
                     break;
+
+                case NotifyAction::SLACK:
+                    // replace word
+                    $slack_subject = static::replaceWord($subject, $custom_value, $prms);
+                    $slack_body = static::replaceWord($body, $custom_value, $prms);
+                    $slack_content = SlackSender::editContent($slack_subject, $slack_body);
+                    // send slack message
+                    $notify->notify(new SlackSender($slack_content));
+                    break;
+    
             }
         }
     }
