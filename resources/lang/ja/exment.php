@@ -1206,6 +1206,7 @@ return [
         'notify_action_target' => '通知対象',
         'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
+        'webhook_url' => 'Webhook URL',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1218,6 +1219,7 @@ return [
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」「作成者」と、カスタム列の「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
         ],
 
         'notify_trigger_options' => [
@@ -1232,6 +1234,8 @@ return [
         'notify_action_options' => [
             'email' => 'Eメール', 
             'show_page' => 'システム内アラート', 
+            'slack' => 'Slack通知', 
+            'microsoft_teams' => 'Microsoft Teams通知',
         ],
 
         'notify_action_target_options' => [
@@ -1257,6 +1261,12 @@ return [
             'month' => '月',
             'week' => '週',
             'day' => '日',
+        ]
+    ],
+    
+    'validator' => [
+        'required_if_ex' => [
+            'notify_actions' => '実施アクション'
         ]
     ],
     
