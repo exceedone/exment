@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
+use Exceedone\Exment\Services\NotifyService;
 
 /**
  * Send Mail System
@@ -168,7 +169,8 @@ class MailSender
                 'custom_value' => $this->custom_value,
                 'user' => $this->user,
                 'history_body' => $this->history_body,
-                'attachments' => $this->attachments
+                'attachments' => $this->attachments,
+                'prms' => $this->prms,
             ]
         );
         return true;

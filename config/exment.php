@@ -347,4 +347,14 @@ return [
     |
     */
     'expart_mode' => env('EXMENT_EXPART_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Archive mail attachments
+    |--------------------------------------------------------------------------
+    |
+    | Archive mail attachments to zip.
+    |
+    */
+    'archive_attachment' => env('ARCHIVE_MAIL_ATTACHMENT', false),
 ];

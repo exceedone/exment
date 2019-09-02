@@ -270,7 +270,7 @@ class Notify extends ModelBase
                     'custom_value' => $custom_value,
                     'subject' => $subject,
                     'body' => $body,
-                    'attachments' => $attachments,
+                    'attach_files' => $attach_files,
                 ]);
             }
             // throw mailsend Exception
