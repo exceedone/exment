@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Illuminate\Support\Facades\Mail;
 use Exceedone\Exment\Exceptions\NoMailTemplateException;
+use Exceedone\Exment\Services\NotifyService;
 
 /**
  * Send Mail System
