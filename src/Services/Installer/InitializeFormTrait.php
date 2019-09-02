@@ -133,10 +133,11 @@ trait InitializeFormTrait
                 $form->text('system_mail_username', exmtrans("system.system_mail_username"));
     
                 $form->password('system_mail_password', exmtrans("system.system_mail_password"));
+                
+                $form->email('system_mail_from', exmtrans("system.system_mail_from"))
+                    ->help(exmtrans("system.help.system_mail_from"));
             }
         }
-        $form->email('system_mail_from', exmtrans("system.system_mail_from"))
-            ->help(exmtrans("system.help.system_mail_from"));
 
         // template list
         if ($add_template) {
