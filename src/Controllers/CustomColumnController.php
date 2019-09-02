@@ -266,6 +266,10 @@ class CustomColumnController extends AdminControllerTableBase
                 ->help(exmtrans("custom_column.help.number_format"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])]);
 
+            $form->switchbool('percent_format', exmtrans("custom_column.options.percent_format"))
+                ->help(exmtrans("custom_column.help.percent_format"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL]])]);
+
             $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL, ColumnType::CURRENCY]])])
                 ->default(2)

@@ -207,6 +207,13 @@ EOT;
     {
         $form = new Form(new Dashboard);
 
+        if (isset($id)) {
+            $model = Dashboard::getEloquent($id);
+            $dashboard_type = $model->dashboard_type;
+        } else {
+            $dashboard_type = null;
+        }
+
         if (!isset($id)) {
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
                 ->required()
@@ -221,7 +228,7 @@ EOT;
             ->required()
             ->rules("max:40");
 
-        if (!isset($id) && Dashboard::hasSystemPermission()) {
+        if (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)

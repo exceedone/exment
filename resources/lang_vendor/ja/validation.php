@@ -74,6 +74,7 @@ return [
     'regex'                => '正しい形式の:attributeを指定してください。',
     'required'             => ':attributeは必須です。',
     'required_if'          => ':otherが:valueの時:attributeは必須です。',
+    'required_if_ex'       => ':otherが指定されている時:attributeは必須です。',
     'required_unless'      => ':otherが:values以外の時:attributeは必須です。',
     'required_with'        => ':valuesのうちいずれかが指定された時:attributeは必須です。',
     'required_with_all'    => ':valuesのうちすべてが指定された時:attributeは必須です。',
@@ -134,6 +135,10 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'action_settings' => [
+            'notify_action_target' => '通知対象'
+        ] 
+    ],
 
 ];
