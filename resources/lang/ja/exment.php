@@ -1,6 +1,7 @@
 <?php
 
-return [    
+return [
+    'label' => '日本語',
     'common' => [
         'home' => 'HOME',
         'error' => 'エラー',
@@ -106,7 +107,6 @@ return [
 
     'install' => [
         'title' => 'インストール',
-        'installing' => 'インストール実行',
 
         'database' => [
             'header' => 'データベース設定',
@@ -116,6 +116,11 @@ return [
             'database' => 'データベース',
             'username' => 'ユーザー名',
             'password' => 'パスワード',
+        ],
+
+        'installing' => [
+            'header' => '初期データインストール',
+            'installing' => 'インストール実行',
         ],
 
         'help' => [
