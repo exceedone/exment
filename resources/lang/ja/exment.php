@@ -596,7 +596,7 @@ return [
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
-            'select_target_view' => '対象ビュー',
+            'select_target_view' => '対象ビュー',	
             'select_import_column_id' => 'インポート時のキー列',
             'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
@@ -985,7 +985,6 @@ return [
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
         'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
-        'header' => 'データコピー設定',
 
         'options' => [
             'child_copy' => '子テーブル設定',
