@@ -48,6 +48,8 @@ return [
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
         'copy_item' => 'この%sの複製',
+        'header' => 'ヘッダー',
+        'footer' => 'フッター',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
