@@ -1,6 +1,7 @@
 <?php
 
 return [    
+    'label' => 'English',
     'common' => [
         'home' => 'HOME',
         'error' => 'Error',
@@ -106,7 +107,6 @@ return [
 
     'install' => [
         'title' => 'Install',
-        'installing' => 'Execute Install',
 
         'database' => [
             'header' => 'Database Settings',
@@ -117,6 +117,12 @@ return [
             'username' => 'User Name',
             'password' => 'Password',
         ],
+
+        'installing' => [
+            'header' => 'Initial Data Installation',
+            'installing' => 'Execute Install',
+        ],
+
 
         'help' => [
             'installing' => 'Install initial data. This process takes time.',

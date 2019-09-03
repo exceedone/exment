@@ -487,8 +487,17 @@ class PatchDataCommand extends Command
     protected function patchMailTemplate($mail_key_names = [])
     {
         // get vendor folder
+        $locale = \App::getLocale();
         $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
-        $path = "$templates_data_path/mail_template.xlsx";
+        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
+        // if exists, execute data copy
+        if (!\File::exists($path)) {
+            $path = path_join($templates_data_path, "mail_template.xlsx");
+            // if exists, execute data copy
+            if (!\File::exists($path)) {
+                return;
+            }
+        }
 
         $table_name = \File::name($path);
         $format = \File::extension($path);
