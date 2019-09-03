@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\Installer;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\InitializeStatus;
 use Exceedone\Exment\Enums\SystemLocale;
+use Exceedone\Exment\Enums\Timezone;
 
 /**
  *
@@ -18,7 +19,7 @@ class LangForm
         
         return view('exment::install.lang', [
             'locale_options' => SystemLocale::getLocaleOptions(),
-            'timezone_options' => Define::TIMEZONE,
+            'timezone_options' => Timezone::TIMEZONE,
             'locale_default' => config('exment.default_locale', 'ja'),
             'timezone_default' => config('exment.default_timezone', 'Asia_Tokyo'),
         ]);
