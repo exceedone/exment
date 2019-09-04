@@ -358,4 +358,24 @@ return [
     |
     */
     'archive_attachment' => env('ARCHIVE_MAIL_ATTACHMENT', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled user view 
+    |--------------------------------------------------------------------------
+    |
+    | Disabled user view, only system view
+    |
+    */
+    'userview_disabled' => env('USER_VIEW_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled user dashboard 
+    |--------------------------------------------------------------------------
+    |
+    | Disabled user dashboard, only system dashboard
+    |
+    */
+    'userdashboard_disabled' => env('USER_DASHBOARD_DISABLED', false),
 ];
