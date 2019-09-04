@@ -310,7 +310,7 @@ class CustomFormController extends AdminControllerTableBase
                 $block->form_block_view_name = $block->label;
                 $block->available = 0;
                 $block->options = [
-                    'hasmany_type' => RelationType::ONE_TO_MANY ? 1 : null
+                    'hasmany_type' => null
                 ];
                 $block->custom_form_columns = [];
                 array_push($custom_form_blocks, $block->toArray());
