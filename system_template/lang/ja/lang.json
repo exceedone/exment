@@ -497,6 +497,11 @@
             "menu_type": "table",
             "menu_name": "mail_send_log",
             "title": "メール送信履歴"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "操作ログ"
         }
     ]
 }

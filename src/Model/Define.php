@@ -276,6 +276,10 @@ class Define
             'uri' => 'loginuser',
             'icon' => 'fa-user-plus',
         ],
+        'operation_log' => [
+            'uri' => 'auth/logs',
+            'icon' => 'fa-file-text',
+        ],
     ];
 
     public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS = [
