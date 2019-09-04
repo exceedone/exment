@@ -221,4 +221,9 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     {
         return \Admin::user()->hasPermission(Permission::SYSTEM);
     }
+    
+    public static function hasViewPermission()
+    {
+        return !boolval(config('exment.userdashboard_disabled', false)) || static::hasSystemPermission();
+    }
 }
