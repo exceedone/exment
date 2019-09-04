@@ -436,7 +436,9 @@ class CustomColumnController extends AdminControllerTableBase
                         [
                         'format' => exmtrans("custom_column.options.auto_number_type_format"),
                         'random25' => exmtrans("custom_column.options.auto_number_type_random25"),
-                        'random32' => exmtrans("custom_column.options.auto_number_type_random32")]
+                        'random32' => exmtrans("custom_column.options.auto_number_type_random32"),
+                        'other' => exmtrans("custom_column.options.auto_number_other"),
+                        ]
                     )
                     ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER])]);
 

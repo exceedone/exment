@@ -611,6 +611,7 @@ return [
             'auto_number_type_random25' => 'ランダム(ライセンスコード)',
             'auto_number_type_random32' => 'ランダム(UUID)',
             'auto_number_format' => '採番フォーマット',
+            'auto_number_other' => 'その他',
             'multiple_enabled' => '複数選択を許可する',
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
