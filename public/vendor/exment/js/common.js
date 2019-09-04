@@ -532,14 +532,15 @@ var Exment;
                         // when summary value, get value
                         else if (option.type == 'summary') {
                             var sub_formula_list = [];
-                            $('.box-body').find('.has-many-' + option.relation_name + '-form:visible, .has-many-table-' + option.relation_name + '-row:visible').find(CommonEvent.getClassKey(option.val)).each(function(){
+                            $('.box-body').find('.has-many-' + option.relation_name + '-form:visible, .has-many-table-' + option.relation_name + '-row:visible').find(CommonEvent.getClassKey(option.val)).each(function () {
                                 if (hasValue($(this).val())) {
                                     sub_formula_list.push($(this).val());
                                 }
                             });
                             if (sub_formula_list.length > 0) {
                                 formula_list.push('(' + sub_formula_list.join(' + ') + ')');
-                            } else {
+                            }
+                            else {
                                 formula_list.push(0);
                             }
                         }

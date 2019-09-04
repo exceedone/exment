@@ -2,6 +2,7 @@ var Exment;
 (function (Exment) {
     const EVENT_FORM_LOADED = 'exment:form_loaded';
     const EVENT_LIST_LOADED = 'exment:list_loaded';
+    const EVENT_SHOW_LOADED = 'exment:show_loaded';
     /**
     * Column Event Script.
     */
@@ -9,6 +10,7 @@ var Exment;
         static AddEvent() {
             CustomScriptEvent.fireListEvent();
             CustomScriptEvent.fireFormEvent();
+            CustomScriptEvent.fireShowEvent();
         }
         static AddEventOnce() {
             $(document).on('pjax:complete', function (event) {
@@ -16,16 +18,22 @@ var Exment;
             });
         }
         static fireFormEvent() {
-            if (!hasValue($('.custom_value_form'))) {
+            if (!hasValue($('.block_custom_value_form'))) {
                 return;
             }
             $(window).trigger(EVENT_FORM_LOADED);
         }
         static fireListEvent() {
-            if (!hasValue($('.custom_value_grid'))) {
+            if (!hasValue($('.block_custom_value_grid'))) {
                 return;
             }
             $(window).trigger(EVENT_LIST_LOADED);
+        }
+        static fireShowEvent() {
+            if (!hasValue($('.block_custom_value_show'))) {
+                return;
+            }
+            $(window).trigger(EVENT_SHOW_LOADED);
         }
     }
     Exment.CustomScriptEvent = CustomScriptEvent;
