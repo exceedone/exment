@@ -163,7 +163,7 @@ class CustomViewColumn extends ModelBase
      */
     public function getPivotUniqueKeyValues()
     {
-        if(!isset($this->view_pivot_column_id)){
+        if (!isset($this->view_pivot_column_id)) {
             return [
                 'table_name' => null,
                 'column_name' => null,
@@ -185,5 +185,4 @@ class CustomViewColumn extends ModelBase
         }
         return [];
     }
-    
 }

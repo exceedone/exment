@@ -29,7 +29,7 @@ class SystemItem implements ItemInterface
         $this->setCustomValue($custom_value);
 
         $params = static::getOptionParams($column_name, $custom_table);
-        $this->column_name = $params['column_column_target'];
+        $this->column_name = $params['column_target'];
 
         // get label. check not match $this->custom_table and pivot table
         if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
@@ -179,6 +179,14 @@ class SystemItem implements ItemInterface
     public function sortable()
     {
         return true;
+    }
+
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
     }
 
     public function setCustomValue($custom_value)

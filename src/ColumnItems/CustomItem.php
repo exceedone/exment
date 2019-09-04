@@ -133,7 +133,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function sortable()
     {
-        return $this->indexEnabled();
+        return $this->indexEnabled() && !array_key_value_exists('view_pivot_column', $this->options);
     }
 
     /**
@@ -143,6 +143,14 @@ abstract class CustomItem implements ItemInterface
     public function indexEnabled()
     {
         return $this->custom_column->index_enabled;
+    }
+
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
     }
 
     public function setCustomValue($custom_value)

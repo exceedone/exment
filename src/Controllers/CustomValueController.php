@@ -119,12 +119,12 @@ class CustomValueController extends AdminControllerTableBase
                     $this->custom_table->saveGridParameter($request->path());
             }
 
-            PartialCrudService::setGridContent($this->custom_table, $content);
-
             $row->class([static::CLASSNAME_CUSTOM_VALUE_GRID, static::CLASSNAME_CUSTOM_VALUE_PREFIX . $this->custom_table->table_name]);
         }
 
         $content->row($row);
+
+        PartialCrudService::setGridContent($this->custom_table, $content);
 
         return $content;
     }

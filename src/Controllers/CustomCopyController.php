@@ -122,10 +122,10 @@ class CustomCopyController extends AdminControllerTableBase
                   $from_name = $item->from_custom_table->table_view_name;
                   $to_name = $item->to_custom_table->table_view_name;
                   return [$item['id'] => exmtrans(
-                        "custom_copy.options.child_copy_format",
-                        $item['options']['label'],
-                        $from_name,
-                        $to_name
+                      "custom_copy.options.child_copy_format",
+                      $item['options']['label'],
+                      $from_name,
+                      $to_name
                     )];
               })->toArray();
         }
@@ -227,8 +227,7 @@ class CustomCopyController extends AdminControllerTableBase
                     })->pluck('to_column_target'));
             }
             $columns = $columns->map(function ($column) {
-                $value = explode('-', $column);
-                return $value[1];
+                return explode("?", $column)[0];;
             });
             $required_columns = CustomColumn::where('custom_table_id', $to_table->id)->required()->pluck('id');
             $result = $required_columns->every(function ($required_column) use ($columns) {

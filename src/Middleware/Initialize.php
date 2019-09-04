@@ -247,7 +247,9 @@ class Initialize
 
             
             // favicon
-            \Admin::setFavicon(admin_url('favicon'));
+            if (!is_null(System::site_favicon())) {
+                \Admin::setFavicon(admin_url('favicon'));
+            }
 
             // mail setting
             if (!boolval(config('exment.mail_setting_env_force', false))) {

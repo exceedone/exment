@@ -77,6 +77,9 @@ class PatchDataCommand extends Command
             case '2factor':
                 $this->import2factorTemplate();
                 return;
+            case 'zip_password':
+                $this->importZipPasswordTemplate();
+                return;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
                 return;
@@ -209,6 +212,18 @@ class PatchDataCommand extends Command
             'verify_2factor',
             'verify_2factor_google',
             'verify_2factor_system',
+        ]);
+    }
+    
+    /**
+     * import mail template for Zip Password
+     *
+     * @return void
+     */
+    protected function importZipPasswordTemplate()
+    {
+        return $this->patchMailTemplate([
+            'password_notify',
         ]);
     }
     
@@ -519,6 +534,10 @@ class PatchDataCommand extends Command
     {
         // get app/$pathName folder
         $beforeFolder = app_path($pathName);
+        if (!\File::isDirectory($beforeFolder)) {
+            return;
+        }
+        
         $befores = scandir($beforeFolder);
         if (!is_array($befores)) {
             return;

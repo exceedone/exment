@@ -57,6 +57,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     {
         return $this->hasMany(CustomForm::class, 'custom_table_id');
     }
+ 
+    public function custom_operations()
+    {
+        return $this->hasMany(CustomOperation::class, 'custom_table_id');
+    }
     public function custom_relations()
     {
         return $this->hasMany(CustomRelation::class, 'parent_custom_table_id');
@@ -905,6 +910,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         if (is_null($display_table)) {
             $display_table = $this;
+        } else {
+            $display_table = self::getEloquent($display_table);
         }
         $table_name = $this->table_name;
         // get query.
@@ -1039,7 +1046,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_parent' => false,
                         'include_system' => true,
                         'table_view_name' => $tablename,
-                        'child_sum' => true,
                     ]
                 );
             }
@@ -1058,7 +1064,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                         'include_parent' => true,
                         'include_system' => true,
                         'table_view_name' => $tablename,
-                        'child_sum' => true,
                     ]
                 );
             }
@@ -1078,7 +1083,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'table_view_name' => null,
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
-                'child_sum' => false,
             ],
             $selectOptions
         );
@@ -1088,7 +1092,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $optionKeyParams = [
             'view_pivot_column' => $view_pivot_column,
             'view_pivot_table' => $view_pivot_table,
-            'child_sum' => $child_sum,
         ];
 
         if ($include_system) {

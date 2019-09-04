@@ -4,9 +4,11 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\GroupCondition;
+use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Services\NotifyService;
+use Illuminate\Notifications\Notifiable;
 use Carbon\Carbon;
 
 class Notify extends ModelBase
@@ -14,6 +16,7 @@ class Notify extends ModelBase
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
+    use Notifiable;
 
     protected $guarded = ['id'];
     protected $appends = ['notify_actions'];
@@ -228,6 +231,19 @@ class Notify extends ModelBase
             return File::where('uuid', $uuid)->first();
         })->filter();
 
+        if (NotifyAction::isChatMessage($this->notify_actions)){
+            // send slack message
+            NotifyService::executeNotifyAction($this, [
+                'mail_template' => $mail_template,
+                'prms' => [
+                    'notify' => $this,
+                    'target_table' => $custom_table->table_view_name ?? null
+                ],
+                'custom_value' => $custom_value,
+                'subject' => $subject,
+                'body' => $body,
+            ]);
+        }
         // loop target users
         foreach ($target_user_keys as $target_user_key) {
             $user = NotifyTarget::getSelectedNotifyTarget($target_user_key, $this, $custom_value);
@@ -236,7 +252,7 @@ class Notify extends ModelBase
             }
 
             if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
-                continue;
+                continue; 
             }
 
             $prms = [
@@ -254,7 +270,7 @@ class Notify extends ModelBase
                     'custom_value' => $custom_value,
                     'subject' => $subject,
                     'body' => $body,
-                    'attachments' => $attachments,
+                    'attach_files' => $attach_files,
                 ]);
             }
             // throw mailsend Exception
@@ -362,5 +378,13 @@ class Notify extends ModelBase
         }
 
         return true;
+    }
+    protected function routeNotificationForSlack()
+    {
+        return array_get($this->action_settings, 'webhook_url');
+    }
+    protected function routeNotificationForMicrosoftTeams()
+    {
+        return array_get($this->action_settings, 'webhook_url');
     }
 }

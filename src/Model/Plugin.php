@@ -92,10 +92,19 @@ class Plugin extends ModelBase
      */
     public function getClass($options = [])
     {
+        extract(
+            array_merge(
+                [
+                'throw_ex' => true,
+            ],
+                $options
+        )
+        );
+
         $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
-        $class = $pluginType->getPluginClass($this);
+        $class = $pluginType->getPluginClass($this, $options);
         
-        if (!isset($class)) {
+        if (!isset($class) && $throw_ex) {
             throw new \Exception('plugin not found');
         }
 
@@ -272,8 +281,8 @@ class Plugin extends ModelBase
         });
 
         return $plugins->map(function ($plugin) {
-            return $plugin->getClass();
-        });
+            return $plugin->getClass(['throw_ex' => false]);
+        })->filter();
     }
     
     /**
@@ -292,8 +301,8 @@ class Plugin extends ModelBase
         });
 
         return $plugins->map(function ($plugin) {
-            return $plugin->getClass();
-        });
+            return $plugin->getClass(['throw_ex' => false]);
+        })->filter();
     }
 
     protected static function getPluginsReqSession()
@@ -334,7 +343,7 @@ class Plugin extends ModelBase
         $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
             return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
                 && (
-                    pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName) 
+                    pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
                     || $plugin->getOption('uri') == $pluginName
                 )
             ;

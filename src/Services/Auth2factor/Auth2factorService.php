@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Auth2factor;
 
-use Exceedone\Exment\Services\MailSender;
+use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting;

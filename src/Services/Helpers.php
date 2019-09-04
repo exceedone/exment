@@ -4,12 +4,14 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\ModelBase;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
+use Exceedone\Exment\Enums\ViewColumnFilterOption;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -88,7 +90,7 @@ if (!function_exists('esc_script_tag')) {
             return $html;
         }
         
-        try{
+        try {
             libxml_use_internal_errors(true);
 
             $dom = new \DOMDocument();
@@ -111,8 +113,7 @@ if (!function_exists('esc_script_tag')) {
             $html = preg_replace('/<br>$/u', '', $html);
             
             libxml_use_internal_errors(false);
-        }
-        catch(\Exception $ex){
+        } catch (\Exception $ex) {
             return $html;
         }
         
@@ -277,7 +278,7 @@ if (!function_exists('join_paths')) {
         $ret_pass   =   "";
 
         foreach ($pass_array as $value) {
-            if(empty($value)){
+            if (empty($value)) {
                 continue;
             }
             
@@ -648,9 +649,9 @@ if (!function_exists('replaceBreak')) {
      * replace new line code to <br />
      * @return string
      */
-    function replaceBreak($text)
+    function replaceBreak($text, $isescape = true)
     {
-        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", esc_script_tag($text));
+        return preg_replace("/\\\\r\\\\n|\\\\r|\\\\n|\\r\\n|\\r|\\n/", "<br/>", $isescape ? esc_script_tag($text) : $text);
     }
 }
 
@@ -1555,6 +1556,36 @@ if (!function_exists('useLoginProvider')) {
             $path = trim($path, '/');
     
             return $path?? '/';
+        }
+    }
+
+    if (!function_exists('getCustomField')) {
+        function getCustomField($data, $field_label = null)
+        {
+            $view_column_target = array_get($data, 'view_column_target');
+            $view_filter_condition = array_get($data, 'view_filter_condition');
+
+            if (!isset($view_column_target)) {
+                return null;
+            }
+    
+            $value_type = null;
+    
+            if (isset($view_filter_condition)) {
+                $value_type = ViewColumnFilterOption::VIEW_COLUMN_VALUE_TYPE($view_filter_condition);
+    
+                if ($value_type == 'none') {
+                    return null;
+                }
+            }
+    
+            // get column item
+            $column_item = CustomViewFilter::getColumnItem($view_column_target);
+            if (isset($field_label)) {
+                $column_item->setLabel($field_label);
+            }
+    
+            return $column_item->getFilterField($value_type);
         }
     }
 }

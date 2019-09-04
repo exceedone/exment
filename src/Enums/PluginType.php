@@ -80,7 +80,8 @@ class PluginType extends EnumBase
         return 'Plugin';
     }
 
-    public function isPluginTypeUri(){
+    public function isPluginTypeUri()
+    {
         return in_array($this, [static::STYLE, static::SCRIPT, static::PAGE]);
     }
 }

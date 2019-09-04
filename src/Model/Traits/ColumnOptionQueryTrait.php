@@ -22,12 +22,11 @@ trait ColumnOptionQueryTrait
             [
                 'view_pivot_column' => null,
                 'view_pivot_table' => null,
-                'child_sum' => false,
             ],
             $options
         ));
 
-        if (!$append_table) {
+        if (!$append_table || !isset($table_id)) {
             return $column_key;
         }
 
@@ -43,10 +42,7 @@ trait ColumnOptionQueryTrait
 
             $query['view_pivot_table_id'] = CustomTable::getEloquent($view_pivot_table)->id ?? null;
         }
-        if (boolval($child_sum)) {
-            $query['child_sum'] = true;
-        }
-
+       
         return $column_key . '?' . implode('&', collect($query)->map(function ($val, $key) {
             return $key . '=' . $val;
         })->toArray());
@@ -70,7 +66,7 @@ trait ColumnOptionQueryTrait
     protected static function getOptionParams($query, $defaultCustomTable)
     {
         $params = [];
-        $params['column_column_target'] = explode("?", $query)[0];
+        $params['column_target'] = explode("?", $query)[0];
         $defaultCustomTable = CustomTable::getEloquent($defaultCustomTable);
 
         if (preg_match('/.+\?.+$/i', $query) === 1) {

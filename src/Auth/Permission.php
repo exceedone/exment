@@ -122,6 +122,12 @@ class Permission
             return true;
         }
 
+        // not admin page's (for custom url), return true
+        $parse_url = parse_url($endpoint);
+        if ($parse_url && array_has($parse_url, 'host') && strpos($endpoint, admin_url()) === false) {
+            return true;
+        }
+
         // if system user, return true
         $systemRole = RoleType::SYSTEM == $this->role_type;
         if ($systemRole && array_key_exists('system', $this->permission_details)) {

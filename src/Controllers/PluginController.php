@@ -196,7 +196,7 @@ class PluginController extends AdminControllerBase
         }
 
         $form->tools(function (Form\Tools $tools) use ($plugin, $plugin_type) {
-            if($plugin_type == PluginType::PAGE){
+            if ($plugin_type == PluginType::PAGE) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url($plugin->getRouteUri()),
                     'label' => exmtrans('plugin.show_plugin_page'),

@@ -5,13 +5,11 @@ namespace Exceedone\Exment\Model\Traits;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Enums\ViewColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\ColumnItems;
 
@@ -80,8 +78,7 @@ trait CustomViewColumnTrait
         $column_type = array_get($this, $column_type_key);
         $column_type_target = array_get($this, $column_type_target_key);
 
-        if (!isset($column_table_id) ||
-            !isset($column_type) ||
+        if (!isset($column_type) ||
             !isset($column_type_target)) {
             return null;
         }
@@ -288,7 +285,7 @@ trait CustomViewColumnTrait
 
 
         ///// set view_pivot_column_id and view_pivot_table_id
-        if(array_key_value_exists("view_pivot_column_name", $json)){
+        if (array_key_value_exists("view_pivot_column_name", $json)) {
             list($view_pivot_column_id, $view_pivot_table_id) = static::getColumnAndTableId(
                 array_get($json, "view_column_type"),
                 array_get($json, "view_pivot_column_name"),

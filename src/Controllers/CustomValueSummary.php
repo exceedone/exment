@@ -30,7 +30,12 @@ trait CustomValueSummary
         $grid->disableExport();
 
         $table_name = $this->custom_table->table_name;
-        $grid->actions(function (Grid\Displayers\Actions $actions) use ($table_name) {
+        $isShowViewSummaryDetail = $this->isShowViewSummaryDetail();
+        if (!$isShowViewSummaryDetail) {
+            $grid->disableActions();
+        }
+
+        $grid->actions(function (Grid\Displayers\Actions $actions) use ($isShowViewSummaryDetail, $table_name) {
             $actions->disableDelete();
             $actions->disableEdit();
             $actions->disableView();
@@ -43,11 +48,13 @@ trait CustomValueSummary
                 }
             }
 
-            $linker = (new Grid\Linker)
+            if ($isShowViewSummaryDetail) {
+                $linker = (new Grid\Linker)
                 ->url(admin_urls('data', $table_name).'?group_key='.json_encode($params))
                 ->icon('fa-list')
                 ->tooltip(exmtrans('custom_value.view_summary_detail'));
-            $actions->prepend($linker);
+                $actions->prepend($linker);
+            }
         });
 
         // create exporter
@@ -111,5 +118,12 @@ trait CustomValueSummary
 
         $query = $grid->model();
         return $view->getValueSummary($query, $this->custom_table, $grid);
+    }
+
+    protected function isShowViewSummaryDetail()
+    {
+        return !$this->custom_view->custom_view_columns->contains(function ($custom_view_column) {
+            return $this->custom_table->id != $custom_view_column->view_column_table_id;
+        });
     }
 }

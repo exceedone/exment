@@ -487,6 +487,7 @@ return [
         'custom_form' => 'フォーム設定',
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
+        'custom_operation' => '一括更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -596,13 +597,14 @@ return [
             'number_max' => '最大値',
             'number_format' => '数値 カンマ文字列',
             'decimal_digit' => '小数点以下の桁数',
+            'percent_format' => 'パーセント表示',
             'updown_button' => '+-ボタン表示',
             'datetime_now_saving' => '保存時に実行日時を登録',
             'datetime_now_creating' => '作成時に実行日時を登録',
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
-            'select_target_view' => '対象ビュー',
+            'select_target_view' => '対象ビュー',	
             'select_import_column_id' => 'インポート時のキー列',
             'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
@@ -654,6 +656,7 @@ return [
             'min_width' => '一覧表示する時の、列の幅の最小値を、整数(px)で入力してください。',
             'max_width' => '一覧表示する時の、列の幅の最大値を、整数(px)で入力してください。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
+            'percent_format' => 'YESにすることで、一覧画面や表示画面でパーセント表示になります。',
             'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',
             'select_item' => '改行区切りで選択肢を入力してください。',
@@ -741,6 +744,22 @@ return [
         ],
     ],
 
+    'custom_operation_columns' => [
+        'update_value' => '更新値',
+    ],
+
+    'custom_operation' => [
+        'custom_operation' => '一括更新',
+        'header' => '一括更新設定',
+        'description' => '選択データを一括更新するための設定を行います。',
+        'operation_name' => '一括更新文言',
+        'custom_operation_button_label' => '一括更新設定',
+        'custom_operation_columns' => '更新列設定',
+        'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
+        'view_column_target' => '対象列',
+        'update_value_text' => '更新値',
+    ],
+
     'custom_view' => [
         'header' => 'カスタムビュー設定',
         'description' => 'カスタムビューの設定を行います。',
@@ -773,7 +792,7 @@ return [
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
-        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
@@ -974,7 +993,6 @@ return [
         'column_description' => 'コピー元の列と、コピー先の列をそれぞれ一覧から選択してください。',
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
         'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
-        'header' => 'データコピー設定',
 
         'options' => [
             'child_copy' => '子テーブル設定',
@@ -1134,6 +1152,10 @@ return [
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
             'init_flg' => '保存後、変更はできません。',
         ],
+        'message' => [
+            'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_succeeded' => '一括更新を実行しました。',
+        ],
     ],
 
     'revision' => [
@@ -1191,6 +1213,7 @@ return [
         'notify_action_target' => '通知対象',
         'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
+        'webhook_url' => 'Webhook URL',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1203,6 +1226,7 @@ return [
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」「作成者」と、カスタム列の「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
         ],
 
         'notify_trigger_options' => [
@@ -1217,6 +1241,8 @@ return [
         'notify_action_options' => [
             'email' => 'Eメール', 
             'show_page' => 'システム内アラート', 
+            'slack' => 'Slack通知', 
+            'microsoft_teams' => 'Microsoft Teams通知',
         ],
 
         'notify_action_target_options' => [
@@ -1242,6 +1268,12 @@ return [
             'month' => '月',
             'week' => '週',
             'day' => '日',
+        ]
+    ],
+    
+    'validator' => [
+        'required_if_ex' => [
+            'notify_actions' => '実施アクション'
         ]
     ],
     
