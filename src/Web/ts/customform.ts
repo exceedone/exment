@@ -158,6 +158,8 @@ namespace Exment {
                 }));
                 // add icheck event
                 CustomFromEvent.appendIcheckEvent($elem.find('.icheck'));
+
+                CustomFromEvent.setDragItemEvent($elem);
             }else{
                 $elem.find('.delete,.options,[data-toggle]').hide();
             }
