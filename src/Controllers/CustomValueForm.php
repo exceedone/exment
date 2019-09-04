@@ -206,7 +206,7 @@ EOT;
 
         // add form saving and saved event
         $this->manageFormSaving($form, $id);
-        $this->manageFormSaved($form, $select_parent);
+        $this->manageFormSaved($form, $id, $select_parent);
 
         $form->disableReset();
 
@@ -329,8 +329,6 @@ EOT;
     {
         // before saving
         $form->saving(function ($form) use ($id) {
-            Plugin::pluginPreparing($this->plugins, 'saving');
-
             $result = PartialCrudService::saving($this->custom_table, $form, $id);
             if ($result instanceof Response) {
                 return $result;
@@ -338,12 +336,12 @@ EOT;
         });
     }
 
-    protected function manageFormSaved($form, $select_parent = null)
+    protected function manageFormSaved($form, $id, $select_parent = null)
     {
         // after saving
-        $form->savedInTransaction(function ($form) use ($select_parent) {
+        $form->savedInTransaction(function ($form) use ($id, $select_parent) {
             CustomValueAuthoritable::setValueAuthoritable($form->model());
-            Plugin::pluginPreparing($this->plugins, 'saved');
+            
             PartialCrudService::saved($this->custom_table, $form, $form->model()->id);
         });
         

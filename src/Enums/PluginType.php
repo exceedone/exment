@@ -34,6 +34,7 @@ class PluginType extends EnumBase
     {
         $options = array_merge([
             'custom_table' => null,
+            'custom_value' => null,
             'id' => null,
         ], $options);
 
@@ -59,7 +60,18 @@ class PluginType extends EnumBase
                         break;
                 }
 
-                break;
+        if (\File::exists($fuleFullPath) && class_exists($classname)) {
+            switch ($this) {
+                case PluginType::DOCUMENT:
+                case PluginType::TRIGGER:
+                    $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
+                    $class = new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
+                    break;
+                    
+                case PluginType::BATCH:
+                case PluginType::PAGE:
+                    $class = new $classname($plugin);
+                    break;
             } 
         }
 
