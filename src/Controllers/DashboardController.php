@@ -67,7 +67,7 @@ class DashboardController extends AdminControllerBase
     {
         $this->setDashboardInfo($request);
         // check has system permission or acceptable user view
-        if (!Dashboard::hasViewPermission()) {
+        if (!Dashboard::hasPermission()) {
             Checker::error();
             return false;
         }
