@@ -273,7 +273,7 @@ EOT;
                     if ($is_grid && in_array($key, [1, 2])) {
                         $field->setWidth(8, 3);
                     } else {
-                        $field->setWidth(9, 2);
+                        $field->setWidth(8, 2);
                     }
                     // push field to form
                     $form->pushField($field);
