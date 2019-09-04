@@ -271,6 +271,9 @@ class CustomFormController extends AdminControllerTableBase
                 $custom_form_column_array['header_column_name'] = '[custom_form_columns]['
                     .(isset($custom_form_column['id']) ? $custom_form_column['id'] : 'NEW__'.make_uuid())
                     .']';
+                
+                // add name for toggle(it's OK random string)
+                $custom_form_column_array['toggle_key_name'] = make_uuid();
 
                 array_push($column_blocks['custom_form_columns'], $custom_form_column_array);
             }
@@ -480,6 +483,7 @@ class CustomFormController extends AdminControllerTableBase
                 .(isset($custom_form_column['id']) ? $custom_form_column['id'] : 'NEW__'.make_uuid())
                 .']';
                 $custom_form_column['header_column_name'] = $header_column_name;
+                $custom_form_column['toggle_key_name'] = make_uuid();
             }
 
             array_push($suggests, [
@@ -500,7 +504,8 @@ class CustomFormController extends AdminControllerTableBase
                 'form_column_type' => FormColumnType::OTHER,
                 'required' => false,
                 'form_column_target_id' => $id,
-                'header_column_name' =>$header_column_name
+                'header_column_name' =>$header_column_name,
+                'toggle_key_name' => make_uuid(),
             ]);
         }
         array_push($suggests, [

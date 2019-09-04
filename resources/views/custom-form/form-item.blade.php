@@ -13,14 +13,14 @@
         @if($custom_form_column['form_column_type'] != '1')
         <a class="pull-right" 
             data-toggle="collapse" 
-            data-parent="#{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}" 
-            href="#{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}Collapse"
+            data-parent="#{{$custom_form_column['toggle_key_name']}}" 
+            href="#{{$custom_form_column['toggle_key_name']}}"
             style="display:{{!boolval($suggest) ? 'block' : 'none'}};">
             <i class="fa fa-chevron-down"></i>
         </a>
         @endif
 
-        <div id="{{preg_replace('/\[|\]/', '_', $custom_form_column['header_column_name'])}}Collapse" class="panel-collapse collapse" class="options">
+        <div id="{{$custom_form_column['toggle_key_name']}}" class="panel-collapse collapse" class="options">
             <div class="form-horizontal">
                     @if($custom_form_column['form_column_type'] == '0')
                     <div class="form-group">
