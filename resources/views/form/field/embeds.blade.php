@@ -13,16 +13,46 @@
     <div class="embed-{{$column}}-forms">
 
         <div class="embed-{{$column}}-form fields-group">
-            @if(isset($gridFields) > 0)
-                <div class="row">
-                @foreach($gridFields as $gridField)
-                    <div class="col-xs-12 col-md-{{12 / count($gridFields)}}">
-                    @foreach($gridField as $field)
+            @if(isset($is_grid))
+                @if(isset($gridHeaders))
+                    <div class="row">
+                    @foreach($gridHeaders as $field)
                         {!! $field->render() !!}
                     @endforeach
                     </div>
-                @endforeach
-                </div>
+                    <hr />
+                @endif
+                @if(isset($gridFieldsR))
+                    <div class="row">
+                        <div class="col-xs-12 col-md-6">
+                        @foreach($gridFieldsL as $field)
+                            {!! $field->render() !!}
+                        @endforeach
+                        </div>
+                        <div class="col-xs-12 col-md-6">
+                        @foreach($gridFieldsR as $field)
+                            {!! $field->render() !!}
+                        @endforeach
+                        </div>
+                    </div>
+                @elseif (isset($gridFieldsL))
+                    <div class="row">
+                    @foreach($gridFieldsL as $field)
+                        {!! $field->render() !!}
+                    @endforeach
+                    </div>
+                @endif
+
+                @if(isset($gridFooters))
+                    @if(isset($gridFieldsL) || isset($gridFieldsR))
+                    <hr />
+                    @endif
+                    <div class="row">
+                    @foreach($gridFooters as $field)
+                        {!! $field->render() !!}
+                    @endforeach
+                    </div>
+                @endif
             @else
                 @foreach($form->fields() as $field)
                     {!! $field->render() !!}
