@@ -435,10 +435,18 @@ class TemplateImporter
         if (!$is_update) {
             // get data path
             $basePath = pathinfo($basePath)['dirname'];
-            $dataPath = path_join($basePath, 'data');
+
+            // get lang datafile
+            $dataPath = path_join($basePath, 'data', $locale);
             // if exists, execute data copy
             if (\File::exists($dataPath)) {
                 static::importData($dataPath);
+            }else{
+                $dataPath = path_join($basePath, 'data');
+                // if exists, execute data copy
+                if (\File::exists($dataPath)) {
+                    static::importData($dataPath);
+                }
             }
         }
     }

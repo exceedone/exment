@@ -6,6 +6,7 @@ return [
 
     'timezone' => env('APP_TIMEZONE', config('app.timezone')),
 
+    'system_locale_options' => env('EXMENT_SYSTEM_LOCALE_OPTIONS'),
     /*
     |--------------------------------------------------------------------------
     | Use API

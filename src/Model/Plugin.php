@@ -276,25 +276,15 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin object model
+     * Get plugin page object model
      *
      * @return void
      */
     public static function getPluginPages()
     {
-        $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function ($plugin) {
-            if (array_get($plugin, 'plugin_type') != PluginType::PAGE) {
-                return false;
-            }
-            return true;
-        });
-
-        return $plugins->map(function ($plugin) {
-            return $plugin->getClass(['throw_ex' => false]);
-        })->filter();
+        return static::getPluginPublicSessions([PluginType::PAGE]);
     }
-    
+
     /**
      * Get plugin scripts and styles
      *
@@ -302,9 +292,19 @@ class Plugin extends ModelBase
      */
     public static function getPluginPublics()
     {
+        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE]);
+    }
+
+    /**
+     * Get plugin sessions
+     *
+     * @return void
+     */
+    protected static function getPluginPublicSessions($targetPluginTypes)
+    {
         $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function ($plugin) {
-            if (!in_array(array_get($plugin, 'plugin_type'), [PluginType::SCRIPT, PluginType::STYLE])) {
+        $plugins = $plugins->filter(function ($plugin) use($targetPluginTypes) {
+            if (!in_array(array_get($plugin, 'plugin_type'), $targetPluginTypes)) {
                 return false;
             }
             return true;

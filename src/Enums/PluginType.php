@@ -38,9 +38,27 @@ class PluginType extends EnumBase
             'id' => null,
         ], $options);
 
-        $classShortName = $this->getPluginClassShortName($plugin);
-        $classname = $plugin->getNameSpace($classShortName);
-        $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
+        $classShortNames = $this->getPluginClassShortNames();
+        foreach($classShortNames as $classShortName){
+            $classname = $plugin->getNameSpace($classShortName);
+            $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
+    
+            if (\File::exists($fuleFullPath) && class_exists($classname)) {
+                switch ($this) {
+                    case PluginType::DOCUMENT:
+                    case PluginType::TRIGGER:
+                        $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
+                        break;
+                        
+                    case PluginType::BATCH:
+                    case PluginType::PAGE:
+                        $class = new $classname($plugin);
+                        break;
+    
+                    case PluginType::IMPORT:
+                        $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
+                        break;
+                }
 
         if (\File::exists($fuleFullPath) && class_exists($classname)) {
             switch ($this) {
@@ -54,12 +72,10 @@ class PluginType extends EnumBase
                 case PluginType::PAGE:
                     $class = new $classname($plugin);
                     break;
+            } 
+        }
 
-                case PluginType::IMPORT:
-                    $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
-                    break;
-            }
-        } else {
+        if(!isset($class)) {
             // set default class
             switch ($this) {
                 case PluginType::DOCUMENT:
@@ -77,9 +93,9 @@ class PluginType extends EnumBase
         return $class ?? null;
     }
 
-    public function getPluginClassShortName($plugin)
+    protected function getPluginClassShortNames()
     {
-        return 'Plugin';
+        return ['Plugin' . pascalize(strtolower($this->getKey())), 'Plugin'];
     }
 
     public function isPluginTypeUri()
