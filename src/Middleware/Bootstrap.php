@@ -59,6 +59,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
+        Ad::js(asset('vendor/exment/mathjs/math.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/locales-all.min.js?ver='.$ver));

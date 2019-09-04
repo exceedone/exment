@@ -56,6 +56,8 @@ class Currency extends Decimal
 
     protected function setAdminOptions(&$field, $form_column_options)
     {
+        parent::setAdminOptions($field, $form_column_options);
+        
         $options = $this->custom_column->options;
         
         // get symbol
