@@ -1049,6 +1049,7 @@ return [
             'organization' => '組織',
             'mail_template' => 'メールテンプレート',
             'mail' => 'メール送信履歴',
+            'logs' => '操作ログ',
         ],
     ],
 
@@ -1246,6 +1247,15 @@ return [
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
         ],
+    ],
+    
+    'operation_log' => [
+        'description' => '操作ログを一覧表示します。',
+        'user_name' => 'ユーザー名',
+        'method' => 'メソッド',
+        'path' => 'パス',
+        'ip' => 'IPアドレス',
+        'input' => '入力・クエリ',
     ],
     
     'chart' => [

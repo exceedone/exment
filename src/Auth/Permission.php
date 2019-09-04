@@ -156,6 +156,7 @@ class Permission
             case "plugin":
             case "database":
             case "auth/menu":
+            case "auth/logs":
                 if ($systemRole) {
                     return array_key_exists('system', $this->permission_details);
                 }

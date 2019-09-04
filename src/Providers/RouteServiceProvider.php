@@ -52,6 +52,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
             $router->resource('dashboardbox', 'DashboardBoxController');
         
+            $router->resource('auth/logs', 'LogController', ['except' => ['create']]);
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
