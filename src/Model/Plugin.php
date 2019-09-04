@@ -37,14 +37,24 @@ class Plugin extends ModelBase
      * @param $id
      * @return mixed
      */
-    public static function getPluginsByTable($table_name)
+    public static function getPluginsByTable($custom_table)
     {
-        // execute query
-        return static::where('active_flg', '=', 1)
-            ->whereIn('plugin_type', [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])
-            ->whereJsonContains('options->target_tables', $table_name)
-            ->get()
-            ;
+        if(!isset($custom_table)){
+            return [];
+        }
+
+        return static::getPluginsReqSession()->filter(function($plugin) use($custom_table){
+            if(!in_array($plugin->plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])){
+                return false;
+            }
+
+            $target_tables = array_get($plugin, 'options.target_tables');
+            if(!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)){
+                return false;
+            }
+
+            return true;
+        });
     }
 
     /**
@@ -186,7 +196,7 @@ class Plugin extends ModelBase
     /**
      * @param null $event
      */
-    public static function pluginPreparing($plugins, $event = null)
+    public static function pluginPreparing($plugins, $event = null, $options = [])
     {
         $pluginCalled = false;
         if (count($plugins) > 0) {
@@ -200,7 +210,7 @@ class Plugin extends ModelBase
                 $event_triggers = array_get($plugin, 'options.event_triggers', []);
                 $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
-                $class = $plugin->getClass();
+                $class = $plugin->getClass($options);
                 if (in_array($event, $event_triggers) && !in_array($event, $event_triggers_button)) {
                     $pluginCalled = $class->execute();
                     if ($pluginCalled) {
@@ -266,25 +276,15 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get plugin object model
+     * Get plugin page object model
      *
      * @return void
      */
     public static function getPluginPages()
     {
-        $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function ($plugin) {
-            if (array_get($plugin, 'plugin_type') != PluginType::PAGE) {
-                return false;
-            }
-            return true;
-        });
-
-        return $plugins->map(function ($plugin) {
-            return $plugin->getClass(['throw_ex' => false]);
-        })->filter();
+        return static::getPluginPublicSessions([PluginType::PAGE]);
     }
-    
+
     /**
      * Get plugin scripts and styles
      *
@@ -292,9 +292,19 @@ class Plugin extends ModelBase
      */
     public static function getPluginPublics()
     {
+        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE]);
+    }
+
+    /**
+     * Get plugin sessions
+     *
+     * @return void
+     */
+    protected static function getPluginPublicSessions($targetPluginTypes)
+    {
         $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function ($plugin) {
-            if (!in_array(array_get($plugin, 'plugin_type'), [PluginType::SCRIPT, PluginType::STYLE])) {
+        $plugins = $plugins->filter(function ($plugin) use($targetPluginTypes) {
+            if (!in_array(array_get($plugin, 'plugin_type'), $targetPluginTypes)) {
                 return false;
             }
             return true;

@@ -158,7 +158,9 @@ class Initialize
         Config::set('database.connections.mariadb.driver', 'mariadb');
 
         //override
-        Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.database.menu_model', \Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.database.users_table', \Exceedone\Exment\Model\LoginUser::getTableName());
+        Config::set('admin.database.users_model', \Exceedone\Exment\Model\LoginUser::class);
         Config::set('admin.enable_default_breadcrumb', false);
         Config::set('admin.show_environment', false);
 

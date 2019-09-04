@@ -20,6 +20,10 @@
     display: block;
 }
 
+.d-inline{
+    display: inline;
+}
+
 .asterisk::after{
     content: " *";
     color: red;

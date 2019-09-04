@@ -21,4 +21,5 @@ class GroupCondition extends EnumBase
         ['id' => 'd', 'name' => 'd'],
         ['id' => 'w', 'name' => 'w'],
     ];
+
 }

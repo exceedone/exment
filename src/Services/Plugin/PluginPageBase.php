@@ -5,11 +5,15 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
+use Exceedone\Exment\Enums\PluginPageType;
+
 class PluginPageBase extends PluginPublicBase
 {
     use PluginBase;
 
     protected $showHeader = true;
+
+    protected $pluginPageType = [PluginPageType::PAGE];
     
     public function __construct($plugin)
     {
@@ -39,5 +43,14 @@ class PluginPageBase extends PluginPublicBase
         }
 
         return [$base_path, 'exment_' . snake_case($this->plugin->plugin_name)];
+    }
+
+    /**
+     * Get plugin page type
+     *
+     * @return void
+     */
+    public function _pluginPageType(){
+        return $this->pluginPageType ?? [PluginPageType::PAGE];
     }
 }

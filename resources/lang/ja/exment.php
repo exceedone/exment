@@ -1,6 +1,7 @@
 <?php
 
-return [    
+return [
+    'label' => '日本語',
     'common' => [
         'home' => 'HOME',
         'error' => 'エラー',
@@ -106,7 +107,6 @@ return [
 
     'install' => [
         'title' => 'インストール',
-        'installing' => 'インストール実行',
 
         'database' => [
             'header' => 'データベース設定',
@@ -116,6 +116,11 @@ return [
             'database' => 'データベース',
             'username' => 'ユーザー名',
             'password' => 'パスワード',
+        ],
+
+        'installing' => [
+            'header' => '初期データインストール',
+            'installing' => 'インストール実行',
         ],
 
         'help' => [
@@ -570,6 +575,14 @@ return [
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
         'auto_number_format_rule' => '自動採番フォーマットのルール',
+        'child_count_text' => '%s:件数',
+        'child_sum_text' => '%s:%s(合計)',
+        'symbols' => [
+            'plus' => '＋',
+            'minus' => '－',
+            'times' => '×',
+            'div' => '÷',
+        ],
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
@@ -1045,6 +1058,7 @@ return [
             'organization' => '組織',
             'mail_template' => 'メールテンプレート',
             'mail' => 'メール送信履歴',
+            'logs' => '操作ログ',
         ],
     ],
 
@@ -1242,6 +1256,15 @@ return [
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
         ],
+    ],
+    
+    'operation_log' => [
+        'description' => '操作ログを一覧表示します。',
+        'user_name' => 'ユーザー名',
+        'method' => 'メソッド',
+        'path' => 'パス',
+        'ip' => 'IPアドレス',
+        'input' => '入力・クエリ',
     ],
     
     'chart' => [
