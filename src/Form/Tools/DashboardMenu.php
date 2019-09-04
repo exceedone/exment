@@ -33,7 +33,7 @@ class DashboardMenu
         // setting menu list
         $settings = [];
 
-        if (Dashboard::hasViewPermission()) {
+        if (Dashboard::hasPermission()) {
             //role check
             $editflg = Dashboard::hasDashboardEditAuth($this->current_dashboard->id);
 
