@@ -22,7 +22,7 @@
                     </div>
                     <hr />
                 @endif
-                @if(isset($gridFieldsR))
+                @if(isset($gridFieldsL) && isset($gridFieldsR))
                     <div class="row">
                         <div class="col-xs-12 col-md-6">
                         @foreach($gridFieldsL as $field)
@@ -38,6 +38,12 @@
                 @elseif (isset($gridFieldsL))
                     <div class="row">
                     @foreach($gridFieldsL as $field)
+                        {!! $field->render() !!}
+                    @endforeach
+                    </div>
+                @elseif (isset($gridFieldsR))
+                    <div class="row">
+                    @foreach($gridFieldsR as $field)
                         {!! $field->render() !!}
                     @endforeach
                     </div>
