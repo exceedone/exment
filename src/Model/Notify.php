@@ -79,20 +79,28 @@ class Notify extends ModelBase
 
         // loop data
         foreach ($datalist as $custom_value) {
+            $prms = [
+                'notify' => $this,
+                'target_table' => $table->table_view_name ?? null,
+                'notify_target_column_key' => $column->column_view_name ?? null,
+                'notify_target_column_value' => $custom_value->getValue($column),
+            ];
+    
+            if (NotifyAction::isChatMessage($this->notify_actions)){
+                // send slack message
+                NotifyService::executeNotifyAction($this, [
+                    'prms' => $prms,
+                    'custom_value' => $custom_value,
+                    'is_chat' => true
+                ]);
+            }
+    
             $users = $this->getNotifyTargetUsers($custom_value);
             foreach ($users as $user) {
-                $prms = [
-                    'user' => $user,
-                    'notify' => $this,
-                    'target_table' => $table->table_view_name ?? null,
-                    'notify_target_column_key' => $column->column_view_name ?? null,
-                    'notify_target_column_value' => $custom_value->getValue($column),
-                ];
-
                 // send mail
                 try {
                     NotifyService::executeNotifyAction($this, [
-                        'prms' => $prms,
+                        'prms' => array_merge(['user' => $user], $prms),
                         'user' => $user,
                         'custom_value' => $custom_value,
                     ]);
@@ -158,34 +166,43 @@ class Notify extends ModelBase
             })->toArray();
         }
         
+        // create freespace
+        $freeSpace = '';
+        if (isset($options['comment'])) {
+            $freeSpace = "\n" . exmtrans('common.comment') . ":\n" . $options['comment'] . "\n";
+        } elseif (isset($options['attachment'])) {
+            $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
+        }
+
+        $prms = [
+            'notify' => $this,
+            'target_user' => $notifySavedType->getTargetUserName($custom_value),
+            'target_table' => $custom_table->table_view_name ?? null,
+            'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
+            'create_or_update' => $notifySavedType->getLabel(),
+            'free_space' => $freeSpace,
+        ];
+
+        if (NotifyAction::isChatMessage($this->notify_actions)){
+            // send slack message
+            NotifyService::executeNotifyAction($this, [
+                'mail_template' => $mail_template,
+                'prms' => $prms,
+                'custom_value' => $custom_value,
+                'is_chat' => true
+            ]);
+        }
+
         foreach ($users as $user) {
             if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user)) {
                 continue;
             }
 
-            // create freespace
-            $freeSpace = '';
-            if (isset($options['comment'])) {
-                $freeSpace = "\n" . exmtrans('common.comment') . ":\n" . $options['comment'] . "\n";
-            } elseif (isset($options['attachment'])) {
-                $freeSpace = exmtrans('common.attachment') . ":" . $options['attachment'];
-            }
-
-            $prms = [
-                'user' => $user,
-                'notify' => $this,
-                'target_user' => $notifySavedType->getTargetUserName($custom_value),
-                'target_table' => $custom_table->table_view_name ?? null,
-                'target_datetime' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
-                'create_or_update' => $notifySavedType->getLabel(),
-                'free_space' => $freeSpace,
-            ];
-
             // send mail
             try {
                 NotifyService::executeNotifyAction($this, [
                     'mail_template' => $mail_template,
-                    'prms' => $prms,
+                    'prms' => array_merge(['user' => $user], $prms),
                     'user' => $user,
                     'custom_value' => $custom_value,
                 ]);
@@ -242,6 +259,7 @@ class Notify extends ModelBase
                 'custom_value' => $custom_value,
                 'subject' => $subject,
                 'body' => $body,
+                'is_chat' => true
             ]);
         }
         // loop target users
