@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\ZipService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
@@ -70,11 +71,12 @@ class MailSendJob extends JobBase
 
         $this->saveMailSendHistory();
     }
-    protected function sendMail($subject = null, $body = null, $noAttach = false) {
-
-        Mail::send([], [], function ($message) use($subject, $body, $noAttach) {
-            $subject = $subject?? $this->subject;
-            $body = $body?? $this->body;
+    protected function sendMail($subject = null, $body = null, $noAttach = false) 
+    {
+        $tmpZipPath = null;
+        Mail::send([], [], function ($message) use($subject, $body, $noAttach, &$tmpZipPath) {
+            $subject = $subject ?? $this->subject;
+            $body = $body ?? $this->body;
 
             $message->to($this->getAddress($this->to))->subject($subject);
             $message->from($this->getAddress($this->from));
@@ -84,13 +86,17 @@ class MailSendJob extends JobBase
             if (count($this->bcc) > 0) {
                 $message->bcc($this->getAddress($this->bcc));
             }
-            // replace \r\n
-            $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
 
+            // set attachment
             if (!$noAttach && collect($this->attachments)->count() > 0) {
                 if (boolval(config('exment.archive_attachment', false))) {
                     list($filepath, $filename) = $this->archiveAttachments();
                     $message->attach($filepath, ['as' => $filename]);
+                    $tmpZipPath = $filepath;
+
+                    // set header as password
+                    $password_notify_header = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'password_notify_header')->first();
+                    $body = array_get($password_notify_header->value, 'mail_body') . $body;
                 } else {
                     // attach each files
                     foreach ($this->attachments as $attachment) {
@@ -99,28 +105,36 @@ class MailSendJob extends JobBase
                     }
                 }
             }
+            
+            // replace \r\n
+            $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
+
         });
+
+        if(isset($tmpZipPath)){
+            \File::delete($tmpZipPath);
+        }
     }
+
+    /**
+     * Archive tmp attachment
+     *
+     * @return void
+     */
     protected function archiveAttachments() {
         $password = make_password(16);
         $filename = make_randomstr(10) . '.zip';
-        $filepath = getFullpath("tmp/attachments/$filename", Define::DISKNAME_ADMIN_TMP, true);
+        $zippath = getFullpath("tmp/attachments/$filename", Define::DISKNAME_ADMIN_TMP, true);
+        $tmpFolderPath = getFullpath("tmp/attachments/" . make_randomstr(10), Define::DISKNAME_ADMIN_TMP, true);
 
-        // create zip file
-        $zip = new \ZipArchive();
-        $zip->open($filepath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-        $zip->setPassword($password);
-
-        foreach ($this->attachments as $index => $attachment) {
-            $url = storage_paths('app', config('admin.upload.disk'), $attachment->path);
-            $zip->addFile($url, $attachment->filename);
-            $zip->setEncryptionIndex($index, \ZipArchive::EM_AES_256);
-        }
-        $zip->close();
+        $files = collect($this->attachments)->map(function($attachment){
+            return storage_paths('app', config('admin.upload.disk'), $attachment->path);
+        })->toArray();
+        ZipService::createPasswordZip($files, $zippath, $tmpFolderPath, $password);
 
         $this->password = $password;
 
-        return [$filepath, $filename];
+        return [$zippath, $filename];
     }
     protected function saveMailSendHistory()
     {

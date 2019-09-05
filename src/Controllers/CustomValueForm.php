@@ -249,7 +249,7 @@ EOT;
      */
     protected function getCustomFormColumns($form, $custom_form_block, $id = null)
     {
-        $closures = [[], []];
+        $closures = [];
         $custom_value = $this->getModelNameDV()::find($id);
         // setting fields.
         foreach ($custom_form_block->custom_form_columns as $form_column) {
@@ -266,28 +266,20 @@ EOT;
             // set $closures using $form_column->column_no
             if (isset($field)) {
                 $column_no = array_get($form_column, 'column_no');
-                if ($column_no == 2) {
-                    $closures[1][] = $field;
-                } else {
-                    $closures[0][] = $field;
-                }
+                $closures[$column_no][] = $field;
             }
         }
 
-        // if $closures[1] count is 0, return closure function
-        if (count($closures[1]) == 0) {
-            return function ($form) use ($closures) {
-                foreach ($closures[0] as $field) {
-                    // push field to form
-                    $form->pushField($field);
-                }
-            };
-        }
-        return collect($closures)->map(function ($closure) {
-            return function ($form) use ($closure) {
+        $is_grid = array_key_exists(1, $closures) && array_key_exists(2, $closures);
+        return collect($closures)->map(function ($closure, $key) use($is_grid){
+            return function ($form) use ($closure, $key, $is_grid) {
                 foreach ($closure as $field) {
+                    if ($is_grid && in_array($key, [1, 2])) {
+                        $field->setWidth(8, 3);
+                    } else {
+                        $field->setWidth(8, 2);
+                    }
                     // push field to form
-                    $field->setWidth(8, 3);
                     $form->pushField($field);
                 }
             };

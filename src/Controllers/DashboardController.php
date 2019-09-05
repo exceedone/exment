@@ -66,6 +66,11 @@ class DashboardController extends AdminControllerBase
     public function create(Request $request, Content $content)
     {
         $this->setDashboardInfo($request);
+        // check has system permission or acceptable user view
+        if (!Dashboard::hasPermission()) {
+            Checker::error();
+            return false;
+        }
         return parent::create($request, $content);
     }
 
@@ -228,7 +233,9 @@ EOT;
             ->required()
             ->rules("max:40");
 
-        if (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
+        if (boolval(config('exment.userdashboard_disabled', false))) {
+            $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
+        } else if (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)

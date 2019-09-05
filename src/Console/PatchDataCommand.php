@@ -224,6 +224,7 @@ class PatchDataCommand extends Command
     {
         return $this->patchMailTemplate([
             'password_notify',
+            'password_notify_header',
         ]);
     }
     
