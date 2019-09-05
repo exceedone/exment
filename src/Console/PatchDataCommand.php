@@ -98,6 +98,9 @@ class PatchDataCommand extends Command
             case 'move_template':
                 $this->moveTemplateFolder();
                 return;
+            case 'remove_deleted_table_notify':
+                $this->removeDeletedTableNotify();
+                return;
         }
 
         $this->error('patch name not found.');
@@ -488,6 +491,18 @@ class PatchDataCommand extends Command
             ]))
             ->format($format);
         $service->import($path);
+    }
+    
+    /**
+     * remove deleted table notify
+     *
+     * @return void
+     */
+    protected function removeDeletedTableNotify($mail_key_names = [])
+    {
+        // get custom table id
+        $custom_table_ids = CustomTable::pluck('id');
+        Notify::whereNotIn('custom_table_id', $custom_table_ids)->delete();
     }
     
     /**

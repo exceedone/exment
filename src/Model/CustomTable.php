@@ -334,7 +334,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $model->custom_columns()->delete();
             $model->custom_relations()->delete();
 
-            // delete menu
+            // delete items
+            Notify::where('custom_table_id', $model->id)->delete();
             Menu::where('menu_type', MenuType::TABLE)->where('menu_target', $model->id)->delete();
         });
     }
