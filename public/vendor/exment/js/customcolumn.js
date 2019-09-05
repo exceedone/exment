@@ -33,6 +33,13 @@ var Exment;
                 clone.querySelector('.col-value-item').dataset.val = target.data('val');
                 clone.querySelector('span').textContent = target.text();
                 break;
+            case 'summary':
+            case 'count':
+                // set data-val and text
+                clone.querySelector('.col-value-item').dataset.val = target.data('val');
+                clone.querySelector('.col-value-item').dataset.table = target.data('table');
+                clone.querySelector('span').textContent = target.text();
+                break;
             case 'fixed':
                 // set data-val from col-target-fixedval
                 var fixedval = target.closest('.row').find('.col-target-fixedval').val();
@@ -56,7 +63,7 @@ var Exment;
             // get value
             var val = values.eq(i);
             // push value
-            items.push({ 'type': val.data('type'), 'val': val.data('val') });
+            items.push({ 'type': val.data('type'), 'val': val.data('val'), 'table': val.data('table') });
             // push text
             texts.push(val.text());
         }

@@ -14,6 +14,10 @@ class NotifyAction extends EnumBase
             return false;
         }
 
+        if (!is_array($notify_actions)) {
+            $notify_actions = [$notify_actions];
+        }
+
         foreach($notify_actions as $notify_action){
             if(in_array($notify_action, [static::SLACK, static::MICROSOFT_TEAMS])){
                 return true;

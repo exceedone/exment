@@ -87,7 +87,7 @@ class MailSendJob extends JobBase
             // replace \r\n
             $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
 
-            if (!$noAttach && $this->attachments->count() > 0) {
+            if (!$noAttach && collect($this->attachments)->count() > 0) {
                 if (boolval(config('exment.archive_attachment', false))) {
                     list($filepath, $filename) = $this->archiveAttachments();
                     $message->attach($filepath, ['as' => $filename]);
