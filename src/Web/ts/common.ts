@@ -861,7 +861,7 @@ namespace Exment {
             } else {
                 $.ajax({
                     url: admin_url(URLJoin('webapi', 'data', table_name, value)),
-                    type: 'POST',
+                    type: 'GET',
                     context: context
                 })
                     .done(function (modeldata) {

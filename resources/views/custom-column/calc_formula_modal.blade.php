@@ -28,8 +28,8 @@
             <div class="row">
                 @foreach($custom_columns as $custom_column)
                 <div class="col-sm-6">
-                    <button type="button" class="btn btn-default button-addcalcitem" style="width:100%;" data-type="dynamic" data-val="{{ array_get($custom_column, 'id') }}">
-                    {{ array_get($custom_column, 'column_view_name') }}
+                    <button type="button" class="btn btn-default button-addcalcitem" style="width:100%;" data-type="{{ array_get($custom_column, 'type') }}" data-val="{{ array_get($custom_column, 'val') }}" data-from="{{ array_get($custom_column, 'from') }}">
+                    {{ array_get($custom_column, 'text') }}
                 </button>
                 </div>
                 @endforeach
