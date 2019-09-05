@@ -152,25 +152,6 @@ var Exment;
             else {
                 $elem.find('.delete,.options,[data-toggle]').hide();
             }
-            $('.custom_form_column_suggests.draggables').each(function (index, elem) {
-                var d = $(elem);
-                $elem = d.children('.draggable');
-                $elem.draggable({
-                    // connect to sortable. set only same block
-                    connectToSortable: '#' + d.data('connecttosortable') + ' .draggables',
-                    //cursor: 'move',
-                    helper: d.data('draggable_clone') ? 'clone' : '',
-                    revert: "invalid",
-                    droppable: "drop",
-                    stop: (event, ui) => {
-                        var $ul = ui.helper.closest('.draggables');
-                        // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
-                        CustomFromEvent.toggleFormColumnItem(ui.helper, $ul.hasClass('custom_form_column_items'));
-                    }
-                });
-            });
-            // add sorable event (only left column)
-            $(".custom_form_column_items.draggables").sortable({});
         }
         static getHeaderName($li) {
             var header_name = $li.closest('.box-custom_form_block').find('.header_name').val();
