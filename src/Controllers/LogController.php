@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Auth\Database\OperationLog;
 use Encore\Admin\Grid;
+use Exceedone\Exment\Form\Show;
 use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 
@@ -25,32 +26,16 @@ class LogController extends AdminControllerBase
 
         $grid->model()->orderBy('id', 'DESC');
 
-        $grid->column('id', 'ID')->sortable();
         $grid->column('user.user_name', exmtrans('operation_log.user_name'))->display(function ($foo) {
             return $this->user->user_name;
         });
-        $grid->column('method', exmtrans('operation_log.method'))->display(function ($method) {
-            $color = Arr::get(OperationLog::$methodColors, $method, 'grey');
-
-            return "<span class=\"badge bg-$color\">$method</span>";
-        });
-        $grid->column('path', exmtrans('operation_log.path'))->label('info');
-        $grid->column('ip', exmtrans('operation_log.ip'))->label('primary');
-        $grid->column('input', exmtrans('operation_log.input'))->display(function ($input) {
-            $input = json_decode($input, true);
-            $input = Arr::except($input, ['_pjax', '_token', '_method', '_previous_']);
-            if (empty($input)) {
-                return '<code>{}</code>';
-            }
-
-            return '<pre>'.json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE).'</pre>';
-        });
-
+        $grid->column('method', exmtrans('operation_log.method'));
+        $grid->column('path', exmtrans('operation_log.path'));
+        $grid->column('ip', exmtrans('operation_log.ip'));
         $grid->column('created_at', trans('admin.created_at'));
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableEdit();
-            $actions->disableView();
         });
 
         $grid->disableCreateButton();
@@ -66,6 +51,39 @@ class LogController extends AdminControllerBase
         });
 
         return $grid;
+    }
+
+    /**
+     * Make a show builder.
+     *
+     * @param mixed   $id
+     * @return Show
+     */
+    protected function detail($id)
+    {
+        $model = OperationLog::findOrFail($id);
+        return new Show($model, function (Show $show) use ($id, $model) {
+            $show->field('user.user_name', exmtrans('operation_log.user_name'))->as(function ($foo) {
+                return $this->user->user_name;
+            });
+            $show->field('method', exmtrans('operation_log.method'));
+            $show->field('path', exmtrans('operation_log.path'));
+            $show->field('ip', exmtrans('operation_log.ip'));
+            $show->field('input', exmtrans('operation_log.input'))->as(function ($input) {
+                $input = json_decode($input, true);
+                $input = Arr::except($input, ['_pjax', '_token', '_method', '_previous_']);
+                if (empty($input)) {
+                    return '{}';
+                }
+
+                return json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            });
+            $show->field('created_at', trans('admin.created_at'));
+
+            $show->panel()->tools(function ($tools) {
+                $tools->disableEdit();
+            });
+        });
     }
 
     /**
