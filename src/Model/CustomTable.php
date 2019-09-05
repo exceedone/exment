@@ -604,6 +604,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
+        if(!isset($mainQuery)){
+            return null;
+        }
+
         // set custom view's filter
         if (isset($target_view)) {
             $mainQuery = \Exment::user()->filterModel($mainQuery, $target_view);
