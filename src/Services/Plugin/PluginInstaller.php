@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Validator\PluginTypeRule;
 use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
 use File;
@@ -15,7 +16,7 @@ use Validator;
  * Install Plugin
  */
 class PluginInstaller
-{
+{   
     /**
      * Upload plugin (from display)
      */
@@ -125,7 +126,7 @@ class PluginInstaller
         $rules = [
             'plugin_name' => 'required',
             'document_type' => 'in:'.DocumentType::getSelectableString(),
-            'plugin_type' => 'required|in:'.PluginType::getRequiredString(),
+            'plugin_type' => new PluginTypeRule(),
             'plugin_view_name' => 'required',
             'uuid' => 'required'
         ];

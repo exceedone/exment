@@ -18,18 +18,26 @@ class Plugin extends ModelBase
     {
         if (is_null($pluginTypes)) {
             $this->attributes['plugin_types'] = null;
-        } elseif (is_numeric($pluginTypes) || is_string($pluginTypes)) {
+        } elseif (is_numeric($pluginTypes)) {
             $this->attributes['plugin_types'] = PluginType::getEnum($pluginTypes)->getValue() ?? null;
         } else {
-            $this->attributes['plugin_types'] = implode(',', collect(array_filter($pluginTypes))->map(function($pluginType){
-                return PluginType::getEnum($pluginTypes)->getValue() ?? null;
-            })->toArray());
+            $array = collect(explode(',', $pluginTypes))->filter(function ($value, $key) {
+                return isset($value) && strlen($value) > 0;
+            })->map(function($pluginType){
+                return PluginType::getEnum($pluginType)->getValue() ?? null;
+            })->toArray();
+
+            $this->attributes['plugin_types'] = implode(',', $array);
         }
     }
  
     public function getPluginTypesAttribute()
     {
-        return explode(",", array_get($this->attributes, 'plugin_types'));
+        $plugin_types = array_get($this->attributes, 'plugin_types');
+        if(is_array($plugin_types)){
+            return $plugin_types;
+        }
+        return explode(",", $plugin_types);
     }
 
     /**

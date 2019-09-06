@@ -225,7 +225,7 @@ class PluginController extends AdminControllerBase
             return;
         }
         
-        $pluginClass = $plugin->getClass(null, ['as_setting' => true]);
+        $pluginClass = $plugin->getClass(null, ['throw_ex' => false, 'as_setting' => true]);
         if (!isset($pluginClass)) {
             return;
         }

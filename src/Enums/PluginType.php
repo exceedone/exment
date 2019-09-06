@@ -17,11 +17,6 @@ class PluginType extends EnumBase
     public const SCRIPT = '7';
     public const STYLE = '8';
     
-    public static function getRequiredString()
-    {
-        return 'trigger,page,api,dashboard,batch,document,import,script,style';
-    }
-
     /**
      * Get plugin class using plugin type
      *
@@ -61,6 +56,7 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
                 case PluginType::BATCH:
                 case PluginType::PAGE:
+                case PluginType::DASHBOARD:
                     return new $classname($plugin);
                 case PluginType::IMPORT:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
