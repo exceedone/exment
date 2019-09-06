@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DashboardBoxItems;
 
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Model\Plugin;
 
@@ -18,7 +19,7 @@ class PluginItem implements ItemInterface
         // get plugin 
         $this->plugin = Plugin::getEloquent($dashboard_box->getOption('target_plugin_id'));
         // get class
-        $this->pluginItem = $this->plugin->getClass();
+        $this->pluginItem = $this->plugin->getClass(PluginType::DASHBOARD);
     }
 
     /**
@@ -53,9 +54,9 @@ class PluginItem implements ItemInterface
     public static function setAdminOptions(&$form, $dashboard)
     {
         // show plugin list
-        $plugins = Plugin::getPluginPages();
+        $plugins = Plugin::getByPluginTypes(PluginType::DASHBOARD);
         $options = $plugins->mapWithKeys(function($plugin){
-            return [$plugin->_plugin()->id => $plugin->_plugin()->plugin_name];
+            return [$plugin->id => $plugin->plugin_name];
         });
         $form->select('target_plugin_id', exmtrans("dashboard.dashboard_box_options.target_plugin_id"))
             ->required()

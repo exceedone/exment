@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
-use Exceedone\Exment\Database\ExtendedBlueprint;
+use Illuminate\Database\Schema\Blueprint;
+use Exceedone\Exment\Model\Plugin;
 
 class ZipPassword extends Migration
 {
@@ -14,6 +15,22 @@ class ZipPassword extends Migration
     public function up()
     {
         \Artisan::call('exment:patchdata', ['action' => 'zip_password']);
+        
+        if (!Schema::hasColumn('plugins', 'plugin_types') && Schema::hasColumn('plugins', 'plugin_type')) {
+            Schema::table('plugins', function (Blueprint $table) {
+                $table->string('plugin_types')->after('plugin_type')->nullable();
+            });
+                
+            foreach(Plugin::all() as $plugin){
+                $plugin->plugin_types = $notify->plugin_type;
+                $plugin->save();
+            }
+            
+            Schema::table('plugins', function (Blueprint $table) {
+                $table->dropColumn('plugin_type');
+            });
+        }
+
     }
 
     /**
@@ -23,8 +40,5 @@ class ZipPassword extends Migration
      */
     public function down()
     {
-        //
-        Schema::dropIfExists('custom_operation_columns');
-        Schema::dropIfExists('custom_operations');
     }
 }

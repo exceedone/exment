@@ -6,16 +6,16 @@ use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
-//use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
-//use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
 
@@ -315,6 +315,13 @@ EOT;
                 $dashboardboxes_newbuttons = [];
                 if ($has_role) {
                     foreach (DashboardBoxType::DASHBOARD_BOX_TYPE_OPTIONS() as $options) {
+                        // if type is plugin, check has dashboard item
+                        if(array_get($options, 'dashboard_box_type') == DashboardBoxType::PLUGIN){
+                            if(count(Plugin::getByPluginTypes(PluginType::DASHBOARD)) == 0){
+                                continue;
+                            }
+                        }
+
                         // create query
                         $query = http_build_query([
                             'dashboard_suuid' => $this->dashboard->suuid,

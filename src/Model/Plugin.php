@@ -14,6 +14,49 @@ class Plugin extends ModelBase
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
 
+    public function setPluginTypesAttribute($pluginTypes)
+    {
+        if (is_null($pluginTypes)) {
+            $this->attributes['plugin_types'] = null;
+        } elseif (is_numeric($pluginTypes) || is_string($pluginTypes)) {
+            $this->attributes['plugin_types'] = PluginType::getEnum($pluginTypes)->getValue() ?? null;
+        } else {
+            $this->attributes['plugin_types'] = implode(',', collect(array_filter($pluginTypes))->map(function($pluginType){
+                return PluginType::getEnum($pluginTypes)->getValue() ?? null;
+            })->toArray());
+        }
+    }
+ 
+    public function getPluginTypesAttribute()
+    {
+        return explode(",", array_get($this->attributes, 'plugin_types'));
+    }
+
+    /**
+     * Patch plugin type using enum PluginType
+     *
+     * @return void
+     */
+    public function matchPluginType($plugin_types)
+    {
+        if(!is_array($plugin_types)){
+            $plugin_types = [$plugin_types];
+        }
+
+        foreach($this->plugin_types as $this_plugin_type){
+            if(in_array($this_plugin_type, $plugin_types)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function isPluginTypeUri()
+    {
+        return $this->matchPluginType([PluginType::STYLE, PluginType::SCRIPT, PluginType::PAGE]);
+    }
+
     public static function getPluginByUUID($uuid)
     {
         return static::where('uuid', '=', $uuid)
@@ -24,11 +67,6 @@ class Plugin extends ModelBase
     {
         return static::where('plugin_name', '=', $plugin_name)
             ->first();
-    }
-
-    public static function getFieldById($plugin_id, $field_name)
-    {
-        return DB::table('plugins')->where('id', $plugin_id)->value($field_name);
     }
 
     //Get plugin by custom_table name
@@ -43,11 +81,7 @@ class Plugin extends ModelBase
             return [];
         }
 
-        return static::getPluginsReqSession()->filter(function($plugin) use($custom_table){
-            if(!in_array($plugin->plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])){
-                return false;
-            }
-
+        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])->filter(function($plugin) use($custom_table){
             $target_tables = array_get($plugin, 'options.target_tables');
             if(!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)){
                 return false;
@@ -66,12 +100,9 @@ class Plugin extends ModelBase
     {
         $now = Carbon::now();
         $hh = $now->hour;
-        return static::where('plugin_type', PluginType::BATCH)
-            ->where('active_flg', 1)
-            ->whereIn('options->batch_hour', [strval($hh), $hh])
-            // only get batch_cron is null
-            ->whereNull('options->batch_cron')
-            ->get();
+        return static::getByPluginTypes(PluginType::BATCH)->filter(function($plugin) use($hh){
+            return is_null(array_get($plugin, 'options.batch_cron') && array_get($plugin, 'options.batch_cron') == $hh);
+        });
     }
 
     /**
@@ -81,10 +112,9 @@ class Plugin extends ModelBase
      */
     public static function getCronBatches()
     {
-        return static::where('plugin_type', PluginType::BATCH)
-            ->where('active_flg', 1)
-            ->whereNotNull('options->batch_cron')
-            ->get();
+        return static::getByPluginTypes(PluginType::BATCH)->filter(function($plugin){
+            return !is_null(array_get($plugin, 'options.batch_cron'));
+        });
     }
 
     /**
@@ -100,19 +130,24 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    public function getClass($options = [])
+    public function getClass($plugin_type, $options = [])
     {
         extract(
             array_merge(
                 [
                 'throw_ex' => true,
-            ],
+                ],
                 $options
-        )
+            )
         );
 
-        $pluginType = PluginType::getEnum(array_get($this, 'plugin_type'));
-        $class = $pluginType->getPluginClass($this, $options);
+        if(is_null($plugin_type)){
+            $class = PluginType::getPluginClass(null, $this, $options);
+        }
+        elseif($this->matchPluginType($plugin_type)){
+            $plugin_type = PluginType::getEnum($plugin_type);
+            $class = PluginType::getPluginClass($plugin_type, $this, $options);
+        }
         
         if (!isset($class) && $throw_ex) {
             throw new \Exception('plugin not found');
@@ -201,16 +236,14 @@ class Plugin extends ModelBase
         $pluginCalled = false;
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
-                // get plugin_type
-                $plugin_type = array_get($plugin, 'plugin_type');
-                // if $plugin_type is not trigger, continue
-                if ($plugin_type != PluginType::TRIGGER) {
+                // if $plugin_types is not trigger, continue
+                if (!$plugin->matchPluginType(PluginType::TRIGGER)) {
                     continue;
                 }
                 $event_triggers = array_get($plugin, 'options.event_triggers', []);
                 $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
                 
-                $class = $plugin->getClass($options);
+                $class = $plugin->getClass(PluginType::TRIGGER, $options);
                 if (in_array($event, $event_triggers) && !in_array($event, $event_triggers_button)) {
                     $pluginCalled = $class->execute();
                     if ($pluginCalled) {
@@ -232,22 +265,24 @@ class Plugin extends ModelBase
         $buttonList = [];
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
-                // get plugin_type
-                $plugin_type = array_get($plugin, 'plugin_type');
-                switch ($plugin_type) {
-                    case PluginType::DOCUMENT:
-                        $event_triggers_button = ['form_menubutton_show'];
-                        if (in_array($event, $event_triggers_button)) {
-                            array_push($buttonList, $plugin);
-                        }
+                // get plugin_types
+                $plugin_types = array_get($plugin, 'plugin_types');
+                foreach($plugin_types as $plugin_type){
+                    switch ($plugin_type) {
+                        case PluginType::DOCUMENT:
+                            $event_triggers_button = ['form_menubutton_show'];
+                            if (in_array($event, $event_triggers_button)) {
+                                array_push($buttonList, $plugin);
+                            }
+                            break;
+                        case PluginType::TRIGGER:
+                            $event_triggers = $plugin->options['event_triggers'];
+                            $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                            if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
+                                array_push($buttonList, $plugin);
+                            }
                         break;
-                    case PluginType::TRIGGER:
-                        $event_triggers = $plugin->options['event_triggers'];
-                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                        if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
-                            array_push($buttonList, $plugin);
-                        }
-                    break;
+                    }
                 }
             }
         }
@@ -263,16 +298,22 @@ class Plugin extends ModelBase
         $itemlist = [];
         if (count($plugins) > 0) {
             foreach ($plugins as $plugin) {
-                // get plugin_type
-                $plugin_type = array_get($plugin, 'plugin_type');
-                switch ($plugin_type) {
-                    case PluginType::IMPORT:
-                        $itemlist[$plugin->id] = $plugin->plugin_view_name;
-                        break;
+                // get plugin_types
+                $plugin_types = array_get($plugin, 'plugin_types');
+                foreach($plugin_types as $plugin_types){
+                    switch ($plugin_type) {
+                        case PluginType::IMPORT:
+                            $itemlist[$plugin->id] = $plugin->plugin_view_name;
+                            break;
+                    }
                 }
             }
         }
         return $itemlist;
+    }
+
+    public static function getByPluginTypes($plugin_types){
+        return static::getPluginPublicSessions($plugin_types);
     }
 
     /**
@@ -282,7 +323,7 @@ class Plugin extends ModelBase
      */
     public static function getPluginPages()
     {
-        return static::getPluginPublicSessions([PluginType::PAGE]);
+        return static::getPluginPublicSessions([PluginType::PAGE], true);
     }
 
     /**
@@ -292,7 +333,7 @@ class Plugin extends ModelBase
      */
     public static function getPluginPublics()
     {
-        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE]);
+        return static::getPluginPublicSessions([PluginType::SCRIPT, PluginType::STYLE], true);
     }
 
     /**
@@ -300,18 +341,26 @@ class Plugin extends ModelBase
      *
      * @return void
      */
-    protected static function getPluginPublicSessions($targetPluginTypes)
+    protected static function getPluginPublicSessions($targetPluginTypes, $getAsClass = false)
     {
         $plugins = static::getPluginsReqSession();
         $plugins = $plugins->filter(function ($plugin) use($targetPluginTypes) {
-            if (!in_array(array_get($plugin, 'plugin_type'), $targetPluginTypes)) {
+            if (!$plugin->matchPluginType($targetPluginTypes)) {
                 return false;
             }
             return true;
         });
 
-        return $plugins->map(function ($plugin) {
-            return $plugin->getClass(['throw_ex' => false]);
+        if(!$getAsClass){
+            return $plugins;
+        }
+
+        return $plugins->map(function ($plugin) use($targetPluginTypes) {
+            if(!is_array($targetPluginTypes)){
+                $targetPluginTypes = [$targetPluginTypes];
+            }
+            // it's ok only array's first
+            return $plugin->getClass($targetPluginTypes[0], ['throw_ex' => false]);
         })->filter();
     }
 
@@ -351,7 +400,7 @@ class Plugin extends ModelBase
         
         // get target plugin
         $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
-            return in_array(array_get($plugin, 'plugin_type'), [PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
+            return $plugin->matchPluginType([PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
                 && (
                     pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
                     || $plugin->getOption('uri') == $pluginName
@@ -364,7 +413,11 @@ class Plugin extends ModelBase
         }
         
         // get class
-        return $plugin->getClass();
+        foreach([PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE] as $plugin_type){
+            if($plugin->matchPluginType($plugin_type)){
+                return $plugin->getClass($plugin_type);
+             }
+        }
     }
 
     /**

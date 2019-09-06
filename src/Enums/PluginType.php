@@ -3,8 +3,7 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginScriptDefault;
-use Exceedone\Exment\Services\Plugin\PluginStyleDefault;
+use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
 
 class PluginType extends EnumBase
 {
@@ -24,74 +23,85 @@ class PluginType extends EnumBase
     }
 
     /**
-     * Get plugin class
+     * Get plugin class using plugin type
      *
      * @param [type] $plugin
      * @param array $options
      * @return void
      */
-    public function getPluginClass($plugin, $options = [])
+    public static function getPluginClass($plugin_type, $plugin, $options = [])
     {
         $options = array_merge([
             'custom_table' => null,
             'custom_value' => null,
             'id' => null,
+            'as_setting' => false,
         ], $options);
 
-        $classShortNames = $this->getPluginClassShortNames();
-        foreach ($classShortNames as $classShortName) {
-            $classname = $plugin->getNameSpace($classShortName);
-            $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
-        
-            if (\File::exists($fuleFullPath) && class_exists($classname)) {
-                switch ($this) {
-                    case PluginType::DOCUMENT:
-                    case PluginType::TRIGGER:
-                        $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
-                        $class = new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
-                        break;
-                        
-                    case PluginType::BATCH:
-                    case PluginType::PAGE:
-                        $class = new $classname($plugin);
-                        break;
+        // get class short name.
+        $classShortName = static::getPluginClassShortName($plugin_type, $plugin, $options);
 
-                    case PluginType::IMPORT:
-                        $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
-                        break;
-                }
+        $classname = $plugin->getNameSpace($classShortName);
+        $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
+    
+        if (\File::exists($fuleFullPath) && class_exists($classname)) {
+            // if only one record, set $plugin_type
+            if (count($plugin->plugin_types) == 1) {
+                $plugin_type = $plugin->plugin_types[0];
+            }
+            // else if as settingm return as setting class
+            elseif(boolval($options['as_setting'])){
+                return new $classname($plugin);
             }
 
-            if (!isset($class)) {
-                // set default class
-                switch ($this) {
-                    case PluginType::DOCUMENT:
-                        $class = new PluginDocumentDefault($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
-                        break;
-                    case PluginType::SCRIPT:
-                        $class = new PluginScriptDefault($plugin);
-                        break;
-                    case PluginType::STYLE:
-                        $class = new PluginStyleDefault($plugin);
-                        break;
-                }
-            }
-
-            if(isset($class)){
-                break;
+            switch ($plugin_type) {
+                case PluginType::DOCUMENT:
+                case PluginType::TRIGGER:
+                    $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
+                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
+                case PluginType::BATCH:
+                case PluginType::PAGE:
+                    return new $classname($plugin);
+                case PluginType::IMPORT:
+                    return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
             }
         }
 
-        return $class ?? null;
+        // set default class
+        switch ($plugin_type) {
+            case PluginType::DOCUMENT:
+                return new PluginDocumentDefault($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
+            case PluginType::SCRIPT:
+            case PluginType::STYLE:
+                return new PluginPublicDefault($plugin);
+        }
+
+        return null;
     }
 
-    protected function getPluginClassShortNames()
+    /**
+     * Get plugin short class name
+     *
+     * @param mixed $plugin_type
+     * @param array $options
+     * @return void
+     */
+    public static function getPluginClassShortName($plugin_type, $plugin, $options = [])
     {
-        return ['Plugin' . pascalize(strtolower($this->getKey())), 'Plugin'];
-    }
+        $options = array_merge([
+            'as_setting' => false,
+        ], $options);
 
-    public function isPluginTypeUri()
-    {
-        return in_array($this, [static::STYLE, static::SCRIPT, static::PAGE]);
+        // plugin_types is multiple
+        if(count($plugin->plugin_types) > 1){
+            if(boolval($options['as_setting'])){
+                return 'PluginSetting';
+            }
+
+            return 'Plugin' . pascalize(strtolower($plugin_type->getKey()));
+        }
+
+        // if single
+        return 'Plugin';
     }
 }

@@ -58,8 +58,10 @@ class PluginController extends AdminControllerBase
 
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
         $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
-        $grid->column('plugin_type', exmtrans("plugin.plugin_type"))->display(function ($value) {
-            return PluginType::getEnum($value)->transKey("plugin.plugin_type_options") ?? null;
+        $grid->column('plugin_types', exmtrans("plugin.plugin_type"))->display(function ($plugin_types) {
+            return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function($plugin_type){
+                return PluginType::getEnum($plugin_type)->transKey("plugin.plugin_type_options") ?? null;
+            })->toArray());
         })->sortable();
         $grid->column('author', exmtrans("plugin.author"));
         $grid->column('version', exmtrans("plugin.version"));
@@ -144,7 +146,6 @@ class PluginController extends AdminControllerBase
     protected function form($id = null, $isDelete = false)
     {
         $plugin = Plugin::getEloquent($id);
-        $plugin_type = Plugin::getFieldById($id, 'plugin_type');
 
         // create form
         $form = new Form(new Plugin);
@@ -152,29 +153,31 @@ class PluginController extends AdminControllerBase
         $form->display('plugin_name', exmtrans("plugin.plugin_name"));
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
         // create as label
-        $form->display('plugin_type', exmtrans("plugin.plugin_type"))->with(function ($value) {
-            return PluginType::getEnum($value)->transKey("plugin.plugin_type_options") ?? null;
+        $form->display('plugin_types', exmtrans("plugin.plugin_type"))->with(function ($plugin_types) {
+            return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function($plugin_type){
+                return PluginType::getEnum($plugin_type)->transKey("plugin.plugin_type_options") ?? null;
+            })->toArray());
         });
         $form->display('author', exmtrans("plugin.author"));
         $form->display('version', exmtrans("plugin.version"));
         $form->switch('active_flg', exmtrans("plugin.active_flg"));
-        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin_type) {
-            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])) {
+        $form->embeds('options', exmtrans("plugin.options.header"), function ($form) use ($plugin) {
+            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])) {
                 $form->multipleSelect('target_tables', exmtrans("plugin.options.target_tables"))->options(function ($value) {
                     $options = CustomTable::filterList()->pluck('table_view_name', 'table_name')->toArray();
                     return $options;
                 })->help(exmtrans("plugin.help.target_tables"));
                 // only trigger
-                if ($plugin_type == PluginType::TRIGGER) {
+                if ($plugin->matchPluginType(PluginType::TRIGGER)) {
                     $form->multipleSelect('event_triggers', exmtrans("plugin.options.event_triggers"))->options(function ($value) {
                         return getTransArray(Define::PLUGIN_EVENT_TRIGGER, "plugin.options.event_trigger_options");
                     })->help(exmtrans("plugin.help.event_triggers"));
                 }
-            } elseif ($plugin_type == PluginType::PAGE) {
+            } elseif ($plugin->matchPluginType(PluginType::PAGE)) {
                 // Plugin_type = 'page'
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('uri', exmtrans("plugin.options.uri"))->required();
-            } elseif ($plugin_type == PluginType::BATCH) {
+            } elseif ($plugin->matchPluginType(PluginType::BATCH)) {
                 $form->number('batch_hour', exmtrans("plugin.options.batch_hour"))
                     ->help(exmtrans("plugin.help.batch_hour") . sprintf(exmtrans("common.help.task_schedule"), getManualUrl('quickstart_more#'.exmtrans('common.help.task_schedule_id'))))
                     ->default(3);
@@ -184,7 +187,7 @@ class PluginController extends AdminControllerBase
                     ->rules('max:100');
             }
 
-            if (in_array($plugin_type, [PluginType::TRIGGER, PluginType::DOCUMENT])) {
+            if ($plugin->matchPluginType([PluginType::TRIGGER, PluginType::DOCUMENT])) {
                 $form->text('label', exmtrans("plugin.options.label"));
                 $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"));
                 $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
@@ -195,8 +198,8 @@ class PluginController extends AdminControllerBase
             $this->setCustomOptionForm($plugin, $form);
         }
 
-        $form->tools(function (Form\Tools $tools) use ($plugin, $plugin_type) {
-            if ($plugin_type == PluginType::PAGE) {
+        $form->tools(function (Form\Tools $tools) use ($plugin) {
+            if ($plugin->matchPluginType(PluginType::PAGE)) {
                 $tools->append(view('exment::tools.button', [
                     'href' => admin_url($plugin->getRouteUri()),
                     'label' => exmtrans('plugin.show_plugin_page'),
@@ -222,7 +225,7 @@ class PluginController extends AdminControllerBase
             return;
         }
         
-        $pluginClass = $plugin->getClass();
+        $pluginClass = $plugin->getClass(null, ['as_setting' => true]);
         if (!isset($pluginClass)) {
             return;
         }

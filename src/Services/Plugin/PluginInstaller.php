@@ -149,8 +149,8 @@ class PluginInstaller
         // find or new $plugin
         $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
 
-        $plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'));
-        $plugin->plugin_type = $plugin_type->getValue() ?? null;
+        $plugin_type = array_get($json, 'plugin_type');
+        $plugin->plugin_types = $plugin_type;
         
         foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
@@ -176,7 +176,7 @@ class PluginInstaller
         }
 
         // if page and 'uri' is empty, set snake_case plugin_name
-        if ($plugin_type->isPluginTypeUri() && !array_has($options, 'uri')) {
+        if ($plugin->isPluginTypeUri() && !array_has($options, 'uri')) {
             $options['uri'] = snake_case(array_get($json, 'plugin_name'));
         }
 
