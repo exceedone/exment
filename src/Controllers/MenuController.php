@@ -173,14 +173,19 @@ class MenuController extends AdminControllerBase
             ->attribute(['data-filter' => json_encode([
                 'key' => 'menu_type', 'readonlyValue' => [MenuType::SYSTEM, MenuType::PLUGIN, MenuType::TABLE, MenuType::PARENT_NODE]
             ])]);
-        $form->text('menu_name', exmtrans("menu.menu_name"))
+        if (!isset($id)) {
+            $form->text('menu_name', exmtrans("menu.menu_name"))
             ->required()
             ->rules(
                 [
                     Rule::unique(config('admin.database.menu_table'))->ignore($id),
                     "max:40",
+                    'regex:/'.Define::RULES_REGEX_ALPHANUMERIC_UNDER_HYPHEN.'/'
                 ]
             )->help(exmtrans('common.help_code'));
+        } else {
+            $form->display('menu_name', exmtrans("menu.menu_name"));
+        }
         $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
         $form->icon('icon', trans('admin.icon'))->required()->default('');
         $form->hidden('order');
@@ -208,7 +213,7 @@ class MenuController extends AdminControllerBase
             if ($isset_order) {
                 $query = Menu::where('parent_id', $parent_id);
                 if (isset($id)) {
-                    $query->whereNot('id', $id);
+                    $query->where('id', '<>', $id);
                 }
                 $count = $query->count();
                 // set order $count+1;

@@ -55,7 +55,8 @@ class SelectTable extends CustomItem
             $this->value = json_decode($this->value);
         }
 
-        $value = is_array($this->value) ? $this->value : [$this->value];
+        $isArray = is_array($this->value);
+        $value = $isArray ? $this->value : [$this->value];
         $result = [];
 
         foreach ($value as $v) {
@@ -90,7 +91,7 @@ class SelectTable extends CustomItem
         }
         
         if ($text === false) {
-            return $result;
+            return count($result) > 0 && !$isArray ? $result[0] : $result;
         } else {
             return implode(exmtrans('common.separate_word'), $result);
         }
