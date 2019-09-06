@@ -28,7 +28,7 @@ class ExmentAdapterLocal extends Local implements ExmentAdapterInterface
         if (!\File::exists($pluginDir)) {
             \File::makeDirectory($pluginDir, 0775, true);
         }
-        $plugin->requirePlugin($pluginDir);
+        $plugin ->requirePlugin($pluginDir);
 
         return path_join($pluginDir, ...$pass_array);
     }

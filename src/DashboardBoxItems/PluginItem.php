@@ -19,7 +19,9 @@ class PluginItem implements ItemInterface
         // get plugin 
         $this->plugin = Plugin::getEloquent($dashboard_box->getOption('target_plugin_id'));
         // get class
-        $this->pluginItem = $this->plugin->getClass(PluginType::DASHBOARD);
+        if(isset($this->plugin)){
+            $this->pluginItem = $this->plugin->getClass(PluginType::DASHBOARD, ['dashboard_box' => $dashboard_box]);
+        }
     }
 
     /**
@@ -27,25 +29,32 @@ class PluginItem implements ItemInterface
      */
     public function header()
     {
-        //TODO:
-        return null;
+        if(!isset($this->pluginItem)){
+            return null;
+        }
+        return $this->pluginItem->header();
     }
-    
-    /**
-     * get footer
-     */
-    public function footer()
-    {
-        //TODO:
-        return null;
-    }
-    
+        
     /**
      * get html body
      */
     public function body()
     {
-        return $this->pluginItem->dashboard();
+        if(!isset($this->pluginItem)){
+            return null;
+        }
+        return $this->pluginItem->body();
+    }
+
+    /**
+     * get footer
+     */
+    public function footer()
+    {
+        if(!isset($this->pluginItem)){
+            return null;
+        }
+        return $this->pluginItem->footer();
     }
 
     /**

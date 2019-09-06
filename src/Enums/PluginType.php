@@ -29,6 +29,7 @@ class PluginType extends EnumBase
         $options = array_merge([
             'custom_table' => null,
             'custom_value' => null,
+            'dashboard_box' => null,
             'id' => null,
             'as_setting' => false,
         ], $options);
@@ -56,8 +57,9 @@ class PluginType extends EnumBase
                     return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
                 case PluginType::BATCH:
                 case PluginType::PAGE:
-                case PluginType::DASHBOARD:
                     return new $classname($plugin);
+                case PluginType::DASHBOARD:
+                    return new $classname($plugin, array_get($options, 'dashboard_box'));
                 case PluginType::IMPORT:
                     return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
             }
