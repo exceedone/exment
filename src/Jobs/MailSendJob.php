@@ -88,7 +88,7 @@ class MailSendJob extends JobBase
             }
 
             // set attachment
-            if (!$noAttach && $this->attachments->count() > 0) {
+            if (!$noAttach && collect($this->attachments)->count() > 0) {
                 if (boolval(config('exment.archive_attachment', false))) {
                     list($filepath, $filename) = $this->archiveAttachments();
                     $message->attach($filepath, ['as' => $filename]);

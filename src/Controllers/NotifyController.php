@@ -96,7 +96,7 @@ class NotifyController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function form($id = null)
+    protected function form($id = null, $copy_id = null)
     {
         if (!$this->hasPermissionEdit($id)) {
             return;
@@ -156,12 +156,16 @@ class NotifyController extends AdminControllerBase
                     })->pluck('view_view_name', 'id');
             });
 
-        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) {
+        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($copy_id) {
             // Notify Time --------------------------------------------------
             $controller = $this;
             $form->select('notify_target_column', exmtrans("notify.notify_target_column"))
-            ->options(function ($val) use ($controller) {
+            ->options(function ($val) use ($controller, $copy_id) {
                 if (!isset($val)) {
+                    if (isset($copy_id)) {
+                        $copy_notify = Notify::find($copy_id);
+                        return $controller->getTargetColumnOptions($copy_notify->custom_table_id, false);
+                    }
                     return [];
                 }
                 return $controller->getTargetColumnOptions(CustomColumn::getEloquent($val)->custom_table, false);
