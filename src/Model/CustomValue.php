@@ -800,6 +800,11 @@ class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         extract($options);
 
+        if(empty($searchColumns)){
+            // return null if searchColumns is not has
+            return null;
+        }
+
         // crate union query
         $queries = [];
         for ($i = 0; $i < count($searchColumns) - 1; $i++) {
@@ -876,7 +881,7 @@ class CustomValue extends ModelBase
         }
 
         if (!isset($searchColumns) || count($searchColumns) == 0) {
-            return collect([]);
+            return $options;
         }
         
         if (boolval(config('exment.filter_search_full', false))) {

@@ -82,7 +82,7 @@ trait CustomValueGrid
                     // switch 1:n or n:n
                     if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                         if (isset($ajax)) {
-                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text');
                         } else {
                             $filter->equal('parent_id', $table_view_name)->select($options);
                         }
@@ -95,7 +95,7 @@ trait CustomValueGrid
 
                         // set relation
                         if (isset($ajax)) {
-                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
                         } else {
                             $filter->where($relationQuery, $table_view_name)->select($options);
                         }

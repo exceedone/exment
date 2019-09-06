@@ -564,7 +564,10 @@ abstract class CustomItem implements ItemInterface
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
-        if ($initOnly) {
+        $required = boolval(array_get($this->custom_column->options, 'required'));
+
+        // if init only, required, and set value, set $this->required is false
+        if ($initOnly && isset($this->value)) {
             $this->required = false;
         }
         return $initOnly;
