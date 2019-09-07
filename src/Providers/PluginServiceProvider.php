@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\File;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\PluginType;
 
 class PluginServiceProvider extends ServiceProvider
 {
@@ -23,14 +24,17 @@ class PluginServiceProvider extends ServiceProvider
         if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
             return;
         }
-        // get plugin page's
-        $pluginPages = Plugin::getPluginPages();
-        
-        // loop
-        foreach ($pluginPages as $pluginPage) {
-            $this->pluginRoute($pluginPage);
-        }
 
+        // get plugin page's
+        foreach([PluginType::PAGE, PluginType::DASHBOARD] as $plugin_type){
+            $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
+        
+            // loop
+            foreach ($pluginPages as $pluginPage) {
+                $this->pluginRoute($plugin_type, $pluginPage);
+            }
+        }
+    
         // get plugin script's and style's
         $pluginPublics = Plugin::getPluginPublics();
         
@@ -47,9 +51,11 @@ class PluginServiceProvider extends ServiceProvider
      * @param json $json
      * @return void
      */
-    protected function pluginRoute($pluginPage)
+    protected function pluginRoute($plugin_type, $pluginPage)
     {
-        $base_path = $pluginPage->_plugin()->getFullPath();
+        $plugin = $pluginPage->_plugin();
+
+        $base_path = $plugin->getFullPath();
         if ($this->app->routesAreCached()) {
             return;
         }
@@ -62,8 +68,19 @@ class PluginServiceProvider extends ServiceProvider
         $config = \File::get($config_path);
         $json = json_decode($config, true);
 
+        if(!$plugin->matchPluginType($plugin_type)){
+            return;
+        }
+
+        switch($plugin_type){
+            case PluginType::PAGE:
+                $prefix = $plugin->getRouteUri();
+            case PluginType::DASHBOARD:
+                $prefix = $plugin->getDashboardUri();
+        }
+
         Route::group([
-            'prefix'        => url_join(config('admin.route.prefix'), $pluginPage->_plugin()->getRouteUri()),
+            'prefix'        => url_join(config('admin.route.prefix'), $prefix),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => config('admin.route.middleware'),
         ], function (Router $router) use ($pluginPage, $json) {

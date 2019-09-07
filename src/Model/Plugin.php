@@ -320,8 +320,11 @@ class Plugin extends ModelBase
         return $itemlist;
     }
 
-    public static function getByPluginTypes($plugin_types){
-        return static::getPluginPublicSessions($plugin_types);
+    /**
+     * Get plugin pages by selecting plugin_type
+     */
+    public static function getByPluginTypes($plugin_types, $getAsClass = false){
+        return static::getPluginPublicSessions($plugin_types, $getAsClass);
     }
 
     /**
@@ -435,8 +438,33 @@ class Plugin extends ModelBase
      */
     public function getRouteUri($endpoint = null)
     {
-        $uri = $this->getOption('uri');
-        return url_join('plugins', snake_case($uri), $endpoint);
+        return url_join('plugins', $this->getOptionUri(), $endpoint);
+    }
+
+    /**
+     * Get route uri for dashboard
+     *
+     * @return void
+     */
+    public function getDashboardUri($endpoint = null, $dashboard_box = null)
+    {
+        return url_join(
+            'dashboardbox', 
+            'plugin', 
+            $this->getOptionUri(),
+            (isset($dashboard_box) ? $dashboard_box->suuid : '{suuid}'),
+            $endpoint
+        );
+    }
+
+    /**
+     * Get option uri. 
+     * set snake_case.
+     *
+     * @return void
+     */
+    protected function getOptionUri(){
+        return snake_case($this->getOption('uri'));
     }
 
     /**
