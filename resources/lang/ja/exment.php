@@ -243,11 +243,13 @@ return [
             'system' => 'システム',
             'chart' => 'チャート',
             'calendar' => 'カレンダー',
+            'plugin' => 'プラグイン',
         ],
         
         'dashboard_box_options' => [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
+            'target_plugin_id' => '対象のプラグイン',
             'target_system_id' => '表示アイテム',
             'chart_axisx' => 'X軸の項目',
             'chart_axisy' => 'Y軸の項目',
@@ -338,6 +340,7 @@ return [
             'import' => 'インポートテンプレート',
             'script' => 'スクリプト',
             'style' => 'スタイル',
+            'dashboard' => 'ダッシュボード',
         ],
     ],
 

@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -216,11 +217,14 @@ class ExmentServiceProvider extends ServiceProvider
         if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
             return;
         }
-        $pluginPages = Plugin::getPluginPages();
-        foreach ($pluginPages as $pluginPage) {
-            if (!is_null($items = $pluginPage->_getLoadView())) {
-                $this->loadViewsFrom($items[0], $items[1]);
-            }
+
+        foreach(PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type){
+            $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
+            foreach ($pluginPages as $pluginPage) {
+                if (!is_null($items = $pluginPage->_getLoadView())) {
+                    $this->loadViewsFrom($items[0], $items[1]);
+                }
+            }    
         }
     }
 

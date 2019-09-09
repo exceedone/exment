@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\DataImportExport;
 use Encore\Admin\Grid\Exporters\AbstractExporter;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -176,7 +177,7 @@ class DataImportExportService extends AbstractExporter
     protected function customImport($import_plugin, $file)
     {
         $plugin = Plugin::find($import_plugin);
-        $batch = $plugin->getClass(['file' => $file]);
+        $batch = $plugin->getClass(PluginType::IMPORT, ['file' => $file]);
         $result = $batch->execute();
         if ($result === false) {
             return [

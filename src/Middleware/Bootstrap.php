@@ -76,7 +76,7 @@ class Bootstrap
         foreach ($pluginPublics as $pluginPublic) {
             // get scripts
             $plugin = $pluginPublic->_plugin();
-            $p = $plugin->plugin_type == PluginType::SCRIPT ? 'js' : 'css';
+            $p = $plugin->matchPluginType(PluginType::SCRIPT) ? 'js' : 'css';
             $cdns = array_get($plugin, 'options.cdns', []);
             foreach ($cdns as $cdn) {
                 Ad::{$p}($cdn);

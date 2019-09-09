@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Validator\PluginTypeRule;
 use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
 use File;
@@ -15,7 +16,7 @@ use Validator;
  * Install Plugin
  */
 class PluginInstaller
-{
+{   
     /**
      * Upload plugin (from display)
      */
@@ -25,6 +26,7 @@ class PluginInstaller
         $tmpdir = getTmpFolderPath('plugin', false);
         $tmpfolderpath = path_join($tmpdir, short_uuid());
         $tmpfolderfullpath = getFullPath($tmpfolderpath, Define::DISKNAME_ADMIN_TMP, true);
+        $pluginFileBasePath = null;
 
         $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
         $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
@@ -47,7 +49,22 @@ class PluginInstaller
             $fileInfo = $zip->getNameIndex($i);
             if (basename($zip->statIndex($i)['name']) === 'config.json') {
                 $zip->extractTo($tmpfolderfullpath);
-                $config_path = path_join($tmpfolderfullpath, array_get($stat, 'name'));
+
+                // get confign statname
+                $statname = array_get($stat, 'name');
+                $config_path = path_join($tmpfolderfullpath, $statname);
+
+                // get dirname
+                $dirname = pathinfo($statname)['dirname'];
+
+                // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
+                if($dirname == '.'){
+                    $pluginFileBasePath = $tmpfolderpath;
+                }
+                // else, $pluginFileBasePath is join $dirname
+                else{
+                    $pluginFileBasePath = path_join($tmpfolderpath, $dirname);
+                }
                 break;
             }
         }
@@ -78,14 +95,14 @@ class PluginInstaller
                     if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
                         $pluginUpdated = $plugin->saveOrFail();
                         //Rename folder with plugin name
-                        static::copyPluginNameFolder($json, $pluginFolder, $tmpfolderpath);
+                        static::copyPluginNameFolder($json, $pluginFolder, $pluginFileBasePath);
                         admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
                     //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                     elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                         $plugin->save();
-                        static::copyPluginNameFolder($json, $pluginFolder, $tmpfolderpath);
+                        static::copyPluginNameFolder($json, $pluginFolder, $pluginFileBasePath);
                         admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
@@ -125,7 +142,7 @@ class PluginInstaller
         $rules = [
             'plugin_name' => 'required',
             'document_type' => 'in:'.DocumentType::getSelectableString(),
-            'plugin_type' => 'required|in:'.PluginType::getRequiredString(),
+            'plugin_type' => new PluginTypeRule(),
             'plugin_view_name' => 'required',
             'uuid' => 'required'
         ];
@@ -149,8 +166,8 @@ class PluginInstaller
         // find or new $plugin
         $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
 
-        $plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'));
-        $plugin->plugin_type = $plugin_type->getValue() ?? null;
+        $plugin_type = array_get($json, 'plugin_type');
+        $plugin->plugin_types = $plugin_type;
         
         foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
@@ -176,7 +193,7 @@ class PluginInstaller
         }
 
         // if page and 'uri' is empty, set snake_case plugin_name
-        if ($plugin_type->isPluginTypeUri() && !array_has($options, 'uri')) {
+        if ($plugin->isPluginTypeUri() && !array_has($options, 'uri')) {
             $options['uri'] = snake_case(array_get($json, 'plugin_name'));
         }
 
@@ -186,17 +203,17 @@ class PluginInstaller
     }
 
     //Copy tmp folder to app folder
-    protected static function copyPluginNameFolder($json, $pluginFolderPath, $tmpfolderpath)
+    protected static function copyPluginNameFolder($json, $pluginFolderPath, $pluginFileBasepath)
     {
         // get all files
         $pluginDisk = static::pluginDisk();
         $tmpDisk = static::tmpDisk();
-        $files = $tmpDisk->allFiles($tmpfolderpath);
+        $files = $tmpDisk->allFiles($pluginFileBasepath);
 
         foreach ($files as $file) {
             // get moved file name
-            $movedFileName = str_replace($tmpfolderpath, '', $file);
-            $movedFileName = str_replace(str_replace('\\', '/', $tmpfolderpath), '', $movedFileName);
+            $movedFileName = str_replace($pluginFileBasepath, '', $file);
+            $movedFileName = str_replace(str_replace('\\', '/', $pluginFileBasepath), '', $movedFileName);
             $movedFileName = trim($movedFileName, '/');
             $movedFileName = trim($movedFileName, '\\');
 

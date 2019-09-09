@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Symfony\Component\HttpFoundation\Response;
@@ -330,7 +331,10 @@ class CustomValueController extends AdminControllerTableBase
         }
         
         set_time_limit(240);
-        $class = $plugin->getClass([
+
+        //TODO:for plugin type.
+        // Only Trigger?
+        $class = $plugin->getClass(PluginType::TRIGGER, [
             'custom_table' => $this->custom_table,
             'id' => $id
         ]);
