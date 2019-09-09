@@ -101,6 +101,8 @@ class DashboardController extends AdminControllerBase
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
+        $error = exmtrans('error.header');
+
         $script = <<<EOT
         $(function () {
             // get suuid inputs
@@ -168,9 +170,10 @@ class DashboardController extends AdminControllerBase
                 type: "GET",
                 context: {
                     'inner_body': inner_body,
+                    'suuid': suuid,
                 },
                 success: function (data) {
-                    var suuid = data.suuid;
+                    var suuid = this.suuid;
 
                     // get target object
                     var target = $('[data-suuid="' + suuid + '"]');
@@ -187,7 +190,7 @@ class DashboardController extends AdminControllerBase
                     if(data.footer){
                         target.find('.box-body .box-body-inner-footer').html(data.footer);
                     }
-
+                    
                     // remove height
                     this.inner_body.css('height', '');
 
@@ -195,6 +198,17 @@ class DashboardController extends AdminControllerBase
                     target.removeClass('loading');
 
                     Exment.CommonEvent.tableHoverLink();
+                },
+                error: function () {
+                    var suuid = this.suuid;
+                    // get target object
+                    var target = $('[data-suuid="' + suuid + '"]');
+
+                    target.find('.overlay').hide();
+                    target.removeClass('loading');
+                   
+                    // show error
+                    target.find('.box-body .box-body-inner-body').html('$error');
                 },
             });
         }
