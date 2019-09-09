@@ -27,4 +27,18 @@ class PluginPageBase extends PluginPublicBase
     {
         return $this->showHeader;
     }
+    
+    /**
+     * Get route uri for page
+     *
+     * @return void
+     */
+    public function getRouteUri($endpoint = null)
+    {
+        if(!isset($this->plugin)){
+            return null;
+        }
+
+        return $this->plugin->getRouteUri($endpoint);
+    }
 }

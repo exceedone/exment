@@ -45,4 +45,20 @@ class PluginDashboardBase extends PluginPublicBase
     public function footer(){
         return null;
     }
+    
+    /**
+     * Get route uri for dashboard
+     *
+     * @return void
+     */
+    public function getDashboardUri($endpoint = null)
+    {
+        return url_join(
+            'dashboardbox', 
+            'plugin', 
+            $this->plugin->getOptionUri(),
+            (isset($this->dashboard_box) ? $this->dashboard_box->suuid : '{suuid}'),
+            $endpoint
+        );
+    }
 }

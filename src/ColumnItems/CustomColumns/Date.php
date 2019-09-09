@@ -24,7 +24,7 @@ class Date extends CustomItem
         }
 
         if (!is_nullorempty($format)) {
-            return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
+            return $this->getDateUseValue($format);
         }
 
         // else, return
@@ -42,7 +42,20 @@ class Date extends CustomItem
             return null;
         }
 
-        return (new \Carbon\Carbon($this->value()))->format($this->format) ?? null;
+        return $this->getDateUseValue($this->format);
+    }
+
+    /**
+     * Get date again use format
+     *
+     * @return void
+     */
+    protected function getDateUseValue($format){
+        if(is_array($this->value())){
+            return (new \Carbon\Carbon(array_get($this->value(), 'date')))->format($format) ?? null;
+        }
+
+        return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
     }
 
     protected function getAdminFieldClass()

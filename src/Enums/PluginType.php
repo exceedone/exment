@@ -17,6 +17,24 @@ class PluginType extends EnumBase
     public const SCRIPT = '7';
     public const STYLE = '8';
     
+    public static function PLUGIN_TYPE_PUBLIC_CLASS()
+    {
+        return [
+            static::PAGE,
+            static::DASHBOARD,
+            static::SCRIPT,
+            static::STYLE,
+        ];
+    }
+
+    public static function PLUGIN_TYPE_PLUGIN_PAGE()
+    {
+        return [
+            static::PAGE,
+            static::DASHBOARD,
+        ];
+    }
+
     /**
      * Get plugin class using plugin type
      *

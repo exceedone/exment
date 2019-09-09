@@ -161,7 +161,7 @@ class Plugin extends ModelBase
             throw new \Exception('plugin not found');
         }
 
-        return $class;
+        return $class ?? null;
     }
 
     /**
@@ -400,34 +400,36 @@ class Plugin extends ModelBase
     public static function getPluginPageModel()
     {
         // get namespace
-        $pattern = '@plugins/([^/\?]+)@';
-        preg_match($pattern, request()->url(), $matches);
+        $patterns = ['@plugins/([^/\?]+)@', '@dashboardbox/plugin/([^/\?]+)@'];
+        foreach($patterns as $pattern){
+            preg_match($pattern, request()->url(), $matches);
 
-        if (!isset($matches) || count($matches) <= 1) {
-            return;
-        }
-
-        $pluginName = $matches[1];
-        
-        // get target plugin
-        $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
-            return $plugin->matchPluginType([PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE])
-                && (
-                    pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
-                    || $plugin->getOption('uri') == $pluginName
-                )
-            ;
-        });
-
-        if (!isset($plugin)) {
-            return;
-        }
-        
-        // get class
-        foreach([PluginType::PAGE, PluginType::SCRIPT, PluginType::STYLE] as $plugin_type){
-            if($plugin->matchPluginType($plugin_type)){
-                return $plugin->getClass($plugin_type);
-             }
+            if (!isset($matches) || count($matches) <= 1) {
+                continue;
+            }
+    
+            $pluginName = $matches[1];
+            
+            // get target plugin
+            $plugin = static::getPluginsReqSession()->first(function ($plugin) use ($pluginName) {
+                return $plugin->matchPluginType(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS())
+                    && (
+                        pascalize(array_get($plugin, 'plugin_name')) == pascalize($pluginName)
+                        || $plugin->getOption('uri') == $pluginName
+                    )
+                ;
+            });
+    
+            if (!isset($plugin)) {
+                continue;
+            }
+            
+            // get class
+            foreach(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS() as $plugin_type){
+                if($plugin->matchPluginType($plugin_type)){
+                    return $plugin->getClass($plugin_type);
+                 }
+            }
         }
     }
 
@@ -442,28 +444,12 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get route uri for dashboard
-     *
-     * @return void
-     */
-    public function getDashboardUri($endpoint = null, $dashboard_box = null)
-    {
-        return url_join(
-            'dashboardbox', 
-            'plugin', 
-            $this->getOptionUri(),
-            (isset($dashboard_box) ? $dashboard_box->suuid : '{suuid}'),
-            $endpoint
-        );
-    }
-
-    /**
      * Get option uri. 
      * set snake_case.
      *
      * @return void
      */
-    protected function getOptionUri(){
+    public function getOptionUri(){
         return snake_case($this->getOption('uri'));
     }
 

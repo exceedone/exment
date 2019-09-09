@@ -26,7 +26,7 @@ class PluginServiceProvider extends ServiceProvider
         }
 
         // get plugin page's
-        foreach([PluginType::PAGE, PluginType::DASHBOARD] as $plugin_type){
+        foreach(PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type){
             $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
         
             // loop
@@ -74,9 +74,11 @@ class PluginServiceProvider extends ServiceProvider
 
         switch($plugin_type){
             case PluginType::PAGE:
-                $prefix = $plugin->getRouteUri();
+                $prefix = $pluginPage->getRouteUri();
+                break;
             case PluginType::DASHBOARD:
-                $prefix = $plugin->getDashboardUri();
+                $prefix = $pluginPage->getDashboardUri();
+                break;
         }
 
         Route::group([
