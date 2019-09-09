@@ -53,7 +53,18 @@ class PluginInstaller
                 // get confign statname
                 $statname = array_get($stat, 'name');
                 $config_path = path_join($tmpfolderfullpath, $statname);
-                $pluginFileBasePath = path_join($tmpfolderpath, pathinfo($statname)['dirname']);
+
+                // get dirname
+                $dirname = pathinfo($statname)['dirname'];
+
+                // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
+                if($dirname == '.'){
+                    $pluginFileBasePath = $tmpfolderpath;
+                }
+                // else, $pluginFileBasePath is join $dirname
+                else{
+                    $pluginFileBasePath = path_join($tmpfolderpath, $dirname);
+                }
                 break;
             }
         }

@@ -75,9 +75,11 @@ class PluginServiceProvider extends ServiceProvider
         switch($plugin_type){
             case PluginType::PAGE:
                 $prefix = $pluginPage->getRouteUri();
+                $defaultFunction = 'index';
                 break;
             case PluginType::DASHBOARD:
                 $prefix = $pluginPage->getDashboardUri();
+                $defaultFunction = 'body';
                 break;
         }
 
@@ -85,9 +87,21 @@ class PluginServiceProvider extends ServiceProvider
             'prefix'        => url_join(config('admin.route.prefix'), $prefix),
             'namespace'     => 'Exceedone\Exment\Services\Plugin',
             'middleware'    => config('admin.route.middleware'),
-        ], function (Router $router) use ($pluginPage, $json) {
-            foreach ($json['route'] as $route) {
-                $methods = is_string($route['method']) ? [$route['method']] : $route['method'];
+        ], function (Router $router) use ($pluginPage, $defaultFunction, $json) {
+            $routes = array_get($json, 'route', []);
+            
+            // if not has index endpoint, set.
+            if(!$this->hasPluginRouteIndex($routes)){
+                $routes[] = [
+                    'method' => 'get',
+                    'uri' => '',
+                    'function' => $defaultFunction ?? 'index'
+                ];
+            }
+
+            foreach ($routes as $route) {
+                $method = array_get($route, 'method');
+                $methods = is_string($method) ? [$method] : $method;
                 foreach ($methods as $method) {
                     if ($method === "") {
                         $method = 'get';
@@ -95,13 +109,49 @@ class PluginServiceProvider extends ServiceProvider
                     $method = strtolower($method);
                     // call method in these http method
                     if (in_array($method, ['get', 'post', 'put', 'patch', 'delete'])) {
-                        Route::{$method}($route['uri'], 'PluginPageController@'.$route['function']);
+                        Route::{$method}(array_get($route, 'uri'), 'PluginPageController@'. array_get($route, 'function'));
                     }
                 }
             }
         });
 
         $this->pluginScriptStyleRoute($pluginPage);
+    }
+
+    /**
+     * Check route has index.
+     *
+     * @param [type] $routes
+     * @return boolean
+     */
+    protected function hasPluginRouteIndex($routes){
+        if(empty($routes)){
+            return false;
+        }
+
+        foreach($routes as $route){
+            // if uri is not empty, continue.
+            if(array_get($route, 'uri') != ''){
+                continue;
+            }
+            
+            $method = array_get($route, 'method');
+            $methods = is_string($method) ? [$method] : $method;
+            foreach ($methods as $method) {
+                if ($method === "") {
+                    $method = 'get';
+                }
+                $method = strtolower($method);
+                
+                // if not get, continue.
+                if($method != 'get'){
+                    continue;
+                }
+                return true;
+            }
+        }
+
+        return false;
     }
     
     /**
