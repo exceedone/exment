@@ -24,10 +24,9 @@ class PluginTriggerBase
         $this->plugin = $plugin;
         $this->custom_table = $custom_table;
         
-        if($custom_value instanceof CustomValue){
+        if ($custom_value instanceof CustomValue) {
             $this->custom_value = $custom_value;
-        }
-        elseif (isset($custom_value) && isset($custom_table)) {
+        } elseif (isset($custom_value) && isset($custom_table)) {
             $this->custom_value = $custom_table->getValueModel($custom_value);
         }
 

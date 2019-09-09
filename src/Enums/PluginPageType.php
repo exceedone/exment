@@ -2,10 +2,6 @@
 
 namespace Exceedone\Exment\Enums;
 
-use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginScriptDefault;
-use Exceedone\Exment\Services\Plugin\PluginStyleDefault;
-
 class PluginPageType extends EnumBase
 {
     public const PAGE = 'page';

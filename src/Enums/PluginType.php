@@ -64,7 +64,7 @@ class PluginType extends EnumBase
                 $plugin_type = $plugin->plugin_types[0];
             }
             // else if as settingm return as setting class
-            elseif(boolval($options['as_setting'])){
+            elseif (boolval($options['as_setting'])) {
                 return new $classname($plugin);
             }
 
@@ -109,8 +109,8 @@ class PluginType extends EnumBase
         ], $options);
 
         // plugin_types is multiple
-        if(count($plugin->plugin_types) > 1){
-            if(boolval($options['as_setting'])){
+        if (count($plugin->plugin_types) > 1) {
+            if (boolval($options['as_setting'])) {
                 return 'PluginSetting';
             }
 

@@ -2,8 +2,6 @@
 
 namespace Exceedone\Exment\Notifications\MicrosoftTeams;
 
-use Closure;
-
 class MicrosoftTeamsMessage
 {
     /**

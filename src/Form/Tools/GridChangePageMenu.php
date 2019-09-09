@@ -82,7 +82,7 @@ EOT;
                 if (!Admin::user()->hasPermission(array_get($menu, 'roles'))) {
                     continue;
                 }
-            } else if (array_get($menu, 'url') == 'view' && !$this->custom_table->hasViewPermission()) {
+            } elseif (array_get($menu, 'url') == 'view' && !$this->custom_table->hasViewPermission()) {
                 continue;
             } else {
                 // if user dont't has role as table

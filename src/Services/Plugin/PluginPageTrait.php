@@ -5,8 +5,6 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-use Exceedone\Exment\Enums\PluginPageType;
-
 trait PluginPageTrait
 {
     use PluginBase;

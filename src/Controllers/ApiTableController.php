@@ -52,7 +52,7 @@ class ApiTableController extends AdminControllerTableBase
     public function dataSelect(Request $request)
     {
         $paginator = $this->dataQuery($request);
-        if(!isset($paginator)){
+        if (!isset($paginator)) {
             return [];
         }
         

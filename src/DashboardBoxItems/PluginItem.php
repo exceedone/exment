@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\DashboardBoxItems;
 
 use Exceedone\Exment\Enums\PluginType;
-use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Model\Plugin;
 
 class PluginItem implements ItemInterface
@@ -16,10 +15,10 @@ class PluginItem implements ItemInterface
     {
         $this->dashboard_box = $dashboard_box;
 
-        // get plugin 
+        // get plugin
         $this->plugin = Plugin::getEloquent($dashboard_box->getOption('target_plugin_id'));
         // get class
-        if(isset($this->plugin)){
+        if (isset($this->plugin)) {
             $this->pluginItem = $this->plugin->getClass(PluginType::DASHBOARD, ['dashboard_box' => $dashboard_box]);
         }
     }
@@ -29,7 +28,7 @@ class PluginItem implements ItemInterface
      */
     public function header()
     {
-        if(!isset($this->pluginItem)){
+        if (!isset($this->pluginItem)) {
             return null;
         }
         return $this->pluginItem->header();
@@ -40,7 +39,7 @@ class PluginItem implements ItemInterface
      */
     public function body()
     {
-        if(!isset($this->pluginItem)){
+        if (!isset($this->pluginItem)) {
             return null;
         }
         return $this->pluginItem->body();
@@ -51,7 +50,7 @@ class PluginItem implements ItemInterface
      */
     public function footer()
     {
-        if(!isset($this->pluginItem)){
+        if (!isset($this->pluginItem)) {
             return null;
         }
         return $this->pluginItem->footer();
@@ -64,7 +63,7 @@ class PluginItem implements ItemInterface
     {
         // show plugin list
         $plugins = Plugin::getByPluginTypes(PluginType::DASHBOARD);
-        $options = $plugins->mapWithKeys(function($plugin){
+        $options = $plugins->mapWithKeys(function ($plugin) {
             return [$plugin->id => $plugin->plugin_name];
         });
         $form->select('target_plugin_id', exmtrans("dashboard.dashboard_box_options.target_plugin_id"))

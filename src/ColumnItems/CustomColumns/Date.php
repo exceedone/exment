@@ -50,8 +50,9 @@ class Date extends CustomItem
      *
      * @return void
      */
-    protected function getDateUseValue($format){
-        if(is_array($this->value())){
+    protected function getDateUseValue($format)
+    {
+        if (is_array($this->value())) {
             return (new \Carbon\Carbon(array_get($this->value(), 'date')))->format($format) ?? null;
         }
 

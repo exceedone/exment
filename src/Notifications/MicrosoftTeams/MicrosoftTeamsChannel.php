@@ -26,7 +26,7 @@ class MicrosoftTeamsChannel
     }
     /**
      * Notify
-     * 
+     *
      * @param  mixed  $notifiable
      * @param  \Illuminate\Notifications\Notification  $notification
      * @return void

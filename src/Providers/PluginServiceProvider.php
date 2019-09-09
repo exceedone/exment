@@ -26,7 +26,7 @@ class PluginServiceProvider extends ServiceProvider
         }
 
         // get plugin page's
-        foreach(PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type){
+        foreach (PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type) {
             $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
         
             // loop
@@ -68,11 +68,11 @@ class PluginServiceProvider extends ServiceProvider
         $config = \File::get($config_path);
         $json = json_decode($config, true);
 
-        if(!$plugin->matchPluginType($plugin_type)){
+        if (!$plugin->matchPluginType($plugin_type)) {
             return;
         }
 
-        switch($plugin_type){
+        switch ($plugin_type) {
             case PluginType::PAGE:
                 $prefix = $pluginPage->getRouteUri();
                 $defaultFunction = 'index';
@@ -91,7 +91,7 @@ class PluginServiceProvider extends ServiceProvider
             $routes = array_get($json, 'route', []);
             
             // if not has index endpoint, set.
-            if(!$this->hasPluginRouteIndex($routes)){
+            if (!$this->hasPluginRouteIndex($routes)) {
                 $routes[] = [
                     'method' => 'get',
                     'uri' => '',
@@ -124,14 +124,15 @@ class PluginServiceProvider extends ServiceProvider
      * @param [type] $routes
      * @return boolean
      */
-    protected function hasPluginRouteIndex($routes){
-        if(empty($routes)){
+    protected function hasPluginRouteIndex($routes)
+    {
+        if (empty($routes)) {
             return false;
         }
 
-        foreach($routes as $route){
+        foreach ($routes as $route) {
             // if uri is not empty, continue.
-            if(array_get($route, 'uri') != ''){
+            if (array_get($route, 'uri') != '') {
                 continue;
             }
             
@@ -144,7 +145,7 @@ class PluginServiceProvider extends ServiceProvider
                 $method = strtolower($method);
                 
                 // if not get, continue.
-                if($method != 'get'){
+                if ($method != 'get') {
                     continue;
                 }
                 return true;

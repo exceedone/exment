@@ -227,7 +227,8 @@ class CustomCopyController extends AdminControllerTableBase
                     })->pluck('to_column_target'));
             }
             $columns = $columns->map(function ($column) {
-                return explode("?", $column)[0];;
+                return explode("?", $column)[0];
+                ;
             });
             $required_columns = CustomColumn::where('custom_table_id', $to_table->id)->required()->pluck('id');
             $result = $required_columns->every(function ($required_column) use ($columns) {

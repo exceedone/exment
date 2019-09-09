@@ -1,7 +1,6 @@
 <?php
 namespace Exceedone\Exment\Services\Installer;
 
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\InitializeStatus;
 use Exceedone\Exment\Enums\SystemLocale;
 use Exceedone\Exment\Enums\Timezone;

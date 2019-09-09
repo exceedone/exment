@@ -12,12 +12,13 @@ class SystemLocale extends EnumBase
      *
      * @return void
      */
-    public static function getLocaleOptions(){
+    public static function getLocaleOptions()
+    {
         // get expand system locale
         $system_locales = config('exment.system_locale_options');
-        if(isset($system_locales)){
+        if (isset($system_locales)) {
             $system_locales = explode(',', $system_locales);
-        }else{
+        } else {
             $system_locales = [];
         }
         $system_locales[] = 'ja';
@@ -25,7 +26,7 @@ class SystemLocale extends EnumBase
 
         // get label name
         $options = [];
-        foreach($system_locales as $system_locale){
+        foreach ($system_locales as $system_locale) {
             $options[$system_locale] = \Lang::get('exment::exment.label', [], $system_locale);
         }
 

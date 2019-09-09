@@ -218,13 +218,13 @@ class ExmentServiceProvider extends ServiceProvider
             return;
         }
 
-        foreach(PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type){
+        foreach (PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type) {
             $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
             foreach ($pluginPages as $pluginPage) {
                 if (!is_null($items = $pluginPage->_getLoadView())) {
                     $this->loadViewsFrom($items[0], $items[1]);
                 }
-            }    
+            }
         }
     }
 

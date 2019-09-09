@@ -271,7 +271,7 @@ EOT;
         }
 
         $is_grid = array_key_exists(1, $closures) && array_key_exists(2, $closures);
-        return collect($closures)->map(function ($closure, $key) use($is_grid){
+        return collect($closures)->map(function ($closure, $key) use ($is_grid) {
             return function ($form) use ($closure, $key, $is_grid) {
                 foreach ($closure as $field) {
                     if ($is_grid && in_array($key, [1, 2])) {
@@ -424,7 +424,7 @@ EOT;
             if (isset($child_table)) {
                 $option_calc_formula['relation_name'] = CustomRelation::getRelationNameByTables($this->custom_table, $child_table);
             }
-            switch(array_get($option_calc_formula, 'type')) {
+            switch (array_get($option_calc_formula, 'type')) {
                 case 'count':
                     if (array_has($option_calc_formula, 'relation_name')) {
                         $relation_name = $option_calc_formula['relation_name'];

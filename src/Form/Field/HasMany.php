@@ -39,7 +39,9 @@ class HasMany extends AdminHasMany
     }
     public function setCountScript($targets)
     {
-        if (empty($targets)) return;
+        if (empty($targets)) {
+            return;
+        }
         $data = json_encode($targets);
         $this->countscript .= <<<EOT
 Exment.CommonEvent.setCalc(null, $data);

@@ -29,8 +29,8 @@ class PluginTypeRule implements Rule
 
         $values = explode(',', $value);
         $pluginTypes = $this->getPluginTypeDifinitions();
-        foreach($values as $v){
-            if(!$pluginTypes->contains($v)){
+        foreach ($values as $v) {
+            if (!$pluginTypes->contains($v)) {
                 return false;
             }
         }
@@ -49,7 +49,10 @@ class PluginTypeRule implements Rule
         return str_replace(':values', implode(exmtrans('common.separate_word'), $pluginTypes), trans('validation.in'));
     }
 
-    protected function getPluginTypeDifinitions(){
-        return collect(PluginType::keys())->map(function($p){ return strtolower($p); });
+    protected function getPluginTypeDifinitions()
+    {
+        return collect(PluginType::keys())->map(function ($p) {
+            return strtolower($p);
+        });
     }
 }

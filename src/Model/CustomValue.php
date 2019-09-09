@@ -800,7 +800,7 @@ class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         extract($options);
 
-        if(empty($searchColumns)){
+        if (empty($searchColumns)) {
             // return null if searchColumns is not has
             return null;
         }

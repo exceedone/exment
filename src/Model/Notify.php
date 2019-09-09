@@ -86,7 +86,7 @@ class Notify extends ModelBase
                 'notify_target_column_value' => $custom_value->getValue($column),
             ];
     
-            if (NotifyAction::isChatMessage($this->notify_actions)){
+            if (NotifyAction::isChatMessage($this->notify_actions)) {
                 // send slack message
                 NotifyService::executeNotifyAction($this, [
                     'prms' => $prms,
@@ -183,7 +183,7 @@ class Notify extends ModelBase
             'free_space' => $freeSpace,
         ];
 
-        if (NotifyAction::isChatMessage($this->notify_actions)){
+        if (NotifyAction::isChatMessage($this->notify_actions)) {
             // send slack message
             NotifyService::executeNotifyAction($this, [
                 'mail_template' => $mail_template,
@@ -248,7 +248,7 @@ class Notify extends ModelBase
             return File::where('uuid', $uuid)->first();
         })->filter();
 
-        if (NotifyAction::isChatMessage($this->notify_actions)){
+        if (NotifyAction::isChatMessage($this->notify_actions)) {
             // send slack message
             NotifyService::executeNotifyAction($this, [
                 'mail_template' => $mail_template,
@@ -270,7 +270,7 @@ class Notify extends ModelBase
             }
 
             if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, false)) {
-                continue; 
+                continue;
             }
 
             $prms = [

@@ -59,7 +59,7 @@ class PluginController extends AdminControllerBase
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
         $grid->column('plugin_view_name', exmtrans("plugin.plugin_view_name"))->sortable();
         $grid->column('plugin_types', exmtrans("plugin.plugin_type"))->display(function ($plugin_types) {
-            return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function($plugin_type){
+            return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function ($plugin_type) {
                 return PluginType::getEnum($plugin_type)->transKey("plugin.plugin_type_options") ?? null;
             })->toArray());
         })->sortable();
@@ -154,7 +154,7 @@ class PluginController extends AdminControllerBase
         $form->display('plugin_view_name', exmtrans("plugin.plugin_view_name"));
         // create as label
         $form->display('plugin_types', exmtrans("plugin.plugin_type"))->with(function ($plugin_types) {
-            return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function($plugin_type){
+            return implode(exmtrans('common.separate_word'), collect($plugin_types)->map(function ($plugin_type) {
                 return PluginType::getEnum($plugin_type)->transKey("plugin.plugin_type_options") ?? null;
             })->toArray());
         });

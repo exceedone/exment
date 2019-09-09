@@ -44,7 +44,7 @@ class RequiredIfExRule implements Rule
                 } else {
                     $other = [$other];
                 }
-                foreach($this->compares as $compare) {
+                foreach ($this->compares as $compare) {
                     if (in_array($compare, $other)) {
                         $is_requied = true;
                     }

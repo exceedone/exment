@@ -2,7 +2,6 @@
 
 namespace Exceedone\Exment\Model;
 
-use DB;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
 use Carbon\Carbon;
@@ -23,7 +22,7 @@ class Plugin extends ModelBase
         } else {
             $array = collect(explode(',', $pluginTypes))->filter(function ($value, $key) {
                 return isset($value) && strlen($value) > 0;
-            })->map(function($pluginType){
+            })->map(function ($pluginType) {
                 return PluginType::getEnum($pluginType)->getValue() ?? null;
             })->toArray();
 
@@ -34,7 +33,7 @@ class Plugin extends ModelBase
     public function getPluginTypesAttribute()
     {
         $plugin_types = array_get($this->attributes, 'plugin_types');
-        if(is_array($plugin_types)){
+        if (is_array($plugin_types)) {
             return $plugin_types;
         }
         return explode(",", $plugin_types);
@@ -47,12 +46,12 @@ class Plugin extends ModelBase
      */
     public function matchPluginType($plugin_types)
     {
-        if(!is_array($plugin_types)){
+        if (!is_array($plugin_types)) {
             $plugin_types = [$plugin_types];
         }
 
-        foreach($this->plugin_types as $this_plugin_type){
-            if(in_array($this_plugin_type, $plugin_types)){
+        foreach ($this->plugin_types as $this_plugin_type) {
+            if (in_array($this_plugin_type, $plugin_types)) {
                 return true;
             }
         }
@@ -85,13 +84,13 @@ class Plugin extends ModelBase
      */
     public static function getPluginsByTable($custom_table)
     {
-        if(!isset($custom_table)){
+        if (!isset($custom_table)) {
             return [];
         }
 
-        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])->filter(function($plugin) use($custom_table){
+        return static::getByPluginTypes([PluginType::TRIGGER, PluginType::DOCUMENT, PluginType::IMPORT])->filter(function ($plugin) use ($custom_table) {
             $target_tables = array_get($plugin, 'options.target_tables');
-            if(!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)){
+            if (!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)) {
                 return false;
             }
 
@@ -108,7 +107,7 @@ class Plugin extends ModelBase
     {
         $now = Carbon::now();
         $hh = $now->hour;
-        return static::getByPluginTypes(PluginType::BATCH)->filter(function($plugin) use($hh){
+        return static::getByPluginTypes(PluginType::BATCH)->filter(function ($plugin) use ($hh) {
             return is_null(array_get($plugin, 'options.batch_cron') && array_get($plugin, 'options.batch_cron') == $hh);
         });
     }
@@ -120,7 +119,7 @@ class Plugin extends ModelBase
      */
     public static function getCronBatches()
     {
-        return static::getByPluginTypes(PluginType::BATCH)->filter(function($plugin){
+        return static::getByPluginTypes(PluginType::BATCH)->filter(function ($plugin) {
             return !is_null(array_get($plugin, 'options.batch_cron'));
         });
     }
@@ -149,10 +148,9 @@ class Plugin extends ModelBase
             )
         );
 
-        if(is_null($plugin_type)){
+        if (is_null($plugin_type)) {
             $class = PluginType::getPluginClass(null, $this, $options);
-        }
-        elseif($this->matchPluginType($plugin_type)){
+        } elseif ($this->matchPluginType($plugin_type)) {
             $plugin_type = PluginType::getEnum($plugin_type);
             $class = PluginType::getPluginClass($plugin_type, $this, $options);
         }
@@ -275,7 +273,7 @@ class Plugin extends ModelBase
             foreach ($plugins as $plugin) {
                 // get plugin_types
                 $plugin_types = array_get($plugin, 'plugin_types');
-                foreach($plugin_types as $plugin_type){
+                foreach ($plugin_types as $plugin_type) {
                     switch ($plugin_type) {
                         case PluginType::DOCUMENT:
                             $event_triggers_button = ['form_menubutton_show'];
@@ -308,7 +306,7 @@ class Plugin extends ModelBase
             foreach ($plugins as $plugin) {
                 // get plugin_types
                 $plugin_types = array_get($plugin, 'plugin_types');
-                foreach($plugin_types as $plugin_types){
+                foreach ($plugin_types as $plugin_types) {
                     switch ($plugin_type) {
                         case PluginType::IMPORT:
                             $itemlist[$plugin->id] = $plugin->plugin_view_name;
@@ -323,7 +321,8 @@ class Plugin extends ModelBase
     /**
      * Get plugin pages by selecting plugin_type
      */
-    public static function getByPluginTypes($plugin_types, $getAsClass = false){
+    public static function getByPluginTypes($plugin_types, $getAsClass = false)
+    {
         return static::getPluginPublicSessions($plugin_types, $getAsClass);
     }
 
@@ -355,19 +354,19 @@ class Plugin extends ModelBase
     protected static function getPluginPublicSessions($targetPluginTypes, $getAsClass = false)
     {
         $plugins = static::getPluginsReqSession();
-        $plugins = $plugins->filter(function ($plugin) use($targetPluginTypes) {
+        $plugins = $plugins->filter(function ($plugin) use ($targetPluginTypes) {
             if (!$plugin->matchPluginType($targetPluginTypes)) {
                 return false;
             }
             return true;
         });
 
-        if(!$getAsClass){
+        if (!$getAsClass) {
             return $plugins;
         }
 
-        return $plugins->map(function ($plugin) use($targetPluginTypes) {
-            if(!is_array($targetPluginTypes)){
+        return $plugins->map(function ($plugin) use ($targetPluginTypes) {
+            if (!is_array($targetPluginTypes)) {
                 $targetPluginTypes = [$targetPluginTypes];
             }
             // it's ok only array's first
@@ -401,7 +400,7 @@ class Plugin extends ModelBase
     {
         // get namespace
         $patterns = ['@plugins/([^/\?]+)@', '@dashboardbox/plugin/([^/\?]+)@'];
-        foreach($patterns as $pattern){
+        foreach ($patterns as $pattern) {
             preg_match($pattern, request()->url(), $matches);
 
             if (!isset($matches) || count($matches) <= 1) {
@@ -425,10 +424,10 @@ class Plugin extends ModelBase
             }
             
             // get class
-            foreach(Plugintype::PLUGIN_TYPE_PUBLIC_CLASS() as $plugin_type){
-                if($plugin->matchPluginType($plugin_type)){
+            foreach (Plugintype::PLUGIN_TYPE_PUBLIC_CLASS() as $plugin_type) {
+                if ($plugin->matchPluginType($plugin_type)) {
                     return $plugin->getClass($plugin_type);
-                 }
+                }
             }
         }
     }
@@ -444,12 +443,13 @@ class Plugin extends ModelBase
     }
 
     /**
-     * Get option uri. 
+     * Get option uri.
      * set snake_case.
      *
      * @return void
      */
-    public function getOptionUri(){
+    public function getOptionUri()
+    {
         return snake_case($this->getOption('uri'));
     }
 

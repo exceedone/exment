@@ -5,8 +5,6 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-use Exceedone\Exment\Enums\PluginPageType;
-
 class PluginPageBase extends PluginPublicBase
 {
     use PluginPageTrait;
@@ -35,7 +33,7 @@ class PluginPageBase extends PluginPublicBase
      */
     public function getRouteUri($endpoint = null)
     {
-        if(!isset($this->plugin)){
+        if (!isset($this->plugin)) {
             return null;
         }
 

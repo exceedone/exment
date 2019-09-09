@@ -441,7 +441,7 @@ class TemplateImporter
             // if exists, execute data copy
             if (\File::exists($dataPath)) {
                 static::importData($dataPath);
-            }else{
+            } else {
                 $dataPath = path_join($basePath, 'data');
                 // if exists, execute data copy
                 if (\File::exists($dataPath)) {

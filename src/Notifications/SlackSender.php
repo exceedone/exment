@@ -4,8 +4,6 @@ namespace Exceedone\Exment\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\SlackMessage;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;

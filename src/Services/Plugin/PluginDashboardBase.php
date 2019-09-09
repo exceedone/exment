@@ -5,8 +5,6 @@
  */
 namespace Exceedone\Exment\Services\Plugin;
 
-use Exceedone\Exment\Enums\PluginPageType;
-
 class PluginDashboardBase extends PluginPublicBase
 {
     use PluginPageTrait;
@@ -24,7 +22,8 @@ class PluginDashboardBase extends PluginPublicBase
      *
      * @return string
      */
-    public function header(){
+    public function header()
+    {
         return null;
     }
     
@@ -33,7 +32,8 @@ class PluginDashboardBase extends PluginPublicBase
      *
      * @return string
      */
-    public function body(){
+    public function body()
+    {
         return null;
     }
 
@@ -42,7 +42,8 @@ class PluginDashboardBase extends PluginPublicBase
      *
      * @return string
      */
-    public function footer(){
+    public function footer()
+    {
         return null;
     }
     
@@ -54,8 +55,8 @@ class PluginDashboardBase extends PluginPublicBase
     public function getDashboardUri($endpoint = null)
     {
         return url_join(
-            'dashboardbox', 
-            'plugin', 
+            'dashboardbox',
+            'plugin',
             $this->plugin->getOptionUri(),
             (isset($this->dashboard_box) ? $this->dashboard_box->suuid : '{suuid}'),
             $endpoint

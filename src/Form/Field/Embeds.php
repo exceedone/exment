@@ -82,9 +82,9 @@ class Embeds extends AdminField\Embeds
 
         return parent::render()->with([
             'gridFieldsL' => $this->gridFields[1]?? null,
-            'gridFieldsR' => $this->gridFields[2]?? null, 
+            'gridFieldsR' => $this->gridFields[2]?? null,
             'gridHeaders' => $this->gridFields[8]?? null,
-            'gridFooters' => $this->gridFields[9]?? null, 
+            'gridFooters' => $this->gridFields[9]?? null,
             'is_grid' => true,
             'header' => $this->header
         ]);

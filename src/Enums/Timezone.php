@@ -122,5 +122,4 @@ class Timezone extends EnumBase
         'Pacific_Auckland'     => "(GMT+12:00) Auckland",
         'Pacific_Fiji'         => "(GMT+12:00) Fiji",
     ];
-
 }

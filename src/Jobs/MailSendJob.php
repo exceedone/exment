@@ -71,10 +71,10 @@ class MailSendJob extends JobBase
 
         $this->saveMailSendHistory();
     }
-    protected function sendMail($subject = null, $body = null, $noAttach = false) 
+    protected function sendMail($subject = null, $body = null, $noAttach = false)
     {
         $tmpZipPath = null;
-        Mail::send([], [], function ($message) use($subject, $body, $noAttach, &$tmpZipPath) {
+        Mail::send([], [], function ($message) use ($subject, $body, $noAttach, &$tmpZipPath) {
             $subject = $subject ?? $this->subject;
             $body = $body ?? $this->body;
 
@@ -108,10 +108,9 @@ class MailSendJob extends JobBase
             
             // replace \r\n
             $message->setBody(preg_replace("/\r\n|\r|\n/", "<br />", $body), 'text/html');
-
         });
 
-        if(isset($tmpZipPath)){
+        if (isset($tmpZipPath)) {
             \File::delete($tmpZipPath);
         }
     }
@@ -121,13 +120,14 @@ class MailSendJob extends JobBase
      *
      * @return void
      */
-    protected function archiveAttachments() {
+    protected function archiveAttachments()
+    {
         $password = make_password(16);
         $filename = make_randomstr(10) . '.zip';
         $zippath = getFullpath("tmp/attachments/$filename", Define::DISKNAME_ADMIN_TMP, true);
         $tmpFolderPath = getFullpath("tmp/attachments/" . make_randomstr(10), Define::DISKNAME_ADMIN_TMP, true);
 
-        $files = collect($this->attachments)->map(function($attachment){
+        $files = collect($this->attachments)->map(function ($attachment) {
             return storage_paths('app', config('admin.upload.disk'), $attachment->path);
         })->toArray();
         ZipService::createPasswordZip($files, $zippath, $tmpFolderPath, $password);

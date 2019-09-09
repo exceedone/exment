@@ -249,7 +249,7 @@ EOT;
 
         if (boolval(config('exment.userdashboard_disabled', false))) {
             $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
-        } else if (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
+        } elseif (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)
@@ -330,8 +330,8 @@ EOT;
                 if ($has_role) {
                     foreach (DashboardBoxType::DASHBOARD_BOX_TYPE_OPTIONS() as $options) {
                         // if type is plugin, check has dashboard item
-                        if(array_get($options, 'dashboard_box_type') == DashboardBoxType::PLUGIN){
-                            if(count(Plugin::getByPluginTypes(PluginType::DASHBOARD)) == 0){
+                        if (array_get($options, 'dashboard_box_type') == DashboardBoxType::PLUGIN) {
+                            if (count(Plugin::getByPluginTypes(PluginType::DASHBOARD)) == 0) {
                                 continue;
                             }
                         }

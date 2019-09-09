@@ -263,7 +263,8 @@ class DashboardBoxController extends AdminControllerBase
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
     }
 
-    protected function rednerHtml($item){
+    protected function rednerHtml($item)
+    {
         return $item instanceof \Illuminate\Contracts\Support\Renderable ? $item->render() : $item;
     }
 }

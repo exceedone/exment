@@ -16,7 +16,7 @@ use Validator;
  * Install Plugin
  */
 class PluginInstaller
-{   
+{
     /**
      * Upload plugin (from display)
      */
@@ -58,11 +58,11 @@ class PluginInstaller
                 $dirname = pathinfo($statname)['dirname'];
 
                 // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
-                if($dirname == '.'){
+                if ($dirname == '.') {
                     $pluginFileBasePath = $tmpfolderpath;
                 }
                 // else, $pluginFileBasePath is join $dirname
-                else{
+                else {
                     $pluginFileBasePath = path_join($tmpfolderpath, $dirname);
                 }
                 break;
