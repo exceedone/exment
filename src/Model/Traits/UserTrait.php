@@ -56,7 +56,7 @@ trait UserTrait
     public function getDisabledDeleteAttribute()
     {
         // only administrator can delete and edit administrator record
-        if (!\Exment::user()->isAdministrator() && $this->login_user()->first()->isAdministrator()) {
+        if (!\Exment::user()->isAdministrator() && isset($this->login_user) && $this->login_user->isAdministrator()) {
             return true;
         }
         // cannnot delete myself
