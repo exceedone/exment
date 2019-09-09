@@ -64,7 +64,7 @@ class PluginItem implements ItemInterface
         // show plugin list
         $plugins = Plugin::getByPluginTypes(PluginType::DASHBOARD);
         $options = $plugins->mapWithKeys(function ($plugin) {
-            return [$plugin->id => $plugin->plugin_name];
+            return [$plugin->id => $plugin->plugin_view_name];
         });
         $form->select('target_plugin_id', exmtrans("dashboard.dashboard_box_options.target_plugin_id"))
             ->required()
