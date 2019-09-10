@@ -17,20 +17,15 @@ class Time extends Date
         }
         return Field\Time::class;
     }
-    
+
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->time();
     }
-
-    /**
-     * get now string for saving
-     *
-     * @return string now string
-     */
-    protected function getNowString()
+    
+    protected function getDisplayFormat()
     {
-        return \Carbon\Carbon::now()->format('H:i:s');
+        return config('admin.time_format');
     }
     
     protected function setValidates(&$validates)

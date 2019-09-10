@@ -247,7 +247,22 @@ class Initialize
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
 
-            
+            // Date format
+            $val = System::default_date_format();
+            if (isset($val)) {
+                $list = exmtrans("system.date_format_list.$val");
+            }
+            if (isset($list) && is_array($list) && count($list) > 2) {
+                Config::set('admin.date_format', $list[0]);
+                Config::set('admin.datetime_format', $list[1]);
+                Config::set('admin.time_format', $list[2]);
+                \Carbon\Carbon::setToStringFormat(config('admin.datetime_format'));
+            } else {
+                Config::set('admin.date_format', 'Y-m-d');
+                Config::set('admin.datetime_format', 'Y-m-d H:i:s');
+                Config::set('admin.time_format', 'H:i:s');
+            }
+        
             // favicon
             if (!is_null(System::site_favicon())) {
                 \Admin::setFavicon(admin_url('favicon'));
