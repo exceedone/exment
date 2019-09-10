@@ -306,7 +306,7 @@ class Plugin extends ModelBase
             foreach ($plugins as $plugin) {
                 // get plugin_types
                 $plugin_types = array_get($plugin, 'plugin_types');
-                foreach ($plugin_types as $plugin_types) {
+                foreach ($plugin_types as $plugin_type) {
                     switch ($plugin_type) {
                         case PluginType::IMPORT:
                             $itemlist[$plugin->id] = $plugin->plugin_view_name;
