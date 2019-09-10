@@ -84,6 +84,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
+            $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);

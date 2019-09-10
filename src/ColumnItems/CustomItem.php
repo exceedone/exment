@@ -316,7 +316,7 @@ abstract class CustomItem implements ItemInterface
         }
         // if initonly is true and now, showing help and cannot edit help
         elseif ($this->initonly() && !isset($this->value)) {
-            $help .= exmtrans('custom_value.help.init_flg');
+            $help .= exmtrans('common.help.init_flg');
             if (isset($help_regexes)) {
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
             }

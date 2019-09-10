@@ -73,7 +73,8 @@ return [
             'task_schedule' => '<br/><b>※タスクスケジュール設定が必要です。</b>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
-            'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。'
+            'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'init_flg' => '保存後、変更はできません。',
         ],
 
         'weekday' => [
@@ -1078,7 +1079,8 @@ return [
             'organization' => '組織',
             'mail_template' => 'メールテンプレート',
             'mail' => 'メール送信履歴',
-            'logs' => '操作ログ',
+            'operation_log' => '操作ログ',
+            'api_setting' => 'APIアプリ設定',
         ],
     ],
 
@@ -1325,6 +1327,25 @@ return [
         'errors' => [
             'access_denied' => '認証できませんでした。アクセストークンが誤っているか、期限が切れています。',
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
-        ]
+        ],
+
+        'help' =>[
+            'redirect' => '認証後にリダイレクトするURLを入力してください。',
+            'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
+            'description' => '<span class="red">API設定の詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
+        ],
+
+        'client_type_options' => [
+            'client_credentials' => '画面ログイン形式',
+            'password_grant' => 'パスワード形式',
+        ],
+
+        'header' => 'APIアプリ設定',
+        'description' => 'APIを実行するためのアプリケーション設定を登録します。',
+        'app_name' => 'アプリ名',
+        'client_type_text' => '認証形式',
+        'client_id' => 'Client ID',
+        'client_secret' => 'Client Secret',
+        'redirect' => 'リダイレクトURL',
     ],
 ];
