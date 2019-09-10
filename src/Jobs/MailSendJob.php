@@ -96,7 +96,9 @@ class MailSendJob extends JobBase
 
                     // set header as password
                     $password_notify_header = getModelName(SystemTableName::MAIL_TEMPLATE)::where('value->mail_key_name', 'password_notify_header')->first();
-                    $body = array_get($password_notify_header->value, 'mail_body') . $body;
+                    if (isset($password_notify_header)) {
+                        $body = array_get($password_notify_header->value, 'mail_body') . $body;
+                    }
                 } else {
                     // attach each files
                     foreach ($this->attachments as $attachment) {
