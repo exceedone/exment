@@ -4,8 +4,6 @@ namespace Exceedone\Exment\Controllers;
 
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
-use Encore\Admin\Layout\Content;
-use Exceedone\Exment\Form\Tools;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -35,7 +33,7 @@ class ApiSettingController extends AdminControllerBase
         $grid->column('name', exmtrans('api.app_name'));
         $grid->column('id', exmtrans('api.client_id'));
         $grid->column('created_at', trans('admin.created_at'));
-        $grid->column('user_id', exmtrans('common.created_user'))->display(function($user_id){
+        $grid->column('user_id', exmtrans('common.created_user'))->display(function ($user_id) {
             return getUserName($user_id, true);
         });
         
@@ -59,7 +57,7 @@ class ApiSettingController extends AdminControllerBase
         
         $form->description(exmtrans('api.help.description'));
 
-        if(!isset($id)){
+        if (!isset($id)) {
             $form->radio('client_type', exmtrans('api.client_type_text'))->options([
                 ApiClientType::CLIENT_CREDENTIALS => exmtrans('api.client_type_options.client_credentials'),
                 ApiClientType::PASSWORD_GRANT => exmtrans('api.client_type_options.password_grant'),
@@ -68,7 +66,7 @@ class ApiSettingController extends AdminControllerBase
             ->required()
             ->attribute(['data-filtertrigger' =>true])
             ->help(exmtrans('common.help.init_flg'));
-        }else{
+        } else {
             $form->display('client_type_text', exmtrans('api.client_type_text'));
             $form->hidden('client_type');
         }
@@ -77,14 +75,14 @@ class ApiSettingController extends AdminControllerBase
 
         ///// toggle showing redirect
         // if create or password
-        if(!isset($client) || $client->client_type == ApiClientType::CLIENT_CREDENTIALS){
+        if (!isset($client) || $client->client_type == ApiClientType::CLIENT_CREDENTIALS) {
             $form->url('redirect', exmtrans('api.redirect'))
             ->required()
             ->help(exmtrans('api.help.redirect'))
             ->attribute(['data-filter' => json_encode(['key' => 'client_type', 'value' => [ApiClientType::CLIENT_CREDENTIALS]])]);
         }
 
-        if(isset($id)){
+        if (isset($id)) {
             $form->text('id', exmtrans('api.client_id'))->readonly();
             $form->password('secret', exmtrans('api.client_secret'))->readonly()->toggleShowEvent()
                 ->help(exmtrans('api.help.client_secret'));
@@ -101,7 +99,7 @@ class ApiSettingController extends AdminControllerBase
      */
     public function store()
     {
-        return $this->saveData(); 
+        return $this->saveData();
     }
 
     /**
@@ -111,7 +109,7 @@ class ApiSettingController extends AdminControllerBase
      */
     public function update($id)
     {
-        return $this->saveData($id);   
+        return $this->saveData($id);
     }
 
     /**
@@ -129,7 +127,7 @@ class ApiSettingController extends AdminControllerBase
             'name' => 'required',
             'redirect' => 'url',
         ];
-        if(!isset($id)){
+        if (!isset($id)) {
             $validates['client_type'] = 'required';
         }
 
@@ -143,26 +141,26 @@ class ApiSettingController extends AdminControllerBase
         DB::beginTransaction();
         try {
             // for create token
-            if(!isset($id)){
+            if (!isset($id)) {
                 // create for CLIENT_CREDENTIALS
-                if($request->get('client_type') == ApiClientType::CLIENT_CREDENTIALS){
+                if ($request->get('client_type') == ApiClientType::CLIENT_CREDENTIALS) {
                     $client = $clientRepository->create(
-                        \Exment::user()->id, 
-                        $request->get('name'), 
+                        \Exment::user()->id,
+                        $request->get('name'),
                         $request->get('redirect')
                     );
                 }
                 // create for password
-                else{
+                else {
                     $client = $clientRepository->createPasswordGrantClient(
-                        \Exment::user()->id, 
-                        $request->get('name'), 
+                        \Exment::user()->id,
+                        $request->get('name'),
                         'http://localhost'
                     );
                 }
             }
             // update info
-            else{
+            else {
                 $client = ApiClient::find($id);
                 $client->name = $request->get('name');
                 if ($client->client_type == ApiClientType::CLIENT_CREDENTIALS) {

@@ -243,7 +243,7 @@ class MenuController extends AdminControllerBase
         switch ($type) {
             case MenuType::SYSTEM:
                 foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value) {
-                    if(!$this->isAddSystemMenuOptions($k, $value)){
+                    if (!$this->isAddSystemMenuOptions($k, $value)) {
                         continue;
                     }
                     $options[] = ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ];
@@ -327,10 +327,11 @@ class MenuController extends AdminControllerBase
      * @param [type] $value
      * @return boolean
      */
-    protected function isAddSystemMenuOptions($k, $value){
-        if($k == 'role_group'){
+    protected function isAddSystemMenuOptions($k, $value)
+    {
+        if ($k == 'role_group') {
             return System::permission_available();
-        }elseif($k == 'api_setting'){
+        } elseif ($k == 'api_setting') {
             return boolval(config('exment.api'));
         }
         

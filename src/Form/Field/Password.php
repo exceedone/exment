@@ -11,7 +11,8 @@ class Password extends \Encore\Admin\Form\Field\Password
      *
      * @return void
      */
-    public function toggleShowEvent(){
+    public function toggleShowEvent()
+    {
         $this->showToggleIcon = true;
 
         return $this;

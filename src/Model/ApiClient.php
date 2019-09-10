@@ -25,17 +25,20 @@ class ApiClient extends Client
 
     protected $keyType = 'string';
 
-    public function getClientTypeAttribute(){
-        if(boolval($this->password_client)){
+    public function getClientTypeAttribute()
+    {
+        if (boolval($this->password_client)) {
             return ApiClientType::PASSWORD_GRANT;
         }
-        if(!boolval($this->personal_access_client) && !boolval($this->password_client)){
+        if (!boolval($this->personal_access_client) && !boolval($this->password_client)) {
             return ApiClientType::CLIENT_CREDENTIALS;
         }
     }
-    public function getClientTypeTextAttribute(){
+    
+    public function getClientTypeTextAttribute()
+    {
         $client_type = $this->client_type;
-        switch($client_type){
+        switch ($client_type) {
             case ApiClientType::PASSWORD_GRANT:
                 return exmtrans('api.client_type_options.password_grant');
             case ApiClientType::CLIENT_CREDENTIALS:
