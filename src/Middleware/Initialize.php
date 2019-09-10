@@ -338,6 +338,7 @@ class Initialize
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,
             'text'          => Field\Text::class,
+            'password'          => Field\Password::class,
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,

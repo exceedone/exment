@@ -153,6 +153,7 @@ class Permission
             ///// only system permission
             case "system":
             case "role":
+            case "api_setting":
             case "plugin":
             case "database":
             case "auth/menu":

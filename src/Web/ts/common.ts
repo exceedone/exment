@@ -979,7 +979,15 @@ namespace Exment {
 
         private static getFilterVal($parent: JQuery, a) {
             // get filter object
-            var $filterObj = $parent.find(CommonEvent.getClassKey(a.key)).filter(':last');
+            let $filterObj = $parent.find(CommonEvent.getClassKey(a.key));
+
+            // if redio
+            if($filterObj.is(':radio')){
+                $filterObj = $filterObj.filter(':checked');
+                return hasValue($filterObj) ? $filterObj.val() : null;
+            }
+
+            $filterObj = $filterObj.filter(':last');
 
             // if checkbox
             if ($filterObj.is(':checkbox')) {

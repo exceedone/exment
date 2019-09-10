@@ -161,6 +161,10 @@ class Define
             'uri' => 'auth/logs',
             'icon' => 'fa-file-text',
         ],
+        'api_setting' => [
+            'uri' => 'api_setting',
+            'icon' => 'fa-code-fork',
+        ],
     ];
 
     public const CUSTOM_COLUMN_AVAILABLE_CHARACTERS_OPTIONS = [
@@ -256,6 +260,7 @@ class Define
         ['uri'=> 'view', 'help_uri'=> 'view'],
         ['uri'=> 'template', 'help_uri'=> 'template'],
         ['uri'=> 'plugin', 'help_uri'=> 'plugin'],
+        ['uri'=> 'api_setting', 'help_uri'=> 'api'],
         ['uri'=> 'backup', 'help_uri'=> 'backup'],
         ['uri'=> 'role_group', 'help_uri'=> 'permission'],
         ['uri'=> 'auth/menu', 'help_uri'=> 'menu'],
