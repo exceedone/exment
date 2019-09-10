@@ -91,6 +91,12 @@ trait InitializeFormTrait
             ->config('allowClear', false)
             ->default(5)
             ->help(exmtrans("system.help.datalist_pager_count"));
+            
+            $form->select('default_date_format', exmtrans("system.default_date_format"))
+            ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
+            ->config('allowClear', false)
+            ->default('format_default')
+            ->help(exmtrans("system.help.default_date_format"));
         }
         
         $form->switchbool('outside_api', exmtrans("system.outside_api"))

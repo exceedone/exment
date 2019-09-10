@@ -151,6 +151,7 @@ return [
         'site_favicon' => 'サイトファビコン(ico)',
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
+        'default_date_format' => '日時表示書式',
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
@@ -194,6 +195,18 @@ return [
             "layout_mini" => "小アイコン",
         ],
         
+        'date_format_options' => [
+            'format_default' => '標準（Y-m-d H:i:s）',
+            'format_slash' => 'カスタム（Y/m/d H:i:s）',
+            'format_local' => 'ローカル（Y年m月d日 H時i分s秒）',
+        ],
+        
+        'date_format_list' => [
+            'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
+            'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
+            'format_local' => ['Y年m月d日', 'Y年m月d日 H時i分s秒', 'H時i分s秒'],
+        ],
+        
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -213,6 +226,7 @@ return [
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
+            'default_date_format' => '日付と時刻の表示書式を設定します。',
         ]
     ],
 

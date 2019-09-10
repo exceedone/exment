@@ -47,6 +47,7 @@ class Define
         'system_mail_encryption' => ['config' => 'mail.encryption', 'group' => 'system'],
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
+        'default_date_format' => ['default' => 'format_default', 'group' => 'initialize'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'initialize'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'initialize'],
         // cannot call getValue function
@@ -78,6 +79,12 @@ class Define
     public const SYSTEM_LAYOUT = [
         'layout_default' => ['sidebar-mini'],
         'layout_mini' => ['sidebar-collapse', 'sidebar-mini'],
+    ];
+
+    public const SYSTEM_DATE_FORMAT = [
+        'format_default',
+        'format_slash',
+        'format_local',
     ];
 
     public const SYSTEM_KEY_SESSION_SYSTEM_CONFIG = "setting.%s";

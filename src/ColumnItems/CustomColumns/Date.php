@@ -18,6 +18,9 @@ class Date extends CustomItem
         if (is_nullorempty($format)) {
             $format = array_get($this->options, 'format');
         }
+        if (is_nullorempty($format)) {
+            $format = $this->getDisplayFormat();
+        }
         
         if (!isset($this->value)) {
             return null;
@@ -29,6 +32,11 @@ class Date extends CustomItem
 
         // else, return
         return $this->value();
+    }
+
+    protected function getDisplayFormat()
+    {
+        return config('admin.date_format');
     }
 
     public function saving()
@@ -128,7 +136,7 @@ class Date extends CustomItem
      */
     protected function getNowString()
     {
-        return \Carbon\Carbon::now()->format('Y-m-d');
+        return \Carbon\Carbon::now()->format($this->format);
     }
 
     /**

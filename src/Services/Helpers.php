@@ -1467,7 +1467,11 @@ if (!function_exists('getCellValue')) {
         // is datetime, convert to date string
         if (\PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell) && is_numeric($value)) {
             $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
-            $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+            if (floatval($value) < 1) {
+                $value = $date->format('H:i:s');
+            } else {
+                $value = ctype_digit(strval($value)) ? $date->format('Y-m-d') : $date->format('Y-m-d H:i:s');
+            }
         }
         // if rich text, set plain value
         elseif ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
