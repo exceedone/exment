@@ -185,8 +185,13 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'));
         }
 
-        $custom_value = $this->custom_table->getValueModel();
-        return $this->saveData($custom_value, $request);
+        $value = $request->get('value');
+        if (is_vector($value)) {
+            return $this->saveDataBulk($value, $request);
+        } else {
+            $custom_value = $this->custom_table->getValueModel();
+            return $this->saveData($custom_value, $request);
+        }        
     }
 
     /**
@@ -378,6 +383,89 @@ class ApiTableController extends AdminControllerTableBase
         $custom_value->saveOrFail();
 
         return getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+    }
+
+    protected function convertFindKeys($values, $request)
+    {
+        if (is_null($findKeys = $request->get('findKeys'))) {
+            return;
+        }
+        foreach ($findKeys as $findKey => $findValue) {
+            foreach($values as &$value) {
+                // find column
+                $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
+                if (!isset($custom_column)) {
+                    continue;
+                }
+
+                if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
+                    continue;
+                }
+
+                // get target custom table
+                $findCustomTable = $custom_column->select_target_table;
+                if (!isset($findCustomTable)) {
+                    continue;
+                }
+
+                // get target column for getting index
+                $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
+                if (!isset($findCustomColumn)) {
+                    continue;
+                }
+
+                if (!$findCustomColumn->index_enabled) {
+                    //TODO:show error
+                    continue;
+                }
+                $indexColumnName = $findCustomColumn->getIndexColumnName();
+
+                $findCustomValue = $findCustomTable->getValueModel()
+                    ->where($indexColumnName, array_get($value, $findKey))
+                    ->first();
+
+                if (!isset($findCustomValue)) {
+                    //TODO:show error
+                    continue;
+                }
+                array_set($value, $findKey, array_get($findCustomValue, 'id'));
+            }
+        }
+    }
+
+    protected function saveDataBulk($values, $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'value' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ]);
+        }
+
+        foreach($values as $value) {
+            // // get fields for validation
+            $validate = $this->validateData($value);
+            if ($validate !== true) {
+                return abortJson(400, [
+                    'errors' => $validate
+                ]);
+            }
+        }
+
+        $response = [];
+        foreach($values as &$value) {
+            // set default value if new
+            $value = $this->setDefaultData($value);
+
+            $custom_value = $this->custom_table->getValueModel();
+            $custom_value->setValue($value);
+            $custom_value->saveOrFail();
+
+            $response[] = getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+        }
+        return $response;
     }
 
     /**
