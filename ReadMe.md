@@ -65,9 +65,13 @@ Exmentは、以下のプラグイン・サービスなどを利用しており�
 ![Custom Data, Dashboard and Template](https://exment.net/docs/img/common/screenshot_data_dashboard_template.jpg)
 
 ------------
-# GitHub運用
+# 開発
+Exmentは、pull request大歓迎です。  
+新機能をご希望の場合、pull requestをいただければ、迅速にパッケージに反映できます。  
 
-## ブランチ
+## GitHub運用
+
+### ブランチ
 GitHubブランチは、以下の運用とします。  
 ※参考： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
@@ -79,7 +83,7 @@ GitHubブランチは、以下の運用とします。
 | `feature` | develop | 実装する機能ごとのブランチです。 feature/XXX, feature/YYYなど。開発が完了したら、developにマージを行います。 |
 | `release` | develop | developでの開発完了後、リリース時の微調整を行うためのバージョンです。こちらのブランチで動作確認を行い、完了したら、masterにマージを行います。 |
 
-## Commit前 - php-cs-fixer
+### Commit前 - php-cs-fixer
 GitHubにCommitを行う前に、php-cs-fixerを実施し、ソースコードの整形を行ってください。  
 
 ~~~
