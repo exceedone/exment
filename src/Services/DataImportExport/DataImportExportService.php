@@ -161,6 +161,9 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->format->getDataTable($request);
         }
 
+        // filter data
+        $datalist = $this->importAction->filterDatalist($datalist);
+        
         if(count($datalist) == 0){
             return [
                 'result' => false,
@@ -169,9 +172,6 @@ class DataImportExportService extends AbstractExporter
             ];
         }
 
-        // filter data
-        $datalist = $this->importAction->filterDatalist($datalist);
-        
         $response = $this->importAction->import($datalist);
 
         return $response;
