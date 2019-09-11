@@ -34,16 +34,19 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // get and check query parameter
+        $count = null;
         if ($request->has('count')) {
             $count = $request->get('count');
             if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
                 return abortJson(400, exmtrans('api.errors.over_maxcount'));
             }
         }
+
+        $orderby = null;
+        $orderby_list = [];
         if ($request->has('orderby')) {
             $orderby = $request->get('orderby');
             $params = explode(',', $orderby);
-            $orderby_list = [];
             foreach ($params as $param) {
                 $values = preg_split("/\s+/", trim($param));
                 $column_name = $values[0];
@@ -68,8 +71,8 @@ class ApiTableController extends AdminControllerTableBase
 
         // set order by
         if(isset($orderby_list)){
-            foreach ($orderby_list as $orderby) {
-                $model->orderBy($orderby[0], $orderby[1]);
+            foreach ($orderby_list as $item) {
+                $model->orderBy($item[0], $item[1]);
             }
         }
         $paginator = $model->paginate($count ?? config('exment.api_default_data_count'));
@@ -77,6 +80,12 @@ class ApiTableController extends AdminControllerTableBase
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
         $paginator->value = $value;
+
+        // set appends
+        $paginator->appends([
+            'count' => $count,
+            'orderBy' => $orderby,
+        ]);
 
         return $paginator;
     }
