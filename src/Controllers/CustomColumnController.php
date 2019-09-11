@@ -24,6 +24,8 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemColumn;
+use Illuminate\Validation\Rule;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -164,7 +166,12 @@ class CustomColumnController extends AdminControllerTableBase
             $classname = CustomColumn::class;
             $form->text('column_name', exmtrans("custom_column.column_name"))
                 ->required()
-                ->rules("max:30|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/|uniqueInTable:{$classname},{$this->custom_table->id}")
+                ->rules([
+                    "max:30",
+                    "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
+                    "uniqueInTable:{$classname},{$this->custom_table->id}",
+                    Rule::notIn(SystemColumn::arrays()),
+                ])
                 ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('column_name', exmtrans("custom_column.column_name"));
