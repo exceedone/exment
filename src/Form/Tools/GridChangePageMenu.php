@@ -82,6 +82,8 @@ EOT;
                 if (!Admin::user()->hasPermission(array_get($menu, 'roles'))) {
                     continue;
                 }
+            } elseif (array_get($menu, 'url') == 'view' && !$this->custom_table->hasViewPermission()) {
+                continue;
             } else {
                 // if user dont't has role as table
                 if (!$this->custom_table->hasPermission(array_get($menu, 'roles'))) {

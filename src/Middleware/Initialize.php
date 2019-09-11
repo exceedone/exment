@@ -27,7 +27,7 @@ class Initialize
 {
     public function handle(Request $request, \Closure $next)
     {
-        if (!\DB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
+        if (!canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM)) {
             $path = trim(admin_base_path('install'), '/');
             if (!$request->is($path)) {
                 return redirect()->guest(admin_base_path('install'));
@@ -123,6 +123,25 @@ class Initialize
             ]);
         }
 
+        if (!Config::has('filesystems.disks.plugin')) {
+            Config::set('filesystems.disks.plugin', [
+                'driver' => 'exment-driver',
+                'root' => storage_path('app/plugins'),
+            ]);
+        }
+        if (!Config::has('filesystems.disks.plugin_local')) {
+            Config::set('filesystems.disks.plugin_local', [
+                'driver' => 'local',
+                'root' => storage_path('app/plugins'),
+            ]);
+        }
+        if (!Config::has('filesystems.disks.template_local')) {
+            Config::set('filesystems.disks.template_local', [
+                'driver' => 'local',
+                'root' => storage_path('app/templates'),
+            ]);
+        }
+
         // mysql setting
         Config::set('database.connections.mysql.strict', false);
         Config::set('database.connections.mysql.options', [
@@ -139,7 +158,9 @@ class Initialize
         Config::set('database.connections.mariadb.driver', 'mariadb');
 
         //override
-        Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.database.menu_model', \Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.database.users_table', \Exceedone\Exment\Model\LoginUser::getTableName());
+        Config::set('admin.database.users_model', \Exceedone\Exment\Model\LoginUser::class);
         Config::set('admin.enable_default_breadcrumb', false);
         Config::set('admin.show_environment', false);
 
@@ -226,11 +247,25 @@ class Initialize
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
 
-            
-            // favicon
-            $val = System::site_favicon();
+            // Date format
+            $val = System::default_date_format();
             if (isset($val)) {
-                \Admin::setFavicon($val);
+                $list = exmtrans("system.date_format_list.$val");
+            }
+            if (isset($list) && is_array($list) && count($list) > 2) {
+                Config::set('admin.date_format', $list[0]);
+                Config::set('admin.datetime_format', $list[1]);
+                Config::set('admin.time_format', $list[2]);
+                \Carbon\Carbon::setToStringFormat(config('admin.datetime_format'));
+            } else {
+                Config::set('admin.date_format', 'Y-m-d');
+                Config::set('admin.datetime_format', 'Y-m-d H:i:s');
+                Config::set('admin.time_format', 'H:i:s');
+            }
+        
+            // favicon
+            if (!is_null(System::site_favicon())) {
+                \Admin::setFavicon(admin_url('favicon'));
             }
 
             // mail setting
@@ -318,6 +353,7 @@ class Initialize
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,
             'text'          => Field\Text::class,
+            'password'          => Field\Password::class,
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
@@ -358,20 +394,21 @@ class Initialize
                 }
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
-            $now = \Carbon\Carbon::now();
 
-            $log_string = 'SQL: ' . $now->format("YmdHisv")." ".$sql;
-
+            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
-                $log_string .= "    , function: $function";
+                $log_string .= ";    function: $function";
+            } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
+                $function = static::getFunctionName(true);
+                $log_string .= ";    function: $function";
             }
-    
-            \Log::debug($log_string);
+
+            exmDebugLog($log_string);
         });
     }
 
-    protected static function getFunctionName()
+    protected static function getFunctionName($oneFunction = false)
     {
         $bt = debug_backtrace();
         $functions = [];
@@ -379,6 +416,10 @@ class Initialize
         foreach ($bt as $b) {
             if ($i > 1 && strpos(array_get($b, 'class'), 'Exceedone') !== false) {
                 $functions[] = $b['class'] . '->' . $b['function'] . '.' . array_get($b, 'line');
+            }
+
+            if ($oneFunction && count($functions) >= 1) {
+                break;
             }
 
             $i++;

@@ -32,14 +32,20 @@ class DropUniqueKeys extends Migration
      */
     public function down()
     {
-        Schema::table('dashboards', function (Blueprint $table) {
-            $table->unique(['dashboard_name']);
-        });
-        Schema::table('roles', function (Blueprint $table) {
-            $table->unique(['role_name']);
-        });
-        Schema::table('plugins', function (Blueprint $table) {
-            $table->unique(['plugin_name']);
-        });
+        if (\Schema::hasTable('dashboards')) {
+            Schema::table('dashboards', function (Blueprint $table) {
+                $table->unique(['dashboard_name']);
+            });
+        }
+        if (\Schema::hasTable('roles')) {
+            Schema::table('roles', function (Blueprint $table) {
+                $table->unique(['role_name']);
+            });
+        }
+        if (\Schema::hasTable('plugins')) {
+            Schema::table('plugins', function (Blueprint $table) {
+                $table->unique(['plugin_name']);
+            });
+        }
     }
 }

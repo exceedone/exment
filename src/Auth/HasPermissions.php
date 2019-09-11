@@ -217,7 +217,7 @@ trait HasPermissions
         $permissons = $this->allPermissions();
 
         if (!$permissons->first(function ($permission) use ($item) {
-            return $permission->shouldPass(array_get($item, 'uri'));
+            return $permission->shouldPass(array_get($item, 'uri'), $item);
         })) {
             return false;
         }

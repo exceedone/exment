@@ -7,6 +7,8 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Grid\Linker;
 use Exceedone\Exment\Form\Tools;
+use Exceedone\Exment\Grid\Tools\BatchUpdate;
+use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
@@ -43,8 +45,7 @@ trait CustomValueGrid
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
-        $listButton = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
-        $this->manageMenuToolButton($grid, $listButton);
+        $this->manageMenuToolButton($grid);
 
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $grid;
@@ -79,7 +80,7 @@ trait CustomValueGrid
                     // switch 1:n or n:n
                     if ($relation->relation_type == RelationType::ONE_TO_MANY) {
                         if (isset($ajax)) {
-                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                            $filter->equal('parent_id', $table_view_name)->select([])->ajax($ajax, 'id', 'text');
                         } else {
                             $filter->equal('parent_id', $table_view_name)->select($options);
                         }
@@ -92,7 +93,7 @@ trait CustomValueGrid
 
                         // set relation
                         if (isset($ajax)) {
-                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'label');
+                            $filter->where($relationQuery, $table_view_name)->select([])->ajax($ajax, 'id', 'text');
                         } else {
                             $filter->where($relationQuery, $table_view_name)->select($options);
                         }
@@ -113,24 +114,27 @@ trait CustomValueGrid
      * Manage Grid Tool Button
      * And Manage Batch Action
      */
-    protected function manageMenuToolButton($grid, $listButton)
+    protected function manageMenuToolButton($grid)
     {
         $custom_table = $this->custom_table;
         $grid->disableCreateButton();
         $grid->disableExport();
-        
+
         // create exporter
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
         
-        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid, $service) {
+        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
+            $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
+            $importlist = Plugin::pluginPreparingImport($this->plugins);
+            
             // have edit flg
             $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid));
                 $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
-                $tools->append($service->getImportModal());
+                $tools->append($service->getImportModal($importlist));
             }
             
             // add page change button(contains view seting)
@@ -138,19 +142,23 @@ trait CustomValueGrid
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
             
             // add plugin button
-            if ($listButton !== null && count($listButton) > 0) {
-                foreach ($listButton as $plugin) {
-                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
+            if ($listButtons !== null && count($listButtons) > 0) {
+                foreach ($listButtons as $listButton) {
+                    $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
                 }
             }
             
             // manage batch --------------------------------------------------
-            // if cannot edit, disable delete
-            if (!$edit_flg) {
-                $tools->batch(function ($batch) {
+            $tools->batch(function ($batch) use ($edit_flg) {
+                // if cannot edit, disable delete and update operations
+                if ($edit_flg) {
+                    foreach ($this->custom_table->custom_operations as $custom_operation) {
+                        $batch->add($custom_operation->operation_name, new BatchUpdate($custom_operation));
+                    }
+                } else {
                     $batch->disableDelete();
-                });
-            }
+                }
+            });
         });
     }
 
@@ -229,5 +237,40 @@ trait CustomValueGrid
                 ]
             ));
         return $service;
+    }
+
+    /**
+     * update read_flg when row checked
+     *
+     * @param mixed   $id
+     */
+    public function rowUpdate(Request $request, $tableKey = null, $id = null, $rowid = null)
+    {
+        if (!isset($id) || !isset($rowid)) {
+            abort(404);
+        }
+
+        $operation = CustomOperation::with(['custom_operation_columns'])->find($id);
+
+        $models = $this->getModelNameDV()::whereIn('id', explode(',', $rowid));
+
+        if (!isset($models) || $models->count() == 0) {
+            return getAjaxResponse([
+                'result'  => false,
+                'toastr' => exmtrans('custom_value.message.operation_notfound'),
+            ]);
+        }
+
+        $updates = collect($operation->custom_operation_columns)->mapWithKeys(function ($operation_column) {
+            $column_name= 'value->'.$operation_column->custom_column->column_name;
+            return [$column_name => $operation_column['update_value_text']];
+        })->toArray();
+
+        $models->update($updates);
+        
+        return getAjaxResponse([
+            'result'  => true,
+            'toastr' => exmtrans('custom_value.message.operation_succeeded'),
+        ]);
     }
 }

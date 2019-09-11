@@ -136,10 +136,11 @@ class AuthUserOrgHelper
                 $organizations = $custom_value->value_authoritable_organizations()
                     ->with('users')
                     ->get() ?? [];
+                $tablename = getDBTableName(SystemTableName::USER);
                 foreach ($organizations as $organization) {
                     foreach ($organization->all_related_organizations() as $related_organization) {
                         $target_ids = array_merge(
-                            $related_organization->users()->pluck('id')->toArray(),
+                            $related_organization->users()->pluck("$tablename.id")->toArray(),
                             $target_ids
                         );
                     }
@@ -367,9 +368,11 @@ class AuthUserOrgHelper
             }
         }
 
-        // set system user
-        $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+        // set system user if $related_type is USER
+        if ($related_type == SystemTableName::USER) {
+            $target_ids = $target_ids->merge(System::system_admin_users() ?? []);
+        }
 
-        return $target_ids->toArray();
+        return $target_ids->filter()->toArray();
     }
 }

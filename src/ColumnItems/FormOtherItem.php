@@ -79,6 +79,14 @@ abstract class FormOtherItem implements ItemInterface
     }
 
     /**
+     * get grid style
+     */
+    public function gridStyle()
+    {
+        return $this->getStyleString();
+    }
+
+    /**
      * sortable for grid
      */
     public function sortable()

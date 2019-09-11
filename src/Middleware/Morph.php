@@ -28,7 +28,8 @@ class Morph
     {
         // morphMap
         try {
-            if(!\DB::canConnection() || !\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
+            //if(!canConnection() || !\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
+            if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
                 return;
             }
             

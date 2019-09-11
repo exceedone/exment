@@ -55,7 +55,7 @@ class Embeds extends AdminField\Embeds
                 for ($i = $prependFieldsCount; $i < count($form->fields()); $i++) {
                     $fields[] = $form->fields()[$i];
                 }
-                $this->gridFields[] = $fields;
+                $this->gridFields[$index] = $fields;
             }
         }
         // not array(default), call_user_func $this->builder
@@ -81,7 +81,12 @@ class Embeds extends AdminField\Embeds
         }
 
         return parent::render()->with([
-            'gridFields' => $this->gridFields, 'header' => $this->header
+            'gridFieldsL' => $this->gridFields[1]?? null,
+            'gridFieldsR' => $this->gridFields[2]?? null,
+            'gridHeaders' => $this->gridFields[8]?? null,
+            'gridFooters' => $this->gridFields[9]?? null,
+            'is_grid' => true,
+            'header' => $this->header
         ]);
     }
 }

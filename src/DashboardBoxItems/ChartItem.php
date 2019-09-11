@@ -214,9 +214,7 @@ class ChartItem implements ItemInterface
                 ->options(ChartType::transArray("chart.chart_type_options"));
 
         // get only has summaryview
-        $model = CustomTable::whereHas('custom_views', function ($query) {
-            $query->where('view_kind_type', ViewKindType::AGGREGATE);
-        });
+        $model = CustomTable::query();
         $tables = CustomTable::filterList($model, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])
             ->pluck('table_view_name', 'id');
         $form->select('target_table_id', exmtrans("dashboard.dashboard_box_options.target_table_id"))
@@ -262,7 +260,7 @@ class ChartItem implements ItemInterface
                     return [];
                 }
 
-                $options = $custom_view->getColumnsSelectOptions(false);
+                $options = $custom_view->getViewColumnsSelectOptions(false);
                 return array_column($options, 'text', 'id');
             });
         $form->select('chart_axisy', exmtrans("dashboard.dashboard_box_options.chart_axisy"))
@@ -278,7 +276,7 @@ class ChartItem implements ItemInterface
                     return [];
                 }
 
-                $options = $custom_view->getColumnsSelectOptions(true);
+                $options = $custom_view->getViewColumnsSelectOptions(true);
                 return array_column($options, 'text', 'id');
             });
         $form->checkbox('chart_axis_label', exmtrans("dashboard.dashboard_box_options.chart_axis_label"))

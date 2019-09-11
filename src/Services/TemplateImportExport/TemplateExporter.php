@@ -40,12 +40,15 @@ class TemplateExporter
         // create ZIP file --------------------------------------------------
         $tmpdir = getTmpFolderPath('template', false);
         $tmpFulldir = getFullpath($tmpdir, Define::DISKNAME_ADMIN_TMP, true);
+        if (!\File::isDirectory($tmpFulldir)) {
+            \File::makeDirectory($tmpFulldir, 0755, true);
+        }
         $tmpfilename = make_uuid();
 
         $zip = new ZipArchive();
         $zipfilename = short_uuid().'.zip';
         $zipfillpath = path_join($tmpFulldir, $zipfilename);
-        if ($zip->open($zipfillpath, ZipArchive::CREATE)!==true) {
+        if ($zip->open($zipfillpath, ZipArchive::CREATE) !== true) {
             //TODO:error
         }
         

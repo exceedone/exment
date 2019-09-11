@@ -8,8 +8,11 @@ use Encore\Admin\Middleware as AdminMiddleware;
 use Encore\Admin\AdminServiceProvider as ServiceProvider;
 use Exceedone\Exment\Providers as ExmentProviders;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\Plugin\PluginPublicBase;
+use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -17,7 +20,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Database\Connection;
 use Illuminate\Console\Scheduling\Schedule;
-use League\Flysystem\Filesystem;
 use Laravel\Passport\Passport;
 use Laravel\Passport\Client;
 use Webpatser\Uuid\Uuid;
@@ -116,6 +118,11 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.initialize',
             'admin.session',
         ],
+        'admin_plugin_public' => [
+            'admin.auth',
+            'admin.auth-2factor',
+            'admin.bootstrap2',
+        ],
         'adminapi' => [
             'adminapi.auth',
             'throttle:60,1',
@@ -176,6 +183,11 @@ class ExmentServiceProvider extends ServiceProvider
                 return (new ExmentDatabase\Connectors\MariaDBConnectionFactory($app))->make($config, $name);
             });
         });
+
+        // bind plugin for page
+        $this->app->bind(PluginPublicBase::class, function ($app) {
+            return Plugin::getPluginPageModel();
+        });
         
         register_shutdown_function(function() {
             if ($error = error_get_last()) {
@@ -211,6 +223,20 @@ class ExmentServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'exment');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'exment');
+
+        // load plugins
+        if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
+            return;
+        }
+
+        foreach (PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type) {
+            $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
+            foreach ($pluginPages as $pluginPage) {
+                if (!is_null($items = $pluginPage->_getLoadView())) {
+                    $this->loadViewsFrom($items[0], $items[1]);
+                }
+            }
+        }
     }
 
     protected function bootApp()
@@ -235,7 +261,7 @@ class ExmentServiceProvider extends ServiceProvider
                 
             // set cron event
             try {
-                if (\Schema::hasTable(SystemTableName::PLUGIN)) {
+                if (hasTable(SystemTableName::PLUGIN)) {
                     $plugins = Plugin::getCronBatches();
                     foreach ($plugins as $plugin) {
                         $cronSchedule = $this->app->make(Schedule::class);
@@ -274,18 +300,7 @@ class ExmentServiceProvider extends ServiceProvider
         });
 
         Storage::extend('exment-driver', function ($app, $config) {
-            switch (config('exment.driver.default', 'local')) {
-                case 'local':
-                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
-                    break;
-                case 's3':
-                    $adaper = Adapter\ExmentAdapterS3::getAdapter($app, $config);
-                    break;
-                default:
-                    $adaper = Adapter\ExmentAdapterLocal::getAdapter($app, $config);
-                    break;
-            }
-            return new Filesystem($adaper);
+            return Driver::getExmentDriver($app, $config);
         });
 
         Initialize::initializeConfig(false);

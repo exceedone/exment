@@ -2,11 +2,10 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
+use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\SearchType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Form\Field as ExmentField;
@@ -57,7 +56,8 @@ class SelectTable extends CustomItem
             $this->value = json_decode($this->value);
         }
 
-        $value = is_array($this->value) ? $this->value : [$this->value];
+        $isArray = is_array($this->value);
+        $value = $isArray ? $this->value : [$this->value];
         $result = [];
 
         foreach ($value as $v) {
@@ -65,10 +65,7 @@ class SelectTable extends CustomItem
                 continue;
             }
             
-            $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->target_table->table_name, $v);
-            $model = System::requestSession($key, function () use ($v) {
-                return getModelName($this->target_table)::find($v);
-            });
+            $model = $this->target_table->getValueModel($v);
             if (is_null($model)) {
                 continue;
             }
@@ -95,7 +92,7 @@ class SelectTable extends CustomItem
         }
         
         if ($text === false) {
-            return $result;
+            return count($result) > 0 && !$isArray ? $result[0] : $result;
         } else {
             return implode(exmtrans('common.separate_word'), $result);
         }
@@ -215,6 +212,12 @@ class SelectTable extends CustomItem
                 $filter->select($options);
             }
         }
+    }
+    
+    protected function setValidates(&$validates)
+    {
+        $validates[] = 'numeric';
+        $validates[] = new CustomValueRule($this->target_table);
     }
     
     /**

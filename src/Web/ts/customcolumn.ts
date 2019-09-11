@@ -31,9 +31,22 @@ namespace Exment {
             ///// switch using type
             switch(type){
                 case 'dynamic':
+                case 'select_table':
                 case 'symbol':
                     // set data-val and text
                     clone.querySelector('.col-value-item').dataset.val = target.data('val');
+                    if(hasValue(target.data('from'))){
+                        clone.querySelector('.col-value-item').dataset.from = target.data('from');
+                    }
+                    clone.querySelector('span').textContent = target.text();
+                    break;
+                case 'summary':
+                case 'count':
+                    // set data-val and text
+                    clone.querySelector('.col-value-item').dataset.val = target.data('val');
+                    if(hasValue(target.data('table'))){
+                        clone.querySelector('.col-value-item').dataset.table = target.data('table');
+                    }
                     clone.querySelector('span').textContent = target.text();
                     break;
                 case 'fixed':
@@ -59,7 +72,15 @@ namespace Exment {
                 // get value
                 var val = values.eq(i);
                 // push value
-                items.push({'type':val.data('type'), 'val': val.data('val')});
+                let itemval = {'type':val.data('type'), 'val': val.data('val')};
+                if(hasValue(val.data('from'))){
+                    itemval['from'] = val.data('from');
+                }
+                if(hasValue(val.data('table'))){
+                    itemval['table'] = val.data('table');
+                }
+                items.push(itemval);
+
                 // push text
                 texts.push(val.text());
             }

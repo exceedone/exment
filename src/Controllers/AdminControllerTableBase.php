@@ -23,7 +23,13 @@ class AdminControllerTableBase extends Controller
     public function __construct(Request $request)
     {
         $this->custom_table = CustomTable::findByEndpoint();
-        $this->custom_columns = isset($this->custom_table) ? $this->custom_table->custom_columns : null;
+        
+        if (!isset($this->custom_table)) {
+            return;
+        }
+
+        $this->custom_table->load('custom_columns');
+        $this->custom_columns = $this->custom_table->custom_columns;
 
         getModelName($this->custom_table);
 

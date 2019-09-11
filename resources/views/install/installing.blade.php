@@ -1,6 +1,6 @@
 @extends('exment::install.layout') 
 @section('content')
-        <p class="login-box-msg">{{ trans('admin.setting') }}(3/3) : 初期データインストール</p>
+        <p class="login-box-msg">{{ trans('admin.setting') }}(3/3) : {{ exmtrans('install.installing.header')}}</p>
 
         <form action="{{ admin_url('install') }}" method="post">
             <div class="row">
@@ -9,7 +9,7 @@
 
                 <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary btn-block btn-flat">{{ exmtrans('install.installing') }}</button>
+                    <button type="submit" class="btn btn-primary btn-block btn-flat">{{ exmtrans('install.installing.installing') }}</button>
                 </div>
                 <!-- /.col -->
             </div>

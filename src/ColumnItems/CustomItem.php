@@ -8,15 +8,17 @@ use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
 
 abstract class CustomItem implements ItemInterface
 {
-    use ItemTrait;
-    use SummaryItemTrait;
+    use ItemTrait, SummaryItemTrait, ColumnOptionQueryTrait;
     
     protected $custom_column;
     
@@ -35,13 +37,20 @@ abstract class CustomItem implements ItemInterface
     public static $availableFields = [];
 
 
-    public function __construct($custom_column, $custom_value)
+    public function __construct($custom_column, $custom_value, $view_column_target = null)
     {
         $this->custom_column = $custom_column;
         $this->custom_table = $custom_column->custom_table;
-        $this->label = $this->custom_column->column_view_name;
         $this->setCustomValue($custom_value);
         $this->options = [];
+
+        $params = static::getOptionParams($view_column_target, $this->custom_table);
+        // get label. check not match $this->custom_table and pivot table
+        if (array_key_value_exists('view_pivot_table_id', $params) && $this->custom_table->id != $params['view_pivot_table_id']) {
+            $this->label = static::getViewColumnLabel($this->custom_column->column_view_name, $this->custom_table->table_view_name);
+        } else {
+            $this->label = $this->custom_column->column_view_name;
+        }
     }
 
     /**
@@ -104,7 +113,19 @@ abstract class CustomItem implements ItemInterface
     public function html()
     {
         // default escapes text
-        return esc_html($this->text());
+        $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($this->text()) : $this->text();
+        return esc_html($text);
+    }
+
+    /**
+     * get grid style
+     */
+    public function gridStyle()
+    {
+        return $this->getStyleString([
+            'min-width' => $this->custom_column->getOption('min_width', config('exment.grid_min_width', 100)) . 'px',
+            'max-width' => $this->custom_column->getOption('max_width', config('exment.grid_max_width', 300)) . 'px',
+        ]);
     }
 
     /**
@@ -112,7 +133,7 @@ abstract class CustomItem implements ItemInterface
      */
     public function sortable()
     {
-        return $this->indexEnabled();
+        return $this->indexEnabled() && !array_key_value_exists('view_pivot_column', $this->options);
     }
 
     /**
@@ -122,6 +143,14 @@ abstract class CustomItem implements ItemInterface
     public function indexEnabled()
     {
         return $this->custom_column->index_enabled;
+    }
+
+    /**
+     * set item label
+     */
+    public function setLabel($label)
+    {
+        return $this->label = $label;
     }
 
     public function setCustomValue($custom_value)
@@ -151,6 +180,19 @@ abstract class CustomItem implements ItemInterface
         if (isset($custom_value) && boolval(array_get($this->options, 'summary_child'))) {
             return $custom_value->getSum($this->custom_column);
         }
+
+        // if options has "view_pivot_column", get select_table's custom_value first
+        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+            $view_pivot_column = $this->options['view_pivot_column'];
+            if ($view_pivot_column == SystemColumn::PARENT_ID) {
+                $custom_value = $this->custom_table->getValueModel($custom_value->parent_id);
+            } else {
+                $pivot_custom_column = CustomColumn::getEloquent($this->options['view_pivot_column']);
+                $pivot_id =  array_get($custom_value, 'value.'.$pivot_custom_column->column_name);
+                $custom_value = $this->custom_table->getValueModel($pivot_id);
+            }
+        }
+
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
     
@@ -274,7 +316,7 @@ abstract class CustomItem implements ItemInterface
         }
         // if initonly is true and now, showing help and cannot edit help
         elseif ($this->initonly() && !isset($this->value)) {
-            $help .= exmtrans('custom_value.help.init_flg');
+            $help .= exmtrans('common.help.init_flg');
             if (isset($help_regexes)) {
                 $help .= sprintf(exmtrans('common.help.input_available_characters'), implode(exmtrans('common.separate_word'), $help_regexes));
             }
@@ -406,11 +448,11 @@ abstract class CustomItem implements ItemInterface
 
     public static function getItem(...$args)
     {
-        list($custom_column, $custom_value) = $args + [null, null];
+        list($custom_column, $custom_value, $view_column_target) = $args + [null, null, null];
         $column_type = $custom_column->column_type;
 
         if ($className = static::findItemClass($column_type)) {
-            return new $className($custom_column, $custom_value);
+            return new $className($custom_column, $custom_value, $view_column_target);
         }
         
         admin_error('Error', "Field type [$column_type] does not exist.");
@@ -522,7 +564,10 @@ abstract class CustomItem implements ItemInterface
     protected function initonly()
     {
         $initOnly = boolval(array_get($this->custom_column->options, 'init_only'));
-        if ($initOnly) {
+        $required = boolval(array_get($this->custom_column->options, 'required'));
+
+        // if init only, required, and set value, set $this->required is false
+        if ($initOnly && isset($this->value)) {
             $this->required = false;
         }
         return $initOnly;

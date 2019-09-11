@@ -1,6 +1,7 @@
 <?php
 
-return [    
+return [
+    'label' => '日本語',
     'common' => [
         'home' => 'HOME',
         'error' => 'エラー',
@@ -47,13 +48,15 @@ return [
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
         'copy_item' => 'この%sの複製',
+        'header' => 'ヘッダー',
+        'footer' => 'フッター',
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
             'success_execute' => '実行完了しました！',
             'error_execute' => '実行失敗しました。',
             'execution_takes_time' => '実行には時間がかかります。',
             'import_success' => 'インポート完了しました！',
-            'import_error' => 'インポート失敗しました。エラーメッセージをご確認ください。',
+            'import_error' => 'インポートに失敗しました。',
             'notfound' => 'データが存在しません。',
             'wrongdata' => 'データが不正です。URLをご確認ください。',
             'wrongconfig' => 'config.jsonファイルが不正です',
@@ -70,7 +73,8 @@ return [
             'task_schedule' => '<br/><b>※タスクスケジュール設定が必要です。</b>詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'order' => '%sを一覧表示した時の表示順です。',
             'max_file_size_link' => 'ファイルアップロード上限サイズ変更',
-            'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。'
+            'max_file_size' => '画面からファイルをアップロードする場合のサイズ上限です。変更するには<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>を実行してください。',
+            'init_flg' => '保存後、変更はできません。',
         ],
 
         'weekday' => [
@@ -95,6 +99,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
+        'failure_import_file' => 'アップロードしたファイルのフォーマットが誤っています。ファイルをご確認ください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
@@ -106,7 +111,6 @@ return [
 
     'install' => [
         'title' => 'インストール',
-        'installing' => 'インストール実行',
 
         'database' => [
             'header' => 'データベース設定',
@@ -116,6 +120,11 @@ return [
             'database' => 'データベース',
             'username' => 'ユーザー名',
             'password' => 'パスワード',
+        ],
+
+        'installing' => [
+            'header' => '初期データインストール',
+            'installing' => 'インストール実行',
         ],
 
         'help' => [
@@ -128,6 +137,11 @@ return [
             'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
             'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
         ],
+    ],
+
+    'validation' => [
+        'not_has_custom_value' => ':attributeに入力の値が、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'empty' => ':attributeの値は空欄のみ指定できます。',
     ],
 
     'system' => [
@@ -144,6 +158,7 @@ return [
         'site_favicon' => 'サイトファビコン(ico)',
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
+        'default_date_format' => '日時表示書式',
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
@@ -187,6 +202,18 @@ return [
             "layout_mini" => "小アイコン",
         ],
         
+        'date_format_options' => [
+            'format_default' => '標準（Y-m-d H:i:s）',
+            'format_slash' => 'カスタム（Y/m/d H:i:s）',
+            'format_local' => 'ローカル（Y年m月d日 H時i分s秒）',
+        ],
+        
+        'date_format_list' => [
+            'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
+            'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
+            'format_local' => ['Y年m月d日', 'Y年m月d日 H時i分s秒', 'H時i分s秒'],
+        ],
+        
         'help' =>[
             'site_name' => 'ページの左上に表示するサイト名です。',
             'site_name_short' => 'メニューを折りたたんだ時に表示する、サイト名の短縮語です。',
@@ -206,6 +233,7 @@ return [
             'system_mail_encryption' => 'メールの暗号化プロトコル形式を、小文字で入力してください。(ssl,tlsなど)',
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
+            'default_date_format' => '日付と時刻の表示書式を設定します。',
         ]
     ],
 
@@ -236,11 +264,13 @@ return [
             'system' => 'システム',
             'chart' => 'チャート',
             'calendar' => 'カレンダー',
+            'plugin' => 'プラグイン',
         ],
         
         'dashboard_box_options' => [
             'target_table_id' => '対象のテーブル',
             'target_view_id' => '対象のビュー',
+            'target_plugin_id' => '対象のプラグイン',
             'target_system_id' => '表示アイテム',
             'chart_axisx' => 'X軸の項目',
             'chart_axisy' => 'Y軸の項目',
@@ -284,6 +314,7 @@ return [
         'version' => 'バージョン',
         'active_flg' => '有効フラグ',
         'select_plugin_file' => 'プラグインを選択',
+        'show_plugin_page' => 'プラグインページを表示',
         'options' => [
             'header' => 'オプション設定',
             'custom_options_header' => 'カスタムオプション',
@@ -327,6 +358,10 @@ return [
             'trigger' => '機能',
             'document' => 'ドキュメント',
             'batch' => 'バッチ',
+            'import' => 'インポートテンプレート',
+            'script' => 'スクリプト',
+            'style' => 'スタイル',
+            'dashboard' => 'ダッシュボード',
         ],
     ],
 
@@ -483,6 +518,7 @@ return [
         'custom_form' => 'フォーム設定',
         'custom_relation' => 'リレーション設定',
         'custom_copy' => 'データコピー設定',
+        'custom_operation' => '一括更新設定',
         'custom_value' => 'データ一覧',
         'error_select' => '行を1行のみ選択してください',
     ],
@@ -565,6 +601,14 @@ return [
         'add_custom_form_flg' => '既定のフォームに追加する',
         'add_custom_view_flg' => '既定のビューに追加する',
         'auto_number_format_rule' => '自動採番フォーマットのルール',
+        'child_count_text' => '%s:件数',
+        'child_sum_text' => '%s:%s(合計)',
+        'symbols' => [
+            'plus' => '＋',
+            'minus' => '－',
+            'times' => '×',
+            'div' => '÷',
+        ],
         'options' => [
             'header' => '詳細オプション',
             'index_enabled' => '検索インデックス',
@@ -573,6 +617,8 @@ return [
             'default' => '初期値',
             'placeholder' => 'プレースホルダー',
             'help' => 'ヘルプ',
+            'min_width' => '列の幅(最小値)',
+            'max_width' => '列の幅(最大値)',
             'string_length' => '最大文字数',
             'rows' => '高さ',
             'available_characters' => '使用可能文字',
@@ -582,13 +628,14 @@ return [
             'number_max' => '最大値',
             'number_format' => '数値 カンマ文字列',
             'decimal_digit' => '小数点以下の桁数',
+            'percent_format' => 'パーセント表示',
             'updown_button' => '+-ボタン表示',
             'datetime_now_saving' => '保存時に実行日時を登録',
             'datetime_now_creating' => '作成時に実行日時を登録',
             'select_item' => '選択肢',
             "select_valtext" => "選択肢(値とテキスト)",
             'select_target_table' => '対象テーブル',
-            'select_target_view' => '対象ビュー',
+            'select_target_view' => '対象ビュー',	
             'select_import_column_id' => 'インポート時のキー列',
             'select_load_ajax' => '選択肢を絞り込む',
             'true_value' => '選択肢1のときの値',
@@ -603,6 +650,7 @@ return [
             'auto_number_type_random25' => 'ランダム(ライセンスコード)',
             'auto_number_type_random32' => 'ランダム(UUID)',
             'auto_number_format' => '採番フォーマット',
+            'auto_number_other' => 'その他',
             'multiple_enabled' => '複数選択を許可する',
             'calc_formula' => '計算式',
             'currency_symbol' => '通貨の表示形式',
@@ -637,7 +685,10 @@ return [
             'init_only' => 'YESにすることで、1回だけ値を入力可能になります。保存後は、読み取り専用で表示されます。',
             'default' => '新規登録時の、項目の初期値です。',
             'help' => 'フィールドの下に表示されるヘルプ文字列です。',
+            'min_width' => '一覧表示する時の、列の幅の最小値を、整数(px)で入力してください。',
+            'max_width' => '一覧表示する時の、列の幅の最大値を、整数(px)で入力してください。',
             'number_format' => 'YESにすることで、テキストフィールドがカンマ値で表示されます。',
+            'percent_format' => 'YESにすることで、一覧画面や表示画面でパーセント表示になります。',
             'rows' => '入力フォームの高さを設定してください。',
             'updown_button' => 'YESにすることで、フォームに+-ボタンを表示します。',
             'select_item' => '改行区切りで選択肢を入力してください。',
@@ -715,7 +766,7 @@ return [
         ],
 
         'help'=> [
-            'items' => 'データフォームに表示する項目を設定します。<br />「フォーム項目 候補一覧」の中から、フォームに表示したい項目を、「フォーム項目 列1」「フォーム項目 列2」にドラッグ＆ドロップで設定してください。',
+            'items' => 'データフォームに表示する項目を設定します。<br />「フォーム項目 候補一覧」の中から、フォームに表示したい項目を、ドラッグ＆ドロップで設定してください。',
             'changedata' => 'フォーム内の他の項目を選択したときに、選択したデータの値を、項目にコピーすることができます。<br />詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
             'changedata_no_item' => '※列の種類が「選択肢 (他のテーブルの値一覧から選択)」、「ユーザー」、「組織」となる列がテーブル内に存在しません。データ連動設定を使用する場合、これらの列を登録してください。',
         ],
@@ -723,6 +774,22 @@ return [
         'message' => [
             'no_exists_column' => '必須項目が設定されていません。',
         ],
+    ],
+
+    'custom_operation_columns' => [
+        'update_value' => '更新値',
+    ],
+
+    'custom_operation' => [
+        'custom_operation' => '一括更新',
+        'header' => '一括更新設定',
+        'description' => '選択データを一括更新するための設定を行います。',
+        'operation_name' => '一括更新文言',
+        'custom_operation_button_label' => '一括更新設定',
+        'custom_operation_columns' => '更新列設定',
+        'description_custom_operation_columns' => '一括更新の対象列と更新値を設定します。',
+        'view_column_target' => '対象列',
+        'update_value_text' => '更新値',
     ],
 
     'custom_view' => [
@@ -757,7 +824,7 @@ return [
         'description_custom_view_columns' => 'ビューに表示する列を設定します。',
         'description_custom_view_calendar_columns' => 'カレンダーに表示する日付列を選択します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_groups' => 'ビューをグループ化するキーとなる列を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
-        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
+        'description_custom_view_summaries' => 'ビューに表示する集計列を設定します。<br/>※集計対象は、「ID」「整数」「小数」「通貨」「日付」となる列です。<br />※データの合計件数を集計したい場合、対象列を「ID」、集計タイプを「件数」に設定してください。',
         'description_custom_view_sorts' => 'ビューに表示するデータの並べ替え(表示順序)を設定します。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
         'description_custom_view_filters' => 'ビューに表示する条件を設定します。<br/>※この設定の他に、ログインユーザーが所有する権限のデータのみ表示するよう、データのフィルターを行います。<br/>※「対象列」にカスタム列が表示されない場合、<a href="%s" target="_blank">検索インデックス<i class="fa fa-external-link"></i></a>が設定されていません。リンク先の内容をご確認いただき、設定を行ってください。',
 
@@ -853,6 +920,7 @@ return [
         'description' => '役割グループの設定を行います。役割グループは、複数の権限を持ち、ユーザー・組織のアクセス制御を行います。',
         'role_group_name' => '役割グループ名(英数字)',
         'role_group_view_name' => '役割グループ表示名',
+        'description_system_admin' => '<span class="red">※システム管理者権限の追加は、メニューの「システム設定」→「システム管理者」より追加してください。</span>',
         'permissions' => '権限詳細',
         'permission_setting' => '権限設定',
         'user_organization_setting' => 'ユーザー・組織設定',
@@ -887,7 +955,7 @@ return [
 
         'role_type_option_system' => [
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
-            'login_user' => ['label' => 'ログインユーザーの管理', 'help' => 'Exmentにログインするユーザーを管理できます。'],
+            'login_user' => ['label' => 'ユーザーのログイン設定', 'help' => 'ユーザーに、ログインするためのパスワード付与や、パスワードリセットなど行うことができます。<br/>※ユーザーアカウントの追加・変更は、下記の「マスター権限設定」の「ユーザー」の、「データ編集」にチェックを行ってください。'],
             'custom_table' => ['label' => 'すべてのテーブル管理', 'help' => 'カスタムテーブルの追加や、すべてのカスタムテーブルの変更・削除を行えます。また、カスタムテーブル内のすべてのデータを追加・変更・削除できます。'],
             'custom_form' => ['label' => 'フォーム', 'help' => 'カスタムフォームを追加・変更・削除できます。'],
             'custom_view' => ['label' => 'ビュー', 'help' => 'カスタムビューを追加・変更・削除できます。'],
@@ -959,8 +1027,18 @@ return [
         'input_column_description' => 'コピー実施時に、コピー後の値を変更するフォーム(ダイアログ)を表示することができます。<br/>コピー時にフォームに入力させる対象の列を設定してください。',
         'dialog_description' => "この%sのデータをもとに、%sを作成します。<br/>作成する%sのデータに登録する、値を記入してください。",
 
+        'options' => [
+            'child_copy' => '子テーブル設定',
+            'child_copy_format' => '%s（%s → %s）',
+        ],
+
         'help' => [
             'to_custom_table_view_name' => 'コピー先のテーブルを選択してください。',
+            'child_copy' => '対象データに紐づく子テーブルのデータをあわせてコピーします。事前に登録した子テーブル間のデータコピー設定（入力ダイアログ設定が無いもの）が候補に表示されます。',
+        ],
+
+        'message' => [
+            'to_custom_column_required' => 'コピー先テーブルの必須項目をすべて指定する必要があります。',
         ],
     ],
 
@@ -1007,6 +1085,8 @@ return [
             'organization' => '組織',
             'mail_template' => 'メールテンプレート',
             'mail' => 'メール送信履歴',
+            'operation_log' => '操作ログ',
+            'api_setting' => 'APIアプリ設定',
         ],
     ],
 
@@ -1056,6 +1136,7 @@ return [
             'import_file' => 'インポートファイル',
             'import_file_select' => 'CSVもしくはExcelファイルを選択',
             'primary_key' => '主キー',
+            'import_plugin' => 'インポートプラグイン',
             'error_flow' => 'エラー時処理',
             'import_error_message' => 'エラーメッセージ',
             'import_error_format' => '行%d : %s',
@@ -1064,6 +1145,7 @@ return [
                 'description' => 'Exmentに、各テーブルのデータをインポートすることができます。<br />手順など、詳細は<a href="%s" target="_blank">こちら<i class="fa fa-external-link"></i></a>をご参照ください。',
                 'custom_table_file' => 'テンプレート出力した、CSVファイル、もしくはExcelファイル(xlsx形式)を選択してください。',
                 'primary_key' => '更新データを絞り込む対象のフィールドを選択します。<br />このフィールド値が、すでにあるデータと合致していた場合、更新データとして取り込みを行います。<br />合致するデータが存在しなかった場合、新規データとして取り込みます。',
+                'import_plugin' => '取込ファイルを独自に処理する場合は、あらかじめプラグインをアップロードした上で選択してください。',
                 'error_flow' => 'データ不備などでエラーが発生した場合、正常データを取り込むかどうか選択します。',
                 'import_error_message' => '取込ファイルに不備があった場合、この項目に、行番号と、エラーメッセージを表示します。',
             ],
@@ -1104,6 +1186,10 @@ return [
             'reference_error' => 'このデータは別のテーブルから参照されているため、削除できません。',
             'multiple_uniques' => '%sがキーとなるその値は、すでに登録されています。',
             'init_flg' => '保存後、変更はできません。',
+        ],
+        'message' => [
+            'operation_notfound' => '更新対象のデータが見つかりませんでした。',
+            'operation_succeeded' => '一括更新を実行しました。',
         ],
     ],
 
@@ -1162,6 +1248,7 @@ return [
         'notify_action_target' => '通知対象',
         'mail_template_id' => 'テンプレート',
         'notify_button_name' => 'ボタン表示名',
+        'webhook_url' => 'Webhook URL',
 
         'help' => [
             'notify_day' => '通知を行う日付を入力してください。「0」と入力することで、当日に通知を行います。',
@@ -1174,6 +1261,7 @@ return [
             'notify_action' => '条件に合致した場合に行う、通知アクションを選択してください。',
             'notify_action_target' => '通知先の対象を選択します。選択できる項目は、「権限のあるユーザー」「作成者」と、カスタム列の「Eメール」列、「ユーザー」列、「選択肢 (他のテーブルの値一覧から選択)」です。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前にメールテンプレート画面にて、新規テンプレートを作成してください。',
+            'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 <br/>SlackとTeamsの両立はできません。',
         ],
 
         'notify_trigger_options' => [
@@ -1188,12 +1276,23 @@ return [
         'notify_action_options' => [
             'email' => 'Eメール', 
             'show_page' => 'システム内アラート', 
+            'slack' => 'Slack通知', 
+            'microsoft_teams' => 'Microsoft Teams通知',
         ],
 
         'notify_action_target_options' => [
             'has_roles' => '権限のあるユーザー',
             'created_user' => '作成者',
         ],
+    ],
+    
+    'operation_log' => [
+        'description' => '操作ログを一覧表示します。',
+        'user_name' => 'ユーザー名',
+        'method' => 'メソッド',
+        'path' => 'パス',
+        'ip' => 'IPアドレス',
+        'input' => '入力・クエリ',
     ],
     
     'chart' => [
@@ -1216,6 +1315,12 @@ return [
         ]
     ],
     
+    'validator' => [
+        'required_if_ex' => [
+            'notify_actions' => '実施アクション'
+        ]
+    ],
+    
     'api' => [
         'scopes' => [
             'me' => 'ログインユーザー情報の取得',
@@ -1226,8 +1331,29 @@ return [
         ],
 
         'errors' => [
+            'invalid_params' => 'パラメータに誤りがあります。',
+            'over_maxcount' => 'countに指定できるのは1～100までの数値です。',
             'access_denied' => '認証できませんでした。アクセストークンが誤っているか、期限が切れています。',
             'wrong_scope' => 'APIを実行するためのスコープに誤りがあります。開発者にお問い合わせください。',
-        ]
+        ],
+
+        'help' =>[
+            'redirect' => '認証後にリダイレクトするURLを入力してください。',
+            'client_secret' => 'キーを表示したい場合、左のアイコンをクリックしてください。',
+            'description' => '<span class="red">API設定の詳細な説明については、ページ右上の「？」アイコンをクリックし、マニュアルをご確認ください。</span>',
+        ],
+
+        'client_type_options' => [
+            'client_credentials' => '画面ログイン形式',
+            'password_grant' => 'パスワード形式',
+        ],
+
+        'header' => 'APIアプリ設定',
+        'description' => 'APIを実行するためのアプリケーション設定を登録します。',
+        'app_name' => 'アプリ名',
+        'client_type_text' => '認証形式',
+        'client_id' => 'Client ID',
+        'client_secret' => 'Client Secret',
+        'redirect' => 'リダイレクトURL',
     ],
 ];

@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomViewColumn;
 use Exceedone\Exment\Model\CustomViewSort;
 use Exceedone\Exment\Model\CustomValueAuthoritable;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -76,6 +77,9 @@ class PatchDataCommand extends Command
             case '2factor':
                 $this->import2factorTemplate();
                 return;
+            case 'zip_password':
+                $this->importZipPasswordTemplate();
+                return;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
                 return;
@@ -87,6 +91,18 @@ class PatchDataCommand extends Command
                 return;
             case 'alldata_view':
                 $this->copyViewColumnAllDataView();
+                return;
+            case 'init_column':
+                $this->initOnlyCodeColumn();
+                return;
+            case 'move_plugin':
+                $this->movePluginFolder();
+                return;
+            case 'move_template':
+                $this->moveTemplateFolder();
+                return;
+            case 'remove_deleted_table_notify':
+                $this->removeDeletedTableNotify();
                 return;
         }
 
@@ -199,6 +215,19 @@ class PatchDataCommand extends Command
             'verify_2factor',
             'verify_2factor_google',
             'verify_2factor_system',
+        ]);
+    }
+    
+    /**
+     * import mail template for Zip Password
+     *
+     * @return void
+     */
+    protected function importZipPasswordTemplate()
+    {
+        return $this->patchMailTemplate([
+            'password_notify',
+            'password_notify_header',
         ]);
     }
     
@@ -430,6 +459,29 @@ class PatchDataCommand extends Command
             ]);
     }
 
+    /**
+     * update init only option custom column
+     *
+     * @return void
+     */
+    protected function initOnlyCodeColumn()
+    {
+        $tableColumns = [
+            SystemTableName::USER => 'user_code',
+            SystemTableName::ORGANIZATION => 'organization_code',
+            SystemTableName::MAIL_TEMPLATE => 'mail_key_name',
+        ];
+
+        foreach ($tableColumns as $table => $column) {
+            $custom_column = CustomColumn::getEloquent($column, $table);
+            if (!isset($custom_column)) {
+                continue;
+            }
+
+            $custom_column->setOption('init_only', 1);
+            $custom_column->save();
+        }
+    }
     
     /**
      * patch mail template
@@ -439,8 +491,17 @@ class PatchDataCommand extends Command
     protected function patchMailTemplate($mail_key_names = [])
     {
         // get vendor folder
+        $locale = \App::getLocale();
         $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
-        $path = "$templates_data_path/mail_template.xlsx";
+        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
+        // if exists, execute data copy
+        if (!\File::exists($path)) {
+            $path = path_join($templates_data_path, "mail_template.xlsx");
+            // if exists, execute data copy
+            if (!\File::exists($path)) {
+                return;
+            }
+        }
 
         $table_name = \File::name($path);
         $format = \File::extension($path);
@@ -455,5 +516,64 @@ class PatchDataCommand extends Command
             ]))
             ->format($format);
         $service->import($path);
+    }
+    
+    /**
+     * remove deleted table notify
+     *
+     * @return void
+     */
+    protected function removeDeletedTableNotify($mail_key_names = [])
+    {
+        // get custom table id
+        $custom_table_ids = CustomTable::pluck('id');
+        Notify::whereNotIn('custom_table_id', $custom_table_ids)->delete();
+    }
+    
+    /**
+     * move plugin folder
+     *
+     * @return void
+     */
+    protected function movePluginFolder()
+    {
+        return $this->moveAppToStorageFolder('Plugins', Define::DISKNAME_PLUGIN_LOCAL);
+    }
+    
+    /**
+     * move template folder
+     *
+     * @return void
+     */
+    protected function moveTemplateFolder()
+    {
+        return $this->moveAppToStorageFolder('Templates', Define::DISKNAME_TEMPLATE_LOCAL);
+    }
+    
+    /**
+     * move folder
+     *
+     * @return void
+     */
+    protected function moveAppToStorageFolder($pathName, $diskName)
+    {
+        // get app/$pathName folder
+        $beforeFolder = app_path($pathName);
+        if (!\File::isDirectory($beforeFolder)) {
+            return;
+        }
+        
+        $befores = scandir($beforeFolder);
+        if (!is_array($befores)) {
+            return;
+        }
+
+        foreach ($befores as $before) {
+            if (in_array($before, [".",".."])) {
+                continue;
+            }
+            $oldPath = path_join($beforeFolder, $before);
+            \File::move($oldPath, getFullpath($before, $diskName));
+        }
     }
 }

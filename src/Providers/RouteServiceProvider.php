@@ -52,6 +52,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("dashboardbox/chart_axis/{axis_type}", 'DashboardBoxController@chartAxis');
             $router->resource('dashboardbox', 'DashboardBoxController');
         
+            $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
@@ -83,6 +84,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("notify_navbar/rowdetail/{id}", 'NotifyNavbarController@redirectTargetData');
             $router->post("notify_navbar/rowcheck/{id}", 'NotifyNavbarController@rowCheck');
 
+            $router->resource('api_setting', 'ApiSettingController', ['except' => ['show']]);
             $router->resource('plugin', 'PluginController', ['except' => ['show']]);
             $router->resource('role_group', 'RoleGroupController', ['except' => ['show']]);
             $router->resource('table', 'CustomTableController', ['except' => ['show']]);
@@ -121,16 +123,16 @@ class RouteServiceProvider extends ServiceProvider
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->post("data/{tableKey}/{id}/rowUpdate/{rowid}", 'CustomValueController@rowUpdate');
 
             $router->post("view/{tableKey}/filterDialog", 'CustomViewController@getFilterDialogHtml');
             $router->get("view/{tableKey}/filter-condition", 'CustomViewController@getFilterCondition');
             $router->get("view/{tableKey}/summary-condition", 'CustomViewController@getSummaryCondition');
             $router->get("view/{tableKey}/group-condition", 'CustomViewController@getGroupCondition');
             $router->get("view/{tableKey}/filter-value", 'CustomViewController@getFilterValue');
-                        
-            $router->get("navisearch/data/{tableKey}", 'NaviSearchController@getNaviData');
-            $router->post("navisearch/result/{tableKey}", 'NaviSearchController@getNaviResult');
 
+            $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
+                        
             $router->get('api/table/{id}', 'ApiController@table');
             $router->get("api/target_table/columns/{id}", 'ApiController@targetBelongsColumns');
         
@@ -147,6 +149,7 @@ class RouteServiceProvider extends ServiceProvider
             $this->setTableResouce($router, 'view', 'CustomViewController');
             $this->setTableResouce($router, 'relation', 'CustomRelationController');
             $this->setTableResouce($router, 'copy', 'CustomCopyController');
+            $this->setTableResouce($router, 'operation', 'CustomOperationController');
             $this->setTableResouce($router, 'data', 'CustomValueController');
 
             $router->get('webapi/menu/menutype', 'MenuController@menutype');
@@ -164,15 +167,15 @@ class RouteServiceProvider extends ServiceProvider
         ], function (Router $router) {
             $router->get('initialize', 'InitializeController@index');
             $router->post('initialize', 'InitializeController@post');
-            $router->put('initialize/filedelete', 'initialize@filedelete');
+            $router->put('initialize/filedelete', 'InitializeController@filedelete');
             $router->get('auth/login', 'AuthController@getLoginExment');
             $router->post('auth/login', 'AuthController@postLogin');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
-            $router->get('favicon/{uuid}', function ($uuid) {
-                return File::downloadFile($uuid);
+            $router->get('favicon', function () {
+                return File::downloadFavicon();
             });
 
             // get config about login provider
@@ -216,6 +219,7 @@ class RouteServiceProvider extends ServiceProvider
                 // value --------------------------------------------------
                 $router->get("data/{tableKey}", 'ApiTableController@dataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/query", 'ApiTableController@dataQuery')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                $router->get("data/{tableKey}/select", 'ApiTableController@dataSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/relatedLinkage", 'ApiTableController@relatedLinkage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/calendar", 'ApiTableController@calendarList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 $router->get("data/{tableKey}/{id}", 'ApiTableController@dataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));

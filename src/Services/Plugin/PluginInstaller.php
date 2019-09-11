@@ -6,83 +6,17 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\DocumentType;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Validator\PluginTypeRule;
 use Symfony\Component\HttpFoundation\Response;
 use ZipArchive;
 use File;
 use Validator;
 
 /**
- * Install Template
+ * Install Plugin
  */
 class PluginInstaller
 {
-    /**
-     * get template list (get from app folder and vendor/exceedone/exment/templates)
-     */
-    public static function getTemplates()
-    {
-        $templates = [];
-
-        foreach (static::getTemplateBasePaths() as $templates_path) {
-            $paths = File::glob("$templates_path/*/config.json");
-            foreach ($paths as $path) {
-                try {
-                    $dirname = pathinfo($path)['dirname'];
-                    $json = json_decode(File::get($path), true);
-                    // add thumbnail
-                    if (isset($json['thumbnail'])) {
-                        $thumbnail_fullpath = path_join($dirname, $json['thumbnail']);
-                        if (File::exists($thumbnail_fullpath)) {
-                            $json['thumbnail_fullpath'] = $thumbnail_fullpath;
-                        }
-                    }
-                    array_push($templates, $json);
-                } catch (Exception $exception) {
-                    //TODO:error handling
-                }
-            }
-        }
-
-        return $templates;
-    }
-
-    /**
-     * Install template (from display)
-     */
-    public static function installTemplate($templateName)
-    {
-        if (!is_array($templateName)) {
-            $templateName = [$templateName];
-        }
-        
-        foreach (static::getTemplateBasePaths() as $templates_path) {
-            foreach ($templateName as $t) {
-                if (!isset($t)) {
-                    continue;
-                }
-                $path = "$templates_path/$t/config.json";
-                if (!File::exists($path)) {
-                    continue;
-                }
-                
-                static::install($path);
-            }
-        }
-    }
-
-
-    /**
-     * Install System template (from command)
-     */
-    public static function installSystemTemplate()
-    {
-        // get vendor folder
-        $templates_base_path = base_path() . '/vendor/exceedone/exment/system_template';
-        $path = "$templates_base_path/config.json";
-
-        static::install($path, true);
-    }
-
     /**
      * Upload plugin (from display)
      */
@@ -90,14 +24,15 @@ class PluginInstaller
     {
         // store uploaded file and get tmp path
         $tmpdir = getTmpFolderPath('plugin', false);
-        $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
+        $tmpfolderpath = path_join($tmpdir, short_uuid());
+        $tmpfolderfullpath = getFullPath($tmpfolderpath, Define::DISKNAME_ADMIN_TMP, true);
+        $pluginFileBasePath = null;
 
         $filename = $uploadFile->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
         $fullpath = getFullpath($filename, Define::DISKNAME_ADMIN_TMP);
         // // tmpfolderpath is the folder path uploaded.
         // $tmpfolderpath = path_join(pathinfo($fullpath)['dirname'], pathinfo($fullpath)['filename']);
-        $tmpPluginFolderPath = null;
-
+        
         // open zip file
         $zip = new ZipArchive;
         //Define variable like flag to check exitsed file config (config.json) before extract zip file
@@ -113,10 +48,23 @@ class PluginInstaller
             $stat = $zip->statIndex($i);
             $fileInfo = $zip->getNameIndex($i);
             if (basename($zip->statIndex($i)['name']) === 'config.json') {
-                $zip->extractTo($tmpfolderpath);
-                $config_path = path_join($tmpfolderpath, array_get($stat, 'name'));
-                // plugin base path is the root path that has config and php.
-                $tmpPluginFolderPath = pathinfo($config_path)['dirname'];
+                $zip->extractTo($tmpfolderfullpath);
+
+                // get confign statname
+                $statname = array_get($stat, 'name');
+                $config_path = path_join($tmpfolderfullpath, $statname);
+
+                // get dirname
+                $dirname = pathinfo($statname)['dirname'];
+
+                // if dirname is '.', $pluginFileBasePath is $tmpfolderpath
+                if ($dirname == '.') {
+                    $pluginFileBasePath = $tmpfolderpath;
+                }
+                // else, $pluginFileBasePath is join $dirname
+                else {
+                    $pluginFileBasePath = path_join($tmpfolderpath, $dirname);
+                }
                 break;
             }
         }
@@ -132,7 +80,7 @@ class PluginInstaller
             } else {
                 //Validate json file with fields require
                 $checkRuleConfig = static::checkRuleConfigFile($json);
-                if ($checkRuleConfig) {
+                if ($checkRuleConfig === true) {
                     //Check if the name of the plugin has existed
                     $plugineExistByName = Plugin::getPluginByName(array_get($json, 'plugin_name'));
                     //Check if the uuid of the plugin has existed
@@ -141,20 +89,20 @@ class PluginInstaller
                     //If json pass validation, prepare data to do continue
                     $plugin = static::prepareData($json);
                     //Make path of folder where contain plugin with name is plugin's name
-                    $pluginFolder = $plugin->getFullPath();
+                    $pluginFolder = $plugin->getPath();
 
                     //If both name and uuid existed, update data for this plugin
                     if (!is_null($plugineExistByName) && !is_null($plugineExistByUUID)) {
                         $pluginUpdated = $plugin->saveOrFail();
                         //Rename folder with plugin name
-                        static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
+                        static::copyPluginNameFolder($json, $pluginFolder, $pluginFileBasePath);
                         admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
                     //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                     elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
                         $plugin->save();
-                        static::copyPluginNameFolder($json, $pluginFolder, $tmpPluginFolderPath);
+                        static::copyPluginNameFolder($json, $pluginFolder, $pluginFileBasePath);
                         admin_toastr(exmtrans('common.message.success_execute'));
                         $response = back();
                     }
@@ -172,7 +120,7 @@ class PluginInstaller
                         $response = back();
                     }
                 } else {
-                    $response = back()->with('errorMess', exmtrans('common.message.wrongconfig'));
+                    $response = back()->with('errorMess', $checkRuleConfig);
                 }
             }
         }
@@ -180,7 +128,7 @@ class PluginInstaller
         // delete tmp folder
         $zip->close();
         // delete zip
-        File::deleteDirectory($tmpfolderpath);
+        File::deleteDirectory($tmpfolderfullpath);
         unlink($fullpath);
         //return response
         if (isset($response)) {
@@ -194,7 +142,7 @@ class PluginInstaller
         $rules = [
             'plugin_name' => 'required',
             'document_type' => 'in:'.DocumentType::getSelectableString(),
-            'plugin_type' => 'required|in:'.PluginType::getRequiredString(),
+            'plugin_type' => new PluginTypeRule(),
             'plugin_view_name' => 'required',
             'uuid' => 'required'
         ];
@@ -204,7 +152,11 @@ class PluginInstaller
         if ($validator->passes()) {
             return true;
         } else {
-            return false;
+            $messages = collect($validator->errors()->messages());
+            $message = $messages->map(function ($message) {
+                return $message[0];
+            });
+            return implode("\r\n", $message->values()->toArray());
         }
     }
 
@@ -214,13 +166,13 @@ class PluginInstaller
         // find or new $plugin
         $plugin = Plugin::firstOrNew(['plugin_name' => array_get($json, 'plugin_name'), 'uuid' => array_get($json, 'uuid')]);
 
-        $plugin_type = PluginType::getEnum(array_get($json, 'plugin_type'));
-        $plugin->plugin_type = $plugin_type->getValue() ?? null;
+        $plugin_type = array_get($json, 'plugin_type');
+        $plugin->plugin_types = $plugin_type;
         
         foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
         }
-        $plugin->active_flg = $plugin_type != PluginType::BATCH;
+        $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
         
         // set options
         $options = array_get($plugin, 'options', []);
@@ -234,23 +186,52 @@ class PluginInstaller
             $options['target_tables'] = $target_tables;
         }
 
-        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron'] as $key) {
+        foreach (['label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'cdns', 'uri'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }
         }
+
+        // if page and 'uri' is empty, set snake_case plugin_name
+        if ($plugin->isPluginTypeUri() && !array_has($options, 'uri')) {
+            $options['uri'] = snake_case(array_get($json, 'plugin_name'));
+        }
+
         $plugin->options = $options;
 
         return $plugin;
     }
 
     //Copy tmp folder to app folder
-    protected static function copyPluginNameFolder($json, $pluginFolderPath, $tmpPluginFolderPath)
+    protected static function copyPluginNameFolder($json, $pluginFolderPath, $pluginFileBasepath)
     {
-        if (!File::exists($pluginFolderPath)) {
-            File::makeDirectory($pluginFolderPath);
+        // get all files
+        $pluginDisk = static::pluginDisk();
+        $tmpDisk = static::tmpDisk();
+        $files = $tmpDisk->allFiles($pluginFileBasepath);
+
+        foreach ($files as $file) {
+            // get moved file name
+            $movedFileName = str_replace($pluginFileBasepath, '', $file);
+            $movedFileName = str_replace(str_replace('\\', '/', $pluginFileBasepath), '', $movedFileName);
+            $movedFileName = trim($movedFileName, '/');
+            $movedFileName = trim($movedFileName, '\\');
+
+            // upload file
+            $stream = $tmpDisk->readStream($file);
+            $movedpath = path_join($pluginFolderPath, $movedFileName);
+            $pluginDisk->delete($movedpath);
+            $pluginDisk->writeStream($movedpath, $stream);
         }
-        // copy folder
-        File::copyDirectory($tmpPluginFolderPath, $pluginFolderPath);
+    }
+    
+    protected static function pluginDisk()
+    {
+        return \Storage::disk(Define::DISKNAME_PLUGIN);
+    }
+    
+    protected static function tmpDisk()
+    {
+        return \Storage::disk(Define::DISKNAME_ADMIN_TMP);
     }
 }

@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Services\DataImportExport;
 
 use Encore\Admin\Grid\Exporters\AbstractExporter;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Enums\PluginType;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -136,12 +138,18 @@ class DataImportExportService extends AbstractExporter
     {
         set_time_limit(240);
         // validate request
-        if (!$this->validateRequest($request)) {
+        if (!($errors = $this->validateRequest($request))) {
             return [
                 'result' => false,
                 //'toastr' => exmtrans('common.message.import_error'),
-                'errors' => $validateRequest,
+                'errors' => $errors,
             ];
+        }
+
+        $import_plugin = is_string($request) ? null : $request->get('import_plugin');
+
+        if (isset($import_plugin)) {
+            return $this->customImport($import_plugin, $request->file('custom_table_file'));
         }
 
         $this->format->filebasename($this->filebasename);
@@ -156,9 +164,39 @@ class DataImportExportService extends AbstractExporter
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
+        if(count($datalist) == 0){
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
+            ];
+        }
+
         $response = $this->importAction->import($datalist);
 
         return $response;
+    }
+
+    /**
+     * import data by custom logic
+     * @param $import_plugin
+     */
+    protected function customImport($import_plugin, $file)
+    {
+        $plugin = Plugin::find($import_plugin);
+        $batch = $plugin->getClass(PluginType::IMPORT, ['file' => $file]);
+        $result = $batch->execute();
+        if ($result === false) {
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error')
+            ];
+        } else {
+            return [
+                'result' => true,
+                'toastr' => exmtrans('common.message.import_success')
+            ];
+        }
     }
 
     /**
@@ -206,7 +244,7 @@ class DataImportExportService extends AbstractExporter
     }
 
     // Import Modal --------------------------------------------------
-    public function getImportModal()
+    public function getImportModal($pluginlist = null)
     {
         // create form fields
         $form = new \Exceedone\Exment\Form\Widgets\ModalForm();
@@ -229,6 +267,13 @@ class DataImportExportService extends AbstractExporter
             ->setWidth(8, 3)
             ->addElementClass('select_primary_key')
             ->help(exmtrans('custom_value.import.help.primary_key'));
+
+        if (!empty($pluginlist)) {
+            $form->select('import_plugin', exmtrans('custom_value.import.import_plugin'))
+            ->options($pluginlist)
+            ->setWidth(8, 3)
+            ->help(exmtrans('custom_value.import.help.import_plugin'));
+        }
 
         $form->hidden('select_action')->default('stop');
         // $form->select('select_action', exmtrans('custom_value.import.error_flow'))

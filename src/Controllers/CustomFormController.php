@@ -18,7 +18,6 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
@@ -271,6 +270,9 @@ class CustomFormController extends AdminControllerTableBase
                 $custom_form_column_array['header_column_name'] = '[custom_form_columns]['
                     .(isset($custom_form_column['id']) ? $custom_form_column['id'] : 'NEW__'.make_uuid())
                     .']';
+                
+                // add name for toggle(it's OK random string)
+                $custom_form_column_array['toggle_key_name'] = make_uuid();
 
                 array_push($column_blocks['custom_form_columns'], $custom_form_column_array);
             }
@@ -307,7 +309,7 @@ class CustomFormController extends AdminControllerTableBase
                 $block->form_block_view_name = $block->label;
                 $block->available = 0;
                 $block->options = [
-                    'hasmany_type' => RelationType::ONE_TO_MANY ? 1 : null
+                    'hasmany_type' => null
                 ];
                 $block->custom_form_columns = [];
                 array_push($custom_form_blocks, $block->toArray());
@@ -480,6 +482,7 @@ class CustomFormController extends AdminControllerTableBase
                 .(isset($custom_form_column['id']) ? $custom_form_column['id'] : 'NEW__'.make_uuid())
                 .']';
                 $custom_form_column['header_column_name'] = $header_column_name;
+                $custom_form_column['toggle_key_name'] = make_uuid();
             }
 
             array_push($suggests, [
@@ -500,7 +503,8 @@ class CustomFormController extends AdminControllerTableBase
                 'form_column_type' => FormColumnType::OTHER,
                 'required' => false,
                 'form_column_target_id' => $id,
-                'header_column_name' =>$header_column_name
+                'header_column_name' =>$header_column_name,
+                'toggle_key_name' => make_uuid(),
             ]);
         }
         array_push($suggests, [
