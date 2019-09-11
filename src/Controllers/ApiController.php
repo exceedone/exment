@@ -55,10 +55,18 @@ class ApiController extends AdminControllerBase
             return abortJson(403, trans('admin.deny'));
         }
 
+        // get and check query parameter
+        if ($request->has('count')) {
+            $count = $request->get('count');
+            if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
+                return abortJson(400, exmtrans('api.errors.over_maxcount'));
+            }
+        }
+
         // filter table
         $query = CustomTable::query();
         CustomTable::filterList($query, ['getModel' => false]);
-        return $query->paginate();
+        return $query->paginate($count ?? config('exment.api_default_data_count'));
     }
 
     /**
