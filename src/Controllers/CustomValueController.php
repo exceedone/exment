@@ -332,9 +332,7 @@ class CustomValueController extends AdminControllerTableBase
         
         set_time_limit(240);
 
-        //TODO:for plugin type.
-        // Only Trigger?
-        $class = $plugin->getClass(PluginType::TRIGGER, [
+        $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
             'id' => $id
         ]);
