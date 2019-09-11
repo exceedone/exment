@@ -76,17 +76,7 @@
                 </div>
 
                 <div class="col-md-8">
-                <div class="col-xs-12 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
-                    data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="8">
-
-                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.header') }}</h5>
-                    <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
-                        @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
-                        @if(array_get($custom_form_column, 'column_no') != 8) @continue @endif
-    @include("exment::custom-form.form-item", ['custom_form_column'
-                        => $custom_form_column, 'suggest' => false]) @endforeach
-                    </ul>
-                </div>
+                
                 <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="1">
 
@@ -105,17 +95,6 @@
                     <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
                         @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
                         @if(array_get($custom_form_column, 'column_no') != 2) @continue @endif
-    @include("exment::custom-form.form-item", ['custom_form_column'
-                        => $custom_form_column, 'suggest' => false]) @endforeach
-                    </ul>
-                </div>
-                <div class="col-xs-12 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
-                    data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="9">
-
-                    <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.footer') }}</h5>
-                    <ul class="custom_form_column_items draggables ul_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}" data-connecttosortable="suggests_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}">
-                        @foreach($custom_form_block['custom_form_columns'] as $custom_form_column)
-                        @if(array_get($custom_form_column, 'column_no') != 9) @continue @endif
     @include("exment::custom-form.form-item", ['custom_form_column'
                         => $custom_form_column, 'suggest' => false]) @endforeach
                     </ul>
