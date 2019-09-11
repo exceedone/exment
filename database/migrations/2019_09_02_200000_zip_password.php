@@ -15,6 +15,7 @@ class ZipPassword extends Migration
     public function up()
     {
         \Artisan::call('exment:patchdata', ['action' => 'zip_password']);
+        \Artisan::call('exment:patchdata', ['action' => 'alldata_view']);
         
         if (!Schema::hasColumn('plugins', 'plugin_types') && Schema::hasColumn('plugins', 'plugin_type')) {
             Schema::table('plugins', function (Blueprint $table) {

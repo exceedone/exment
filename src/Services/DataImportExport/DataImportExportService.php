@@ -138,11 +138,11 @@ class DataImportExportService extends AbstractExporter
     {
         set_time_limit(240);
         // validate request
-        if (!$this->validateRequest($request)) {
+        if (!($errors = $this->validateRequest($request))) {
             return [
                 'result' => false,
                 //'toastr' => exmtrans('common.message.import_error'),
-                'errors' => $validateRequest,
+                'errors' => $errors,
             ];
         }
 
@@ -161,10 +161,17 @@ class DataImportExportService extends AbstractExporter
             $datalist = $this->format->getDataTable($request);
         }
 
-
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
+        if(count($datalist) == 0){
+            return [
+                'result' => false,
+                'toastr' => exmtrans('common.message.import_error'),
+                'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.failure_import_file')]],
+            ];
+        }
+
         $response = $this->importAction->import($datalist);
 
         return $response;

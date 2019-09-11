@@ -395,13 +395,13 @@ class Initialize
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
 
-            $log_string = 'SQL: ' .$sql;
+            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
-                $log_string .= "    , function: $function";
+                $log_string .= ";    function: $function";
             } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
                 $function = static::getFunctionName(true);
-                $log_string .= "    , function: $function";
+                $log_string .= ";    function: $function";
             }
 
             exmDebugLog($log_string);
