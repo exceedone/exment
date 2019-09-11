@@ -99,6 +99,13 @@ class Modal
                 }).fail(function( res, textStatus, errorThrown ) {
                     // reomve class and prop
                     button.removeAttr('disabled').removeClass('disabled').text(button.data('buttontext'));
+                    
+                    // if not have responseJSON, undefined error
+                    if(!hasValue(res.responseJSON)){
+                        toastr.error('Undefined Error');
+                        return;
+                    }
+                    
                     // show toastr
                     if(hasValue(res.responseJSON.toastr)){
                         toastr.error(res.responseJSON.toastr);
