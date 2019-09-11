@@ -45,9 +45,7 @@ trait CustomValueGrid
         $this->setCustomGridFilters($grid, $search_enabled_columns);
 
         // manage tool button
-        $listButton = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
-        $importlist = Plugin::pluginPreparingImport($this->plugins);
-        $this->manageMenuToolButton($grid, $listButton, $importlist);
+        $this->manageMenuToolButton($grid);
 
         Plugin::pluginPreparing($this->plugins, 'loaded');
         return $grid;
@@ -116,17 +114,20 @@ trait CustomValueGrid
      * Manage Grid Tool Button
      * And Manage Batch Action
      */
-    protected function manageMenuToolButton($grid, $listButton, $importlist)
+    protected function manageMenuToolButton($grid)
     {
         $custom_table = $this->custom_table;
         $grid->disableCreateButton();
         $grid->disableExport();
-        
+
         // create exporter
         $service = $this->getImportExportService($grid);
         $grid->exporter($service);
         
-        $grid->tools(function (Grid\Tools $tools) use ($listButton, $grid, $service, $importlist) {
+        $grid->tools(function (Grid\Tools $tools) use ($grid, $service) {
+            $listButtons = Plugin::pluginPreparingButton($this->plugins, 'grid_menubutton');
+            $importlist = Plugin::pluginPreparingImport($this->plugins);
+            
             // have edit flg
             $edit_flg = $this->custom_table->hasPermission(Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
             // if user have edit permission, add button
@@ -141,9 +142,9 @@ trait CustomValueGrid
             $tools->append(new Tools\GridChangeView($this->custom_table, $this->custom_view));
             
             // add plugin button
-            if ($listButton !== null && count($listButton) > 0) {
-                foreach ($listButton as $plugin) {
-                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
+            if ($listButtons !== null && count($listButtons) > 0) {
+                foreach ($listButtons as $listButton) {
+                    $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
                 }
             }
             
