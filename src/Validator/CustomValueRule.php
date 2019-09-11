@@ -35,12 +35,10 @@ class CustomValueRule implements Rule
             return true;
         }
         // get target table's value (use request session)
-        $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALIDATION, $this->custom_table->table_name, $value);
-        $model = System::requestSession($key, function() use($value){
-            return $this->custom_table->getValueModel($value);
-        });
+        $model = $this->custom_table->getValueModel($value);
         return isset($model);
     }
+    
     /**
      * get validation error message
      *
