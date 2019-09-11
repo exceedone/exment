@@ -321,50 +321,10 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $value = $request->get('value');
-        // replace items
-        if (!is_null($findKeys = $request->get('findKeys'))) {
-            $custom_table = $custom_value->custom_table;
-            foreach ($findKeys as $findKey => $findValue) {
-                // find column
-                $custom_column = CustomColumn::getEloquent($findKey, $custom_table);
-                if (!isset($custom_column)) {
-                    continue;
-                }
 
-                if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
-                    continue;
-                }
-
-                // get target custom table
-                $findCustomTable = $custom_column->select_target_table;
-                if (!isset($findCustomTable)) {
-                    continue;
-                }
-
-                // get target column for getting index
-                $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-                if (!isset($findCustomColumn)) {
-                    continue;
-                }
-
-                if (!$findCustomColumn->index_enabled) {
-                    //TODO:show error
-                    continue;
-                }
-                $indexColumnName = $findCustomColumn->getIndexColumnName();
-
-                $findCustomValue = $findCustomTable->getValueModel()
-                    ->where($indexColumnName, array_get($value, $findKey))
-                    ->first();
-
-                if (!isset($findCustomValue)) {
-                    //TODO:show error
-                    continue;
-                }
-                array_set($value, $findKey, array_get($findCustomValue, 'id'));
-            }
-        }
-
+        $values = [$value];
+        $this->convertFindKeys($values, $request);
+        $value = $values[0];
 
         // // get fields for validation
         $validate = $this->validateData($value, $custom_value->id);
@@ -385,41 +345,42 @@ class ApiTableController extends AdminControllerTableBase
         return getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
     }
 
-    protected function convertFindKeys($values, $request)
+    protected function convertFindKeys(&$values, $request)
     {
         if (is_null($findKeys = $request->get('findKeys'))) {
             return;
         }
+
         foreach ($findKeys as $findKey => $findValue) {
+            // find column
+            $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
+            if (!isset($custom_column)) {
+                continue;
+            }
+
+            if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
+                continue;
+            }
+
+            // get target custom table
+            $findCustomTable = $custom_column->select_target_table;
+            if (!isset($findCustomTable)) {
+                continue;
+            }
+
+            // get target column for getting index
+            $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
+            if (!isset($findCustomColumn)) {
+                continue;
+            }
+
+            if (!$findCustomColumn->index_enabled) {
+                //TODO:show error
+                continue;
+            }
+            $indexColumnName = $findCustomColumn->getIndexColumnName();
+
             foreach($values as &$value) {
-                // find column
-                $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
-                if (!isset($custom_column)) {
-                    continue;
-                }
-
-                if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
-                    continue;
-                }
-
-                // get target custom table
-                $findCustomTable = $custom_column->select_target_table;
-                if (!isset($findCustomTable)) {
-                    continue;
-                }
-
-                // get target column for getting index
-                $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-                if (!isset($findCustomColumn)) {
-                    continue;
-                }
-
-                if (!$findCustomColumn->index_enabled) {
-                    //TODO:show error
-                    continue;
-                }
-                $indexColumnName = $findCustomColumn->getIndexColumnName();
-
                 $findCustomValue = $findCustomTable->getValueModel()
                     ->where($indexColumnName, array_get($value, $findKey))
                     ->first();
@@ -444,14 +405,23 @@ class ApiTableController extends AdminControllerTableBase
             ]);
         }
 
-        foreach($values as $value) {
+        $this->convertFindKeys($values, $request);
+
+        $validates = [];
+        foreach($values as $index => $value) {
             // // get fields for validation
             $validate = $this->validateData($value);
             if ($validate !== true) {
-                return abortJson(400, [
-                    'errors' => $validate
-                ]);
+                $validates[] = [
+                    'line_no' => $index,
+                    'error' => $validate
+                ];
             }
+        }
+        if (count($validates) > 0) {
+            return abortJson(400, [
+                'errors' => $validates
+            ]);
         }
 
         $response = [];
