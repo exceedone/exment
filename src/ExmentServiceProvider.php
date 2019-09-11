@@ -192,10 +192,12 @@ class ExmentServiceProvider extends ServiceProvider
         register_shutdown_function(function() {
             if ($error = error_get_last()) {
                 if (isset($error['type']) && ($error['type'] == E_ERROR || $error['type'] == E_CORE_ERROR)) {
-                    return getAjaxResponse([
-                        'result'  => false,
-                        'message' => 'メモリリークです',
-                    ]);
+                    if (!request()->pjax() && request()->ajax()) {
+                        abort(400, json_encode(getAjaxResponse([
+                            'result'  => false,
+                            'message' => 'メモリリークです',
+                        ])));
+                    }
                 }
             }
         });

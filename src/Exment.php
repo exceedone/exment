@@ -26,6 +26,9 @@ class Exment
         if (isApiEndpoint()) {
             return $callback($request, $exception);
         }
+        if (!request()->pjax() && request()->ajax()) {
+            return $callback($request, $exception);
+        }
         
         try {
             // whether has User
