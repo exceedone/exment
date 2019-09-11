@@ -185,13 +185,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'));
         }
 
-        $value = $request->get('value');
-        if (is_vector($value)) {
-            return $this->saveDataBulk($value, $request);
-        } else {
-            $custom_value = $this->custom_table->getValueModel();
-            return $this->saveData($custom_value, $request);
-        }        
+        return $this->saveData($request);
     }
 
     /**
@@ -213,7 +207,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'));
         }
 
-        return $this->saveData($custom_value, $request);
+        return $this->saveData($request, $custom_value);
     }
 
     /**
@@ -309,8 +303,10 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     
-    protected function saveData($custom_value, $request)
+    protected function saveData($request, $custom_value = null)
     {
+        $is_single = false;
+
         $validator = Validator::make($request->all(), [
             'value' => 'required',
         ]);
@@ -320,29 +316,62 @@ class ApiTableController extends AdminControllerTableBase
             ]);
         }
 
-        $value = $request->get('value');
+        $values = $request->get('value');
 
-        $values = [$value];
+        if (!is_vector($values)) {
+            $values = [$values];
+            $is_single = true;
+        }
+
         $this->convertFindKeys($values, $request);
-        $value = $values[0];
 
-        // // get fields for validation
-        $validate = $this->validateData($value, $custom_value->id);
-        if ($validate !== true) {
+        $validates = [];
+        foreach($values as $index => $value) {
+            if (!isset($custom_value)) {
+                $value = $this->setDefaultData($value);
+                // // get fields for validation
+                $validate = $this->validateData($value);
+            } else {
+                // // get fields for validation
+                $validate = $this->validateData($value, $custom_value->id);
+            }
+            if ($validate !== true) {
+                if ($is_single) {
+                    $validates[] = $validate;
+                } else {
+                    $validates[] = [
+                        'line_no' => $index,
+                        'error' => $validate
+                    ];
+                }
+            }
+        }
+        if (count($validates) > 0) {
             return abortJson(400, [
-                'errors' => $validate
+                'errors' => $validates
             ]);
         }
 
-        // set default value if new
-        if (!isset($custom_value->id)) {
-            $value = $this->setDefaultData($value);
+        $response = [];
+        foreach($values as &$value) {
+            // set default value if new
+            if (!isset($custom_value)) {
+                $model = $this->custom_table->getValueModel();
+            } else {
+                $model = $custom_value;
+            }
+
+            $model->setValue($value);
+            $model->saveOrFail();
+
+            $response[] = getModelName($this->custom_table)::find($model->id)->makeHidden($this->custom_table->getMakeHiddenArray());
         }
 
-        $custom_value->setValue($value);
-        $custom_value->saveOrFail();
-
-        return getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
+        if ($is_single && count($response) > 0) {
+            return $response[0];
+        } else {
+            return $response;
+        }
     }
 
     protected function convertFindKeys(&$values, $request)
@@ -392,50 +421,6 @@ class ApiTableController extends AdminControllerTableBase
                 array_set($value, $findKey, array_get($findCustomValue, 'id'));
             }
         }
-    }
-
-    protected function saveDataBulk($values, $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'value' => 'required',
-        ]);
-        if ($validator->fails()) {
-            return abortJson(400, [
-                'errors' => $this->getErrorMessages($validator)
-            ]);
-        }
-
-        $this->convertFindKeys($values, $request);
-
-        $validates = [];
-        foreach($values as $index => $value) {
-            // // get fields for validation
-            $validate = $this->validateData($value);
-            if ($validate !== true) {
-                $validates[] = [
-                    'line_no' => $index,
-                    'error' => $validate
-                ];
-            }
-        }
-        if (count($validates) > 0) {
-            return abortJson(400, [
-                'errors' => $validates
-            ]);
-        }
-
-        $response = [];
-        foreach($values as &$value) {
-            // set default value if new
-            $value = $this->setDefaultData($value);
-
-            $custom_value = $this->custom_table->getValueModel();
-            $custom_value->setValue($value);
-            $custom_value->saveOrFail();
-
-            $response[] = getModelName($this->custom_table)::find($custom_value->id)->makeHidden($this->custom_table->getMakeHiddenArray());
-        }
-        return $response;
     }
 
     /**
