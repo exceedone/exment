@@ -189,18 +189,17 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         
-        register_shutdown_function(function() {
-            if ($error = error_get_last()) {
-                if (isset($error['type']) && ($error['type'] == E_ERROR || $error['type'] == E_CORE_ERROR)) {
-                    if (!request()->pjax() && request()->ajax()) {
-                        abort(400, json_encode(getAjaxResponse([
-                            'result'  => false,
-                            'message' => 'メモリリークです',
-                        ])));
-                    }
-                }
-            }
-        });
+        // register_shutdown_function(function() {
+        //     $error = error_get_last();
+        //     if (isset($error) && isset($error['type']) && ($error['type'] == E_ERROR || $error['type'] == E_CORE_ERROR)) {
+        //         if (!request()->pjax() && request()->ajax()) {
+        //             return getAjaxResponse([
+        //                 'result'  => false,
+        //                 'message' => 'メモリリークです',
+        //             ]);
+        //         }
+        //     }
+        // });
         
         Passport::ignoreMigrations();
     }
