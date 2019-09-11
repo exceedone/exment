@@ -99,6 +99,7 @@ return [
         'description' => 'エラーが発生しました。エラー内容をご確認ください。',
         'error_message' => 'エラーメッセージ',
         'error_trace' => 'エラー詳細',
+        'failure_import_file' => 'アップロードしたファイルのフォーマットが誤っています。ファイルをご確認ください。',
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
@@ -136,6 +137,11 @@ return [
             'not_require_database_version' => '%sはバージョン%s以上が必要です。ご利用のバージョンは%sです。',
             'mistake_mysql_mariadb' => 'お使いのデータベースは%sですが、%sを選択しています。設定内容をご確認ください。',
         ],
+    ],
+
+    'validation' => [
+        'not_has_custom_value' => ':attributeに入力の値が、テーブル「:table_view_name」に存在しません。データをご確認ください。',
+        'empty' => ':attributeの値は空欄のみ指定できます。',
     ],
 
     'system' => [
