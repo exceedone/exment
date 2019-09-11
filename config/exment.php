@@ -378,6 +378,16 @@ return [
     |
     */
     'userdashboard_disabled' => env('USER_DASHBOARD_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | API default get data count 
+    |--------------------------------------------------------------------------
+    |
+    | get data count (custom_table, custom_value, custom_column...)
+    |
+    */
+    'api_default_data_count' => env('API_DEFAULT_DATA_COUNT', 20),
     
     /*
     |--------------------------------------------------------------------------

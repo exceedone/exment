@@ -33,9 +33,46 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, trans('admin.deny'));
         }
 
+        // get and check query parameter
+        if ($request->has('count')) {
+            $count = $request->get('count');
+            if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
+                return abortJson(400, exmtrans('api.errors.over_maxcount'));
+            }
+        }
+        if ($request->has('orderby')) {
+            $orderby = $request->get('orderby');
+            $params = explode(',', $orderby);
+            $orderby_list = [];
+            foreach ($params as $param) {
+                $values = preg_split("/\s+/", trim($param));
+                $column_name = $values[0];
+                if (count($values) > 1 && !preg_match('/^asc|desc$/i', $values[1])) {
+                    return abortJson(400, exmtrans('api.errors.invalid_params'));
+                }
+                if (SystemColumn::isValid($column_name)) {
+                } else {
+                    $column = $this->custom_table->custom_columns()->where('column_name', $column_name)->indexEnabled()->first();
+                    if (isset($column)) {
+                        $column_name = $column->getIndexColumnName();
+                    } else {
+                        return abortJson(400, exmtrans('api.errors.invalid_params'));
+                    }
+                }
+                $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
+            }
+        }
+
         // get paginate
-        $model = $this->custom_table->getValueModel();
-        $paginator = $model->paginate();
+        $model = $this->custom_table->getValueModel()->query();
+
+        // set order by
+        if(isset($orderby_list)){
+            foreach ($orderby_list as $orderby) {
+                $model->orderBy($orderby[0], $orderby[1]);
+            }
+        }
+        $paginator = $model->paginate($count ?? config('exment.api_default_data_count'));
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
