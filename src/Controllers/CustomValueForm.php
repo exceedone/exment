@@ -39,18 +39,6 @@ trait CustomValueForm
             $select_parent = intval($request->get('select_parent'));
         }
 
-        //Plugin::pluginPreparing($this->plugins, 'loading');
-        // create
-        if (!isset($id)) {
-            $isButtonCreate = true;
-            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
-        }
-        // edit
-        else {
-            $isButtonCreate = false;
-            $listButton = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
-        }
-
         //TODO: escape laravel-admin bug.
         //https://github.com/z-song/laravel-admin/issues/1998
         $form->hidden('laravel_admin_escape');
@@ -217,7 +205,7 @@ EOT;
         $custom_table = $this->custom_table;
         $custom_form = $this->custom_form;
 
-        $this->manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton);
+        $this->manageFormToolButton($form, $id, $custom_table, $custom_form);
         return $form;
     }
 
@@ -358,13 +346,24 @@ EOT;
         });
     }
 
-    protected function manageFormToolButton($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton)
+    protected function manageFormToolButton($form, $id, $custom_table, $custom_form)
     {
         $form->disableEditingCheck(false);
         $form->disableCreatingCheck(false);
         $form->disableViewCheck(false);
         
-        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form, $isButtonCreate, $listButton) {
+        $form->tools(function (Form\Tools $tools) use ($form, $id, $custom_table, $custom_form) {
+            // create
+            if (!isset($id)) {
+                $isButtonCreate = true;
+                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_create');
+            }
+            // edit
+            else {
+                $isButtonCreate = false;
+                $listButtons = Plugin::pluginPreparingButton($this->plugins, 'form_menubutton_edit');
+            }
+
             $custom_value = $custom_table->getValueModel($id);
             
             $tools->disableView(false);
@@ -387,9 +386,9 @@ EOT;
             }
 
             // add plugin button
-            if ($listButton !== null && count($listButton) > 0) {
-                foreach ($listButton as $plugin) {
-                    $tools->append(new Tools\PluginMenuButton($plugin, $this->custom_table));
+            if ($listButtons !== null && count($listButtons) > 0) {
+                foreach ($listButtons as $listButton) {
+                    $tools->append(new Tools\PluginMenuButton($listButton, $this->custom_table));
                 }
             }
 

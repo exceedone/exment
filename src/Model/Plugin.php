@@ -268,30 +268,39 @@ class Plugin extends ModelBase
      */
     public static function pluginPreparingButton($plugins, $event = null)
     {
+        if(empty($plugins)){
+            return [];
+        }
+
         $buttonList = [];
-        if (count($plugins) > 0) {
-            foreach ($plugins as $plugin) {
-                // get plugin_types
-                $plugin_types = array_get($plugin, 'plugin_types');
-                foreach ($plugin_types as $plugin_type) {
-                    switch ($plugin_type) {
-                        case PluginType::DOCUMENT:
-                            $event_triggers_button = ['form_menubutton_show'];
-                            if (in_array($event, $event_triggers_button)) {
-                                array_push($buttonList, $plugin);
-                            }
-                            break;
-                        case PluginType::TRIGGER:
-                            $event_triggers = $plugin->options['event_triggers'];
-                            $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
-                            if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
-                                array_push($buttonList, $plugin);
-                            }
+        foreach ($plugins as $plugin) {
+            // get plugin_types
+            $plugin_types = array_get($plugin, 'plugin_types');
+            foreach ($plugin_types as $plugin_type) {
+                switch ($plugin_type) {
+                    case PluginType::DOCUMENT:
+                        $event_triggers_button = ['form_menubutton_show'];
+                        if (in_array($event, $event_triggers_button)) {
+                            $buttonList[] = [
+                                'plugin_type' => $plugin_type,
+                                'plugin' => $plugin,
+                            ];
+                        }
                         break;
-                    }
+                    case PluginType::TRIGGER:
+                        $event_triggers = $plugin->options['event_triggers'];
+                        $event_triggers_button = ['grid_menubutton','form_menubutton_create','form_menubutton_edit','form_menubutton_show'];
+                        if (in_array($event, $event_triggers) && in_array($event, $event_triggers_button)) {
+                            $buttonList[] = [
+                                'plugin_type' => $plugin_type,
+                                'plugin' => $plugin,
+                            ];
+                        }
+                        break;
                 }
             }
         }
+        
         return $buttonList;
     }
 

@@ -172,7 +172,7 @@ class PluginInstaller
         foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
         }
-        $plugin->active_flg = $plugin_type != PluginType::BATCH;
+        $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
         
         // set options
         $options = array_get($plugin, 'options', []);
