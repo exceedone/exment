@@ -525,7 +525,12 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // filtered query
-        $custom_view = CustomView::getDefault($this->custom_table);
+        if ($request->has('dashboard')) {
+            $is_dashboard = boolval($request->get('dashboard'));
+        } else {
+            $is_dashboard = false;
+        }
+        $custom_view = CustomView::getDefault($this->custom_table, true, $is_dashboard);
         $start = $request->get('start');
         $end = $request->get('end');
         if (!isset($start) || !isset($end)) {

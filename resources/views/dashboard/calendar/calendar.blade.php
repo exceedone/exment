@@ -42,6 +42,7 @@
                 url: "{{ $data_url }}",
                 extraParams: {
                     view: "{{ $view_id }}",
+                    dashboard: 1
                 },
             }
         });
