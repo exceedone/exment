@@ -23,7 +23,7 @@ class ZipPassword extends Migration
             });
                 
             foreach(Plugin::all() as $plugin){
-                $plugin->plugin_types = $notify->plugin_type;
+                $plugin->plugin_types = $plugin->plugin_type;
                 $plugin->save();
             }
             
