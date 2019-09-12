@@ -30,7 +30,7 @@ class Decimal extends CustomItem
         $text = boolval(array_get($this->options, 'grid_column')) ? get_omitted_string($this->text()) : $this->text();
         // display number as percent
         if (array_has($this->custom_column, 'options.percent_format')) {
-            if (boolval(array_get($this->custom_column, 'options.percent_format'))) {
+            if (boolval(array_get($this->custom_column, 'options.percent_format')) && isset($text)) {
                 $text = strval(parseFloat($text) * 100) . '%';
             }
         }
