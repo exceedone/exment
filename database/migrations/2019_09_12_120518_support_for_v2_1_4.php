@@ -5,7 +5,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Exceedone\Exment\Model\Plugin;
 
-class ZipPassword extends Migration
+class SupportForV214 extends Migration
 {
     /**
      * Run the migrations.
