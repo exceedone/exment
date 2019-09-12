@@ -632,8 +632,8 @@
         {
             "suuid": "191b41ce150b891f1755",
             "view_type": "0",
-            "view_kind_type": "0",
-            "view_view_name": "既定のビュー",
+            "view_kind_type": "9",
+            "view_view_name": "全件ビュー",
             "default_flg": "1",
             "options": null,
             "custom_view_columns": [
@@ -721,8 +721,8 @@
         {
             "suuid": "0a25c546e8469d710ffe",
             "view_type": "0",
-            "view_kind_type": "0",
-            "view_view_name": "既定のビュー",
+            "view_kind_type": "9",
+            "view_view_name": "全件ビュー",
             "default_flg": "1",
             "options": null,
             "custom_view_columns": [
@@ -810,8 +810,8 @@
         {
             "suuid": "e21ec506aef176e138b9",
             "view_type": "0",
-            "view_kind_type": "0",
-            "view_view_name": "既定のビュー",
+            "view_kind_type": "9",
+            "view_view_name": "全件ビュー",
             "default_flg": "1",
             "options": null,
             "custom_view_columns": [
@@ -884,8 +884,8 @@
         {
             "suuid": "b6510c5fa37b7f7a7a45",
             "view_type": "0",
-            "view_kind_type": "0",
-            "view_view_name": "既定のビュー",
+            "view_kind_type": "9",
+            "view_view_name": "全件ビュー",
             "default_flg": "1",
             "options": null,
             "custom_view_columns": [
