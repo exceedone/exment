@@ -48,6 +48,7 @@ return [
         'custom_table' => 'カスタムテーブル',
         'custom_column' => 'カスタム列',
         'copy_item' => 'この%sの複製',
+        'keyword' => 'キーワード',
         'header' => 'ヘッダー',
         'footer' => 'フッター',
         'message' => [
@@ -62,6 +63,7 @@ return [
             'wrongconfig' => 'config.jsonファイルが不正です',
             'exists_row' => '%sは必ず1行以上入力してください。',
             'sendmail_succeeded' => 'メールを送信しました。',
+            'input_keyword' => '「%s」と入力してください。',
         ],
 
         'help' =>[
@@ -103,6 +105,7 @@ return [
         'not_install' => 'Exmentがインストールされていません。以下のURLに従い、Exmentをインストールしてください。<br />https://exment.net/docs/#/ja/quickstart',
         'disabled_outside_api' => '外部接続が許可されていません。',
         'login_failed' => 'IDまたはパスワードが違います。',
+        'mistake_keyword' => 'キーワードを正しく入力してください。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定をご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size} KB</b>) はアップロード可能なサイズ <b>{maxSize} KB</b> を超えています。',
         'disable_delete_row' => '削除できない行が含まれています。',

@@ -25,6 +25,7 @@ class Define
     public const RULES_REGEX_LINK_FORMAT = "|<a href=[\"'](.*?)[\"'].*?>(.*?)</a>|mis";
     
     public const DELETE_CONFIRM_KEYWORD = 'delete me';
+    public const RESTORE_CONFIRM_KEYWORD = 'restore me';
 
     public const MAX_SIZE_NUMBER = 1000000000000;
 
