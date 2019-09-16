@@ -1,6 +1,7 @@
 <?php
 namespace Exceedone\Exment\Services;
 
+use Exceedone\Exment\Model\File as ExmentFile;
 /**
  * Zip Service, set password
  */
@@ -23,7 +24,14 @@ class ZipService
             if (empty($tmpfile) || $tmpfile == '.' || $tmpfile == '..') {
                 continue;
             }
-            \File::copy($file, $tmpFolderPath . '\\' . $tmpfile);
+
+            // get file info from database
+            $dbFile = ExmentFile::where('local_filename', $tmpfile)->first();
+            if(isset($dbFile)){
+                $tmpfile = $dbFile->filename;
+            }
+
+            \File::copy($file, path_join($tmpFolderPath, $tmpfile));
         }
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
@@ -39,14 +47,22 @@ class ZipService
 
     protected static function execPasswordZipWin($zipFullPath, $tmpFolderPath, $password)
     {
+        if($tmpFolderPath == '/' || $tmpFolderPath == ''){
+            throw new \Exception;
+        }
+
         $output = [];
         $dir7zip = path_join(config('exment.7zip_dir'), '7z.exe');
-        exec('"' . $dir7zip . '" a -p' . $password . ' "' . $zipFullPath . '" "' . $tmpFolderPath . '"', $output);
+        exec('"' . $dir7zip . '" a -p' . $password . ' "' . $zipFullPath . '" "' . $tmpFolderPath . '/*"', $output);
     }
 
     protected static function execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password)
     {
+        if($tmpFolderPath == '/' || $tmpFolderPath == ''){
+            throw new \Exception;
+        }
+
         $output = [];
-        exec('zip -P "' . $password . '" "' . $zipFullPath . '" "' . $tmpFolderPath . '"');
+        exec('(cd ' . $tmpFolderPath . ' && zip --e --password="' . $password . '" "' . $zipFullPath . '" ./*');
     }
 }
