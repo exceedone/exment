@@ -239,25 +239,37 @@ class SelectTable extends CustomItem
         $result = true;
         $message = null;
 
-        if (!isset($this->target_table)) {
-            $result = false;
-        } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
-            // if get as id and not numeric, set error
-            if (!is_numeric($value)) {
-                $result = false;
-                $message = trans('validation.integer', ['attribute' => $this->label()]);
-            }
-        } else {
-            // get target value
-            $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $value)->first();
+        $isSingle = false;
+        if(!is_array($value)){
+            $isSingle = true;
+            $value = [$value];
+        }
 
-            if (!isset($target_value)) {
+        foreach($value as &$v){
+            if (!isset($this->target_table)) {
                 $result = false;
+            } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
+                // if get as id and not numeric, set error
+                if (!is_numeric($v)) {
+                    $result = false;
+                    $message = trans('validation.integer', ['attribute' => $this->label()]);
+                }
             } else {
-                $value = $target_value->id;
+                // get target value
+                $target_value = $this->target_table->getValueModel()->where("value->$target_column_name", $v)->first();
+    
+                if (!isset($target_value)) {
+                    $result = false;
+                } else {
+                    $v = $target_value->id;
+                }
             }
         }
-        
+
+        if($isSingle && count($value) == 1){
+            $value = $value[0];
+        }
+
         return [
             'result' => $result,
             'value' => $value,
