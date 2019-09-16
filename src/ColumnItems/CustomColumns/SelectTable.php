@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
-use Exceedone\Exment\Validator\CustomValueRule;
+use Exceedone\Exment\Validator;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
@@ -223,8 +223,8 @@ class SelectTable extends CustomItem
     
     protected function setValidates(&$validates)
     {
-        $validates[] = 'numeric';
-        $validates[] = new CustomValueRule($this->target_table);
+        $validates[] = new Validator\SelectTableNumericRule($this->target_table);
+        $validates[] = new Validator\CustomValueRule($this->target_table);
     }
     
     /**

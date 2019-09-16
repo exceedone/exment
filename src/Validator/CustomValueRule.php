@@ -27,16 +27,26 @@ class CustomValueRule implements Rule
         if (is_null($value)) {
             return true;
         }
-        // if not number, return true. (Checking whether value is number, validate other rule)
-        if(!is_numeric($value)){
-            return true;
-        }
         if(!isset($this->custom_table)){
             return true;
         }
-        // get target table's value (use request session)
-        $model = $this->custom_table->getValueModel($value);
-        return isset($model);
+
+
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+
+        $value = array_filter($value);
+
+        foreach($value as $v){
+            // get target table's value (use request session)
+            $model = $this->custom_table->getValueModel($v);
+            if(!isset($model)){
+                return false;
+            }
+        }
+
+        return true;
     }
     
     /**
