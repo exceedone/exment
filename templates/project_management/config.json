@@ -465,6 +465,7 @@
     "custom_views": [
         {
             "suuid": "7ef66a7fdef45f094079",
+            "view_kind_type": "9",
             "view_view_name": "Default view",
             "custom_view_columns": [
                 {
@@ -553,6 +554,7 @@
         },
         {
             "suuid": "356404ddc4d26620fa13",
+            "view_kind_type": "9",
             "view_view_name": "All task list",
             "custom_view_columns": [
                 {
