@@ -36,6 +36,10 @@ class Bootstrap
             return;
         }
 
+        if ($this->isStaticRequest($request)) {
+            return;
+        }
+
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
@@ -164,5 +168,11 @@ class Bootstrap
 
 EOT;
         Ad::script($script);
+    }
+
+    protected function isStaticRequest($request){
+        $pathInfo = $request->getPathInfo();
+        $extension = strtolower(pathinfo($pathInfo, PATHINFO_EXTENSION));
+        return in_array($extension, ['js', 'css', 'png', 'jpg', 'jpeg', 'gif']);
     }
 }

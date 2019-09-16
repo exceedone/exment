@@ -12,7 +12,7 @@ class Plugin extends ModelBase
     use Traits\DatabaseJsonTrait;
 
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
-
+    
     public function setPluginTypesAttribute($pluginTypes)
     {
         if (is_null($pluginTypes)) {
@@ -378,8 +378,13 @@ class Plugin extends ModelBase
             if (!is_array($targetPluginTypes)) {
                 $targetPluginTypes = [$targetPluginTypes];
             }
-            // it's ok only array's first
-            return $plugin->getClass($targetPluginTypes[0], ['throw_ex' => false]);
+
+            foreach($targetPluginTypes as $targetPluginType){
+                $class = $plugin->getClass($targetPluginType, ['throw_ex' => false]);
+                if(isset($class)){
+                    return $class;
+                }
+            }
         })->filter();
     }
 
