@@ -3481,6 +3481,11 @@ body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages
   width: 400px;
 }
 
+.skin-red .navbar-notify .label-danger, .skin-red-light .navbar-notify .label-danger {
+  background-color: yellow !important;
+  color: black !important;
+}
+
 .ui-autocomplete {
   z-index: 1031;
 }
