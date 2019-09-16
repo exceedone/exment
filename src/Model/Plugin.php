@@ -108,7 +108,7 @@ class Plugin extends ModelBase
         $now = Carbon::now();
         $hh = $now->hour;
         return static::getByPluginTypes(PluginType::BATCH)->filter(function ($plugin) use ($hh) {
-            return is_null(array_get($plugin, 'options.batch_cron') && array_get($plugin, 'options.batch_cron') == $hh);
+            return is_null(array_get($plugin, 'options.batch_cron')) && array_get($plugin, 'options.batch_hour') == $hh;
         });
     }
 
