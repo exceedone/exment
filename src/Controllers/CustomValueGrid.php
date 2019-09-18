@@ -65,8 +65,8 @@ trait CustomValueGrid
 
             $filter->column(1/2, function ($filter) {
                 $filter->equal('id', exmtrans('common.id'));
-                $filter->between('created_at', exmtrans('common.created_at'))->date();
-                $filter->between('updated_at', exmtrans('common.updated_at'))->date();
+                $filter->betweendatetime('created_at', exmtrans('common.created_at'))->date();
+                $filter->betweendatetime('updated_at', exmtrans('common.updated_at'))->date();
                 
                 // check 1:n relation
                 $relation = CustomRelation::getRelationByChild($this->custom_table);
