@@ -63,6 +63,8 @@ class ZipService
         }
 
         $output = [];
-        exec('(cd ' . $tmpFolderPath . ' && zip --e --password="' . $password . '" "' . $zipFullPath . '" ./*');
+        $cmd = '(cd ' . $tmpFolderPath . ' && zip -e --password=' . $password . ' ' . $zipFullPath . ' ./*)';
+
+        exec($cmd);
     }
 }

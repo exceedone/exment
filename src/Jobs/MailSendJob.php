@@ -132,6 +132,7 @@ class MailSendJob extends JobBase
         $files = collect($this->attachments)->map(function ($attachment) {
             return storage_paths('app', config('admin.upload.disk'), $attachment->path);
         })->toArray();
+        
         ZipService::createPasswordZip($files, $zippath, $tmpFolderPath, $password);
 
         $this->password = $password;
