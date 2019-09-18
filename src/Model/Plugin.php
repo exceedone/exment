@@ -61,7 +61,7 @@ class Plugin extends ModelBase
 
     public function isPluginTypeUri()
     {
-        return $this->matchPluginType([PluginType::STYLE, PluginType::SCRIPT, PluginType::PAGE]);
+        return $this->matchPluginType(PluginType::PLUGIN_TYPE_PUBLIC_CLASS());
     }
 
     public static function getPluginByUUID($uuid)
@@ -464,7 +464,11 @@ class Plugin extends ModelBase
      */
     public function getOptionUri()
     {
-        return snake_case($this->getOption('uri'));
+        $uri = $this->getOption('uri');
+        if(!isset($uri)){
+            $uri = array_get($this, 'plugin_name');
+        }
+        return snake_case($uri);
     }
 
     /**
