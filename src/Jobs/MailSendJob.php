@@ -124,7 +124,7 @@ class MailSendJob extends JobBase
      */
     protected function archiveAttachments()
     {
-        $password = make_password(16);
+        $password = make_password(16,  ['mark' => false]);
         $filename = Carbon::now()->format('YmdHis') . '.zip';
         $zippath = getFullpath("tmp/attachments/$filename", Define::DISKNAME_ADMIN_TMP, true);
         $tmpFolderPath = getFullpath("tmp/attachments/" . make_randomstr(10), Define::DISKNAME_ADMIN_TMP, true);

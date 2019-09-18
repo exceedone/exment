@@ -532,9 +532,31 @@ if (!function_exists('is_vector')) {
 
 // string --------------------------------------------------
 if (!function_exists('make_password')) {
-    function make_password($length = 16)
+    function make_password($length = 16, $options = [])
     {
-        static $chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789!$#%_-";
+        $options = array_merge(
+            [
+                'alphabet_upper' => true,
+                'alphabet_lower' => true,
+                'number' => true,
+                'mark' => true,
+            ],
+            $options
+        );
+
+        $chars = '';
+        if ($options['alphabet_upper']) {
+            $chars .= 'ABCDEFGHJKMNPQRSTUVWXYZ';
+        }
+        if ($options['alphabet_lower']) {
+            $chars .= 'abcdefghjkmnpqrstuvwxyz';
+        }
+        if ($options['number']) {
+            $chars .= '23456789';
+        }
+        if ($options['mark']) {
+            $chars .= '!$#%_-';
+        }
         $str = '';
         for ($i = 0; $i < $length; ++$i) {
             $str .= $chars[mt_rand(0, strlen($chars) -1)];
