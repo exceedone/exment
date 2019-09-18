@@ -119,23 +119,6 @@ class ColumnType extends EnumBase
         ];
     }
 
-    public static function COLUMN_TYPE_NULL_FILTER()
-    {
-        return [
-            ColumnType::TEXT,
-            ColumnType::URL,
-            ColumnType::EMAIL,
-            ColumnType::SELECT,
-            ColumnType::SELECT_VALTEXT,
-            ColumnType::SELECT_TABLE,
-            ColumnType::INTEGER,
-            ColumnType::DECIMAL,
-            ColumnType::CURRENCY,
-            ColumnType::USER,
-            ColumnType::ORGANIZATION,
-        ];
-    }
-
     public static function isCalc($column_type)
     {
         return in_array($column_type, static::COLUMN_TYPE_CALC());
