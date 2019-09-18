@@ -44,6 +44,10 @@ class CustomViewController extends AdminControllerTableBase
     public function index(Request $request, Content $content)
     {
         $this->setFormViewInfo($request);
+        //Validation table value
+        if (!$this->validateTable($this->custom_table, Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
+            return;
+        }
         return parent::index($request, $content);
     }
 
@@ -203,9 +207,11 @@ class CustomViewController extends AdminControllerTableBase
         }
         if (isset($model)) {
             $suuid = $model->suuid;
+            $view_type = $model->view_type;
             $view_kind_type = $model->view_kind_type;
         } else {
             $suuid = null;
+            $view_type = null;
             $view_kind_type = null;
         }
         
@@ -243,12 +249,11 @@ class CustomViewController extends AdminControllerTableBase
             });
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
-
-        if (intval($view_kind_type) == Enums\ViewKindType::FILTER) {
+        if (boolval(config('exment.userview_disabled', false)) || intval($view_kind_type) == Enums\ViewKindType::FILTER) {
             $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
             // select view type
-            if (!isset($id) && $this->hasSystemPermission()) {
+            if ($this->hasSystemPermission() && (is_null($view_type) || $view_type == Enums\ViewType::USER)) {
                 $form->select('view_type', exmtrans('custom_view.view_type'))
                     ->default(Enums\ViewType::SYSTEM)
                     ->config('allowClear', false)
@@ -708,5 +713,18 @@ EOT;
         }
 
         return $lists;
+    }
+    
+    /**
+     * validation table
+     * @param mixed $table id or customtable
+     */
+    protected function validateTable($table, $role_name)
+    {
+        if (!$this->custom_table->hasViewPermission()) {
+            Checker::error();
+            return false;
+        }
+        return parent::validateTable($table, $role_name);
     }
 }

@@ -123,11 +123,24 @@ class CustomValue extends ModelBase
             // re-get field data --------------------------------------------------
             $model->prepareValue();
 
+            // call plugins
+            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saving', [
+                'custom_table' => $model->custom_table,
+                'custom_value' => $model,
+            ]);
+
             // prepare revision
             $model->preSave();
         });
         static::saved(function ($model) {
             $model->setFileValue();
+            
+            // call plugins
+            Plugin::pluginPreparing(Plugin::getPluginsByTable($model), 'saved', [
+                'custom_table' => $model->custom_table,
+                'custom_value' => $model,
+            ]);
+
             $model->savedValue();
             CustomValueAuthoritable::setValueAuthoritable($model);
         });
@@ -787,7 +800,7 @@ class CustomValue extends ModelBase
         $options = $this->getQueryOptions($q, $options);
         extract($options);
 
-        if(empty($searchColumns)){
+        if (empty($searchColumns)) {
             // return null if searchColumns is not has
             return null;
         }

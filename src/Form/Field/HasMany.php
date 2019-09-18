@@ -11,6 +11,7 @@ use Encore\Admin\Form\Field\HasMany as AdminHasMany;
  */
 class HasMany extends AdminHasMany
 {
+    protected $countscript;
     /**
      * Render the `HasMany` field.
      *
@@ -36,7 +37,16 @@ class HasMany extends AdminHasMany
             'options'      => $this->options,
         ]);
     }
-
+    public function setCountScript($targets)
+    {
+        if (empty($targets)) {
+            return;
+        }
+        $data = json_encode($targets);
+        $this->countscript .= <<<EOT
+Exment.CommonEvent.setCalc(null, $data);
+EOT;
+    }
     
     /**
      * TODO: I don't know the best way
@@ -90,12 +100,14 @@ $('#has-many-{$this->column}').on('click', '.add', function () {
     var template = tpl.html().replace(/{$defaultKey}/g, $indexName);
     $('.has-many-{$this->column}-forms').append(template);
     {$templateScript}
+    {$this->countscript}
 });
 
 $('#has-many-{$this->column}').on('click', '.remove', function () {
     $(this).closest('.has-many-{$this->column}-form').hide();
     $(this).closest('.has-many-{$this->column}-form').find('input[required], select[required]').prop('disabled', true);
     $(this).closest('.has-many-{$this->column}-form').find('.$removeClass').val(1);
+    {$this->countscript}
 });
 
 EOT;

@@ -36,6 +36,10 @@ class Bootstrap
             return;
         }
 
+        if ($this->isStaticRequest($request)) {
+            return;
+        }
+
         Ad::navbar(function (\Encore\Admin\Widgets\Navbar $navbar) {
             $navbar->left(Controllers\SearchController::renderSearchHeader());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav);
@@ -59,6 +63,7 @@ class Bootstrap
         Ad::css(asset('vendor/exment/css/common.css?ver='.$ver));
         
         Ad::js(asset('vendor/exment/chartjs/chart.min.js'));
+        Ad::js(asset('vendor/exment/mathjs/math.min.js'));
         Ad::js(asset('vendor/exment/js/numberformat.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/main.min.js?ver='.$ver));
         Ad::js(asset('vendor/exment/fullcalendar/core/locales-all.min.js?ver='.$ver));
@@ -75,7 +80,7 @@ class Bootstrap
         foreach ($pluginPublics as $pluginPublic) {
             // get scripts
             $plugin = $pluginPublic->_plugin();
-            $p = $plugin->plugin_type == PluginType::SCRIPT ? 'js' : 'css';
+            $p = $plugin->matchPluginType(PluginType::SCRIPT) ? 'js' : 'css';
             $cdns = array_get($plugin, 'options.cdns', []);
             foreach ($cdns as $cdn) {
                 Ad::{$p}($cdn);
@@ -163,5 +168,12 @@ class Bootstrap
 
 EOT;
         Ad::script($script);
+    }
+
+    protected function isStaticRequest($request)
+    {
+        $pathInfo = $request->getPathInfo();
+        $extension = strtolower(pathinfo($pathInfo, PATHINFO_EXTENSION));
+        return in_array($extension, ['js', 'css', 'png', 'jpg', 'jpeg', 'gif']);
     }
 }

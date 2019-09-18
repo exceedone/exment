@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\System;
 //use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
 use Encore\Admin\Layout\Column;
@@ -242,18 +243,21 @@ class MenuController extends AdminControllerBase
         switch ($type) {
             case MenuType::SYSTEM:
                 foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value) {
-                    array_push($options, ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ]);
+                    if (!$this->isAddSystemMenuOptions($k, $value)) {
+                        continue;
+                    }
+                    $options[] = ['id' => $k, 'text' => exmtrans("menu.system_definitions.".$k) ];
                 }
                 break;
             case MenuType::PLUGIN:
                 $options = [];
                 foreach (Plugin::where('plugin_type', PluginType::PAGE)->get() as $value) {
-                    array_push($options, ['id' => $value->id, 'text' => $value->plugin_view_name]);
+                    $options[] = ['id' => $value->id, 'text' => $value->plugin_view_name];
                 }
                 break;
             case MenuType::TABLE:
                 foreach (CustomTable::where('showlist_flg', true)->get() as $value) {
-                    array_push($options, ['id' => $value->id, 'text' => $value->table_view_name]);
+                    $options[] = ['id' => $value->id, 'text' => $value->table_view_name];
                 }
                 break;
         }
@@ -314,5 +318,23 @@ class MenuController extends AdminControllerBase
         }
 
         return [];
+    }
+
+    /**
+     * Whether is add system menu options
+     *
+     * @param [type] $k
+     * @param [type] $value
+     * @return boolean
+     */
+    protected function isAddSystemMenuOptions($k, $value)
+    {
+        if ($k == 'role_group') {
+            return System::permission_available();
+        } elseif ($k == 'api_setting') {
+            return boolval(config('exment.api'));
+        }
+        
+        return true;
     }
 }

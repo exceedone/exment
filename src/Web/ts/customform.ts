@@ -80,6 +80,16 @@ namespace Exment {
                                 type: 'hidden',
                             }));
 
+                            // rename for toggle
+                            if(hasValue(ui.helper.find('[data-toggle]'))){
+                                let uuid = getUuid();
+                                ui.helper.find('[data-parent]')
+                                    .attr('data-parent', '#' + uuid)
+                                    .attr('href', '#' + uuid);
+                                ui.helper.find('.panel-collapse').prop('id', uuid);
+                                CustomFromEvent.addCollapseEvent(ui.helper.find('.panel-collapse'));
+                            }
+
                             // add icheck event
                             CustomFromEvent.appendIcheckEvent(ui.helper.find('.icheck'));
                         } else {
@@ -103,12 +113,15 @@ namespace Exment {
         }
 
         private static addCollapseEvent($elem: JQuery<Element>= null) {
-            $('.panel-collapse').off('show.bs.collapse').on('show.bs.collapse', function () {
+            if(!hasValue($elem)){
+                $elem = $('.panel-collapse');
+            }
+            $elem.off('show.bs.collapse').on('show.bs.collapse', function () {
                 CustomFromEvent.appendIcheckEvent($(this));
                 $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-up').removeClass('fa-chevron-down');
             });
         
-            $('.panel-collapse').off('hide.bs.collapse').on('hide.bs.collapse', function () {
+            $elem.off('hide.bs.collapse').on('hide.bs.collapse', function () {
                 $(this).siblings('.panel-heading').removeClass('active');
                 $(this).parent('li').find('[data-toggle] i').addClass('fa-chevron-down').removeClass('fa-chevron-up');
             });
@@ -158,31 +171,13 @@ namespace Exment {
                 }));
                 // add icheck event
                 CustomFromEvent.appendIcheckEvent($elem.find('.icheck'));
+
+                CustomFromEvent.setDragItemEvent($elem);
             }else{
                 $elem.find('.delete,.options,[data-toggle]').hide();
             }
-
-            $('.custom_form_column_suggests.draggables').each(function(index:number, elem:Element){
-                var d = $(elem);
-                $elem = d.children('.draggable');
-
-                $elem.draggable({
-                    // connect to sortable. set only same block
-                    connectToSortable: '#' + d.data('connecttosortable') + ' .draggables',
-                    //cursor: 'move',
-                    helper: d.data('draggable_clone') ? 'clone' : '',
-                    revert: "invalid",
-                    droppable: "drop",
-                    stop: (event, ui) => {
-                        var $ul = ui.helper.closest('.draggables');
-                        // if moved to "custom_form_column_items"(for form) ul, show delete button and open detail.
-                        CustomFromEvent.toggleFormColumnItem(ui.helper, $ul.hasClass('custom_form_column_items'));
-                    }
-                });
-            });
-            // add sorable event (only left column)
-            $(".custom_form_column_items.draggables").sortable({});
         }
+        
         private static toggleFromBlock = (ev) => {
             ev.preventDefault();
             

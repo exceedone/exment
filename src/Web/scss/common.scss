@@ -20,6 +20,10 @@
     display: block;
 }
 
+.d-inline{
+    display: inline;
+}
+
 .asterisk::after{
     content: " *";
     color: red;
@@ -197,6 +201,11 @@ body .main-header .navbar .nav>li>a>.label{
 }
 body .navbar-nav>.notifications-menu>.dropdown-menu, .navbar-nav>.messages-menu>.dropdown-menu, .navbar-nav>.tasks-menu>.dropdown-menu{
     width:400px;
+}
+
+.skin-red .navbar-notify .label-danger, .skin-red-light .navbar-notify .label-danger{
+    background-color:yellow !important;
+    color:black !important;
 }
 
 .ui-autocomplete {

@@ -77,6 +77,9 @@ class PatchDataCommand extends Command
             case '2factor':
                 $this->import2factorTemplate();
                 return;
+            case 'zip_password':
+                $this->importZipPasswordTemplate();
+                return;
             case 'system_flg_column':
                 $this->patchSystemFlgColumn();
                 return;
@@ -212,6 +215,19 @@ class PatchDataCommand extends Command
             'verify_2factor',
             'verify_2factor_google',
             'verify_2factor_system',
+        ]);
+    }
+    
+    /**
+     * import mail template for Zip Password
+     *
+     * @return void
+     */
+    protected function importZipPasswordTemplate()
+    {
+        return $this->patchMailTemplate([
+            'password_notify',
+            'password_notify_header',
         ]);
     }
     
@@ -475,8 +491,17 @@ class PatchDataCommand extends Command
     protected function patchMailTemplate($mail_key_names = [])
     {
         // get vendor folder
+        $locale = \App::getLocale();
         $templates_data_path = base_path() . '/vendor/exceedone/exment/system_template/data';
-        $path = "$templates_data_path/mail_template.xlsx";
+        $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
+        // if exists, execute data copy
+        if (!\File::exists($path)) {
+            $path = path_join($templates_data_path, "mail_template.xlsx");
+            // if exists, execute data copy
+            if (!\File::exists($path)) {
+                return;
+            }
+        }
 
         $table_name = \File::name($path);
         $format = \File::extension($path);

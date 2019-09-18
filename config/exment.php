@@ -6,6 +6,7 @@ return [
 
     'timezone' => env('APP_TIMEZONE', config('app.timezone')),
 
+    'system_locale_options' => env('EXMENT_SYSTEM_LOCALE_OPTIONS'),
     /*
     |--------------------------------------------------------------------------
     | Use API
@@ -104,6 +105,16 @@ return [
     |
     */
     'organization_deeps' => env('EXMENT_ORGANIZATION_DEEPS', 4),
+
+    /*
+    |--------------------------------------------------------------------------
+    | show_organization_tree
+    |--------------------------------------------------------------------------
+    |
+    | whether showing organization tree
+    |
+    */
+    'show_organization_tree' => env('EXMENT_SHOW_ORGANIZATION_TREE', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -347,4 +358,54 @@ return [
     |
     */
     'expart_mode' => env('EXMENT_EXPART_MODE', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Archive mail attachments
+    |--------------------------------------------------------------------------
+    |
+    | Archive mail attachments to zip.
+    |
+    */
+    'archive_attachment' => env('ARCHIVE_MAIL_ATTACHMENT', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled user view 
+    |--------------------------------------------------------------------------
+    |
+    | Disabled user view, only system view
+    |
+    */
+    'userview_disabled' => env('USER_VIEW_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Disabled user dashboard 
+    |--------------------------------------------------------------------------
+    |
+    | Disabled user dashboard, only system dashboard
+    |
+    */
+    'userdashboard_disabled' => env('USER_DASHBOARD_DISABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | API default get data count 
+    |--------------------------------------------------------------------------
+    |
+    | get data count (custom_table, custom_value, custom_column...)
+    |
+    */
+    'api_default_data_count' => env('API_DEFAULT_DATA_COUNT', 20),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | 7-zip path(for Windows)
+    |--------------------------------------------------------------------------
+    |
+    | path to 7-zip program.
+    |
+    */
+    '7zip_dir' => env('EXMENT_7ZIP_DIR', 'C:\\Program Files\\7-Zip'),
 ];

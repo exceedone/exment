@@ -12,6 +12,7 @@ use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Validator\ExmentCustomValidator;
 use Exceedone\Exment\Middleware\Initialize;
 use Exceedone\Exment\Database as ExmentDatabase;
@@ -188,6 +189,18 @@ class ExmentServiceProvider extends ServiceProvider
             return Plugin::getPluginPageModel();
         });
         
+        // register_shutdown_function(function() {
+        //     $error = error_get_last();
+        //     if (isset($error) && isset($error['type']) && ($error['type'] == E_ERROR || $error['type'] == E_CORE_ERROR)) {
+        //         if (!request()->pjax() && request()->ajax()) {
+        //             return getAjaxResponse([
+        //                 'result'  => false,
+        //                 'message' => 'メモリリークです',
+        //             ]);
+        //         }
+        //     }
+        // });
+        
         Passport::ignoreMigrations();
     }
 
@@ -216,7 +229,8 @@ class ExmentServiceProvider extends ServiceProvider
         if (!canConnection() || !hasTable(SystemTableName::PLUGIN)) {
             return;
         }
-        $pluginPages = Plugin::getPluginPages();
+
+        $pluginPages = Plugin::getByPluginTypes(PluginType::PLUGIN_TYPE_PLUGIN_PAGE(), true);
         foreach ($pluginPages as $pluginPage) {
             if (!is_null($items = $pluginPage->_getLoadView())) {
                 $this->loadViewsFrom($items[0], $items[1]);

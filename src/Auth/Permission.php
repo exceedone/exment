@@ -116,6 +116,10 @@ class Permission
         if (in_array($endpoint, ['role', 'role_group']) && !System::permission_available()) {
             return false;
         }
+        // if api setting, check config
+        if (in_array($endpoint, ['api_setting']) && !boolval(config('exment.api'))) {
+            return false;
+        }
 
         // if system doesn't use role, return true
         if (!System::permission_available()) {
@@ -152,10 +156,11 @@ class Permission
                 return true;
             ///// only system permission
             case "system":
-            case "role":
             case "plugin":
             case "database":
             case "auth/menu":
+            case "auth/logs":
+            case "api_setting":
                 if ($systemRole) {
                     return array_key_exists('system', $this->permission_details);
                 }
@@ -168,6 +173,7 @@ class Permission
                     return array_key_exists(PermissionEnum::LOGIN_USER, $this->permission_details);
                 }
                 return false;
+            case "role":
             case "role_group":
                 if ($systemRole) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);

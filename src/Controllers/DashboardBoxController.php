@@ -69,9 +69,9 @@ class DashboardBoxController extends AdminControllerBase
         // get box html --------------------------------------------------
         if (isset($box)) {
             $dashboard_box_item = $box->dashboard_box_item;
-            $header = $dashboard_box_item->header();
-            $body = $dashboard_box_item->body();
-            $footer = $dashboard_box_item->footer();
+            $header = $this->rednerHtml($dashboard_box_item->header());
+            $body = $this->rednerHtml($dashboard_box_item->body());
+            $footer = $this->rednerHtml($dashboard_box_item->footer());
         }
 
         // get dashboard box
@@ -261,5 +261,10 @@ class DashboardBoxController extends AdminControllerBase
         $custom_view = CustomView::getEloquent($id);
 
         return $custom_view->getViewColumnsSelectOptions($axis_type == 'y');
+    }
+
+    protected function rednerHtml($item)
+    {
+        return $item instanceof \Illuminate\Contracts\Support\Renderable ? $item->render() : $item;
     }
 }

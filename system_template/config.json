@@ -899,6 +899,7 @@
 		{
 			"suuid": "s6j3csfuc4kagb82zna3",
 			"view_view_name": "Default view",
+			"view_kind_type": 9,
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -922,6 +923,7 @@
 		{
 			"suuid": "s6j3csauc4kagb82zna3",
 			"view_view_name": "Default view",
+			"view_kind_type": 9,
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -950,6 +952,7 @@
         {
 			"suuid": "3471e23fbff8dc65437b",
 			"view_view_name": "Default view",
+			"view_kind_type": 9,
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -988,6 +991,7 @@
 		{
 			"suuid": "24e34126c023857a092e",
 			"view_view_name": "Default view",
+			"view_kind_type": 9,
 			"custom_view_columns": [
 				{
 					"order": "1",
@@ -1026,6 +1030,7 @@
         {
             "suuid": "b6d5afcda4ce26091f36",
             "view_view_name": "Default view",
+			"view_kind_type": 9,
             "custom_view_columns": [
                 {
                     "view_column_type": "0",
@@ -1079,6 +1084,7 @@
         {
             "suuid": "99120fd4b360e15993d2",
             "view_view_name": "Infomation list",
+			"view_kind_type": 0,
             "custom_view_columns": [
                 {
                     "view_column_type": "0",
@@ -1379,14 +1385,6 @@
             "title": "Mail Template",
             "parent_name": "admin",
             "menu_target_name": "mail_template"
-        },
-        {
-            "order": "11",
-            "menu_type": "table",
-            "menu_name": "mail_send_log",
-            "title": "Mail Send Log",
-            "parent_name": "admin",
-            "menu_target_name": "mail_send_log"
         }
     ],
     "thumbnail": "thumbnail.png"

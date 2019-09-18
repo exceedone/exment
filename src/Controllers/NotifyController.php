@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Validator\RequiredIfExRule;
 use DB;
 
 class NotifyController extends AdminControllerBase
@@ -95,7 +96,7 @@ class NotifyController extends AdminControllerBase
      *
      * @return Form
      */
-    protected function form($id = null)
+    protected function form($id = null, $copy_id = null)
     {
         if (!$this->hasPermissionEdit($id)) {
             return;
@@ -155,12 +156,16 @@ class NotifyController extends AdminControllerBase
                     })->pluck('view_view_name', 'id');
             });
 
-        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) {
+        $form->embeds('trigger_settings', exmtrans("notify.trigger_settings"), function (Form\EmbeddedForm $form) use ($copy_id) {
             // Notify Time --------------------------------------------------
             $controller = $this;
             $form->select('notify_target_column', exmtrans("notify.notify_target_column"))
-            ->options(function ($val) use ($controller) {
+            ->options(function ($val) use ($controller, $copy_id) {
                 if (!isset($val)) {
+                    if (isset($copy_id)) {
+                        $copy_notify = Notify::find($copy_id);
+                        return $controller->getTargetColumnOptions($copy_notify->custom_table_id, false);
+                    }
                     return [];
                 }
                 return $controller->getTargetColumnOptions(CustomColumn::getEloquent($val)->custom_table, false);
@@ -212,12 +217,16 @@ class NotifyController extends AdminControllerBase
 
         $form->embeds('action_settings', exmtrans("notify.action_settings"), function (Form\EmbeddedForm $form) {
             $controller = $this;
+            $form->text('webhook_url', exmtrans("notify.webhook_url"))
+                ->rules(["max:300", new RequiredIfExRule(['notify_actions', '3'])])
+                ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify')));
+
             $form->multipleSelect('notify_action_target', exmtrans("notify.notify_action_target"))
                 ->options(function ($val) use ($controller) {
                     return $controller->getNotifyActionTargetOptions($this->custom_table_id ?? null, false);
                 })
                 ->default(NotifyActionTarget::HAS_ROLES)
-                ->required()
+                ->rules([new RequiredIfExRule(['notify_actions', '1', '2'])])
                 ->help(exmtrans("notify.help.notify_action_target"));
 
             // get notify mail template

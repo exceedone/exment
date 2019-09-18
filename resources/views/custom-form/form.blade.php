@@ -75,7 +75,9 @@
                     </span>
                 </div>
 
-                <div class="col-xs-12 col-md-4 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
+                <div class="col-md-8">
+                
+                <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="1">
 
                     <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}1</h5>
@@ -86,7 +88,7 @@
                         => $custom_form_column, 'suggest' => false]) @endforeach
                     </ul>
                 </div>
-                <div class="col-xs-12 col-md-4 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
+                <div class="col-xs-12 col-md-6 custom_form_column_block items_{{$custom_form_block['form_block_type']}}_{{$custom_form_block['form_block_target_table_id']}}"
                     data-form_block_type="{{$custom_form_block['form_block_type']}}" data-form_block_target_table_id="{{$custom_form_block['form_block_target_table_id']}}" data-form_column_no="2">
 
                     <h5 class="bold">{{ exmtrans('custom_form.items') }} {{ exmtrans('common.column') }}2</h5>
@@ -96,6 +98,7 @@
     @include("exment::custom-form.form-item", ['custom_form_column'
                         => $custom_form_column, 'suggest' => false]) @endforeach
                     </ul>
+                </div>
                 </div>
                 <div class="col-xs-12 col-md-1 arrows-h">
                     <i class="fa fa-arrow-left"></i>

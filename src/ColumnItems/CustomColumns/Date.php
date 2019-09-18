@@ -18,17 +18,25 @@ class Date extends CustomItem
         if (is_nullorempty($format)) {
             $format = array_get($this->options, 'format');
         }
+        if (is_nullorempty($format)) {
+            $format = $this->getDisplayFormat();
+        }
         
         if (!isset($this->value)) {
             return null;
         }
 
         if (!is_nullorempty($format)) {
-            return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
+            return $this->getDateUseValue($format);
         }
 
         // else, return
         return $this->value();
+    }
+
+    protected function getDisplayFormat()
+    {
+        return config('admin.date_format');
     }
 
     public function saving()
@@ -42,7 +50,21 @@ class Date extends CustomItem
             return null;
         }
 
-        return (new \Carbon\Carbon($this->value()))->format($this->format) ?? null;
+        return $this->getDateUseValue($this->format);
+    }
+
+    /**
+     * Get date again use format
+     *
+     * @return void
+     */
+    protected function getDateUseValue($format)
+    {
+        if (is_array($this->value())) {
+            return (new \Carbon\Carbon(array_get($this->value(), 'date')))->format($format) ?? null;
+        }
+
+        return (new \Carbon\Carbon($this->value()))->format($format) ?? null;
     }
 
     protected function getAdminFieldClass()
@@ -114,7 +136,7 @@ class Date extends CustomItem
      */
     protected function getNowString()
     {
-        return \Carbon\Carbon::now()->format('Y-m-d');
+        return \Carbon\Carbon::now()->format($this->format);
     }
 
     /**

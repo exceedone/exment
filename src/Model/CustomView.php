@@ -329,9 +329,10 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @param mixed $tableObj table_name, object or id eic
      * @param boolean $getSettingValue if true, getting from UserSetting table
+     * @param boolean $is_dashboard call by dashboard
      * @return void
      */
-    public static function getDefault($tableObj, $getSettingValue = true)
+    public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)
     {
         $user = Admin::user();
         $tableObj = CustomTable::getEloquent($tableObj);
@@ -346,7 +347,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
             $view = static::findBySuuid($suuid);
 
             // set user_setting
-            if (!is_null($user)) {
+            if (!is_null($user) && !$is_dashboard) {
                 $user->setSettingValue(implode(".", [UserSetting::VIEW, $tableObj->table_name]), $suuid);
             }
         }

@@ -3,8 +3,7 @@
 namespace Exceedone\Exment\Enums;
 
 use Exceedone\Exment\Services\Plugin\PluginDocumentDefault;
-use Exceedone\Exment\Services\Plugin\PluginScriptDefault;
-use Exceedone\Exment\Services\Plugin\PluginStyleDefault;
+use Exceedone\Exment\Services\Plugin\PluginPublicDefault;
 
 class PluginType extends EnumBase
 {
@@ -18,70 +17,107 @@ class PluginType extends EnumBase
     public const SCRIPT = '7';
     public const STYLE = '8';
     
-    public static function getRequiredString()
+    public static function PLUGIN_TYPE_PUBLIC_CLASS()
     {
-        return 'trigger,page,api,dashboard,batch,document,import,script,style';
+        return [
+            static::PAGE,
+            static::DASHBOARD,
+            static::SCRIPT,
+            static::STYLE,
+        ];
+    }
+
+    public static function PLUGIN_TYPE_PLUGIN_PAGE()
+    {
+        return [
+            static::PAGE,
+            static::DASHBOARD,
+        ];
     }
 
     /**
-     * Get plugin class
+     * Get plugin class using plugin type
      *
      * @param [type] $plugin
      * @param array $options
      * @return void
      */
-    public function getPluginClass($plugin, $options = [])
+    public static function getPluginClass($plugin_type, $plugin, $options = [])
     {
         $options = array_merge([
             'custom_table' => null,
+            'custom_value' => null,
+            'dashboard_box' => null,
             'id' => null,
+            'as_setting' => false,
         ], $options);
 
-        $classShortName = $this->getPluginClassShortName($plugin);
+        // get class short name.
+        $classShortName = static::getPluginClassShortName($plugin_type, $plugin, $options);
+
         $classname = $plugin->getNameSpace($classShortName);
         $fuleFullPath = $plugin->getFullPath($classShortName . '.php');
-
+    
         if (\File::exists($fuleFullPath) && class_exists($classname)) {
-            switch ($this) {
+            // if only one record, set $plugin_type
+            if (count($plugin->plugin_types) == 1) {
+                $plugin_type = $plugin->plugin_types[0];
+            }
+            // else if as settingm return as setting class
+            elseif (boolval($options['as_setting'])) {
+                return new $classname($plugin);
+            }
+
+            switch ($plugin_type) {
                 case PluginType::DOCUMENT:
                 case PluginType::TRIGGER:
-                    $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
-                    break;
-                    
+                    $custom_value = !is_null($options['custom_value']) ? $options['custom_value'] : $options['id'];
+                    return new $classname($plugin, array_get($options, 'custom_table'), $custom_value);
                 case PluginType::BATCH:
                 case PluginType::PAGE:
-                    $class = new $classname($plugin);
-                    break;
-
+                    return new $classname($plugin);
+                case PluginType::DASHBOARD:
+                    return new $classname($plugin, array_get($options, 'dashboard_box'));
                 case PluginType::IMPORT:
-                    $class = new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
-                    break;
-            }
-        } else {
-            // set default class
-            switch ($this) {
-                case PluginType::DOCUMENT:
-                    $class = new PluginDocumentDefault($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
-                    break;
-                case PluginType::SCRIPT:
-                    $class = new PluginScriptDefault($plugin);
-                    break;
-                case PluginType::STYLE:
-                    $class = new PluginStyleDefault($plugin);
-                    break;
+                    return new $classname($plugin, array_get($options, 'custom_table'), array_get($options, 'file'));
             }
         }
 
-        return $class ?? null;
+        // set default class
+        switch ($plugin_type) {
+            case PluginType::DOCUMENT:
+                return new PluginDocumentDefault($plugin, array_get($options, 'custom_table'), array_get($options, 'id'));
+            case PluginType::SCRIPT:
+            case PluginType::STYLE:
+                return new PluginPublicDefault($plugin);
+        }
+
+        return null;
     }
 
-    public function getPluginClassShortName($plugin)
+    /**
+     * Get plugin short class name
+     *
+     * @param mixed $plugin_type
+     * @param array $options
+     * @return void
+     */
+    public static function getPluginClassShortName($plugin_type, $plugin, $options = [])
     {
+        $options = array_merge([
+            'as_setting' => false,
+        ], $options);
+
+        // plugin_types is multiple
+        if (count($plugin->plugin_types) > 1) {
+            if (boolval($options['as_setting'])) {
+                return 'PluginSetting';
+            }
+
+            return 'Plugin' . pascalize(strtolower($plugin_type->getKey()));
+        }
+
+        // if single
         return 'Plugin';
-    }
-
-    public function isPluginTypeUri()
-    {
-        return in_array($this, [static::STYLE, static::SCRIPT, static::PAGE]);
     }
 }

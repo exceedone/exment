@@ -47,7 +47,7 @@ class PluginPageController extends Controller
 
         $content = new Content;
         $content->row($result);
-        if ($this->pluginPage->_showHeader()) {
+        if (method_exists($this->pluginPage, '_showHeader') && $this->pluginPage->_showHeader()) {
             $content->header($this->plugin->plugin_view_name)
             ->headericon($this->plugin->getOption('icon'));
         }

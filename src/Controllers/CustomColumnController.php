@@ -24,6 +24,8 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\SystemColumn;
+use Illuminate\Validation\Rule;
 
 class CustomColumnController extends AdminControllerTableBase
 {
@@ -164,7 +166,12 @@ class CustomColumnController extends AdminControllerTableBase
             $classname = CustomColumn::class;
             $form->text('column_name', exmtrans("custom_column.column_name"))
                 ->required()
-                ->rules("max:30|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/|uniqueInTable:{$classname},{$this->custom_table->id}")
+                ->rules([
+                    "max:30",
+                    "regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
+                    "uniqueInTable:{$classname},{$this->custom_table->id}",
+                    Rule::notIn(SystemColumn::arrays()),
+                ])
                 ->help(sprintf(exmtrans('common.help.max_length'), 30) . exmtrans('common.help_code'));
         } else {
             $form->display('column_name', exmtrans("custom_column.column_name"));
@@ -265,6 +272,10 @@ class CustomColumnController extends AdminControllerTableBase
             $form->switchbool('number_format', exmtrans("custom_column.options.number_format"))
                 ->help(exmtrans("custom_column.help.number_format"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])]);
+
+            $form->switchbool('percent_format', exmtrans("custom_column.options.percent_format"))
+                ->help(exmtrans("custom_column.help.percent_format"))
+                ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL]])]);
 
             $form->number('decimal_digit', exmtrans("custom_column.options.decimal_digit"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => [ColumnType::DECIMAL, ColumnType::CURRENCY]])])
@@ -432,7 +443,9 @@ class CustomColumnController extends AdminControllerTableBase
                         [
                         'format' => exmtrans("custom_column.options.auto_number_type_format"),
                         'random25' => exmtrans("custom_column.options.auto_number_type_random25"),
-                        'random32' => exmtrans("custom_column.options.auto_number_type_random32")]
+                        'random32' => exmtrans("custom_column.options.auto_number_type_random32"),
+                        'other' => exmtrans("custom_column.options.auto_number_other"),
+                        ]
                     )
                     ->attribute(['data-filtertrigger' =>true, 'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::AUTO_NUMBER])]);
 
@@ -448,10 +461,11 @@ class CustomColumnController extends AdminControllerTableBase
 
             // calc
             $custom_table = $this->custom_table;
+            $self = $this;
             $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
                 ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => ColumnType::COLUMN_TYPE_CALC()])])
                 ->help(exmtrans("custom_column.help.calc_formula"))
-                ->text(function ($value) use($id, $custom_table) {
+                ->text(function ($value) use ($id, $custom_table, $self) {
                     /////TODO:copy and paste
                     if (!isset($value)) {
                         return null;
@@ -461,43 +475,19 @@ class CustomColumnController extends AdminControllerTableBase
                         $value = json_decode($value, true);
                     }
 
-                    // set calc formula list
-                    $symbols = [
-                        'plus' => '＋',
-                        'minus' => '－',
-                        'times' => '×',
-                        'div' => '÷',
-                    ];
-
-                    $custom_column_options = CustomColumnController::getCalcCustomColumnOptions($id, $custom_table);
-                    
+                    $custom_column_options = $self->getCalcCustomColumnOptions($id, $custom_table);
                     ///// get text
                     $texts = [];
                     foreach ($value as &$v) {
-                        $val = array_get($v, 'val');
-                        switch (array_get($v, 'type')) {
-                            case 'dynamic':
-                            case 'select_table':
-                                $target_column = collect($custom_column_options)->first(function($custom_column_option) use($v){
-                                    return array_get($v, 'val') == array_get($custom_column_option, 'val') && array_get($v, 'type') == array_get($custom_column_option, 'type');
-                                });
-                                $texts[] = array_get($target_column, 'text');
-                                break;
-                            case 'symbol':
-                                $texts[] = array_get($symbols, $val);
-                                break;
-                            case 'fixed':
-                                $texts[] = $val;
-                                break;
-                        }
+                        $texts[] = $self->getCalcDisplayText($v, $custom_column_options);
                     }
                     return implode(" ", $texts);
                 })
-                ->modalbody(function ($value) use ($id, $custom_table) {
+                ->modalbody(function ($value) use ($id, $custom_table, $self) {
                     /////TODO:copy and paste
                     // get other columns
                     // return $id is null(calling create fuction) or not match $id and row id.
-                    $custom_column_options = CustomColumnController::getCalcCustomColumnOptions($id, $custom_table);
+                    $custom_column_options = $self->getCalcCustomColumnOptions($id, $custom_table);
                     
                     if (!isset($value)) {
                         $value = [];
@@ -507,38 +497,15 @@ class CustomColumnController extends AdminControllerTableBase
                         $value = json_decode($value, true);
                     }
 
-                    // set calc formula list
-                    $symbols = [
-                        'plus' => '＋',
-                        'minus' => '－',
-                        'times' => '×',
-                        'div' => '÷',
-                    ];
-
                     ///// get text
                     foreach ($value as &$v) {
-                        $val = array_get($v, 'val');
-                        switch (array_get($v, 'type')) {
-                            case 'dynamic':
-                            case 'select_table':
-                                $target_column = collect($custom_column_options)->first(function($custom_column_option) use($v){
-                                    return array_get($v, 'val') == array_get($custom_column_option, 'val') && array_get($v, 'type') == array_get($custom_column_option, 'type');
-                                });
-                                $v['text'] = array_get($target_column, 'text');
-                                break;
-                            case 'symbol':
-                                $v['text'] = array_get($symbols, $val);
-                                break;
-                            case 'fixed':
-                                $v['text'] = $val;
-                                break;
-                        }
+                        $v['text'] = $self->getCalcDisplayText($v, $custom_column_options);
                     }
 
                     return view('exment::custom-column.calc_formula_modal', [
                         'custom_columns' => $custom_column_options,
                         'value' => $value,
-                        'symbols' => $symbols,
+                        'symbols' => exmtrans('custom_column.symbols'),
                     ]);
                 })
             ;
@@ -586,6 +553,39 @@ class CustomColumnController extends AdminControllerTableBase
         return $form;
     }
     
+    protected function getCalcDisplayText($v, $custom_column_options)
+    {
+        $val = array_get($v, 'val');
+        $table = array_get($v, 'table');
+        $text = null;
+        switch (array_get($v, 'type')) {
+            case 'dynamic':
+            case 'select_table':
+                $target_column = collect($custom_column_options)->first(function ($custom_column_option) use ($v) {
+                    return array_get($v, 'val') == array_get($custom_column_option, 'val') && array_get($v, 'type') == array_get($custom_column_option, 'type');
+                });
+                $text = array_get($target_column, 'text');
+                break;
+            case 'count':
+                if (isset($table)) {
+                    $child_table = CustomTable::getEloquent($table);
+                    $text = exmtrans('custom_column.child_count_text', $child_table->table_view_name);
+                }
+                break;
+            case 'summary':
+                $column = CustomColumn::getEloquent($val);
+                $text = exmtrans('custom_column.child_sum_text', $column->custom_table->table_view_name, $column->column_view_name);
+                break;
+            case 'symbol':
+                $symbols = exmtrans('custom_column.symbols');
+                $text = array_get($symbols, $val);
+                break;
+            case 'fixed':
+                $text = $val;
+                break;
+        }
+        return $text;
+    }
     /**
      * add column form and view after saved
      */
@@ -645,20 +645,21 @@ class CustomColumnController extends AdminControllerTableBase
      * @param [type] $custom_table
      * @return void
      */
-    protected static function getCalcCustomColumnOptions($id, $custom_table){
+    protected function getCalcCustomColumnOptions($id, $custom_table)
+    {
         $options = [];
 
         // get calc options
         $custom_table->custom_columns->filter(function ($column) use ($id) {
-            if(isset($id) && $id == array_get($column, 'id')){
+            if (isset($id) && $id == array_get($column, 'id')) {
                 return false;
             }
-            if(!ColumnType::isCalc(array_get($column, 'column_type'))){
+            if (!ColumnType::isCalc(array_get($column, 'column_type'))) {
                 return false;
             }
 
             return true;
-        })->each(function($column) use(&$options){
+        })->each(function ($column) use (&$options) {
             $options[] = [
                 'val' => $column->id,
                 'type' => 'dynamic',
@@ -669,24 +670,24 @@ class CustomColumnController extends AdminControllerTableBase
         // get select table custom columns
         $select_table_custom_columns = [];
         $custom_table->custom_columns->each(function ($column) use ($id, &$options) {
-            if(isset($id) && $id == array_get($column, 'id')){
+            if (isset($id) && $id == array_get($column, 'id')) {
                 return;
             }
-            if(!ColumnType::isSelectTable(array_get($column, 'column_type'))){
+            if (!ColumnType::isSelectTable(array_get($column, 'column_type'))) {
                 return;
             }
 
             // get select table's calc column
             $column->select_target_table->custom_columns->filter(function ($select_target_column) use ($id, $column, &$options) {
-                if(isset($id) && $id == array_get($select_target_column, 'id')){
+                if (isset($id) && $id == array_get($select_target_column, 'id')) {
                     return false;
                 }
-                if(!ColumnType::isCalc(array_get($select_target_column, 'column_type'))){
+                if (!ColumnType::isCalc(array_get($select_target_column, 'column_type'))) {
                     return false;
                 }
     
                 return true;
-            })->each(function($select_target_column) use($column, &$options){
+            })->each(function ($select_target_column) use ($column, &$options) {
                 $options[] = [
                     'val' => $column->id,
                     'type' => 'select_table',
@@ -695,6 +696,32 @@ class CustomColumnController extends AdminControllerTableBase
                 ];
             });
         });
+
+        // add child columns
+        $child_relations = $custom_table->custom_relations;
+        if (isset($child_relations)) {
+            foreach ($child_relations as $child_relation) {
+                $child_table = $child_relation->child_custom_table;
+                $child_table_name = array_get($child_table, 'table_view_name');
+                $options[] = [
+                    'type' => 'count',
+                    'text' => exmtrans('custom_column.child_count_text', $child_table_name),
+                    'custom_table_id' => $child_table->id
+                ];
+
+                $child_columns = $child_table->custom_columns->filter(function ($column) {
+                    return in_array(array_get($column, 'column_type'), ColumnType::COLUMN_TYPE_CALC());
+                })->map(function ($column) use ($child_table_name) {
+                    return [
+                        'type' => 'summary',
+                        'val' => $column->id,
+                        'text' => exmtrans('custom_column.child_sum_text', $child_table_name, $column->column_view_name),
+                        'custom_table_id' => $column->custom_table_id
+                    ];
+                })->toArray();
+                $options = array_merge($options, $child_columns);
+            }
+        }
         
         return $options;
     }

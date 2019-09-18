@@ -105,6 +105,34 @@ class MySqlGrammar extends BaseGrammar
 
         return null;
     }
+    
+    /**
+     * convert carbon date to date format
+     *
+     * @param GroupCondition $groupCondition Y, YM, YMD, ...
+     * @param Carbon $carbon
+     *
+     * @return string
+     */
+    public function convertCarbonDateFormat($groupCondition, $carbon)
+    {
+        switch ($groupCondition) {
+            case GroupCondition::Y:
+                return $carbon->format('Y');
+            case GroupCondition::YM:
+                return $carbon->format('Y-m');
+            case GroupCondition::YMD:
+                return $carbon->format('Y-m-d');
+            case GroupCondition::M:
+                return $carbon->format('m');
+            case GroupCondition::D:
+                return $carbon->format('d');
+            case GroupCondition::W:
+                return $carbon->format('w');
+        }
+
+        return null;
+    }
 
     /**
      * Get case when query

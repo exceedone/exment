@@ -9,6 +9,11 @@ class Datetime extends Date
 {
     protected $format = 'Y-m-d H:i:s';
 
+    protected function getDisplayFormat()
+    {
+        return config('admin.datetime_format');
+    }
+
     protected function getAdminFieldClass()
     {
         if ($this->displayDate()) {
@@ -20,15 +25,5 @@ class Datetime extends Date
     protected function setAdminFilterOptions(&$filter)
     {
         $filter->datetime();
-    }
-    
-    /**
-     * get now string for saving
-     *
-     * @return string now string
-     */
-    protected function getNowString()
-    {
-        return \Carbon\Carbon::now()->format('Y-m-d H:i:s');
     }
 }

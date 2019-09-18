@@ -93,11 +93,19 @@
     function restore(id) {
         Exment.CommonEvent.ShowSwal('{{admin_url("backup/restore")}}', {
             title: "{{exmtrans('backup.message.restore_confirm')}}",
-            text: "{{exmtrans('common.message.execution_takes_time')}}" + "{{exmtrans('backup.message.restore_confirm_text')}}",
+            text: "{{$restore_text}}",
             confirm:"{{trans('admin.confirm')}}",
+            input: 'text',
             cancel:"{{trans('admin.cancel')}}",
             data: {
                 file: id
+            },
+            preConfirmValidate: function(input){
+                if (input != "{{$restore_keyword}}") {
+                    return "{{exmtrans('error.mistake_keyword')}}";
+                }
+
+                return true;
             },
         });
     }

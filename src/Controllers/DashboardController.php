@@ -6,16 +6,16 @@ use Encore\Admin\Form;
 use Encore\Admin\Facades\Admin;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Auth\Permission as Checker;
-//use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Widgets\Box;
-//use Encore\Admin\Widgets\Form;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Form\Tools\DashboardMenu;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\UserSetting;
 
@@ -66,6 +66,11 @@ class DashboardController extends AdminControllerBase
     public function create(Request $request, Content $content)
     {
         $this->setDashboardInfo($request);
+        // check has system permission or acceptable user view
+        if (!Dashboard::hasPermission()) {
+            Checker::error();
+            return false;
+        }
         return parent::create($request, $content);
     }
 
@@ -96,6 +101,8 @@ class DashboardController extends AdminControllerBase
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
+        $error = exmtrans('error.header');
+
         $script = <<<EOT
         $(function () {
             // get suuid inputs
@@ -163,9 +170,10 @@ class DashboardController extends AdminControllerBase
                 type: "GET",
                 context: {
                     'inner_body': inner_body,
+                    'suuid': suuid,
                 },
                 success: function (data) {
-                    var suuid = data.suuid;
+                    var suuid = this.suuid;
 
                     // get target object
                     var target = $('[data-suuid="' + suuid + '"]');
@@ -182,7 +190,7 @@ class DashboardController extends AdminControllerBase
                     if(data.footer){
                         target.find('.box-body .box-body-inner-footer').html(data.footer);
                     }
-
+                    
                     // remove height
                     this.inner_body.css('height', '');
 
@@ -190,6 +198,17 @@ class DashboardController extends AdminControllerBase
                     target.removeClass('loading');
 
                     Exment.CommonEvent.tableHoverLink();
+                },
+                error: function () {
+                    var suuid = this.suuid;
+                    // get target object
+                    var target = $('[data-suuid="' + suuid + '"]');
+
+                    target.find('.overlay').hide();
+                    target.removeClass('loading');
+                   
+                    // show error
+                    target.find('.box-body .box-body-inner-body').html('$error');
                 },
             });
         }
@@ -207,6 +226,13 @@ EOT;
     {
         $form = new Form(new Dashboard);
 
+        if (isset($id)) {
+            $model = Dashboard::getEloquent($id);
+            $dashboard_type = $model->dashboard_type;
+        } else {
+            $dashboard_type = null;
+        }
+
         if (!isset($id)) {
             $form->text('dashboard_name', exmtrans("dashboard.dashboard_name"))
                 ->required()
@@ -221,7 +247,9 @@ EOT;
             ->required()
             ->rules("max:40");
 
-        if (!isset($id) && Dashboard::hasSystemPermission()) {
+        if (boolval(config('exment.userdashboard_disabled', false))) {
+            $form->hidden('dashboard_type')->default(DashboardType::SYSTEM);
+        } elseif (Dashboard::hasSystemPermission() && (is_null($dashboard_type) || $dashboard_type == DashboardType::USER)) {
             $form->select('dashboard_type', exmtrans('dashboard.dashboard_type'))
                 ->options(DashboardType::transKeyArray('dashboard.dashboard_type_options'))
                 ->config('allowClear', false)
@@ -301,6 +329,13 @@ EOT;
                 $dashboardboxes_newbuttons = [];
                 if ($has_role) {
                     foreach (DashboardBoxType::DASHBOARD_BOX_TYPE_OPTIONS() as $options) {
+                        // if type is plugin, check has dashboard item
+                        if (array_get($options, 'dashboard_box_type') == DashboardBoxType::PLUGIN) {
+                            if (count(Plugin::getByPluginTypes(PluginType::DASHBOARD)) == 0) {
+                                continue;
+                            }
+                        }
+
                         // create query
                         $query = http_build_query([
                             'dashboard_suuid' => $this->dashboard->suuid,

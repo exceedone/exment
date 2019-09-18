@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Tools;
 
 use Encore\Admin\Facades\Admin;
+use Exceedone\Exment\Model\Plugin;
 
 /**
  * Plugin menu button.
@@ -12,10 +13,18 @@ class PluginMenuButton
     protected $plugin;
     protected $custom_table;
     protected $id;
+    // set this plugin type
+    protected $plugin_type;
     
-    public function __construct($plugin, $custom_table, $id = null)
+    public function __construct($listButton, $custom_table, $id = null)
     {
-        $this->plugin = $plugin;
+        if ($listButton instanceof Plugin) {
+            $this->plugin = $listButton;
+            $this->plugin_type = collect($this->plugin->plugin_types)->first();
+        } else {
+            $this->plugin = array_get($listButton, 'plugin');
+            $this->plugin_type = array_get($listButton, 'plugin_type');
+        }
         $this->custom_table = $custom_table;
         $this->id = $id;
     }
@@ -33,7 +42,7 @@ class PluginMenuButton
         $cancel = trans('admin.cancel');
 
         $label = esc_html(sprintf(exmtrans('common.message.confirm_execute'), ($label ?? exmtrans('common.plugin'))));
-
+        $plugin_type = $this->plugin_type;
         return <<<EOT
 
         $('#menu_button_$uuid').off('click').on('click', function(){
@@ -42,7 +51,8 @@ class PluginMenuButton
                 confirm:"$confirm",
                 cancel:"$cancel",
                 data: {
-                    uuid:"$uuid"
+                    uuid:"$uuid",
+                    plugin_type: '$plugin_type'
                 }
             });
         });

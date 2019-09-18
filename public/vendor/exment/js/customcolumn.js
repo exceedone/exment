@@ -37,6 +37,15 @@ var Exment;
                 }
                 clone.querySelector('span').textContent = target.text();
                 break;
+            case 'summary':
+            case 'count':
+                // set data-val and text
+                clone.querySelector('.col-value-item').dataset.val = target.data('val');
+                if (hasValue(target.data('table'))) {
+                    clone.querySelector('.col-value-item').dataset.table = target.data('table');
+                }
+                clone.querySelector('span').textContent = target.text();
+                break;
             case 'fixed':
                 // set data-val from col-target-fixedval
                 var fixedval = target.closest('.row').find('.col-target-fixedval').val();
@@ -63,6 +72,9 @@ var Exment;
             let itemval = { 'type': val.data('type'), 'val': val.data('val') };
             if (hasValue(val.data('from'))) {
                 itemval['from'] = val.data('from');
+            }
+            if (hasValue(val.data('table'))) {
+                itemval['table'] = val.data('table');
             }
             items.push(itemval);
             // push text

@@ -158,7 +158,9 @@ class Initialize
         Config::set('database.connections.mariadb.driver', 'mariadb');
 
         //override
-        Config::set('admin.database.menu_model', Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.database.menu_model', \Exceedone\Exment\Model\Menu::class);
+        Config::set('admin.database.users_table', \Exceedone\Exment\Model\LoginUser::getTableName());
+        Config::set('admin.database.users_model', \Exceedone\Exment\Model\LoginUser::class);
         Config::set('admin.enable_default_breadcrumb', false);
         Config::set('admin.show_environment', false);
 
@@ -245,7 +247,22 @@ class Initialize
                 Config::set('admin.layout', array_get(Define::SYSTEM_LAYOUT, $val));
             }
 
-            
+            // Date format
+            $val = System::default_date_format();
+            if (isset($val)) {
+                $list = exmtrans("system.date_format_list.$val");
+            }
+            if (isset($list) && is_array($list) && count($list) > 2) {
+                Config::set('admin.date_format', $list[0]);
+                Config::set('admin.datetime_format', $list[1]);
+                Config::set('admin.time_format', $list[2]);
+                \Carbon\Carbon::setToStringFormat(config('admin.datetime_format'));
+            } else {
+                Config::set('admin.date_format', 'Y-m-d');
+                Config::set('admin.datetime_format', 'Y-m-d H:i:s');
+                Config::set('admin.time_format', 'H:i:s');
+            }
+        
             // favicon
             if (!is_null(System::site_favicon())) {
                 \Admin::setFavicon(admin_url('favicon'));
@@ -336,6 +353,7 @@ class Initialize
         $map = [
             'ajaxButton'        => Field\AjaxButton::class,
             'text'          => Field\Text::class,
+            'password'          => Field\Password::class,
             'number'        => Field\Number::class,
             'tinymce'        => Field\Tinymce::class,
             'image'        => Field\Image::class,
@@ -377,13 +395,13 @@ class Initialize
                 $sql = preg_replace("/\?/", "'{$binding}'", $sql, 1);
             }
 
-            $log_string = 'SQL: ' .$sql;
+            $log_string = "TIME:{$query->time}ms;    SQL: $sql";
             if (boolval(config('exment.debugmode_sqlfunction', false))) {
                 $function = static::getFunctionName();
-                $log_string .= "    , function: $function";
+                $log_string .= ";    function: $function";
             } elseif (boolval(config('exment.debugmode_sqlfunction1', false))) {
                 $function = static::getFunctionName(true);
-                $log_string .= "    , function: $function";
+                $log_string .= ";    function: $function";
             }
 
             exmDebugLog($log_string);

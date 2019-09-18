@@ -60,12 +60,12 @@ class BatchCommand extends Command
             return;
         }
         
-        if ($plugin->plugin_type != PluginType::BATCH) {
+        if (!$plugin->matchPluginType(PluginType::BATCH)) {
             $this->error('Plugin not not batch. Please select batch plugin.');
             return;
         }
 
-        $batch = $plugin->getClass();
+        $batch = $plugin->getClass(PluginType::BATCH);
         $batch->execute();
     }
 

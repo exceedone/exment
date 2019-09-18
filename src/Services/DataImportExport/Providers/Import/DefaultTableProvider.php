@@ -7,8 +7,12 @@ use Carbon\Carbon;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\ColumnItems\ParentItem;
+use Exceedone\Exment\Validator\CustomValueRule;
+use Exceedone\Exment\Validator\EmptyRule;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -133,17 +137,35 @@ class DefaultTableProvider extends ProviderBase
 
         // get fields for validation
         $fields = [];
+        $customAttributes = [];
         foreach ($validate_columns as $validate_column) {
             $fields[] = FormHelper::getFormField($this->custom_table, $validate_column, array_get($model, 'id'), null, 'value.');
+
+            // get display name
+            $customAttributes['value.' . $validate_column->column_name] = "{$validate_column->column_view_name}({$validate_column->column_name})";
         }
+        
+        // create parent type validation array
+        $custom_relation_parent = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
+        $custom_table_parent = ($custom_relation_parent ? $custom_relation_parent->parent_custom_table : null);
+        
+        $parent_id_rules = isset($custom_table_parent) ? ['nullable', 'numeric', new CustomValueRule($custom_table_parent)] : [new EmptyRule];
+        $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule];
+
         // create common validate rules.
         $rules = [
-            'id' => ['nullable', 'regex:/^[0-9]+$/'],
+            'id' => ['nullable', 'numeric'],
+            'parent_id' => $parent_id_rules,
+            'parent_type' => $parent_type_rules,
             'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
             'created_at' => ['nullable', 'date'],
             'updated_at' => ['nullable', 'date'],
             'deleted_at' => ['nullable', 'date'],
         ];
+        foreach ($rules as $key => $rule) {
+            $customAttributes[$key] = exmtrans("common.$key") . "($key)";
+        }
+
         // foreach for field validation rules
         foreach ($fields as $field) {
             // get field validator
@@ -159,7 +181,7 @@ class DefaultTableProvider extends ProviderBase
         }
         
         // execute validation
-        $validator = Validator::make(array_dot_reverse($data), $rules);
+        $validator = Validator::make(array_dot_reverse($data), $rules, [], $customAttributes);
         if ($validator->fails()) {
             // create error message
             $errors = [];

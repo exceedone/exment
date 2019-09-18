@@ -604,7 +604,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $mainQuery = $this->getValueModel()->getSearchQuery($q, $options);
 
-        if(!isset($mainQuery)){
+        if (!isset($mainQuery)) {
             return null;
         }
 
@@ -1360,6 +1360,15 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return false;
+    }
+    
+    /**
+     * Whether login user has permission about view.
+     */
+    public function hasViewPermission()
+    {
+        return !boolval(config('exment.userview_disabled', false)) ||
+            $this->hasPermission([Permission::CUSTOM_TABLE, Permission::CUSTOM_VIEW]);
     }
     
     /**
