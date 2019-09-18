@@ -28,19 +28,19 @@ class SelectTableNumericRule implements Rule
         }
 
         // if numeric, return true
-        if(!is_array($value) && is_numeric($value)){
+        if (!is_array($value) && is_numeric($value)) {
             return true;
         }
 
-        if(is_string($value)){
+        if (is_string($value)) {
             $value = explode(',', $value);
         }
 
         $value = array_filter($value);
 
-        if(is_array($value)){
-            foreach($value as $v){
-                if(!is_numeric($v)){
+        if (is_array($value)) {
+            foreach ($value as $v) {
+                if (!is_numeric($v)) {
                     return false;
                 }
             }

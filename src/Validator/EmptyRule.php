@@ -1,6 +1,8 @@
 <?php
 namespace Exceedone\Exment\Validator;
+
 use Illuminate\Contracts\Validation\Rule;
+
 /**
  * Only Null Or Empty.
  */

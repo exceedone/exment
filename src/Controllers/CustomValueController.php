@@ -23,7 +23,6 @@ use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
-use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Symfony\Component\HttpFoundation\Response;

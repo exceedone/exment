@@ -18,10 +18,10 @@ class PluginMenuButton
     
     public function __construct($listButton, $custom_table, $id = null)
     {
-        if($listButton instanceof Plugin){
+        if ($listButton instanceof Plugin) {
             $this->plugin = $listButton;
             $this->plugin_type = collect($this->plugin->plugin_types)->first();
-        }else{
+        } else {
             $this->plugin = array_get($listButton, 'plugin');
             $this->plugin_type = array_get($listButton, 'plugin_type');
         }

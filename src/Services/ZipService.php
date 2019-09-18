@@ -2,6 +2,7 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\File as ExmentFile;
+
 /**
  * Zip Service, set password
  */
@@ -27,7 +28,7 @@ class ZipService
 
             // get file info from database
             $dbFile = ExmentFile::where('local_filename', $tmpfile)->first();
-            if(isset($dbFile)){
+            if (isset($dbFile)) {
                 $tmpfile = $dbFile->filename;
             }
 
@@ -47,7 +48,7 @@ class ZipService
 
     protected static function execPasswordZipWin($zipFullPath, $tmpFolderPath, $password)
     {
-        if($tmpFolderPath == '/' || $tmpFolderPath == ''){
+        if ($tmpFolderPath == '/' || $tmpFolderPath == '') {
             throw new \Exception;
         }
 
@@ -58,7 +59,7 @@ class ZipService
 
     protected static function execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password)
     {
-        if($tmpFolderPath == '/' || $tmpFolderPath == ''){
+        if ($tmpFolderPath == '/' || $tmpFolderPath == '') {
             throw new \Exception;
         }
 

@@ -164,7 +164,7 @@ class DataImportExportService extends AbstractExporter
         // filter data
         $datalist = $this->importAction->filterDatalist($datalist);
         
-        if(count($datalist) == 0){
+        if (count($datalist) == 0) {
             return [
                 'result' => false,
                 'toastr' => exmtrans('common.message.import_error'),

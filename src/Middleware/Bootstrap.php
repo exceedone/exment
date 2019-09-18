@@ -170,7 +170,8 @@ EOT;
         Ad::script($script);
     }
 
-    protected function isStaticRequest($request){
+    protected function isStaticRequest($request)
+    {
         $pathInfo = $request->getPathInfo();
         $extension = strtolower(pathinfo($pathInfo, PATHINFO_EXTENSION));
         return in_array($extension, ['js', 'css', 'png', 'jpg', 'jpeg', 'gif']);

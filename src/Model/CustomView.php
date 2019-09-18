@@ -329,7 +329,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * @param mixed $tableObj table_name, object or id eic
      * @param boolean $getSettingValue if true, getting from UserSetting table
-     * @param boolean $is_dashboard call by dashboard 
+     * @param boolean $is_dashboard call by dashboard
      * @return void
      */
     public static function getDefault($tableObj, $getSettingValue = true, $is_dashboard = false)

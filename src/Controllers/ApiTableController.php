@@ -71,7 +71,7 @@ class ApiTableController extends AdminControllerTableBase
         $model = $this->custom_table->getValueModel()->query();
 
         // set order by
-        if(isset($orderby_list)){
+        if (isset($orderby_list)) {
             foreach ($orderby_list as $item) {
                 $model->orderBy($item[0], $item[1]);
             }
@@ -336,7 +336,7 @@ class ApiTableController extends AdminControllerTableBase
         $this->convertFindKeys($values, $request);
 
         $validates = [];
-        foreach($values as $index => $value) {
+        foreach ($values as $index => $value) {
             if (!isset($custom_value)) {
                 $value = $this->setDefaultData($value);
                 // // get fields for validation
@@ -363,7 +363,7 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         $response = [];
-        foreach($values as &$value) {
+        foreach ($values as &$value) {
             // set default value if new
             if (!isset($custom_value)) {
                 $model = $this->custom_table->getValueModel();
@@ -419,7 +419,7 @@ class ApiTableController extends AdminControllerTableBase
             }
             $indexColumnName = $findCustomColumn->getIndexColumnName();
 
-            foreach($values as &$value) {
+            foreach ($values as &$value) {
                 $findCustomValue = $findCustomTable->getValueModel()
                     ->where($indexColumnName, array_get($value, $findKey))
                     ->first();

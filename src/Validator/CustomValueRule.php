@@ -1,12 +1,12 @@
 <?php
 namespace Exceedone\Exment\Validator;
+
 use Illuminate\Contracts\Validation\Rule;
-use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
+
 /**
  * CustomValueRule.
- * Check contains target table 
+ * Check contains target table
  */
 class CustomValueRule implements Rule
 {
@@ -27,7 +27,7 @@ class CustomValueRule implements Rule
         if (is_null($value)) {
             return true;
         }
-        if(!isset($this->custom_table)){
+        if (!isset($this->custom_table)) {
             return true;
         }
 
@@ -38,10 +38,10 @@ class CustomValueRule implements Rule
 
         $value = array_filter($value);
 
-        foreach($value as $v){
+        foreach ($value as $v) {
             // get target table's value (use request session)
             $model = $this->custom_table->getValueModel($v);
-            if(!isset($model)){
+            if (!isset($model)) {
                 return false;
             }
         }

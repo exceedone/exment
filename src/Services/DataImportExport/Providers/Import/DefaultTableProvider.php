@@ -13,7 +13,6 @@ use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\ColumnItems\ParentItem;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\Validator\EmptyRule;
-use Illuminate\Validation\Rule;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -163,7 +162,7 @@ class DefaultTableProvider extends ProviderBase
             'updated_at' => ['nullable', 'date'],
             'deleted_at' => ['nullable', 'date'],
         ];
-        foreach($rules as $key => $rule){
+        foreach ($rules as $key => $rule) {
             $customAttributes[$key] = exmtrans("common.$key") . "($key)";
         }
 

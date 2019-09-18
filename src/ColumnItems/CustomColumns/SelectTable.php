@@ -176,7 +176,6 @@ class SelectTable extends CustomItem
         ];
 
         $field->options(function ($value) use ($selectOption, $relationColumn) {
-            
             $selectOption['selected_value'] = $value;
 
             // get DB option value
@@ -240,12 +239,12 @@ class SelectTable extends CustomItem
         $message = null;
 
         $isSingle = false;
-        if(!is_array($value)){
+        if (!is_array($value)) {
             $isSingle = true;
             $value = [$value];
         }
 
-        foreach($value as &$v){
+        foreach ($value as &$v) {
             if (!isset($this->target_table)) {
                 $result = false;
             } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
@@ -266,7 +265,7 @@ class SelectTable extends CustomItem
             }
         }
 
-        if($isSingle && count($value) == 1){
+        if ($isSingle && count($value) == 1) {
             $value = $value[0];
         }
 

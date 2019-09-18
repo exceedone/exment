@@ -49,8 +49,8 @@ class BackupController extends AdminControllerBase
         $content->row(view(
             'exment::backup.index',
             [
-                'files' => $rows, 
-                'modal' => $this->importModal(), 
+                'files' => $rows,
+                'modal' => $this->importModal(),
                 'restore_keyword' => Define::RESTORE_CONFIRM_KEYWORD,
                 'restore_text' => exmtrans('common.message.execution_takes_time') . exmtrans('backup.message.restore_confirm_text') . exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD),
             ]
@@ -259,7 +259,7 @@ class BackupController extends AdminControllerBase
     {
         set_time_limit(240);
 
-        // validation 
+        // validation
         $validator = Validator::make($request->all(), [
             'upload_zipfile' => 'required|file',
         ]);

@@ -86,7 +86,8 @@ class UserBelongOrganizationItem extends ProviderBase
         ]);
     }
 
-    protected function setOptions(){
+    protected function setOptions()
+    {
         $this->options = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getSelectOptions([
             'notAjax' => true,
         ]);

@@ -16,7 +16,7 @@ class OrgazanizationTreeItem extends ProviderBase
      */
     public function setGridContent(&$content)
     {
-        if(!boolval(config('exment.show_organization_tree', false))){
+        if (!boolval(config('exment.show_organization_tree', false))) {
             return;
         }
 

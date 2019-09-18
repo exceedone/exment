@@ -268,7 +268,7 @@ class Plugin extends ModelBase
      */
     public static function pluginPreparingButton($plugins, $event = null)
     {
-        if(empty($plugins)){
+        if (empty($plugins)) {
             return [];
         }
 
@@ -379,9 +379,9 @@ class Plugin extends ModelBase
                 $targetPluginTypes = [$targetPluginTypes];
             }
 
-            foreach($targetPluginTypes as $targetPluginType){
+            foreach ($targetPluginTypes as $targetPluginType) {
                 $class = $plugin->getClass($targetPluginType, ['throw_ex' => false]);
-                if(isset($class)){
+                if (isset($class)) {
                     return $class;
                 }
             }
@@ -465,7 +465,7 @@ class Plugin extends ModelBase
     public function getOptionUri()
     {
         $uri = $this->getOption('uri');
-        if(!isset($uri)){
+        if (!isset($uri)) {
             $uri = array_get($this, 'plugin_name');
         }
         return snake_case($uri);
