@@ -8,6 +8,8 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomViewFilter;
 use Exceedone\Exment\Model\CustomViewSort;
+use Exceedone\Exment\Model\PasswordHistory;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Illuminate\Validation\Validator as AdminValidator;
@@ -30,6 +32,64 @@ class ExmentCustomValidator extends AdminValidator
             return true;
         }
         return CustomUserProvider::ValidateCredential(\Exment::user(), ['password' => $value]);
+    }
+
+    /**
+    * Validation password history
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validatePasswordHistory($attribute, $value, $parameters)
+    {
+        if (is_null($value)) {
+            return true;
+        }
+
+        if (empty($cnt = System::password_history_cnt())) {
+            return true;
+        }
+
+        // get user info by email
+        $user = \Exment::user();
+        if (!isset($user)) {
+            $user = CustomUserProvider::RetrieveByCredential(['username' => $this->data['email']]);
+        }
+
+        // get password history
+        $old_passwords = PasswordHistory::where('base_user_id', $user->base_user_id)
+            ->orderby('created_at', 'desc')->limit($cnt)->pluck('password');
+        
+        if (count($old_passwords) == 0) {
+            return true;
+        } 
+
+        return !($old_passwords->contains(function ($old_password) use($value){
+            return password_verify($value, $old_password);
+        }));
+    }
+
+    /**
+    * Validation password policy
+    *
+    * @param $attribute
+    * @param $value
+    * @param $parameters
+    * @return bool
+    */
+    public function validatePasswordPolicy($attribute, $value, $parameters)
+    {
+        if (is_null($value)) {
+            return true;
+        }
+
+        $char_cnt = collect(['a-z', 'A-Z', '0-9', '^a-zA-Z0-9'])->filter(function($regstr) use($value) {
+            return preg_match("/[$regstr]+/", $value);
+        })->count();
+
+        return $char_cnt >= 3;
     }
 
     /**

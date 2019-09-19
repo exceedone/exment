@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\PasswordHistory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -111,6 +112,12 @@ class ResetPasswordController extends Controller
         //$user->setRememberToken(Str::random(60));
 
         $user->saveOrFail();
+
+        // save password history
+        PasswordHistory::create([
+            'base_user_id' => $user->base_user_id,
+            'password' => $password
+        ]);
 
         event(new PasswordReset($user));
     }

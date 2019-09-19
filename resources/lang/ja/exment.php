@@ -185,6 +185,10 @@ return [
         'version_error' => 'バージョンの取得に失敗しました。',
         'update_guide' => 'アップデート手順はこちらから',
         'current_version' => '現在のバージョン：',
+        'password_policy' => 'パスワードポリシー',
+        'complex_password' => '複雑なパスワード',
+        'password_expiration_days' => '有効日数',
+        'password_history_cnt' => 'パスワードの履歴件数',
         
         'site_skin_options' => [
             "skin-blue" => "ヘッダー：青&nbsp;&nbsp;&nbsp;&nbsp;サイドバー：黒",
@@ -238,6 +242,10 @@ return [
             'template' => 'テンプレートを選択することで、テーブルや列、フォームが自動的にインストールされます。',
             'role_one_user_organization' => '権限にユーザーまたは組織を1件以上登録してください。',
             'default_date_format' => '日付と時刻の表示書式を設定します。',
+            'password_policy' => 'ログインパスワードのポリシーを設定します。',
+            'complex_password' => 'YESにした場合、パスワードには必ず3種類の文字種（英大文字、英小文字、数字、記号）を含む必要があります。',
+            'password_expiration_days' => 'パスワードの有効日数を設定します。0にした場合は無期限になります。',
+            'password_history_cnt' => '履歴件数内で使用済のパスワードは登録できません。0にした場合はチェック対象外になります。',
         ]
     ],
 
@@ -436,6 +444,7 @@ return [
         'avatar' => 'アバター',
         'default_table_name' => 'ユーザー',
         'belong_organizations' => '所属組織設定',
+        'password_change' => 'パスワード変更',
         'help' =>[
             'user_name' => '画面に表示する名前です。',
             'email' => 'システム通知を受信できるメールアドレスを入力してください。',
@@ -449,6 +458,7 @@ return [
         ],
         'message' => [
             'required_password' => 'パスワードを入力するか自動生成を選択してください。',
+            'change_succeeded' => 'パスワードを変更しました。',
         ]
     ],
 

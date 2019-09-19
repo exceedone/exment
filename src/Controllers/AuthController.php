@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -388,6 +389,15 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                         'user_name' => array_get($req, 'base_user.value.user_name'),
                     ]);
                     $user->save();
+
+                    // if change, save password history
+                    $form_password = $req['password'];
+                    if (isset($form_password) && $form->model()->password != $form_password) {
+                        PasswordHistory::create([
+                            'base_user_id' => $user_id,
+                            'password' => $form_password
+                        ]);
+                    }
                 });
                 
                 admin_toastr(trans('admin.update_succeeded'));
