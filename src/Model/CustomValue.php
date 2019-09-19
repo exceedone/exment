@@ -723,6 +723,22 @@ class CustomValue extends ModelBase
     }
 
     /**
+     * merge value from custom_value
+     */
+    public function mergeValue($value)
+    {
+        foreach ($this->custom_table->custom_columns as $custom_column) {
+            $column_name = $custom_column->column_name;
+            // if not key in value, set default value
+            if (!array_has($value, $column_name)) {
+                $value[$column_name] = $this->getValue($column_name);
+            }
+        }
+
+        return $value;
+    }
+    
+    /**
      * get parent value
      */
     public function getParentValue($isonly_label = false)
@@ -733,6 +749,7 @@ class CustomValue extends ModelBase
         }
         return $model->label ?? null;
     }
+    
     /**
      * Get Custom children value summary
      */

@@ -10,7 +10,6 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
-use Exceedone\Exment\Services\FormHelper;
 use Carbon\Carbon;
 use Validator;
 
@@ -338,24 +337,27 @@ class ApiTableController extends AdminControllerTableBase
         $validates = [];
         foreach ($values as $index => $value) {
             if (!isset($custom_value)) {
-                $value = $this->setDefaultData($value);
+                $value = $this->custom_table->setDefaultValue($value);
                 // // get fields for validation
-                $validate = $this->validateData($value);
+                $validator = $this->custom_table->validateValue($value);
             } else {
+                $value = $custom_value->mergeValue($value);
                 // // get fields for validation
-                $validate = $this->validateData($value, $custom_value->id);
+                $validator = $this->custom_table->validateValue($value, false, $custom_value->id);
             }
-            if ($validate !== true) {
+
+            if ($validator->fails()) {
                 if ($is_single) {
-                    $validates[] = $validate;
+                    $validates[] = $this->getErrorMessages($validator);
                 } else {
                     $validates[] = [
                         'line_no' => $index,
-                        'error' => $validate
+                        'error' => $this->getErrorMessages($validator)
                     ];
                 }
             }
         }
+
         if (count($validates) > 0) {
             return abortJson(400, [
                 'errors' => $validates
@@ -434,48 +436,6 @@ class ApiTableController extends AdminControllerTableBase
     }
 
     /**
-     * validate requested data
-     */
-    protected function validateData($value, $id = null)
-    {
-        // get fields for validation
-        $fields = [];
-        $customAttributes = [];
-        foreach ($this->custom_table->custom_columns as $custom_column) {
-            $fields[] = FormHelper::getFormField($this->custom_table, $custom_column, $id);
-            $customAttributes[$custom_column->column_name] = "{$custom_column->column_view_name}({$custom_column->column_name})";
-
-            // if not contains $value[$custom_column->column_name], set as null.
-            // if not set, we cannot validate null check because $field->getValidator returns false.
-            if (!array_has($value, $custom_column->column_name)) {
-                $value[$custom_column->column_name] = null;
-            }
-        }
-        // foreach for field validation rules
-        $rules = [];
-        foreach ($fields as $field) {
-            // get field validator
-            $field_validator = $field->getValidator($value);
-            if (!$field_validator) {
-                continue;
-            }
-            // get field rules
-            $field_rules = $field_validator->getRules();
-
-            // merge rules
-            $rules = array_merge($field_rules, $rules);
-        }
-        
-        // execute validation
-        $validator = Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
-        if ($validator->fails()) {
-            // create error message
-            return $this->getErrorMessages($validator);
-        }
-        return true;
-    }
-
-    /**
      * Get error message from validator
      *
      * @param [type] $validator
@@ -494,26 +454,6 @@ class ApiTableController extends AdminControllerTableBase
         return $errors;
     }
 
-    /**
-     * set Default Data from custom column info
-     */
-    protected function setDefaultData($value)
-    {
-        // get fields for validation
-        $fields = [];
-        foreach ($this->custom_table->custom_columns as $custom_column) {
-            // get default value
-            $default = $custom_column->getOption('default');
-
-            // if not key in value, set default value
-            if (!array_has($value, $custom_column->column_name) && isset($default)) {
-                $value[$custom_column->column_name] = $default;
-            }
-        }
-
-        return $value;
-    }
-    
     /**
      * get calendar data
      * @return mixed
