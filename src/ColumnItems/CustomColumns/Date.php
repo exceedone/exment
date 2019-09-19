@@ -4,7 +4,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Encore\Admin\Form\Field;
-use Encore\Admin\Grid\Filter;
+use Exceedone\Exment\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
 
 class Date extends CustomItem
@@ -77,7 +77,7 @@ class Date extends CustomItem
     
     protected function getAdminFilterClass()
     {
-        return Filter\Between::class;
+        return Filter\BetweenDatetime::class;
     }
 
     protected function setAdminOptions(&$field, $form_column_options)
