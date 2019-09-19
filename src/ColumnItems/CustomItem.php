@@ -349,10 +349,12 @@ abstract class CustomItem implements ItemInterface
             $item = $this;
             $filteritem = new $classname(function ($query) use ($item) {
                 $item->getAdminFilterWhereQuery($query, $this->input);
-            }, $this->label());
+            }, $this->label(), $this->index());
         } else {
             $filteritem = new $classname($this->index(), $this->label());
         }
+
+        $filteritem->showNullCheck();
 
         // first, set $filter->use
         $filter->use($filteritem);
