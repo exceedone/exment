@@ -131,7 +131,11 @@ class ExmentServiceProvider extends ServiceProvider
         'adminapi_anonymous' => [
             'throttle:60,1',
             'bindings',
-        ]
+        ],
+        'exment_web' => [
+            'admin.initialize',
+            'admin.morph',
+        ],
     ];
 
     /**
