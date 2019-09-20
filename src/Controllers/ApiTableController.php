@@ -76,7 +76,7 @@ class ApiTableController extends AdminControllerTableBase
                 $model->orderBy($item[0], $item[1]);
             }
         }
-        $paginator = $model->paginate($count ?? config('exment.api_default_data_count'));
+        $paginator = $model->paginate($count ?? config('exment.api_default_data_count', 100));
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
@@ -331,6 +331,11 @@ class ApiTableController extends AdminControllerTableBase
         if (!is_vector($values)) {
             $values = [$values];
             $is_single = true;
+        }
+
+        $max_create_count = config('exment.api_max_create_count', 100);
+        if(count($values) > $max_create_count){
+            return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
         }
 
         $this->convertFindKeys($values, $request);
