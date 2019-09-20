@@ -365,9 +365,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Archive mail attachments to zip.
+    | *KEY MISTAKE. Set double name.
     |
     */
-    'archive_attachment' => env('EXMENT_ARCHIVE_MAIL_ATTACHMENT', false),
+    'archive_attachment' => env('EXMENT_ARCHIVE_MAIL_ATTACHMENT', env('ARCHIVE_MAIL_ATTACHMENT', false)),
 
     /*
     |--------------------------------------------------------------------------
@@ -395,9 +396,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | get data count (custom_table, custom_value, custom_column...)
+    | *KEY MISTAKE. Set double name.
     |
     */
-    'api_default_data_count' => env('EXMENT_API_DEFAULT_DATA_COUNT', 20),
+    'api_default_data_count' => env('EXMENT_API_DEFAULT_DATA_COUNT', env('API_DEFAULT_DATA_COUNT', 20)),
     
     /*
     |--------------------------------------------------------------------------
