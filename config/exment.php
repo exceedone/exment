@@ -337,7 +337,7 @@ return [
     | set grid min width default
     |
     */
-    'grid_min_width' => env('EXEMTN_GRID_MIN_WIDTH', 100),
+    'grid_min_width' => env('EXMENT_GRID_MIN_WIDTH', 100),
 
     /*
     |--------------------------------------------------------------------------
@@ -347,7 +347,7 @@ return [
     | set grid max width default
     |
     */
-    'grid_max_width' => env('EXEMTN_GRID_MAX_WIDTH', 300),
+    'grid_max_width' => env('EXMENT_GRID_MAX_WIDTH', 300),
 
     /*
     |--------------------------------------------------------------------------
@@ -367,7 +367,7 @@ return [
     | Archive mail attachments to zip.
     |
     */
-    'archive_attachment' => env('ARCHIVE_MAIL_ATTACHMENT', false),
+    'archive_attachment' => env('EXMENT_ARCHIVE_MAIL_ATTACHMENT', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -377,7 +377,7 @@ return [
     | Disabled user view, only system view
     |
     */
-    'userview_disabled' => env('USER_VIEW_DISABLED', false),
+    'userview_disabled' => env('EXMENT_USER_VIEW_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -387,7 +387,7 @@ return [
     | Disabled user dashboard, only system dashboard
     |
     */
-    'userdashboard_disabled' => env('USER_DASHBOARD_DISABLED', false),
+    'userdashboard_disabled' => env('EXMENT_USER_DASHBOARD_DISABLED', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -397,7 +397,17 @@ return [
     | get data count (custom_table, custom_value, custom_column...)
     |
     */
-    'api_default_data_count' => env('API_DEFAULT_DATA_COUNT', 20),
+    'api_default_data_count' => env('EXMENT_API_DEFAULT_DATA_COUNT', 20),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | API max create count 
+    |--------------------------------------------------------------------------
+    |
+    | max length create data
+    |
+    */
+    'api_max_create_count' => env('EXMENT_API_MAX_CREATE_COUNT', 20),
     
     /*
     |--------------------------------------------------------------------------
