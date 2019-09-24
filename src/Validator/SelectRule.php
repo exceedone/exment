@@ -60,6 +60,6 @@ class SelectRule implements Rule
      */
     public function message()
     {
-        return trans('validation.numeric');
+        return trans('validation.in');
     }
 }
