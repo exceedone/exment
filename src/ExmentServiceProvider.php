@@ -171,6 +171,11 @@ class ExmentServiceProvider extends ServiceProvider
         parent::register();
         require_once(__DIR__.'/Services/Helpers.php');
 
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/exment.php',
+            'exment'
+        );
+        
         // register route middleware.
         foreach ($this->routeMiddleware as $key => $middleware) {
             app('router')->aliasMiddleware($key, $middleware);
@@ -209,12 +214,7 @@ class ExmentServiceProvider extends ServiceProvider
     }
 
     protected function publish()
-    {
-        $this->mergeConfigFrom(
-            __DIR__.'/../config/exment.php',
-            'exment'
-        );
-        
+    {        
         $this->publishes([__DIR__.'/../config' => config_path()]);
         $this->publishes([__DIR__.'/../public' => public_path('')], 'public');
         $this->publishes([__DIR__.'/../resources/views/vendor' => resource_path('views/vendor')], 'views_vendor');
