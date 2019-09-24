@@ -397,7 +397,7 @@ return [
     | enabled password policy check
     |
     */
-    'password_policy_enabled' => env('PASSWORD_POLICY_ENABLED', false),
+    'password_policy_enabled' => env('EXMENT_PASSWORD_POLICY', false),
 
     /*
     |--------------------------------------------------------------------------

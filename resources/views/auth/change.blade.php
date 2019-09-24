@@ -1,6 +1,6 @@
 @extends('exment::auth.layout') 
 @section('content')
-            <p class="login-box-msg">{{ exmtrans('user.password_change') }}</p>
+            <p class="login-box-msg">{{ exmtrans('user.help.password_change') }}</p>
     
             <form action="{{ admin_url('auth/change') }}" method="post">
                     <div class="form-group has-feedback {!! !$errors->has('old_password') ?: 'has-error' !!}">
@@ -16,7 +16,7 @@
                         <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                         @endforeach @endif
         
-                        <input type="password" class="form-control" placeholder="{{ trans('admin.password') }}" name="password" value="{{ old('password') }}" required>
+                        <input type="password" class="form-control" placeholder="{{ exmtrans('user.new_password') }}" name="password" value="{{ old('password') }}" required>
                         <span class="glyphicon glyphicon-lock form-control-feedback"></span>
                     </div>
                     <div class="form-group has-feedback {!! !$errors->has('password_confirmation') ?: 'has-error' !!}">
@@ -24,7 +24,7 @@
                         <label class="control-label" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
                         @endforeach @endif
         
-                        <input type="password" class="form-control" placeholder="{{ trans('admin.password_confirmation') }}" name="password_confirmation" value="{{ old('password') }}" required>
+                        <input type="password" class="form-control" placeholder="{{ exmtrans('user.new_password_confirmation') }}" name="password_confirmation" value="{{ old('password') }}" required>
                         <span class="glyphicon glyphicon-lock form-control-feedback"></span>
                     </div>
                 <div class="row">

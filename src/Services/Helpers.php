@@ -640,9 +640,8 @@ if (!function_exists('get_password_rule')) {
         }
         
         if (boolval(config('exment.password_policy_enabled', false))) {
-            if (!empty(System::password_history_cnt())) {
-                array_push($validates, 'password_history');
-            }
+            array_push($validates, 'password_history');
+
             if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
                 array_push($validates, 'password_policy');
             }

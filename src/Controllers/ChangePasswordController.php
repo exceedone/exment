@@ -5,7 +5,6 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
-use Exceedone\Exment\Model\PasswordHistory;
 
 class ChangePasswordController extends Controller
 {
@@ -71,11 +70,5 @@ class ChangePasswordController extends Controller
         // password sets at LoginUser Model
         $user->password = $password;
         $user->saveOrFail();
-
-        // save password history
-        PasswordHistory::create([
-            'base_user_id' => $user->base_user_id,
-            'password' => $password
-        ]);
     }
 }

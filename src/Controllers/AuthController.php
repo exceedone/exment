@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
+use Carbon\Carbon;
 
 /**
  * For login controller
@@ -59,6 +60,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $remember = boolval($request->get('remember', false));
 
         if ($this->guard()->attempt($credentials, $remember)) {
+            if (!$this->checkPasswordLimit()) {
+                return redirect(admin_url('auth/change'));
+            }
             $this->postVerifyEmail();
             return $this->sendLoginResponse($request);
         }
@@ -71,6 +75,36 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return back()->withInput()->withErrors([
             $this->username() => $this->getFailedLoginMessage(),
         ]);
+    }
+
+    protected function checkPasswordLimit()
+    {
+        // not use password policy and expiration days, go next
+        if (!boolval(config('exment.password_policy_enabled', false)) ||
+            empty($expiration_days = System::password_expiration_days())) {
+            return true;
+        }
+
+        if (is_null($user = \Exment::user())) {
+            return true;
+        }
+
+        // get password latest history
+        $last_history = PasswordHistory::where('base_user_id', $user->base_user_id)
+            ->orderby('created_at', 'desc')->first();
+
+        if (is_null($last_history)) {
+            return true;
+        }
+    
+        // calc diff days
+        $diff_days = $last_history->created_at->diffInDays(Carbon::now());
+
+        if ($diff_days > $expiration_days) {
+            return false;
+        }
+
+        return true;
     }
 
     protected function postVerifyEmail()
@@ -389,15 +423,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                         'user_name' => array_get($req, 'base_user.value.user_name'),
                     ]);
                     $user->save();
-
-                    // if change, save password history
-                    $form_password = $req['password'];
-                    if (isset($form_password) && $form->model()->password != $form_password) {
-                        PasswordHistory::create([
-                            'base_user_id' => $user_id,
-                            'password' => $form_password
-                        ]);
-                    }
                 });
                 
                 admin_toastr(trans('admin.update_succeeded'));

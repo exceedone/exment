@@ -49,13 +49,18 @@ class ExmentCustomValidator extends AdminValidator
         }
 
         if (empty($cnt = System::password_history_cnt())) {
-            return true;
+            $cnt = 1;
         }
 
-        // get user info by email
+        // get login user info
         $user = \Exment::user();
         if (!isset($user)) {
+            // get user info by email
             $user = CustomUserProvider::RetrieveByCredential(['username' => $this->data['email']]);
+        }
+        // can't get user when initialize
+        if (!isset($user)) {
+            return true;
         }
 
         // get password history
