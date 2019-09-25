@@ -203,18 +203,36 @@ if (!function_exists('rmcomma')) {
 }
 
 // File, path  --------------------------------------------------
-if (!function_exists('exment_path')) {
+if (!function_exists('exment_app_path')) {
 
     /**
-     * Get exment path.
+     * Get Application exment path.
      *
      * @param string $path
      *
      * @return string
      */
-    function exment_path($path = '')
+    function exment_app_path($path = '')
     {
         return ucfirst(config('exment.directory', app_path('Exment'))).($path ? DIRECTORY_SEPARATOR.$path : $path);
+    }
+}
+
+if (!function_exists('exment_package_path')) {
+
+    /**
+     * Get package exment path.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    function exment_package_path($path = '')
+    {
+        $reflection = new \ReflectionClass(\Exceedone\Exment\ExmentServiceProvider::class);
+        $package_path = dirname(dirname($reflection->getFileName()));
+
+        return path_join($package_path, $path);
     }
 }
 
