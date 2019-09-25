@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
 use Exceedone\Exment\ColumnItems\CustomItem;
+use Exceedone\Exment\Validator\SelectRule;
 use Encore\Admin\Form\Field;
 use Encore\Admin\Grid\Filter;
 use Illuminate\Validation\Rule;
@@ -75,7 +76,7 @@ class Select extends CustomItem
     protected function setValidates(&$validates)
     {
         $select_options = $this->custom_column->createSelectOptions();
-        $validates[] = Rule::in(array_keys($select_options));
+        $validates[] = new SelectRule(array_keys($select_options));
     }
 
     protected function setAdminFilterOptions(&$filter)
