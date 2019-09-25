@@ -109,9 +109,6 @@ return [
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],
-        'old_password' => [
-            'old_password' => '現在のパスワードが正しくありません。',
-        ],
         'options.regex_validate' => [
             'regular_expression' => '正しい正規表現ではありません。',
         ],

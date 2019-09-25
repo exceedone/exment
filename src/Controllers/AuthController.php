@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
+use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
@@ -370,7 +371,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 });
 
             if (!useLoginProvider()) {
-                $form->password('old_password', exmtrans('user.old_password'))->rules('required_with:password|old_password')->help(exmtrans('user.help.change_only'));
+                $form->password('old_password', exmtrans('user.old_password'))->rules(['required_with:password', new ExmentValidator\OldPasswordRule])->help(exmtrans('user.help.change_only'));
                 $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }

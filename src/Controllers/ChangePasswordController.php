@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Validator\OldPasswordRule;
 
 class ChangePasswordController extends Controller
 {
@@ -18,7 +19,7 @@ class ChangePasswordController extends Controller
     protected function rules()
     {
         return [
-            'old_password' => 'required|old_password',
+            'old_password' => ['required', new OldPasswordRule],
             'password' => get_password_rule(true),
         ];
     }
