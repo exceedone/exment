@@ -90,7 +90,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         // get password latest history
-        $last_history = PasswordHistory::where('base_user_id', $user->base_user_id)
+        $last_history = PasswordHistory::where('login_user_id', $user->login_user_id)
             ->orderby('created_at', 'desc')->first();
 
         if (is_null($last_history)) {

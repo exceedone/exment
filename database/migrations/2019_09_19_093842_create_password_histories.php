@@ -21,7 +21,7 @@ class CreatePasswordHistories extends Migration
 
         $schema->create('password_histories', function (ExtendedBlueprint $table) {
             $table->increments('id');
-            $table->integer('base_user_id')->unsigned()->index();
+            $table->integer('login_user_id')->unsigned()->index();
             $table->string('password', 1000);
             $table->timestamps();
             $table->timeusers();

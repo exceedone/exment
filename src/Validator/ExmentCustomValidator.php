@@ -64,7 +64,7 @@ class ExmentCustomValidator extends AdminValidator
         }
 
         // get password history
-        $old_passwords = PasswordHistory::where('base_user_id', $user->base_user_id)
+        $old_passwords = PasswordHistory::where('login_user_id', $user->login_user_id)
             ->orderby('created_at', 'desc')->limit($cnt)->pluck('password');
         
         if (count($old_passwords) == 0) {
