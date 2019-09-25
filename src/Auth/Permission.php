@@ -148,6 +148,7 @@ class Permission
             case "auth/login":
             case "auth/logout":
             case "auth/setting":
+            case "auth/change":
             case "dashboard":
             case "dashboardbox":
             case "oauth":
