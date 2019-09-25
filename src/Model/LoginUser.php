@@ -164,8 +164,16 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
             return;
         }
         
-        if (!isset($original) || !Hash::check($password, $original)) {
+        if (isset($original) && Hash::check($password, $original)) {
+            $this->password = $original;
+        } else {
             $this->password = bcrypt($password);
+
+            // save password history
+            PasswordHistory::create([
+                'login_user_id' => $this->id,
+                'password' => $this->password
+            ]);
         }
     }
     

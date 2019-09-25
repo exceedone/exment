@@ -12,6 +12,7 @@ use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SystemVersion;
 use Exceedone\Exment\Enums\CurrencySymbol;
 use Exceedone\Exment\Enums\ViewColumnFilterOption;
+use Exceedone\Exment\Validator as ExmentValidator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
@@ -645,19 +646,34 @@ if (!function_exists('get_password_rule')) {
     {
         $validates = [];
         if ($required) {
-            array_push($validates, 'required');
+            $validates[] = 'required';
         } else {
-            array_push($validates, 'nullable');
+            $validates[] = 'nullable';
         }
-        array_push($validates, 'confirmed');
-        array_push($validates, 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8'));
-        array_push($validates, 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32'));
+        $validates[] = 'confirmed';
+        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32');
         
-        if (!is_null(config('exment.password_rule.rule'))) {
-            array_push($validates, 'regex:/'.config('exment.password_rule.rule').'/');
+        // check password policy
+        $complex = false;
+        if (boolval(config('exment.password_policy_enabled', false))) {
+            $validates[] = new ExmentValidator\PasswordHistoryRule;
+
+            if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
+                $validates[] = new ExmentValidator\ComplexPasswordRule;
+                $complex = true;
+            }
         }
 
-        return implode("|", $validates);
+        if(!$complex){
+            $validates[] = 'min:'.(!is_null(config('exment.password_rule.min')) ? config('exment.password_rule.min') : '8');
+        }
+
+        // set regex
+        if (!$complex && !is_null(config('exment.password_rule.rule'))) {
+            $validates[] = 'regex:/'.config('exment.password_rule.rule').'/';
+        }
+        
+        return $validates;
     }
 }
 

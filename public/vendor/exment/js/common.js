@@ -211,12 +211,22 @@ var Exment;
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }
+                var editFlg = $('#gridrow_select_edit').val();
                 var linkElem = $(ev.target).closest('tr').find('.rowclick');
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-eye');
-                }
-                if (!hasValue(linkElem)) {
-                    linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                if (editFlg) {
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                    }
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                    }
+                } else {
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-eye');
+                    }
+                    if (!hasValue(linkElem)) {
+                        linkElem = $(ev.target).closest('tr').find('.fa-edit');
+                    }
                 }
                 if (!hasValue(linkElem)) {
                     linkElem = $(ev.target).closest('tr').find('.fa-external-link');

@@ -174,6 +174,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
             $router->post('auth/reset/{token}', 'ResetPasswordController@reset')->name('password.request');
+            $router->get('auth/change', 'ChangePasswordController@showChangeForm');
+            $router->post('auth/change', 'ChangePasswordController@change');
             $router->get('favicon', function () {
                 return File::downloadFavicon();
             });

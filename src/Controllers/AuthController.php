@@ -7,17 +7,20 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\UserSetting;
 use Exceedone\Exment\Enums\Login2FactorProviderType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Auth\ProviderAvatar;
 use Exceedone\Exment\Auth\ThrottlesLogins;
+use Exceedone\Exment\Validator as ExmentValidator;
 use Exceedone\Exment\Providers\CustomUserProvider;
 use Encore\Admin\Form;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Request as Req;
+use Carbon\Carbon;
 
 /**
  * For login controller
@@ -58,6 +61,9 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         $remember = boolval($request->get('remember', false));
 
         if ($this->guard()->attempt($credentials, $remember)) {
+            if (!$this->checkPasswordLimit()) {
+                return redirect(admin_url('auth/change'));
+            }
             $this->postVerifyEmail();
             return $this->sendLoginResponse($request);
         }
@@ -70,6 +76,36 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         return back()->withInput()->withErrors([
             $this->username() => $this->getFailedLoginMessage(),
         ]);
+    }
+
+    protected function checkPasswordLimit()
+    {
+        // not use password policy and expiration days, go next
+        if (!boolval(config('exment.password_policy_enabled', false)) ||
+            empty($expiration_days = System::password_expiration_days())) {
+            return true;
+        }
+
+        if (is_null($user = \Exment::user())) {
+            return true;
+        }
+
+        // get password latest history
+        $last_history = PasswordHistory::where('login_user_id', $user->login_user_id)
+            ->orderby('created_at', 'desc')->first();
+
+        if (is_null($last_history)) {
+            return true;
+        }
+    
+        // calc diff days
+        $diff_days = $last_history->created_at->diffInDays(Carbon::now());
+
+        if ($diff_days > $expiration_days) {
+            return false;
+        }
+
+        return true;
     }
 
     protected function postVerifyEmail()
@@ -335,7 +371,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                 });
 
             if (!useLoginProvider()) {
-                $form->password('old_password', exmtrans('user.old_password'))->rules('required_with:password|old_password')->help(exmtrans('user.help.change_only'));
+                $form->password('old_password', exmtrans('user.old_password'))->rules(['required_with:password', new ExmentValidator\OldPasswordRule])->help(exmtrans('user.help.change_only'));
                 $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
