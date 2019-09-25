@@ -91,7 +91,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         }
 
         // get password latest history
-        $last_history = PasswordHistory::where('login_user_id', $user->login_user_id)
+        $last_history = PasswordHistory::where('login_user_id', $user->id)
             ->orderby('created_at', 'desc')->first();
 
         if (is_null($last_history)) {
@@ -207,6 +207,12 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         )) {
             // set session for 2factor
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+            
+            // set session access key
+            session([Define::SYSTEM_KEY_SESSION_PROVIDER_TOKEN => [
+                'access_token' => $provider_user->token,
+                'refresh_token' => $provider_user->refreshToken,
+            ]]);
 
             return $this->sendLoginResponse($request);
         }
@@ -238,9 +244,18 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
      */
     protected function getSocialiteProvider(string $login_provider)
     {
-        config(["services.$login_provider.redirect" => admin_urls("auth", "login", $login_provider, "callback")]);
+        if(is_null(config("services.$login_provider.redirect"))){
+            config(["services.$login_provider.redirect" => admin_urls("auth", "login", $login_provider, "callback")]);
+        }
         
-        return \Socialite::with($login_provider)->stateless();
+        $scope = config("services.$login_provider.scope", []);
+        if(!empty($scope)){
+            $scope = is_string($scope) ? explode(',', $scope) : $scope;
+        }
+        
+        return \Socialite::with($login_provider)
+            ->scopes($scope)
+            ->stateless();
     }
     
     /**
@@ -294,7 +309,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             $login_user = LoginUser::firstOrNew([
                 'base_user_id' => $exment_user->id,
                 'login_provider' => $login_provider,
-                ]);
+            ]);
             $login_user->base_user_id = $exment_user->id;
             $login_user->login_provider = $login_provider;
             $login_user->password = $provider_user->id;
