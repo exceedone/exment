@@ -33,18 +33,18 @@ class PasswordHistoryRule implements Rule
         }
 
         // get login user info
-        $user = \Exment::user();
-        if (!isset($user)) {
+        $login_user = \Exment::user();
+        if (!isset($login_user)) {
             // get user info by email
-            $user = CustomUserProvider::RetrieveByCredential(['username' => $this->data['email']]);
+            $login_user = CustomUserProvider::RetrieveByCredential(['username' => $this->data['email']]);
         }
         // can't get user when initialize
-        if (!isset($user)) {
+        if (!isset($login_user)) {
             return true;
         }
 
         // get password history
-        $old_passwords = PasswordHistory::where('login_user_id', $user->login_user_id)
+        $old_passwords = PasswordHistory::where('login_user_id', $login_user->id)
             ->orderby('created_at', 'desc')->limit($cnt)->pluck('password');
         
         if (count($old_passwords) == 0) {
@@ -52,7 +52,7 @@ class PasswordHistoryRule implements Rule
         } 
 
         return !($old_passwords->contains(function ($old_password) use($value){
-            return password_verify($value, $old_password);
+            return \Hash::check($value, $old_password);
         }));
     }
 
