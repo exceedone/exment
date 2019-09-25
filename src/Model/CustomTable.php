@@ -1571,4 +1571,21 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             || boolval($this->getOption('all_user_viewable_flg'))
             || boolval($this->getOption('all_user_accessable_flg'));
     }
+
+    /**
+     *
+     */
+    public function formActionDisable($action_type)
+    {
+        $disable_actions = $this->getOption('form_action_disable_flg', []);
+        return in_array($action_type, $disable_actions);
+    }
+
+    /**
+     *
+     */
+    public function isOneRecord()
+    {
+        return $this->getOption('one_record_flg', false);
+    }
 }

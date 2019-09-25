@@ -20,6 +20,7 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifySavedType;
@@ -69,8 +70,7 @@ class CustomValueController extends AdminControllerTableBase
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
-        $one_record_flg = boolval(array_get($this->custom_table->options, 'one_record_flg'));
-        if ($one_record_flg) {
+        if ($this->custom_table->isOneRecord()) {
             // get record list
             $record = $this->getModelNameDV()::first();
             $id = isset($record)? $record->id: null;
@@ -82,12 +82,22 @@ class CustomValueController extends AdminControllerTableBase
 
             // has record, execute
             if (isset($record)) {
+                // check if form edit action disabled
+                if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+                    admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    return $this->show($request, $content, $this->custom_table->table_name, $id);
+                }
                 $form = $this->form($id)->edit($id);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}/$id"));
                 $row = new Row($form);
             }
             // no record
             else {
+                // check if form create action disabled
+                if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
+                    admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+                    return redirect(admin_url('/'));
+                }
                 $form = $this->form(null);
                 $form->setAction(admin_url("data/{$this->custom_table->table_name}"));
                 $row = new Row($form);
@@ -139,6 +149,12 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request)) instanceof Response) {
             return $response;
         }
+        // check if form create action disabled
+        if ($this->custom_table->formActionDisable(FormActionType::CREATE)) {
+            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+            return redirect(admin_urls('data', $this->custom_table->table_name));
+        }
+
         $this->AdminContent($content);
         
         Plugin::pluginPreparing($this->plugins, 'loading');
@@ -168,6 +184,13 @@ class CustomValueController extends AdminControllerTableBase
         if (isset($redirect)) {
             return $redirect;
         }
+
+        // check if form edit action disabled
+        if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+            admin_toastr(exmtrans('custom_value.message.action_disabled'), 'error');
+            return redirect(admin_urls('data', $this->custom_table->table_name));
+        }
+
         $this->AdminContent($content);
         Plugin::pluginPreparing($this->plugins, 'loading');
 

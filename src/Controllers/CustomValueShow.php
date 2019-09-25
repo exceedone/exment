@@ -16,8 +16,9 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\Permission;
@@ -36,7 +37,7 @@ trait CustomValueShow
         //Plugin::pluginPreparing($this->plugins, 'loading');
         return new Show($this->getModelNameDV()::firstOrNew(['id' => $id]), function (Show $show) use ($id, $modal) {
             $custom_value = $this->custom_table->getValueModel($id);
-
+    
             // add parent link if this form is 1:n relation
             $relation = CustomRelation::getRelationByChild($this->custom_table, RelationType::ONE_TO_MANY);
             if (isset($relation)) {
@@ -127,7 +128,7 @@ trait CustomValueShow
                 }
             }
 
-            // if user only view permission, disable delete and view
+            // if user only view permission or one record table, disable delete and view
             if (!$this->custom_table->hasPermissionEditData($id)) {
                 $show->panel()->tools(function ($tools) {
                     $tools->disableEdit();
@@ -149,6 +150,11 @@ trait CustomValueShow
                     ]));
                 }
 
+                // if table has form edit disable option, disable edit.
+                if ($this->custom_table->formActionDisable(FormActionType::EDIT)) {
+                    $tools->disableEdit();
+                }
+
                 if (count($this->custom_table->getRelationTables()) > 0) {
                     $tools->append(view('exment::tools.button', [
                         'href' => $custom_value->getRelationSearchUrl(true),
@@ -158,11 +164,14 @@ trait CustomValueShow
                     ]));
                 }
 
-                if (boolval(array_get($custom_value, 'disabled_delete'))) {
+                if (boolval(array_get($custom_value, 'disabled_delete')) ||
+                    $this->custom_table->formActionDisable(FormActionType::DELETE)) {
                     $tools->disableDelete();
                 }
 
-                if (boolval(array_get($this->custom_table->options, 'one_record_flg'))) {
+                if ($this->custom_table->isOneRecord()) {
+                    $tools->disableEdit();
+                    $tools->disableDelete();
                     $tools->disableList();
                 } elseif (!$modal) {
                     $tools->setListPath($this->custom_table->getGridUrl(true));
@@ -461,6 +470,10 @@ EOT;
     protected function getRevisions($id, $modal = false, $all = false)
     {
         if ($modal || !boolval($this->custom_table->getOption('revision_flg'))) {
+            return [];
+        }
+
+        if (is_null($id)) {
             return [];
         }
 

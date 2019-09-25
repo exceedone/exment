@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Services\PartialCrudService;
@@ -133,7 +134,9 @@ trait CustomValueGrid
             // if user have edit permission, add button
             if ($edit_flg) {
                 $tools->append(new Tools\ExportImportButton(admin_urls('data', $this->custom_table->table_name), $grid));
-                $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+                if (!$this->custom_table->formActionDisable(FormActionType::CREATE)) {
+                    $tools->append(view('exment::custom-value.new-button', ['table_name' => $this->custom_table->table_name]));
+                }
                 $tools->append($service->getImportModal($importlist));
             }
             
@@ -199,7 +202,13 @@ trait CustomValueGrid
                     $actions->disableDelete();
                 }
 
-                if (boolval(array_get($actions->row, 'disabled_delete'))) {
+                // if table has form edit disable option, disable edit row.
+                if ($custom_table->formActionDisable(FormActionType::EDIT)) {
+                    $actions->disableEdit();
+                }
+
+                if (boolval(array_get($actions->row, 'disabled_delete')) ||
+                    $custom_table->formActionDisable(FormActionType::DELETE)) {
                     $actions->disableDelete();
                 }
 
