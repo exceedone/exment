@@ -21,7 +21,7 @@ class LoginUserAction implements ActionInterface
         foreach ($datalist as $table_name => &$data) {
             //$target_table = $data['custom_table'];
             $provider = new Import\LoginUserProvider([
-                'promary_key' => $this->primary_key,
+                'primary_key' => $this->primary_key,
             ]);
 
             $dataObject = $provider->getDataObject($data, $options);

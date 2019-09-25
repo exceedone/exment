@@ -51,7 +51,7 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
     public function getNameAttribute()
     {
-        return array_get($this->base_user->value, "user_name");
+        return $this->base_user->value['user_name'] ?? null;
     }
 
     /**
