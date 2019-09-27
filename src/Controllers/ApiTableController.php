@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomView;
@@ -33,14 +34,10 @@ class ApiTableController extends AdminControllerTableBase
         }
 
         // get and check query parameter
-        $count = null;
-        if ($request->has('count')) {
-            $count = $request->get('count');
-            if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
-                return abortJson(400, exmtrans('api.errors.over_maxcount'));
-            }
+        if(($count = $this->getCount($request)) instanceof Response){
+            return $count;
         }
-      
+
         $orderby = null;
         $orderby_list = [];
         if ($request->has('orderby')) {
@@ -75,7 +72,7 @@ class ApiTableController extends AdminControllerTableBase
                 $model->orderBy($item[0], $item[1]);
             }
         }
-        $paginator = $model->paginate($count ?? config('exment.api_default_data_count', 100));
+        $paginator = $model->paginate($count);
 
         // execute makehidden
         $value = $paginator->makeHidden($this->custom_table->getMakeHiddenArray());
@@ -132,10 +129,20 @@ class ApiTableController extends AdminControllerTableBase
         $model = getModelName($this->custom_table)::query();
         $model = \Exment::user()->filterModel($model);
 
+        $validator = Validator::make($request->all(), [
+            'q' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ]);
+        }
+
         // filtered query
         $q = $request->get('q');
-        if (!isset($q)) {
-            return [];
+        
+        if(($count = $this->getCount($request)) instanceof Response){
+            return $count;
         }
 
         // get custom_view
@@ -148,7 +155,12 @@ class ApiTableController extends AdminControllerTableBase
             'paginate' => true,
             'makeHidden' => true,
             'target_view' => $custom_view,
-            'maxCount' => 10,
+            'maxCount' => $count,
+        ]);
+
+        $paginator->appends([
+            'q' => $q,
+            'count' => $count,
         ]);
 
         return $paginator;
@@ -620,5 +632,26 @@ class ApiTableController extends AdminControllerTableBase
             $task['end'] = $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
+    }
+
+    /**
+     * Get count parameter for list count
+     *
+     * @param [type] $request
+     * @return void
+     */
+    protected function getCount($request){
+        // get and check query parameter
+        
+        if (!$request->has('count')) {
+            return config('exment.api_default_data_count', 20);
+        }
+
+        $count = $request->get('count');
+        if (!preg_match('/^[0-9]+$/', $count) || intval($count) < 1 || intval($count) > 100) {
+            return abortJson(400, exmtrans('api.errors.over_maxcount'));
+        }
+
+        return $count;
     }
 }
