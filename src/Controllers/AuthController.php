@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\LoginService;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
@@ -148,7 +149,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
         if (!isset($provider)) {
             abort(404);
         }
-        $socialiteProvider = $this->getSocialiteProvider($login_provider);
+        $socialiteProvider = LoginService::getSocialiteProvider($login_provider);
         return $socialiteProvider->redirect();
     }
 
@@ -165,7 +166,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
 
         $error_url = admin_url('auth/login');
         
-        $socialiteProvider = $this->getSocialiteProvider($login_provider);
+        $socialiteProvider = LoginService::getSocialiteProvider($login_provider);
 
         // get provider user
         $provider_user = null;
@@ -209,10 +210,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
             
             // set session access key
-            session([Define::SYSTEM_KEY_SESSION_PROVIDER_TOKEN => [
-                'access_token' => $provider_user->token,
-                'refresh_token' => $provider_user->refreshToken,
-            ]]);
+            LoginService::setToken($login_provider, $provider_user);
 
             return $this->sendLoginResponse($request);
         }
@@ -237,25 +235,6 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
             'result'  => true,
             'message' => trans('admin.delete_succeeded'),
         ]);
-    }
-
-    /**
-     * get Socialite Provider
-     */
-    protected function getSocialiteProvider(string $login_provider)
-    {
-        if(is_null(config("services.$login_provider.redirect"))){
-            config(["services.$login_provider.redirect" => admin_urls("auth", "login", $login_provider, "callback")]);
-        }
-        
-        $scope = config("services.$login_provider.scope", []);
-        if(!empty($scope)){
-            $scope = is_string($scope) ? explode(',', $scope) : $scope;
-        }
-        
-        return \Socialite::with($login_provider)
-            ->scopes($scope)
-            ->stateless();
     }
     
     /**
