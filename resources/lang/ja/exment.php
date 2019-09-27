@@ -166,6 +166,8 @@ return [
         'site_skin' => 'サイトスキン',
         'site_layout' => 'サイトメニューレイアウト',
         'default_date_format' => '日時表示書式',
+        'filter_search_type' => 'データ検索方法',
+        'api_available' => 'APIを使用する',
         'outside_api' => 'サーバー外部通信を行う',
         'permission_available' => '権限管理を使用する',
         'organization_available' => '組織管理を使用する',
@@ -219,6 +221,11 @@ return [
             'format_local' => 'ローカル（Y年m月d日 H時i分s秒）',
         ],
         
+        'filter_search_type_options' => [
+            'forward' => '前方一致',
+            'all' => '部分一致',
+        ],
+        
         'date_format_list' => [
             'format_default' => ['Y-m-d', 'Y-m-d H:i:s', 'H:i:s'],
             'format_slash' => ['Y/m/d', 'Y/m/d H:i:s', 'H:i:s'],
@@ -233,11 +240,13 @@ return [
             'site_favicon' => 'サイトのファビコン(.ico)です。ホームページのブックマークなどに利用されます。推奨サイズ：16px * 16px',
             'site_skin' => 'サイトのテーマ色を選択します。※保存後、再読込で反映されます。',
             'site_layout' => 'ページ左の、サイトメニューのレイアウトを選択します。※保存後、再読込で反映されます。',
+            'filter_search_type' => '登録データの検索方法を設定します。※部分一致の場合、データ件数によって、パフォーマンスに影響がある場合があります。',
+            'api_available' => 'YESにした場合、APIを使用することができます。',
             'outside_api' => 'YESにした場合、Exmentの最新バージョンの通知など、外部サーバー通信を行う処理を実行できます。データの受信のみ行います。※外部ネットワークに接続できない環境で使用する場合など、通信を行わない場合には、NOに設定してください。',
             'grid_pager_count' => '一覧ページで表示されるデータの、既定の表示件数です。システム全体に反映されます。',
             'datalist_pager_count' => 'キーワード検索や、ダッシュボードのデータ一覧で表示されるデータの、既定の表示件数です。システム全体に反映されます。',
-            'permission_available' => 'YESの場合、ユーザーや役割によって、アクセスできる項目を管理します。',
-            'organization_available' => 'YESの場合、ユーザーが所属する組織や部署を作成します。',
+            'permission_available' => 'YESにした場合、ユーザーや役割によって、アクセスできる項目を管理します。',
+            'organization_available' => 'YESにした場合、ユーザーが所属する組織や部署を作成します。',
             'system_admin_users' => 'システム管理者となるユーザーを設定してください。',
             'system_mail' => 'システムからメールを送付する時の設定を行います。',
             'system_mail_from' => '送信元のメールアドレスです。このメールアドレスをFromとして、メールが送付されます。',
