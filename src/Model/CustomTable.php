@@ -823,7 +823,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function getMatchedCustomValues($values, $keyName = 'id', $withTrashed = false){
         $result = [];
 
-        foreach(array_chunk($values, 100) as $chunk){
+        foreach(collect($values)->chunk(100) as $chunk){
             $query = $this->getValueModel()->query();
 
             $databaseKeyName = str_replace(".", "->", $keyName);

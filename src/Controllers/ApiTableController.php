@@ -52,12 +52,14 @@ class ApiTableController extends AdminControllerTableBase
                 }
                 if (SystemColumn::isValid($column_name)) {
                 } else {
-                    $column = $this->custom_table->custom_columns()->where('column_name', $column_name)->indexEnabled()->first();
-                    if (isset($column)) {
-                        $column_name = $column->getIndexColumnName();
-                    } else {
+                    $column = CustomColumn::getEloquent($column_name, $this->custom_table);
+                    if (!isset($column) && $column->index_enabled) {
                         return abortJson(400, exmtrans('api.errors.invalid_params'));
+                    } elseif(!$column->index_enabled) {
+                        return abortJson(400, exmtrans('api.errors.not_index_enabled'));
                     }
+                    $column_name = $column->getIndexColumnName();
+
                 }
                 $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
             }
@@ -349,7 +351,12 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
         }
 
-        $this->convertFindKeys($values, $request);
+        $findResult = $this->convertFindKeys($values, $request);
+        if($findResult !== true){
+            return abortJson(400, [
+                'errors' => $findResult
+            ]);
+        }
 
         $validates = [];
         foreach ($values as $index => $value) {
@@ -406,17 +413,19 @@ class ApiTableController extends AdminControllerTableBase
     protected function convertFindKeys(&$values, $request)
     {
         if (is_null($findKeys = $request->get('findKeys'))) {
-            return;
+            return true;
         }
 
+        $errors = [];
         foreach ($findKeys as $findKey => $findValue) {
             // find column
             $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
             if (!isset($custom_column)) {
+                $errors[$findKey] = trans('validation.exists', ['attribute' => $findKey]);
                 continue;
             }
 
-            if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
+            if (!ColumnType::COLUMN_TYPE_SELECT_TABLE($custom_column->column_type)) {
                 continue;
             }
 
@@ -429,27 +438,38 @@ class ApiTableController extends AdminControllerTableBase
             // get target column for getting index
             $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
             if (!isset($findCustomColumn)) {
+                $errors[$findKey] = trans('validation.exists', ['attribute' => $findValue]);
                 continue;
             }
 
             if (!$findCustomColumn->index_enabled) {
-                //TODO:show error
+                $errors[$findKey] = exmtrans('api.errors.not_index_enabled');
                 continue;
             }
             $indexColumnName = $findCustomColumn->getIndexColumnName();
 
-            foreach ($values as &$value) {
-                $findCustomValue = $findCustomTable->getValueModel()
-                    ->where($indexColumnName, array_get($value, $findKey))
-                    ->first();
+            // get taget values
+            $findKeyValues = collect($values)->map(function($value) use($findKey){
+                return array_get($value, $findKey);
+            });
+            $selectValues = $findCustomTable->getMatchedCustomValues($findKeyValues, $indexColumnName);
 
+            foreach ($values as &$value) {
+                $findCustomValue = array_get($selectValues, array_get($value, $findKey));
+                
                 if (!isset($findCustomValue)) {
-                    //TODO:show error
+                    $errors[$findKey] = exmtrans('custom_value.import.message.select_table_not_found', [
+                        'column_view_name' => $findValue,
+                        'value' => array_get($value, $findKey),
+                        'target_table_name' => $findCustomTable->table_view_name
+                    ]);
                     continue;
                 }
                 array_set($value, $findKey, array_get($findCustomValue, 'id'));
             }
         }
+
+        return count($errors) > 0 ? $errors : true;
     }
 
     /**
