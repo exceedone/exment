@@ -63,6 +63,6 @@ class PasswordHistoryRule implements Rule
      */
     public function message()
     {
-        return exmtrans('error.password_history');
+        return exmtrans('validation.password_history');
     }
 }

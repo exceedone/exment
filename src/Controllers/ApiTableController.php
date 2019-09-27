@@ -11,6 +11,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\ViewColumnType;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Carbon\Carbon;
 use Validator;
 
@@ -52,12 +53,14 @@ class ApiTableController extends AdminControllerTableBase
                 }
                 if (SystemColumn::isValid($column_name)) {
                 } else {
-                    $column = $this->custom_table->custom_columns()->where('column_name', $column_name)->indexEnabled()->first();
-                    if (isset($column)) {
-                        $column_name = $column->getIndexColumnName();
-                    } else {
+                    $column = CustomColumn::getEloquent($column_name, $this->custom_table);
+                    if (!isset($column) && $column->index_enabled) {
                         return abortJson(400, exmtrans('api.errors.invalid_params'));
+                    } elseif(!$column->index_enabled) {
+                        return abortJson(400, exmtrans('api.errors.not_index_enabled'));
                     }
+                    $column_name = $column->getIndexColumnName();
+
                 }
                 $orderby_list[] = [$column_name, count($values) > 1? $values[1]: 'asc'];
             }
@@ -349,7 +352,12 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(400, exmtrans('api.errors.over_createlength', $max_create_count));
         }
 
-        $this->convertFindKeys($values, $request);
+        $findResult = $this->convertFindKeys($values, $request);
+        if($findResult !== true){
+            return abortJson(400, [
+                'errors' => $findResult
+            ]);
+        }
 
         $validates = [];
         foreach ($values as $index => $value) {
@@ -406,50 +414,28 @@ class ApiTableController extends AdminControllerTableBase
     protected function convertFindKeys(&$values, $request)
     {
         if (is_null($findKeys = $request->get('findKeys'))) {
-            return;
+            return true;
+        }
+        
+        $errors = [];
+
+        $processOptions = [
+            'onlyValue' => true,
+            'errorCallback' => function($message, $key) use(&$errors){
+                $errors[$key] = $message;
+            }, 
+            'setting' => collect($findKeys)->map(function($value, $key){
+                return [
+                    'column_name' => $key,
+                    'target_column_name' => $value
+                ];
+        })->toArray()];
+
+        foreach ($values as &$value) {
+            $value = DataImportExportService::processCustomValue($this->custom_columns, $value, $processOptions);
         }
 
-        foreach ($findKeys as $findKey => $findValue) {
-            // find column
-            $custom_column = CustomColumn::getEloquent($findKey, $this->custom_table);
-            if (!isset($custom_column)) {
-                continue;
-            }
-
-            if ($custom_column->column_type != ColumnType::SELECT_TABLE) {
-                continue;
-            }
-
-            // get target custom table
-            $findCustomTable = $custom_column->select_target_table;
-            if (!isset($findCustomTable)) {
-                continue;
-            }
-
-            // get target column for getting index
-            $findCustomColumn = CustomColumn::getEloquent($findValue, $findCustomTable);
-            if (!isset($findCustomColumn)) {
-                continue;
-            }
-
-            if (!$findCustomColumn->index_enabled) {
-                //TODO:show error
-                continue;
-            }
-            $indexColumnName = $findCustomColumn->getIndexColumnName();
-
-            foreach ($values as &$value) {
-                $findCustomValue = $findCustomTable->getValueModel()
-                    ->where($indexColumnName, array_get($value, $findKey))
-                    ->first();
-
-                if (!isset($findCustomValue)) {
-                    //TODO:show error
-                    continue;
-                }
-                array_set($value, $findKey, array_get($findCustomValue, 'id'));
-            }
-        }
+        return count($errors) > 0 ? $errors : true;
     }
 
     /**

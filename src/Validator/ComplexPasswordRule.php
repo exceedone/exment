@@ -50,6 +50,6 @@ class ComplexPasswordRule implements Rule
      */
     public function message()
     {
-        return exmtrans('error.complex_password');
+        return exmtrans('validation.complex_password');
     }
 }

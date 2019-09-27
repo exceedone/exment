@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\ColumnItems\ParentItem;
+use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 
 class DefaultTableProvider extends ProviderBase
 {
@@ -26,6 +27,8 @@ class DefaultTableProvider extends ProviderBase
     {
         $this->custom_table = array_get($args, 'custom_table');
 
+        $this->custom_columns = $this->custom_table->custom_columns;
+
         $this->primary_key = array_get($args, 'primary_key', 'id');
 
         $this->filter = array_get($args, 'filter');
@@ -39,11 +42,9 @@ class DefaultTableProvider extends ProviderBase
      */
     public function getDataObject($data, $options = [])
     {
-        ///// get all table columns
-        $custom_columns = $this->custom_table->custom_columns;
-
-        $results = [];
         $headers = [];
+        $value_customs = [];
+        $primary_values = [];
         foreach ($data as $line_no => $value) {
             // get header if $line_no == 0
             if ($line_no == 0) {
@@ -63,8 +64,19 @@ class DefaultTableProvider extends ProviderBase
                 continue;
             }
 
+            $value_customs[$line_no] = $value_custom;
+
+            // get primary values
+            $primary_values[] = array_get($value_custom, $this->primary_key);
+        }
+
+        // get all custom value for performance
+        $models = $this->custom_table->getMatchedCustomValues($primary_values, $this->primary_key, true);
+
+        $results = [];
+        foreach ($value_customs as $line_no => $value_custom) {
             ///// convert data first.
-            $value_custom = $this->dataProcessingFirst($custom_columns, $value_custom, $line_no, $options);
+            $value_custom = $this->dataProcessingFirst($value_custom, $line_no, $options);
 
             // get model
             $modelName = getModelName($this->custom_table);
@@ -76,8 +88,11 @@ class DefaultTableProvider extends ProviderBase
             }
             // if exists, firstOrNew
             else {
-                //*Replace "." to "->" for json value
-                $model = $modelName::withTrashed()->firstOrNew([str_replace(".", "->", $this->primary_key) => $primary_value]);
+                // get model from models
+                $model = array_get($models, $primary_value);
+                if(!isset($model)){
+                    $model = new $modelName;
+                }
             }
             if (!isset($model)) {
                 continue;
@@ -97,6 +112,10 @@ class DefaultTableProvider extends ProviderBase
      */
     public function validateImportData($dataObjects)
     {
+        if(count($this->selectTableNotFounds) > 0){
+            return [[], $this->selectTableNotFounds];
+        }
+
         ///// get all table columns
         $validate_columns = $this->custom_table->custom_columns;
         
@@ -109,11 +128,6 @@ class DefaultTableProvider extends ProviderBase
             } else {
                 $error_data = array_merge($error_data, $check);
             }
-        }
-
-        // loop target select table error
-        foreach ($this->selectTableNotFounds as $selectTableNotFound) {
-            $error_data[] = $selectTableNotFound;
         }
 
         return [$success_data, $error_data];
@@ -169,52 +183,14 @@ class DefaultTableProvider extends ProviderBase
      * @param $data
      * @return array
      */
-    public function dataProcessingFirst($custom_columns, $data, $line_no, $options = [])
+    public function dataProcessingFirst($data, $line_no, $options = [])
     {
-        foreach ($data as $key => &$value) {
-            if (strpos($key, "value.") !== false) {
-                $new_key = str_replace('value.', '', $key);
-                // get target column
-                $target_column = $custom_columns->first(function ($custom_column) use ($new_key) {
-                    return array_get($custom_column, 'column_name') == $new_key;
-                });
-                if (!isset($target_column)) {
-                    continue;
-                }
+        ///// convert data first.
+        $options['errorCallback'] = function($message, $key) use($line_no){
+            $this->selectTableNotFounds[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
+        };
 
-                if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
-                    && boolval(array_get($target_column, 'options.multiple_enabled'))) {
-                    $value = explode(",", $value);
-                }
-
-                // convert target key's id
-                if (isset($value)) {
-                    if (array_has($options, 'setting')) {
-                        $s = collect($options['setting'])->filter(function ($s) use ($key) {
-                            return isset($s['target_column_name']) && $s['column_name'] == $key;
-                        })->first();
-                    }
-                    if (isset($target_column->column_item)) {
-                        $target_table = isset($target_column->select_target_table) ? $target_column->select_target_table : $target_column->custom_table;
-                        $this->getImportColumnValue($data, $key, $value, $target_column->column_item, $target_column->column_item->label(), $s ?? null, $target_table, $line_no);
-                    }
-                }
-            } elseif ($key == Define::PARENT_ID_NAME && isset($value)) {
-                // convert target key's id
-                if (array_has($options, 'setting')) {
-                    $s = collect($options['setting'])->filter(function ($s) use ($key) {
-                        return isset($s['target_column_name']) && $s['column_name'] == Define::PARENT_ID_NAME;
-                    })->first();
-                }
-
-                $target_table = CustomTable::getEloquent(array_get($data, 'parent_type'));
-                $parent_item = ParentItem::getItem($target_table);
-                if (isset($parent_item)) {
-                    $this->getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s ?? null, $target_table, $line_no);
-                }
-            }
-        }
-        return $data;
+        return DataImportExportService::processCustomValue($this->custom_columns, $data, $options);
     }
 
     /**
@@ -306,37 +282,5 @@ class DefaultTableProvider extends ProviderBase
             }
         }
         return $is_filter;
-    }
-
-    /**
-     * get column import value. if error, set message
-     *
-     * @return void
-     */
-    protected function getImportColumnValue(&$data, $key, &$value, $column_item, $column_view_name, $setting, $target_table, $line_no)
-    {
-        $base_value = $value;
-        $importValue = $column_item->getImportValue($value, $setting ?? null);
-
-        if (!isset($importValue)) {
-            return;
-        }
-
-        // if skip column, remove from data, and return
-        if (boolval(array_get($importValue, 'skip'))) {
-            array_forget($data, $key);
-            return;
-        }
-
-        // if not found, set error
-        if (!boolval(array_get($importValue, 'result'))) {
-            $message = isset($importValue['message']) ? $importValue['message'] : exmtrans('custom_value.import.message.select_table_not_found', [
-                'column_view_name' => $column_view_name,
-                'value' => is_array($base_value) ? implode(exmtrans('common.separate_word'), $base_value) : $base_value,
-                'target_table_name' => $target_table->table_view_name
-            ]);
-            $this->selectTableNotFounds[] =  sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no-1), $message);
-        }
-        $value = array_get($importValue, 'value');
     }
 }
