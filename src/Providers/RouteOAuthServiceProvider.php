@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Providers;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Model\System;
 
 class RouteOAuthServiceProvider extends ServiceProvider
 {
@@ -15,7 +16,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        if (boolval(config('exment.api'))) {
+        if (System::api_available()) {
             $this->forAuthorization();
             $this->forAccessTokens();
             $this->forTransientTokens();

@@ -7,12 +7,14 @@ use Encore\Admin\Grid\Filter;
 use Exceedone\Exment\Form\Field as ExmentField;
 use Exceedone\Exment\Grid\Filter as ExmentFilter;
 use Encore\Admin\Grid\Filter\Where;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\ViewColumnFilterType;
+use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\ColumnItems\CustomColumns\AutoNumber;
 
@@ -429,7 +431,7 @@ abstract class CustomItem implements ItemInterface
 
     protected function getAdminFilterClass()
     {
-        if (boolval(config('exment.filter_search_full', false))) {
+        if (System::filter_search_type() == FilterSearchType::ALL) {
             return Filter\Like::class;
         }
 

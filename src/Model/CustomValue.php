@@ -8,6 +8,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\FilterSearchType;
 
 class CustomValue extends ModelBase
 {
@@ -901,7 +902,7 @@ class CustomValue extends ModelBase
             return $options;
         }
         
-        if (boolval(config('exment.filter_search_full', false))) {
+        if (System::filter_search_type() == FilterSearchType::ALL) {
             $value = ($isLike ? '%' : '') . $q . ($isLike ? '%' : '');
         } else {
             $value = $q . ($isLike ? '%' : '');
