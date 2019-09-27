@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\SystemTableName;
 
 class RouteOAuthServiceProvider extends ServiceProvider
 {
@@ -16,7 +17,7 @@ class RouteOAuthServiceProvider extends ServiceProvider
      */
     public function map()
     {
-        if (System::api_available()) {
+        if (canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && System::api_available()) {
             $this->forAuthorization();
             $this->forAccessTokens();
             $this->forTransientTokens();

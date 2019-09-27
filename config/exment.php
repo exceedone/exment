@@ -399,17 +399,7 @@ return [
     |
     */
     'gridrow_select_edit' => env('EXMENT_GRIDROW_SELECT_EDIT', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Enabled password policy
-    |--------------------------------------------------------------------------
-    |
-    | enabled password policy check
-    |
-    */
-    'password_policy_enabled' => env('EXMENT_PASSWORD_POLICY', false),
-
+    
     /*
     |--------------------------------------------------------------------------
     | API default get data count 

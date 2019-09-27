@@ -156,26 +156,24 @@ trait InitializeFormTrait
                     ->help(exmtrans("system.help.system_mail_from"));
             }
 
-            if (boolval(config('exment.password_policy_enabled', false))) {
-                $form->exmheader(exmtrans('system.password_policy'))->hr();
+            $form->exmheader(exmtrans('system.password_policy'))->hr();
 
-                $form->description(exmtrans("system.help.password_policy"));
+            $form->description(exmtrans("system.help.password_policy"));
 
-                $form->switchbool('complex_password', exmtrans("system.complex_password"))
-                    ->help(exmtrans("system.help.complex_password"));
+            $form->switchbool('complex_password', exmtrans("system.complex_password"))
+                ->help(exmtrans("system.help.complex_password"));
 
-                $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
-                    ->default(0)
-                    ->min(0)
-                    ->max(999)
-                    ->help(exmtrans("system.help.password_expiration_days"));
+            $form->number('password_expiration_days', exmtrans("system.password_expiration_days"))
+                ->default(0)
+                ->min(0)
+                ->max(999)
+                ->help(exmtrans("system.help.password_expiration_days"));
 
-                $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
-                    ->default(0)
-                    ->min(0)
-                    ->max(20)
-                    ->help(exmtrans("system.help.password_history_cnt"));
-            }
+            $form->number('password_history_cnt', exmtrans("system.password_history_cnt"))
+                ->default(0)
+                ->min(0)
+                ->max(20)
+                ->help(exmtrans("system.help.password_history_cnt"));
         }
 
         // template list

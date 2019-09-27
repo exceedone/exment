@@ -35,5 +35,8 @@
                     </div>
                     <!-- /.col -->
                 </div>
+                <div style="margin:10px 0; text-align:center;">
+                    <p><a href="{{admin_url('auth/logout')}}">{{ trans('admin.back') }}</a></p>
+                </div>
             </form>
 @endsection

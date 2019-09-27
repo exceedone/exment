@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\PasswordHistory;
 use Exceedone\Exment\Enums\FilterSearchType;
 
 class SupportForV217 extends Migration
@@ -32,6 +34,15 @@ class SupportForV217 extends Migration
         // update system setting
         System::api_available(config('exment.api', false));
         System::filter_search_type(config('exment.filter_search_full', false) ? FilterSearchType::ALL : FilterSearchType::FORWARD);
+
+        // insert password_histories
+        $loginUsers = LoginUser::whereNull('login_provider')->get();
+        foreach($loginUsers as $loginUser){
+            $passwordHistory = new PasswordHistory;
+            $passwordHistory->password = $loginUser->password;
+            $passwordHistory->login_user_id = $loginUser->id;
+            $passwordHistory->save();
+        }
     }
 
     /**

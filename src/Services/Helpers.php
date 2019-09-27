@@ -655,13 +655,11 @@ if (!function_exists('get_password_rule')) {
         
         // check password policy
         $complex = false;
-        if (boolval(config('exment.password_policy_enabled', false))) {
-            $validates[] = new ExmentValidator\PasswordHistoryRule;
+        $validates[] = new ExmentValidator\PasswordHistoryRule;
 
-            if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
-                $validates[] = new ExmentValidator\ComplexPasswordRule;
-                $complex = true;
-            }
+        if (!is_null($is_complex = System::complex_password()) && boolval($is_complex)) {
+            $validates[] = new ExmentValidator\ComplexPasswordRule;
+            $complex = true;
         }
 
         if (!$complex) {

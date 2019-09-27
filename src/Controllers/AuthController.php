@@ -82,8 +82,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
     protected function checkPasswordLimit()
     {
         // not use password policy and expiration days, go next
-        if (!boolval(config('exment.password_policy_enabled', false)) ||
-            empty($expiration_days = System::password_expiration_days())) {
+        if (empty($expiration_days = System::password_expiration_days())) {
             return true;
         }
 
@@ -364,7 +363,7 @@ class AuthController extends \Encore\Admin\Controllers\AuthController
                     return $exmentfile->local_filename;
                 });
 
-            if (!useLoginProvider()) {
+            if (!useLoginProvider() || boolval(config('exment.show_default_login_provider', true))) {
                 $form->password('old_password', exmtrans('user.old_password'))->rules(['required_with:password', new ExmentValidator\OldPasswordRule])->help(exmtrans('user.help.change_only'));
                 $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false))->help(exmtrans('user.help.change_only').exmtrans('user.help.password'));
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
