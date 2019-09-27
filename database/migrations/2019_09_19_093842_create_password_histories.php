@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Migrations\Migration;
 use Exceedone\Exment\Database\ExtendedBlueprint;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Enums\FilterSearchType;
 
 class CreatePasswordHistories extends Migration
 {
@@ -26,6 +28,10 @@ class CreatePasswordHistories extends Migration
             $table->timestamps();
             $table->timeusers();
         });
+
+        // update system setting
+        System::api_available(config('exment.api', false));
+        System::filter_search_type(config('exment.filter_search_full', false) ? FilterSearchType::ALL : FilterSearchType::FORWARD);
     }
 
     /**

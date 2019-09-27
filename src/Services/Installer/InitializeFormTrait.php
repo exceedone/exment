@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\FilterSearchType;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -81,22 +82,33 @@ trait InitializeFormTrait
         
         if ($system_page) {
             $form->select('grid_pager_count', exmtrans("system.grid_pager_count"))
-            ->options(getPagerOptions())
-            ->config('allowClear', false)
-            ->default(20)
-            ->help(exmtrans("system.help.grid_pager_count"));
-            
+                ->options(getPagerOptions())
+                ->config('allowClear', false)
+                ->default(20)
+                ->help(exmtrans("system.help.grid_pager_count"));
+                
             $form->select('datalist_pager_count', exmtrans("system.datalist_pager_count"))
-            ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
-            ->config('allowClear', false)
-            ->default(5)
-            ->help(exmtrans("system.help.datalist_pager_count"));
+                ->options(getPagerOptions(false, Define::PAGER_DATALIST_COUNTS))
+                ->config('allowClear', false)
+                ->default(5)
+                ->help(exmtrans("system.help.datalist_pager_count"));
             
             $form->select('default_date_format', exmtrans("system.default_date_format"))
-            ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
-            ->config('allowClear', false)
-            ->default('format_default')
-            ->help(exmtrans("system.help.default_date_format"));
+                ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
+                ->config('allowClear', false)
+                ->default('format_default')
+                ->help(exmtrans("system.help.default_date_format"));
+
+            $form->select('filter_search_type', exmtrans("system.filter_search_type"))
+                ->default(FilterSearchType::FORWARD)
+                ->options(FilterSearchType::transArray("system.filter_search_type_options"))
+                ->config('allowClear', false)
+                ->required()
+                ->help(exmtrans("system.help.filter_search_type"));
+                
+            $form->switchbool('api_available', exmtrans("system.api_available"))
+                ->default(0)
+                ->help(exmtrans("system.help.api_available"));
         }
         
         $form->switchbool('outside_api', exmtrans("system.outside_api"))
@@ -197,29 +209,6 @@ trait InitializeFormTrait
             return back()->withInput()->withErrors($validation);
         }
         
-        // check role user-or-org at least 1 data
-        // if (!$initialize && System::permission_available()) {
-        //     $roles = collect($request->all())->filter(function ($value, $key) {
-        //         if (strpos($key, "role_") !== 0) {
-        //             return false;
-        //         }
-
-        //         if (!collect($value)->filter(function ($v) {
-        //             return isset($v);
-        //         })->first()) {
-        //             return false;
-        //         }
-
-        //         return true;
-        //     });
-
-        //     // if empty, return error
-        //     if (count($roles) == 0) {
-        //         admin_error(exmtrans('common.error'), exmtrans('system.help.role_one_user_organization'));
-        //         return back()->withInput();
-        //     }
-        // }
-
         $inputs = $request->all(System::get_system_keys($group));
         array_forget($inputs, 'initialized');
         

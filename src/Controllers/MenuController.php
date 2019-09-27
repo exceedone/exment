@@ -332,7 +332,7 @@ class MenuController extends AdminControllerBase
         if ($k == 'role_group') {
             return System::permission_available();
         } elseif ($k == 'api_setting') {
-            return boolval(config('exment.api'));
+            return System::api_available();
         }
         
         return true;
